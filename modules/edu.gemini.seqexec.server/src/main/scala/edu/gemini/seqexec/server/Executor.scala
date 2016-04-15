@@ -5,19 +5,31 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import edu.gemini.pot.sp.SPObservationID
 import edu.gemini.seqexec.server.SeqexecFailure._
+import edu.gemini.seqexec.server.ActionStatus._
 import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemKey}
 import edu.gemini.spModel.obscomp.InstConstants.INSTRUMENT_NAME_PROP
 import edu.gemini.spModel.seqcomp.SeqConfigNames.INSTRUMENT_KEY
 
-import scala.language.{reflectiveCalls, higherKinds}
+import scala.language.{higherKinds, reflectiveCalls}
 import scalaz._
 import Scalaz._
-
 import scalaz.concurrent.Task
 
 /**
  * Created by jluhrs on 4/28/15.
  */
+
+object RecordStatus {
+  def record[T](s: SeqAction[T])(r: (Phase) => Unit): SeqAction[T] = EitherT ( Task {
+    r(Running(0.0f))
+    val x = s.runSeqAction
+    x match {
+      case -\/(e) => r(Failed(e))
+      case \/-(a) => r(Completed(a))
+    }
+    x
+  } )
+}
 
 object Step {
   type Step = EitherT[Task, NonEmptyList[SeqexecFailure], StepResult]
