@@ -91,6 +91,12 @@ object Settings {
     val TestLibs = Def.setting(
       "edu.gemini" %%% "gsp-math-testkit" % LibraryVersions.gspMath % "test"
     )
+    val MUnit = Def.setting(
+      Seq(
+        "org.scalameta" %%% "munit"            % "0.7.12" % Test,
+        "org.typelevel" %%% "discipline-munit" % "0.3.0"  % Test
+      )
+    )
     val XmlUnit = "xmlunit" % "xmlunit" % LibraryVersions.xmlUnit % "test"
     val JUnitInterface =
       "com.novocode" % "junit-interface" % LibraryVersions.jUnitInterface % "test"
