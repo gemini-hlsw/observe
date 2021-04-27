@@ -42,7 +42,7 @@ echo "--- :scala: Running tests"
 echo "--- :javascript: Linking Javascript"
 /usr/local/bin/sbt                      \
   -jvm-opts build/buildkite-jvmopts     \
-  seqexec_web_client/fullOptJS::webpack
+  observe_web_client/fullOptJS::webpack
 
 ###
 ### WEIGH

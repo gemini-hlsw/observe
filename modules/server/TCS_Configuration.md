@@ -5,7 +5,7 @@ The execution of a step in a sequence involves two stages:
 
 # TCS Configuration
 All of the telescope systems are configured through TCS, with the exception of some configuration items from GeMS and
-Altair. The TCS configuration applied by Seqexec involves the elements described in the following paragraphs.
+Altair. The TCS configuration applied by Observe involves the elements described in the following paragraphs.
 
 # Telescope configuration
 * Telescope offset, for any of three defined positions (A, B and C, although only A is used)
@@ -52,7 +52,7 @@ a telescope offset is too big, it may not be possible to move the telescope whil
 action the configuration must go through three stages:
 
 1. Deactivate guiding. Deactivating the processing of corrections is enough, and that is how it is done in the current
-Seqexec
+Observe
 2. Change TCS configuration
 3. Reactivate guiding. The processing of corrections is always enabled at this stage, after the TCS configuration has
 settled.
@@ -65,7 +65,7 @@ instrument guider. A similar case is when taking a calibration.
 * Some instrument guiders have special requirements. For example, NICI required to block the light to its internal AO
 every time the telescope was moved.
 * Altair and GeMS have themselves some special behaviors. It is desirable that those behaviors are encapsulated (and not
-all over the code, like in the current Seqexec)
+all over the code, like in the current Observe)
 
 Most of those behaviors depend on how the TCS configuration will change, which in turn points to the need to compute the
 set of changes before they are applied.

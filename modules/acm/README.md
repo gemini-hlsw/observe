@@ -1,6 +1,6 @@
 # Java EPICS Action Command Model
 ## Introduction
-All the EPICS systems in Gemini implement the Action Command Model, defined in ICD 1A. This model describes the interface and functionality that allows a principal system to command another principal system. In particular, it is the interface used by Ocswish to provide the ability to send commands, used by applications like TCC and Seqexec. Ocswish also provides the ability to read status values from the EPICS systems, using the Baseline Attribute/Value defined in ICD 1B.
+All the EPICS systems in Gemini implement the Action Command Model, defined in ICD 1A. This model describes the interface and functionality that allows a principal system to command another principal system. In particular, it is the interface used by Ocswish to provide the ability to send commands, used by applications like TCC and Observe. Ocswish also provides the ability to read status values from the EPICS systems, using the Baseline Attribute/Value defined in ICD 1B.
 
 The goal of this module, the epics-acm package, is to provide the same functionalities provided by Ocswish, but for programs written in Java.
 

@@ -9,7 +9,7 @@
         <car>applyC</car>
         <description>IS Primary Apply Record</description>
         <command name="gems::seqLoopCtrl">
-            <description>Loop control for Seqexec</description>
+            <description>Loop control for Observe</description>
             <parameter name="cmd">
                 <channel>seqLoopCtrl.A</channel>
                 <type>STRING</type>

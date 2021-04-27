@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Configuration of logging for seqexec for test
+ Configuration of logging for observe for test
  and production. It will select the file location
  based on the host name
 
@@ -25,14 +25,14 @@
       </then>
   </if>
 
-  <if condition='property("HOSTNAME").contains("seqexec")'>
+  <if condition='property("HOSTNAME").contains("observe")'>
     <!-- Configuration when running on the test or production servers -->
     <then>
         <!-- Files are rotated daily for up to 90 days -->
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>/gemsoft/var/log/seqexec-ng/seqexec-ng.log</file>
+            <file>/gemsoft/var/log/observe/observe.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>/gemsoft/var/log/seqexec-ng/seqexec-ng.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <fileNamePattern>/gemsoft/var/log/observe/observe.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>90</maxHistory>
                 <totalSizeCap>3GB</totalSizeCap>
             </rollingPolicy>

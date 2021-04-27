@@ -10,7 +10,7 @@ const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const TerserPlugin = require("terser-webpack-plugin");
 const cssnano = require("cssnano");
 
-// Dir at the top of the module. e.g. edu_gemini_seqexec_web_client
+// Dir at the top of the module. e.g. edu_gemini_observe_web_client
 const rootDir = path.resolve(__dirname, "../../../..");
 module.exports.rootDir = rootDir;
 

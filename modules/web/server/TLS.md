@@ -40,7 +40,7 @@ Now we are ready to build the keystore as follows:
 The keystore and certificate passwords are stored on each target host at
 
 ```
-/gemsoft/etc/seqexec/conf.d/tls.conf
+/gemsoft/etc/observe/conf.d/tls.conf
 ```
 
 ## Concatenate the intermediate and the site certificates
@@ -64,7 +64,7 @@ This will give you a pkcs12 store with the certificate and key
 ** Note:** Delete any existing keystore before importing
 
 ```
-keytool -importkeystore -deststorepass <keystorepass> -destkeypass <certpass> -destkeystore site.jks -srckeystore site.p12 -srcstoretype PKCS12 -srcstorepass <certpass> -alias seqexec-gs-test
+keytool -importkeystore -deststorepass <keystorepass> -destkeypass <certpass> -destkeystore site.jks -srckeystore site.p12 -srcstoretype PKCS12 -srcstorepass <certpass> -alias observe-gs-test
 ```
 
 ## Verify that the keystore contains one certificate

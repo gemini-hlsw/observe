@@ -1,0 +1,23 @@
+[Unit]
+Description=Observe Server
+Requires=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/software/observe_server/
+EnvironmentFile=/etc/default/observe-server.env
+ExecStart=/home/software/observe_server/bin/observe-server
+Restart=always
+RestartSec=60
+# IOApp returns 128+15 on a regular cancellation, 15 being SIGTERM
+SuccessExitStatus=143
+TimeoutStopSec=5
+User=software
+ExecStartPre=/bin/mkdir -p /run/observe_server
+ExecStartPre=/bin/chown software:software /run/observe_server
+ExecStartPre=/bin/chmod 755 /run/observe_server
+PermissionsStartOnly=true
+LimitNOFILE=1024
+
+[Install]
+WantedBy=multi-user.target

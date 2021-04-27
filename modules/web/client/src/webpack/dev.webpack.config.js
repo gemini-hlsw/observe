@@ -22,7 +22,7 @@ const Web = Merge(
   {
     mode: "development",
     entry: {
-      seqexec: [path.resolve(parts.resourcesDir, "./dev.js")]
+      observe: [path.resolve(parts.resourcesDir, "./dev.js")]
     },
     output: {
       publicPath: "/" // Required to make the url navigation work
@@ -33,7 +33,7 @@ const Web = Merge(
         return content.endsWith("-fastopt");
       }
     },
-    // Custom dev server for the seqexec as we need a ws proxy
+    // Custom dev server for the observe as we need a ws proxy
     devServer: {
       host: "0.0.0.0",
       hot: true,
@@ -41,7 +41,7 @@ const Web = Merge(
       historyApiFallback: true,
       // Proxy targets to the api server
       proxy: {
-        "/api/seqexec/events": {
+        "/api/observe/events": {
           target: "http://localhost:7070",
           changeOrigin: true,
           ws: true
@@ -76,8 +76,8 @@ const Web = Merge(
       new Webpack.HotModuleReplacementPlugin(),
       new HtmlWebpackPlugin({
         filename: "index.html",
-        title: "Seqexec",
-        chunks: ["seqexec"]
+        title: "Observe",
+        chunks: ["observe"]
       }),
       new FaviconsWebpackPlugin(
         path.resolve(parts.resourcesDir, "images/launcher.png")
@@ -88,7 +88,7 @@ const Web = Merge(
 
 // Enable status bar to display on the page when webpack is reloading
 if (isDevServer) {
-  Web.entry.seqexec.push("webpack-dev-server-status-bar");
+  Web.entry.observe.push("webpack-dev-server-status-bar");
 }
 
 module.exports = Web;
