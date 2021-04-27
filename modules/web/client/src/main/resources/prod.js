@@ -2,6 +2,6 @@ import "./theme/semantic.less";
 import "./less/style.less";
 import "./less/semantic-ui-alerts.less";
 
-var App = require("sjs/seqexec_web_client-opt.js");
+var App = require("sjs/observe_web_client-opt.js");
 
-App.SeqexecApp.start();
+App.ObserveApp.start();

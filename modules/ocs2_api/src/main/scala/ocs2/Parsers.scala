@@ -8,8 +8,8 @@ import lucuma.core.enum._
 import lucuma.core.math._
 import lucuma.core.optics.syntax.prism._
 import ocs2.config.GcalConfig.GcalLamp
-import seqexec.model.Observation
-import seqexec.model.Program
+import observe.model.Observation
+import observe.model.Program
 
 /**
  * String parsers for our model types.

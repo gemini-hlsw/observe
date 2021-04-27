@@ -9,7 +9,7 @@ const PackTracker = Merge(Web, {
       upload: true,
       fail_build: true,
       branch: process.env.GITHUB_REF.split("/")[2],
-      exclude_assets: [/seqexec_web_client-opt.*/]
+      exclude_assets: [/observe_web_client-opt.*/]
     })
   ]
 });

@@ -2,12 +2,12 @@ import "resources/theme/semantic.less";
 import "./less/style.less";
 import "./less/semantic-ui-alerts.less";
 
-var App = require("sjs/seqexec_web_client-fastopt.js");
+var App = require("sjs/observe_web_client-fastopt.js");
 
 if (module.hot) {
   module.hot.dispose(() => {
-    App.SeqexecApp.stop();
+    App.ObserveApp.stop();
   });
   module.hot.accept();
-  App.SeqexecApp.start();
+  App.ObserveApp.start();
 }

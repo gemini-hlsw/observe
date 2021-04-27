@@ -1,0 +1,104 @@
+// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
+package observe.web.client.components
+
+import cats.syntax.all._
+import diode.react.ReactPot._
+import japgolly.scalajs.react.React
+import japgolly.scalajs.react.Reusability
+import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.extra.router._
+import japgolly.scalajs.react.vdom.html_<^._
+import lucuma.core.enum.Site
+import react.common._
+import react.common.implicits._
+import react.semanticui.elements.divider.Divider
+import react.semanticui.toasts._
+import observe.web.client.circuit.ObserveCircuit
+import observe.web.client.components.tabs.TabsArea
+import observe.web.client.model.Pages._
+import observe.web.client.model.WebSocketConnection
+import observe.web.client.reusability._
+
+final case class AppTitle(site: Site, ws: WebSocketConnection)
+    extends ReactProps[AppTitle](AppTitle.component)
+
+object AppTitle {
+  type Props = AppTitle
+
+  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+
+  private val component = ScalaComponent
+    .builder[Props]
+    .stateless
+    .render_P(p =>
+      Divider(as = "h4",
+              horizontal = true,
+              clazz = ObserveStyles.titleRow |+| ObserveStyles.notInMobile |+| ObserveStyles.header
+      )(
+        s"Observe ${p.site.shortName}",
+        p.ws.ws.renderPending(_ =>
+          <.div(
+            ObserveStyles.errorText,
+            ObserveStyles.blinking,
+            "Connection lost"
+          )
+        )
+      )
+    )
+    .configure(Reusability.shouldComponentUpdate)
+    .build
+
+}
+
+final case class ObserveMain(site: Site, ctl: RouterCtl[ObservePages])
+    extends ReactProps[ObserveMain](ObserveMain.component)
+
+object ObserveMain {
+  type Props = ObserveMain
+
+  implicit val propsReuse: Reusability[Props] = Reusability.by(_.site)
+
+  private val lbConnect               = ObserveCircuit.connect(_.uiModel.loginBox)
+  private val userNotificationConnect = ObserveCircuit.connect(_.uiModel.notification)
+  private val userPromptConnect       = ObserveCircuit.connect(_.uiModel.userPrompt)
+
+  private val headerSideBarConnect = ObserveCircuit.connect(ObserveCircuit.headerSideBarReader)
+  private val logConnect           = ObserveCircuit.connect(_.uiModel.globalLog)
+  private val wsConnect            = ObserveCircuit.connect(_.ws)
+
+  private val component = ScalaComponent
+    .builder[Props]
+    .stateless
+    .render_P(p =>
+      React.Fragment(
+        SemanticToastContainer(position = ContainerPosition.BottomRight,
+                               animation = SemanticAnimation.FadeUp,
+                               clazz = ObserveStyles.Toast
+        ),
+        <.div(ObserveStyles.MainUI)(
+          wsConnect(ws => AppTitle(p.site, ws())),
+          <.div(ObserveStyles.queueAreaRow)(
+            <.div(ObserveStyles.queueArea)(
+              SessionQueueTableSection(p.ctl)
+            ),
+            <.div(ObserveStyles.headerSideBarArea)(
+              headerSideBarConnect(x => HeadersSideBar(x()))
+            )
+          ),
+          TabsArea(p.ctl, p.site),
+          <.div(ObserveStyles.logArea)(
+            logConnect(l => LogArea(p.site, l()))
+          ),
+          Footer(p.ctl, p.site)
+        ),
+        lbConnect(p => LoginBox(p())),
+        userNotificationConnect(p => UserNotificationBox(p())),
+        userPromptConnect(p => UserPromptBox(p()))
+      )
+    )
+    .configure(Reusability.shouldComponentUpdate)
+    .build
+
+}

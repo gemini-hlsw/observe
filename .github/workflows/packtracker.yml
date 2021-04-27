@@ -27,7 +27,7 @@ jobs:
       - name: Export assets to packtracker
         if: github.event_name == 'pull_request'
         run: |
-          sbt seqexec_web_client/fullOptJS::webpack
+          sbt observe_web_client/fullOptJS::webpack
           cd modules/web/client/target/scala-2.13/scalajs-bundler/main/
           node node_modules/webpack/bin/webpack --bail --profile --json --config packtracker.webpack.config.js
         env:
@@ -36,7 +36,7 @@ jobs:
       - name: Export assets to packtracker merged
         if: github.event_name == 'push'
         run: |
-          sbt seqexec_web_client/fullOptJS::webpack
+          sbt observe_web_client/fullOptJS::webpack
           cd modules/web/client/target/scala-2.13/scalajs-bundler/main/
           node node_modules/webpack/bin/webpack --bail --profile --json --config packtracker.webpack.config.js
         env:

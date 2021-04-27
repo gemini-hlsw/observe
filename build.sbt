@@ -9,7 +9,7 @@ import sbtcrossproject.crossProject
 import sbtcrossproject.CrossType
 import com.typesafe.sbt.packager.docker._
 
-name := "seqexec"
+name := "observe"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -59,24 +59,24 @@ inThisBuild(
 enablePlugins(GitBranchPrompt)
 
 // Custom commands to facilitate web development
-val startSeqexecAllCommands   = List(
-  "seqexec_web_server/reStart",
-  "seqexec_web_client/fastOptJS::startWebpackDevServer",
-  "~seqexec_web_client/fastOptJS"
+val startObserveAllCommands   = List(
+  "observe_web_server/reStart",
+  "observe_web_client/fastOptJS::startWebpackDevServer",
+  "~observe_web_client/fastOptJS"
 )
-val restartSeqexecWDSCommands = List(
-  "seqexec_web_client/fastOptJS::stopWebpackDevServer",
-  "seqexec_web_client/fastOptJS::startWebpackDevServer",
-  "~seqexec_web_client/fastOptJS"
+val restartObserveWDSCommands = List(
+  "observe_web_client/fastOptJS::stopWebpackDevServer",
+  "observe_web_client/fastOptJS::startWebpackDevServer",
+  "~observe_web_client/fastOptJS"
 )
-val stopSeqexecAllCommands    = List(
-  "seqexec_web_server/reStop",
-  "seqexec_web_client/fastOptJS::stopWebpackDevServer"
+val stopObserveAllCommands    = List(
+  "observe_web_server/reStop",
+  "observe_web_client/fastOptJS::stopWebpackDevServer"
 )
 
-addCommandAlias("startSeqexecAll", startSeqexecAllCommands.mkString(";", ";", ""))
-addCommandAlias("restartSeqexecWDS", restartSeqexecWDSCommands.mkString(";", ";", ""))
-addCommandAlias("stopSeqexecAll", stopSeqexecAllCommands.mkString(";", ";", ""))
+addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""))
+addCommandAlias("restartObserveWDS", restartObserveWDSCommands.mkString(";", ";", ""))
+addCommandAlias("stopObserveAll", stopObserveAllCommands.mkString(";", ";", ""))
 
 ThisBuild / resolvers +=
   Resolver.sonatypeRepo("snapshots")
@@ -122,10 +122,10 @@ lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(CatsTime.value) ++
       LucumaCore.value
   )
-  .dependsOn(seqexec_model)
+  .dependsOn(observe_model)
 
 // Project for the server side application
-lazy val seqexec_web_server = project
+lazy val observe_web_server = project
   .in(file("modules/web/server"))
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(GitBranchPrompt)
@@ -142,20 +142,20 @@ lazy val seqexec_web_server = project
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
-    reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/seqexec-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/seqexec-server/src/universal/bin/prometheus.yaml",
-    reStart / mainClass := Some("seqexec.web.server.http4s.WebServerLauncher")
+    reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
+    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
   )
   .settings(
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version, buildInfoBuildNumber),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "seqexec.web.server"
+    buildInfoPackage := "observe.web.server"
   )
-  .dependsOn(seqexec_server)
-  .dependsOn(seqexec_model.jvm % "compile->compile;test->test")
+  .dependsOn(observe_server)
+  .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
-lazy val seqexec_web_client = project
+lazy val observe_web_client = project
   .in(file("modules/web/client"))
   .enablePlugins(ScalaJSPlugin)
   .enablePlugins(ScalaJSBundlerPlugin)
@@ -246,12 +246,12 @@ lazy val seqexec_web_client = project
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version),
     buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "seqexec.web.client"
+    buildInfoPackage := "observe.web.client"
   )
-  .dependsOn(seqexec_model.js % "compile->compile;test->test")
+  .dependsOn(observe_model.js % "compile->compile;test->test")
 
 // List all the modules and their inter dependencies
-lazy val seqexec_server     = project
+lazy val observe_server     = project
   .in(file("modules/server"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
@@ -282,18 +282,18 @@ lazy val seqexec_server     = project
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version),
     buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "seqexec.server"
+    buildInfoPackage := "observe.server"
   )
-  .dependsOn(seqexec_engine    % "compile->compile;test->test",
+  .dependsOn(observe_engine    % "compile->compile;test->test",
              giapi,
              ocs2_api.jvm,
-             seqexec_model.jvm % "compile->compile;test->test",
+             observe_model.jvm % "compile->compile;test->test",
              acm               % "compile->compile;test->test"
   )
 
 // Unfortunately crossProject doesn't seem to work properly at the module/build.sbt level
 // We have to define the project properties at this level
-lazy val seqexec_model = crossProject(JVMPlatform, JSPlatform)
+lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/model"))
   .enablePlugins(GitBranchPrompt)
@@ -317,10 +317,10 @@ lazy val seqexec_model = crossProject(JVMPlatform, JSPlatform)
     scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
-lazy val seqexec_engine = project
+lazy val observe_engine = project
   .in(file("modules/engine"))
   .enablePlugins(GitBranchPrompt)
-  .dependsOn(seqexec_model.jvm % "compile->compile;test->test")
+  .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
     addCompilerPlugin(Plugins.kindProjectorPlugin),
@@ -369,18 +369,18 @@ lazy val acm = project
   )
 
 /**
- * Common settings for the Seqexec instances
+ * Common settings for the Observe instances
  */
-lazy val seqexecCommonSettings = Seq(
+lazy val observeCommonSettings = Seq(
   // Main class for launching
-  Compile / mainClass := Some("seqexec.web.server.http4s.WebServerLauncher"),
+  Compile / mainClass := Some("observe.web.server.http4s.WebServerLauncher"),
   // This is important to keep the file generation order correctly
   Universal / parallelExecution := false,
   // Depend on webpack and add the assets created by webpack
-  Compile / packageBin / mappings ++= (webpack in (seqexec_web_client, Compile, fullOptJS)).value
+  Compile / packageBin / mappings ++= (webpack in (observe_web_client, Compile, fullOptJS)).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName := "seqexec-server",
+  executableScriptName := "observe-server",
   // No javadocs
   mappings in (Compile, packageDoc) := Seq(),
   // Don't create launchers for Windows
@@ -391,7 +391,7 @@ lazy val seqexecCommonSettings = Seq(
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
-    val f = (resourceDirectory in (seqexec_web_server, Compile)).value / "logback.xml"
+    val f = (resourceDirectory in (observe_web_server, Compile)).value / "logback.xml"
     f -> ("conf/" + f.getName)
   },
   // Launch options
@@ -421,31 +421,31 @@ lazy val seqexecCommonSettings = Seq(
 ) ++ commonSettings
 
 /**
- * Settings for Seqexec in Linux
+ * Settings for Observe in Linux
  */
-lazy val seqexecLinux = Seq(
+lazy val observeLinux = Seq(
   // User/Group for execution
   Linux / daemonUser := "software",
   Linux / daemonGroup := "software",
   Universal / maintainer := "Software Group <software@gemini.edu>",
   // This lets us build RPMs from snapshot versions
-  Linux / name := "Seqexec Server",
+  Linux / name := "Observe Server",
   Linux / version := {
     (ThisBuild / version ).value.replace("-SNAPSHOT", "").replace("-", "_").replace(" ", "")
   }
 )
 
 /**
- * Project for the seqexec server app for development
+ * Project for the observe server app for development
  */
-lazy val app_seqexec_server = preventPublication(project.in(file("app/seqexec-server")))
-  .dependsOn(seqexec_web_server, seqexec_web_client)
-  .aggregate(seqexec_web_server, seqexec_web_client)
+lazy val app_observe_server = preventPublication(project.in(file("app/observe-server")))
+  .dependsOn(observe_web_server, observe_web_client)
+  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
-  .settings(seqexecCommonSettings: _*)
+  .settings(observeCommonSettings: _*)
   .settings(
-    description := "Seqexec server for local testing",
+    description := "Observe server for local testing",
     // Put the jar files in the lib dir
     Universal / mappings += {
       val jar = (Compile / packageBin).value
@@ -464,36 +464,36 @@ lazy val app_seqexec_server = preventPublication(project.in(file("app/seqexec-se
       f -> ("bin/" + f.getName)
     },
     Universal / mappings += {
-      val f = (Compile / resourceDirectory).value / "seqexec-server.env"
+      val f = (Compile / resourceDirectory).value / "observe-server.env"
       f -> ("systemd/" + f.getName)
     },
     Universal / mappings += {
-      val f = (Compile / resourceDirectory).value / "seqexec-server.service"
+      val f = (Compile / resourceDirectory).value / "observe-server.service"
       f -> ("systemd/" + f.getName)
     }
   )
 
 /**
- * Project for the seqexec test server at GS on Linux 64
+ * Project for the observe test server at GS on Linux 64
  */
-lazy val app_seqexec_server_gs_test =
-  preventPublication(project.in(file("app/seqexec-server-gs-test")))
-    .dependsOn(seqexec_web_server, seqexec_web_client)
-    .aggregate(seqexec_web_server, seqexec_web_client)
+lazy val app_observe_server_gs_test =
+  preventPublication(project.in(file("app/observe-server-gs-test")))
+    .dependsOn(observe_web_server, observe_web_client)
+    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(SystemdPlugin)
     .enablePlugins(GitBranchPrompt)
-    .settings(seqexecCommonSettings: _*)
-    .settings(seqexecLinux: _*)
+    .settings(observeCommonSettings: _*)
+    .settings(observeLinux: _*)
     .settings(deployedAppMappings: _*)
     .settings(
-      description := "Seqexec GS test deployment",
-      applicationConfName := "seqexec",
+      description := "Observe GS test deployment",
+      applicationConfName := "observe",
       applicationConfSite := DeploymentSite.GS,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (mappings in (app_seqexec_server, Universal)).value
+        val universalMappings = (mappings in (app_observe_server, Universal)).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -501,28 +501,28 @@ lazy val app_seqexec_server_gs_test =
       }
     )
     .settings(embeddedJreSettingsLinux64: _*)
-    .dependsOn(seqexec_server)
+    .dependsOn(observe_server)
 
 /**
- * Project for the seqexec test server at GN on Linux 64
+ * Project for the observe test server at GN on Linux 64
  */
-lazy val app_seqexec_server_gn_test =
-  preventPublication(project.in(file("app/seqexec-server-gn-test")))
-    .dependsOn(seqexec_web_server, seqexec_web_client)
-    .aggregate(seqexec_web_server, seqexec_web_client)
+lazy val app_observe_server_gn_test =
+  preventPublication(project.in(file("app/observe-server-gn-test")))
+    .dependsOn(observe_web_server, observe_web_client)
+    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin, RpmPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(GitBranchPrompt)
-    .settings(seqexecCommonSettings: _*)
-    .settings(seqexecLinux: _*)
+    .settings(observeCommonSettings: _*)
+    .settings(observeLinux: _*)
     .settings(deployedAppMappings: _*)
     .settings(
-      description := "Seqexec GN test deployment",
-      applicationConfName := "seqexec",
+      description := "Observe GN test deployment",
+      applicationConfName := "observe",
       applicationConfSite := DeploymentSite.GN,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (mappings in (app_seqexec_server, Universal)).value
+        val universalMappings = (mappings in (app_observe_server, Universal)).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -530,27 +530,27 @@ lazy val app_seqexec_server_gn_test =
       }
     )
     .settings(embeddedJreSettingsLinux64: _*)
-    .dependsOn(seqexec_server)
+    .dependsOn(observe_server)
 
 /**
- * Project for the seqexec server app for production on Linux 64
+ * Project for the observe server app for production on Linux 64
  */
-lazy val app_seqexec_server_gs = preventPublication(project.in(file("app/seqexec-server-gs")))
-  .dependsOn(seqexec_web_server, seqexec_web_client)
-  .aggregate(seqexec_web_server, seqexec_web_client)
+lazy val app_observe_server_gs = preventPublication(project.in(file("app/observe-server-gs")))
+  .dependsOn(observe_web_server, observe_web_client)
+  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
-  .settings(seqexecCommonSettings: _*)
-  .settings(seqexecLinux: _*)
+  .settings(observeCommonSettings: _*)
+  .settings(observeLinux: _*)
   .settings(deployedAppMappings: _*)
   .settings(
-    description := "Seqexec Gemini South server production",
-    applicationConfName := "seqexec",
+    description := "Observe Gemini South server production",
+    applicationConfName := "observe",
     applicationConfSite := DeploymentSite.GS,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (mappings in (app_seqexec_server, Universal)).value
+      val universalMappings = (mappings in (app_observe_server, Universal)).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }
@@ -558,27 +558,27 @@ lazy val app_seqexec_server_gs = preventPublication(project.in(file("app/seqexec
     }
   )
   .settings(embeddedJreSettingsLinux64: _*)
-  .dependsOn(seqexec_server)
+  .dependsOn(observe_server)
 
 /**
- * Project for the GN seqexec server app for production on Linux 64
+ * Project for the GN observe server app for production on Linux 64
  */
-lazy val app_seqexec_server_gn = preventPublication(project.in(file("app/seqexec-server-gn")))
-  .dependsOn(seqexec_web_server, seqexec_web_client)
-  .aggregate(seqexec_web_server, seqexec_web_client)
+lazy val app_observe_server_gn = preventPublication(project.in(file("app/observe-server-gn")))
+  .dependsOn(observe_web_server, observe_web_client)
+  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
-  .settings(seqexecCommonSettings: _*)
-  .settings(seqexecLinux: _*)
+  .settings(observeCommonSettings: _*)
+  .settings(observeLinux: _*)
   .settings(deployedAppMappings: _*)
   .settings(
-    description := "Seqexec Gemini North server production",
-    applicationConfName := "seqexec",
+    description := "Observe Gemini North server production",
+    applicationConfName := "observe",
     applicationConfSite := DeploymentSite.GN,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (mappings in (app_seqexec_server, Universal)).value
+      val universalMappings = (mappings in (app_observe_server, Universal)).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }
@@ -586,4 +586,4 @@ lazy val app_seqexec_server_gn = preventPublication(project.in(file("app/seqexec
     }
   )
   .settings(embeddedJreSettingsLinux64: _*)
-  .dependsOn(seqexec_server)
+  .dependsOn(observe_server)

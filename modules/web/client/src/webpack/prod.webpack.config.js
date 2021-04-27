@@ -32,7 +32,7 @@ const Web = Merge(
   {
     mode: "production",
     entry: {
-      seqexec: [path.resolve(parts.resourcesDir, "./prod.js")]
+      observe: [path.resolve(parts.resourcesDir, "./prod.js")]
     },
     output: {
       filename: ci ? "[name].js" : "[name].[chunkhash].js",
@@ -40,9 +40,9 @@ const Web = Merge(
     },
     plugins: [
       new HtmlWebpackPlugin({
-        title: "Seqexec",
+        title: "Observe",
         filename: "index.html",
-        chunks: ["seqexec"]
+        chunks: ["observe"]
       }),
       new FaviconsWebpackPlugin({
         logo: path.resolve(parts.resourcesDir, "images/launcher.png"),
