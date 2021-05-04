@@ -3,7 +3,7 @@
 
 package observe.engine
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
