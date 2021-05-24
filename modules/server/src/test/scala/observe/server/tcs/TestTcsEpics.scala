@@ -3,12 +3,12 @@
 
 package observe.server.tcs
 
-import cats.{Applicative, Eq}
-import cats.effect.{Sync, Timer}
+import cats.{ Applicative, Eq }
+import cats.effect.{ Sync, Timer }
 import cats.effect.concurrent.Ref
 import cats.syntax.all._
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import monocle.{Getter, Lens}
+import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
+import monocle.{ Getter, Lens }
 import monocle.macros.Lenses
 import observe.model.enum.ApplyCommandResult
 import observe.server.TestEpicsCommand._
