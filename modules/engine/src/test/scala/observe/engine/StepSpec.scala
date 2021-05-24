@@ -3,7 +3,7 @@
 
 package observe.engine
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.{ ContextShift, IO }
 import cats.effect.Timer
 import cats.effect.concurrent.Ref
 import cats.data.NonEmptyList
@@ -19,9 +19,9 @@ import observe.engine.TestUtil.TestState
 import observe.engine.EventResult._
 import observe.engine.SystemEvent._
 import observe.model.enum.Instrument.GmosS
-import observe.model.{ClientId, SequenceState, StepState}
+import observe.model.{ ClientId, SequenceState, StepState }
 import observe.model.enum.Resource
-import observe.model.{ActionType, UserDetails}
+import observe.model.{ ActionType, UserDetails }
 import scala.Function.const
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
