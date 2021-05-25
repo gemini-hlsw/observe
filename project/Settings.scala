@@ -246,7 +246,8 @@ object Settings {
     )
 
     val JAXB = Seq("javax.xml.bind" % "jaxb-api" % LibraryVersions.jaxb,
-                   "org.glassfish.jaxb" % "jaxb-runtime" % LibraryVersions.jaxb
+                   "org.glassfish.jaxb" % "jaxb-runtime" % LibraryVersions.jaxb,
+                   "org.glassfish.jaxb" % "jaxb-xjc" % LibraryVersions.jaxb
     )
 
     // GIAPI Libraries

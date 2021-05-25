@@ -335,6 +335,7 @@ lazy val observe_engine = project
 lazy val acm = project
   .in(file("modules/acm"))
   .settings(commonSettings: _*)
+  .enablePlugins(SbtXjcPlugin)
   .settings(
     libraryDependencies ++= Seq(
       EpicsService,
@@ -347,25 +348,8 @@ lazy val acm = project
     ) ++ Logback ++ JAXB,
     Test / libraryDependencies ++= Logback,
     Test / testOptions := Seq(),
-    Compile / sourceGenerators += Def.task {
-      import scala.sys.process._
-      val pkg = "edu.gemini.epics.acm.generated"
-      val log = state.value.log
-      val gen = (Compile / sourceManaged).value
-      val out = pkg.split("\\.").foldLeft(gen)(_ / _)
-      val xsd = sourceDirectory.value / "main" / "resources" / "CaSchema.xsd"
-      val cmd = List("xjc", "-d", gen.getAbsolutePath, "-p", pkg, xsd.getAbsolutePath)
-      val mod = xsd.getParentFile.listFiles.map(_.lastModified).max
-      val cur =
-        if (out.exists && out.listFiles.nonEmpty) out.listFiles.map(_.lastModified).min
-        else Int.MaxValue
-      if (mod > cur) {
-        out.mkdirs
-        val err = cmd.run(ProcessLogger(log.info(_), log.error(_))).exitValue
-        if (err != 0) sys.error("xjc failed")
-      }
-      out.listFiles.toSeq
-    }.taskValue
+    xjcCommandLine ++= Seq("-p", "edu.gemini.epics.acm.generated"),
+    xjcLibs ++= JAXB
   )
 
 /**
