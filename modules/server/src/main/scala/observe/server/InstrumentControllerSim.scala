@@ -4,11 +4,8 @@
 package observe.server
 
 import scala.concurrent.duration._
-
 import cats._
 import cats.effect.Sync
-import cats.effect.Timer
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import gov.aps.jca.TimeoutException
@@ -19,7 +16,9 @@ import observe.model.dhs.ImageFileId
 import observe.model.enum.ObserveCommandResult
 import InstrumentSystem.ElapsedTime
 import ObserveFailure.ObserveException
+import cats.effect.kernel.Async
 import squants.time.Time
+import cats.effect.{ Ref, Temporal }
 
 sealed trait InstrumentControllerSim[F[_]] {
   def log(msg: => String): F[Unit]
@@ -74,7 +73,7 @@ object InstrumentControllerSim {
     stopObserveDelay:   FiniteDuration,
     configurationDelay: FiniteDuration,
     obsStateRef:        Ref[F, ObserveState]
-  )(implicit val F:     MonadError[*[_], Throwable][F], L: Logger[F], T: Timer[F])
+  )(implicit val F:     MonadError[*[_], Throwable][F], L: Logger[F], T: Temporal[F])
       extends InstrumentControllerSim[F] {
     private val TIC = 200L
 
@@ -172,7 +171,7 @@ object InstrumentControllerSim {
 
   }
 
-  def apply[F[_]: Sync: Logger: Timer](name: String): F[InstrumentControllerSim[F]] =
+  def apply[F[_]: Logger: Async](name: String): F[InstrumentControllerSim[F]] =
     InstrumentControllerSim.ObserveState.ref[F].map { obsStateRef =>
       new InstrumentControllerSimImpl[F](name,
                                          false,
@@ -183,7 +182,7 @@ object InstrumentControllerSim {
       )
     }
 
-  def unsafeWithTimes[F[_]: Sync: Logger: Timer](
+  def unsafeWithTimes[F[_]: Async: Logger](
     name:               String,
     readOutDelay:       FiniteDuration,
     stopObserveDelay:   FiniteDuration,

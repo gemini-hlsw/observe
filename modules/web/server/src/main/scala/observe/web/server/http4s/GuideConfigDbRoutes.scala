@@ -3,7 +3,7 @@
 
 package observe.web.server.http4s
 
-import cats.effect.Sync
+import cats.effect.Async
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import org.http4s.EntityDecoder
@@ -15,7 +15,7 @@ import observe.server.tcs.GuideConfig
 import observe.server.tcs.GuideConfigDb
 import observe.server.tcs.GuideConfigDb._
 
-class GuideConfigDbRoutes[F[_]: Sync: Logger](db: GuideConfigDb[F]) extends Http4sDsl[F] {
+class GuideConfigDbRoutes[F[_]: Async: Logger](db: GuideConfigDb[F]) extends Http4sDsl[F] {
 
   implicit val decoder: EntityDecoder[F, GuideConfig] = jsonOf
 

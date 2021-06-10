@@ -4,8 +4,7 @@
 package observe.server.gsaoi
 
 import cats.Applicative
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.Async
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
@@ -19,7 +18,7 @@ import squants.Time
 import squants.time.TimeConversions._
 
 object GsaoiControllerSim {
-  def apply[F[_]: Sync: Logger: Timer]: F[GsaoiFullHandler[F]] =
+  def apply[F[_]: Logger: Async]: F[GsaoiFullHandler[F]] =
     InstrumentControllerSim[F]("GSAOI").map { sim =>
       new GsaoiFullHandler[F] {
 

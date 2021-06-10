@@ -3,7 +3,7 @@
 
 package observe.web.server.config
 
-import cats.effect.{ Blocker, ContextShift, IO }
+import cats.effect.IO
 import lucuma.core.enum.Site
 import java.nio.file.Paths
 import org.http4s.Uri
@@ -12,10 +12,9 @@ import pureconfig._
 import scala.concurrent.duration._
 import observe.model.config._
 import shapeless.tag
-import cats.tests.CatsSuite
-import scala.concurrent.ExecutionContext
+import munit.CatsEffectSuite
 
-class ConfigurationLoaderSpec extends CatsSuite {
+class ConfigurationLoaderSpec extends CatsEffectSuite {
   val gcal   =
     SmartGcalConfiguration(uri("gsodbtest.gemini.edu"), Paths.get("/tmp/smartgcal"))
   val tls    = TLSConfig(Paths.get("file.jks"), "key", "cert")
@@ -63,12 +62,8 @@ class ConfigurationLoaderSpec extends CatsSuite {
   )
   val ref    = ObserveConfiguration(Site.GS, Mode.Development, server, ws, gcal, auth)
 
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
-  val blocker                                 = Blocker.liftExecutionContext(ExecutionContext.global)
   test("read config") {
-    assert(
-      loadConfiguration[IO](ConfigSource.string(conf), blocker).unsafeRunSync() === ref
-    )
+    loadConfiguration[IO](ConfigSource.string(conf)).map(assertEquals(_, ref))
   }
 
   val conf = """

@@ -24,6 +24,8 @@ ThisBuild / resolvers += "Gemini Repository".at(
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres8_ocs3"
 
+ThisBuild / evictionErrorLevel := Level.Info
+
 Global / cancelable := true
 
 // Should make CI builds more robust
@@ -110,7 +112,7 @@ lazy val giapi = project
                                 GmpStatusDatabase % "test",
                                 GmpCmdJmsBridge   % "test",
                                 NopSlf4j          % "test"
-    )
+    ) ++ MUnit.value
   )
 
 lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
@@ -251,7 +253,7 @@ lazy val observe_web_client = project
   .dependsOn(observe_model.js % "compile->compile;test->test")
 
 // List all the modules and their inter dependencies
-lazy val observe_server     = project
+lazy val observe_server: Project = project
   .in(file("modules/server"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
@@ -276,7 +278,8 @@ lazy val observe_server     = project
         TestLibs.value,
         PPrint.value
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
-        Circe.value
+        Circe.value,
+    headerSources / excludeFilter := HiddenFileFilter || (file("modules/server") / "src/main/scala/pureconfig/module/http4s/package.scala").getName
   )
   .settings(
     buildInfoUsePackageAsPath := true,

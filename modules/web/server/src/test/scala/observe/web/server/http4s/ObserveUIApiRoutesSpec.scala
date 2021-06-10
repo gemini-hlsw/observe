@@ -5,36 +5,35 @@ package observe.web.server.http4s
 
 import cats.effect.IO
 import cats.data.Nested
-import cats.tests.CatsSuite
 import org.http4s._
 import org.http4s.Uri.uri
 import observe.model.UserLoginRequest
 import observe.web.server.http4s.encoder._
+import munit.CatsEffectSuite
 
-class ObserveUIApiRoutesSpec extends CatsSuite with ClientBooEncoders with TestRoutes {
+class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with TestRoutes {
   test("ObserveUIApiRoutes login: reject requests without body") {
-    (for {
+    for {
       s <- uiRoutes
       r <- Nested(
              s.apply(Request(method = Method.POST, uri = uri("/observe/login"))).value
            ).map(_.status).value
-    } yield assert(r === Some(Status.BadRequest))).unsafeRunSync()
+    } yield assert(r === Some(Status.BadRequest))
   }
 
   test("ObserveUIApiRoutes login: reject GET requests") {
     // This should in principle return a 405
     // see https://github.com/http4s/http4s/issues/234
-    val r = (for {
+    for {
       s <- uiRoutes
       r <- Nested(
              s.apply(Request(method = Method.GET, uri = uri("/observe/login"))).value
            ).map(_.status).value
-    } yield r).unsafeRunSync()
-    assert(r === Some(Status.NotFound))
+    } yield assert(r === Some(Status.NotFound))
   }
 
   test("ObserveUIApiRoutes login: successful login gives a cookie") {
-    (for {
+    for {
       s <- uiRoutes
       r <- s
              .apply(
@@ -45,11 +44,11 @@ class ObserveUIApiRoutesSpec extends CatsSuite with ClientBooEncoders with TestR
       s <- r.map(_.status).pure[IO]
       k <- r.map(_.cookies).orEmpty.pure[IO]
       t  = k.find(_.name === "token")
-    } yield assert(t.isDefined && s === Some(Status.Ok))).unsafeRunSync()
+    } yield assert(t.isDefined && s === Some(Status.Ok))
   }
 
   test("ObserveUIApiRoutes logout: successful logout clears the cookie") {
-    (for {
+    for {
       s <- uiRoutes
       t <- newLoginToken
       r <- s(
@@ -59,12 +58,12 @@ class ObserveUIApiRoutesSpec extends CatsSuite with ClientBooEncoders with TestR
       s <- r.map(_.status).pure[IO]
       k <- r.map(_.cookies).orEmpty.pure[IO]
       t  = k.find(_.name === "token")
-      c  = t.map(_.content).exists(_ === "") // Cleared cookie
-    } yield assert(c && s === Some(Status.Ok))).unsafeRunSync()
+      c  = t.map(_.content).forall(_ === "") // Cleared cookie
+    } yield assert(c && s === Some(Status.Ok))
   }
 
   test("ObserveUIApiRoutes site") {
-    (for {
+    for {
       s <- uiRoutes
       t <- newLoginToken
       r <- s(
@@ -72,7 +71,7 @@ class ObserveUIApiRoutesSpec extends CatsSuite with ClientBooEncoders with TestR
                .addCookie("token", t)
            ).value
       s <- r.map(_.as[String]).sequence
-    } yield assert(s === Some("GS"))).unsafeRunSync()
+    } yield assert(s === Some("GS"))
   }
 
 }

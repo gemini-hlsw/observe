@@ -3,15 +3,17 @@
 
 package observe.server
 
-import cats.{ Applicative, Monoid }
-import cats.effect.{ ContextShift, IO, Timer }
+import cats.{Applicative, Monoid}
+import cats.effect.IO
 import cats.syntax.all._
 import cats.data.NonEmptyList
+import cats.effect.unsafe.IORuntime
+import fs2.Stream
 import io.prometheus.client.CollectorRegistry
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.typelevel.log4cats.Logger
-import java.util.UUID
 
+import java.util.UUID
 import edu.gemini.spModel.core.Peer
 import observe.model.Observation
 import lucuma.core.enum.Site
@@ -20,45 +22,102 @@ import giapi.client.gpi.GpiClient
 import org.http4s.Uri
 import org.http4s.Uri.uri
 import observe.engine
-import observe.engine.{ Action, Result }
+import observe.engine.{Action, Result}
 import observe.engine.Result.PauseContext
 import observe.engine.Result.PartialVal
-import observe.model.{ ActionType, ClientId }
-import observe.model.enum.{ Instrument, Resource }
+import observe.model.{ActionType, ClientId}
+import observe.model.enum.{Instrument, Resource}
 import observe.model.dhs._
 import observe.model.SystemOverrides
 import observe.model.config._
-import observe.server.altair.{ AltairControllerSim, AltairKeywordReaderDummy }
+import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
 import observe.server.flamingos2.Flamingos2ControllerSim
-import observe.server.gcal.{ DummyGcalKeywordsReader, GcalControllerSim }
-import observe.server.gems.{ GemsControllerSim, GemsKeywordReaderDummy }
+import observe.server.gcal.{DummyGcalKeywordsReader, GcalControllerSim}
+import observe.server.gems.{GemsControllerSim, GemsKeywordReaderDummy}
 import observe.server.ghost.GhostController
-import observe.server.gmos.{ GmosControllerSim, GmosKeywordReaderDummy }
-import observe.server.gnirs.{ GnirsControllerSim, GnirsKeywordReaderDummy }
+import observe.server.gmos.{GmosControllerSim, GmosKeywordReaderDummy}
+import observe.server.gnirs.{GnirsControllerSim, GnirsKeywordReaderDummy}
 import observe.server.gpi.GpiController
-import observe.server.gsaoi.{ GsaoiControllerSim, GsaoiKeywordReaderDummy }
+import observe.server.gsaoi.{GsaoiControllerSim, GsaoiKeywordReaderDummy}
 import observe.server.gws.DummyGwsKeywordsReader
-import observe.server.keywords.{ DhsClientSim, GdsClient }
-import observe.server.nifs.{ NifsControllerSim, NifsKeywordReaderDummy }
-import observe.server.niri.{ NiriControllerSim, NiriKeywordReaderDummy }
-import observe.server.tcs.{
-  DummyTcsKeywordsReader,
-  GuideConfigDb,
-  TcsNorthControllerSim,
-  TcsSouthControllerSim
-}
+import observe.server.keywords.{DhsClientSim, GdsClient}
+import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
+import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
+import observe.server.tcs.{DummyTcsKeywordsReader, GuideConfigDb, TcsNorthControllerSim, TcsSouthControllerSim}
+import org.scalatest.flatspec.AnyFlatSpec
 import shapeless.tag
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
+
+class TestCommon(implicit ioRuntime: IORuntime)  extends AnyFlatSpec {
+  import TestCommon._
+
+  val defaultSystems: Systems[IO] = (DhsClientSim[IO],
+                                     Flamingos2ControllerSim[IO],
+                                     GmosControllerSim.south[IO],
+                                     GmosControllerSim.north[IO],
+                                     GnirsControllerSim[IO],
+                                     GsaoiControllerSim[IO],
+                                     gpiSim,
+                                     ghostSim,
+                                     NiriControllerSim[IO],
+                                     NifsControllerSim[IO]
+  ).mapN { (dhs, f2, gmosS, gmosN, gnirs, gsaoi, gpi, ghost, niri, nifs) =>
+    Systems[IO](
+      OdbProxy(new Peer("localhost", 8443, null), new OdbProxy.DummyOdbCommands),
+      dhs,
+      TcsSouthControllerSim[IO],
+      TcsNorthControllerSim[IO],
+      GcalControllerSim[IO],
+      f2,
+      gmosS,
+      gmosN,
+      gnirs,
+      gsaoi,
+      gpi,
+      ghost,
+      niri,
+      nifs,
+      AltairControllerSim[IO],
+      GemsControllerSim[IO],
+      GuideConfigDb.constant[IO],
+      DummyTcsKeywordsReader[IO],
+      DummyGcalKeywordsReader[IO],
+      GmosKeywordReaderDummy[IO],
+      GnirsKeywordReaderDummy[IO],
+      NiriKeywordReaderDummy[IO],
+      NifsKeywordReaderDummy[IO],
+      GsaoiKeywordReaderDummy[IO],
+      AltairKeywordReaderDummy[IO],
+      GemsKeywordReaderDummy[IO],
+      DummyGwsKeywordsReader[IO]
+    )
+  }.unsafeRunSync()
+
+  private val sm = ObserveMetrics.build[IO](Site.GS, new CollectorRegistry()).unsafeRunSync()
+
+  val observeEngine: ObserveEngine[IO] =
+    ObserveEngine.build(Site.GS, defaultSystems, defaultSettings, sm).unsafeRunSync()
+
+  def advanceOne(
+    q:   EventQueue[IO],
+    s0:  EngineState[IO],
+    put: IO[Unit]
+  ): IO[Option[EngineState[IO]]] =
+    advanceN(q, s0, put, 1L)
+
+  def advanceN(
+    q:   EventQueue[IO],
+    s0:  EngineState[IO],
+    put: IO[Unit],
+    n:   Long
+  ): IO[Option[EngineState[IO]]] =
+    (put *> observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(n).compile.last)
+      .map(_.map(_._2))
+
+}
 
 object TestCommon {
-
-  implicit val ioContextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
-
-  implicit val ioTimer: Timer[IO] =
-    IO.timer(ExecutionContext.global)
 
   implicit val logger: Logger[IO] = NoOpLogger.impl[IO]
 
@@ -170,8 +229,6 @@ object TestCommon {
       .get(oid)
       .exists(_.seq.status.isCompleted)
 
-  private val sm = ObserveMetrics.build[IO](Site.GS, new CollectorRegistry()).unsafeRunSync()
-
   private val gpiSim: IO[GpiController[IO]] = GpiClient
     .simulatedGpiClient[IO]
     .use(x =>
@@ -192,73 +249,13 @@ object TestCommon {
       )
     )
 
-  val defaultSystems: Systems[IO] = (DhsClientSim[IO],
-                                     Flamingos2ControllerSim[IO],
-                                     GmosControllerSim.south[IO],
-                                     GmosControllerSim.north[IO],
-                                     GnirsControllerSim[IO],
-                                     GsaoiControllerSim[IO],
-                                     gpiSim,
-                                     ghostSim,
-                                     NiriControllerSim[IO],
-                                     NifsControllerSim[IO]
-  ).mapN { (dhs, f2, gmosS, gmosN, gnirs, gsaoi, gpi, ghost, niri, nifs) =>
-    Systems[IO](
-      OdbProxy(new Peer("localhost", 8443, null), new OdbProxy.DummyOdbCommands),
-      dhs,
-      TcsSouthControllerSim[IO],
-      TcsNorthControllerSim[IO],
-      GcalControllerSim[IO],
-      f2,
-      gmosS,
-      gmosN,
-      gnirs,
-      gsaoi,
-      gpi,
-      ghost,
-      niri,
-      nifs,
-      AltairControllerSim[IO],
-      GemsControllerSim[IO],
-      GuideConfigDb.constant[IO],
-      DummyTcsKeywordsReader[IO],
-      DummyGcalKeywordsReader[IO],
-      GmosKeywordReaderDummy[IO],
-      GnirsKeywordReaderDummy[IO],
-      NiriKeywordReaderDummy[IO],
-      NifsKeywordReaderDummy[IO],
-      GsaoiKeywordReaderDummy[IO],
-      AltairKeywordReaderDummy[IO],
-      GemsKeywordReaderDummy[IO],
-      DummyGwsKeywordsReader[IO]
-    )
-  }.unsafeRunSync()
-
-  val observeEngine: ObserveEngine[IO] =
-    ObserveEngine.build(Site.GS, defaultSystems, defaultSettings, sm).unsafeRunSync()
-
-  def advanceOne(
-    q:   EventQueue[IO],
-    s0:  EngineState[IO],
-    put: IO[Unit]
-  ): IO[Option[EngineState[IO]]] =
-    advanceN(q, s0, put, 1L)
-
-  def advanceN(
-    q:   EventQueue[IO],
-    s0:  EngineState[IO],
-    put: IO[Unit],
-    n:   Long
-  ): IO[Option[EngineState[IO]]] =
-    (put *> observeEngine.stream(q.dequeue)(s0).take(n).compile.last).map(_.map(_._2))
-
   val seqId1: String            = "GS-2018B-Q-0-1"
   val seqObsId1: Observation.Id = Observation.Id.unsafeFromString(seqId1)
   val seqId2: String            = "GS-2018B-Q-0-2"
   val seqObsId2: Observation.Id = Observation.Id.unsafeFromString(seqId2)
   val seqId3: String            = "GS-2018B-Q-0-3"
   val seqObsId3: Observation.Id = Observation.Id.unsafeFromString(seqId3)
-  val clientId                  = ClientId(UUID.randomUUID)
+  val clientId: ClientId        = ClientId(UUID.randomUUID)
 
   def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
     id = id,

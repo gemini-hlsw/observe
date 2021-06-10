@@ -5,8 +5,7 @@ package observe.server
 
 import cats.ApplicativeError
 import cats.Endo
-import cats.effect.Concurrent
-import cats.effect.Timer
+import cats.effect.{ Async }
 import cats.syntax.all._
 import edu.gemini.spModel.core.SPProgramID
 import edu.gemini.spModel.obscomp.InstConstants
@@ -20,7 +19,7 @@ import SeqEvent._
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
 
-final class ODBSequencesLoader[F[_]: ApplicativeError[*[_], Throwable]](
+final class ODBSequencesLoader[F[_]: Async](
   odbProxy:            OdbProxy[F],
   translator:          SeqTranslate[F]
 )(implicit execEngine: ExecEngineType[F]) {
@@ -40,10 +39,7 @@ final class ODBSequencesLoader[F[_]: ApplicativeError[*[_], Throwable]](
       }.withEvent(UnloadSequence(seqId)).toHandle
     )
 
-  def loadEvents(seqId: Observation.Id)(implicit
-    cio:                Concurrent[F],
-    tio:                Timer[F]
-  ): F[List[EventType[F]]] = {
+  def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
     //Three ways of handling errors are mixed here: java exceptions, Either and MonadError
     val t: F[(List[Throwable], Option[SequenceGen[F]])] =
       odbProxy.read(seqId).flatMap { odbSeq =>
@@ -90,9 +86,9 @@ final class ODBSequencesLoader[F[_]: ApplicativeError[*[_], Throwable]](
       case _                 => ObserveFailure.explain(ObserveException(err))
     }
 
-  def refreshSequenceList(odbList: List[Observation.Id], st: EngineState[F])(implicit
-    cio:                           Concurrent[F],
-    tio:                           Timer[F]
+  def refreshSequenceList(
+    odbList: List[Observation.Id],
+    st:      EngineState[F]
   ): F[List[EventType[F]]] = {
     val observeList = st.sequences.keys.toList
 

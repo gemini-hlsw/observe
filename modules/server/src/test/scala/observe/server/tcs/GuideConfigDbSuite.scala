@@ -24,7 +24,7 @@ import observe.server.gems.GemsController.Cwfs2Usage
 import observe.server.gems.GemsController.Cwfs3Usage
 import squants.space.Millimeters
 
-final class GuideConfigDbSuite extends munit.FunSuite {
+final class GuideConfigDbSuite extends munit.CatsEffectSuite {
 
   val rawJson1: String          = """
   {
@@ -151,12 +151,9 @@ final class GuideConfigDbSuite extends munit.FunSuite {
   }
 
   test("retrieve the same configuration that was set") {
-    implicit val ctx = IO.contextShift(scala.concurrent.ExecutionContext.global)
-    val db           = GuideConfigDb.newDb[IO]
+    val db = GuideConfigDb.newDb[IO]
 
-    val ret = db.flatMap(x => x.set(guideConfig1) *> x.value).unsafeRunSync()
-
-    ret shouldBe guideConfig1
+    db.flatMap(x => x.set(guideConfig1) *> x.value).map(assertEquals(_, guideConfig1))
   }
 
 }

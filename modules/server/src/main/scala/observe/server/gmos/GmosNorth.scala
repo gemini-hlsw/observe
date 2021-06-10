@@ -3,9 +3,6 @@
 
 package observe.server.gmos
 
-import cats.effect.Concurrent
-import cats.effect.Timer
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gmos.GmosNorthType
 import edu.gemini.spModel.gemini.gmos.GmosNorthType.FPUnitNorth._
@@ -29,8 +26,9 @@ import observe.server.keywords.DhsClient
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import squants.Length
 import squants.space.Arcseconds
+import cats.effect.{ Ref, Temporal }
 
-final case class GmosNorth[F[_]: Concurrent: Timer: Logger] private (
+final case class GmosNorth[F[_]: Temporal: Logger] private (
   c:         GmosNorthController[F],
   dhsClient: DhsClient[F],
   nsCmdR:    Ref[F, Option[NSObserveCommand]]
@@ -76,7 +74,7 @@ final case class GmosNorth[F[_]: Concurrent: Timer: Logger] private (
 object GmosNorth {
   val name: String = INSTRUMENT_NAME_PROP
 
-  def apply[F[_]: Concurrent: Timer: Logger](
+  def apply[F[_]: Temporal: Logger](
     c:         GmosController[F, NorthTypes],
     dhsClient: DhsClient[F],
     nsCmdR:    Ref[F, Option[NSObserveCommand]]

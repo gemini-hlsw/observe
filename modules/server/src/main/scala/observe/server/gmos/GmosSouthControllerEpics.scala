@@ -129,7 +129,7 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
 }
 
 object GmosSouthControllerEpics {
-  def apply[F[_]: Async: Timer: Logger](sys: => GmosEpics[F]): GmosController[F, SouthTypes] = {
+  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, SouthTypes] = {
     implicit val encoders = GmosSouthEncoders
     GmosControllerEpics[F, SouthTypes](sys, southConfigTypes)
   }

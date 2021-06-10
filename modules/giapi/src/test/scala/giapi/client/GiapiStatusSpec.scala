@@ -3,8 +3,8 @@
 
 package giapi.client
 
-import cats.effect.{ ContextShift, IO, Resource, Timer }
-import cats.tests.CatsSuite
+import cats.effect.{IO, Resource}
+import munit.CatsEffectSuite
 import edu.gemini.aspen.giapi.status.impl.BasicStatus
 import edu.gemini.aspen.giapi.util.jms.JmsKeys
 import edu.gemini.aspen.gmp.statusdb.StatusDatabase
@@ -15,7 +15,7 @@ import edu.gemini.jms.api.BaseMessageConsumer
 import edu.gemini.jms.api.DestinationData
 import edu.gemini.jms.api.DestinationType
 import edu.gemini.jms.api.JmsSimpleMessageSelector
-import scala.concurrent.ExecutionContext
+import org.scalatest.matchers.must.Matchers.matchPattern
 
 final case class GmpStatus(
   amq:         ActiveMQJmsProvider,
@@ -70,15 +70,9 @@ object GmpStatus {
 /**
  * Tests of the giapi api
  */
-final class GiapiStatusSpec extends CatsSuite {
+final class GiapiStatusSpec extends CatsEffectSuite {
   val intItemName = "item:a"
   val strItemName = "item:b"
-
-  implicit val ioContextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
-
-  implicit val ioTimer: Timer[IO] =
-    IO.timer(ExecutionContext.global)
 
   def client(
     amqUrl:      String,
@@ -96,8 +90,7 @@ final class GiapiStatusSpec extends CatsSuite {
     client(GmpStatus.amqUrl("tests1"), intItemName, strItemName)
       .use { case (_, c) =>
         c.get[Int](intItemName)
-      }
-      .unsafeRunSync() shouldBe 1
+      }.map(assertEquals(_,  1))
   }
 
   test("Test reading an status with string type") {
@@ -105,8 +98,7 @@ final class GiapiStatusSpec extends CatsSuite {
       .use { case (_, c) =>
         c.get[String](strItemName)
       }
-      .attempt
-      .unsafeRunSync() shouldBe Right("one")
+      .attempt.map(assertEquals(_, Right("one")))
   }
 
   test("Test reading an unknown status item") {
@@ -114,17 +106,14 @@ final class GiapiStatusSpec extends CatsSuite {
       .use { case (_, c) =>
         c.get[Int]("item:u")
       }
-      .attempt
-      .unsafeRunSync() should matchPattern { case Left(GiapiException(_)) =>
-    }
+      .attempt.map(matchPattern { case Left(GiapiException(_)) => })
   }
 
   test("Test reading an unknown status item as optional") {
     client(GmpStatus.amqUrl("tests4"), intItemName, strItemName)
       .use { case (_, c) =>
         c.getO[Int]("item:u")
-      }
-      .unsafeRunSync() shouldBe None
+      }.map(assertEquals(_, None))
   }
 
   test("Closing connection should terminate") {
@@ -133,9 +122,7 @@ final class GiapiStatusSpec extends CatsSuite {
       .use { case (g, c) =>
         GmpStatus.closeGmpStatus(g) >> c.get[Int](intItemName)
       }
-      .attempt
-      .unsafeRunSync() should matchPattern { case Left(GiapiException(_)) =>
-    }
+      .attempt.map(matchPattern { case Left(GiapiException(_)) => })
   }
 
 }

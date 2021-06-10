@@ -4,8 +4,7 @@
 package observe.server.tcs
 
 import cats.{ Applicative, Eq }
-import cats.effect.{ Sync, Timer }
-import cats.effect.concurrent.Ref
+import cats.effect.Async
 import cats.syntax.all._
 import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
 import monocle.{ Getter, Lens }
@@ -20,8 +19,9 @@ import squants.space.AngleConversions._
 import java.util.concurrent.TimeUnit.SECONDS
 import java.time.Duration
 import scala.concurrent.duration.FiniteDuration
+import cats.effect.{ Ref, Temporal }
 
-class TestTcsEpics[F[_]: Sync](
+class TestTcsEpics[F[_]: Async](
   state: Ref[F, TestTcsEpics.State],
   out:   Ref[F, List[TestTcsEpics.TestTcsEvent]]
 ) extends TcsEpics[F] {
@@ -402,11 +402,11 @@ class TestTcsEpics[F[_]: Sync](
     probeGuideConfigGetters(state, State.oiwfsProbeGuideConfig.asGetter)
 
   override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(implicit
-    T:                                           Timer[F]
+    T:                                           Temporal[F]
   ): F[Unit] =
     Applicative[F].unit
 
-  override def waitAGInPosition(timeout: FiniteDuration)(implicit T: Timer[F]): F[Unit] =
+  override def waitAGInPosition(timeout: FiniteDuration)(implicit T: Temporal[F]): F[Unit] =
     Applicative[F].unit
 
   override def hourAngle: F[String] = state.get.map(_.hourAngle)
@@ -1130,27 +1130,27 @@ object TestTcsEpics {
     g2GuideConfig = ProbeGuideConfigVals.default,
     g3GuideConfig = ProbeGuideConfigVals.default,
     g4GuideConfig = ProbeGuideConfigVals.default,
-    m1GuideCmd = TestEpicsCommand1.State[String](false, ""),
-    m2GuideCmd = TestEpicsCommand1.State[String](false, ""),
-    m2GuideModeCmd = TestEpicsCommand1.State[String](false, ""),
-    m2GuideConfigCmd = TestEpicsCommand3.State[String, String, String](false, "", "", ""),
-    mountGuideCmd = TestEpicsCommand2.State[String, String](false, "", ""),
+    m1GuideCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    m2GuideCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    m2GuideModeCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    m2GuideConfigCmd = TestEpicsCommand3.State[String, String, String](mark = false, "", "", ""),
+    mountGuideCmd = TestEpicsCommand2.State[String, String](mark = false, "", ""),
     pwfs1ProbeGuideConfigCmd =
-      TestEpicsCommand4.State[String, String, String, String](false, "", "", "", ""),
+      TestEpicsCommand4.State[String, String, String, String](mark = false, "", "", "", ""),
     pwfs2ProbeGuideConfigCmd =
-      TestEpicsCommand4.State[String, String, String, String](false, "", "", "", ""),
+      TestEpicsCommand4.State[String, String, String, String](mark = false, "", "", "", ""),
     oiwfsProbeGuideConfigCmd =
-      TestEpicsCommand4.State[String, String, String, String](false, "", "", "", ""),
-    pwfs1ProbeFollowCmd = TestEpicsCommand1.State[String](false, ""),
-    pwfs2ProbeFollowCmd = TestEpicsCommand1.State[String](false, ""),
-    oiwfsProbeFollowCmd = TestEpicsCommand1.State[String](false, ""),
-    offsetACmd = TestEpicsCommand2.State[Double, Double](false, 0.0, 0.0),
+      TestEpicsCommand4.State[String, String, String, String](mark = false, "", "", "", ""),
+    pwfs1ProbeFollowCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    pwfs2ProbeFollowCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    oiwfsProbeFollowCmd = TestEpicsCommand1.State[String](mark = false, ""),
+    offsetACmd = TestEpicsCommand2.State[Double, Double](mark = false, 0.0, 0.0),
     pwfs1ParkCmd = false,
     pwfs2ParkCmd = false,
     oiwfsParkCmd = false,
-    pwfs1ObserveCmd = TestEpicsCommand1.State[Int](false, -1),
-    pwfs2ObserveCmd = TestEpicsCommand1.State[Int](false, -1),
-    oiwfsObserveCmd = TestEpicsCommand1.State[Int](false, -1),
+    pwfs1ObserveCmd = TestEpicsCommand1.State[Int](mark = false, -1),
+    pwfs2ObserveCmd = TestEpicsCommand1.State[Int](mark = false, -1),
+    oiwfsObserveCmd = TestEpicsCommand1.State[Int](mark = false, -1),
     pwfs1StopObserveCmd = false,
     pwfs2StopObserveCmd = false,
     oiwfsStopObserveCmd = false

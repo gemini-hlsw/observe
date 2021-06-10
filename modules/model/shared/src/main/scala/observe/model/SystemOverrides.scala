@@ -4,7 +4,6 @@
 package observe.model
 
 import cats._
-import cats.implicits._
 
 case class SystemOverrides(
   isTcsEnabled:        Boolean,
