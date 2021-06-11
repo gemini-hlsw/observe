@@ -3,8 +3,7 @@
 
 package observe.server
 
-
-import cats.effect.{IO, Ref}
+import cats.effect.{ IO, Ref }
 import org.typelevel.log4cats.noop.NoOpLogger
 
 import scala.concurrent.duration._
@@ -41,10 +40,12 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     sim.observeTic(None).map(assertEquals(_, ObserveCommandResult.Success))
   }
   test("normal observation") {
-    simulator.observe(toImageFileId("S001"), 5.seconds).map(assertEquals(_, ObserveCommandResult.Success))
+    simulator
+      .observe(toImageFileId("S001"), 5.seconds)
+      .map(assertEquals(_, ObserveCommandResult.Success))
   }
   test("pause observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 2.seconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -53,7 +54,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Paused)
   }
   test("abort observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 2.seconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -62,7 +63,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Aborted)
   }
   test("stop observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 2.seconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -71,7 +72,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Stopped)
   }
   test("pause/stop pause observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 900.milliseconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -82,7 +83,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Stopped)
   }
   test("pause/resume observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 900.milliseconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -92,7 +93,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Success)
   }
   test("pause/stop observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 2.seconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -107,7 +108,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     // assertEquals(r, ObserveCommandResult.Stopped)
   }
   test("pause/abort paused observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 900.milliseconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -118,7 +119,7 @@ class InstrumentControllerSimSpec extends CatsEffectSuite {
     } yield assertEquals(r, ObserveCommandResult.Aborted)
   }
   test("pause/abort observation") {
-    val sim    = simulator
+    val sim = simulator
     for {
       f <- sim.observe(toImageFileId("S001"), 2.seconds).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick

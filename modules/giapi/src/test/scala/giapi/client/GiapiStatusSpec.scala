@@ -3,7 +3,7 @@
 
 package giapi.client
 
-import cats.effect.{IO, Resource}
+import cats.effect.{ IO, Resource }
 import munit.CatsEffectSuite
 import edu.gemini.aspen.giapi.status.impl.BasicStatus
 import edu.gemini.aspen.giapi.util.jms.JmsKeys
@@ -90,7 +90,8 @@ final class GiapiStatusSpec extends CatsEffectSuite {
     client(GmpStatus.amqUrl("tests1"), intItemName, strItemName)
       .use { case (_, c) =>
         c.get[Int](intItemName)
-      }.map(assertEquals(_,  1))
+      }
+      .map(assertEquals(_, 1))
   }
 
   test("Test reading an status with string type") {
@@ -98,7 +99,8 @@ final class GiapiStatusSpec extends CatsEffectSuite {
       .use { case (_, c) =>
         c.get[String](strItemName)
       }
-      .attempt.map(assertEquals(_, Right("one")))
+      .attempt
+      .map(assertEquals(_, Right("one")))
   }
 
   test("Test reading an unknown status item") {
@@ -106,14 +108,16 @@ final class GiapiStatusSpec extends CatsEffectSuite {
       .use { case (_, c) =>
         c.get[Int]("item:u")
       }
-      .attempt.map(matchPattern { case Left(GiapiException(_)) => })
+      .attempt
+      .map(matchPattern { case Left(GiapiException(_)) => })
   }
 
   test("Test reading an unknown status item as optional") {
     client(GmpStatus.amqUrl("tests4"), intItemName, strItemName)
       .use { case (_, c) =>
         c.getO[Int]("item:u")
-      }.map(assertEquals(_, None))
+      }
+      .map(assertEquals(_, None))
   }
 
   test("Closing connection should terminate") {
@@ -122,7 +126,8 @@ final class GiapiStatusSpec extends CatsEffectSuite {
       .use { case (g, c) =>
         GmpStatus.closeGmpStatus(g) >> c.get[Int](intItemName)
       }
-      .attempt.map(matchPattern { case Left(GiapiException(_)) => })
+      .attempt
+      .map(matchPattern { case Left(GiapiException(_)) => })
   }
 
 }

@@ -187,8 +187,8 @@ class StepSpec extends CatsEffectSuite {
       .drop(1)
       .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
       .compile
-      .last.map(_.map(_._2))
-
+      .last
+      .map(_.map(_._2))
 
   def runToCompletionL(s0: TestState): IO[List[TestState]] =
     executionEngine
@@ -200,7 +200,6 @@ class StepSpec extends CatsEffectSuite {
       .compile
       .toVector
       .map(_.map(_._2).toList)
-
 
   // This test must have a simple step definition and the known sequence of updates that running that step creates.
   // The test will just run step and compare the output with the predefined sequence of updates.
@@ -246,15 +245,13 @@ class StepSpec extends CatsEffectSuite {
     } yield u.sequences(seqId)
 
     m.compile.last.map {
-      inside(_)
-      {
-        case Some(Sequence.State.Zipper(zipper, status, _)) =>
-          inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
-            assert(
-              Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
-            )
-          }
-          assertEquals(status, SequenceState.Idle)
+      inside(_) { case Some(Sequence.State.Zipper(zipper, status, _)) =>
+        inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
+          assert(
+            Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
+          )
+        }
+        assertEquals(status, SequenceState.Idle)
       }
     }
 
@@ -299,14 +296,13 @@ class StepSpec extends CatsEffectSuite {
       } yield u._2.sequences.get(seqId)
 
     qs1.compile.last.map {
-      inside(_) {
-        case Some(Some(Sequence.State.Zipper(zipper, status, _))) =>
-          inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
-            assert(
-              Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            )
-          }
-          assert(status.isRunning)
+      inside(_) { case Some(Some(Sequence.State.Zipper(zipper, status, _))) =>
+        inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
+          assert(
+            Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
+          )
+        }
+        assert(status.isRunning)
       }
     }
 
@@ -346,9 +342,10 @@ class StepSpec extends CatsEffectSuite {
       )(qs0)
       .take(1)
       .compile
-      .last.map(_.map(_._2))
+      .last
+      .map(_.map(_._2))
 
-    qs1.map( x =>
+    qs1.map(x =>
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
         assert(status.isRunning)
       }
@@ -384,7 +381,8 @@ class StepSpec extends CatsEffectSuite {
       )(qs0)
       .take(1)
       .compile
-      .last.map(_.map(_._2))
+      .last
+      .map(_.map(_._2))
 
     qss.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) {
@@ -439,7 +437,6 @@ class StepSpec extends CatsEffectSuite {
       }
 
     qss.map { x =>
-
       val actionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Completed[_], _) => x }
       assert(actionsCompleted.length == 4)
 
@@ -597,7 +594,6 @@ class StepSpec extends CatsEffectSuite {
     val qs1 = runToCompletion(qs0)
 
     qs1.map { x =>
-
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
         // Without the error we should have a value 2
         // And that it ended in error

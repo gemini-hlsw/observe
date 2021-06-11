@@ -14,7 +14,7 @@ import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import observe.engine._
-import observe.model.{Conditions, Observer, Operator, SequenceState, StepState, UserDetails}
+import observe.model.{ Conditions, Observer, Operator, SequenceState, StepState, UserDetails }
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import observe.server.TestCommon._

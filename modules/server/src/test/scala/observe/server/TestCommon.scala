@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats.{Applicative, Monoid}
+import cats.{ Applicative, Monoid }
 import cats.effect.IO
 import cats.syntax.all._
 import cats.data.NonEmptyList
@@ -22,34 +22,39 @@ import giapi.client.gpi.GpiClient
 import org.http4s.Uri
 import org.http4s.Uri.uri
 import observe.engine
-import observe.engine.{Action, Result}
+import observe.engine.{ Action, Result }
 import observe.engine.Result.PauseContext
 import observe.engine.Result.PartialVal
-import observe.model.{ActionType, ClientId}
-import observe.model.enum.{Instrument, Resource}
+import observe.model.{ ActionType, ClientId }
+import observe.model.enum.{ Instrument, Resource }
 import observe.model.dhs._
 import observe.model.SystemOverrides
 import observe.model.config._
-import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
+import observe.server.altair.{ AltairControllerSim, AltairKeywordReaderDummy }
 import observe.server.flamingos2.Flamingos2ControllerSim
-import observe.server.gcal.{DummyGcalKeywordsReader, GcalControllerSim}
-import observe.server.gems.{GemsControllerSim, GemsKeywordReaderDummy}
+import observe.server.gcal.{ DummyGcalKeywordsReader, GcalControllerSim }
+import observe.server.gems.{ GemsControllerSim, GemsKeywordReaderDummy }
 import observe.server.ghost.GhostController
-import observe.server.gmos.{GmosControllerSim, GmosKeywordReaderDummy}
-import observe.server.gnirs.{GnirsControllerSim, GnirsKeywordReaderDummy}
+import observe.server.gmos.{ GmosControllerSim, GmosKeywordReaderDummy }
+import observe.server.gnirs.{ GnirsControllerSim, GnirsKeywordReaderDummy }
 import observe.server.gpi.GpiController
-import observe.server.gsaoi.{GsaoiControllerSim, GsaoiKeywordReaderDummy}
+import observe.server.gsaoi.{ GsaoiControllerSim, GsaoiKeywordReaderDummy }
 import observe.server.gws.DummyGwsKeywordsReader
-import observe.server.keywords.{DhsClientSim, GdsClient}
-import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
-import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
-import observe.server.tcs.{DummyTcsKeywordsReader, GuideConfigDb, TcsNorthControllerSim, TcsSouthControllerSim}
+import observe.server.keywords.{ DhsClientSim, GdsClient }
+import observe.server.nifs.{ NifsControllerSim, NifsKeywordReaderDummy }
+import observe.server.niri.{ NiriControllerSim, NiriKeywordReaderDummy }
+import observe.server.tcs.{
+  DummyTcsKeywordsReader,
+  GuideConfigDb,
+  TcsNorthControllerSim,
+  TcsSouthControllerSim
+}
 import org.scalatest.flatspec.AnyFlatSpec
 import shapeless.tag
 
 import scala.concurrent.duration._
 
-class TestCommon(implicit ioRuntime: IORuntime)  extends AnyFlatSpec {
+class TestCommon(implicit ioRuntime: IORuntime) extends AnyFlatSpec {
   import TestCommon._
 
   val defaultSystems: Systems[IO] = (DhsClientSim[IO],

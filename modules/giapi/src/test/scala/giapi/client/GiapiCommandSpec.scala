@@ -89,7 +89,8 @@ final class GiapiCommandSpec extends CatsEffectSuite with EitherValues {
       .use { c =>
         c.command(Command(SequenceCommand.TEST, Activity.PRESET, Configuration.Zero), 1.second)
           .attempt
-      }.map(assertEquals(_, Left(CommandResultException(Response.ERROR, "Message cannot be null"))))
+      }
+      .map(assertEquals(_, Left(CommandResultException(Response.ERROR, "Message cannot be null"))))
   }
 
   test("Test sending a command with no answer") {
@@ -97,7 +98,13 @@ final class GiapiCommandSpec extends CatsEffectSuite with EitherValues {
       .use { c =>
         c.command(Command(SequenceCommand.TEST, Activity.PRESET, Configuration.Zero), 1.second)
           .attempt
-      }.map(assertEquals(_, Left(CommandResultException(Response.NOANSWER, "No answer from the instrument"))))
+      }
+      .map(
+        assertEquals(
+          _,
+          Left(CommandResultException(Response.NOANSWER, "No answer from the instrument"))
+        )
+      )
   }
 
   test("Test sending a command with immediate answer") {
@@ -105,7 +112,8 @@ final class GiapiCommandSpec extends CatsEffectSuite with EitherValues {
       .use { c =>
         c.command(Command(SequenceCommand.INIT, Activity.PRESET, Configuration.Zero), 1.second)
           .attempt
-      }.map(assertEquals(_, Right(CommandResult(Response.COMPLETED))))
+      }
+      .map(assertEquals(_, Right(CommandResult(Response.COMPLETED))))
   }
 
   test("Test sending a command with accepted but never completed answer") {
@@ -114,7 +122,8 @@ final class GiapiCommandSpec extends CatsEffectSuite with EitherValues {
       .use { c =>
         c.command(Command(SequenceCommand.PARK, Activity.PRESET, Configuration.Zero), timeout)
           .attempt
-      }.map(assertEquals(_, Left(CommandResultException.timedOut(timeout))))
+      }
+      .map(assertEquals(_, Left(CommandResultException.timedOut(timeout))))
   }
 
 }
