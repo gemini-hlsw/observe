@@ -18,7 +18,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       r <- Nested(
              s.apply(Request(method = Method.POST, uri = uri("/observe/login"))).value
            ).map(_.status).value
-    } yield assert(r === Some(Status.BadRequest))
+    } yield assertEquals(r, Some(Status.BadRequest))
   }
 
   test("ObserveUIApiRoutes login: reject GET requests") {
@@ -29,7 +29,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       r <- Nested(
              s.apply(Request(method = Method.GET, uri = uri("/observe/login"))).value
            ).map(_.status).value
-    } yield assert(r === Some(Status.NotFound))
+    } yield assertEquals(r, Some(Status.NotFound))
   }
 
   test("ObserveUIApiRoutes login: successful login gives a cookie") {

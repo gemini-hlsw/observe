@@ -17,7 +17,7 @@ import cats.syntax.all._
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import fs2.Stream
-import cats.effect.std.Queue
+import cats.effect.std.{ Dispatcher, Queue }
 import fs2.concurrent.Topic
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -202,12 +202,15 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
   // We need to manually update the configuration of the logging subsystem
   // to support capturing log messages and forward them to the clients
-  def logToClients(out: Topic[IO, ObserveEvent]): IO[Appender[ILoggingEvent]] = IO.apply {
+  def logToClients(
+    out:        Topic[IO, ObserveEvent],
+    dispatcher: Dispatcher[IO]
+  ): IO[Appender[ILoggingEvent]] = IO.apply {
     import ch.qos.logback.classic.{ AsyncAppender, Logger, LoggerContext }
     import org.slf4j.LoggerFactory
 
     val asyncAppender = new AsyncAppender
-    val appender      = new AppenderForClients(out)(runtime)
+    val appender      = new AppenderForClients(out)(dispatcher)
     Option(LoggerFactory.getILoggerFactory)
       .collect { case lc: LoggerContext =>
         lc
@@ -284,7 +287,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
         cli    <- AsyncHttpClient.resource[IO](clientConfig(conf.observeEngine.dhsTimeout))
         inq    <- Resource.eval(Queue.bounded[IO, executeEngine.EventType](10))
         out    <- Resource.eval(Topic[IO, ObserveEvent])
-        _      <- Resource.eval(logToClients(out))
+        dsp    <- Dispatcher[IO]
+        _      <- Resource.eval(logToClients(out, dsp))
         cr     <- Resource.eval(IO(new CollectorRegistry))
         cs     <- Resource.eval(
                     Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))

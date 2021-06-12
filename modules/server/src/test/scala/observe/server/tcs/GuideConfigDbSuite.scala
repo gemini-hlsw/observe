@@ -3,7 +3,6 @@
 
 package observe.server.tcs
 
-import org.scalatest.matchers.should.Matchers._
 import io.circe.parser._
 import cats.effect.IO
 import observe.model.enum._
@@ -145,9 +144,9 @@ final class GuideConfigDbSuite extends munit.CatsEffectSuite {
   )
 
   test("GuideConfigDb provide decoders") {
-    decode[GuideConfig](rawJson1) shouldBe Right(guideConfig1)
-    decode[GuideConfig](rawJson2) shouldBe Right(guideConfig2)
-    decode[GuideConfig](rawJson3) shouldBe Right(guideConfig3)
+    assertEquals(decode[GuideConfig](rawJson1), Right(guideConfig1))
+    assertEquals(decode[GuideConfig](rawJson2), Right(guideConfig2))
+    assertEquals(decode[GuideConfig](rawJson3), Right(guideConfig3))
   }
 
   test("retrieve the same configuration that was set") {

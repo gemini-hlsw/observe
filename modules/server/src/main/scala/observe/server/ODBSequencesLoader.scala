@@ -5,7 +5,7 @@ package observe.server
 
 import cats.ApplicativeError
 import cats.Endo
-import cats.effect.{ Async }
+import cats.effect.Async
 import cats.syntax.all._
 import edu.gemini.spModel.core.SPProgramID
 import edu.gemini.spModel.obscomp.InstConstants

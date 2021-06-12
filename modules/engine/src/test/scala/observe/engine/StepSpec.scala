@@ -179,27 +179,19 @@ class StepSpec extends CatsEffectSuite {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): IO[Option[TestState]] =
+  private def runToCompletioIO(s0: TestState) =
     executionEngine
       .process(PartialFunction.empty)(
         Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
       )(s0)
       .drop(1)
       .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+      .map(_._2)
       .compile
-      .last
-      .map(_.map(_._2))
 
-  def runToCompletionL(s0: TestState): IO[List[TestState]] =
-    executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
-      )(s0)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .toVector
-      .map(_.map(_._2).toList)
+  def runToCompletionLastIO(s0: TestState): IO[Option[TestState]] = runToCompletioIO(s0).last
+
+  def runToCompletionAllIO(s0: TestState): IO[List[TestState]] = runToCompletioIO(s0).toList
 
   // This test must have a simple step definition and the known sequence of updates that running that step creates.
   // The test will just run step and compare the output with the predefined sequence of updates.
@@ -438,13 +430,13 @@ class StepSpec extends CatsEffectSuite {
 
     qss.map { x =>
       val actionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Completed[_], _) => x }
-      assert(actionsCompleted.length == 4)
+      assertEquals(actionsCompleted.length, 4)
 
       val executionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Executed, _) => x }
-      assert(executionsCompleted.length == 3)
+      assertEquals(executionsCompleted.length, 3)
 
       val sequencesCompleted = x.map(_._1).collect { case SystemUpdate(x: Finished, _) => x }
-      assert(sequencesCompleted.length == 1)
+      assertEquals(sequencesCompleted.length, 1)
 
       inside(x.lastOption.flatMap(_._2.sequences.get(seqId))) {
         case Some(Sequence.State.Final(_, status)) =>
@@ -479,7 +471,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1 = runToCompletion(qs0)
+    val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) {
@@ -525,7 +517,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1 = runToCompletion(qs0)
+    val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Final(_, status)) =>
@@ -558,7 +550,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1 = runToCompletion(qs0)
+    val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
@@ -591,7 +583,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1 = runToCompletion(qs0)
+    val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
@@ -625,7 +617,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    interceptIO[RuntimeException](runToCompletion(qs0))
+    interceptIO[RuntimeException](runToCompletionLastIO(qs0))
 
   }
 
@@ -669,7 +661,7 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qss = runToCompletionL(qs0)
+    val qss = runToCompletionAllIO(qs0)
 
     qss.map { x =>
       inside(x.drop(1).headOption.flatMap(_.sequences.get(seqId))) {
@@ -729,7 +721,7 @@ class StepSpec extends CatsEffectSuite {
   }
 
   test("status should be completed when it doesn't have any executions") {
-    assert(stepz0.toStep.status === StepState.Completed)
+    assertEquals(stepz0.toStep.status, StepState.Completed)
   }
 
   test("status should be Error when at least one Action failed") {
