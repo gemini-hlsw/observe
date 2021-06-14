@@ -460,13 +460,15 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     initialState: S,
     f:            (A, S) => F[(S, B, Option[Stream[F, A]])]
   )(implicit ev:  Concurrent[F]): Stream[F, B] =
-    Stream.eval(fs2.concurrent.Queue.unbounded[F, Stream[F, A]]).flatMap { q =>
-      Stream.eval_(q.enqueue1(input)) ++
-        q.dequeue.parJoinUnbounded
+    Stream.eval(cats.effect.std.Queue.unbounded[F, Stream[F, A]]).flatMap { q =>
+      Stream.exec(q.offer(input)) ++
+        Stream
+          .fromQueueUnterminated(q)
+          .parJoinUnbounded
           .evalMapAccumulate(initialState) { (s, a) =>
             f(a, s).flatMap {
               case (ns, b, None)     => (ns, b).pure[F]
-              case (ns, b, Some(st)) => q.enqueue1(st) >> (ns, b).pure[F]
+              case (ns, b, Some(st)) => q.offer(st) >> (ns, b).pure[F]
             }
           }
           .map(_._2)

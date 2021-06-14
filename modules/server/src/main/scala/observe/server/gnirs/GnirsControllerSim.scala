@@ -3,8 +3,7 @@
 
 package observe.server.gnirs
 
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.Async
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
@@ -18,7 +17,7 @@ import squants.Time
 import squants.time.TimeConversions._
 
 object GnirsControllerSim {
-  def apply[F[_]: Sync: Logger: Timer]: F[GnirsController[F]] =
+  def apply[F[_]: Logger: Async]: F[GnirsController[F]] =
     InstrumentControllerSim[F]("GNIRS").map { sim =>
       new GnirsController[F] {
 

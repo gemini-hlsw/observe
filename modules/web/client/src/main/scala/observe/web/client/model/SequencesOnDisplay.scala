@@ -7,7 +7,8 @@ import scala.collection.immutable.SortedMap
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import lucuma.core.data.Zipper
 import monocle.Getter
 import monocle.Optional
@@ -286,11 +287,11 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     }
 
   def tab(id: Observation.Id): Option[ObserveTabActive] =
-    tabs.withFocus.toList.collect {
+    tabs.withFocus.toList.collectFirst {
       case (i: SequenceTab, a) if i.obsId === id =>
         val selected = if (a) TabSelected.Selected else TabSelected.Background
         ObserveTabActive(i, selected)
-    }.headOption
+    }
 
   def availableTabs: NonEmptyList[Either[CalibrationQueueTabActive, AvailableTab]] =
     NonEmptyList.fromListUnsafe(tabs.withFocus.toList.collect {
@@ -530,12 +531,12 @@ object SequencesOnDisplay {
     id: Observation.Id
   ): Getter[SequencesOnDisplay, Option[ObserveTabActive]] =
     SequencesOnDisplay.tabs.asGetter >>> {
-      _.withFocus.toList.collect {
+      _.withFocus.toList.collectFirst {
         case (i: SequenceTab, a) if i.obsId === id =>
           val selected =
             if (a) TabSelected.Selected else TabSelected.Background
           ObserveTabActive(i, selected)
-      }.headOption
+      }
     }
 
   def changeOverrideControls(

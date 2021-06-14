@@ -10,7 +10,6 @@ import cats._
 import cats.data._
 import cats.effect.Async
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.core.Wavelength
 import org.typelevel.log4cats.Logger
@@ -261,8 +260,8 @@ object TcsControllerEpicsCommon {
   ): Option[C => F[C]] =
     (used && current =!= demand).option(c => act(demand) *> lens.set(demand)(c).pure[F])
 
-  private class TcsControllerEpicsCommonImpl[F[_]: Async: Timer](epicsSys: TcsEpics[F])(implicit
-    L:                                                                     Logger[F]
+  private class TcsControllerEpicsCommonImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+    L:                                                              Logger[F]
   ) extends TcsControllerEpicsCommon[F]
       with TcsControllerEncoders
       with ScienceFoldPositionCodex {
@@ -728,7 +727,7 @@ object TcsControllerEpicsCommon {
 
   }
 
-  def apply[F[_]: Async: Logger: Timer](epicsSys: TcsEpics[F]): TcsControllerEpicsCommon[F] =
+  def apply[F[_]: Async: Logger](epicsSys: TcsEpics[F]): TcsControllerEpicsCommon[F] =
     new TcsControllerEpicsCommonImpl(epicsSys)
 
   val DefaultTimeout: FiniteDuration = FiniteDuration(10, SECONDS)

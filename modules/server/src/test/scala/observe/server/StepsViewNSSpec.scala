@@ -7,9 +7,9 @@ import cats.Id
 import cats.effect.IO
 import cats.data.NonEmptyList
 import org.scalatest.funsuite.AnyFunSuite
-import observe.server.TestCommon._
 import observe.engine._
 import observe.model.enum._
+import observe.server.TestCommon._
 
 class StepsViewNSSpec extends AnyFunSuite {
 

@@ -6,7 +6,7 @@ package observe.server.gems
 import cats.Applicative
 import cats.Eq
 import cats.MonadError
-import cats.implicits._
+import cats.syntax.all._
 import edu.gemini.spModel.gemini.gems.CanopusWfs
 import edu.gemini.spModel.gemini.gsaoi.GsaoiOdgw
 import edu.gemini.spModel.guide.StandardGuideOptions

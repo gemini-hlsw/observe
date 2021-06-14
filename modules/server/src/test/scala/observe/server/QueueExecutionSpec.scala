@@ -5,7 +5,9 @@ package observe.server
 
 import cats.effect.IO
 import cats.syntax.all._
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
+import cats.effect.unsafe.implicits.global
+import fs2.Stream
 import observe.model.Observation
 import monocle.Monocle.index
 import org.scalatest.NonImplicitAssertions
@@ -17,10 +19,9 @@ import observe.model.BatchCommandState
 import observe.model.enum.Instrument
 import observe.model.enum.Resource.TCS
 import observe.server.TestCommon._
-import org.scalatest.flatspec.AnyFlatSpec
 import observe.model.enum.RunOverride
 
-class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAssertions {
+class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssertions {
 
   "ObserveEngine addSequenceToQueue" should
     "add sequence id to queue" in {
@@ -372,7 +373,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       _  <-
         observeEngine.startQueue(q, CalibrationQueueId, Observer(""), UserDetails("", ""), clientId)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -392,7 +393,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.startQueue(q, CalibrationQueueId, observer, UserDetails("", ""), clientId)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -438,7 +439,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
         observeEngine.startQueue(q, CalibrationQueueId, Observer(""), UserDetails("", ""), clientId)
       _  <- observeEngine.stopQueue(q, CalibrationQueueId, clientId)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -523,7 +524,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.start(q, seqObsId2, UserDetails("", ""), clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .drop(1)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
@@ -550,7 +551,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.start(q, seqObsId2, UserDetails("", ""), clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .drop(1)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
@@ -577,7 +578,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.start(q, seqObsId1, UserDetails("", ""), clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .drop(1)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
@@ -605,7 +606,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.start(q, seqObsId1, UserDetails("", ""), clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .drop(1)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
@@ -631,7 +632,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.start(q, seqObsId3, UserDetails("", ""), clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -656,7 +657,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.addSequenceToQueue(q, CalibrationQueueId, seqObsId1)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -681,7 +682,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.addSequenceToQueue(q, CalibrationQueueId, seqObsId1)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -729,7 +730,7 @@ class QueueExecutionSpec extends AnyFlatSpec with Matchers with NonImplicitAsser
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.removeSequenceFromQueue(q, CalibrationQueueId, seqObsId1)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile

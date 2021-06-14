@@ -14,7 +14,7 @@ import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController._
 import observe.server.tcs.TcsSouthController._
 
-final case class TcsSouthControllerEpics[F[_]: Async: Logger: Timer](
+final case class TcsSouthControllerEpics[F[_]: Async: Logger](
   epicsSys:      TcsEpics[F],
   guideConfigDb: GuideConfigDb[F]
 ) extends TcsSouthController[F] {

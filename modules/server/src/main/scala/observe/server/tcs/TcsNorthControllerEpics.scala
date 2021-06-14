@@ -5,7 +5,6 @@ package observe.server.tcs
 
 import cats.data._
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.enum.NodAndShuffleStage
@@ -15,7 +14,7 @@ import observe.server.tcs.TcsController._
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
 
-final case class TcsNorthControllerEpics[F[_]: Async: Logger: Timer](epicsSys: TcsEpics[F])
+final case class TcsNorthControllerEpics[F[_]: Async: Logger](epicsSys: TcsEpics[F])
     extends TcsNorthController[F] {
   private val commonController = TcsControllerEpicsCommon(epicsSys)
   private val aoController     = TcsNorthControllerEpicsAo(epicsSys)

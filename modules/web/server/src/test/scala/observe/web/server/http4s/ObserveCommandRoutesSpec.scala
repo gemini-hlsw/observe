@@ -4,6 +4,7 @@
 package observe.web.server.http4s
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.tests.CatsSuite
 import observe.model.Observation
 import lucuma.core.util.arb.ArbEnumerated._
