@@ -3,12 +3,9 @@
 
 package observe.web.server.http4s
 
-import cats.effect.ContextShift
 import cats.effect.IO
-import cats.effect.Timer
-import cats.effect.concurrent.Ref
 import cats.tests.CatsSuite
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
 import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
 import lucuma.core.enum.Site
@@ -22,17 +19,11 @@ import observe.model.config._
 import observe.web.server.http4s.encoder._
 import observe.web.server.security.AuthenticationService
 import observe.model.UserLoginRequest
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import cats.effect.Ref
 
 trait TestRoutes extends ClientBooEncoders with CatsSuite {
   private implicit def logger = NoOpLogger.impl[IO]
-
-  implicit val ioContextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
-
-  implicit val ioTimer: Timer[IO] =
-    IO.timer(ExecutionContext.global)
 
   private val statusDb    = GiapiStatusDb.simulatedDb[IO]
   private val config      =
@@ -46,7 +37,7 @@ trait TestRoutes extends ClientBooEncoders with CatsSuite {
 
   val uiRoutes =
     for {
-      o  <- Topic[IO, ObserveEvent](NullEvent)
+      o  <- Topic[IO, ObserveEvent]
       cs <- Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
     } yield new ObserveUIApiRoutes(Site.GS,
                                    Mode.Development,

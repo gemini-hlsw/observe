@@ -5,6 +5,7 @@ package observe.server
 
 import cats.Monoid
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import edu.gemini.spModel.config2.DefaultConfig
 import edu.gemini.spModel.obsclass.ObsClass
@@ -20,7 +21,8 @@ import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.CLOUD_COVER_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.IMAGE_QUALITY_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.SKY_BACKGROUND_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.WATER_VAPOR_PROP
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
+import fs2.Stream
 import lucuma.core.enum.Site
 import io.prometheus.client.CollectorRegistry
 import org.scalatest.Inside.inside
@@ -42,7 +44,6 @@ import observe.model.{
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import monocle.Monocle._
-import org.scalatest.flatspec.AnyFlatSpec
 import observe.engine.EventResult.{ Outcome, UserCommandResponse }
 import observe.model.dhs.DataId
 import observe.server.tcs.{
@@ -53,7 +54,7 @@ import observe.server.tcs.{
 import observe.server.ConfigUtilOps._
 import observe.server.SeqEvent.RequestConfirmation
 
-class ObserveEngineSpec extends AnyFlatSpec with Matchers with NonImplicitAssertions {
+class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAssertions {
 
   "ObserveEngine setOperator" should "set operator's name" in {
     val operator = Operator("Joe")
@@ -286,7 +287,7 @@ class ObserveEngineSpec extends AnyFlatSpec with Matchers with NonImplicitAssert
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.startFrom(q, seqObsId1, runStepId, clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -320,7 +321,7 @@ class ObserveEngineSpec extends AnyFlatSpec with Matchers with NonImplicitAssert
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.startFrom(q, seqObsId2, runStepId, clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.get(seqObsId2).exists(_.seq.status.isRunning))
               .compile
@@ -625,7 +626,7 @@ class ObserveEngineSpec extends AnyFlatSpec with Matchers with NonImplicitAssert
       q             <- Queue.bounded[IO, executeEngine.EventType](10)
       result        <-
         observeEngine.startFrom(q, seqObsId1, 2, clientId, RunOverride.Default) *>
-          observeEngine.stream(q.dequeue)(s0).take(1).compile.last
+          observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(1).compile.last
     } yield inside(result) { case Some((out, sf)) =>
       inside(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).map(_.status)) {
         case Some(status) => assert(status.isIdle)
@@ -783,7 +784,7 @@ class ObserveEngineSpec extends AnyFlatSpec with Matchers with NonImplicitAssert
       q             <- Queue.bounded[IO, executeEngine.EventType](10)
       result        <-
         observeEngine.start(q, seqObsId1, UserDetails("", ""), clientId, RunOverride.Default) *>
-          observeEngine.stream(q.dequeue)(s0).take(1).compile.last
+          observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(1).compile.last
     } yield inside(result) { case Some((out, sf)) =>
       inside(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).map(_.status)) {
         case Some(status) => assert(status.isIdle)

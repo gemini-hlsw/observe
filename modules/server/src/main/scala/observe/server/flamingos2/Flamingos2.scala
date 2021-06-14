@@ -11,9 +11,7 @@ import scala.reflect.ClassTag
 
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.Concurrent
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Reads
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2._
@@ -37,8 +35,9 @@ import squants.Length
 import squants.space.Arcseconds
 import squants.time.Seconds
 import squants.time.Time
+import cats.effect.Async
 
-final case class Flamingos2[F[_]: Timer: Logger: Concurrent](
+final case class Flamingos2[F[_]: Async: Logger](
   f2Controller: Flamingos2Controller[F],
   dhsClient:    DhsClient[F]
 ) extends DhsInstrument[F]

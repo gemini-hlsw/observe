@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGeneric
 import edu.gemini.observe.server.gsaoi.DhsConnected
@@ -105,7 +104,7 @@ object GsaoiControllerEpics {
     guiding:       Boolean
   )
 
-  def apply[F[_]: Async: Timer: Logger](epicsSys: => GsaoiEpics[F]): GsaoiFullHandler[F] =
+  def apply[F[_]: Async: Logger](epicsSys: => GsaoiEpics[F]): GsaoiFullHandler[F] =
     new GsaoiFullHandler[F] {
       private val L: Logger[F] = Logger[F]
 

@@ -4,8 +4,6 @@
 package observe.server
 
 import cats.data.NonEmptyList
-import cats.effect.Concurrent
-import cats.effect.Timer
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.engine.Action
@@ -14,6 +12,7 @@ import observe.engine.ParallelActions
 import observe.engine.Result
 import observe.model.ActionType
 import observe.model.dhs.ImageFileId
+import cats.effect.Temporal
 
 /**
  * Algebra to generate actions for an observation.
@@ -76,7 +75,7 @@ object InstrumentActions {
   /**
    * Default Actions for most instruments it basically delegates to ObserveActions
    */
-  def defaultInstrumentActions[F[_]: Concurrent: Timer: Logger]: InstrumentActions[F] =
+  def defaultInstrumentActions[F[_]: Temporal: Logger]: InstrumentActions[F] =
     new InstrumentActions[F] {
       def observationProgressStream(
         env: ObserveEnvironment[F]

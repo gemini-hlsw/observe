@@ -6,7 +6,8 @@ package observe.web.client.components.sequence.steps
 import scala.collection.immutable.SortedMap
 import scala.scalajs.js
 
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.ReactMouseEvent
 import japgolly.scalajs.react.Reusability

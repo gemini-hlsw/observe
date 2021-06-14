@@ -7,7 +7,6 @@ import java.time.Duration
 import cats._
 import cats.data._
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import monocle.macros.Lenses
@@ -85,8 +84,8 @@ object TcsNorthControllerEpicsAo {
     distanceSquared.exists(dd => thresholds.exists(_.exists(t => t * t < dd)))
   }
 
-  private final class TcsNorthControllerEpicsAoImpl[F[_]: Async: Timer](epicsSys: TcsEpics[F])(
-    implicit L:                                                                   Logger[F]
+  private final class TcsNorthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+    L:                                                                     Logger[F]
   ) extends TcsNorthControllerEpicsAo[F]
       with TcsControllerEncoders {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
@@ -410,7 +409,7 @@ object TcsNorthControllerEpicsAo {
 
   }
 
-  def apply[F[_]: Async: Logger: Timer](epicsSys: TcsEpics[F]): TcsNorthControllerEpicsAo[F] =
+  def apply[F[_]: Async: Logger](epicsSys: TcsEpics[F]): TcsNorthControllerEpicsAo[F] =
     new TcsNorthControllerEpicsAoImpl(epicsSys)
 
   @Lenses
