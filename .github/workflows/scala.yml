@@ -8,21 +8,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: coursier/cache-action@v6
       - name: Set up Scala
-        uses: olafurpg/setup-scala@v10
+        uses: olafurpg/setup-scala@v12
         with:
           java-version: adopt@1.11
-      - name: Cache Coursier
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.cache/coursier
-          key: sbt-coursier-cache
-      - name: Cache SBT
-        uses: actions/cache@v2.1.4
-        with:
-          path: ~/.sbt
-          key: sbt-${{ hashFiles('**/build.sbt') }}
       - name: Check format
         run: sbt headerCheck test:headerCheck scalafmtCheckAll
       - name: Run tests
         run: sbt +compile observe_modelJVM/test observe_modelJS/test observe_engine/test observe_server/test observe_web_server/test observe_web_client/test
+      - name: Build client
+        run: sbt observe_web_client/fastOptJS::webpack
