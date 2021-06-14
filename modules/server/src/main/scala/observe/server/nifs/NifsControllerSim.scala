@@ -3,8 +3,7 @@
 
 package observe.server.nifs
 
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.Async
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
@@ -18,7 +17,7 @@ import squants.Time
 import squants.time.TimeConversions._
 
 object NifsControllerSim {
-  def apply[F[_]: Sync: Logger: Timer]: F[NifsController[F]] =
+  def apply[F[_]: Async: Logger]: F[NifsController[F]] =
     InstrumentControllerSim[F](s"NIFS").map { sim =>
       new NifsController[F] {
 

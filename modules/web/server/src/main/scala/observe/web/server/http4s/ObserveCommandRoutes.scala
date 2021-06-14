@@ -3,7 +3,7 @@
 
 package observe.web.server.http4s
 
-import cats.effect.Sync
+import cats.effect.Async
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.dsl._
@@ -22,7 +22,7 @@ import observe.web.server.security.TokenRefresher
 /**
  * Rest Endpoints under the /api route
  */
-class ObserveCommandRoutes[F[_]: Sync](
+class ObserveCommandRoutes[F[_]: Async](
   auth:       AuthenticationService[F],
   inputQueue: server.EventQueue[F],
   se:         ObserveEngine[F]

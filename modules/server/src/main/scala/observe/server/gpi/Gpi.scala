@@ -12,8 +12,6 @@ import scala.concurrent.duration._
 import cats._
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.Concurrent
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gpi.Gpi.{ ReadoutArea => _, _ }
 import edu.gemini.spModel.obsclass.ObsClass
@@ -35,8 +33,9 @@ import observe.server.keywords.KeywordsClient
 import squants.time.Milliseconds
 import squants.time.Seconds
 import squants.time.Time
+import cats.effect.Temporal
 
-final case class Gpi[F[_]: Timer: Logger: Concurrent](controller: GpiController[F])
+final case class Gpi[F[_]: Temporal: Logger](controller: GpiController[F])
     extends GdsInstrument[F]
     with InstrumentSystem[F] {
 

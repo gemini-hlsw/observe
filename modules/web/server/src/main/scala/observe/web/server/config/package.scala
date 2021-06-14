@@ -3,8 +3,6 @@
 
 package observe.web.server
 
-import cats.effect.Blocker
-import cats.effect.ContextShift
 import cats.effect.Sync
 import cats.syntax.all._
 import lucuma.core.enum.Site
@@ -36,7 +34,7 @@ package config {
  */
 package object config {
 
-  implicit val siteReader = ConfigReader.fromCursor[Site] { cf =>
+  implicit val siteReader: ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
     cf.asString.flatMap {
       case "GS" => Site.GS.asRight
       case "GN" => Site.GN.asRight
@@ -44,7 +42,7 @@ package object config {
     }
   }
 
-  implicit val modeReader = ConfigReader.fromCursor[Mode] { cf =>
+  implicit val modeReader: ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
     cf.asString.flatMap {
       case "production" => Mode.Production.asRight
       case "dev"        => Mode.Development.asRight
@@ -52,33 +50,32 @@ package object config {
     }
   }
 
-  implicit val controlStrategyReader = ConfigReader.fromCursor[ControlStrategy] { cf =>
-    cf.asString.flatMap { c =>
-      ControlStrategy.fromString(c) match {
-        case Some(x) => x.asRight
-        case _       => cf.failed(StrategyValueUnknown(c))
+  implicit val controlStrategyReader: ConfigReader[ControlStrategy] =
+    ConfigReader.fromCursor[ControlStrategy] { cf =>
+      cf.asString.flatMap { c =>
+        ControlStrategy.fromString(c) match {
+          case Some(x) => x.asRight
+          case _       => cf.failed(StrategyValueUnknown(c))
+        }
       }
     }
-  }
 
   implicit def uriSettings[A]: ConfigReader[Uri @@ A] = ConfigReader[Uri].map(tag[A][Uri])
 
-  implicit val tlsInfoHint                = ProductHint[TLSConfig](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val webServerConfigurationHint =
+  implicit val tlsInfoHint: ProductHint[TLSConfig]                             =
+    ProductHint[TLSConfig](ConfigFieldMapping(KebabCase, KebabCase))
+  implicit val webServerConfigurationHint: ProductHint[WebServerConfiguration] =
     ProductHint[WebServerConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val smartGcalConfigurationHint =
+  implicit val smartGcalConfigurationHint: ProductHint[SmartGcalConfiguration] =
     ProductHint[SmartGcalConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val authenticationConfigHint   =
+  implicit val authenticationConfigHint: ProductHint[AuthenticationConfig]     =
     ProductHint[AuthenticationConfig](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val observeServerHint          =
+  implicit val observeServerHint: ProductHint[ObserveEngineConfiguration]      =
     ProductHint[ObserveEngineConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val systemsControlHint         =
+  implicit val systemsControlHint: ProductHint[SystemsControlConfiguration]    =
     ProductHint[SystemsControlConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
 
-  def loadConfiguration[F[_]: Sync: ContextShift](
-    config:  ConfigObjectSource,
-    blocker: Blocker
-  ): F[ObserveConfiguration] =
-    config.loadF[F, ObserveConfiguration](blocker)
+  def loadConfiguration[F[_]: Sync](config: ConfigObjectSource): F[ObserveConfiguration] =
+    config.loadF[F, ObserveConfiguration]()
 
 }

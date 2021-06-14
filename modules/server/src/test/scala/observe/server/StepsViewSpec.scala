@@ -5,26 +5,28 @@ package observe.server
 
 import cats.Id
 import cats.effect.IO
-import cats.syntax.all._
+import cats.implicits._
 import cats.data.NonEmptyList
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
+import cats.effect.unsafe.implicits.global
+import fs2.Stream
 import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.flatspec.AnyFlatSpec
-import observe.server.TestCommon._
 import observe.engine._
 import observe.model.{ Conditions, Observer, Operator, SequenceState, StepState, UserDetails }
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
+import observe.server.TestCommon._
 import monocle.Monocle._
 
-class StepsViewSpec extends AnyFlatSpec with Matchers with NonImplicitAssertions {
+class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions {
 
   "StepsView configStatus" should
     "build empty without tasks" in {
       StepsView.configStatus(Nil) shouldBe List.empty
     }
+
   it should "be all running if none has a result" in {
     val status                                = List(Resource.TCS -> ActionStatus.Running)
     val executions: List[ParallelActions[Id]] = List(NonEmptyList.one(running(Resource.TCS)))
@@ -370,7 +372,7 @@ class StepsViewSpec extends AnyFlatSpec with Matchers with NonImplicitAssertions
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.startFrom(q, seqObsId1, runStepId, clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
               .compile
@@ -404,7 +406,7 @@ class StepsViewSpec extends AnyFlatSpec with Matchers with NonImplicitAssertions
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       _  <- observeEngine.startFrom(q, seqObsId2, runStepId, clientId, RunOverride.Default)
       sf <- observeEngine
-              .stream(q.dequeue)(s0)
+              .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
               .takeThrough(_.sequences.get(seqObsId2).exists(_.seq.status.isRunning))
               .compile

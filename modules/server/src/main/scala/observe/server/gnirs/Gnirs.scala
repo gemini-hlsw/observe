@@ -7,9 +7,7 @@ import java.lang.{ Double => JDouble }
 import java.lang.{ Integer => JInt }
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.Concurrent
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.{ Async, Sync }
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.INSTRUMENT_NAME_PROP
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.WOLLASTON_PRISM_PROP
@@ -50,7 +48,7 @@ import squants.Time
 import squants.space.LengthConversions._
 import squants.time.TimeConversions._
 
-final case class Gnirs[F[_]: Logger: Concurrent: Timer](
+final case class Gnirs[F[_]: Logger: Async](
   controller: GnirsController[F],
   dhsClient:  DhsClient[F]
 ) extends DhsInstrument[F]

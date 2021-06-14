@@ -3,7 +3,7 @@
 
 package observe.server.gcal
 
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.server.gcal.GcalController.GcalConfig
 import observe.server.gcal.GcalController.gcalConfigShow

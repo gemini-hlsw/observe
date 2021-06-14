@@ -15,7 +15,7 @@ import cats.syntax.all._
 import edu.gemini.spModel.`type`.SequenceableSpType
 import edu.gemini.spModel.guide.StandardGuideOptions
 import fs2.Stream
-import fs2.concurrent.Queue
+import cats.effect.std.Queue
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import monocle.Lens

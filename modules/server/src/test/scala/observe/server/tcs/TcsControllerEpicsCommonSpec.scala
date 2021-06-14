@@ -3,9 +3,9 @@
 
 package observe.server.tcs
 
-import cats.effect.{ IO, Sync, Timer }
-import cats.effect.concurrent.Ref
+import cats.effect.{ Async, IO }
 import cats.syntax.all._
+import cats.effect.unsafe.implicits.global
 import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
 import edu.gemini.spModel.core.Wavelength
 import lucuma.core.enum.LightSinkName.Gmos
@@ -46,14 +46,13 @@ import observe.server.tcs.TestTcsEpics.{ ProbeGuideConfigVals, TestTcsEvent }
 import squants.space.AngleConversions._
 import squants.space.LengthConversions._
 
-import scala.concurrent.ExecutionContext
+import cats.effect.Ref
 
 class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester {
 
   import TcsControllerEpicsCommonSpec._
 
   private implicit def unsafeLogger: Logger[IO] = NoOpLogger.impl[IO]
-  private implicit val ioTimer: Timer[IO]       = IO.timer(ExecutionContext.global)
 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
     Arcseconds(33.8),
@@ -94,7 +93,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       tag[OIConfig](GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
     ),
     AGConfig(LightPath(Sky, Gmos), None),
-    DummyInstrument(Instrument.GmosS, (1.millimeters).some)
+    DummyInstrument(Instrument.GmosS, 1.millimeters.some)
   )
 
   "TcsControllerEpicsCommon" should "not pause guiding if it is not necessary" in {
@@ -457,7 +456,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs1StopObserveCmd,
       TestTcsEvent.Pwfs1ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs1ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -609,7 +608,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs2StopObserveCmd,
       TestTcsEvent.Pwfs2ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs2ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -761,7 +760,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.OiwfsStopObserveCmd,
       TestTcsEvent.OiwfsProbeFollowCmd("Off"),
       TestTcsEvent.OiwfsProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -819,7 +818,7 @@ object TcsControllerEpicsCommonSpec {
     override def oiOffsetGuideThreshold: Option[Length] = threshold
   }
 
-  def buildTcsController[F[_]: Sync](baseState: TestTcsEpics.State): F[TestTcsEpics[F]] =
+  def buildTcsController[F[_]: Async](baseState: TestTcsEpics.State): F[TestTcsEpics[F]] =
     for {
       stR  <- Ref.of[F, TestTcsEpics.State](baseState)
       outR <- Ref.of[F, List[TestTcsEpics.TestTcsEvent]](List.empty)

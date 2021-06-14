@@ -6,28 +6,21 @@ package observe.server
 import cats.Monoid
 import cats.syntax.all._
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
 import lucuma.core.enum.Site
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
 
-import scala.concurrent.ExecutionContext
 import observe.engine.{ Action, Result, Sequence }
 import observe.model.enum.Instrument.GmosS
 import observe.model.dhs._
 import observe.model.{ ActionType, SequenceState }
 import observe.server.Response.Observed
-import observe.server.TestCommon.defaultSystems
+import observe.server.TestCommon._
 import squants.time.Seconds
-import org.scalatest.flatspec.AnyFlatSpec
 
-class SeqTranslateSpec extends AnyFlatSpec {
-  private implicit def logger: Logger[IO] = NoOpLogger.impl[IO]
-
-  implicit val ioTimer: Timer[IO]        = IO.timer(ExecutionContext.global)
-  implicit val csTimer: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+class SeqTranslateSpec extends TestCommon {
 
   private val config: CleanConfig = CleanConfig.empty
   private val fileId              = "DummyFileId"

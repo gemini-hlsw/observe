@@ -9,7 +9,6 @@ import cats._
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import monocle.Lens
@@ -72,8 +71,8 @@ object TcsSouthControllerEpicsAo {
     odgw4:   GuiderConfig
   )
 
-  private final class TcsSouthControllerEpicsAoImpl[F[_]: Async: Timer](epicsSys: TcsEpics[F])(
-    implicit L:                                                                   Logger[F]
+  private final class TcsSouthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+    L:                                                                     Logger[F]
   ) extends TcsSouthControllerEpicsAo[F]
       with TcsControllerEncoders {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
@@ -593,7 +592,7 @@ object TcsSouthControllerEpicsAo {
       }
     }(cfg)
 
-  def apply[F[_]: Async: Logger: Timer](epicsSys: TcsEpics[F]): TcsSouthControllerEpicsAo[F] =
+  def apply[F[_]: Async: Logger](epicsSys: TcsEpics[F]): TcsSouthControllerEpicsAo[F] =
     new TcsSouthControllerEpicsAoImpl(epicsSys)
 
 }

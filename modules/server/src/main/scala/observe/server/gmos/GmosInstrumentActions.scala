@@ -3,9 +3,6 @@
 
 package observe.server.gmos
 
-import cats.effect.Concurrent
-import cats.effect.Timer
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
@@ -29,14 +26,12 @@ import observe.server.tcs.TcsController.OffsetQ
 import shapeless.tag
 import squants.Time
 import squants.space.AngleConversions._
+import cats.effect.{ Ref, Temporal }
 
 /**
  * Gmos needs different actions for N&S
  */
-class GmosInstrumentActions[
-  F[_]: Concurrent: Timer: Logger,
-  A <: GmosController.SiteDependentTypes
-](
+class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.SiteDependentTypes](
   inst:   Gmos[F, A],
   config: CleanConfig
 ) extends InstrumentActions[F] {

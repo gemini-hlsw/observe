@@ -3,8 +3,7 @@
 
 package observe.server.niri
 
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.Async
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
@@ -18,7 +17,7 @@ import squants.Time
 import squants.time.TimeConversions._
 
 object NiriControllerSim {
-  def apply[F[_]: Sync: Logger: Timer]: F[NiriController[F]] =
+  def apply[F[_]: Async: Logger]: F[NiriController[F]] =
     InstrumentControllerSim[F](s"NIRI").map { sim =>
       new NiriController[F] {
         override def observe(fileId: ImageFileId, cfg: DCConfig): F[ObserveCommandResult] =

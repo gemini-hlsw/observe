@@ -10,7 +10,6 @@ import scala.concurrent.duration.FiniteDuration
 
 import cats.effect.Async
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{ Decker => OcsDecker }
@@ -123,7 +122,7 @@ object GnirsControllerEpics extends GnirsEncoders {
     }
   }
 
-  def apply[F[_]: Async: Timer](
+  def apply[F[_]: Async](
     epicsSys:   => GnirsEpics[F]
   )(implicit L: Logger[F]): GnirsController[F] =
     new GnirsController[F] {
