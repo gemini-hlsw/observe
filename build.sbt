@@ -29,10 +29,10 @@ ThisBuild / evictionErrorLevel := Level.Info
 Global / cancelable := true
 
 // Should make CI builds more robust
-concurrentRestrictions in Global += Tags.limit(ScalaJSTags.Link, 2)
+Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 // Uncomment for local gmp testing
-// resolvers in ThisBuild += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+// ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 // Settings to use git to define the version of the project
 def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
