@@ -53,8 +53,8 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 import web.server.common.StaticRoutes
 import cats.effect.{ Ref, Resource, Temporal }
-import org.http4s.asynchttpclient.client.AsyncHttpClient
-import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.client.asynchttpclient.AsyncHttpClient
+import org.http4s.server.blaze.BlazeServerBuilder
 
 object WebServerLauncher extends IOApp with LogInitialization {
   private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
