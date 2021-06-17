@@ -15,6 +15,18 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
 
+inThisBuild(
+  Seq(
+    addCompilerPlugin(
+      ("org.typelevel"                    % "kind-projector" % "0.11.3").cross(CrossVersion.full)
+    ),
+    scalacOptions += "-Ymacro-annotations",
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    scalafixDependencies += "edu.gemini" %% "clue-generator" % Settings.LibraryVersions.clue,
+    scalafixScalaBinaryVersion := "2.13"
+  ) ++ lucumaPublishSettings
+)
+
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
@@ -90,6 +102,15 @@ publish / skip := true
 //////////////
 // Projects
 //////////////
+
+lazy val graphql = project
+  .in(file("modules/common-graphql"))
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      Clue
+    ) ++ LucumaCore.value
+  )
 
 lazy val giapi = project
   .in(file("modules/giapi"))
@@ -276,10 +297,25 @@ lazy val observe_server: Project = project
         Log4Cats.value,
         Log4CatsNoop.value,
         TestLibs.value,
-        PPrint.value
+        PPrint.value,
+        Clue
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
-    headerSources / excludeFilter := HiddenFileFilter || (file("modules/server") / "src/main/scala/pureconfig/module/http4s/package.scala").getName
+    headerSources / excludeFilter := HiddenFileFilter || (file("modules/server") / "src/main/scala/pureconfig/module/http4s/package.scala").getName,
+    Compile / sourceGenerators += Def.taskDyn {
+      val root    = (ThisBuild / baseDirectory).value.toURI.toString
+      val from    = (graphql / Compile / sourceDirectory).value
+      val to      = (Compile / sourceManaged).value
+      val outFrom = from.toURI.toString.stripSuffix("/").stripPrefix(root)
+      val outTo   = to.toURI.toString.stripSuffix("/").stripPrefix(root)
+      Def.task {
+        (graphql / Compile / scalafix)
+          .toTask(s" GraphQLGen --out-from=$outFrom --out-to=$outTo")
+          .value
+        (to ** "*.scala").get
+      }
+    }.taskValue
+
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -307,7 +343,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       Mouse.value,
       BooPickle.value,
       CatsTime.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
