@@ -9,10 +9,10 @@ import com.timushev.sbt.updates.UpdatesPlugin.autoImport._
 object Common {
   lazy val commonSettings = Seq(
     // Workaround for https://github.com/sbt/sbt/issues/4109
-    initialCommands += "jline.TerminalFactory.get.init\n",    
-    scalacOptions in (Compile, doc) ++= Seq(
+    initialCommands += "jline.TerminalFactory.get.init\n",
+    Compile/doc/scalacOptions ++= Seq(
       "-groups",
-      "-sourcepath", (baseDirectory in LocalRootProject).value.getAbsolutePath,
+      "-sourcepath", (LocalRootProject/baseDirectory).value.getAbsolutePath,
       "-skip-packages", "scalaz",
       "-doc-title", "Gem",
       "-doc-version", version.value
@@ -20,8 +20,8 @@ object Common {
     // Common libraries
     libraryDependencies                    += TestLibs.value,
     // Don't build javadoc when we're packaging the docker image.
-    mappings in (Compile, packageDoc)       := Seq(),
-    sources in (Compile,doc)                := Seq.empty,
+    Compile/packageDoc/mappings       := Seq(),
+    Compile/doc/sources               := Seq.empty,
 
     // We don't care to see updates about the scala language itself
     dependencyUpdatesFilter -= moduleFilter(name = "scala-library"),
@@ -32,7 +32,7 @@ object Common {
     dependencyUpdatesFilter -= moduleFilter(organization = "dom4j"),
     dependencyUpdatesFilter -= moduleFilter(organization = "net.sf.opencsv"),
     dependencyUpdatesFilter -= moduleFilter(organization = "commons-httpclient"),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-l", "gem.test.Tags.RequiresNetwork"), // by default, ignore network tests
+    Test/testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-l", "gem.test.Tags.RequiresNetwork"), // by default, ignore network tests
     // Don't worry about monocle versions that start with the same prefix.
     dependencyUpdatesFilter -= moduleFilter(
       organization = "com.github.julien-truffaut",

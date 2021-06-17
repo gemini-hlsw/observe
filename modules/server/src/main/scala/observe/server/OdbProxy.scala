@@ -4,15 +4,10 @@
 package observe.server
 
 import cats.Applicative
-import cats.data.EitherT
 import cats.effect.Sync
 import cats.syntax.all._
-import edu.gemini.pot.sp.SPObservationID
-import edu.gemini.seqexec.odb.SeqExecService
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.spModel.core.Peer
-import edu.gemini.wdba.session.client.WDBA_XmlRpc_SessionClient
-import edu.gemini.wdba.xmlrpc.ServiceException
 import org.typelevel.log4cats.Logger
 import observe.model.Observation
 import observe.model.dhs._
@@ -35,15 +30,10 @@ sealed trait OdbProxy[F[_]] extends OdbCommands[F] {
 }
 
 object OdbProxy {
-  def apply[F[_]: Sync](loc: Peer, cmds: OdbCommands[F]): OdbProxy[F] =
+  def apply[F[_]: Sync](@annotation.unused loc: Peer, cmds: OdbCommands[F]): OdbProxy[F] =
     new OdbProxy[F] {
       def read(oid: Observation.Id): F[SeqexecSequence] =
-        EitherT(Sync[F].delay {
-          SeqExecService
-            .client(loc)
-            .sequence(new SPObservationID(oid.format))
-            .leftMap(ObserveFailure.OdbSeqError)
-        }).widenRethrowT
+        Sync[F].raiseError(ObserveFailure.Unexpected("OdbProxy.read: Not implemented."))
 
       def queuedSequences: F[List[Observation.Id]] = cmds.queuedSequences
       def datasetStart(obsId:    Observation.Id, dataId: DataId, fileId:      ImageFileId): F[Boolean] =
@@ -87,8 +77,6 @@ object OdbProxy {
 
   final case class OdbCommandsImpl[F[_]](host: Peer)(implicit val F: Sync[F], L: Logger[F])
       extends OdbCommands[F] {
-    private val xmlrpcClient = new WDBA_XmlRpc_SessionClient(host.host, host.port.toString)
-    private val sessionName  = "sessionQueue"
 
     override def datasetStart(
       obsId:  Observation.Id,
@@ -98,9 +86,7 @@ object OdbProxy {
       L.debug(
         s"Send ODB event datasetStart for obsId: ${obsId.format} and dataId: $dataId, with fileId: $fileId"
       ) *>
-        F.delay(
-          xmlrpcClient.datasetStart(sessionName, obsId.format, dataId, fileId.toString)
-        ) <*
+        Sync[F].raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented.")) <*
         L.debug("ODB event datasetStart sent")
 
     override def datasetComplete(
@@ -111,63 +97,55 @@ object OdbProxy {
       L.debug(
         s"Send ODB event datasetComplete for obsId: ${obsId.format} and dataId: $dataId, with fileId: $fileId"
       ) *>
-        F.delay(
-          xmlrpcClient.datasetComplete(sessionName, obsId.format, dataId, fileId.toString)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.datasetComplete: Not implemented.")
         ) <*
         L.debug("ODB event datasetComplete sent")
 
     override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
       L.debug(s"Send ODB event observationAbort for obsId: ${obsId.format} reason: $reason") *>
-        F.delay(
-          xmlrpcClient.observationAbort(sessionName, obsId.format, reason)
-        ) <*
+        Sync[F].raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented.")) <*
         L.debug("ODB event observationAbort sent")
 
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       L.debug(s"Send ODB event sequenceEnd for obsId: ${obsId.format}") *>
-        F.delay(
-          xmlrpcClient.sequenceEnd(sessionName, obsId.format)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.obsAbort: Not implemented.")
         ) <*
         L.debug("ODB event sequenceEnd sent")
 
     override def sequenceStart(obsId: Observation.Id, dataId: DataId): F[Boolean] =
       L.debug(s"Send ODB event sequenceStart for obsId: ${obsId.format} and dataId: $dataId") *>
-        F.delay(
-          xmlrpcClient.sequenceStart(sessionName, obsId.format, dataId.toString)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.sequenceStart: Not implemented.")
         ) <*
         L.debug("ODB event sequenceStart sent")
 
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       L.debug(s"Send ODB event observationContinue for obsId: ${obsId.format}") *>
-        F.delay(
-          xmlrpcClient.observationContinue(sessionName, obsId.format)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.obsContinue: Not implemented.")
         ) <*
         L.debug("ODB event observationContinue sent")
 
     override def obsPause(obsId: Observation.Id, reason: String): F[Boolean] =
       L.debug(s"Send ODB event observationPause for obsId: ${obsId.format} $reason") *>
-        F.delay(
-          xmlrpcClient.observationPause(sessionName, obsId.format, reason)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.obsPause: Not implemented.")
         ) <*
         L.debug("ODB event observationPause sent")
 
     override def obsStop(obsId: Observation.Id, reason: String): F[Boolean] =
       L.debug(s"Send ODB event observationStop for obsID: ${obsId.format} $reason") *>
-        F.delay(
-          xmlrpcClient.observationStop(sessionName, obsId.format, reason)
+        Sync[F].raiseError(
+          ObserveFailure.Unexpected("OdbCommandsImpl.obsStop: Not implemented.")
         ) <*
         L.debug("ODB event observationStop sent")
 
     override def queuedSequences: F[List[Observation.Id]] =
-      F.delay(
-        xmlrpcClient
-          .getObservations(sessionName)
-          .toList
-          .flatMap(id => Observation.Id.fromString(id).toList)
-      ).recoverWith { case e: ServiceException =>
-        // We'll survive exceptions at the level of connecting to the wdba
-        L.warn(e.getMessage) *> List.empty.pure[F]
-      }
+      Sync[F].raiseError(
+        ObserveFailure.Unexpected("OdbCommandsImpl.queuedSequences: Not implemented.")
+      )
   }
 
 }

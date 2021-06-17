@@ -32,7 +32,7 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.3.4"
 
-    val http4sVersion  = "0.23.0-M1"
+    val http4sVersion  = "1.0.0-M21"
     val squants        = "1.8.0"
     val commonsHttp    = "2.0.2"
     val unboundId      = "3.2.1"
@@ -46,7 +46,7 @@ object Settings {
     val logstash       = "6.6"
     val pureConfig     = "0.15.0"
     val monocleVersion = "2.1.0"
-    val circeVersion   = "0.13.0"
+    val circeVersion   = "0.14.1"
     val doobieVersion  = "0.6.0"
     val flywayVersion  = "6.0.4"
 
@@ -81,8 +81,13 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore = "0.9.0"
-    val lucumaUI   = "0.13.2"
+    val lucumaCore          = "0.8.1"
+    val lucumaUI            = "0.13.2"
+
+    // Clue
+    val clue                = "0.16.0"
+
+    val sttp                = "3.3.6"
   }
 
   /**
@@ -277,6 +282,16 @@ object Settings {
       )
     )
     val LucumaUI   = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
+
+    val Clue = "edu.gemini" %% "clue-http4s-jdk-client" % LibraryVersions.clue
+
+    val Sttp = Def.setting(
+      Seq(
+        "com.softwaremill.sttp.client3" %%% "core" % LibraryVersions.sttp,
+        "com.softwaremill.sttp.client3" %%% "circe" % LibraryVersions.sttp,
+        "com.softwaremill.sttp.client3" %%% "cats" % LibraryVersions.sttp
+      )
+    )
   }
 
   object PluginVersions {

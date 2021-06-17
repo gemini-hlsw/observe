@@ -56,7 +56,6 @@ import EngineState.atSequence
 import SeqEvent._
 import cats.effect.kernel.Sync
 import cats.effect.{ Ref, Temporal }
-import observe.server.ObserveFailure.OdbSeqError
 
 trait ObserveEngine[F[_]] {
 
@@ -219,12 +218,12 @@ trait ObserveEngine[F[_]] {
 object ObserveEngine {
 
   private class ObserveEngineImpl[F[_]: Async: Logger](
-    override val systems: Systems[F],
-    settings:             ObserveEngineConfiguration,
-    sm:                   ObserveMetrics,
-    translator:           SeqTranslate[F]
+    override val systems:        Systems[F],
+    @annotation.unused settings: ObserveEngineConfiguration,
+    sm:                          ObserveMetrics,
+    translator:                  SeqTranslate[F]
   )(implicit
-    executeEngine:        observe.server.ExecEngineType[F]
+    executeEngine:               observe.server.ExecEngineType[F]
   ) extends ObserveEngine[F] {
 
     private val odbLoader = new ODBSequencesLoader[F](systems.odb, translator)
@@ -747,28 +746,6 @@ object ObserveEngine {
     override def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit] =
       q.offer(Event.poll(clientId))
 
-    private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] = {
-      val fd = Duration(settings.odbQueuePollingInterval.toSeconds, TimeUnit.SECONDS)
-      Stream
-        .fixedDelay[F](fd)
-        .evalMap(_ => systems.odb.queuedSequences)
-        .flatMap { x =>
-          Stream.emit(
-            Event
-              .getState[F, EngineState[F], SeqEvent] { st =>
-                Stream.eval(odbLoader.refreshSequenceList(x, st)).flatMap(Stream.emits).some
-              }
-              .asRight
-          )
-        }
-        .handleErrorWith {
-          case OdbSeqError(e) =>
-            Stream.emit(ObserveFailure.OdbSeqError(e).asLeft)
-          case e              =>
-            Stream.emit(ObserveFailure.ObserveException(e).asLeft)
-        }
-    }
-
     private val heartbeatPeriod: FiniteDuration = FiniteDuration(10, TimeUnit.SECONDS)
 
     private def heartbeatStream: Stream[F, EventType[F]] = {
@@ -789,7 +766,7 @@ object ObserveEngine {
       stream(
         Stream
           .fromQueueUnterminated(q)
-          .mergeHaltBoth(seqQueueRefreshStream.rethrow.mergeHaltL(heartbeatStream))
+          .mergeHaltL(heartbeatStream)
       )(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
         case Right((ev, qState)) =>
           val sequences = qState.sequences.values.map(viewSequence).toList

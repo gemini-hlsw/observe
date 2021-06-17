@@ -34,4 +34,4 @@ addSbtPlugin("org.scala-sbt.plugins" % "sbt-xjc" % "0.10")
 
 
 
-onLoad in Global := { s => "dependencyUpdates" :: s }
+Global / onLoad := { s => "dependencyUpdates" :: s }
