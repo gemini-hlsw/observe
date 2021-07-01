@@ -13,7 +13,8 @@ import scala.scalajs.js
 
 import cats._
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import japgolly.scalajs.react.MonocleReact._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._

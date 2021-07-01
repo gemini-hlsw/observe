@@ -4,7 +4,7 @@
 package observe.server.gnirs
 
 import cats.Applicative
-import cats.implicits._
+import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId

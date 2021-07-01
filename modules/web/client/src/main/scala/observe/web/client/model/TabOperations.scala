@@ -6,7 +6,8 @@ package observe.web.client.model
 import scala.collection.immutable.SortedMap
 
 import cats.Eq
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import lucuma.core.util.Enumerated
 import monocle.Lens
 import monocle.function.At.at

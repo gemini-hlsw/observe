@@ -4,7 +4,7 @@
 package observe.server.gems
 
 import cats.Applicative
-import cats.implicits._
+import cats.syntax.all._
 import observe.server.tcs.Gaos.PauseConditionSet
 import org.typelevel.log4cats.Logger
 import observe.server.overrideLogMessage

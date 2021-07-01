@@ -5,10 +5,7 @@ package observe.server.keywords
 
 import scala.concurrent.duration._
 import scala.xml.Elem
-
-import cats.effect.Concurrent
-import cats.effect.Sync
-import cats.effect.Timer
+import cats.effect.{ Async, Temporal }
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client
@@ -39,8 +36,8 @@ trait GdsClient[F[_]] extends Http4sClientDsl[F] {
 
 object GdsClient {
 
-  def apply[F[_]: Concurrent](base: Client[F], gdsUri: Uri)(implicit
-    timer:                          Timer[F]
+  def apply[F[_]](base: Client[F], gdsUri: Uri)(implicit
+    timer:              Temporal[F]
   ): GdsClient[F] = new GdsClient[F] {
 
     private val client = {
@@ -181,7 +178,7 @@ object GdsClient {
   /**
    * Client for testing always returns ok
    */
-  def alwaysOkClient[F[_]: Sync]: Client[F] = {
+  def alwaysOkClient[F[_]: Async]: Client[F] = {
     val service = HttpRoutes.of[F] { case _ =>
       val response =
         <methodResponse>

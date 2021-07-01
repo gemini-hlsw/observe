@@ -12,15 +12,12 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
-
 import cats.effect._
-import cats.effect.concurrent.Ref
 import cats.syntax.all._
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import fs2.Stream
-import fs2.concurrent.InspectableQueue
-import fs2.concurrent.Queue
+import cats.effect.std.{ Dispatcher, Queue }
 import fs2.concurrent.Topic
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -29,13 +26,11 @@ import org.asynchttpclient.AsyncHttpClientConfig
 import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import org.http4s.HttpRoutes
 import org.http4s.client.Client
-import org.http4s.client.asynchttpclient.AsyncHttpClient
 import org.http4s.metrics.prometheus.Prometheus
 import org.http4s.metrics.prometheus.PrometheusExportService
 import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
-import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{ Logger => Http4sLogger }
 import org.http4s.syntax.kleisli._
@@ -57,6 +52,9 @@ import observe.web.server.security.AuthenticationService
 import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 import web.server.common.StaticRoutes
+import cats.effect.{ Ref, Resource, Temporal }
+import org.http4s.client.asynchttpclient.AsyncHttpClient
+import org.http4s.server.blaze.BlazeServerBuilder
 
 object WebServerLauncher extends IOApp with LogInitialization {
   private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
@@ -114,7 +112,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   /** Resource that yields the running web server */
-  def webServer[F[_]: ContextShift: Logger: ConcurrentEffect: Timer](
+  def webServer[F[_]: Logger: Async](
     conf:      ObserveConfiguration,
     cal:       SmartGcal,
     as:        AuthenticationService[F],
@@ -122,9 +120,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
     outputs:   Topic[F, ObserveEvent],
     se:        ObserveEngine[F],
     cr:        CollectorRegistry,
-    clientsDb: ClientsSetDb[F],
-    bec:       Blocker
-  ): Resource[F, Server[F]] = {
+    clientsDb: ClientsSetDb[F]
+  ): Resource[F, Server] = {
 
     // The prometheus route does not get logged
     val prRouter = Router[F](
@@ -133,7 +130,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
     val ssl: F[Option[SSLContext]] = conf.webServer.tls.map(makeContext[F]).sequence
 
-    def build(all: F[HttpRoutes[F]]): Resource[F, Server[F]] =
+    def build(all: F[HttpRoutes[F]]): Resource[F, Server] =
       Resource
         .eval(all.flatMap { all =>
           val builder =
@@ -146,10 +143,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         .flatten
 
     val router = Router[F](
-      "/"                     -> new StaticRoutes(conf.mode === Mode.Development,
-                              OcsBuildInfo.builtAtMillis,
-                              bec
-      ).service,
+      "/"                     -> new StaticRoutes(conf.mode === Mode.Development, OcsBuildInfo.builtAtMillis).service,
       "/api/observe/commands" -> new ObserveCommandRoutes(as, inputs, se).service,
       "/api"                  -> new ObserveUIApiRoutes(conf.site,
                                        conf.mode,
@@ -176,10 +170,10 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
   }
 
-  def redirectWebServer[F[_]: ConcurrentEffect: Logger: Timer](
+  def redirectWebServer[F[_]: Logger: Async](
     gcdb: GuideConfigDb[F],
     cal:  SmartGcal
-  )(conf: WebServerConfiguration): Resource[F, Server[F]] = {
+  )(conf: WebServerConfiguration): Resource[F, Server] = {
     val router = Router[F](
       "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,
       "/smartgcal"         -> new SmartGcalRoutes[F](cal).service,
@@ -208,12 +202,15 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
   // We need to manually update the configuration of the logging subsystem
   // to support capturing log messages and forward them to the clients
-  def logToClients(out: Topic[IO, ObserveEvent]): IO[Appender[ILoggingEvent]] = IO.apply {
+  def logToClients(
+    out:        Topic[IO, ObserveEvent],
+    dispatcher: Dispatcher[IO]
+  ): IO[Appender[ILoggingEvent]] = IO.apply {
     import ch.qos.logback.classic.{ AsyncAppender, Logger, LoggerContext }
     import org.slf4j.LoggerFactory
 
     val asyncAppender = new AsyncAppender
-    val appender      = new AppenderForClients(out)
+    val appender      = new AppenderForClients(out)(dispatcher)
     Option(LoggerFactory.getILoggerFactory)
       .collect { case lc: LoggerContext =>
         lc
@@ -270,41 +267,38 @@ object WebServerLauncher extends IOApp with LogInitialization {
       out:  Topic[IO, ObserveEvent],
       en:   ObserveEngine[IO],
       cr:   CollectorRegistry,
-      cs:   ClientsSetDb[IO],
-      b:    Blocker
+      cs:   ClientsSetDb[IO]
     ): Resource[IO, Unit] =
       for {
         as <- Resource.eval(authService[IO](conf.mode, conf.authentication))
         ca <- Resource.eval(SmartGcalInitializer.init[IO](conf.smartGcal))
         _  <- redirectWebServer(en.systems.guideDb, ca)(conf.webServer)
-        _  <- webServer[IO](conf, ca, as, in, out, en, cr, cs, b)
+        _  <- webServer[IO](conf, ca, as, in, out, en, cr, cs)
       } yield ()
 
-    def publishStats[F[_]: Timer](cs: ClientsSetDb[F]): Stream[F, Unit] =
+    def publishStats[F[_]: Temporal](cs: ClientsSetDb[F]): Stream[F, Unit] =
       Stream.fixedRate[F](10.minute).flatMap(_ => Stream.eval(cs.report))
 
     val observe: Resource[IO, ExitCode] =
       for {
-        b      <- Blocker[IO]
         _      <- Resource.eval(configLog[IO]) // Initialize log before the engine is setup
-        conf   <- Resource.eval(config[IO].flatMap(loadConfiguration[IO](_, b)))
+        conf   <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _      <- Resource.eval(printBanner(conf))
         cli    <- AsyncHttpClient.resource[IO](clientConfig(conf.observeEngine.dhsTimeout))
-        inq    <- Resource.eval(InspectableQueue.bounded[IO, executeEngine.EventType](10))
-        out    <- Resource.eval(Topic[IO, ObserveEvent](NullEvent))
-        _      <- Resource.eval(logToClients(out))
+        inq    <- Resource.eval(Queue.bounded[IO, executeEngine.EventType](10))
+        out    <- Resource.eval(Topic[IO, ObserveEvent])
+        dsp    <- Dispatcher[IO]
+        _      <- Resource.eval(logToClients(out, dsp))
         cr     <- Resource.eval(IO(new CollectorRegistry))
         cs     <- Resource.eval(
                     Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
                   )
         _      <- Resource.eval(publishStats(cs).compile.drain.start)
         engine <- engineIO(conf, cli, cr)
-        _      <- webServerIO(conf, inq, out, engine, cr, cs, b)
+        _      <- webServerIO(conf, inq, out, engine, cr, cs)
         _      <- Resource.eval(
                     inq.size
-                      .evalMap(l => Logger[IO].debug(s"Queue length: $l").whenA(l > 1))
-                      .compile
-                      .drain
+                      .map(l => Logger[IO].debug(s"Queue length: $l").whenA(l > 1))
                       .start
                   )
         _      <- Resource.eval(

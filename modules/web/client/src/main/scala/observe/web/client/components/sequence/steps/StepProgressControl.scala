@@ -4,7 +4,8 @@
 package observe.web.client.components.sequence.steps
 
 import cats.data.Nested
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -99,7 +100,7 @@ object StepProgressCell {
           .getOption(step)
           .orEmpty
           .sortBy(_._1)
-          .map(Function.tupled(statusLabel))
+          .map(Function.tupled(statusLabel(_, _)))
           .toTagMod
       )
     )

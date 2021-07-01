@@ -4,7 +4,7 @@
 package observe.server.altair
 
 import cats.Applicative
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.server.overrideLogMessage
 import observe.server.altair.AltairController.FieldLens

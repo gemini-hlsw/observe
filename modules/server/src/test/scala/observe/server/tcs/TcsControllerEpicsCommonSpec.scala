@@ -3,36 +3,56 @@
 
 package observe.server.tcs
 
-import cats.effect.{IO, Sync, Timer}
-import cats.effect.concurrent.Ref
+import cats.effect.{ Async, IO }
 import cats.syntax.all._
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
+import cats.effect.unsafe.implicits.global
+import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
 import edu.gemini.spModel.core.Wavelength
 import lucuma.core.enum.LightSinkName.Gmos
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.scalatest.PrivateMethodTester
 import org.scalatest.matchers.should.Matchers._
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
-import observe.model.enum.{ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource}
+import observe.model.{ M1GuideConfig, M2GuideConfig, TelescopeGuideConfig }
+import observe.model.enum.{ ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource }
 import observe.server.InstrumentGuide
 import observe.server.tcs.TcsController.LightSource.Sky
-import observe.server.tcs.TcsController.{AGConfig, BasicGuidersConfig, BasicTcsConfig, FocalPlaneOffset, GuiderConfig, GuiderSensorOff, GuiderSensorOn, HrwfsPickupPosition, InstrumentOffset, LightPath, NodChopTrackingConfig, OIConfig, OffsetP, OffsetQ, OffsetX, OffsetY, P1Config, P2Config, ProbeTrackingConfig, TelescopeConfig}
+import observe.server.tcs.TcsController.{
+  AGConfig,
+  BasicGuidersConfig,
+  BasicTcsConfig,
+  FocalPlaneOffset,
+  GuiderConfig,
+  GuiderSensorOff,
+  GuiderSensorOn,
+  HrwfsPickupPosition,
+  InstrumentOffset,
+  LightPath,
+  NodChopTrackingConfig,
+  OIConfig,
+  OffsetP,
+  OffsetQ,
+  OffsetX,
+  OffsetY,
+  P1Config,
+  P2Config,
+  ProbeTrackingConfig,
+  TelescopeConfig
+}
 import shapeless.tag
-import squants.space.{Arcseconds, Length, Microns, Millimeters}
+import squants.space.{ Arcseconds, Length, Microns, Millimeters }
 import org.scalatest.flatspec.AnyFlatSpec
-import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
+import observe.server.tcs.TestTcsEpics.{ ProbeGuideConfigVals, TestTcsEvent }
 import squants.space.AngleConversions._
 import squants.space.LengthConversions._
 
-import scala.concurrent.ExecutionContext
+import cats.effect.Ref
 
 class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester {
 
   import TcsControllerEpicsCommonSpec._
 
   private implicit def unsafeLogger: Logger[IO] = NoOpLogger.impl[IO]
-  private implicit val ioTimer: Timer[IO]       = IO.timer(ExecutionContext.global)
 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
     Arcseconds(33.8),
@@ -73,7 +93,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       tag[OIConfig](GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
     ),
     AGConfig(LightPath(Sky, Gmos), None),
-    DummyInstrument(Instrument.GmosS, (1.millimeters).some)
+    DummyInstrument(Instrument.GmosS, 1.millimeters.some)
   )
 
   "TcsControllerEpicsCommon" should "not pause guiding if it is not necessary" in {
@@ -436,7 +456,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs1StopObserveCmd,
       TestTcsEvent.Pwfs1ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs1ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -588,7 +608,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs2StopObserveCmd,
       TestTcsEvent.Pwfs2ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs2ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -740,7 +760,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.OiwfsStopObserveCmd,
       TestTcsEvent.OiwfsProbeFollowCmd("Off"),
       TestTcsEvent.OiwfsProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain (_))
+    ).map(head should not contain _)
 
     guideOnEvents.map(tail should contain(_))
 
@@ -798,7 +818,7 @@ object TcsControllerEpicsCommonSpec {
     override def oiOffsetGuideThreshold: Option[Length] = threshold
   }
 
-  def buildTcsController[F[_]: Sync](baseState: TestTcsEpics.State): F[TestTcsEpics[F]] =
+  def buildTcsController[F[_]: Async](baseState: TestTcsEpics.State): F[TestTcsEpics[F]] =
     for {
       stR  <- Ref.of[F, TestTcsEpics.State](baseState)
       outR <- Ref.of[F, List[TestTcsEpics.TestTcsEvent]](List.empty)

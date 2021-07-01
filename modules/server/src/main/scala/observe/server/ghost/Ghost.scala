@@ -8,9 +8,7 @@ import scala.reflect.ClassTag
 
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.Concurrent
 import cats.effect.Sync
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.ghost.{ Ghost => SPGhost }
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
@@ -32,8 +30,9 @@ import observe.server.keywords.GdsInstrument
 import observe.server.keywords.KeywordsClient
 import squants.time.Seconds
 import squants.time.Time
+import cats.effect.Async
 
-final case class Ghost[F[_]: Logger: Concurrent: Timer](controller: GhostController[F])
+final case class Ghost[F[_]: Logger: Async](controller: GhostController[F])
     extends GdsInstrument[F]
     with InstrumentSystem[F] {
 

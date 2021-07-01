@@ -4,18 +4,15 @@
 package observe.web.server.security
 
 import cats.effect.IO
-import cats.effect.Timer
+import cats.effect.unsafe.implicits.global
 import cats.tests.CatsSuite
 import org.typelevel.log4cats.noop.NoOpLogger
 import observe.model.config._
 import observe.model.UserDetails
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
 
 class JWTTokensSpec extends CatsSuite {
-  private implicit def logger     = NoOpLogger.impl[IO]
-  implicit val ioTimer: Timer[IO] =
-    IO.timer(ExecutionContext.global)
+  private implicit def logger = NoOpLogger.impl[IO]
 
   private val config      =
     AuthenticationConfig(FiniteDuration(8, HOURS), "token", "key", useSSL = false, Nil)

@@ -11,7 +11,6 @@ import scala.concurrent.duration.FiniteDuration
 import cats.Applicative
 import cats.ApplicativeError
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGeneric
 import edu.gemini.spModel.gemini.gmos.GmosCommonType._
@@ -168,8 +167,7 @@ object GmosControllerEpics extends GmosEncoders {
     cfg: GmosController.Config[T]
   )(implicit
     e:   Encoders[T],
-    L:   Logger[F],
-    T:   Timer[F]
+    L:   Logger[F]
   ): GmosController[F, T] =
     new GmosController[F, T] {
       private val CC = sys.configCmd

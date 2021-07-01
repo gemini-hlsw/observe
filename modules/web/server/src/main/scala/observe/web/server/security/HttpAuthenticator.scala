@@ -28,7 +28,7 @@ class Http4sAuthentication[F[_]: Sync](auth: AuthenticationService[F]) extends H
 
   private def authRequest(request: Request[F]) = {
     val authResult = for {
-      header <- headers.Cookie.from(request.headers).toRight(MissingCookie)
+      header <- request.headers.get[headers.Cookie].toRight(MissingCookie)
       cookie <- header.values.toList.find(_.name === auth.config.cookieName).toRight(MissingCookie)
       user   <- auth.decodeToken(cookie.content)
     } yield user

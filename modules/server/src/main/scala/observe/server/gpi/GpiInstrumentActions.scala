@@ -3,8 +3,6 @@
 
 package observe.server.gpi
 
-import cats.effect.Concurrent
-import cats.effect.Timer
 import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
@@ -14,11 +12,12 @@ import observe.server.InstrumentActions
 import observe.server.ObserveActions
 import observe.server.ObserveEnvironment
 import observe.server.StepType
+import cats.effect.Temporal
 
 /**
  * Gpi needs different actions for A&C
  */
-class GpiInstrumentActions[F[_]: Logger: Concurrent: Timer] extends InstrumentActions[F] {
+class GpiInstrumentActions[F[_]: Logger: Temporal] extends InstrumentActions[F] {
 
   override def observationProgressStream(
     env: ObserveEnvironment[F]

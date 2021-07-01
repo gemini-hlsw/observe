@@ -15,6 +15,18 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
 
+inThisBuild(
+  Seq(
+    addCompilerPlugin(
+      ("org.typelevel"                    % "kind-projector" % "0.13.0").cross(CrossVersion.full)
+    ),
+    scalacOptions += "-Ymacro-annotations",
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    scalafixDependencies += "edu.gemini" %% "clue-generator" % Settings.LibraryVersions.clue,
+    scalafixScalaBinaryVersion := "2.13"
+  ) ++ lucumaPublishSettings
+)
+
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
@@ -24,13 +36,15 @@ ThisBuild / resolvers += "Gemini Repository".at(
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres8_ocs3"
 
+ThisBuild / evictionErrorLevel := Level.Info
+
 Global / cancelable := true
 
 // Should make CI builds more robust
-concurrentRestrictions in Global += Tags.limit(ScalaJSTags.Link, 2)
+Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 // Uncomment for local gmp testing
-// resolvers in ThisBuild += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
+// ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 // Settings to use git to define the version of the project
 def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
@@ -89,6 +103,15 @@ publish / skip := true
 // Projects
 //////////////
 
+lazy val graphql = project
+  .in(file("modules/common-graphql"))
+  .settings(commonSettings: _*)
+  .settings(
+    libraryDependencies ++= Seq(
+      Clue
+    ) ++ LucumaCore.value
+  )
+
 lazy val giapi = project
   .in(file("modules/giapi"))
   .enablePlugins(GitBranchPrompt)
@@ -110,7 +133,7 @@ lazy val giapi = project
                                 GmpStatusDatabase % "test",
                                 GmpCmdJmsBridge   % "test",
                                 NopSlf4j          % "test"
-    )
+    ) ++ MUnit.value
   )
 
 lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
@@ -222,8 +245,7 @@ lazy val observe_web_client = project
       "terser-webpack-plugin"         -> "3.0.6",
       "html-webpack-plugin"           -> "4.3.0",
       "css-minimizer-webpack-plugin"  -> "1.1.5",
-      "favicons-webpack-plugin"       -> "4.2.0",
-      "@packtracker/webpack-plugin"   -> "2.3.0"
+      "favicons-webpack-plugin"       -> "4.2.0"
     ),
     libraryDependencies ++= Seq(
       Cats.value,
@@ -251,7 +273,7 @@ lazy val observe_web_client = project
   .dependsOn(observe_model.js % "compile->compile;test->test")
 
 // List all the modules and their inter dependencies
-lazy val observe_server     = project
+lazy val observe_server: Project = project
   .in(file("modules/server"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
@@ -274,9 +296,25 @@ lazy val observe_server     = project
         Log4Cats.value,
         Log4CatsNoop.value,
         TestLibs.value,
-        PPrint.value
+        PPrint.value,
+        Clue
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
-        Circe.value
+        Circe.value,
+    headerSources / excludeFilter := HiddenFileFilter || (file("modules/server") / "src/main/scala/pureconfig/module/http4s/package.scala").getName,
+    Compile / sourceGenerators += Def.taskDyn {
+      val root    = (ThisBuild / baseDirectory).value.toURI.toString
+      val from    = (graphql / Compile / sourceDirectory).value
+      val to      = (Compile / sourceManaged).value
+      val outFrom = from.toURI.toString.stripSuffix("/").stripPrefix(root)
+      val outTo   = to.toURI.toString.stripSuffix("/").stripPrefix(root)
+      Def.task {
+        (graphql / Compile / scalafix)
+          .toTask(s" GraphQLGen --out-from=$outFrom --out-to=$outTo")
+          .value
+        (to ** "*.scala").get
+      }
+    }.taskValue
+
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -304,7 +342,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       Mouse.value,
       BooPickle.value,
       CatsTime.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -335,6 +373,7 @@ lazy val observe_engine = project
 lazy val acm = project
   .in(file("modules/acm"))
   .settings(commonSettings: _*)
+  .enablePlugins(SbtXjcPlugin)
   .settings(
     libraryDependencies ++= Seq(
       EpicsService,
@@ -347,25 +386,8 @@ lazy val acm = project
     ) ++ Logback ++ JAXB,
     Test / libraryDependencies ++= Logback,
     Test / testOptions := Seq(),
-    Compile / sourceGenerators += Def.task {
-      import scala.sys.process._
-      val pkg = "edu.gemini.epics.acm.generated"
-      val log = state.value.log
-      val gen = (Compile / sourceManaged).value
-      val out = pkg.split("\\.").foldLeft(gen)(_ / _)
-      val xsd = sourceDirectory.value / "main" / "resources" / "CaSchema.xsd"
-      val cmd = List("xjc", "-d", gen.getAbsolutePath, "-p", pkg, xsd.getAbsolutePath)
-      val mod = xsd.getParentFile.listFiles.map(_.lastModified).max
-      val cur =
-        if (out.exists && out.listFiles.nonEmpty) out.listFiles.map(_.lastModified).min
-        else Int.MaxValue
-      if (mod > cur) {
-        out.mkdirs
-        val err = cmd.run(ProcessLogger(log.info(_), log.error(_))).exitValue
-        if (err != 0) sys.error("xjc failed")
-      }
-      out.listFiles.toSeq
-    }.taskValue
+    xjcCommandLine ++= Seq("-p", "edu.gemini.epics.acm.generated"),
+    xjcLibs ++= JAXB
   )
 
 /**
@@ -377,12 +399,12 @@ lazy val observeCommonSettings = Seq(
   // This is important to keep the file generation order correctly
   Universal / parallelExecution := false,
   // Depend on webpack and add the assets created by webpack
-  Compile / packageBin / mappings ++= (webpack in (observe_web_client, Compile, fullOptJS)).value
+  Compile / packageBin / mappings ++= (observe_web_client/Compile/fullOptJS/webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
   executableScriptName := "observe-server",
   // No javadocs
-  mappings in (Compile, packageDoc) := Seq(),
+  Compile/packageDoc/mappings := Seq(),
   // Don't create launchers for Windows
   makeBatScripts := Seq.empty,
   // Specify a different name for the config file
@@ -391,7 +413,7 @@ lazy val observeCommonSettings = Seq(
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
-    val f = (resourceDirectory in (observe_web_server, Compile)).value / "logback.xml"
+    val f = (observe_web_server/Compile/resourceDirectory).value / "logback.xml"
     f -> ("conf/" + f.getName)
   },
   // Launch options
@@ -493,7 +515,7 @@ lazy val app_observe_server_gs_test =
       applicationConfSite := DeploymentSite.GS,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (mappings in (app_observe_server, Universal)).value
+        val universalMappings = (app_observe_server/Universal/mappings).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -522,7 +544,7 @@ lazy val app_observe_server_gn_test =
       applicationConfSite := DeploymentSite.GN,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (mappings in (app_observe_server, Universal)).value
+        val universalMappings = (app_observe_server/Universal/mappings).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -550,7 +572,7 @@ lazy val app_observe_server_gs = preventPublication(project.in(file("app/observe
     applicationConfSite := DeploymentSite.GS,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (mappings in (app_observe_server, Universal)).value
+      val universalMappings = (app_observe_server/Universal/mappings).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }
@@ -578,7 +600,7 @@ lazy val app_observe_server_gn = preventPublication(project.in(file("app/observe
     applicationConfSite := DeploymentSite.GN,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (mappings in (app_observe_server, Universal)).value
+      val universalMappings = (app_observe_server/Universal/mappings).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }

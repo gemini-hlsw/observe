@@ -17,6 +17,7 @@ import observe.model.enum.ObserveCommandResult
 import InstrumentSystem._
 import squants.time.Time
 import squants.time.TimeConversions._
+import cats.effect.Temporal
 
 /**
  * Methods usedd to generate observation related actions
@@ -149,10 +150,10 @@ trait ObserveActions {
   /**
    * Method to process observe results and act accordingly to the response
    */
-  private def observeTail[F[_]: Timer](
+  private def observeTail[F[_]: Temporal](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
-  )(r:      ObserveCommandResult)(implicit cio: Concurrent[F]): Stream[F, Result[F]] =
+  )(r:      ObserveCommandResult): Stream[F, Result[F]] =
     Stream.eval(r match {
       case ObserveCommandResult.Success =>
         okTail(fileId, stopped = false, env)
@@ -216,7 +217,7 @@ trait ObserveActions {
   /**
    * Observe for a typical instrument
    */
-  def stdObserve[F[_]: Concurrent: Timer: Logger](
+  def stdObserve[F[_]: Temporal: Logger](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
   ): Stream[F, Result[F]] =

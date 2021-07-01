@@ -3,25 +3,24 @@
 
 package observe.engine
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import cats.data.NonEmptyList
+import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import observe.model.Observation
+
 import java.util.UUID
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers._
-import observe.model.{ActionType, ClientId, SequenceState, UserDetails}
+import observe.model.{ ActionType, ClientId, SequenceState, UserDetails }
 import observe.engine.TestUtil.TestState
-import scala.concurrent.ExecutionContext
+
 import scala.Function.const
 import org.scalatest.flatspec.AnyFlatSpec
 
 class SequenceSpec extends AnyFlatSpec {
-
-  implicit val ioContextShift: ContextShift[IO] =
-    IO.contextShift(ExecutionContext.global)
 
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 

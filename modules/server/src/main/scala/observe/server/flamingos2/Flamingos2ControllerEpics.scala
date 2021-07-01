@@ -10,7 +10,6 @@ import scala.concurrent.duration.FiniteDuration
 
 import cats.data.StateT
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Decker
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Filter
@@ -112,69 +111,70 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
   val ConfigTimeout: FiniteDuration  = FiniteDuration(400, SECONDS)
 
   def apply[F[_]: Async](
-    sys:          => Flamingos2Epics[F]
-  )(implicit tio: Timer[F], L: Logger[F]): Flamingos2Controller[F] = new Flamingos2Controller[F] {
+    sys:        => Flamingos2Epics[F]
+  )(implicit L: Logger[F]): Flamingos2Controller[F] =
+    new Flamingos2Controller[F] {
 
-    private def setDCConfig(dc: DCConfig): F[Unit] = for {
-      _ <- sys.dcConfigCmd.setExposureTime(dc.t.toSeconds.toDouble)
-      _ <- sys.dcConfigCmd.setNumReads(dc.n.getCount)
-      _ <- sys.dcConfigCmd.setReadoutMode(encode(dc.r))
-      _ <- sys.dcConfigCmd.setBiasMode(encode(dc.b))
-    } yield ()
-
-    private def setCCConfig(cc: CCConfig): F[Unit] = {
-      val fpu    = encode(cc.fpu)
-      val filter = encode(cc.f)
-      for {
-        _ <- sys.configCmd.setWindowCover(encode(cc.w))
-        _ <- sys.configCmd.setDecker(encode(cc.d))
-        _ <- sys.configCmd.setMOS(fpu._1)
-        _ <- sys.configCmd.setMask(fpu._2)
-        _ <- filter.map(sys.configCmd.setFilter).getOrElse(Async[F].unit)
-        _ <- sys.configCmd.setLyot(encode(cc.l))
-        _ <- sys.configCmd.setGrism(encode(cc.g))
+      private def setDCConfig(dc: DCConfig): F[Unit] = for {
+        _ <- sys.dcConfigCmd.setExposureTime(dc.t.toSeconds.toDouble)
+        _ <- sys.dcConfigCmd.setNumReads(dc.n.getCount)
+        _ <- sys.dcConfigCmd.setReadoutMode(encode(dc.r))
+        _ <- sys.dcConfigCmd.setBiasMode(encode(dc.b))
       } yield ()
+
+      private def setCCConfig(cc: CCConfig): F[Unit] = {
+        val fpu    = encode(cc.fpu)
+        val filter = encode(cc.f)
+        for {
+          _ <- sys.configCmd.setWindowCover(encode(cc.w))
+          _ <- sys.configCmd.setDecker(encode(cc.d))
+          _ <- sys.configCmd.setMOS(fpu._1)
+          _ <- sys.configCmd.setMask(fpu._2)
+          _ <- filter.map(sys.configCmd.setFilter).getOrElse(Async[F].unit)
+          _ <- sys.configCmd.setLyot(encode(cc.l))
+          _ <- sys.configCmd.setGrism(encode(cc.g))
+        } yield ()
+      }
+
+      override def applyConfig(config: Flamingos2Config): F[Unit] = for {
+        _ <- L.debug("Start Flamingos2 configuration")
+        _ <- setDCConfig(config.dc)
+        _ <- setCCConfig(config.cc)
+        _ <- sys.post(ConfigTimeout)
+        _ <- L.debug("Completed Flamingos2 configuration")
+      } yield ()
+
+      override def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] = for {
+        _ <- L.debug(s"Send observe to Flamingos2, file id $fileId")
+        _ <- sys.observeCmd.setLabel(fileId)
+        _ <- sys.observeCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
+        _ <- L.debug("Completed Flamingos2 observe")
+      } yield ObserveCommandResult.Success
+
+      override def endObserve: F[Unit] = for {
+        _ <- L.debug("Send endObserve to Flamingos2")
+        _ <- sys.endObserveCmd.mark
+        _ <- sys.endObserveCmd.post(DefaultTimeout)
+        _ <- L.debug("endObserve sent to Flamingos2")
+      } yield ()
+
+      override def observeProgress(total: Time): fs2.Stream[F, Progress] = {
+        val s = ProgressUtil.fromStateTOption[F, Time](_ =>
+          StateT[F, Time, Option[Progress]] { st =>
+            val m = if (total >= st) total else st
+            val p = for {
+              obst <- sys.observeState
+              rem  <- sys.countdown
+              v    <- (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut).mapN(
+                        ObserveStage.fromBooleans
+                      )
+            } yield if (obst.isBusy) ObsProgress(m, RemainingTime(rem.seconds), v).some else none
+            p.map(p => (m, p))
+          }
+        )
+        s(total)
+          .dropWhile(_.remaining.self.value === 0.0) // drop leading zeros
+          .takeThrough(_.remaining.self.value > 0.0) // drop all tailing zeros but the first one
+      }
     }
-
-    override def applyConfig(config: Flamingos2Config): F[Unit] = for {
-      _ <- L.debug("Start Flamingos2 configuration")
-      _ <- setDCConfig(config.dc)
-      _ <- setCCConfig(config.cc)
-      _ <- sys.post(ConfigTimeout)
-      _ <- L.debug("Completed Flamingos2 configuration")
-    } yield ()
-
-    override def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] = for {
-      _ <- L.debug(s"Send observe to Flamingos2, file id $fileId")
-      _ <- sys.observeCmd.setLabel(fileId)
-      _ <- sys.observeCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
-      _ <- L.debug("Completed Flamingos2 observe")
-    } yield ObserveCommandResult.Success
-
-    override def endObserve: F[Unit] = for {
-      _ <- L.debug("Send endObserve to Flamingos2")
-      _ <- sys.endObserveCmd.mark
-      _ <- sys.endObserveCmd.post(DefaultTimeout)
-      _ <- L.debug("endObserve sent to Flamingos2")
-    } yield ()
-
-    override def observeProgress(total: Time): fs2.Stream[F, Progress] = {
-      val s = ProgressUtil.fromStateTOption[F, Time](_ =>
-        StateT[F, Time, Option[Progress]] { st =>
-          val m = if (total >= st) total else st
-          val p = for {
-            obst <- sys.observeState
-            rem  <- sys.countdown
-            v    <- (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut).mapN(
-                      ObserveStage.fromBooleans
-                    )
-          } yield if (obst.isBusy) ObsProgress(m, RemainingTime(rem.seconds), v).some else none
-          p.map(p => (m, p))
-        }
-      )
-      s(total)
-        .dropWhile(_.remaining.self.value === 0.0) // drop leading zeros
-        .takeThrough(_.remaining.self.value > 0.0) // drop all tailing zeros but the first one
-    }
-  }
 }

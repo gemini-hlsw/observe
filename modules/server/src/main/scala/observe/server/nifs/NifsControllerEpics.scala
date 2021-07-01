@@ -10,7 +10,6 @@ import scala.math.abs
 import cats._
 import cats.data.OptionT
 import cats.effect.Async
-import cats.effect.Timer
 import cats.syntax.all._
 import edu.gemini.observe.server.nifs.DhsConnected
 import edu.gemini.observe.server.nifs.{ ReadMode => EReadMode }
@@ -115,7 +114,7 @@ object NifsControllerEpics extends NifsEncoders {
     }.map(tag[NumberOfFowSamplesI][Int])
       .toOption
 
-  def apply[F[_]: Timer: Async](
+  def apply[F[_]: Async](
     epicsSys:   => NifsEpics[F]
   )(implicit L: Logger[F]): NifsController[F] = new NifsController[F] {
 

@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
 import observe.model.dhs.toImageFileId

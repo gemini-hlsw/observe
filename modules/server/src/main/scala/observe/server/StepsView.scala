@@ -4,7 +4,8 @@
 package observe.server
 
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
+import cats.Order._
 import observe.engine
 import observe.engine.Action
 import observe.engine.Action.ActionState

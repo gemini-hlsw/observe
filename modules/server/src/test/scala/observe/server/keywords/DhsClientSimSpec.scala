@@ -9,7 +9,7 @@ import org.typelevel.log4cats.noop.NoOpLogger
 import java.time.LocalDate
 import observe.server.keywords.DhsClient.Permanent
 
-class DhsClientSimSpec extends munit.FunSuite {
+class DhsClientSimSpec extends munit.CatsEffectSuite {
   private implicit def logger = NoOpLogger.impl[IO]
 
   test("produce data labels for today") {
