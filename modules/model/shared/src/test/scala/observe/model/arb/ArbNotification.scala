@@ -4,6 +4,7 @@
 package observe.model.arb
 
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen
@@ -16,46 +17,46 @@ import observe.model.enum.Instrument
 import observe.model.enum.Resource
 
 trait ArbNotification {
-  import ArbObservationId._
+  import ArbObservationIdName._
 
-  implicit val rcArb = Arbitrary[ResourceConflict] {
+  implicit val rcArb: Arbitrary[ResourceConflict] = Arbitrary[ResourceConflict] {
     for {
-      id <- arbitrary[Observation.Id]
-    } yield ResourceConflict(id)
+      idName <- arbitrary[Observation.IdName]
+    } yield ResourceConflict(idName)
   }
 
   implicit val rcCogen: Cogen[ResourceConflict] =
-    Cogen[Observation.Id].contramap(_.sid)
+    Cogen[Observation.IdName].contramap(_.sidName)
 
-  implicit val rfArb = Arbitrary[RequestFailed] {
+  implicit val rfArb: Arbitrary[RequestFailed] = Arbitrary[RequestFailed] {
     arbitrary[List[String]].map(RequestFailed.apply)
   }
 
   implicit val rfCogen: Cogen[RequestFailed] =
     Cogen[List[String]].contramap(_.msgs)
 
-  implicit val inArb = Arbitrary[InstrumentInUse] {
+  implicit val inArb: Arbitrary[InstrumentInUse] = Arbitrary[InstrumentInUse] {
     for {
-      id <- arbitrary[Observation.Id]
+      id <- arbitrary[Observation.IdName]
       i  <- arbitrary[Instrument]
     } yield InstrumentInUse(id, i)
   }
 
   implicit val inCogen: Cogen[InstrumentInUse] =
-    Cogen[(Observation.Id, Instrument)].contramap(x => (x.sid, x.ins))
+    Cogen[(Observation.IdName, Instrument)].contramap(x => (x.sidName, x.ins))
 
-  implicit val subsArb = Arbitrary[SubsystemBusy] {
+  implicit val subsArb: Arbitrary[SubsystemBusy] = Arbitrary[SubsystemBusy] {
     for {
-      id <- arbitrary[Observation.Id]
+      id <- arbitrary[Observation.IdName]
       i  <- arbitrary[StepId]
       r  <- arbitrary[Resource]
     } yield SubsystemBusy(id, i, r)
   }
 
   implicit val subsCogen: Cogen[SubsystemBusy] =
-    Cogen[(Observation.Id, StepId, Resource)].contramap(x => (x.oid, x.stepId, x.resource))
+    Cogen[(Observation.IdName, StepId, Resource)].contramap(x => (x.sidName, x.stepId, x.resource))
 
-  implicit val notArb = Arbitrary[Notification] {
+  implicit val notArb: Arbitrary[Notification] = Arbitrary[Notification] {
     for {
       r <- arbitrary[ResourceConflict]
       a <- arbitrary[InstrumentInUse]

@@ -13,9 +13,7 @@ import react.common._
 import react.semanticui.SemanticSize
 import react.semanticui.colors._
 import react.semanticui.elements.label.Label
-import observe.model.Observation
-import observe.model.Step
-import observe.model.StepState
+import observe.model.{ Observation, Step, StepId, StepState }
 import observe.model.enum.Instrument
 import observe.model.enum.StepType
 import observe.web.client.components.ObserveStyles
@@ -105,7 +103,7 @@ object StepIdCell {
   private val component = ScalaComponent
     .builder[Int]("StepIdCell")
     .stateless
-    .render_P(p => <.div(s"${p + 1}"))
+    .render_P(p => <.div(s"$p"))
     .configure(Reusability.shouldComponentUpdate)
     .build
 
@@ -119,7 +117,7 @@ final case class SettingsCell(
   ctl:        RouterCtl[Pages.ObservePages],
   instrument: Instrument,
   obsId:      Observation.Id,
-  index:      Int,
+  stepId:     StepId,
   isPreview:  Boolean
 ) extends ReactProps[SettingsCell](SettingsCell.component)
 
@@ -133,9 +131,9 @@ object SettingsCell {
     .stateless
     .render_P { p =>
       val page = if (p.isPreview) {
-        Pages.PreviewConfigPage(p.instrument, p.obsId, p.index + 1)
+        Pages.PreviewConfigPage(p.instrument, p.obsId, p.stepId)
       } else {
-        Pages.SequenceConfigPage(p.instrument, p.obsId, p.index + 1)
+        Pages.SequenceConfigPage(p.instrument, p.obsId, p.stepId)
       }
       <.div(ObserveStyles.settingsCell,
             p.ctl.link(page)(

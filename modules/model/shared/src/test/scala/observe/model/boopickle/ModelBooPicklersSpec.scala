@@ -4,6 +4,7 @@
 package observe.model.boopickle
 
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import observe.model.enum._
 import observe.model._
 import observe.model.events._
@@ -23,7 +24,6 @@ import observe.model.arb._
  */
 final class BoopicklingSuite extends munit.DisciplineSuite with ModelBooPicklers {
   import ArbProgramId._
-  import ArbObservationId._
 
   checkAll("Pickler[Year]", PicklerTests[Year].pickler)
   checkAll("Pickler[LocalDate]", PicklerTests[LocalDate].pickler)

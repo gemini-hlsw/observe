@@ -133,8 +133,11 @@ object Step {
 
     def file: Option[String] = None
 
-    def canSetBreakpoint(i: Int, firstRunnable: Int): Boolean =
-      s.status.canSetBreakpoint(i, firstRunnable)
+    def canSetBreakpoint(steps: List[Step]): Boolean =
+      s.status.canSetBreakpoint && steps
+        .dropWhile(_.status.isFinished)
+        .drop(1)
+        .exists(_.id === s.id)
 
     def canSetSkipmark: Boolean = s.status.canSetSkipmark
 

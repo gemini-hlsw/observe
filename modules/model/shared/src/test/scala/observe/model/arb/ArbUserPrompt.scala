@@ -5,6 +5,7 @@ package observe.model.arb
 
 import cats.data.NonEmptyList
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import observe.model.{ Observation, StepId, UserPrompt }
 import org.scalacheck.{ Arbitrary, Cogen, Gen }
 import org.scalacheck.Arbitrary._
@@ -17,7 +18,7 @@ import observe.model.UserPrompt.{
 }
 
 trait ArbUserPrompt {
-  import ArbObservationId._
+  import ArbObservationIdName._
 
   implicit def discrepancyArb[A: Arbitrary]: Arbitrary[Discrepancy[A]] =
     Arbitrary[Discrepancy[A]] {
@@ -30,11 +31,12 @@ trait ArbUserPrompt {
   implicit def discrepancyCogen[A: Cogen]: Cogen[Discrepancy[A]] =
     Cogen[(A, A)].contramap(x => (x.actual, x.required))
 
-  implicit val targetCheckOverrideArb = Arbitrary[TargetCheckOverride] {
-    for {
-      self <- arbitrary[Discrepancy[String]]
-    } yield TargetCheckOverride(self)
-  }
+  implicit val targetCheckOverrideArb: Arbitrary[TargetCheckOverride] =
+    Arbitrary[TargetCheckOverride] {
+      for {
+        self <- arbitrary[Discrepancy[String]]
+      } yield TargetCheckOverride(self)
+    }
 
   implicit val targetCheckOverrideCogen: Cogen[TargetCheckOverride] =
     Cogen[Discrepancy[String]].contramap(x => x.self)
@@ -84,18 +86,19 @@ trait ArbUserPrompt {
 
   implicit val checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
     for {
-      sid  <- arbitrary[Observation.Id]
-      stid <- arbitrary[StepId]
-      chks <- checksGen
-    } yield ChecksOverride(sid, stid, chks)
+      sid   <- arbitrary[Observation.IdName]
+      stid  <- arbitrary[StepId]
+      stidx <- Gen.posNum[Int]
+      chks  <- checksGen
+    } yield ChecksOverride(sid, stid, stidx, chks)
   }
 
   implicit val checksOverrideCogen: Cogen[ChecksOverride] =
-    Cogen[(Observation.Id, StepId, NonEmptyList[SeqCheck])].contramap(x =>
-      (x.sid, x.stepId, x.checks)
+    Cogen[(Observation.IdName, StepId, NonEmptyList[SeqCheck])].contramap(x =>
+      (x.sidName, x.stepId, x.checks)
     )
 
-  implicit val userPromptArb = Arbitrary[UserPrompt] {
+  implicit val userPromptArb: Arbitrary[UserPrompt] = Arbitrary[UserPrompt] {
     for {
       r <- arbitrary[ChecksOverride]
     } yield r

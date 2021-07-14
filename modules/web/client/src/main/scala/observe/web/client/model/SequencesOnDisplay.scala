@@ -35,10 +35,10 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   private def isOnFocus(id: Observation.Id): Boolean =
     SequencesOnDisplay.focusSequence
       .getOption(this)
-      .exists(_.obsId === id)
+      .exists(_.obsIdName.id === id)
 
   // Display a given step on the focused sequence
-  def showStepConfig(id: Observation.Id, i: Int): SequencesOnDisplay =
+  def showStepConfig(id: Observation.Id, i: StepId): SequencesOnDisplay =
     if (isOnFocus(id))
       SequencesOnDisplay.tabs.modify(_.modify(SequencesOnDisplay.stepL.set(i.some)))(this)
     else
@@ -51,7 +51,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   // Focus on a tab for the instrument and id
   def focusOnSequence(inst: Instrument, id: Observation.Id): SequencesOnDisplay = {
     val q = tabs.findFocusP { case t: SequenceTab =>
-      t.sequence.s.id === id && t.sequence.metadata.instrument === inst
+      t.sequence.s.idName.id === id && t.sequence.metadata.instrument === inst
     }
     copy(tabs = q.getOrElse(tabs))
   }
@@ -61,7 +61,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
    */
   def loadedIds: List[Observation.Id] =
     tabs.toNel.collect { case InstrumentSequenceTab(_, Right(curr), _, _, _, _, _) =>
-      curr.id
+      curr.idName.id
     }
 
   /**
@@ -85,19 +85,19 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     val completedIds: List[Option[SequenceView]] =
       SequencesOnDisplay.completedTabs
         .getAll(this)
-        .filterNot(x => s.loaded.values.toList.contains(x.id))
+        .filterNot(x => s.loaded.values.toList.contains(x.idName))
         .map(_.some)
-    val allIds                                   = s.sessionQueue.map(_.id)
+    val allIds                                   = s.sessionQueue.map(_.idName.id)
     val loadedInSessionQueue                     = s.loaded.values.toList.map { id =>
-      s.sessionQueue.find(_.id === id)
+      s.sessionQueue.find(_.idName.id === id)
     }
     val updated                                  =
       updateLoaded(loadedInSessionQueue ::: completedIds, allIds).tabs
         .map {
           case p @ PreviewSequenceTab(curr, r, _, o) =>
             s.sessionQueue
-              .find(_.id === curr.id)
-              .map(s => PreviewSequenceTab(s, r, false, o))
+              .find(_.idName === curr.idName)
+              .map(s => PreviewSequenceTab(s, r, isLoading = false, o))
               .getOrElse(p)
           case c @ CalibrationQueueTab(_, _)         =>
             s.queues
@@ -128,7 +128,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     val currentInsTabs = SequencesOnDisplay.instrumentTabs.getAll(this)
     val instTabs       = loaded.collect { case Some(x) =>
       val tab              = currentInsTabs
-        .find(_.obsId === x.id)
+        .find(_.obsIdName === x.idName)
       // FIXME
       // val curTableState = tab
       //   .map(_.tableState)
@@ -156,7 +156,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     // Save the current preview
     val onlyPreview  = SequencesOnDisplay.previewTab
       .headOption(this)
-      .filter(p => allIds.contains(p.obsId))
+      .filter(p => allIds.contains(p.obsIdName))
     val sequenceTabs = (onlyPreview :: instTabs).collect { case Some(x) => x }
     // new zipper
     val newZipper    =
@@ -171,7 +171,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
         currentFocus === c
       case i: InstrumentSequenceTab                        =>
         currentFocus match {
-          case j: InstrumentSequenceTab => i.obsId === j.obsId
+          case j: InstrumentSequenceTab => i.obsIdName === j.obsIdName
           case _                        => false
         }
     }
@@ -182,8 +182,8 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
    * Sets the sequence s as preview. if it is already loaded, it will focus there instead
    */
   def previewSequence(i: Instrument, s: SequenceView): SequencesOnDisplay = {
-    val obsId    = s.id
-    val isLoaded = loadedIds.contains(s.id)
+    val obsId    = s.idName
+    val isLoaded = loadedIds.contains(s.idName)
     // Replace the sequence for the instrument or the completed sequence and reset displaying a step
     val seq      = if (s.metadata.instrument === i && !isLoaded) {
       // val newPreview = SequencesOnDisplay.previewTabById(obsId).isEmpty(this)
@@ -200,7 +200,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
       q
     } else if (isLoaded) {
       tabs.findFocusP { case InstrumentSequenceTab(_, Right(curr), _, _, _, _, _) =>
-        obsId === curr.id
+        obsId === curr.idName
       }
     } else {
       tabs.some
@@ -227,7 +227,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     if (SequencesOnDisplay.previewTab.isEmpty(this)) {
       val ts = Zipper.fromNel(tabs.toNel.flatMap {
         case c: CalibrationQueueTab =>
-          NonEmptyList.of(c, PreviewSequenceTab(s, None, false, TabOperations.Default))
+          NonEmptyList.of(c, PreviewSequenceTab(s, None, isLoading = false, TabOperations.Default))
         case t                      =>
           NonEmptyList.of(t)
       })
@@ -245,14 +245,14 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   }
 
   def unsetPreviewOn(id: Observation.Id): SequencesOnDisplay =
-    if (SequencesOnDisplay.previewTab.exist(_.obsId === id)(this)) {
+    if (SequencesOnDisplay.previewTab.exist(_.obsIdName.id === id)(this)) {
       // Store current focus
       val currentFocus = tabs.focus
       // Remove the sequence in the preview if it matches id
       copy(
         tabs = Zipper
           .fromNel(NonEmptyList.fromListUnsafe(tabs.toList.filter {
-            case p: PreviewSequenceTab => p.obsId =!= id
+            case p: PreviewSequenceTab => p.obsIdName.id =!= id
             case _                     => true
           }))
           .findFocus {
@@ -266,7 +266,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
               currentFocus === c
             case i: InstrumentSequenceTab                         =>
               currentFocus match {
-                case j: InstrumentSequenceTab => i.obsId === j.obsId
+                case j: InstrumentSequenceTab => i.obsIdName === j.obsIdName
                 case _                        => false
               }
           }
@@ -279,16 +279,16 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   def idDisplayed(id: Observation.Id): Boolean =
     tabs.withFocus.exists {
       case (InstrumentSequenceTab(_, Right(curr), _, _, _, _, _), true) =>
-        curr.id === id
+        curr.idName.id === id
       case (PreviewSequenceTab(curr, _, _, _), true)                    =>
-        curr.id === id
+        curr.idName.id === id
       case _                                                            =>
         false
     }
 
   def tab(id: Observation.Id): Option[ObserveTabActive] =
     tabs.withFocus.toList.collectFirst {
-      case (i: SequenceTab, a) if i.obsId === id =>
+      case (i: SequenceTab, a) if i.obsIdName.id === id =>
         val selected = if (a) TabSelected.Selected else TabSelected.Background
         ObserveTabActive(i, selected)
     }
@@ -297,7 +297,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     NonEmptyList.fromListUnsafe(tabs.withFocus.toList.collect {
       case (i: InstrumentSequenceTab, a) =>
         AvailableTab(
-          i.obsId,
+          i.obsIdName,
           i.sequence.status,
           i.sequence.metadata.instrument,
           i.runningStep,
@@ -311,7 +311,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
         ).asRight
       case (i: PreviewSequenceTab, a)    =>
         AvailableTab(
-          i.obsId,
+          i.obsIdName,
           i.sequence.status,
           i.sequence.metadata.instrument,
           i.runningStep,
@@ -338,7 +338,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
       .getOption(this)
       .collect { case InstrumentSequenceTab(_, Right(s), _, _, _, _, _) =>
         SequenceObserverFocus(s.metadata.instrument,
-                              s.id,
+                              s.idName.id,
                               s.allStepsDone,
                               s.metadata.observer
         ).asRight
@@ -410,7 +410,7 @@ object SequencesOnDisplay {
 
   private def previewMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
     tab match {
-      case PreviewSequenceTab(curr, _, _, _) => curr.id === id
+      case PreviewSequenceTab(curr, _, _, _) => curr.idName.id === id
       case _                                 => false
     }
 
@@ -421,14 +421,14 @@ object SequencesOnDisplay {
 
   private def instrumentSequenceMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
     tab match {
-      case InstrumentSequenceTab(_, Right(curr), _, _, _, _, _) => curr.id === id
+      case InstrumentSequenceTab(_, Right(curr), _, _, _, _, _) => curr.idName.id === id
       case _                                                    => false
     }
 
   private def sequenceMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
     tab match {
-      case t: InstrumentSequenceTab => t.obsId === id
-      case t: PreviewSequenceTab    => t.obsId === id
+      case t: InstrumentSequenceTab => t.obsIdName.id === id
+      case t: PreviewSequenceTab    => t.obsIdName.id === id
       case _                        => false
     }
 
@@ -521,7 +521,7 @@ object SequencesOnDisplay {
     : Getter[SequencesOnDisplay, NonEmptyList[Either[CalibrationQueueTabActive, AvailableTab]]] =
     Getter(_.availableTabs)
 
-  val stepL: Optional[ObserveTab, Option[Int]] =
+  val stepL: Optional[ObserveTab, Option[StepId]] =
     ObserveTab.sequenceTab ^|-> SequenceTab.stepConfigL
 
   def loadingL(id: Observation.Id): Traversal[SequencesOnDisplay, Boolean] =
@@ -532,7 +532,7 @@ object SequencesOnDisplay {
   ): Getter[SequencesOnDisplay, Option[ObserveTabActive]] =
     SequencesOnDisplay.tabs.asGetter >>> {
       _.withFocus.toList.collectFirst {
-        case (i: SequenceTab, a) if i.obsId === id =>
+        case (i: SequenceTab, a) if i.obsIdName.id === id =>
           val selected =
             if (a) TabSelected.Selected else TabSelected.Background
           ObserveTabActive(i, selected)

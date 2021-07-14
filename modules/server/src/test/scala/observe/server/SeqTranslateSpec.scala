@@ -11,7 +11,7 @@ import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
 import lucuma.core.enum.Site
-
+import observe.common.test._
 import observe.engine.{ Action, Result, Sequence }
 import observe.model.enum.Instrument.GmosS
 import observe.model.dhs._
@@ -24,7 +24,8 @@ class SeqTranslateSpec extends TestCommon {
 
   private val config: CleanConfig = CleanConfig.empty
   private val fileId              = "DummyFileId"
-  private val seqId               = Observation.Id.unsafeFromString("GS-2018A-Q-1-1")
+  private val seqIdName           =
+    Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-1-1"))
   private def observeActions(state: Action.ActionState[IO]): NonEmptyList[Action[IO]] =
     NonEmptyList.one(
       Action(ActionType.Observe,
@@ -34,12 +35,13 @@ class SeqTranslateSpec extends TestCommon {
     )
 
   private val seqg = SequenceGen(
-    seqId,
+    seqIdName.id,
+    seqIdName.name,
     "",
     GmosS,
     List(
       SequenceGen.PendingStepGen(
-        1,
+        stepId(1),
         Monoid.empty[DataId],
         config,
         Set(GmosS),
@@ -52,27 +54,27 @@ class SeqTranslateSpec extends TestCommon {
   )
 
   private val baseState: EngineState[IO] =
-    (ODBSequencesLoader.loadSequenceEndo[IO](seqId, seqg, executeEngine) >>>
-      (EngineState.sequenceStateIndex[IO](seqId) ^|-> Sequence.State.status)
+    (ODBSequencesLoader.loadSequenceEndo[IO](seqIdName.id, seqg, executeEngine) >>>
+      (EngineState.sequenceStateIndex[IO](seqIdName.id) ^|-> Sequence.State.status)
         .set(SequenceState.Running.init))(EngineState.default[IO])
 
   // Observe started
   private val s0: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.start(0))(baseState)
   // Observe pending
   private val s1: EngineState[IO] = baseState
   // Observe completed
   private val s2: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.mark(0)(Result.OK(Observed(toImageFileId(fileId)))))(baseState)
   // Observe started, but with file Id already allocated
   private val s3: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.start(0).mark(0)(Result.Partial(FileIdAllocated(toImageFileId(fileId)))))(baseState)
   // Observe paused
   private val s4: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(
       _.mark(0)(
         Result.Paused(
@@ -80,7 +82,7 @@ class SeqTranslateSpec extends TestCommon {
             _ => Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
             _ => Stream.empty,
             Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
-            Stream.eval(ObserveFailure.Aborted(seqId).raiseError[IO, Result[IO]]),
+            Stream.eval(ObserveFailure.Aborted(seqIdName).raiseError[IO, Result[IO]]),
             Seconds(1)
           )
         )
@@ -88,33 +90,33 @@ class SeqTranslateSpec extends TestCommon {
     )(baseState)
   // Observe failed
   private val s5: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.mark(0)(Result.Error("error")))(baseState)
   // Observe aborted
   private val s6: EngineState[IO] = EngineState
-    .sequenceStateIndex[IO](seqId)
+    .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.mark(0)(Result.OKAborted(Response.Aborted(toImageFileId(fileId)))))(baseState)
 
   private val translator = SeqTranslate(Site.GS, defaultSystems).unsafeRunSync()
 
   "SeqTranslate" should "trigger stopObserve command only if exposure is in progress" in {
-    assert(translator.stopObserve(seqId, graceful = false).apply(s0).isDefined)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s1).isEmpty)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s2).isEmpty)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s3).isDefined)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s4).isDefined)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s5).isEmpty)
-    assert(translator.stopObserve(seqId, graceful = false).apply(s6).isEmpty)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s0).isDefined)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s1).isEmpty)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s2).isEmpty)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s3).isDefined)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s4).isDefined)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s5).isEmpty)
+    assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s6).isEmpty)
   }
 
   "SeqTranslate" should "trigger abortObserve command only if exposure is in progress" in {
-    assert(translator.abortObserve(seqId).apply(s0).isDefined)
-    assert(translator.abortObserve(seqId).apply(s1).isEmpty)
-    assert(translator.abortObserve(seqId).apply(s2).isEmpty)
-    assert(translator.abortObserve(seqId).apply(s3).isDefined)
-    assert(translator.abortObserve(seqId).apply(s4).isDefined)
-    assert(translator.abortObserve(seqId).apply(s5).isEmpty)
-    assert(translator.abortObserve(seqId).apply(s6).isEmpty)
+    assert(translator.abortObserve(seqIdName.id).apply(s0).isDefined)
+    assert(translator.abortObserve(seqIdName.id).apply(s1).isEmpty)
+    assert(translator.abortObserve(seqIdName.id).apply(s2).isEmpty)
+    assert(translator.abortObserve(seqIdName.id).apply(s3).isDefined)
+    assert(translator.abortObserve(seqIdName.id).apply(s4).isDefined)
+    assert(translator.abortObserve(seqIdName.id).apply(s5).isEmpty)
+    assert(translator.abortObserve(seqIdName.id).apply(s6).isEmpty)
   }
 
 }

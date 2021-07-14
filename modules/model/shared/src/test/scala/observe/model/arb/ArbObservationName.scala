@@ -15,22 +15,22 @@ import observe.model.arb.ArbProgramId
 import lucuma.core.math.Index
 import lucuma.core.optics.syntax.prism._
 
-trait ArbObservationId {
+trait ArbObservationName {
 
   import ArbIndex._
   import ArbProgramId._
 
-  implicit val arbObservationId: Arbitrary[Observation.Id] =
+  implicit val arbObservationId: Arbitrary[Observation.Name] =
     Arbitrary {
       for {
         pid <- arbitrary[ProgramId]
         num <- choose[Short](1, 100)
-      } yield Observation.Id(pid, Index.fromShort.unsafeGet(num))
+      } yield Observation.Name(pid, Index.fromShort.unsafeGet(num))
     }
 
-  implicit val cogObservationId: Cogen[Observation.Id] =
+  implicit val cogObservationId: Cogen[Observation.Name] =
     Cogen[(ProgramId, Index)].contramap(oid => (oid.pid, oid.index))
 
 }
 
-object ArbObservationId extends ArbObservationId
+object ArbObservationName extends ArbObservationName

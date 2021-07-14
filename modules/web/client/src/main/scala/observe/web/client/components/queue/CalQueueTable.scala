@@ -6,10 +6,10 @@ package observe.web.client.components.queue
 import scala.concurrent.duration._
 import scala.math.max
 import scala.scalajs.js
-
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import eu.timepit.refined.types.all.PosLong
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.CallbackTo
@@ -49,26 +49,36 @@ import web.client.table._
 
 // ScalaJS defined trait
 trait CalQueueRow extends js.Object {
-  var obsId: Observation.Id
+  var obsIdName: Observation.IdName
   var instrument: Instrument
   var status: SequenceState
 }
 
 object CalQueueRow {
 
-  def apply(obsId: Observation.Id, instrument: Instrument, status: SequenceState): CalQueueRow = {
+  def apply(
+    obsIdName:  Observation.IdName,
+    instrument: Instrument,
+    status:     SequenceState
+  ): CalQueueRow = {
     val p = (new js.Object).asInstanceOf[CalQueueRow]
-    p.obsId = obsId
+    p.obsIdName = obsIdName
     p.instrument = instrument
     p.status = status
     p
   }
 
-  def unapply(l: CalQueueRow): Option[(Observation.Id, Instrument, SequenceState)] =
-    Some((l.obsId, l.instrument, l.status))
+  def unapply(l: CalQueueRow): Option[(Observation.IdName, Instrument, SequenceState)] =
+    Some((l.obsIdName, l.instrument, l.status))
 
   def Empty: CalQueueRow =
-    apply(Observation.Id.unsafeFromString("Default-1"), Instrument.F2, SequenceState.Idle)
+    apply(
+      Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue),
+                         Observation.Name.unsafeFromString("Default-1")
+      ),
+      Instrument.F2,
+      SequenceState.Idle
+    )
 }
 
 final case class CalQueueTable(queueId: QueueId, data: CalQueueFocus)
@@ -88,7 +98,7 @@ final case class CalQueueTable(queueId: QueueId, data: CalQueueFocus)
       .getOrElse(data.seqs)
     moved
       .lift(i)
-      .map(s => CalQueueRow(s.id, s.i, s.status))
+      .map(s => CalQueueRow(s.idName, s.i, s.status))
       .getOrElse(CalQueueRow.Empty)
   }
 
@@ -135,7 +145,7 @@ final case class CalQueueTable(queueId: QueueId, data: CalQueueFocus)
   val upLifted: List[Int] =
     data.seqs.zipWithIndex
       .find { case (s, _) =>
-        seqState(s.id).exists(_.removeSeqQueue === RemoveSeqQueue.RemoveSeqQueueInFlight)
+        seqState(s.idName.id).exists(_.removeSeqQueue === RemoveSeqQueue.RemoveSeqQueueInFlight)
       }
       .map(i => ((i._2 + 1) to rowCount).toList)
       .orEmpty
@@ -235,7 +245,7 @@ object CalQueueTable {
 
   val obsIdRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
     (_, _, _, r: CalQueueRow, _) => {
-      <.p(ObserveStyles.queueText |+| ObserveStyles.noselect, r.obsId.format)
+      <.p(ObserveStyles.queueText |+| ObserveStyles.noselect, r.obsIdName.name.format)
     }
 
   val instrumentRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
@@ -243,7 +253,7 @@ object CalQueueTable {
       <.p(ObserveStyles.queueText |+| ObserveStyles.noselect, r.instrument.show)
     }
 
-  private def removeSeq(qid: QueueId, sid: Observation.Id): Callback =
+  private def removeSeq(qid: QueueId, sid: Observation.IdName): Callback =
     ObserveCircuit.dispatchCB(RequestRemoveSeqCal(qid, sid))
 
   def removeSeqRenderer(p: Props): CellRenderer[js.Object, js.Object, CalQueueRow] =
@@ -257,13 +267,13 @@ object CalQueueTable {
           color = Brown,
           disabled = !p.data.canOperate,
           compact = true,
-          onClick = removeSeq(p.queueId, r.obsId),
+          onClick = removeSeq(p.queueId, r.obsIdName),
           clazz = ObserveStyles.autoMargin,
           icon = true
         )(
-          p.seqState(r.obsId)
+          p.seqState(r.obsIdName.id)
             .filter(_.removeSeqQueue === RemoveSeqQueue.RemoveSeqQueueInFlight)
-            .fold(IconTimes(^.onClick --> removeSeq(p.queueId, r.obsId)))(_ =>
+            .fold(IconTimes(^.onClick --> removeSeq(p.queueId, r.obsIdName)))(_ =>
               IconRefresh.loading(true)
             )
         )
@@ -359,7 +369,7 @@ object CalQueueTable {
           ObserveStyles.headerRowStyle
         case (_, CalQueueRow(i, _, _)) if p.addedRows.contains(i) && !s.animationRendered        =>
           ObserveStyles.stepRow |+| ObserveStyles.draggableRow |+| ObserveStyles.calRowBackground
-        case (_, CalQueueRow(i, _, _)) if p.movedRows.contains(i) && !s.animationRendered        =>
+        case (_, CalQueueRow(i, _, _)) if p.movedRows.contains(i.id) && !s.animationRendered     =>
           ObserveStyles.stepRow |+| ObserveStyles.draggableRow |+| ObserveStyles.calRowBackground
         case (i, CalQueueRow(_, _, _)) if p.afterDeletedRows.contains(i) && !s.animationRendered =>
           ObserveStyles.stepRow |+| ObserveStyles.draggableRow |+| ObserveStyles.calRowBackground
@@ -411,12 +421,14 @@ object CalQueueTable {
       b.props >>= { p =>
         val movedObsId =
           p.data.seqs
-            .map(_.id)
+            .map(_.idName)
             .lift(c.oldIndex)
         movedObsId
-          .map(obsId =>
-            ObserveCircuit.dispatchCB(RequestMoveCal(p.queueId, obsId, c.newIndex - c.oldIndex)) >>
-              b.setStateL(State.moved)((obsId, c).some)
+          .map(obsIdName =>
+            ObserveCircuit.dispatchCB(
+              RequestMoveCal(p.queueId, obsIdName, c.newIndex - c.oldIndex)
+            ) >>
+              b.setStateL(State.moved)((obsIdName.id, c).some)
           )
           .getOrEmpty
       }
@@ -471,14 +483,11 @@ object CalQueueTable {
       // This is a bit tricky. if the last op has changed we allow animation
       val opChanged = props.data.lastOp =!= state.prevLastOp
 
-      val animationRendered = opChanged match {
-        case true  => false
-        case false => state.animationRendered
-      }
+      val animationRendered = !opChanged & state.animationRendered
 
       val moved = state.moved.filter { case (obsId, ic) =>
         props.data.seqs
-          .map(_.id)
+          .map(_.idName.id)
           .lift(ic.newIndex)
           .forall(_ =!= obsId)
       }

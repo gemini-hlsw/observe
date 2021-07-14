@@ -58,7 +58,7 @@ object WebSocketsFocus {
         m.sequences,
         ObserveAppRootModel.sequenceTabsT
           .getAll(m)
-          .map(t => t.obsId -> t.tabOperations.resourceRunRequested)
+          .map(t => t.obsIdName.id -> t.tabOperations.resourceRunRequested)
           .toMap,
         m.uiModel.user,
         m.uiModel.defaultObserver,
@@ -78,7 +78,7 @@ object WebSocketsFocus {
             sequencesOnDisplay = SequencesOnDisplay.sequenceTabs.modify(seqTab =>
               SequenceTab.resourcesRunOperationsL.set(
                 v.resourceRunRequested
-                  .getOrElse(seqTab.obsId, SortedMap.empty)
+                  .getOrElse(seqTab.obsIdName.id, SortedMap.empty)
               )(seqTab)
             )(m.uiModel.sequencesOnDisplay),
             defaultObserver = v.defaultObserver,

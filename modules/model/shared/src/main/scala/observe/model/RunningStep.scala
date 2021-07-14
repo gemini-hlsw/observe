@@ -3,28 +3,31 @@
 
 package observe.model
 
-import cats._
-import cats.syntax.all._
+import cats.Show
+import cats.Eq
+import cats.syntax.option._
 
 sealed trait RunningStep {
-  val last: StepId
-  val total: StepId
+  val id: Option[StepId]
+  val last: Int
+  val total: Int
 }
 
 object RunningStep {
-  val Zero: RunningStep = RunningStepImpl(0, 0)
+  val Zero: RunningStep = RunningStepImpl(none, 0, 0)
 
-  private final case class RunningStepImpl(last: StepId, total: StepId) extends RunningStep
+  private final case class RunningStepImpl(id: Option[StepId], last: Int, total: Int)
+      extends RunningStep
 
-  def fromInt(last: StepId, total: StepId): Option[RunningStep] =
-    if (last >= 0 && total >= last) RunningStepImpl(last, total).some else none
+  def fromInt(id: Option[StepId], last: Int, total: Int): Option[RunningStep] =
+    if (total >= last) RunningStepImpl(id, last, total).some else none
 
-  def unapply(r: RunningStep): Option[(StepId, StepId)] =
-    Some((r.last, r.total))
+  def unapply(r: RunningStep): Option[(Option[StepId], Int, Int)] =
+    Some((r.id, r.last, r.total))
 
   implicit val show: Show[RunningStep] =
     Show.show(u => s"${u.last + 1}/${u.total}")
 
   implicit val eq: Eq[RunningStep] =
-    Eq.by(x => (x.last, x.total))
+    Eq.by(x => (x.id, x.last, x.total))
 }

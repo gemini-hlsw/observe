@@ -12,7 +12,7 @@ import observe.model.Observation
 
 @Lenses
 final case class SequenceView(
-  id:              Observation.Id,
+  idName:          Observation.IdName,
   metadata:        SequenceMetadata,
   status:          SequenceState,
   systemOverrides: SystemOverrides,
@@ -21,7 +21,9 @@ final case class SequenceView(
 ) {
 
   def progress: Option[RunningStep] =
-    RunningStep.fromInt(steps.count(_.isFinished), steps.length)
+    steps.zipWithIndex.find(!_._1.isFinished).flatMap { x =>
+      RunningStep.fromInt(x._1.id.some, x._2, steps.length)
+    }
 
   // Returns where on the sequence the execution is at
   def runningStep: Option[RunningStep] = status match {
@@ -34,7 +36,7 @@ final case class SequenceView(
 
 object SequenceView {
   implicit val eq: Eq[SequenceView] =
-    Eq.by(x => (x.id, x.metadata, x.status, x.steps, x.willStopIn))
+    Eq.by(x => (x.idName, x.metadata, x.status, x.steps, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
     SequenceView.steps ^|->> each

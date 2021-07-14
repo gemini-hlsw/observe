@@ -459,7 +459,9 @@ object ObserveEngine {
                   Handle
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval(
-                        systems.odb.sequenceStart(id, x.dataId).as(Event.nullEvent[F])
+                        systems.odb
+                          .sequenceStart(Observation.IdName(id, seq.name), x.dataId)
+                          .as(Event.nullEvent[F])
                       )
                     )
                     .as((id, step.id).some)
@@ -492,29 +494,36 @@ object ObserveEngine {
           .map { seq =>
             executeEngine
               .liftF {
-                findStartingStep(seq, stepId)
-                  .flatMap(ststp =>
-                    findFirstCheckRequiredStep(seq, ststp.id).map(sp =>
-                      sequenceTcsTargetMatch(sp).map { tchk =>
-                        (ststp.some,
-                         List(tchk, observingConditionsMatch(st.conditions, sp))
-                           .collect { case Some(x) => x }
-                           .widen[SeqCheck]
-                        )
-                      }
-                    )
+                (for {
+                  ststp  <- findStartingStep(seq, stepId)
+                  stpidx <- seq.seqGen.stepIndex(ststp.id)
+                  sp     <- findFirstCheckRequiredStep(seq, ststp.id)
+                } yield sequenceTcsTargetMatch(sp).map { tchk =>
+                  (ststp.some,
+                   stpidx,
+                   List(tchk, observingConditionsMatch(st.conditions, sp))
+                     .collect { case Some(x) => x }
+                     .widen[SeqCheck]
                   )
-                  .getOrElse((none[SequenceGen.StepGen[F]], List.empty[SeqCheck]).pure[F])
+                })
+                  .getOrElse((none[SequenceGen.StepGen[F]], 0, List.empty[SeqCheck]).pure[F])
               }
-              .flatMap { case (stpg, checks) =>
+              .flatMap { case (stpg, stpidx, checks) =>
                 (checkResources(id)(st), stpg, checks, runOverride) match {
                   // Resource check fails
-                  case (false, _, _, _)                             => executeEngine.unit.as[SeqEvent](Busy(id, clientId))
+                  case (false, _, _, _)                             =>
+                    executeEngine.unit.as[SeqEvent](
+                      Busy(Observation.IdName(id, seq.name), clientId)
+                    )
                   // Target check fails and no override
                   case (_, Some(stp), x :: xs, RunOverride.Default) =>
                     executeEngine.unit.as[SeqEvent](
                       RequestConfirmation(
-                        UserPrompt.ChecksOverride(id, stp.id, NonEmptyList(x, xs)),
+                        UserPrompt.ChecksOverride(Observation.IdName(id, seq.name),
+                                                  stp.id,
+                                                  stpidx,
+                                                  NonEmptyList(x, xs)
+                        ),
                         clientId
                       )
                     )
@@ -599,7 +608,7 @@ object ObserveEngine {
     ): F[Unit] =
       logDebugEvent(
         q,
-        s"ObserveEngine: Setting Observer name to '$name' for sequence '${seqId.format}' by ${user.username}"
+        s"ObserveEngine: Setting Observer name to '$name' for sequence '$seqId' by ${user.username}"
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -628,8 +637,12 @@ object ObserveEngine {
 
       Event.modifyState[F, EngineState[F], SeqEvent] {
         ((st: EngineState[F]) => {
-          if (!testRunning(st)) lens.withEvent(AddLoadedSequence(i, sid, user, clientId))(st)
-          else (st, NotifyUser(InstrumentInUse(sid, i), clientId))
+          val idName = Observation.IdName(
+            sid,
+            st.sequences.get(sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+          )
+          if (!testRunning(st)) lens.withEvent(AddLoadedSequence(i, idName, user, clientId))(st)
+          else (st, NotifyUser(InstrumentInUse(idName, i), clientId))
         }).toHandle
       }
     }
@@ -647,7 +660,7 @@ object ObserveEngine {
         .flatMap { ts =>
           q.offer(
             Event.logInfoMsg[F, EngineState[F], SeqEvent](
-              s"User '${user.displayName}' sync and load sequence ${sid.format} on ${i.show}",
+              s"User '${user.displayName}' sync and load sequence $sid on ${i.show}",
               ts
             )
           )
@@ -973,11 +986,21 @@ object ObserveEngine {
                  ((),
                   Stream[Pure, EventType[F]](
                     Event.modifyState[F, EngineState[F], SeqEvent](
-                      { s: EngineState[F] => s }
-                        .withEvent(
-                          AddLoadedSequence(obsseq.seqGen.instrument, sid, user, clientId)
+                      { s: EngineState[F] =>
+                        val idName = Observation.IdName(
+                          sid,
+                          st.sequences
+                            .get(sid)
+                            .fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
                         )
-                        .toHandle
+                        (s,
+                         AddLoadedSequence(obsseq.seqGen.instrument,
+                                           idName,
+                                           user,
+                                           clientId
+                         ): SeqEvent
+                        )
+                      }.toHandle
                     )
                   ).covary[F].some
                  )
@@ -1144,19 +1167,23 @@ object ObserveEngine {
       clientID: ClientId
     ): HandleType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
+        val idName = Observation.IdName(
+          sid,
+          st.sequences.get(sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+        )
         if (configSystemCheck(sid, sys)(st)) {
           st.sequences
             .get(sid)
             .flatMap(_.seqGen.configActionCoord(stepId, sys))
             .map(c =>
               executeEngine.startSingle(ActionCoords(sid, c)).map[SeqEvent] {
-                case EventResult.Outcome.Ok => StartSysConfig(sid, stepId, sys)
+                case EventResult.Outcome.Ok => StartSysConfig(idName, stepId, sys)
                 case _                      => NullSeqEvent
               }
             )
             .getOrElse(executeEngine.pure(NullSeqEvent))
         } else {
-          executeEngine.pure(ResourceBusy(sid, stepId, sys, clientID))
+          executeEngine.pure(ResourceBusy(idName, stepId, sys, clientID))
         }
       }
 
@@ -1180,22 +1207,35 @@ object ObserveEngine {
       i: (EventResult[SeqEvent], EngineState[F])
     ): F[(EventResult[SeqEvent], EngineState[F])] =
       (i match {
-        case (SystemUpdate(SystemEvent.Failed(id, _, e), _), _) =>
-          Logger[F].error(s"Error executing ${id.format} due to $e") *>
-            systems.odb
-              .obsAbort(id, e.msg)
-              .ensure(
-                ObserveFailure
-                  .Unexpected("Unable to send ObservationAborted message to ODB.")
-              )(identity)
-        case (SystemUpdate(SystemEvent.Executed(id), _), st)
-            if EngineState
-              .sequenceStateIndex(id)
-              .getOption(st)
-              .exists(_.status === SequenceState.Idle) =>
-          systems.odb.obsPause(id, "Sequence paused by user").void
-        case (SystemUpdate(SystemEvent.Finished(id), _), _)     => systems.odb.sequenceEnd(id).void
-        case _                                                  => Applicative[F].unit
+        case (SystemUpdate(SystemEvent.Failed(id, _, e), _), st) =>
+          st.sequences
+            .get(id)
+            .map { seq =>
+              Logger[F].error(s"Error executing ${seq.name} due to $e") *>
+                systems.odb
+                  .obsAbort(Observation.IdName(id, seq.name), e.msg)
+                  .ensure(
+                    ObserveFailure
+                      .Unexpected("Unable to send ObservationAborted message to ODB.")
+                  )(identity)
+            }
+            .getOrElse(Applicative[F].unit)
+        case (SystemUpdate(SystemEvent.Executed(id), _), st)     =>
+          st.sequences
+            .get(id)
+            .filter(_.seq.status === SequenceState.Idle)
+            .map { seq =>
+              systems.odb.obsPause(Observation.IdName(id, seq.name), "Sequence paused by user").void
+            }
+            .getOrElse(Applicative[F].unit)
+        case (SystemUpdate(SystemEvent.Finished(id), _), st)     =>
+          st.sequences
+            .get(id)
+            .map { seq =>
+              systems.odb.sequenceEnd(Observation.IdName(id, seq.name)).void
+            }
+            .getOrElse(Applicative[F].unit)
+        case _                                                   => Applicative[F].unit
       }).as(i)
 
     /**
@@ -1203,7 +1243,7 @@ object ObserveEngine {
      */
     def updateMetrics(e: EventResult[SeqEvent], sequences: List[SequenceView]): F[Unit] = {
       def instrument(id: Observation.Id): Option[Instrument] =
-        sequences.find(_.id === id).map(_.metadata.instrument)
+        sequences.find(_.idName.id === id).map(_.metadata.instrument)
 
       (e match {
         // TODO Add metrics for more events
@@ -1253,7 +1293,7 @@ object ObserveEngine {
     ): F[Unit] =
       logDebugEvent(
         q,
-        s"ObserveEngine: Setting TCS enabled flag to '$enabled' for sequence '${seqId.format}' by ${user.username}"
+        s"ObserveEngine: Setting TCS enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1272,7 +1312,7 @@ object ObserveEngine {
     ): F[Unit] =
       logDebugEvent(
         q,
-        s"ObserveEngine: Setting Gcal enabled flag to '$enabled' for sequence '${seqId.format}' by ${user.username}"
+        s"ObserveEngine: Setting Gcal enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1291,7 +1331,7 @@ object ObserveEngine {
     ): F[Unit] =
       logDebugEvent(
         q,
-        s"ObserveEngine: Setting instrument enabled flag to '$enabled' for sequence '${seqId.format}' by ${user.username}"
+        s"ObserveEngine: Setting instrument enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1312,7 +1352,7 @@ object ObserveEngine {
     ): F[Unit] =
       logDebugEvent(
         q,
-        s"ObserveEngine: Setting DHS enabled flag to '$enabled' for sequence '${seqId.format}' by ${user.username}"
+        s"ObserveEngine: Setting DHS enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1505,48 +1545,48 @@ object ObserveEngine {
     svs: => SequencesQueue[SequenceView]
   ): Stream[F, ObserveEvent] =
     v match {
-      case NullSeqEvent                       => Stream.empty
-      case SetOperator(_, _)                  => Stream.emit(OperatorUpdated(svs))
-      case SetObserver(_, _, _)               => Stream.emit(ObserverUpdated(svs))
-      case SetTcsEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
-      case SetGcalEnabled(_, _, _)            => Stream.emit(OverridesUpdated(svs))
-      case SetInstrumentEnabled(_, _, _)      => Stream.emit(OverridesUpdated(svs))
-      case SetDhsEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
-      case AddLoadedSequence(i, s, _, c)      => Stream.emit(LoadSequenceUpdated(i, s, svs, c))
-      case ClearLoadedSequences(_)            => Stream.emit(ClearLoadedSequencesUpdated(svs))
-      case SetConditions(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case SetImageQuality(_, _)              => Stream.emit(ConditionsUpdated(svs))
-      case SetWaterVapor(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case SetSkyBackground(_, _)             => Stream.emit(ConditionsUpdated(svs))
-      case SetCloudCover(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case LoadSequence(id)                   => Stream.emit(SequenceLoaded(id, svs))
-      case UnloadSequence(id)                 => Stream.emit(SequenceUnloaded(id, svs))
-      case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
-      case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
-      case UpdateQueueAdd(qid, seqs)          =>
+      case NullSeqEvent                        => Stream.empty
+      case SetOperator(_, _)                   => Stream.emit(OperatorUpdated(svs))
+      case SetObserver(_, _, _)                => Stream.emit(ObserverUpdated(svs))
+      case SetTcsEnabled(_, _, _)              => Stream.emit(OverridesUpdated(svs))
+      case SetGcalEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
+      case SetInstrumentEnabled(_, _, _)       => Stream.emit(OverridesUpdated(svs))
+      case SetDhsEnabled(_, _, _)              => Stream.emit(OverridesUpdated(svs))
+      case AddLoadedSequence(i, s, _, c)       => Stream.emit(LoadSequenceUpdated(i, s, svs, c))
+      case ClearLoadedSequences(_)             => Stream.emit(ClearLoadedSequencesUpdated(svs))
+      case SetConditions(_, _)                 => Stream.emit(ConditionsUpdated(svs))
+      case SetImageQuality(_, _)               => Stream.emit(ConditionsUpdated(svs))
+      case SetWaterVapor(_, _)                 => Stream.emit(ConditionsUpdated(svs))
+      case SetSkyBackground(_, _)              => Stream.emit(ConditionsUpdated(svs))
+      case SetCloudCover(_, _)                 => Stream.emit(ConditionsUpdated(svs))
+      case LoadSequence(id)                    => Stream.emit(SequenceLoaded(id, svs))
+      case UnloadSequence(id)                  => Stream.emit(SequenceUnloaded(id, svs))
+      case NotifyUser(m, cid)                  => Stream.emit(UserNotification(m, cid))
+      case RequestConfirmation(m, cid)         => Stream.emit(UserPromptNotification(m, cid))
+      case UpdateQueueAdd(qid, seqs)           =>
         Stream.emit(QueueUpdated(QueueManipulationOp.AddedSeqs(qid, seqs), svs))
-      case UpdateQueueRemove(qid, s, p, l)    =>
+      case UpdateQueueRemove(qid, s, p, l)     =>
         Stream.emits(
           QueueUpdated(QueueManipulationOp.RemovedSeqs(qid, s, p), svs)
             +: l.map { case (sid, step) => ClientSequenceStart(sid, step, svs) }
         )
-      case UpdateQueueMoved(qid, cid, oid, p) =>
+      case UpdateQueueMoved(qid, cid, oid, p)  =>
         Stream.emit(QueueUpdated(QueueManipulationOp.Moved(qid, cid, oid, p), svs))
-      case UpdateQueueClear(qid)              => Stream.emit(QueueUpdated(QueueManipulationOp.Clear(qid), svs))
-      case StartQueue(qid, _, l)              =>
+      case UpdateQueueClear(qid)               => Stream.emit(QueueUpdated(QueueManipulationOp.Clear(qid), svs))
+      case StartQueue(qid, _, l)               =>
         Stream.emits(
           QueueUpdated(QueueManipulationOp.Started(qid), svs)
             +: l.map { case (sid, step) => ClientSequenceStart(sid, step, svs) }
         )
-      case StopQueue(qid, _)                  => Stream.emit(QueueUpdated(QueueManipulationOp.Stopped(qid), svs))
-      case StartSysConfig(sid, stepId, res)   =>
-        Stream.emit(SingleActionEvent(SingleActionOp.Started(sid, stepId, res)))
-      case SequenceStart(sid, stepId)         => Stream.emit(ClientSequenceStart(sid, stepId, svs))
-      case SequencesStart(l)                  =>
+      case StopQueue(qid, _)                   => Stream.emit(QueueUpdated(QueueManipulationOp.Stopped(qid), svs))
+      case StartSysConfig(idName, stepId, res) =>
+        Stream.emit(SingleActionEvent(SingleActionOp.Started(idName, stepId, res)))
+      case SequenceStart(sid, stepId)          => Stream.emit(ClientSequenceStart(sid, stepId, svs))
+      case SequencesStart(l)                   =>
         Stream.emits(l.map { case (sid, step) => ClientSequenceStart(sid, step, svs) })
-      case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
-      case ResourceBusy(id, sid, res, cid)    =>
-        Stream.emit(UserNotification(SubsystemBusy(id, sid, res), cid))
+      case Busy(id, cid)                       => Stream.emit(UserNotification(ResourceConflict(id), cid))
+      case ResourceBusy(idName, sid, res, cid) =>
+        Stream.emit(UserNotification(SubsystemBusy(idName, sid, res), cid))
     }
 
   private def executionQueueViews[F[_]](
@@ -1594,12 +1634,13 @@ object ObserveEngine {
       }
 
     // TODO: Implement willStopIn
-    SequenceView(seq.id,
-                 SequenceMetadata(instrument, obsSeq.observer, obsSeq.seqGen.title),
-                 st.status,
-                 obsSeq.overrides,
-                 engineSteps(seq),
-                 None
+    SequenceView(
+      Observation.IdName(seq.id, obsSeq.name),
+      SequenceMetadata(instrument, obsSeq.observer, obsSeq.seqGen.title),
+      st.status,
+      obsSeq.overrides,
+      engineSteps(seq),
+      None
     )
   }
 
@@ -1618,12 +1659,17 @@ object ObserveEngine {
                      sequences
       )
 
+    def idName(id: Observation.Id): Observation.IdName = Observation.IdName(
+      id,
+      qState.sequences.get(id).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+    )
+
     ev match {
       case UserCommandResponse(ue, _, uev) =>
         ue match {
           case UserEvent.Start(id, _, _)        =>
-            val rs = sequences.find(_.id === id).flatMap(_.runningStep)
-            Stream.emit(ClientSequenceStart(id, rs.foldMap(_.last), svs))
+            val rs = sequences.find(_.idName.id === id).flatMap(_.runningStep.flatMap(_.id))
+            rs.foldMap(x => Stream.emit(ClientSequenceStart(id, x, svs)))
           case UserEvent.Pause(_, _)            => Stream.emit(SequencePauseRequested(svs))
           case UserEvent.CancelPause(id, _)     => Stream.emit(SequencePauseCanceled(id, svs))
           case UserEvent.Breakpoint(_, _, _, _) => Stream.emit(StepBreakpointChanged(svs))
@@ -1648,16 +1694,18 @@ object ObserveEngine {
           case SystemEvent.Aborted(id, _, _, _)                                     => Stream.emit(SequenceAborted(id, svs))
           case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
-            Stream.emit(ObservationProgressEvent(ObservationProgress(i, s, t, r.self, v)))
+            Stream.emit(ObservationProgressEvent(ObservationProgress(idName(i), s, t, r.self, v)))
           case SystemEvent.PartialResult(i, s, _, Partial(NSProgress(t, r, v, u)))  =>
-            Stream.emit(ObservationProgressEvent(NSObservationProgress(i, s, t, r.self, v, u)))
+            Stream.emit(
+              ObservationProgressEvent(NSObservationProgress(idName(i), s, t, r.self, v, u))
+            )
           case SystemEvent.PartialResult(_, _, _, Partial(FileIdAllocated(fileId))) =>
             Stream.emit(FileIdStepExecuted(fileId, svs))
           case SystemEvent.PartialResult(_, _, _, _)                                =>
             Stream.emit(SequenceUpdated(svs))
           case SystemEvent.Failed(id, _, _)                                         => Stream.emit(SequenceError(id, svs))
           case SystemEvent.Busy(id, clientId)                                       =>
-            Stream.emit(UserNotification(ResourceConflict(id), clientId))
+            Stream.emit(UserNotification(ResourceConflict(idName(id)), clientId))
           case SystemEvent.Executed(s)                                              => Stream.emit(StepExecuted(s, svs))
           case SystemEvent.Executing(_)                                             => Stream.emit(SequenceUpdated(svs))
           case SystemEvent.Finished(_)                                              => Stream.emit(SequenceCompleted(svs))
@@ -1682,12 +1730,17 @@ object ObserveEngine {
   private def singleActionEvent[F[_], S <: SingleActionOp](
     c:      ActionCoords,
     qState: EngineState[F],
-    f:      (Observation.Id, StepId, Resource) => S
-  ): ObserveEvent =
+    f:      (Observation.IdName, StepId, Resource) => S
+  ): ObserveEvent = {
+    val idName = Observation.IdName(
+      c.sid,
+      qState.sequences.get(c.sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+    )
     qState.sequences
       .get(c.sid)
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
-      .map(res => SingleActionEvent(f(c.sid, c.actCoords.stepId, res)))
+      .map(res => SingleActionEvent(f(idName, c.actCoords.stepId, res)))
       .getOrElse(NullEvent)
+  }
 
 }

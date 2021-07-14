@@ -24,7 +24,7 @@ class SequenceDisplayHandler[M](modelRW: ModelRW[M, SequencesFocus])
 
     case SelectSequencePreview(i, id, _) =>
       val seq = SequencesQueue
-        .queueItemG[SequenceView](_.id === id)
+        .queueItemG[SequenceView](_.idName.id === id)
         .get(value.sequences)
       seq
         .map { s =>
@@ -45,20 +45,20 @@ class SequenceDisplayHandler[M](modelRW: ModelRW[M, SequencesFocus])
   }
 
   private def handleShowHideStep: PartialFunction[Any, ActionResult[M]] = {
-    case ShowPreviewStepConfig(i, id, step) =>
+    case ShowPreviewStepConfig(i, id, stepId) =>
       val seq = SequencesQueue
-        .queueItemG[SequenceView](_.id === id)
+        .queueItemG[SequenceView](_.idName.id === id)
         .get(value.sequences)
       seq
         .map { s =>
-          updatedL(SequencesFocus.sod.modify(_.previewSequence(i, s).showStepConfig(id, step - 1)))
+          updatedL(SequencesFocus.sod.modify(_.previewSequence(i, s).showStepConfig(id, stepId)))
         }
         .getOrElse {
           noChange
         }
 
-    case ShowStepConfig(i, id, step) =>
-      updatedL(SequencesFocus.sod.modify(_.focusOnSequence(i, id).showStepConfig(id, step - 1)))
+    case ShowStepConfig(i, id, stepId) =>
+      updatedL(SequencesFocus.sod.modify(_.focusOnSequence(i, id).showStepConfig(id, stepId)))
 
   }
 
@@ -67,8 +67,8 @@ class SequenceDisplayHandler[M](modelRW: ModelRW[M, SequencesFocus])
   }
 
   private def handleLoadFailed: PartialFunction[Any, ActionResult[M]] = {
-    case SequenceLoadFailed(id) =>
-      updatedL(SequencesFocus.sod.modify(_.loadingFailed(id)))
+    case SequenceLoadFailed(idName) =>
+      updatedL(SequencesFocus.sod.modify(_.loadingFailed(idName.id)))
   }
 
   override def handle: PartialFunction[Any, ActionResult[M]] =

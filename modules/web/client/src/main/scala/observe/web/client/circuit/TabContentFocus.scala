@@ -7,7 +7,7 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import monocle.Getter
-import observe.model.Observation
+import observe.model.{ Observation, StepId }
 import observe.model.enum._
 import observe.web.client.model._
 
@@ -36,12 +36,12 @@ object TabContentFocus {
           SequenceTabContentFocus(
             o,
             tab.instrument,
-            tab.sequence.id,
+            tab.sequence.idName.id,
             TabSelected.fromBoolean(active),
             StepsTableTypeSelection.fromStepId(tab.stepConfigDisplayed),
             log,
             tab.isPreview,
-            tab.sequence.steps.length
+            tab.sequence.steps.map(_.id)
           )
         case (_: CalibrationQueueTab, active) =>
           CalQueueTabContentFocus(o, TabSelected.fromBoolean(active), log)
@@ -58,7 +58,7 @@ final case class SequenceTabContentFocus(
   tableType:    StepsTableTypeSelection,
   logDisplayed: SectionVisibilityState,
   isPreview:    Boolean,
-  totalSteps:   Int
+  steps:        List[StepId]
 ) extends TabContentFocus {
   val hasControls: Boolean = canOperate && !isPreview
 }
@@ -73,7 +73,7 @@ object SequenceTabContentFocus {
        x.tableType,
        x.logDisplayed,
        x.isPreview,
-       x.totalSteps
+       x.steps
       )
     )
 }

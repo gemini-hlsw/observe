@@ -6,7 +6,7 @@ package observe.web.client.circuit
 import scala.collection.immutable.SortedMap
 
 import cats._
-import cats.syntax.all._
+import cats.implicits._
 import monocle.Getter
 import monocle.Lens
 import monocle.Traversal

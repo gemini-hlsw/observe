@@ -30,32 +30,32 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueue[SequenceVie
       ) + Effect.action(UpdateDefaultObserver(name))
       val updatedSequences =
         value.copy(sessionQueue = value.sessionQueue.collect {
-          case s if s.id === sequenceId =>
+          case s if s.idName.id === sequenceId =>
             s.copy(metadata = s.metadata.copy(observer = Some(name)))
-          case s                        => s
+          case s                               => s
         })
       updated(updatedSequences, updateObserverE)
   }
 
   def handleFlipSkipBreakpoint: PartialFunction[Any, ActionResult[M]] = {
-    case FlipSkipStep(sequenceId, step) =>
-      val skipRequest = Effect(ObserveWebClient.skip(sequenceId, step.flipSkip).as(NoAction))
+    case FlipSkipStep(sequenceIdName, step) =>
+      val skipRequest = Effect(ObserveWebClient.skip(sequenceIdName.id, step.flipSkip).as(NoAction))
       updated(value.copy(sessionQueue = value.sessionQueue.collect {
-                case s if s.id === sequenceId => s.flipSkipMarkAtStep(step)
-                case s                        => s
+                case s if s.idName === sequenceIdName => s.flipSkipMarkAtStep(step)
+                case s                                => s
               }),
               skipRequest
       )
 
-    case FlipBreakpointStep(sequenceId, step) =>
+    case FlipBreakpointStep(sequenceIdName, step) =>
       val breakpointRequest = Effect(
         ObserveWebClient
-          .breakpoint(sequenceId, step.flipBreakpoint)
+          .breakpoint(sequenceIdName.id, step.flipBreakpoint)
           .as(NoAction)
       )
       updated(value.copy(sessionQueue = value.sessionQueue.collect {
-                case s if s.id === sequenceId => s.flipBreakpointAtStep(step)
-                case s                        => s
+                case s if s.idName === sequenceIdName => s.flipBreakpointAtStep(step)
+                case s                                => s
               }),
               breakpointRequest
       )

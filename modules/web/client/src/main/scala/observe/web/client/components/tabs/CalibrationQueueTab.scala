@@ -15,7 +15,6 @@ import react.common._
 import react.semanticui.colors._
 import react.semanticui.elements.label.Label
 import observe.model.CalibrationQueueId
-import observe.model.Observation
 import observe.model.enum.BatchExecState
 import observe.web.client.actions.RequestAddSeqCal
 import observe.web.client.circuit.ObserveCircuit
@@ -58,7 +57,7 @@ object CalibrationQueueTab {
   def addToQueueE(e: ReactDragEvent): Callback =
     e.preventDefaultCB *>
       Option(e.dataTransfer.getData("text/plain"))
-        .flatMap(Observation.Id.fromString)
+        .flatMap(lucuma.core.model.Observation.Id.parse)
         .map(id => ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, id)))
         .getOrEmpty
 

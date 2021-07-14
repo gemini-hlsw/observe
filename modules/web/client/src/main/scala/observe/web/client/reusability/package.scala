@@ -41,10 +41,12 @@ package object reusability {
   implicit val imageIdReuse: Reusability[ImageFileId]                               = Reusability.byEq
   implicit val stepStateReuse: Reusability[StepState]                               = Reusability.byEq
   implicit val obsIdReuse: Reusability[Observation.Id]                              = Reusability.byEq
+  implicit val obsIdNameReuse: Reusability[Observation.IdName]                      = Reusability.byEq
   implicit val observerReuse: Reusability[Observer]                                 = Reusability.byEq
   implicit val operatorReuse: Reusability[Operator]                                 = Reusability.byEq
   implicit val colorReuse: Reusability[SemanticColor]                               = Reusability.by(_.toJs)
   implicit val cssReuse: Reusability[Css]                                           = Reusability.by(_.htmlClass)
+  implicit val stepIdReuse: Reusability[StepId]                                     = Reusability.byEq
   implicit val stepConfigReuse: Reusability[StepConfig]                             = Reusability.byEq
   val stdStepReuse: Reusability[StandardStep]                                       =
     Reusability.caseClassExcept("config")

@@ -10,6 +10,7 @@ import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import observe.model.Observation
 import monocle.Monocle.index
+import observe.common.test.observationId
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.Inside.inside
@@ -37,7 +38,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
       }).unsafeRunSync()
     }
   it should "not add sequence id if sequence does not exists" in {
-    val badObsId = Observation.Id.unsafeFromString("NonExistent-1")
+    val badObsId = observationId(101)
     val s0       = ODBSequencesLoader
       .loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine)
       .apply(EngineState.default[IO])

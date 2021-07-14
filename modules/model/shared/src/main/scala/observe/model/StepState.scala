@@ -31,10 +31,10 @@ object StepState {
     }
 
   implicit class StepStateOps(val s: StepState) extends AnyVal {
-    def canSetBreakpoint(i: Int, firstRunnable: Int): Boolean = s match {
+    def canSetBreakpoint: Boolean = s match {
       case StepState.Pending | StepState.Skipped | StepState.Paused | StepState.Running |
           StepState.Aborted =>
-        i > firstRunnable
+        true
       case _ => false
     }
 

@@ -31,11 +31,11 @@ trait ObserveActions {
    */
   def abortTail[F[_]: MonadError[*[_], Throwable]](
     odb:         OdbProxy[F],
-    obsId:       Observation.Id,
+    obsIdName:   Observation.IdName,
     imageFileId: ImageFileId
   ): F[Result[F]] =
     odb
-      .obsAbort(obsId, imageFileId)
+      .obsAbort(obsIdName, imageFileId)
       .ensure(
         ObserveFailure
           .Unexpected("Unable to send ObservationAborted message to ODB.")
@@ -47,12 +47,12 @@ trait ObserveActions {
    */
   private def sendDataStart[F[_]: MonadError[*[_], Throwable]](
     odb:         OdbProxy[F],
-    obsId:       Observation.Id,
+    obsIdName:   Observation.IdName,
     imageFileId: ImageFileId,
     dataId:      DataId
   ): F[Unit] =
     odb
-      .datasetStart(obsId, dataId, imageFileId)
+      .datasetStart(obsIdName, dataId, imageFileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -63,12 +63,12 @@ trait ObserveActions {
    */
   private def sendDataEnd[F[_]: MonadError[*[_], Throwable]](
     odb:         OdbProxy[F],
-    obsId:       Observation.Id,
+    obsIdName:   Observation.IdName,
     imageFileId: ImageFileId,
     dataId:      DataId
   ): F[Unit] =
     odb
-      .datasetComplete(obsId, dataId, imageFileId)
+      .datasetComplete(obsIdName, dataId, imageFileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -115,16 +115,17 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- sendDataStart(env.odb, env.obsId, fileId, env.dataId)
+      _ <- sendDataStart(env.odb, env.obsIdName, fileId, env.dataId)
       _ <- notifyObserveStart(env)
-      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
-      _ <- info(
-             s"Start ${env.inst.resource.show} observation ${env.obsId.format} with label $fileId"
-           )
+      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsIdName.id, fileId))
+      _ <-
+        info(
+          s"Start ${env.inst.resource.show} observation ${env.obsIdName.name.format} with label $fileId"
+        )
       r <- env.inst.observe(env.config)(fileId)
       _ <-
         info(
-          s"Completed ${env.inst.resource.show} observation ${env.obsId.format} with label $fileId"
+          s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name.format} with label $fileId"
         )
     } yield r
 
@@ -142,7 +143,7 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <- sendDataEnd(env.odb, env.obsId, fileId, env.dataId)
+      _ <- sendDataEnd(env.odb, env.obsIdName, fileId, env.dataId)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))
@@ -160,7 +161,7 @@ trait ObserveActions {
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.obsId, fileId)
+        abortTail(env.odb, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
         env.inst
           .calcObserveTime(env.config)

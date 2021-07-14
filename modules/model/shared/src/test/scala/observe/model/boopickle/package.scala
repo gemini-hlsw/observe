@@ -8,7 +8,7 @@ import _root_.boopickle.Default.Pickle
 import _root_.boopickle.Default.Unpickle
 import cats.laws._
 import cats.laws.discipline._
-import cats.kernel.Eq
+import cats.Eq
 import org.scalacheck.{ Arbitrary, Prop, Shrink }
 import org.typelevel.discipline.Laws
 

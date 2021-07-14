@@ -7,6 +7,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import observe.model._
 import observe.model.enum._
 import observe.model.arb.ArbStepConfig._
@@ -14,6 +15,7 @@ import observe.model.arb.ArbStepState._
 import observe.model.arb.ArbDhsTypes._
 
 trait ArbStandardStep {
+
   implicit val stsArb = Arbitrary[StandardStep] {
     for {
       id <- arbitrary[StepId]

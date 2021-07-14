@@ -6,22 +6,22 @@ package observe.engine
 import cats.Eq
 import cats.effect.IO
 import observe.model.Observation
-import observe.model.arb.ArbObservationId
 import monocle.law.discipline.OptionalTests
 import org.scalacheck.{ Arbitrary, Cogen }
 import org.scalacheck.Arbitrary._
 import observe.engine.TestUtil.TestState
 import observe.model.ObserveModelArbitraries._
 import observe.model.SequenceState
+import lucuma.core.util.arb.ArbGid._
 
 final class EngineSpec extends munit.DisciplineSuite {
-  import ArbObservationId._
+
   implicit val seqstateEq: Eq[Sequence.State[IO]] = Eq.fromUniversalEquals
   implicit val execstateEq: Eq[TestState]         = Eq.by(x => x.sequences)
 
   implicit val sequenceArb: Arbitrary[Sequence[IO]] = Arbitrary {
     for {
-      id <- arbitrary[Observation.Id](ArbObservationId.arbObservationId)
+      id <- arbitrary[Observation.Id]
     } yield Sequence(id, List())
   }
 

@@ -63,13 +63,15 @@ object UserPrompt {
 
   // UserPrompt whether to override start checks
   final case class ChecksOverride(
-    sid:    Observation.Id,
-    stepId: StepId,
-    checks: NonEmptyList[SeqCheck]
+    sidName: Observation.IdName,
+    stepId:  StepId,
+    stepIdx: Int,
+    checks:  NonEmptyList[SeqCheck]
   ) extends UserPrompt
 
   object ChecksOverride {
-    implicit lazy val eq: Eq[ChecksOverride] = Eq.by(x => (x.sid, x.stepId, x.checks))
+    implicit lazy val eq: Eq[ChecksOverride] =
+      Eq.by(x => (x.sidName, x.stepId, x.stepIdx, x.checks))
   }
 
 }

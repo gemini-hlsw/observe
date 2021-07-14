@@ -16,6 +16,7 @@ import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
 import edu.gemini.spModel.obscomp.InstConstants.DATA_LABEL_PROP
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
 import edu.gemini.spModel.obscomp.InstConstants.SCIENCE_OBSERVE_TYPE
+import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enum.Site
@@ -110,11 +111,11 @@ object SeqTranslate {
     private val overriddenSystems = new OverriddenSystems[F](systemss)
 
     private def step(
-      obsId:      Observation.Id,
+      obsIdName:  Observation.IdName,
       i:          StepId,
       config:     CleanConfig,
       nextToRun:  StepId,
-      datasets:   Map[Int, ExecutedDataset],
+      datasets:   Map[StepId, ExecutedDataset],
       isNightSeq: Boolean
     ): F[StepGen[F]] = {
       def buildStep(
@@ -145,7 +146,7 @@ object SeqTranslate {
                                        overriddenSystems.dhs(ov),
                                        config,
                                        stepType,
-                                       obsId,
+                                       obsIdName,
                                        dataId,
                                        instf(ov),
                                        insSpec,
@@ -180,7 +181,7 @@ object SeqTranslate {
               i,
               dataId,
               config,
-              datasets.get(i + 1).map(_.filename).map(toImageFileId)
+              datasets.get(i).map(_.filename).map(toImageFileId)
             )
         }
       }
@@ -209,6 +210,9 @@ object SeqTranslate {
       tio:                       Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
+      //TODO: Retrive sequence name from ODB sequence
+      val obsName = Observation.Name.unsafeFromString("Dummy")
+
       // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
       val configs = sequence.config.getAllSteps.toList.map(CleanConfig(_))
 
@@ -220,9 +224,17 @@ object SeqTranslate {
         .map(extractStatus)
         .lastIndexWhere(_.isFinished) + 1
 
+      //TODO: Retrieve step ids from the config
       val steps = configs.zipWithIndex
         .map { case (c, i) =>
-          step(obsId, i, c, nextToRun, sequence.datasets, isNightSeq).attempt
+          step(
+            Observation.IdName(obsId, obsName),
+            lucuma.core.model.Step.Id(PosLong.unsafeFrom(i.toLong)),
+            c,
+            lucuma.core.model.Step.Id(PosLong.unsafeFrom(nextToRun.toLong)),
+            sequence.datasets.mapKeys(x => lucuma.core.model.Step.Id(PosLong.unsafeFrom(x.toLong))),
+            isNightSeq
+          ).attempt
         }
         .sequence
         .map(_.separate)
@@ -241,6 +253,7 @@ object SeqTranslate {
                               ss.headOption.map { _ =>
                                 SequenceGen(
                                   obsId,
+                                  obsName,
                                   sequence.title,
                                   i,
                                   ss

@@ -27,6 +27,7 @@ import observe.model.enum.Resource
  */
 final case class SequenceGen[F[_]](
   id:         Observation.Id,
+  name:       Observation.Name,
   title:      String,
   instrument: Instrument,
   steps:      List[SequenceGen.StepGen[F]]
@@ -49,6 +50,8 @@ final case class SequenceGen[F[_]](
       .find(_.id === c.stepId)
       .collect { case p: SequenceGen.PendingStepGen[F] => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
+
+  def stepIndex(stepId: StepId): Option[Int] = SequenceGen.stepIndex(steps, stepId)
 }
 
 object SequenceGen {
@@ -116,5 +119,8 @@ object SequenceGen {
     override val config: CleanConfig,
     fileId:              Option[ImageFileId]
   ) extends StepGen[Nothing]
+
+  def stepIndex[F[_]](steps: List[SequenceGen.StepGen[F]], stepId: StepId): Option[Int] =
+    steps.zipWithIndex.find(_._1.id === stepId).map(_._2)
 
 }

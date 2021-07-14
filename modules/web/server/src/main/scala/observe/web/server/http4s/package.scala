@@ -17,8 +17,7 @@ import observe.model.enum.RunOverride
 
 trait Var {
   object ObsIdVar {
-    def unapply(str: String): Option[Observation.Id] =
-      Observation.Id.fromString(str)
+    def unapply(str: String): Option[Observation.Id] = lucuma.core.model.Observation.Id.unapply(str)
   }
 
   object ObserverVar {

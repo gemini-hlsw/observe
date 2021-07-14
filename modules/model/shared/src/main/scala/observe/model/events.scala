@@ -174,14 +174,14 @@ object events {
 
   final case class LoadSequenceUpdated(
     i:        Instrument,
-    sid:      Observation.Id,
+    sidName:  Observation.IdName,
     view:     SequencesQueue[SequenceView],
     clientId: ClientId
   ) extends ObserveModelUpdate
 
   object LoadSequenceUpdated {
     implicit lazy val equal: Eq[LoadSequenceUpdated] =
-      Eq.by(x => (x.i, x.sid, x.view, x.clientId))
+      Eq.by(x => (x.i, x.sidName, x.view, x.clientId))
   }
 
   final case class ClearLoadedSequencesUpdated(view: SequencesQueue[SequenceView])

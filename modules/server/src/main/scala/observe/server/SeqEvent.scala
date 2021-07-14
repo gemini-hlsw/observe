@@ -37,7 +37,7 @@ object SeqEvent {
   final case class UnloadSequence(id: Observation.Id) extends SeqEvent
   final case class AddLoadedSequence(
     instrument: Instrument,
-    sid:        Observation.Id,
+    sidName:    Observation.IdName,
     user:       UserDetails,
     clientId:   ClientId
   )                        extends SeqEvent
@@ -64,13 +64,13 @@ object SeqEvent {
   final case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
       extends SeqEvent
   final case class UpdateQueueClear(qid: QueueId) extends SeqEvent
-  final case class StartSysConfig(sid: Observation.Id, stepId: StepId, res: Resource)
+  final case class StartSysConfig(sidName: Observation.IdName, stepId: StepId, res: Resource)
       extends SeqEvent
-  final case class Busy(sid: Observation.Id, cid: ClientId) extends SeqEvent
+  final case class Busy(sidName: Observation.IdName, cid: ClientId) extends SeqEvent
   final case class SequenceStart(sid: Observation.Id, stepId: StepId) extends SeqEvent
   final case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)]) extends SeqEvent
   final case class ResourceBusy(
-    sid:      Observation.Id,
+    sidName:  Observation.IdName,
     stepId:   StepId,
     res:      Resource,
     clientID: ClientId

@@ -17,8 +17,7 @@ import react.semanticui.elements.button.ButtonGroup
 import react.semanticui.elements.button.LabelPosition
 import react.semanticui.elements.label.Label
 import react.semanticui.sizes._
-import observe.model.Observation
-import observe.model.RunningStep
+import observe.model.{ Observation, RunningStep, StepId }
 import observe.model.enum.Instrument
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.circuit.SequenceInfoFocus
@@ -30,8 +29,8 @@ final case class StepConfigToolbar(
   router:     RouterCtl[ObservePages],
   instrument: Instrument,
   id:         Observation.Id,
-  step:       Int,
-  total:      Int,
+  stepId:     StepId,
+  steps:      List[StepId],
   isPreview:  Boolean
 ) extends ReactProps[StepConfigToolbar](StepConfigToolbar.component) {
   val sequenceConnect: ReactConnectProxy[Option[SequenceInfoFocus]] =
@@ -44,24 +43,33 @@ final case class StepConfigToolbar(
 object StepConfigToolbar {
   type Props = StepConfigToolbar
 
+  private def prevStepId(id: StepId, l: List[StepId]): Option[StepId] =
+    l.takeWhile(_ =!= id).lastOption
+  private def nextStepId(id: StepId, l: List[StepId]): Option[StepId] =
+    l.dropWhile(_ =!= id).drop(1).headOption
+
   private val component = ScalaComponent
     .builder[Props]("StepConfigToolbar")
     .stateless
     .render_P { p =>
       val sequencePage = if (p.isPreview) {
-        PreviewPage(p.instrument, p.id, StepIdDisplayed(p.step))
+        PreviewPage(p.instrument, p.id, StepIdDisplayed(p.stepId.some))
       } else {
-        SequencePage(p.instrument, p.id, StepIdDisplayed(p.step))
+        SequencePage(p.instrument, p.id, StepIdDisplayed(p.stepId.some))
       }
-      val nextStepPage = if (p.isPreview) {
-        PreviewConfigPage(p.instrument, p.id, p.step + 2)
-      } else {
-        SequenceConfigPage(p.instrument, p.id, p.step + 2)
+      val nextStepPage = nextStepId(p.stepId, p.steps).map { x =>
+        if (p.isPreview) {
+          PreviewConfigPage(p.instrument, p.id, x)
+        } else {
+          SequenceConfigPage(p.instrument, p.id, x)
+        }
       }
-      val prevStepPage = if (p.isPreview) {
-        PreviewConfigPage(p.instrument, p.id, p.step)
-      } else {
-        SequenceConfigPage(p.instrument, p.id, p.step)
+      val prevStepPage = prevStepId(p.stepId, p.steps).map { x =>
+        if (p.isPreview) {
+          PreviewConfigPage(p.instrument, p.id, x)
+        } else {
+          SequenceConfigPage(p.instrument, p.id, x)
+        }
       }
 
       <.div(
@@ -82,23 +90,39 @@ object StepConfigToolbar {
         <.div(ObserveStyles.SequenceInfo)(
           ButtonGroup(clazz = Css("right floated"))(
             // Previous step button
-            (p.step > 0).option(
-              p.router.link(prevStepPage)(
+            prevStepPage.fold[VdomNode](
+              Button(icon = true, labelPosition = LabelPosition.Left, disabled = true)(
+                IconChevronLeft,
+                "Prev"
+              )
+            )(x =>
+              p.router.link(x)(
                 Button(icon = true,
                        labelPosition = LabelPosition.Left,
-                       onClick = p.router.setUrlAndDispatchCB(prevStepPage)
+                       onClick = p.router.setUrlAndDispatchCB(x)
                 )(IconChevronLeft, "Prev")
               )
             ),
             Label(size = Large, clazz = ObserveStyles.labelAsButton)(
-              RunningStep.fromInt(p.step, p.total).getOrElse(RunningStep.Zero).show
+              p.steps
+                .indexOf(p.stepId)
+                .some
+                .flatMap(x => (x >= 0).option(x))
+                .flatMap(RunningStep.fromInt(p.stepId.some, _, p.steps.length))
+                .getOrElse(RunningStep.Zero)
+                .show
             ),
             // Next step button
-            (p.step < p.total - 1).option(
-              p.router.link(nextStepPage)(
+            nextStepPage.fold[VdomNode](
+              Button(icon = true, labelPosition = LabelPosition.Right, disabled = true)(
+                IconChevronRight,
+                "Next"
+              )
+            )(x =>
+              p.router.link(x)(
                 Button(icon = true,
                        labelPosition = LabelPosition.Right,
-                       onClick = p.router.setUrlAndDispatchCB(nextStepPage)
+                       onClick = p.router.setUrlAndDispatchCB(x)
                 )(IconChevronRight, "Next")
               )
             )

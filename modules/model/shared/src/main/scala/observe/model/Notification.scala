@@ -22,18 +22,19 @@ object Notification {
     }
 
   // Notification that user tried to run a sequence that used resource already in use
-  final case class ResourceConflict(sid: Observation.Id) extends Notification
+  final case class ResourceConflict(sidName: Observation.IdName) extends Notification
   object ResourceConflict {
     implicit lazy val eq: Eq[ResourceConflict] =
-      Eq.by(_.sid)
+      Eq.by(_.sidName)
   }
 
   // Notification that user tried to select a sequence for an instrument for which a sequence was already running
-  final case class InstrumentInUse(sid: Observation.Id, ins: Instrument) extends Notification
+  final case class InstrumentInUse(sidName: Observation.IdName, ins: Instrument)
+      extends Notification
 
   object InstrumentInUse {
     implicit lazy val eq: Eq[InstrumentInUse] =
-      Eq.by(x => (x.sid, x.ins))
+      Eq.by(x => (x.sidName, x.ins))
   }
 
   // Notification that a request to the backend failed
@@ -45,11 +46,11 @@ object Notification {
   }
 
   // Notification that a resource configuration failed as the resource was busy
-  final case class SubsystemBusy(oid: Observation.Id, stepId: StepId, resource: Resource)
+  final case class SubsystemBusy(sidName: Observation.IdName, stepId: StepId, resource: Resource)
       extends Notification
 
   object SubsystemBusy {
     implicit lazy val eq: Eq[SubsystemBusy] =
-      Eq.by(x => (x.oid, x.stepId, x.resource))
+      Eq.by(x => (x.sidName, x.stepId, x.resource))
   }
 }

@@ -15,7 +15,7 @@ import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 import edu.gemini.spModel.core.Peer
-import observe.model.Observation
+import observe.model.{ ActionType, ClientId, Observation, SystemOverrides }
 import lucuma.core.enum.Site
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
@@ -25,11 +25,10 @@ import observe.engine
 import observe.engine.{ Action, Result }
 import observe.engine.Result.PauseContext
 import observe.engine.Result.PartialVal
-import observe.model.{ ActionType, ClientId }
 import observe.model.enum.{ Instrument, Resource }
 import observe.model.dhs._
-import observe.model.SystemOverrides
 import observe.model.config._
+import observe.common.test._
 import observe.server.altair.{ AltairControllerSim, AltairKeywordReaderDummy }
 import observe.server.flamingos2.Flamingos2ControllerSim
 import observe.server.gcal.{ DummyGcalKeywordsReader, GcalControllerSim }
@@ -254,21 +253,22 @@ object TestCommon {
       )
     )
 
-  val seqId1: String            = "GS-2018B-Q-0-1"
-  val seqObsId1: Observation.Id = Observation.Id.unsafeFromString(seqId1)
-  val seqId2: String            = "GS-2018B-Q-0-2"
-  val seqObsId2: Observation.Id = Observation.Id.unsafeFromString(seqId2)
-  val seqId3: String            = "GS-2018B-Q-0-3"
-  val seqObsId3: Observation.Id = Observation.Id.unsafeFromString(seqId3)
-  val clientId: ClientId        = ClientId(UUID.randomUUID)
+  val seqName1: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-1")
+  val seqObsId1: Observation.Id  = observationId(1)
+  val seqName2: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-2")
+  val seqObsId2: Observation.Id  = observationId(2)
+  val seqName3: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-3")
+  val seqObsId3: Observation.Id  = observationId(3)
+  val clientId: ClientId         = ClientId(UUID.randomUUID)
 
   def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
     id = id,
+    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
     title = "",
     instrument = Instrument.F2,
     steps = List(
       SequenceGen.PendingStepGen(
-        id = 1,
+        id = stepId(1),
         Monoid.empty[DataId],
         config = CleanConfig.empty,
         resources = Set.empty,
@@ -283,13 +283,14 @@ object TestCommon {
 
   def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
     id = id,
+    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
     title = "",
     instrument = Instrument.F2,
     steps = List
       .range(1, n)
-      .map(
+      .map(x =>
         SequenceGen.PendingStepGen(
-          _,
+          stepId(x),
           Monoid.empty[DataId],
           config = CleanConfig.empty,
           resources = Set.empty,
@@ -308,11 +309,12 @@ object TestCommon {
     resources: Set[Resource]
   ): SequenceGen[IO] = SequenceGen[IO](
     id = id,
+    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
     title = "",
     instrument = ins,
     steps = List(
       SequenceGen.PendingStepGen(
-        id = 1,
+        id = stepId(1),
         Monoid.empty[DataId],
         config = CleanConfig.empty,
         resources = resources,
@@ -323,7 +325,7 @@ object TestCommon {
         )
       ),
       SequenceGen.PendingStepGen(
-        id = 2,
+        id = stepId(2),
         Monoid.empty[DataId],
         config = CleanConfig.empty,
         resources = resources,
