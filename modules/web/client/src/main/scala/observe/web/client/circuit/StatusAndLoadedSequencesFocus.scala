@@ -18,7 +18,7 @@ import observe.web.client.model.lenses.obsClassT
 import web.client.table._
 
 final case class SequenceInSessionQueue(
-  id:            Observation.Id,
+  idName:        Observation.IdName,
   status:        SequenceState,
   instrument:    Instrument,
   active:        Boolean,
@@ -27,14 +27,14 @@ final case class SequenceInSessionQueue(
   obsClass:      ObsClass,
   targetName:    Option[TargetName],
   runningStep:   Option[RunningStep],
-  nextStepToRun: Option[Int],
+  nextStepToRun: Option[StepId],
   inDayCalQueue: Boolean
 )
 
 object SequenceInSessionQueue {
   implicit val eq: Eq[SequenceInSessionQueue] =
     Eq.by(x =>
-      (x.id,
+      (x.idName,
        x.status,
        x.instrument,
        x.active,
@@ -54,14 +54,14 @@ object SequenceInSessionQueue {
     dayCal: List[Observation.Id]
   ): List[SequenceInSessionQueue] =
     queue.map { s =>
-      val active     = sod.idDisplayed(s.id)
-      val loaded     = sod.loadedIds.contains(s.id)
+      val active     = sod.idDisplayed(s.idName.id)
+      val loaded     = sod.loadedIds.contains(s.idName)
       val targetName = firstScienceStepTargetNameT.headOption(s)
       val obsClass   = obsClassT
         .headOption(s)
         .map(ObsClass.fromString)
         .getOrElse(ObsClass.Nighttime)
-      SequenceInSessionQueue(s.id,
+      SequenceInSessionQueue(s.idName,
                              s.status,
                              s.metadata.instrument,
                              active,
@@ -71,7 +71,7 @@ object SequenceInSessionQueue {
                              targetName,
                              s.runningStep,
                              s.nextStepToRun,
-                             dayCal.contains(s.id)
+                             dayCal.contains(s.idName.id)
       )
     }
 
@@ -105,7 +105,7 @@ object StatusAndLoadedSequencesFocus {
       StatusAndLoadedSequencesFocus(s,
                                     SequenceInSessionQueue
                                       .toSequenceInSessionQueue(sod, queue, dayCal.foldMap(_.queue))
-                                      .sortBy(_.id),
+                                      .sortBy(_.idName.name),
                                     queueTable,
                                     filter
       )

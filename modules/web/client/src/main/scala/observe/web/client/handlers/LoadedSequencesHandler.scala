@@ -26,25 +26,25 @@ class LoadedSequencesHandler[M](modelRW: ModelRW[M, SODLocationFocus])
     extends ActionHandler(modelRW)
     with Handlers[M, SODLocationFocus] {
   override def handle: PartialFunction[Any, ActionResult[M]] = {
-    case ServerMessage(LoadSequenceUpdated(i, sid, view, cid)) =>
+    case ServerMessage(LoadSequenceUpdated(i, sidName, view, cid)) =>
       // Update selected and the page
       val upSelected    = if (value.clientId.exists(_ === cid)) {
         // if I requested the load also focus on it
         SODLocationFocus.sod.modify(
           _.updateFromQueue(view)
-            .loadingComplete(sid, i)
-            .unsetPreviewOn(sid)
-            .focusOnSequence(i, sid)
+            .loadingComplete(sidName.id, i)
+            .unsetPreviewOn(sidName.id)
+            .focusOnSequence(i, sidName.id)
         )
       } else {
         SODLocationFocus.sod.modify(
-          _.updateFromQueue(view).loadingComplete(sid, i).unsetPreviewOn(sid)
+          _.updateFromQueue(view).loadingComplete(sidName.id, i).unsetPreviewOn(sidName.id)
         )
       }
       val nextStepToRun =
-        view.sessionQueue.find(_.id === sid).foldMap(_.nextStepToRun)
+        view.sessionQueue.find(_.idName === sidName).flatMap(_.nextStepToRun)
       val upLocation    = SODLocationFocus.location.set(
-        SequencePage(i, sid, nextStepToRun.foldMap(StepIdDisplayed.apply))
+        SequencePage(i, sidName.id, StepIdDisplayed(nextStepToRun))
       )
       updatedL(upSelected >>> upLocation)
 
@@ -62,17 +62,17 @@ class LoadedSequencesHandler[M](modelRW: ModelRW[M, SODLocationFocus])
     case ServerMessage(s: ObserveModelUpdate) =>
       updatedL(SODLocationFocus.sod.modify(_.updateFromQueue(s.view)))
 
-    case LoadSequence(observer, i, id) =>
+    case LoadSequence(observer, i, idName) =>
       val loadSequence = value.clientId
         .map(cid =>
           Effect(
             ObserveWebClient
-              .loadSequence(i, id, observer, cid)
+              .loadSequence(i, idName.id, observer, cid)
               .as(NoAction)
           )
         )
         .getOrElse(VoidEffect)
-      val update       = SODLocationFocus.sod.modify(_.markAsLoading(id))
+      val update       = SODLocationFocus.sod.modify(_.markAsLoading(idName.id))
       updatedLE(update, loadSequence)
   }
 }

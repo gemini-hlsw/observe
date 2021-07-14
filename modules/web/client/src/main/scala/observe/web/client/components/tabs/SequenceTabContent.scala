@@ -53,7 +53,7 @@ object SequenceTabContent {
                           p.content.instrument,
                           p.content.id,
                           s,
-                          p.content.totalSteps,
+                          p.content.steps,
                           p.content.isPreview
         ): TagMod
     }
@@ -71,7 +71,7 @@ object SequenceTabContent {
 
           focus.stepsTable
             .foldMap(_.steps)
-            .lift(i)
+            .find(_.id === i)
             .map { steps =>
               val hs = focus.configTableState
               <.div(

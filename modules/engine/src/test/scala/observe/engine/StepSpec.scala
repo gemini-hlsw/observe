@@ -9,7 +9,6 @@ import cats.implicits._
 import munit.CatsEffectSuite
 import cats.effect.std.Queue
 import fs2.Stream
-import observe.model.Observation
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import java.util.UUID
@@ -21,6 +20,7 @@ import observe.model.enum.Instrument.GmosS
 import observe.model.{ ClientId, SequenceState, StepState }
 import observe.model.enum.Resource
 import observe.model.{ ActionType, UserDetails }
+import observe.common.test._
 import scala.Function.const
 import scala.concurrent.duration._
 import cats.effect.Ref
@@ -29,7 +29,7 @@ class StepSpec extends CatsEffectSuite {
 
   private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
 
-  private val seqId = Observation.Id.unsafeFromString("GS-2017B-Q-1-1")
+  private val seqId = observationId(1)
   private val user  = UserDetails("telops", "Telops")
 
   private val executionEngine = new Engine[IO, TestState, Unit](TestState)
@@ -59,7 +59,7 @@ class StepSpec extends CatsEffectSuite {
     }
 
     Step.Zipper(
-      id = 1,
+      id = stepId(1),
       breakpoint = Step.BreakpointMark(false),
       skipMark = Step.SkipMark(false),
       pending = pending,
@@ -209,7 +209,7 @@ class StepSpec extends CatsEffectSuite {
                id = seqId,
                steps = List(
                  Step.init(
-                   id = 1,
+                   id = stepId(1),
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst, triggerPause(q)), // Execution
                      NonEmptyList.one(observe)                                      // Execution
@@ -259,10 +259,10 @@ class StepSpec extends CatsEffectSuite {
           (seqId,
            Sequence.State.Zipper(
              Sequence.Zipper(
-               id = Observation.Id.unsafeFromString("GS-2018A-Q-3-1"),
+               id = observationId(1),
                pending = Nil,
                focus = Step.Zipper(
-                 id = 2,
+                 id = stepId(2),
                  breakpoint = Step.BreakpointMark(false),
                  skipMark = Step.SkipMark(false),
                  pending = Nil,
@@ -307,10 +307,10 @@ class StepSpec extends CatsEffectSuite {
           (seqId,
            Sequence.State.Zipper(
              Sequence.Zipper(
-               id = Observation.Id.unsafeFromString("GN-2017A-Q-7-1"),
+               id = observationId(1),
                pending = Nil,
                focus = Step.Zipper(
-                 id = 2,
+                 id = stepId(2),
                  breakpoint = Step.BreakpointMark(false),
                  skipMark = Step.SkipMark(false),
                  pending = Nil,
@@ -355,7 +355,7 @@ class StepSpec extends CatsEffectSuite {
                id = seqId,
                steps = List(
                  Step.init(
-                   id = 1,
+                   id = stepId(1),
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(observe)                     // Execution
@@ -401,7 +401,7 @@ class StepSpec extends CatsEffectSuite {
                id = seqId,
                steps = List(
                  Step.init(
-                   id = 1,
+                   id = stepId(1),
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(triggerStart(q)),            // Execution
@@ -457,7 +457,7 @@ class StepSpec extends CatsEffectSuite {
                id = seqId,
                steps = List(
                  Step.init(
-                   id = 1,
+                   id = stepId(1),
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(error(errMsg)),
@@ -501,16 +501,15 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(
-                 Step.init(
-                   id = 1,
-                   executions = List(
-                     NonEmptyList.one(action)
-                   )
-                 )
-               )
+             Sequence(id = seqId,
+                      steps = List(
+                        Step.init(
+                          id = stepId(1),
+                          executions = List(
+                            NonEmptyList.one(action)
+                          )
+                        )
+                      )
              )
            )
           )
@@ -534,16 +533,15 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(
-                 Step.init(
-                   id = 1,
-                   executions = List(
-                     NonEmptyList.one(aborted)
-                   )
-                 )
-               )
+             Sequence(id = seqId,
+                      steps = List(
+                        Step.init(
+                          id = stepId(1),
+                          executions = List(
+                            NonEmptyList.one(aborted)
+                          )
+                        )
+                      )
              )
            )
           )
@@ -567,16 +565,15 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(
-                 Step.init(
-                   id = 1,
-                   executions = List(
-                     NonEmptyList.one(errorSet2(errMsg))
-                   )
-                 )
-               )
+             Sequence(id = seqId,
+                      steps = List(
+                        Step.init(
+                          id = stepId(1),
+                          executions = List(
+                            NonEmptyList.one(errorSet2(errMsg))
+                          )
+                        )
+                      )
              )
            )
           )
@@ -601,16 +598,15 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(
-                 Step.init(
-                   id = 1,
-                   executions = List(
-                     NonEmptyList.one(fatalError(errMsg))
-                   )
-                 )
-               )
+             Sequence(id = seqId,
+                      steps = List(
+                        Step.init(
+                          id = stepId(1),
+                          executions = List(
+                            NonEmptyList.one(fatalError(errMsg))
+                          )
+                        )
+                      )
              )
            )
           )
@@ -636,7 +632,7 @@ class StepSpec extends CatsEffectSuite {
                id = seqId,
                steps = List(
                  Step.init(
-                   id = 1,
+                   id = stepId(1),
                    executions = List(
                      NonEmptyList.one(
                        Action(
@@ -708,13 +704,13 @@ class StepSpec extends CatsEffectSuite {
     assert(stepzar1.next.nonEmpty)
   }
 
-  val step0: Step[IO] = Step.init(1, Nil)
-  val step1: Step[IO] = Step.init(1, List(NonEmptyList.one(action)))
+  val step0: Step[IO] = Step.init(stepId(1), Nil)
+  val step1: Step[IO] = Step.init(stepId(1), List(NonEmptyList.one(action)))
   val step2: Step[IO] =
-    Step.init(2, List(NonEmptyList.of(action, action), NonEmptyList.one(action)))
+    Step.init(stepId(2), List(NonEmptyList.of(action, action), NonEmptyList.one(action)))
 
   test("currentify should be None only when a Step is empty of executions") {
-    assert(Step.Zipper.currentify(Step.init(0, Nil)).isEmpty)
+    assert(Step.Zipper.currentify(Step.init(stepId(1), Nil)).isEmpty)
     assert(Step.Zipper.currentify(step0).isEmpty)
     assert(Step.Zipper.currentify(step1).nonEmpty)
     assert(Step.Zipper.currentify(step2).nonEmpty)
@@ -728,7 +724,7 @@ class StepSpec extends CatsEffectSuite {
     assert(
       Step
         .Zipper(
-          id = 1,
+          id = stepId(1),
           breakpoint = Step.BreakpointMark(false),
           skipMark = Step.SkipMark(false),
           pending = Nil,
@@ -745,7 +741,7 @@ class StepSpec extends CatsEffectSuite {
     assert(
       Step
         .Zipper(
-          id = 1,
+          id = stepId(1),
           breakpoint = Step.BreakpointMark(false),
           skipMark = Step.SkipMark(false),
           pending = Nil,
@@ -762,7 +758,7 @@ class StepSpec extends CatsEffectSuite {
     assert(
       Step
         .Zipper(
-          id = 1,
+          id = stepId(1),
           breakpoint = Step.BreakpointMark(false),
           skipMark = Step.SkipMark(false),
           pending = Nil,
@@ -779,7 +775,7 @@ class StepSpec extends CatsEffectSuite {
     assert(
       Step
         .Zipper(
-          id = 1,
+          id = stepId(1),
           breakpoint = Step.BreakpointMark(false),
           skipMark = Step.SkipMark(false),
           pending = Nil,
@@ -796,7 +792,7 @@ class StepSpec extends CatsEffectSuite {
     assert(
       Step
         .Zipper(
-          id = 1,
+          id = stepId(1),
           breakpoint = Step.BreakpointMark(false),
           skipMark = Step.SkipMark(false),
           pending = Nil,

@@ -4,11 +4,11 @@
 package observe.web.client.components.sequence.steps
 
 import scala.math.max
-
 import cats.syntax.all._
 import diode.react.ReactConnectProxy
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.{ CtorType, _ }
 import japgolly.scalajs.react.component.Scala
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.macros.Lenses
@@ -26,6 +26,7 @@ import observe.model.operations._
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.DividedProgress
 import observe.web.client.components.ObserveStyles
+import observe.web.client.components.sequence.steps
 import observe.web.client.model.ClientStatus
 import observe.web.client.model.StepItems.StepStateSummary
 import observe.web.client.model.StopOperation
@@ -40,7 +41,7 @@ final case class NodAndShuffleProgressMessage(
   nsStatus: NodAndShuffleStatus
 ) extends ReactProps[NodAndShuffleProgressMessage](NodAndShuffleProgressMessage.component) {
 
-  protected[steps] val connect =
+  protected[steps] val connect: ReactConnectProxy[Option[NSObservationProgress]] =
     ObserveCircuit.connect(ObserveCircuit.obsProgressReader[NSObservationProgress](obsId, stepId))
 }
 
@@ -53,7 +54,7 @@ object NodAndShuffleProgressMessage extends ProgressLabel {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
   implicit val stateReuse: Reusability[State] = Reusability.always
 
-  protected[steps] val component = ScalaComponent
+  protected[steps] val component: Component[Props, State, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]
     .initialStateFromProps(p => State(p.connect))
     .render_PS { (p, s) =>
@@ -100,7 +101,12 @@ object SmoothDividedProgressBar extends SmoothProgressBar[SmoothDividedProgressB
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  protected val component = ScalaComponent
+  protected val component: Component[
+    Props,
+    steps.SmoothDividedProgressBar.State,
+    steps.SmoothDividedProgressBar.Backend,
+    CtorType.Props
+  ] = ScalaComponent
     .builder[Props]
     .initialStateFromProps(State.fromProps)
     .backend(x => new Backend(x))
@@ -129,9 +135,9 @@ sealed abstract class NodAndShuffleProgressProps[A](
   def isStopping: Boolean =
     summary.tabOperations.stopRequested === StopOperation.StopInFlight
 
-  protected[steps] val connect =
+  protected[steps] val connect: ReactConnectProxy[Option[NSObservationProgress]] =
     ObserveCircuit.connect(
-      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsId, summary.step.id)
+      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsIdName.id, summary.step.id)
     )
 }
 
@@ -155,7 +161,7 @@ sealed trait NodAndShuffleProgress {
     nodMillis:  DividedProgress.Quantity
   ): (DividedProgress.Quantity, DividedProgress.Quantity) // (sectionTotal, currentValue)
 
-  protected[steps] val component = ScalaComponent
+  protected[steps] val component: Component[Props, State, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]
     .initialStateFromProps(p => State(p.connect))
     .render_PS { (p, s) =>
@@ -264,7 +270,7 @@ sealed trait NodAndShuffleRow[A, L <: OperationLevel] {
 
   protected def progressControl(summary: StepStateSummary): VdomElement
 
-  protected[steps] val component = ScalaComponent
+  protected[steps] val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]
     .stateless
     .render_P { p =>
@@ -274,7 +280,7 @@ sealed trait NodAndShuffleRow[A, L <: OperationLevel] {
         <.span(
           ObserveStyles.nodAndShuffleControls,
           ControlButtons(
-            p.stateSummary.obsId,
+            p.stateSummary.obsIdName,
             p.stateSummary.instrument.operations[L](p.stateSummary.step.isObservePaused),
             p.stateSummary.state,
             p.stateSummary.step.id,

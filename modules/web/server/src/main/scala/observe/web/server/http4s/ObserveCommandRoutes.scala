@@ -18,6 +18,8 @@ import observe.web.server.http4s.encoder._
 import observe.web.server.security.AuthenticationService
 import observe.web.server.security.Http4sAuthentication
 import observe.web.server.security.TokenRefresher
+import lucuma.core.model.Observation.{ Id => ObsId }
+import lucuma.core.model.Step.{ Id => StepId }
 
 /**
  * Rest Endpoints under the /api route
@@ -33,13 +35,13 @@ class ObserveCommandRoutes[F[_]: Async](
   private val httpAuthentication = new Http4sAuthentication(auth)
 
   private val commandServices: AuthedRoutes[UserDetails, F] = AuthedRoutes.of {
-    case POST -> Root / ObsIdVar(obsId) / "start" / ClientIDVar(clientId) :? OptionalRunOverride(
+    case POST -> Root / ObsId(obsId) / "start" / ClientIDVar(clientId) :? OptionalRunOverride(
           runOverride
         ) as user =>
       se.start(inputQueue, obsId, user, clientId, runOverride.getOrElse(RunOverride.Default)) *>
-        Ok(s"Started sequence ${obsId.format}")
+        Ok(s"Started sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "startFrom" / ClientIDVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ClientIDVar(
           clientId
         ) :? OptionalRunOverride(runOverride) as _ =>
       se.startFrom(inputQueue,
@@ -48,80 +50,79 @@ class ObserveCommandRoutes[F[_]: Async](
                    clientId,
                    runOverride.getOrElse(RunOverride.Default)
       ) *>
-        Ok(s"Started sequence ${obsId.format} from step $stepId")
+        Ok(s"Started sequence $obsId from step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / "pause" as user =>
+    case POST -> Root / ObsId(obsId) / "pause" as user =>
       se.requestPause(inputQueue, obsId, user) *>
-        Ok(s"Pause sequence ${obsId.format}")
+        Ok(s"Pause sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "cancelpause" as user =>
+    case POST -> Root / ObsId(obsId) / "cancelpause" as user =>
       se.requestCancelPause(inputQueue, obsId, user) *>
-        Ok(s"Cancel Pause sequence ${obsId.format}")
+        Ok(s"Cancel Pause sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "breakpoint" / BooleanVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / BooleanVar(
           bp
         ) as user =>
       se.setBreakpoint(inputQueue, obsId, user, stepId, bp) *>
-        Ok(s"Set breakpoint in step $stepId of sequence ${obsId.format}")
+        Ok(s"Set breakpoint in step $stepId of sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "sync" as _ =>
+    case POST -> Root / ObsId(obsId) / "sync" as _ =>
       for {
         u    <- se.sync(inputQueue, obsId).attempt
-        resp <- u.fold(_ => NotFound(s"Not found sequence $obsId"),
-                       _ => Ok(s"Sync requested for ${obsId.format}")
-                )
+        resp <-
+          u.fold(_ => NotFound(s"Not found sequence $obsId"), _ => Ok(s"Sync requested for $obsId"))
       } yield resp
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "skip" / BooleanVar(bp) as user =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / BooleanVar(bp) as user =>
       se.setSkipMark(inputQueue, obsId, user, stepId, bp) *>
-        Ok(s"Set skip mark in step $stepId of sequence ${obsId.format}")
+        Ok(s"Set skip mark in step $stepId of sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "stop" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "stop" as _ =>
       se.stopObserve(inputQueue, obsId, graceful = false) *>
-        Ok(s"Stop requested for ${obsId.format} on step $stepId")
+        Ok(s"Stop requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "stopGracefully" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "stopGracefully" as _ =>
       se.stopObserve(inputQueue, obsId, graceful = true) *>
-        Ok(s"Stop gracefully requested for ${obsId.format} on step $stepId")
+        Ok(s"Stop gracefully requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "abort" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "abort" as _ =>
       se.abortObserve(inputQueue, obsId) *>
-        Ok(s"Abort requested for ${obsId.format} on step $stepId")
+        Ok(s"Abort requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "pauseObs" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObs" as _ =>
       se.pauseObserve(inputQueue, obsId, graceful = false) *>
-        Ok(s"Pause observation requested for ${obsId.format} on step $stepId")
+        Ok(s"Pause observation requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "pauseObsGracefully" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObsGracefully" as _ =>
       se.pauseObserve(inputQueue, obsId, graceful = true) *>
-        Ok(s"Pause observation gracefully requested for ${obsId.format} on step $stepId")
+        Ok(s"Pause observation gracefully requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "resumeObs" as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "resumeObs" as _ =>
       se.resumeObserve(inputQueue, obsId) *>
-        Ok(s"Resume observation requested for ${obsId.format} on step $stepId")
+        Ok(s"Resume observation requested for $obsId on step $stepId")
 
     case POST -> Root / "operator" / OperatorVar(op) as user =>
       se.setOperator(inputQueue, user, op) *> Ok(s"Set operator name to '${op.value}'")
 
-    case POST -> Root / ObsIdVar(obsId) / "observer" / ObserverVar(obs) as user =>
+    case POST -> Root / ObsId(obsId) / "observer" / ObserverVar(obs) as user =>
       se.setObserver(inputQueue, obsId, user, obs) *>
-        Ok(s"Set observer name to '${obs.value}' for sequence ${obsId.format}")
+        Ok(s"Set observer name to '${obs.value}' for sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "tcsEnabled" / BooleanVar(tcsEnabled) as user =>
+    case POST -> Root / ObsId(obsId) / "tcsEnabled" / BooleanVar(tcsEnabled) as user =>
       se.setTcsEnabled(inputQueue, obsId, user, tcsEnabled) *>
-        Ok(s"Set TCS enable flag to '${tcsEnabled}' for sequence ${obsId.format}")
+        Ok(s"Set TCS enable flag to '$tcsEnabled' for sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "gcalEnabled" / BooleanVar(gcalEnabled) as user =>
+    case POST -> Root / ObsId(obsId) / "gcalEnabled" / BooleanVar(gcalEnabled) as user =>
       se.setGcalEnabled(inputQueue, obsId, user, gcalEnabled) *>
-        Ok(s"Set GCAL enable flag to '${gcalEnabled}' for sequence ${obsId.format}")
+        Ok(s"Set GCAL enable flag to '$gcalEnabled' for sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "instEnabled" / BooleanVar(instEnabled) as user =>
+    case POST -> Root / ObsId(obsId) / "instEnabled" / BooleanVar(instEnabled) as user =>
       se.setInstrumentEnabled(inputQueue, obsId, user, instEnabled) *>
-        Ok(s"Set instrument enable flag to '${instEnabled}' for sequence ${obsId.format}")
+        Ok(s"Set instrument enable flag to '$instEnabled' for sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / "dhsEnabled" / BooleanVar(dhsEnabled) as user =>
+    case POST -> Root / ObsId(obsId) / "dhsEnabled" / BooleanVar(dhsEnabled) as user =>
       se.setDhsEnabled(inputQueue, obsId, user, dhsEnabled) *>
-        Ok(s"Set DHS enable flag to '${dhsEnabled}' for sequence ${obsId.format}")
+        Ok(s"Set DHS enable flag to '$dhsEnabled' for sequence $obsId")
 
     case req @ POST -> Root / "iq" as user =>
       req.req.decode[ImageQuality](iq =>
@@ -145,7 +146,7 @@ class ObserveCommandRoutes[F[_]: Async](
         se.setCloudCover(inputQueue, cc, user) *> Ok(s"Set cloud cover to $cc")
       )
 
-    case POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) / ObserverVar(
+    case POST -> Root / "load" / InstrumentVar(i) / ObsId(obsId) / ObserverVar(
           observer
         ) / ClientIDVar(clientId) as user =>
       se.selectSequence(inputQueue, i, obsId, observer, user, clientId) *>
@@ -157,22 +158,22 @@ class ObserveCommandRoutes[F[_]: Async](
     case req @ POST -> Root / "queue" / QueueIdVar(qid) / "add" as _ =>
       req.req.decode[List[Observation.Id]](ids =>
         se.addSequencesToQueue(inputQueue, qid, ids) *>
-          Ok(s"${ids.map(_.format).mkString(",")} added to queue $qid")
+          Ok(s"${ids.mkString(",")} added to queue $qid")
       )
 
-    case POST -> Root / "queue" / QueueIdVar(qid) / "add" / ObsIdVar(obsId) as _ =>
+    case POST -> Root / "queue" / QueueIdVar(qid) / "add" / ObsId(obsId) as _ =>
       se.addSequenceToQueue(inputQueue, qid, obsId) *>
-        Ok(s"${obsId.format} added to queue $qid")
+        Ok(s"$obsId added to queue $qid")
 
-    case POST -> Root / "queue" / QueueIdVar(qid) / "remove" / ObsIdVar(obsId) as _ =>
+    case POST -> Root / "queue" / QueueIdVar(qid) / "remove" / ObsId(obsId) as _ =>
       se.removeSequenceFromQueue(inputQueue, qid, obsId) *>
-        Ok(s"${obsId.format} removed from queue $qid")
+        Ok(s"$obsId removed from queue $qid")
 
-    case POST -> Root / "queue" / QueueIdVar(qid) / "move" / ObsIdVar(obsId) / IntVar(
+    case POST -> Root / "queue" / QueueIdVar(qid) / "move" / ObsId(obsId) / IntVar(
           delta
         ) / ClientIDVar(clientId) as _ =>
       se.moveSequenceInQueue(inputQueue, qid, obsId, delta, clientId) *>
-        Ok(s"${obsId.format} moved $delta positions in queue $qid")
+        Ok(s"$obsId moved $delta positions in queue $qid")
 
     case POST -> Root / "queue" / QueueIdVar(qid) / "clear" as _ =>
       se.clearQueue(inputQueue, qid) *>
@@ -188,11 +189,11 @@ class ObserveCommandRoutes[F[_]: Async](
       se.stopQueue(inputQueue, qid, clientId) *>
         Ok(s"Stopped from queue $qid")
 
-    case POST -> Root / "execute" / ObsIdVar(oid) / PosIntVar(step) / ResourceVar(
+    case POST -> Root / "execute" / ObsIdVar(oid) / StepId(step) / ResourceVar(
           resource
         ) / ClientIDVar(clientId) as u =>
       se.configSystem(inputQueue, oid, step, resource, clientId) *>
-        Ok(s"Run ${resource.show} from config at ${oid.format}/$step by ${u.username}")
+        Ok(s"Run ${resource.show} from config at $oid/$step by ${u.username}")
 
   }
 

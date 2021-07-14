@@ -4,9 +4,9 @@
 package observe.web.client.components.sequence.steps
 
 import cats.syntax.all._
-import japgolly.scalajs.react.Callback
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react.ScalaComponent
+import diode.react.ReactConnectProxy
+import japgolly.scalajs.react.{ Callback, CtorType, Reusability, ScalaComponent }
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.colors._
@@ -30,19 +30,19 @@ import observe.web.client.reusability._
  * Contains a set of control buttons like stop/abort
  */
 final case class ControlButtons(
-  obsId:               Observation.Id,
+  obsIdName:           Observation.IdName,
   operations:          List[Operations[_]],
   sequenceState:       SequenceState,
-  stepId:              Int,
+  stepId:              StepId,
   isObservePaused:     Boolean,
   tabOperations:       TabOperations,
   nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = None
 ) extends ReactProps[ControlButtons](ControlButtons.component) {
 
-  val requestInFlight = tabOperations.stepRequestInFlight
+  val requestInFlight: Boolean = tabOperations.stepRequestInFlight
 
-  protected[steps] val connect =
-    ObserveCircuit.connect(ObserveCircuit.obsProgressReader[Progress](obsId, stepId))
+  protected[steps] val connect: ReactConnectProxy[Option[Progress]] =
+    ObserveCircuit.connect(ObserveCircuit.obsProgressReader[Progress](obsIdName.id, stepId))
 }
 
 object ControlButtons {
@@ -51,22 +51,22 @@ object ControlButtons {
   implicit val operationsReuse: Reusability[Operations[_]] = Reusability.derive[Operations[_]]
   implicit val propsReuse: Reusability[Props]              = Reusability.derive[Props]
 
-  private def requestStop(obsId: Observation.Id, stepId: Int): Callback =
-    ObserveCircuit.dispatchCB(RequestStop(obsId, stepId))
+  private def requestStop(obsIdName: Observation.IdName, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestStop(obsIdName, stepId))
 
-  private def requestGracefulStop(obsId: Observation.Id, stepId: Int): Callback =
+  private def requestGracefulStop(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestGracefulStop(obsId, stepId))
 
-  private def requestAbort(obsId: Observation.Id, stepId: Int): Callback =
-    ObserveCircuit.dispatchCB(RequestAbort(obsId, stepId))
+  private def requestAbort(obsIdName: Observation.IdName, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestAbort(obsIdName, stepId))
 
-  private def requestObsPause(obsId: Observation.Id, stepId: Int): Callback =
+  private def requestObsPause(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestObsPause(obsId, stepId))
 
-  private def requestGracefulObsPause(obsId: Observation.Id, stepId: Int): Callback =
+  private def requestGracefulObsPause(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestGracefulObsPause(obsId, stepId))
 
-  private def requestObsResume(obsId: Observation.Id, stepId: Int): Callback =
+  private def requestObsResume(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestObsResume(obsId, stepId))
 
   private def requestedIcon(icon: Icon): IconGroup =
@@ -75,7 +75,7 @@ object ControlButtons {
       IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
     )
 
-  protected val component = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("ControlButtons")
     .render_P { p =>
       val pauseGracefullyIcon: VdomNode =
@@ -105,7 +105,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Teal,
-                  onClick = requestObsPause(p.obsId, p.stepId),
+                  onClick = requestObsPause(p.obsIdName.id, p.stepId),
                   disabled = p.requestInFlight || p.isObservePaused || isReadingOut
                 )(IconPause)
               )("Pause the current exposure")
@@ -115,7 +115,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Orange,
-                  onClick = requestStop(p.obsId, p.stepId),
+                  onClick = requestStop(p.obsIdName, p.stepId),
                   disabled = p.requestInFlight || isReadingOut
                 )(IconStop)
               )("Stop the current exposure early")
@@ -125,7 +125,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Red,
-                  onClick = requestAbort(p.obsId, p.stepId),
+                  onClick = requestAbort(p.obsIdName, p.stepId),
                   disabled = p.requestInFlight || isReadingOut
                 )(IconTrash)
               )("Abort the current exposure")
@@ -135,7 +135,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Blue,
-                  onClick = requestObsResume(p.obsId, p.stepId),
+                  onClick = requestObsResume(p.obsIdName.id, p.stepId),
                   disabled = p.requestInFlight || !p.isObservePaused || isReadingOut
                 )(IconPlay)
               )("Resume the current exposure")
@@ -147,7 +147,7 @@ object ControlButtons {
                   icon = true,
                   color = Teal,
                   basic = true,
-                  onClick = requestObsPause(p.obsId, p.stepId),
+                  onClick = requestObsPause(p.obsIdName.id, p.stepId),
                   disabled = p.requestInFlight || p.isObservePaused || isReadingOut
                 )(IconPause)
               )("Pause the current exposure immediately")
@@ -157,7 +157,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Teal,
-                  onClick = requestGracefulObsPause(p.obsId, p.stepId),
+                  onClick = requestGracefulObsPause(p.obsIdName.id, p.stepId),
                   disabled =
                     p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
                 )(pauseGracefullyIcon)
@@ -169,7 +169,7 @@ object ControlButtons {
                   icon = true,
                   color = Orange,
                   basic = true,
-                  onClick = requestStop(p.obsId, p.stepId),
+                  onClick = requestStop(p.obsIdName, p.stepId),
                   disabled = p.requestInFlight || isReadingOut
                 )(IconStop)
               )("Stop the current exposure immediately")
@@ -179,7 +179,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Orange,
-                  onClick = requestGracefulStop(p.obsId, p.stepId),
+                  onClick = requestGracefulStop(p.obsIdName.id, p.stepId),
                   disabled =
                     p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
                 )(stopGracefullyIcon)
@@ -196,16 +196,16 @@ object ControlButtons {
  * Contains the control buttons like stop/abort at the row level
  */
 final case class StepsControlButtons(
-  obsId:           Observation.Id,
+  obsIdName:       Observation.IdName,
   instrument:      Instrument,
   sequenceState:   SequenceState,
-  stepId:          Int,
+  stepId:          StepId,
   isObservePaused: Boolean,
   isMultiLevel:    Boolean,
   tabOperations:   TabOperations
 ) extends ReactProps[StepsControlButtons](StepsControlButtons.component) {
 
-  val requestInFlight = tabOperations.stepRequestInFlight
+  val requestInFlight: Boolean = tabOperations.stepRequestInFlight
 }
 
 object StepsControlButtons {
@@ -213,11 +213,11 @@ object StepsControlButtons {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  protected val component = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("StepsControlButtons")
     .render_P { p =>
       ControlButtons(
-        p.obsId,
+        p.obsIdName,
         p.instrument.operations[OperationLevel.Observation](p.isObservePaused, p.isMultiLevel),
         p.sequenceState,
         p.stepId,

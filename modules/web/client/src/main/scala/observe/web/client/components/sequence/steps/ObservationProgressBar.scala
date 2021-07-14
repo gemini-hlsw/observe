@@ -4,10 +4,10 @@
 package observe.web.client.components.sequence.steps
 
 import scala.math.max
-
 import cats.syntax.all._
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import diode.react.ReactConnectProxy
+import japgolly.scalajs.react.{ CtorType, Reusability, _ }
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.colors._
@@ -65,7 +65,7 @@ final case class ObservationProgressBar(
   paused:   Boolean
 ) extends ReactProps[ObservationProgressBar](ObservationProgressBar.component) {
 
-  protected[steps] val connect =
+  protected[steps] val connect: ReactConnectProxy[Option[ObservationProgress]] =
     ObserveCircuit.connect(ObserveCircuit.obsProgressReader[ObservationProgress](obsId, stepId))
 }
 
@@ -74,7 +74,7 @@ object ObservationProgressBar {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  val component = ScalaComponent
+  val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("ObservationProgressDisplay")
     .stateless
     .render_P(p =>

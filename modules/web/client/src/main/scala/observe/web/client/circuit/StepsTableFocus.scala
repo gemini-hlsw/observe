@@ -17,11 +17,11 @@ import web.client.table._
 
 @Lenses
 final case class StepsTableFocus(
-  id:                  Observation.Id,
+  idName:              Observation.IdName,
   instrument:          Instrument,
   state:               SequenceState,
   steps:               List[Step],
-  stepConfigDisplayed: Option[Int],
+  stepConfigDisplayed: Option[StepId],
   nextStepToRun:       Option[StepId],
   selectedStep:        Option[StepId],
   runningStep:         Option[RunningStep],
@@ -33,7 +33,7 @@ final case class StepsTableFocus(
 object StepsTableFocus {
   implicit val eq: Eq[StepsTableFocus] =
     Eq.by(x =>
-      (x.id,
+      (x.idName,
        x.instrument,
        x.state,
        x.steps,
@@ -56,7 +56,7 @@ object StepsTableFocus {
       case (Some(ObserveTabActive(tab, _)), ts) =>
         val sequence = tab.sequence
         StepsTableFocus(
-          sequence.id,
+          sequence.idName,
           sequence.metadata.instrument,
           sequence.status,
           sequence.steps,

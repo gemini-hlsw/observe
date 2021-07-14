@@ -13,7 +13,7 @@ import observe.model.Observation
 import squants.Time
 
 sealed trait Progress extends Product with Serializable {
-  val obsId: Observation.Id
+  val obsIdName: Observation.IdName
   val stepId: StepId
   val total: Time
   val remaining: Time
@@ -40,7 +40,7 @@ object Progress {
 }
 
 final case class ObservationProgress(
-  obsId:     Observation.Id,
+  obsIdName: Observation.IdName,
   stepId:    StepId,
   total:     Time,
   remaining: Time,
@@ -50,12 +50,12 @@ final case class ObservationProgress(
 object ObservationProgress {
 
   implicit val equalObservationProgress: Eq[ObservationProgress] =
-    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
+    Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
 
 }
 
 final case class NSObservationProgress(
-  obsId:     Observation.Id,
+  obsIdName: Observation.IdName,
   stepId:    StepId,
   total:     Time,
   remaining: Time,
@@ -66,7 +66,7 @@ final case class NSObservationProgress(
 object NSObservationProgress {
 
   implicit val equalNSObservationProgress: Eq[NSObservationProgress] =
-    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
+    Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
 }
 

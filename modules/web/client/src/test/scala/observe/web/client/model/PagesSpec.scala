@@ -7,6 +7,7 @@ import cats.kernel.laws.discipline._
 import cats.tests.CatsSuite
 // import monocle.law.discipline.PrismTests
 import observe.web.client.model.Pages._
+import lucuma.core.util.arb.ArbGid._
 
 /**
  * Tests Client typeclasses
@@ -15,7 +16,6 @@ final class PagesSpec extends CatsSuite with ArbitrariesWebClient {
 
   checkAll("Eq[ObservePages]", EqTests[ObservePages].eqv)
   checkAll("Eq[StepIdDisplayed]", EqTests[StepIdDisplayed].eqv)
-  checkAll("Monoid[StepIdDisplayed]", MonoidTests[StepIdDisplayed].monoid)
 
   // lenses
   // checkAll("Prism[Action, ObservePages]", PrismTests(PageActionP))

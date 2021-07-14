@@ -14,19 +14,22 @@ import observe.model.dhs._
 
 sealed trait OdbCommands[F[_]] {
   def queuedSequences: F[List[Observation.Id]]
-  def datasetStart(obsId:    Observation.Id, dataId: DataId, fileId: ImageFileId): F[Boolean]
-  def datasetComplete(obsId: Observation.Id, dataId: DataId, fileId: ImageFileId): F[Boolean]
-  def obsAbort(obsId:        Observation.Id, reason: String): F[Boolean]
-  def sequenceEnd(obsId:     Observation.Id): F[Boolean]
-  def sequenceStart(obsId:   Observation.Id, dataId: DataId): F[Boolean]
-  def obsContinue(obsId:     Observation.Id): F[Boolean]
-  def obsPause(obsId:        Observation.Id, reason: String): F[Boolean]
-  def obsStop(obsId:         Observation.Id, reason: String): F[Boolean]
+  def datasetStart(obsId:  Observation.IdName, dataId: DataId, fileId: ImageFileId): F[Boolean]
+  def datasetComplete(
+    obsIdName:             Observation.IdName,
+    dataId:                DataId,
+    fileId:                ImageFileId
+  ): F[Boolean]
+  def obsAbort(obsId:      Observation.IdName, reason: String): F[Boolean]
+  def sequenceEnd(obsId:   Observation.IdName): F[Boolean]
+  def sequenceStart(obsId: Observation.IdName, dataId: DataId): F[Boolean]
+  def obsContinue(obsId:   Observation.IdName): F[Boolean]
+  def obsPause(obsId:      Observation.IdName, reason: String): F[Boolean]
+  def obsStop(obsId:       Observation.IdName, reason: String): F[Boolean]
 }
 
 sealed trait OdbProxy[F[_]] extends OdbCommands[F] {
   def read(oid: Observation.Id): F[SeqexecSequence]
-  def queuedSequences: F[List[Observation.Id]]
 }
 
 object OdbProxy {
@@ -36,36 +39,44 @@ object OdbProxy {
         Sync[F].raiseError(ObserveFailure.Unexpected("OdbProxy.read: Not implemented."))
 
       def queuedSequences: F[List[Observation.Id]] = cmds.queuedSequences
-      def datasetStart(obsId:    Observation.Id, dataId: DataId, fileId:      ImageFileId): F[Boolean] =
+      def datasetStart(obsId: Observation.IdName, dataId: DataId, fileId: ImageFileId): F[Boolean] =
         cmds.datasetStart(obsId, dataId, fileId)
-      def datasetComplete(obsId: Observation.Id, dataId: DataId, fileId: ImageFileId): F[Boolean] =
-        cmds.datasetComplete(obsId, dataId, fileId)
-      def obsAbort(obsId:        Observation.Id, reason: String): F[Boolean] = cmds.obsAbort(obsId, reason)
-      def sequenceEnd(obsId:     Observation.Id): F[Boolean] = cmds.sequenceEnd(obsId)
-      def sequenceStart(obsId:   Observation.Id, dataId: DataId): F[Boolean] =
+      def datasetComplete(
+        obsIdName:            Observation.IdName,
+        dataId:               DataId,
+        fileId:               ImageFileId
+      ): F[Boolean] =
+        cmds.datasetComplete(obsIdName, dataId, fileId)
+      def obsAbort(obsId:      Observation.IdName, reason: String): F[Boolean] =
+        cmds.obsAbort(obsId, reason)
+      def sequenceEnd(obsId:   Observation.IdName): F[Boolean] = cmds.sequenceEnd(obsId)
+      def sequenceStart(obsId: Observation.IdName, dataId: DataId): F[Boolean] =
         cmds.sequenceStart(obsId, dataId)
-      def obsContinue(obsId:     Observation.Id): F[Boolean] = cmds.obsContinue(obsId)
-      def obsPause(obsId:        Observation.Id, reason: String): F[Boolean] = cmds.obsPause(obsId, reason)
-      def obsStop(obsId:         Observation.Id, reason: String): F[Boolean] = cmds.obsStop(obsId, reason)
+      def obsContinue(obsId:   Observation.IdName): F[Boolean] = cmds.obsContinue(obsId)
+      def obsPause(obsId:      Observation.IdName, reason: String): F[Boolean] =
+        cmds.obsPause(obsId, reason)
+      def obsStop(obsId:       Observation.IdName, reason: String): F[Boolean] =
+        cmds.obsStop(obsId, reason)
     }
 
   final class DummyOdbCommands[F[_]: Applicative] extends OdbCommands[F] {
     override def datasetStart(
-      obsId:  Observation.Id,
-      dataId: DataId,
-      fileId: ImageFileId
+      obsIdname: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
     ): F[Boolean] = true.pure[F]
     override def datasetComplete(
-      obsId:  Observation.Id,
-      dataId: DataId,
-      fileId: ImageFileId
+      obsIdName: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
     ): F[Boolean] = true.pure[F]
-    override def obsAbort(obsId:      Observation.Id, reason: String): F[Boolean] = false.pure[F]
-    override def sequenceEnd(obsId:   Observation.Id): F[Boolean] = false.pure[F]
-    override def sequenceStart(obsId: Observation.Id, dataId: DataId): F[Boolean] = false.pure[F]
-    override def obsContinue(obsId:   Observation.Id): F[Boolean] = false.pure[F]
-    override def obsPause(obsId:      Observation.Id, reason: String): F[Boolean] = false.pure[F]
-    override def obsStop(obsId:       Observation.Id, reason: String): F[Boolean] = false.pure[F]
+    override def obsAbort(obsId:          Observation.IdName, reason: String): F[Boolean] = false.pure[F]
+    override def sequenceEnd(obsId:       Observation.IdName): F[Boolean] = false.pure[F]
+    override def sequenceStart(obsIdName: Observation.IdName, dataId: DataId): F[Boolean] =
+      false.pure[F]
+    override def obsContinue(obsId:       Observation.IdName): F[Boolean] = false.pure[F]
+    override def obsPause(obsId:          Observation.IdName, reason: String): F[Boolean] = false.pure[F]
+    override def obsStop(obsId:           Observation.IdName, reason: String): F[Boolean] = false.pure[F]
     override def queuedSequences: F[List[Observation.Id]] = List.empty.pure[F]
   }
 
@@ -79,67 +90,85 @@ object OdbProxy {
       extends OdbCommands[F] {
 
     override def datasetStart(
-      obsId:  Observation.Id,
-      dataId: DataId,
-      fileId: ImageFileId
+      obsIdName: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
     ): F[Boolean] =
       L.debug(
-        s"Send ODB event datasetStart for obsId: ${obsId.format} and dataId: $dataId, with fileId: $fileId"
+        s"Send ODB event datasetStart for obsId: ${obsIdName.name.format} and dataId: $dataId, with fileId: $fileId"
       ) *>
-        Sync[F].raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented.")) <*
+        Sync[F]
+          .raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented."))
+          .as(false) <*
         L.debug("ODB event datasetStart sent")
 
     override def datasetComplete(
-      obsId:  Observation.Id,
-      dataId: DataId,
-      fileId: ImageFileId
+      obsIdName: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
     ): F[Boolean] =
       L.debug(
-        s"Send ODB event datasetComplete for obsId: ${obsId.format} and dataId: $dataId, with fileId: $fileId"
+        s"Send ODB event datasetComplete for obsId: ${obsIdName.name.format} and dataId: $dataId, with fileId: $fileId"
       ) *>
-        Sync[F].raiseError(
-          ObserveFailure.Unexpected("OdbCommandsImpl.datasetComplete: Not implemented.")
-        ) <*
+        Sync[F]
+          .raiseError(
+            ObserveFailure.Unexpected("OdbCommandsImpl.datasetComplete: Not implemented.")
+          )
+          .as(false) <*
         L.debug("ODB event datasetComplete sent")
 
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-      L.debug(s"Send ODB event observationAbort for obsId: ${obsId.format} reason: $reason") *>
-        Sync[F].raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented.")) <*
+    override def obsAbort(obsIdName: Observation.IdName, reason: String): F[Boolean] =
+      L.debug(
+        s"Send ODB event observationAbort for obsId: ${obsIdName.name.format} reason: $reason"
+      ) *>
+        Sync[F]
+          .raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented."))
+          .as(false) <*
         L.debug("ODB event observationAbort sent")
 
-    override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-      L.debug(s"Send ODB event sequenceEnd for obsId: ${obsId.format}") *>
+    override def sequenceEnd(obsIdName: Observation.IdName): F[Boolean] =
+      L.debug(s"Send ODB event sequenceEnd for obsId: ${obsIdName.name.format}") *>
         Sync[F].raiseError(
           ObserveFailure.Unexpected("OdbCommandsImpl.obsAbort: Not implemented.")
         ) <*
         L.debug("ODB event sequenceEnd sent")
 
-    override def sequenceStart(obsId: Observation.Id, dataId: DataId): F[Boolean] =
-      L.debug(s"Send ODB event sequenceStart for obsId: ${obsId.format} and dataId: $dataId") *>
-        Sync[F].raiseError(
-          ObserveFailure.Unexpected("OdbCommandsImpl.sequenceStart: Not implemented.")
-        ) <*
+    override def sequenceStart(obsIdName: Observation.IdName, dataId: DataId): F[Boolean] =
+      L.debug(
+        s"Send ODB event sequenceStart for obsId: ${obsIdName.name.format} and dataId: $dataId"
+      ) *>
+        Sync[F]
+          .raiseError(
+            ObserveFailure.Unexpected("OdbCommandsImpl.sequenceStart: Not implemented.")
+          )
+          .as(false) <*
         L.debug("ODB event sequenceStart sent")
 
-    override def obsContinue(obsId: Observation.Id): F[Boolean] =
-      L.debug(s"Send ODB event observationContinue for obsId: ${obsId.format}") *>
-        Sync[F].raiseError(
-          ObserveFailure.Unexpected("OdbCommandsImpl.obsContinue: Not implemented.")
-        ) <*
+    override def obsContinue(obsIdName: Observation.IdName): F[Boolean] =
+      L.debug(s"Send ODB event observationContinue for obsId: ${obsIdName.name.format}") *>
+        Sync[F]
+          .raiseError(
+            ObserveFailure.Unexpected("OdbCommandsImpl.obsContinue: Not implemented.")
+          )
+          .as(false) <*
         L.debug("ODB event observationContinue sent")
 
-    override def obsPause(obsId: Observation.Id, reason: String): F[Boolean] =
-      L.debug(s"Send ODB event observationPause for obsId: ${obsId.format} $reason") *>
-        Sync[F].raiseError(
-          ObserveFailure.Unexpected("OdbCommandsImpl.obsPause: Not implemented.")
-        ) <*
+    override def obsPause(obsIdName: Observation.IdName, reason: String): F[Boolean] =
+      L.debug(s"Send ODB event observationPause for obsId: ${obsIdName.name.format} $reason") *>
+        Sync[F]
+          .raiseError(
+            ObserveFailure.Unexpected("OdbCommandsImpl.obsPause: Not implemented.")
+          )
+          .as(false) <*
         L.debug("ODB event observationPause sent")
 
-    override def obsStop(obsId: Observation.Id, reason: String): F[Boolean] =
-      L.debug(s"Send ODB event observationStop for obsID: ${obsId.format} $reason") *>
-        Sync[F].raiseError(
-          ObserveFailure.Unexpected("OdbCommandsImpl.obsStop: Not implemented.")
-        ) <*
+    override def obsStop(obsIdName: Observation.IdName, reason: String): F[Boolean] =
+      L.debug(s"Send ODB event observationStop for obsID: ${obsIdName.name.format} $reason") *>
+        Sync[F]
+          .raiseError(
+            ObserveFailure.Unexpected("OdbCommandsImpl.obsStop: Not implemented.")
+          )
+          .as(false) <*
         L.debug("ODB event observationStop sent")
 
     override def queuedSequences: F[List[Observation.Id]] =

@@ -10,7 +10,7 @@ import scala.concurrent.duration.FiniteDuration
 import cats._
 import cats.effect.Async
 import cats.effect.Sync
-import cats.kernel.Eq
+import cats.Eq
 import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl

@@ -9,9 +9,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.elements.icon.IconRotated
-import observe.model.Observation
-import observe.model.Step
-import observe.model.StepState
+import observe.model.{ Observation, Step, StepId, StepState }
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
 import observe.web.client.model.ClientStatus
@@ -22,17 +20,17 @@ import observe.web.client.services.HtmlConstants.iconEmpty
  * Component to display an icon for the state
  */
 final case class StepToolsCell(
-  clientStatus:       ClientStatus,
-  step:               Step,
-  rowHeight:          Int,
-  secondRowHeight:    Int,
-  isPreview:          Boolean,
-  nextStepToRun:      Option[Int],
-  obsId:              Observation.Id,
-  firstRunnableIndex: Int,
-  breakPointEnterCB:  Int => Callback,
-  breakPointLeaveCB:  Int => Callback,
-  heightChangeCB:     Int => Callback
+  clientStatus:      ClientStatus,
+  step:              Step,
+  rowHeight:         Int,
+  secondRowHeight:   Int,
+  isPreview:         Boolean,
+  nextStepToRun:     Option[StepId],
+  obsIdName:         Observation.IdName,
+  canSetBreakpoint:  Boolean,
+  breakPointEnterCB: StepId => Callback,
+  breakPointLeaveCB: StepId => Callback,
+  heightChangeCB:    StepId => Callback
 ) extends ReactProps[StepToolsCell](StepToolsCell.component)
 
 object StepToolsCell {
@@ -51,8 +49,8 @@ object StepToolsCell {
           p.clientStatus,
           p.step,
           p.rowHeight,
-          p.obsId,
-          p.firstRunnableIndex,
+          p.obsIdName,
+          p.canSetBreakpoint,
           p.breakPointEnterCB,
           p.breakPointLeaveCB,
           p.heightChangeCB

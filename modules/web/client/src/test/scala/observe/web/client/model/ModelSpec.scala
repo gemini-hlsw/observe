@@ -7,6 +7,7 @@ import cats.kernel.laws.discipline._
 import cats.tests.CatsSuite
 import diode.data._
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import monocle.law.discipline.LensTests
 import monocle.law.discipline.PrismTests
 import monocle.law.discipline.OptionalTests

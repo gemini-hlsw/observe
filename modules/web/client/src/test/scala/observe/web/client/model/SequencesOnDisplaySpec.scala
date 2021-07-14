@@ -13,10 +13,7 @@ import observe.model.SequencesQueue
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.SystemOverrides
-import observe.web.client.model.PreviewSequenceTab
-import observe.web.client.model.SequencesOnDisplay
-import observe.web.client.model.CalibrationQueueTab
-import observe.web.client.model.InstrumentSequenceTab
+import observe.common.test._
 
 /**
  * Tests Sequences on display class
@@ -27,12 +24,13 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   }
   test("Support adding preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val s   = SequenceView(Observation.Id.unsafeFromString("GS-2018A-Q-0-1"),
-                         m,
-                         SequenceState.Idle,
-                         SystemOverrides.AllEnabled,
-                         Nil,
-                         None
+    val s   = SequenceView(
+      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      m,
+      SequenceState.Idle,
+      SystemOverrides.AllEnabled,
+      Nil,
+      None
     )
     val sod =
       SequencesOnDisplay.Empty.previewSequence(s.metadata.instrument, s)
@@ -40,12 +38,13 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   }
   test("Focus on preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val s   = SequenceView(Observation.Id.unsafeFromString("GS-2018A-Q-0-1"),
-                         m,
-                         SequenceState.Idle,
-                         SystemOverrides.AllEnabled,
-                         Nil,
-                         None
+    val s   = SequenceView(
+      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      m,
+      SequenceState.Idle,
+      SystemOverrides.AllEnabled,
+      Nil,
+      None
     )
     val sod =
       SequencesOnDisplay.Empty.previewSequence(s.metadata.instrument, s)
@@ -54,12 +53,13 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   }
   test("Unset preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val s   = SequenceView(Observation.Id.unsafeFromString("GS-2018A-Q-0-1"),
-                         m,
-                         SequenceState.Idle,
-                         SystemOverrides.AllEnabled,
-                         Nil,
-                         None
+    val s   = SequenceView(
+      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      m,
+      SequenceState.Idle,
+      SystemOverrides.AllEnabled,
+      Nil,
+      None
     )
     val sod =
       SequencesOnDisplay.Empty.previewSequence(s.metadata.instrument, s)
@@ -67,15 +67,22 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     sod.tabs.focus.isPreview should be(true)
   }
   test("Replace preview") {
-    val obsId = Observation.Id.unsafeFromString("GS-2018A-Q-0-1")
+    val obsId = observationId(1)
     val m     = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val s     = SequenceView(obsId, m, SequenceState.Idle, SystemOverrides.AllEnabled, Nil, None)
+    val s     =
+      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+                   m,
+                   SequenceState.Idle,
+                   SystemOverrides.AllEnabled,
+                   Nil,
+                   None
+      )
     val sod   =
       SequencesOnDisplay.Empty.previewSequence(s.metadata.instrument, s)
 
     // Remove unknown
     val sod2 =
-      sod.unsetPreviewOn(Observation.Id.unsafeFromString("GS-2018A-Q-0-3"))
+      sod.unsetPreviewOn(observationId(3))
     sod2.tabs.length should be(2)
     sod2 === sod should be(true)
 
@@ -87,8 +94,15 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   }
   test("Update loaded") {
     val m      = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val obsId  = Observation.Id.unsafeFromString("GS-2018A-Q-0-1")
-    val s      = SequenceView(obsId, m, SequenceState.Idle, SystemOverrides.AllEnabled, Nil, None)
+    val obsId  = observationId(1)
+    val s      =
+      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GN-ENG20071001-1")),
+                   m,
+                   SequenceState.Idle,
+                   SystemOverrides.AllEnabled,
+                   Nil,
+                   None
+      )
     val queue  = List(s)
     val loaded = Map((Instrument.Gpi: Instrument) -> obsId)
     val sod    = SequencesOnDisplay.Empty.updateFromQueue(
@@ -96,29 +110,37 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     )
     sod.tabs.length should be(2)
     sod.tabs.toList.lift(1) should matchPattern {
-      case Some(InstrumentSequenceTab(_, Right(s), _, _, _, _, _)) if s.id === obsId =>
+      case Some(InstrumentSequenceTab(_, Right(s), _, _, _, _, _)) if s.idName.id === obsId =>
     }
   }
   test("Add preview with loaded") {
     val m      = SequenceMetadata(Instrument.Gpi, None, "Obs")
-    val obsId  = Observation.Id.unsafeFromString("GS-2018A-Q-0-1")
-    val s      = SequenceView(obsId, m, SequenceState.Idle, SystemOverrides.AllEnabled, Nil, None)
+    val obsId  = observationId(1)
+    val s      =
+      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+                   m,
+                   SequenceState.Idle,
+                   SystemOverrides.AllEnabled,
+                   Nil,
+                   None
+      )
     val queue  = List(s)
     val loaded = Map((Instrument.Gpi: Instrument) -> obsId)
     val sod    = SequencesOnDisplay.Empty.updateFromQueue(
       SequencesQueue(loaded, Conditions.Default, None, SortedMap.empty, queue)
     )
 
-    val obs2 = Observation.Id.unsafeFromString("GS-2018A-Q-0-2")
+    val obs2 =
+      Observation.IdName(observationId(2), Observation.Name.unsafeFromString("GS-2018A-Q-0-2"))
     val s2   = SequenceView(obs2, m, SequenceState.Idle, SystemOverrides.AllEnabled, Nil, None)
     val sod2 = sod.previewSequence(s2.metadata.instrument, s2)
 
     sod2.tabs.length should be(3)
     sod2.tabs.toList.lift(2) should matchPattern {
-      case Some(InstrumentSequenceTab(_, Right(s), _, _, _, _, _)) if s.id === obsId =>
+      case Some(InstrumentSequenceTab(_, Right(s), _, _, _, _, _)) if s.idName.id === obsId =>
     }
     sod2.tabs.focus should matchPattern {
-      case PreviewSequenceTab(s, _, _, _) if s.id === obs2 =>
+      case PreviewSequenceTab(s, _, _, _) if s.idName === obs2 =>
     }
   }
 }

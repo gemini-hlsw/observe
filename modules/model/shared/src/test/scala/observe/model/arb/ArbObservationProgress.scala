@@ -5,6 +5,7 @@ package observe.model.arb
 
 import observe.model.Observation
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
@@ -16,12 +17,12 @@ import observe.model.ObserveStage.observeStageEnum
 import squants.time._
 
 trait ArbObservationProgress {
-  import ArbObservationId._
+  import ArbObservationIdName._
 
   implicit val arbObservationProgress: Arbitrary[ObservationProgress] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.Id]
+        o <- arbitrary[Observation.IdName]
         s <- arbitrary[StepId]
         t <- arbitrary[Time]
         r <- arbitrary[Time]
@@ -30,13 +31,13 @@ trait ArbObservationProgress {
     }
 
   implicit val observationInProgressCogen: Cogen[ObservationProgress] =
-    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage)]
-      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
+    Cogen[(Observation.IdName, StepId, Time, Time, ObserveStage)]
+      .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
 
   implicit val arbNSObservationProgress: Arbitrary[NSObservationProgress] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.Id]
+        o <- arbitrary[Observation.IdName]
         s <- arbitrary[StepId]
         t <- arbitrary[Time]
         r <- arbitrary[Time]
@@ -46,8 +47,8 @@ trait ArbObservationProgress {
     }
 
   implicit val nsObservationInProgressCogen: Cogen[NSObservationProgress] =
-    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage, NSSubexposure)]
-      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
+    Cogen[(Observation.IdName, StepId, Time, Time, ObserveStage, NSSubexposure)]
+      .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
   implicit val arbProgress: Arbitrary[Progress] =
     Arbitrary {

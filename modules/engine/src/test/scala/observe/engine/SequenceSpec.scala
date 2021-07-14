@@ -6,16 +6,19 @@ package observe.engine
 import cats.effect.IO
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
+import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
-import observe.model.Observation
 
 import java.util.UUID
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers._
-import observe.model.{ ActionType, ClientId, SequenceState, UserDetails }
+import lucuma.core.model.{ Observation => LObservation }
+import lucuma.core.model.{ Step => LStep }
+import observe.model.{ ActionType, ClientId, SequenceState, StepId, UserDetails }
 import observe.engine.TestUtil.TestState
+import observe.common.test._
 
 import scala.Function.const
 import org.scalatest.flatspec.AnyFlatSpec
@@ -24,7 +27,7 @@ class SequenceSpec extends AnyFlatSpec {
 
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
-  private val seqId = Observation.Id.unsafeFromString("GS-2018A-Q-0-1")
+  private val seqId = LObservation.Id(PosLong.unsafeFrom(1))
 
   // All tests check the output of running a sequence against the expected sequence of updates.
 
@@ -48,7 +51,7 @@ class SequenceSpec extends AnyFlatSpec {
   private val user            = UserDetails("telops", "Telops")
   private val executionEngine = new Engine[IO, TestState, Unit](TestState)
 
-  def simpleStep(id: Int, breakpoint: Boolean): Step[IO] =
+  def simpleStep(id: StepId, breakpoint: Boolean): Step[IO] =
     Step
       .init(
         id = id,
@@ -89,9 +92,10 @@ class SequenceSpec extends AnyFlatSpec {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(simpleStep(1, breakpoint = false), simpleStep(2, breakpoint = true))
+             Sequence(id = seqId,
+                      steps = List(simpleStep(LStep.Id(PosLong.unsafeFrom(1)), breakpoint = false),
+                                   simpleStep(LStep.Id(PosLong.unsafeFrom(2)), breakpoint = true)
+                      )
              )
            )
           )
@@ -114,12 +118,11 @@ class SequenceSpec extends AnyFlatSpec {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
-               id = seqId,
-               steps = List(simpleStep(1, breakpoint = false),
-                            simpleStep(2, breakpoint = true),
-                            simpleStep(3, breakpoint = false)
-               )
+             Sequence(id = seqId,
+                      steps = List(simpleStep(stepId(1), breakpoint = false),
+                                   simpleStep(stepId(2), breakpoint = true),
+                                   simpleStep(stepId(3), breakpoint = false)
+                      )
              )
            )
           )
@@ -163,7 +166,7 @@ class SequenceSpec extends AnyFlatSpec {
     }
 
     Step.Zipper(
-      id = 1,
+      id = stepId(1),
       breakpoint = Step.BreakpointMark(false),
       Step.SkipMark(false),
       pending = pending,
@@ -216,13 +219,14 @@ class SequenceSpec extends AnyFlatSpec {
 
   "startSingle" should "mark a single Action as started" in {
     val seq = Sequence.State.init(
-      Sequence(
-        id = seqId,
-        steps = List(simpleStep(1, breakpoint = false), simpleStep(2, breakpoint = false))
+      Sequence(id = seqId,
+               steps = List(simpleStep(stepId(1), breakpoint = false),
+                            simpleStep(stepId(2), breakpoint = false)
+               )
       )
     )
 
-    val c = ActionCoordsInSeq(1, ExecutionIndex(0), ActionIndex(1))
+    val c = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(1))
 
     assert(seq.startSingle(c).getSingleState(c) === Action.ActionState.Started)
 
@@ -234,14 +238,14 @@ class SequenceSpec extends AnyFlatSpec {
         id = seqId,
         steps = List(
           Step.init(
-            id = 1,
+            id = stepId(1),
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
             )
           ),
           Step.init(
-            id = 2,
+            id = stepId(2),
             executions = List(
               NonEmptyList.of(action, action), // Execution
               NonEmptyList.one(action)         // Execution
@@ -255,7 +259,7 @@ class SequenceSpec extends AnyFlatSpec {
         id = seqId,
         steps = List(
           Step.init(
-            id = 1,
+            id = stepId(1),
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
@@ -265,7 +269,7 @@ class SequenceSpec extends AnyFlatSpec {
       ),
       SequenceState.Completed
     )
-    val c1   = ActionCoordsInSeq(1, ExecutionIndex(0), ActionIndex(0))
+    val c1   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
 
     assert(seq1.startSingle(c1).getSingleState(c1).isIdle)
     assert(seq2.startSingle(c1).getSingleState(c1).isIdle)
@@ -273,44 +277,42 @@ class SequenceSpec extends AnyFlatSpec {
   }
 
   "failSingle" should "mark a single running Action as failed" in {
-    val c   = ActionCoordsInSeq(1, ExecutionIndex(0), ActionIndex(0))
+    val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence(
-          id = seqId,
-          steps = List(
-            Step.init(
-              id = 1,
-              executions = List(
-                NonEmptyList.of(action, action), // Execution
-                NonEmptyList.one(action)         // Execution
-              )
-            )
-          )
+        Sequence(id = seqId,
+                 steps = List(
+                   Step.init(
+                     id = stepId(1),
+                     executions = List(
+                       NonEmptyList.of(action, action), // Execution
+                       NonEmptyList.one(action)         // Execution
+                     )
+                   )
+                 )
         )
       )
       .startSingle(c)
-    val c2  = ActionCoordsInSeq(1, ExecutionIndex(1), ActionIndex(0))
+    val c2  = ActionCoordsInSeq(stepId(1), ExecutionIndex(1), ActionIndex(0))
 
     assert(seq.failSingle(c, Result.Error("")).getSingleState(c).errored)
     assert(seq.failSingle(c2, Result.Error("")).getSingleState(c2).isIdle)
   }
 
   "completeSingle" should "mark a single running Action as completed" in {
-    val c   = ActionCoordsInSeq(1, ExecutionIndex(0), ActionIndex(0))
+    val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence(
-          id = seqId,
-          steps = List(
-            Step.init(
-              id = 1,
-              executions = List(
-                NonEmptyList.of(action, action), // Execution
-                NonEmptyList.one(action)         // Execution
-              )
-            )
-          )
+        Sequence(id = seqId,
+                 steps = List(
+                   Step.init(
+                     id = stepId(1),
+                     executions = List(
+                       NonEmptyList.of(action, action), // Execution
+                       NonEmptyList.one(action)         // Execution
+                     )
+                   )
+                 )
         )
       )
       .startSingle(c)

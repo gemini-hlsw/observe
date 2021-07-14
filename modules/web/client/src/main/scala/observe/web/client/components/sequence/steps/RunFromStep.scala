@@ -13,7 +13,7 @@ import react.common._
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
-import observe.model.Observation
+import observe.model.{ Observation, StepId }
 import observe.web.client.actions.RequestRunFrom
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit.ObserveCircuit
@@ -26,8 +26,9 @@ import observe.web.client.reusability._
  * Contains the control to start a step from an arbitrary point
  */
 final case class RunFromStep(
-  id:               Observation.Id,
-  stepId:           Int,
+  idName:           Observation.IdName,
+  stepId:           StepId,
+  stepIdx:          Int,
   resourceInFlight: Boolean,
   runFrom:          StartFromOperation
 ) extends ReactProps[RunFromStep](RunFromStep.component)
@@ -38,12 +39,13 @@ object RunFromStep {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   def requestRunFrom(
-    id:     Observation.Id,
-    stepId: Int
+    idName:  Observation.IdName,
+    stepId:  StepId,
+    stepIdx: Int
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       ObserveCircuit
-        .dispatchCB(RequestRunFrom(id, stepId, RunOptions.Normal))
+        .dispatchCB(RequestRunFrom(idName, stepId, stepIdx, RunOptions.Normal))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   protected val component = ScalaComponent
@@ -56,10 +58,10 @@ object RunFromStep {
           trigger = Button(
             icon = true,
             color = Blue,
-            onClickE = requestRunFrom(p.id, p.stepId),
+            onClickE = requestRunFrom(p.idName, p.stepId, p.stepIdx),
             disabled = p.resourceInFlight || p.runFrom === StartFromOperation.StartFromInFlight
           )(IconPlay)
-        )(s"Run from step ${p.stepId + 1}")
+        )(s"Run from step ${p.stepIdx + 1}")
       )
     }
     .configure(Reusability.shouldComponentUpdate)

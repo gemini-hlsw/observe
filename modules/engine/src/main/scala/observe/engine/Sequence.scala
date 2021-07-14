@@ -8,9 +8,9 @@ import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
-import observe.model.Observation
 import observe.model.SequenceState
-import observe.model.StepId
+import lucuma.core.model.Observation
+import lucuma.core.model.Step.{ Id => StepId }
 
 /**
  * A list of `Step`s grouped by target and instrument.
@@ -108,11 +108,7 @@ object Sequence {
      * completed `Step`s or pending `Step`s.
      */
     val toSequence: Sequence[F] =
-      Sequence(
-        id,
-        // TODO: Functor composition?
-        done ++ List(focus.toStep) ++ pending
-      )
+      Sequence(id, done ++ List(focus.toStep) ++ pending)
   }
 
   object Zipper {

@@ -3,24 +3,28 @@
 
 package observe.model.arb
 
+import cats.syntax.option._
 import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import observe.model.RunningStep
 import observe.model.StepId
+import lucuma.core.util.arb.ArbGid._
 
 trait ArbRunningStep {
 
   implicit val arbRunningStep: Arbitrary[RunningStep] =
     Arbitrary {
       for {
-        l <- Gen.posNum[Int]
-        i <- Gen.choose(l, Int.MaxValue)
-      } yield RunningStep.fromInt(l, i).getOrElse(RunningStep.Zero)
+        id <- arbitrary[StepId]
+        l  <- Gen.posNum[Int]
+        i  <- Gen.choose(l, Int.MaxValue)
+      } yield RunningStep.fromInt(id.some, l, i).getOrElse(RunningStep.Zero)
     }
 
   implicit val runningStepCogen: Cogen[RunningStep] =
-    Cogen[(StepId, StepId)].contramap(x => (x.last, x.total))
+    Cogen[(Option[StepId], Int, Int)].contramap(x => (x.id, x.last, x.total))
 
 }
 

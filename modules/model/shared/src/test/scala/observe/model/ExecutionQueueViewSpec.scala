@@ -4,12 +4,11 @@
 package observe.model
 
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import monocle.law.discipline.LensTests
 import observe.model.ObserveModelArbitraries._
-import observe.model.arb.ArbObservationId
 
 final class ExecutionQueueViewSpec extends munit.DisciplineSuite {
-  import ArbObservationId._
 
   checkAll("ExecutionQueueView id lens", LensTests(ExecutionQueueView.id))
   checkAll("ExecutionQueueView name lens", LensTests(ExecutionQueueView.name))

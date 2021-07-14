@@ -5,10 +5,10 @@ package observe.web.client.components
 
 import scala.math.max
 import scala.scalajs.js
-
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
+import eu.timepit.refined.types.numeric.PosLong
 import japgolly.scalajs.react.CatsReact._
 import japgolly.scalajs.react.MonocleReact._
 import japgolly.scalajs.react.Reusability
@@ -26,13 +26,16 @@ import react.semanticui.colors._
 import react.semanticui.elements.icon.Icon
 import react.semanticui.sizes._
 import react.virtualized._
-import observe.model.CalibrationQueueId
-import observe.model.Observation
-import observe.model.Observer
-import observe.model.RunningStep
-import observe.model.SequenceState
-import observe.model.UnknownTargetName
-import observe.model.UserDetails
+import observe.model.{
+  CalibrationQueueId,
+  Observation,
+  Observer,
+  RunningStep,
+  SequenceState,
+  StepId,
+  UnknownTargetName,
+  UserDetails
+}
 import observe.model.enum.Instrument
 import observe.web.client.actions._
 import observe.web.client.circuit._
@@ -185,13 +188,13 @@ object SessionQueueTable extends Columns {
     val sequencesList: List[SequenceInSessionQueue] =
       sequences.queueFilter.filter(sequences.sequences)
 
-    val obsIds: List[Observation.Id] = sequencesList.map(_.id)
+    val obsIds: List[Observation.Id] = sequencesList.map(_.idName.id)
 
     def rowGetter(i: Int): SessionQueueRow =
       sequencesList
         .lift(i)
         .map { s =>
-          SessionQueueRow(s.id,
+          SessionQueueRow(s.idName,
                           s.status,
                           s.instrument,
                           s.targetName,
@@ -215,7 +218,7 @@ object SessionQueueTable extends Columns {
     val user: Option[UserDetails] = sequences.status.u
 
     val extractors = List[(TableColumn, SequenceInSessionQueue => String)](
-      (ObsIdColumn, _.id.format),
+      (ObsIdColumn, _.idName.name.format),
       (StateColumn, s => statusText(s.status, s.runningStep)),
       (InstrumentColumn, _.instrument.show),
       (TargetNameColumn, _.targetName.orEmpty),
@@ -269,7 +272,7 @@ object SessionQueueTable extends Columns {
       TableState(NotModified, 0, all)
 
     val InitialState: State =
-      State(InitialTableState, None, None, List.empty, false)
+      State(InitialTableState, None, None, List.empty, prevLoggedIn = false)
   }
 
   // Reusability
@@ -285,7 +288,7 @@ object SessionQueueTable extends Columns {
 
   // ScalaJS defined trait
   trait SessionQueueRow extends js.Object {
-    var obsId: Observation.Id
+    var obsIdName: Observation.IdName
     var status: SequenceState
     var instrument: Instrument
     var targetName: Option[String]
@@ -293,7 +296,7 @@ object SessionQueueTable extends Columns {
     var obsClass: ObsClass
     var active: Boolean
     var loaded: Boolean
-    var nextStepToRun: Option[Int]
+    var nextStepToRun: Option[StepId]
     var runningStep: Option[RunningStep]
     var inDayCalQueue: Boolean
   }
@@ -301,7 +304,7 @@ object SessionQueueTable extends Columns {
   object SessionQueueRow {
 
     def apply(
-      obsId:         Observation.Id,
+      obsIdName:     Observation.IdName,
       status:        SequenceState,
       instrument:    Instrument,
       targetName:    Option[String],
@@ -309,12 +312,12 @@ object SessionQueueTable extends Columns {
       obsClass:      ObsClass,
       active:        Boolean,
       loaded:        Boolean,
-      nextStepToRun: Option[Int],
+      nextStepToRun: Option[StepId],
       runningStep:   Option[RunningStep],
       inDayCalQueue: Boolean
     ): SessionQueueRow = {
       val p = (new js.Object).asInstanceOf[SessionQueueRow]
-      p.obsId = obsId
+      p.obsIdName = obsIdName
       p.status = status
       p.instrument = instrument
       p.targetName = targetName
@@ -330,7 +333,7 @@ object SessionQueueTable extends Columns {
 
     def unapply(l: SessionQueueRow): Option[
       (
-        Observation.Id,
+        Observation.IdName,
         SequenceState,
         Instrument,
         Option[String],
@@ -338,13 +341,13 @@ object SessionQueueTable extends Columns {
         ObsClass,
         Boolean,
         Boolean,
-        Option[Int],
+        Option[StepId],
         Option[RunningStep],
         Boolean
       )
     ] =
       Some(
-        (l.obsId,
+        (l.obsIdName,
          l.status,
          l.instrument,
          l.targetName,
@@ -358,20 +361,22 @@ object SessionQueueTable extends Columns {
         )
       )
 
-    def Empty: SessionQueueRow =
-      apply(
-        Observation.Id.unsafeFromString("Zero-1"),
-        SequenceState.Idle,
-        Instrument.F2,
-        None,
-        "",
-        ObsClass.Nighttime,
-        active = false,
-        loaded = false,
-        None,
-        None,
-        inDayCalQueue = false
-      )
+    object Empty extends SessionQueueRow {
+      override var obsIdName: Observation.IdName    =
+        Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue),
+                           Observation.Name.unsafeFromString("Zero-1")
+        )
+      override var status: SequenceState            = SequenceState.Idle
+      override var instrument: Instrument           = Instrument.F2
+      override var targetName: Option[String]       = None
+      override var name                             = ""
+      override var obsClass: ObsClass               = ObsClass.Nighttime
+      override var active: Boolean                  = false
+      override var loaded: Boolean                  = false
+      override var nextStepToRun: Option[StepId]    = None
+      override var runningStep: Option[RunningStep] = None
+      override var inDayCalQueue: Boolean           = false
+    }
   }
 
   private def linkTo(p: Props, page: ObservePages)(mod: TagMod*) =
@@ -384,9 +389,9 @@ object SessionQueueTable extends Columns {
 
   private def pageOf(row: SessionQueueRow): ObservePages =
     if (row.loaded) {
-      SequencePage(row.instrument, row.obsId, StepIdDisplayed(row.nextStepToRun.getOrElse(0)))
+      SequencePage(row.instrument, row.obsIdName.id, StepIdDisplayed(row.nextStepToRun))
     } else {
-      PreviewPage(row.instrument, row.obsId, StepIdDisplayed(row.nextStepToRun.getOrElse(0)))
+      PreviewPage(row.instrument, row.obsIdName.id, StepIdDisplayed(row.nextStepToRun))
     }
 
   private def linkedTextRenderer(p: Props)(
@@ -429,15 +434,15 @@ object SessionQueueTable extends Columns {
       )
     }
 
-  def addToQueueE(id: Observation.Id)(e: ReactEvent): Callback =
+  def addToQueueE(idName: Observation.IdName)(e: ReactEvent): Callback =
     e.stopPropagationCB *>
       e.preventDefaultCB *>
-      ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, id))
+      ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, idName.id))
 
-  def removeFromQueueE(id: Observation.Id)(e: ReactEvent): Callback =
+  def removeFromQueueE(idName: Observation.IdName)(e: ReactEvent): Callback =
     e.stopPropagationCB *>
       e.preventDefaultCB *>
-      ObserveCircuit.dispatchCB(RequestRemoveSeqCal(CalibrationQueueId, id))
+      ObserveCircuit.dispatchCB(RequestRemoveSeqCal(CalibrationQueueId, idName))
 
   private def addToQueueRenderer(
     b: Backend
@@ -456,7 +461,7 @@ object SessionQueueTable extends Columns {
                  fitted = true,
                  clazz = ObserveStyles.selectedIcon
             ),
-            ^.onClick ==> removeFromQueueE(row.obsId) _
+            ^.onClick ==> removeFromQueueE(row.obsIdName)
           )
         } else {
           <.span(
@@ -465,7 +470,7 @@ object SessionQueueTable extends Columns {
                  fitted = true,
                  clazz = ObserveStyles.selectedIcon
             ),
-            ^.onClick ==> addToQueueE(row.obsId) _
+            ^.onClick ==> addToQueueE(row.obsIdName)
           )
         }
       )
@@ -501,7 +506,7 @@ object SessionQueueTable extends Columns {
         ^.width := IconColumnWidth.px
       )
 
-  private def addAll: Callback =
+  private def addAll(): Callback =
     ObserveCircuit.dispatchCB(RequestAllSelectedSequences(CalibrationQueueId))
 
   private val addHeaderRenderer: HeaderRenderer[js.Object] =
@@ -513,7 +518,7 @@ object SessionQueueTable extends Columns {
         ObserveStyles.centeredCell,
         <.span(
           Icon(name = "calendar alternate outline", fitted = true, link = true),
-          ^.onClick --> addAll
+          ^.onClick --> addAll()
         )
       )
 
@@ -550,7 +555,7 @@ object SessionQueueTable extends Columns {
     case IconColumn       => statusIconRenderer(b)
     case AddQueueColumn   => addToQueueRenderer(b)
     case ClassColumn      => classIconRenderer(b)
-    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsId.format)
+    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsIdName.name.format)
     case StateColumn      => linkedTextRenderer(b.props)(r => statusText(r.status, r.runningStep))
     case InstrumentColumn => linkedTextRenderer(b.props)(_.instrument.show)
     case TargetNameColumn => linkedTextRenderer(b.props)(_.targetName.getOrElse(UnknownTargetName))
@@ -631,14 +636,16 @@ object SessionQueueTable extends Columns {
     if (r.loaded) {
       // If already loaded switch tabs
       b.props.ctl.dispatchAndSetUrlCB(
-        SelectIdToDisplay(r.instrument, r.obsId, StepIdDisplayed(r.nextStepToRun.getOrElse(0)))
+        SelectIdToDisplay(r.instrument, r.obsIdName.id, StepIdDisplayed(r.nextStepToRun))
       )
     } else { // Try to load it
       b.props.user
         .filter(_ => b.props.canOperate && i >= 0 && !r.loaded)
         .map { u =>
           val load =
-            ObserveCircuit.dispatchCB(LoadSequence(Observer(u.displayName), r.instrument, r.obsId))
+            ObserveCircuit.dispatchCB(
+              LoadSequence(Observer(u.displayName), r.instrument, r.obsIdName)
+            )
           val spin = b.modState(_.copy(rowLoading = i.some))
           spin *> load
         }
@@ -681,7 +688,7 @@ object SessionQueueTable extends Columns {
 
   def dragStart(b: Backend, obsId: Observation.Id)(e: ReactDragEvent): Callback =
     Callback {
-      e.dataTransfer.setData("text/plain", obsId.format)
+      e.dataTransfer.setData("text/plain", obsId.toString)
     }.when(b.props.canOperate) *> Callback.empty
 
   private def draggableRowRenderer(b: Backend) =
@@ -704,7 +711,7 @@ object SessionQueueTable extends Columns {
         ^.draggable := b.props.canOperate,
         ^.key := key,
         ^.role := "row",
-        ^.onDragStart ==> dragStart(b, rowData.obsId),
+        ^.onDragStart ==> dragStart(b, rowData.obsIdName.id),
         ^.style := style.toJsObject,
         ^.onClick -->? onRowClick.map(h => h(index)),
         ^.onDoubleClick -->? onRowDoubleClick.map(h => h(index)),
@@ -742,20 +749,18 @@ object SessionQueueTable extends Columns {
           List(
             (s: State) =>
               s.lastSize.fold(s)(ls =>
-                (
-                  State.userModified
-                    .modify { um =>
-                      // If login state changes discard user modifications
-                      if (props.loggedIn =!= state.prevLoggedIn) {
-                        NotModified
-                      } else um
-                    }
-                    .andThen(
-                      State.tableState.modify(
-                        _.recalculateWidths(ls, props.visibleColumns, props.columnWidths)
-                      )
+                State.userModified
+                  .modify { um =>
+                    // If login state changes discard user modifications
+                    if (props.loggedIn =!= state.prevLoggedIn) {
+                      NotModified
+                    } else um
+                  }
+                  .andThen(
+                    State.tableState.modify(
+                      _.recalculateWidths(ls, props.visibleColumns, props.columnWidths)
                     )
-                )(s)
+                  )(s)
               ),
             State.prevObsIds.set(props.obsIds),
             State.prevLoggedIn.set(props.loggedIn)
