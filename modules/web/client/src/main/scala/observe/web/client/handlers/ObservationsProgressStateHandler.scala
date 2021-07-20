@@ -77,14 +77,14 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
   ): ActionResult[M] = {
     val upd =
       for {
-        obs     <- sequenceViewT.find(_.id === obsId)(e)
-        curSIdx <- obs.runningStep.map(_.last)
-        curStep <- sequenceStepT.find(_.id === curSIdx)(obs)
+        obs     <- sequenceViewT.find(_.idName.id === obsId)(e)
+        curSId  <- obs.runningStep.flatMap(_.id)
+        curStep <- sequenceStepT.find(_.id === curSId)(obs)
       } yield
         if (condition(curStep)) {
           updatedL(
             AllObservationsProgressState
-              .progressByIdL(obsId, curSIdx)
+              .progressByIdL(obsId, curSId)
               .set(none)
           )
         } else {
@@ -98,7 +98,7 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
     case ServerMessage(ObservationProgressEvent(e)) =>
       updatedL(
         AllObservationsProgressState
-          .progressByIdL(e.obsId, e.stepId)
+          .progressByIdL(e.obsIdName.id, e.stepId)
           .modify(_.map(adjustProgress(e)).orElse(e.some))
       )
 

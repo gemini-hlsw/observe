@@ -90,7 +90,7 @@ object GdsClient {
         <params>
           <param>
             <value>
-              <string>{obsId.format}</string>
+              <string>{obsId.toString}</string>
             </value>
           </param>
           <param>

@@ -3,13 +3,12 @@
 
 package observe.web.client.components.sequence.steps
 
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.{ CtorType, Reusability, _ }
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.colors._
-import observe.model.Observation
-import observe.model.Step
+import observe.model.{ Observation, Step, StepId }
 import observe.web.client.actions.FlipBreakpointStep
 import observe.web.client.actions.FlipSkipStep
 import observe.web.client.circuit.ObserveCircuit
@@ -22,14 +21,14 @@ import observe.web.client.reusability._
  * Component to display an icon for the state
  */
 final case class StepBreakStopCell(
-  clientStatus:       ClientStatus,
-  step:               Step,
-  rowHeight:          Int,
-  obsId:              Observation.Id,
-  firstRunnableIndex: Int,
-  breakPointEnterCB:  Int => Callback,
-  breakPointLeaveCB:  Int => Callback,
-  heightChangeCB:     Int => Callback
+  clientStatus:      ClientStatus,
+  step:              Step,
+  rowHeight:         Int,
+  obsIdName:         Observation.IdName,
+  canSetBreakpoint:  Boolean,
+  breakPointEnterCB: StepId => Callback,
+  breakPointLeaveCB: StepId => Callback,
+  heightChangeCB:    StepId => Callback
 ) extends ReactProps[StepBreakStopCell](StepBreakStopCell.component)
 
 object StepBreakStopCell {
@@ -43,7 +42,7 @@ object StepBreakStopCell {
     e.preventDefaultCB *>
       e.stopPropagationCB *>
       Callback.when(p.clientStatus.canOperate)(
-        ObserveCircuit.dispatchCB(FlipBreakpointStep(p.obsId, p.step)) *>
+        ObserveCircuit.dispatchCB(FlipBreakpointStep(p.obsIdName, p.step)) *>
           p.heightChangeCB(p.step.id)
       )
 
@@ -52,15 +51,14 @@ object StepBreakStopCell {
     e.preventDefaultCB *>
       e.stopPropagationCB *>
       Callback.when(p.clientStatus.canOperate)(
-        ObserveCircuit.dispatchCB(FlipSkipStep(p.obsId, p.step))
+        ObserveCircuit.dispatchCB(FlipSkipStep(p.obsIdName, p.step))
       )
 
-  protected val component = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("StepBreakStopCell")
     .stateless
     .render_P { p =>
-      val canSetBreakpoint = p.clientStatus.canOperate && p.step
-        .canSetBreakpoint(p.step.id, p.firstRunnableIndex)
+      val canSetBreakpoint = p.clientStatus.canOperate && p.canSetBreakpoint
       val canSetSkipMark   = p.clientStatus.canOperate && p.step.canSetSkipmark
       <.div(
         ObserveStyles.gutterCell,
@@ -86,10 +84,10 @@ object StepBreakStopCell {
           ObserveStyles.skipHandle,
           ^.top := (p.rowHeight / 2 - ObserveStyles.skipHandleHeight + 2).px,
           IconPlusSquareOutline
-            .copy(link = true)(^.onClick ==> flipSkipped(p) _)
+            .copy(link = true)(^.onClick ==> flipSkipped(p))
             .when(p.step.skip),
           IconMinusCircle
-            .copy(link = true, color = Orange)(^.onClick ==> flipSkipped(p) _)
+            .copy(link = true, color = Orange)(^.onClick ==> flipSkipped(p))
             .unless(p.step.skip)
         ).when(canSetSkipMark)
       )

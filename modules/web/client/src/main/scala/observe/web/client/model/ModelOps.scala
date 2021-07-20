@@ -7,10 +7,8 @@ import cats.Show
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import lucuma.core.enum.Site
-import observe.model.SequenceState
-import observe.model.SequenceView
-import observe.model.Step
-import observe.model.StepState
+import mouse.all.booleanSyntaxMouse
+import observe.model.{ SequenceState, SequenceView, Step, StepId, StepState }
 import observe.model.enum.Instrument
 import observe.model.enum.Resource
 
@@ -70,20 +68,10 @@ object ModelOps {
         case st                      => st
       })
 
-    def nextStepToRun: Option[Int] =
-      s.steps match {
-        case x if x.forall(s => s.status === StepState.Pending && !s.skip) =>
-          Some(0) // No steps have been executed, start at 0
-        case x if x.forall(_.isFinished)                                   => None // All steps have been executed
-        case x if x.exists(_.hasError)                                     =>
-          Option(x.indexWhere((s: Step) => s.hasError)).filter(_ =!= -1)
-        case x if x.exists(s => s.status === StepState.Paused && !s.skip)  =>
-          Option(x.indexWhere((s: Step) => s.status === StepState.Paused))
-            .filter(_ =!= -1)
-        case x                                                             =>
-          Option(x.indexWhere((s: Step) => !s.isFinished && !s.skip))
-            .filter(_ =!= -1)
-      }
+    def nextStepToRun: Option[StepId] = s.steps.find(s => !s.isFinished && !s.skip).map(_.id)
+
+    def nextStepToRunIndex: Option[Int] =
+      s.steps.indexWhere(s => !s.isFinished && !s.skip).some.flatMap(x => (x >= 0).option(x))
 
     def isPartiallyExecuted: Boolean = s.steps.exists(_.isFinished)
 

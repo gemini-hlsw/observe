@@ -28,7 +28,7 @@ object Dataset {
    * Datasets are labeled by observation and index.
    * @group Data Types
    */
-  final case class Label(observationId: Observation.Id, index: Int) {
+  final case class Label(observationId: Observation.Name, index: Int) {
     override def toString =
       Label.fromString.productToString(this)
   }
@@ -59,7 +59,7 @@ object Dataset {
             case n  =>
               val (a, b) = s.splitAt(n)
               b.drop(1).parseIntOption.filter(_ > 0).flatMap { n =>
-                Observation.Id.fromString(a).map(oid => Dataset.Label(oid, n))
+                Observation.Name.fromString(a).map(oid => Dataset.Label(oid, n))
               }
           },
         l => f"${l.observationId.format}-${l.index}%03d"

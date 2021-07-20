@@ -21,31 +21,28 @@ object Pages {
   sealed trait ObservePages extends Product with Serializable
 
   // Indicates which step to display
-  final case class StepIdDisplayed(step: Int)
+  final case class StepIdDisplayed(step: Option[StepId])
 
   object StepIdDisplayed {
     implicit val equal: Eq[StepIdDisplayed] = Eq.fromUniversalEquals
-
-    implicit val monoid: Monoid[StepIdDisplayed] = new Monoid[StepIdDisplayed] {
-      override def empty: StepIdDisplayed = StepIdDisplayed(0)
-      override def combine(x: StepIdDisplayed, y: StepIdDisplayed): StepIdDisplayed =
-        StepIdDisplayed(x.step + y.step)
-    }
   }
 
   case object Root                 extends ObservePages
   case object SoundTest            extends ObservePages
   case object CalibrationQueuePage extends ObservePages
-  final case class PreviewPage(instrument: Instrument, obsId: Observation.Id, step: StepIdDisplayed)
-      extends ObservePages
-  final case class PreviewConfigPage(instrument: Instrument, obsId: Observation.Id, step: StepId)
+  final case class PreviewPage(
+    instrument: Instrument,
+    obsId:      Observation.Id,
+    stepId:     StepIdDisplayed
+  )                                extends ObservePages
+  final case class PreviewConfigPage(instrument: Instrument, obsId: Observation.Id, stepId: StepId)
       extends ObservePages
   final case class SequencePage(
     instrument: Instrument,
     obsId:      Observation.Id,
-    step:       StepIdDisplayed
+    stepId:     StepIdDisplayed
   )                                extends ObservePages
-  final case class SequenceConfigPage(instrument: Instrument, obsId: Observation.Id, step: StepId)
+  final case class SequenceConfigPage(instrument: Instrument, obsId: Observation.Id, stepId: StepId)
       extends ObservePages
 
   implicit val equal: Eq[ObservePages] = Eq.instance {

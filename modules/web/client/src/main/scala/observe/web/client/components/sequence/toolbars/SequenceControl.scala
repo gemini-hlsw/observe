@@ -5,7 +5,6 @@ package observe.web.client.components.sequence.toolbars
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import cats.syntax.all._
 import japgolly.scalajs.react.AsyncCallback
 import japgolly.scalajs.react.Callback
@@ -19,8 +18,7 @@ import react.semanticui.collections.form.FormCheckbox
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
-import observe.model.Observation
-import observe.model.SystemOverrides
+import observe.model.{ Observation, SystemOverrides }
 import observe.web.client.actions.FlipSubystemsControls
 import observe.web.client.actions.RequestCancelPause
 import observe.web.client.actions.RequestPause
@@ -81,22 +79,22 @@ object SequenceControl {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  def requestRun(s: Observation.Id): Callback =
-    ObserveCircuit.dispatchCB(RequestRun(s, RunOptions.Normal))
+  def requestRun(id: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestRun(id, RunOptions.Normal))
 
-  def requestSync(s: Observation.Id): Callback =
-    ObserveCircuit.dispatchCB(RequestSync(s))
+  def requestSync(idName: Observation.IdName): Callback =
+    ObserveCircuit.dispatchCB(RequestSync(idName))
 
-  def requestPause(s: Observation.Id): Callback =
-    ObserveCircuit.dispatchCB(RequestPause(s))
+  def requestPause(idName: Observation.IdName): Callback =
+    ObserveCircuit.dispatchCB(RequestPause(idName))
 
-  def requestCancelPause(s: Observation.Id): Callback =
-    ObserveCircuit.dispatchCB(RequestCancelPause(s))
+  def requestCancelPause(id: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestCancelPause(id))
 
-  private def syncButton(id: Observation.Id, canSync: Boolean) =
+  private def syncButton(idName: Observation.IdName, canSync: Boolean) =
     controlButton(icon = IconRefresh,
                   color = Purple,
-                  onClick = requestSync(id),
+                  onClick = requestSync(idName),
                   disabled = !canSync,
                   tooltip = "Sync sequence",
                   text = "Sync"
@@ -131,11 +129,11 @@ object SequenceControl {
       text = "Cancel Pause"
     )
 
-  private def pauseButton(id: Observation.Id, canPause: Boolean) =
+  private def pauseButton(idName: Observation.IdName, canPause: Boolean) =
     controlButton(
       icon = IconPause,
       color = Teal,
-      onClick = requestPause(id),
+      onClick = requestPause(idName),
       disabled = !canPause,
       tooltip = "Pause the sequence after the current step completes",
       text = "Pause"
@@ -182,24 +180,24 @@ object SequenceControl {
     ScalaComponent
       .builder[Props]
       .renderP { ($, p) =>
-        val SequenceControlFocus(_, _, overrides, _, _, control) = p.p
-        val ControlModel(id, partial, nextStep, status, _)       = control
-        val nextStepToRun                                        = nextStep.foldMap(_ + 1)
+        val SequenceControlFocus(_, _, overrides, _, _, control)  = p.p
+        val ControlModel(idName, partial, nextStepIdx, status, _) = control
+        val nextStepToRunIdx                                      = nextStepIdx.foldMap(_ + 1)
 
         <.div(
           ObserveStyles.SequenceControlForm,
           List(
             // Sync button
-            syncButton(id, p.canSync)
+            syncButton(idName, p.canSync)
               .when(status.isIdle || status.isError),
             // Run button
-            runButton(id, partial, nextStepToRun, p.canRun)
+            runButton(idName.id, partial, nextStepToRunIdx, p.canRun)
               .when(status.isIdle || status.isError),
             // Cancel pause button
-            cancelPauseButton(id, p.canCancelPause)
+            cancelPauseButton(idName.id, p.canCancelPause)
               .when(status.userStopRequested),
             // Pause button
-            pauseButton(id, p.canPause)
+            pauseButton(idName, p.canPause)
               .when(status.isRunning && !status.userStopRequested)
           ).toTagMod,
           subsystemsButton($, overrides).when(status.isIdle || status.isError)

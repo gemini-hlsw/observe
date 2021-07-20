@@ -6,15 +6,16 @@ package observe.server
 import cats.Eq
 import cats.tests.CatsSuite
 import edu.gemini.spModel.config2.{ Config, ItemKey }
-import observe.model.arb.ArbObservationId
-import observe.model.Observation
+import observe.model.arb.ArbObservationName
 import monocle.law.discipline.LensTests
+import lucuma.core.util.arb.ArbGid._
 import observe.model.enum.Instrument
 import observe.model.SystemOverrides
 import observe.engine
 import observe.engine.{ Action, ParallelActions }
 import SequenceGen._
 import cats.effect.IO
+import observe.common.test.observationId
 
 /**
  * Tests ObserveServer Lenses
@@ -22,7 +23,7 @@ import cats.effect.IO
 final class ObserveServerLensesSpec
     extends CatsSuite
     with ObserveServerArbitraries
-    with ArbObservationId {
+    with ArbObservationName {
 
   implicit val eqItemKeys: Eq[Map[ItemKey, AnyRef]] = Eq.fromUniversalEquals
   implicit val eqLegacyConfig: Eq[Config]           = Eq.fromUniversalEquals
@@ -58,12 +59,12 @@ final class ObserveServerLensesSpec
 
   checkAll("selected optional", LensTests(EngineState.instrumentLoadedL[IO](Instrument.Gpi)))
 
-  private val seqId = Observation.Id.unsafeFromString("GS-2018B-Q-0-1")
+  private val seqId = observationId(1)
   // Some sanity checks
   test("Support inserting new loaded sequences") {
     val base = EngineState
       .default[IO]
-      .copy(selected = Map(Instrument.F2 -> Observation.Id.unsafeFromString("GS-2018B-Q-1-1")))
+      .copy(selected = Map(Instrument.F2 -> observationId(1)))
     EngineState
       .instrumentLoadedL(Instrument.Gpi)
       .set(seqId.some)
@@ -73,9 +74,7 @@ final class ObserveServerLensesSpec
     val base = EngineState
       .default[IO]
       .copy(
-        selected = Map(Instrument.Gpi -> Observation.Id.unsafeFromString("GS-2018B-Q-1-1"),
-                       Instrument.F2  -> Observation.Id.unsafeFromString("GS-2018B-Q-2-1")
-        )
+        selected = Map(Instrument.Gpi -> observationId(1), Instrument.F2 -> observationId(2))
       )
     EngineState
       .instrumentLoadedL(Instrument.Gpi)

@@ -5,8 +5,9 @@ package observe.server
 
 import cats.effect.IO
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
 import observe.model.Observation
-import observe.model.arb.ArbObservationId._
+import observe.model.arb.ArbObservationName._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.{ Arbitrary, Cogen }
 import observe.model.BatchCommandState
@@ -16,9 +17,9 @@ import observe.model.ObserveModelArbitraries._
 
 trait ObserveServerArbitraries {
 
-  implicit val selectedCoGen: Cogen[Map[Instrument, Observation.Id]] =
-    Cogen[List[(Instrument, Observation.Id)]].contramap(_.toList)
-  implicit val engineStateArb: Arbitrary[EngineState[IO]]            = Arbitrary {
+  implicit val selectedCoGen: Cogen[Map[Instrument, Observation.Name]] =
+    Cogen[List[(Instrument, Observation.Name)]].contramap(_.toList)
+  implicit val engineStateArb: Arbitrary[EngineState[IO]]              = Arbitrary {
     for {
       q <- arbitrary[ExecutionQueues]
       s <- arbitrary[Map[Instrument, Observation.Id]]

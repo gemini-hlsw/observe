@@ -6,8 +6,8 @@ package observe.web.client.components.sequence.steps
 import cats.data.Nested
 import cats.syntax.all._
 import cats.Order._
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.{ CtorType, Reusability, _ }
+import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.SemanticColor
@@ -25,13 +25,13 @@ import observe.model.enum.Instrument
 import observe.model.enum.Resource
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
-import observe.web.client.model.ClientStatus
+import observe.web.client.model.{ ClientStatus, ResourceRunOperation, StopOperation, TabOperations }
 import observe.web.client.model.ModelOps._
 import observe.web.client.model.StepItems._
-import observe.web.client.model.StopOperation
-import observe.web.client.model.TabOperations
 import observe.web.client.reusability._
 import observe.web.client.services.HtmlConstants.iconEmpty
+
+import scala.collection.immutable.SortedMap
 
 /**
  * Component to display the step state and control
@@ -43,13 +43,15 @@ final case class StepProgressCell(
   isPreview:    Boolean
 ) extends ReactProps[StepProgressCell](StepProgressCell.component) {
 
-  val step: Step                   = stateSummary.step
-  val obsId: Observation.Id        = stateSummary.obsId
-  val instrument: Instrument       = stateSummary.instrument
-  val tabOperations: TabOperations = stateSummary.tabOperations
-  val state: SequenceState         = stateSummary.state
+  val step: Step                    = stateSummary.step
+  val stepIdx: Int                  = stateSummary.stepIdx
+  val obsIdName: Observation.IdName = stateSummary.obsIdName
+  val instrument: Instrument        = stateSummary.instrument
+  val tabOperations: TabOperations  = stateSummary.tabOperations
+  val state: SequenceState          = stateSummary.state
 
-  val resourceRunRequested = tabOperations.resourceRunRequested
+  val resourceRunRequested: SortedMap[Resource, ResourceRunOperation] =
+    tabOperations.resourceRunRequested
 
   def stepSelected(i: StepId): Boolean =
     selectedStep.exists(_ === i) && !isPreview &&
@@ -100,14 +102,14 @@ object StepProgressCell {
           .getOption(step)
           .orEmpty
           .sortBy(_._1)
-          .map(Function.tupled(statusLabel(_, _)))
+          .map(Function.tupled(statusLabel))
           .toTagMod
       )
     )
 
   def stepControlButtons(props: Props): TagMod =
     StepsControlButtons(
-      props.obsId,
+      props.obsIdName,
       props.instrument,
       props.state,
       props.step.id,
@@ -125,7 +127,7 @@ object StepProgressCell {
       ObserveStyles.configuringRow,
       if (props.stateSummary.isBias)
         BiasStatus(
-          props.obsId,
+          props.obsIdName.id,
           props.step.id,
           fileId,
           stopping = !paused && props.isStopping,
@@ -133,14 +135,14 @@ object StepProgressCell {
         )
       else
         props.stateSummary.nsStatus.fold[VdomElement] {
-          ObservationProgressBar(props.obsId,
+          ObservationProgressBar(props.obsIdName.id,
                                  props.step.id,
                                  fileId,
                                  stopping = !paused && props.isStopping,
                                  paused
           )
         } { nsStatus =>
-          NodAndShuffleProgressMessage(props.obsId,
+          NodAndShuffleProgressMessage(props.obsIdName.id,
                                        props.step.id,
                                        fileId,
                                        props.isStopping,
@@ -170,8 +172,9 @@ object StepProgressCell {
     <.div(
       ObserveStyles.configuringRow,
       RunFromStep(
-        props.obsId,
+        props.obsIdName,
         props.step.id,
+        props.stepIdx,
         props.tabOperations.resourceInFlight(props.step.id),
         props.tabOperations.startFromRequested
       ).when(!props.step.isFinished && props.clientStatus.canOperate),
@@ -190,7 +193,7 @@ object StepProgressCell {
         }
       ),
       SubsystemControlCell(
-        props.obsId,
+        props.obsIdName,
         props.step.id,
         Nested(Step.configStatus.getOption(props.step)).map(_._1).value.orEmpty,
         props.resourceRunRequested,
@@ -230,7 +233,7 @@ object StepProgressCell {
         <.p(ObserveStyles.componentLabel, props.step.show)
     }
 
-  protected val component = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("StepProgressCell")
     .stateless
     .render_P(stepDisplay)

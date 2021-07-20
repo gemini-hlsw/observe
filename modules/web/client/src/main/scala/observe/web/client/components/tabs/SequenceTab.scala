@@ -49,7 +49,7 @@ object SequenceTab {
   type Props = SequenceTab
 
   @Lenses
-  final case class State(loading: Boolean, prevTabId: Observation.Id, prevTabLoading: Boolean)
+  final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
 
   implicit val propsReuse: Reusability[Props] =
     Reusability.caseClassExcept[Props]("router")
@@ -58,15 +58,15 @@ object SequenceTab {
   type Backend = RenderScope[Props, State, Unit]
 
   def load(
-    b:    Backend,
-    inst: Instrument,
-    id:   Observation.Id
+    b:      Backend,
+    inst:   Instrument,
+    idName: Observation.IdName
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       e.preventDefaultCB *>
         e.stopPropagationCB *>
         b.setStateL(State.loading)(true) *>
-        ObserveCircuit.dispatchCB(LoadSequence(b.props.defaultObserver, inst, id))
+        ObserveCircuit.dispatchCB(LoadSequence(b.props.defaultObserver, inst, idName))
 
   private def showSequence(p: Props, page: ObservePages)(e: ReactEvent): Callback =
     // prevent default to avoid the link jumping
@@ -103,27 +103,26 @@ object SequenceTab {
 
   val component = ScalaComponent
     .builder[Props]
-    .initialStateFromProps(props => State(false, props.tab.id, props.tab.loading))
+    .initialStateFromProps(props => State(false, props.tab.idName, props.tab.loading))
     .render { b =>
-      val status        = b.props.tab.status
-      val sequenceId    = b.props.tab.id
-      val instrument    = b.props.tab.instrument
-      val running       = b.props.runningInstruments.contains(instrument)
-      val isPreview     = b.props.tab.isPreview
-      val resources     = b.props.tab.resourceOperations.filterNot { case (r, s) =>
+      val status         = b.props.tab.status
+      val sequenceIdName = b.props.tab.idName
+      val instrument     = b.props.tab.instrument
+      val running        = b.props.runningInstruments.contains(instrument)
+      val isPreview      = b.props.tab.isPreview
+      val resources      = b.props.tab.resourceOperations.filterNot { case (r, s) =>
         r.isInstrument || s === ResourceRunOperation.ResourceRunIdle
       }
-      val instName      = instrument.show
-      val dispName      = if (isPreview) s"Preview: $instName" else instName
-      val isLogged      = b.props.loggedIn
-      val nextStepToRun =
-        StepIdDisplayed(b.props.tab.nextStepToRun.getOrElse(-1))
+      val instName       = instrument.show
+      val dispName       = if (isPreview) s"Preview: $instName" else instName
+      val isLogged       = b.props.loggedIn
+      val nextStepToRun  = StepIdDisplayed(b.props.tab.nextStepToRun)
 
       val tabTitle = b.props.tab.runningStep match {
-        case Some(RunningStep(current, total)) =>
-          s"${sequenceId.format} - ${current + 1}/$total"
+        case Some(RunningStep(_, last, total)) =>
+          s"${sequenceIdName.name.format} - ${last + 1}/$total"
         case _                                 =>
-          sequenceId.format
+          sequenceIdName.name.format
       }
 
       val icon: Icon = status match {
@@ -141,14 +140,14 @@ object SequenceTab {
 
       val linkPage: ObservePages =
         if (isPreview) {
-          PreviewPage(instrument, sequenceId, nextStepToRun)
+          PreviewPage(instrument, sequenceIdName.id, nextStepToRun)
         } else {
-          SequencePage(instrument, sequenceId, nextStepToRun)
+          SequencePage(instrument, sequenceIdName.id, nextStepToRun)
         }
 
       val loadButton: TagMod =
         Popup(
-          content = s"Load sequence ${sequenceId.format}",
+          content = s"Load sequence ${sequenceIdName.name.format}",
           trigger = Button(
             size = Large,
             clazz = ObserveStyles.LoadButton,
@@ -157,7 +156,7 @@ object SequenceTab {
             color = Teal,
             disabled = b.state.loading || running,
             loading = b.state.loading,
-            onClickE = load(b, instrument, sequenceId)
+            onClickE = load(b, instrument, sequenceIdName)
           )
         ).when(isPreview && isLogged)
 
@@ -224,7 +223,7 @@ object SequenceTab {
     .getDerivedStateFromProps { (props, state) =>
       val preview = props.tab.isPreview
       val id      = state.prevTabId
-      val newId   = props.tab.id
+      val newId   = props.tab.idName
 
       val wasLoading = state.prevTabLoading
       val isLoading  = props.tab.loading

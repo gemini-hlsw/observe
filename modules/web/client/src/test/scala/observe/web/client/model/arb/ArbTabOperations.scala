@@ -6,8 +6,11 @@ package observe.web.client.model.arb
 import cats._
 import org.scalacheck.Arbitrary._
 import org.scalacheck._
+
 import scala.collection.immutable.SortedMap
 import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbGid._
+import observe.model.StepId
 import observe.model.enum.Resource
 import observe.web.client.model._
 import observe.web.client.model.RunOperation
@@ -16,7 +19,7 @@ trait ArbTabOperations {
   implicit val arbResourceRunOperation: Arbitrary[ResourceRunOperation] =
     Arbitrary {
       for {
-        i <- arbitrary[Int]
+        i <- arbitrary[StepId]
         s <- Gen.oneOf(ResourceRunOperation.ResourceRunIdle,
                        ResourceRunOperation.ResourceRunInFlight(i),
                        ResourceRunOperation.ResourceRunCompleted(i)
@@ -25,7 +28,7 @@ trait ArbTabOperations {
     }
 
   implicit val rroCogen: Cogen[ResourceRunOperation] =
-    Cogen[Option[Either[Int, Either[Int, Int]]]].contramap {
+    Cogen[Option[Either[StepId, Either[StepId, StepId]]]].contramap {
       case ResourceRunOperation.ResourceRunIdle         => None
       case ResourceRunOperation.ResourceRunInFlight(i)  => Some(Left(i))
       case ResourceRunOperation.ResourceRunCompleted(i) => Some(Right(Right(i)))

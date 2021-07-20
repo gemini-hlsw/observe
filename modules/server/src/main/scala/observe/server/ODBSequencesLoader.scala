@@ -120,6 +120,7 @@ object ODBSequencesLoader {
         .sequences[F]
         .modify(ss =>
           ss + (seqId -> SequenceData[F](
+            seqg.name,
             None,
             SystemOverrides.AllEnabled,
             seqg,

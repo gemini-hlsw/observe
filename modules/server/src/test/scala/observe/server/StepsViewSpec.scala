@@ -19,6 +19,7 @@ import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import observe.server.TestCommon._
 import monocle.Monocle._
+import observe.common.test.stepId
 
 class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions {
 
@@ -283,11 +284,11 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, 1, TCS, clientId))
+      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
     } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(1, TCS).map(s.seq.getSingleState)
+          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
         )
     }).unsafeRunSync()
   }
@@ -303,11 +304,11 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, 1, TCS, clientId))
+      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
     } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(1, TCS).map(s.seq.getSingleState)
+          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
         )
     }).unsafeRunSync()
   }
@@ -328,11 +329,14 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId2, 1, Instrument.F2, clientId))
+      sf <- advanceOne(q,
+                       s0,
+                       observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
+            )
     } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(1, Instrument.F2).map(s.seq.getSingleState)
+          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
         )
     }).unsafeRunSync()
   }
@@ -353,11 +357,14 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId2, 1, Instrument.F2, clientId))
+      sf <- advanceOne(q,
+                       s0,
+                       observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
+            )
     } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(1, Instrument.F2).map(s.seq.getSingleState)
+          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
         )
     }).unsafeRunSync()
   }
@@ -366,7 +373,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     val s0        = ODBSequencesLoader
       .loadSequenceEndo[IO](seqObsId1, sequenceNSteps(seqObsId1, 5), executeEngine)
       .apply(EngineState.default[IO])
-    val runStepId = 3
+    val runStepId = stepId(3)
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -400,7 +407,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
         .set(SequenceState.Running.init))(EngineState.default[IO])
 
-    val runStepId = 2
+    val runStepId = stepId(2)
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)

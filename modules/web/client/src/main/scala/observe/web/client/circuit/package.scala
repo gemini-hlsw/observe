@@ -146,7 +146,7 @@ package circuit {
     canOperate:          Boolean,
     instrument:          Instrument,
     obsId:               Observation.Id,
-    stepConfigDisplayed: Option[Int],
+    stepConfigDisplayed: Option[StepId],
     totalSteps:          Int,
     isPreview:           Boolean
   )
@@ -166,7 +166,7 @@ package circuit {
         st.map { case ObserveTabActive(tab, _) =>
           StatusAndStepFocus(canOperate,
                              tab.sequence.metadata.instrument,
-                             tab.obsId,
+                             tab.obsIdName.id,
                              tab.stepConfigDisplayed,
                              tab.sequence.steps.length,
                              tab.isPreview
@@ -178,22 +178,22 @@ package circuit {
 
   @Lenses
   final case class ControlModel(
-    id:                  Observation.Id,
+    idName:              Observation.IdName,
     isPartiallyExecuted: Boolean,
-    nextStepToRun:       Option[Int],
+    nextStepToRunIndex:  Option[Int],
     status:              SequenceState,
     tabOperations:       TabOperations
   )
 
   object ControlModel {
     implicit val eq: Eq[ControlModel] =
-      Eq.by(x => (x.id, x.isPartiallyExecuted, x.nextStepToRun, x.status, x.tabOperations))
+      Eq.by(x => (x.idName, x.isPartiallyExecuted, x.nextStepToRunIndex, x.status, x.tabOperations))
 
     val controlModelG: Getter[SequenceTab, ControlModel] =
       Getter[SequenceTab, ControlModel](t =>
-        ControlModel(t.obsId,
+        ControlModel(t.obsIdName,
                      t.sequence.isPartiallyExecuted,
-                     t.sequence.nextStepToRun,
+                     t.sequence.nextStepToRunIndex,
                      t.sequence.status,
                      t.tabOperations
         )
@@ -230,7 +230,7 @@ package circuit {
       ClientStatus.canOperateG.zip(getter) >>> {
         case (status, Some(ObserveTabActive(tab, _))) =>
           SequenceControlFocus(tab.instrument,
-                               tab.obsId,
+                               tab.obsIdName.id,
                                tab.sequence.systemOverrides,
                                tab.subsystemControlVisible,
                                status,

@@ -8,9 +8,11 @@ import observe.engine.Sequence
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observer
 import observe.model.SystemOverrides
+import observe.model.Observation
 
 @Lenses
 final case class SequenceData[F[_]](
+  name:          Observation.Name,
   observer:      Option[Observer],
   overrides:     SystemOverrides,
   seqGen:        SequenceGen[F],

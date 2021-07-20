@@ -6,6 +6,7 @@ package observe.web.client.model
 import scala.collection.immutable.SortedMap
 
 import cats.Eq
+import cats.implicits._
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism

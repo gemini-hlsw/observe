@@ -217,7 +217,8 @@ object StepItems {
 
   final case class StepStateSummary(
     step:          Step,
-    obsId:         Observation.Id,
+    stepIdx:       Int,
+    obsIdName:     Observation.IdName,
     instrument:    Instrument,
     tabOperations: TabOperations,
     state:         SequenceState
@@ -276,7 +277,7 @@ object StepItems {
 
   object StepStateSummary {
     implicit val EqStepStateSummary: Eq[StepStateSummary] =
-      Eq.by(x => (x.step, x.obsId, x.instrument, x.tabOperations, x.state))
+      Eq.by(x => (x.step, x.stepIdx, x.obsIdName, x.instrument, x.tabOperations, x.state))
   }
 
 }

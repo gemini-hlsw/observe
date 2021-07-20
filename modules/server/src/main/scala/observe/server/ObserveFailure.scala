@@ -20,7 +20,7 @@ object ObserveFailure {
 
   /** Aborted sequence * */
   // TODO Reconsider if abort should be handled as an error
-  final case class Aborted(obsId: Observation.Id) extends ObserveFailure
+  final case class Aborted(obsIdName: Observation.IdName) extends ObserveFailure
 
   /** Exception thrown while running a sequence. */
   final case class ObserveException(ex: Throwable) extends ObserveFailure
@@ -59,7 +59,7 @@ object ObserveFailure {
   final case class ObsSystemTimeout(fileId: ImageFileId) extends ObserveFailure
 
   /** Observation command timeout */
-  final case class ObsCommandTimeout(obsId: Observation.Id) extends ObserveFailure
+  final case class ObsCommandTimeout(obsIdName: Observation.IdName) extends ObserveFailure
 
   /** Failed simulation */
   case object FailedSimulation extends ObserveFailure
@@ -67,7 +67,7 @@ object ObserveFailure {
   def explain(f: ObserveFailure): String = f match {
     case UnrecognizedInstrument(name) => s"Unrecognized instrument: $name"
     case Execution(errMsg)            => s"Sequence execution failed with error: $errMsg"
-    case Aborted(obsId)               => s"Observation ${obsId.format} aborted"
+    case Aborted(obsId)               => s"Observation ${obsId.name.format} aborted"
     case ObserveException(ex)         =>
       s"Application exception: ${Option(ex.getMessage).getOrElse(ex.toString)}"
     case ObserveExceptionWhile(c, e)  =>
@@ -84,7 +84,7 @@ object ObserveFailure {
     case NullEpicsError(channel)      => s"Failed to read epics channel: $channel"
     case ObsTimeout(fileId)           => s"Observation of $fileId timed out"
     case ObsSystemTimeout(fileId)     => s"Observation of $fileId timed out on a subsystem"
-    case ObsCommandTimeout(obsId)     => s"Observation command on ${obsId.format} timed out"
+    case ObsCommandTimeout(obsId)     => s"Observation command on ${obsId.name.format} timed out"
   }
 
 }

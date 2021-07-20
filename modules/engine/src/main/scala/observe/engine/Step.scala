@@ -81,7 +81,7 @@ object Step {
    * Step Zipper. This structure is optimized for the actual `Step` execution.
    */
   final case class Zipper[F[_]](
-    id:         Int,
+    id:         StepId,
     breakpoint: BreakpointMark,
     skipMark:   SkipMark,
     pending:    List[ParallelActions[F]],

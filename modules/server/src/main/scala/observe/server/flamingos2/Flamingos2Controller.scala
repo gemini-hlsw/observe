@@ -6,7 +6,7 @@ package observe.server.flamingos2
 import scala.concurrent.duration.Duration
 
 import cats.Show
-import cats.kernel.Eq
+import cats.Eq
 import fs2.Stream
 import observe.model.dhs.ImageFileId
 import observe.model.enum.ObserveCommandResult

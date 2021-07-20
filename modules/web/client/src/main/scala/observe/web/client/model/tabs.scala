@@ -26,11 +26,11 @@ import observe.web.client.model.ModelOps._
 import shapeless.tag.@@
 
 final case class AvailableTab(
-  id:                 Observation.Id,
+  idName:             Observation.IdName,
   status:             SequenceState,
   instrument:         Instrument,
   runningStep:        Option[RunningStep],
-  nextStepToRun:      Option[Int],
+  nextStepToRun:      Option[StepId],
   isPreview:          Boolean,
   active:             TabSelected,
   loading:            Boolean,
@@ -42,7 +42,7 @@ final case class AvailableTab(
 object AvailableTab {
   implicit val eq: Eq[AvailableTab] =
     Eq.by(x =>
-      (x.id,
+      (x.idName,
        x.status,
        x.instrument,
        x.runningStep,
@@ -147,9 +147,9 @@ sealed trait SequenceTab extends ObserveTab {
       case i: PreviewSequenceTab    => i.currentSequence
     }
 
-  def obsId: Observation.Id = sequence.id
+  def obsIdName: Observation.IdName = sequence.idName
 
-  def stepConfigDisplayed: Option[Int] =
+  def stepConfigDisplayed: Option[StepId] =
     this match {
       case i: InstrumentSequenceTab => i.stepConfig
       case i: PreviewSequenceTab    => i.stepConfig
@@ -181,7 +181,7 @@ sealed trait SequenceTab extends ObserveTab {
       case _                        => none
     }
 
-  def nextStepToRun: Option[Int] = sequence.nextStepToRun
+  def nextStepToRun: Option[StepId] = sequence.nextStepToRun
 
   def loading: Boolean =
     this match {
@@ -208,25 +208,19 @@ object SequenceTab {
     Lens[SequenceTab, Option[StepId]] {
       case t: InstrumentSequenceTab => t.stepConfig
       case t: PreviewSequenceTab    => t.stepConfig
-    }(n =>
-      a =>
-        a match {
-          case t: InstrumentSequenceTab => t.copy(stepConfig = n)
-          case t: PreviewSequenceTab    => t.copy(stepConfig = n)
-        }
-    )
+    }(n => {
+      case t: InstrumentSequenceTab => t.copy(stepConfig = n)
+      case t: PreviewSequenceTab    => t.copy(stepConfig = n)
+    })
 
   val tabOperationsL: Lens[SequenceTab, TabOperations] =
     Lens[SequenceTab, TabOperations] {
       case t: InstrumentSequenceTab => t.tabOperations
       case t: PreviewSequenceTab    => t.tabOperations
-    }(n =>
-      a =>
-        a match {
-          case t: InstrumentSequenceTab => t.copy(tabOperations = n)
-          case t: PreviewSequenceTab    => t.copy(tabOperations = n)
-        }
-    )
+    }(n => {
+      case t: InstrumentSequenceTab => t.copy(tabOperations = n)
+      case t: PreviewSequenceTab    => t.copy(tabOperations = n)
+    })
 
   val resourcesRunOperationsL: Lens[SequenceTab, SortedMap[Resource, ResourceRunOperation]] =
     SequenceTab.tabOperationsL ^|-> TabOperations.resourceRunRequested
@@ -284,7 +278,7 @@ object InstrumentSequenceTab {
 @Lenses
 final case class PreviewSequenceTab(
   currentSequence: SequenceView,
-  stepConfig:      Option[Int],
+  stepConfig:      Option[StepId],
   isLoading:       Boolean,
   tabOperations:   TabOperations
 ) extends SequenceTab

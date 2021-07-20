@@ -344,22 +344,22 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
 
   private def handleUserEvent(ue: UserEventType): HandleType[ResultType] = ue match {
     case Start(id, _, _)            =>
-      debug(s"Engine: Start requested for sequence ${id.format}") *> start(id) *> pure(
+      debug(s"Engine: Start requested for sequence $id") *> start(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
     case Pause(id, _)               =>
-      debug(s"Engine: Pause requested for sequence ${id.format}") *> pause(id) *> pure(
+      debug(s"Engine: Pause requested for sequence $id") *> pause(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
     case CancelPause(id, _)         =>
-      debug(s"Engine: Pause canceled for sequence ${id.format}") *> cancelPause(id) *> pure(
+      debug(s"Engine: Pause canceled for sequence $id") *> cancelPause(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
     case Breakpoint(id, _, step, v) =>
-      debug(s"Engine: breakpoint changed for sequence ${id.format} and step $step to $v") *>
+      debug(s"Engine: breakpoint changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setBreakpoint(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case SkipMark(id, _, step, v)   =>
-      debug(s"Engine: skip mark changed for sequence ${id.format} and step $step to $v") *>
+      debug(s"Engine: skip mark changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setSkipMark(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case Poll(_)                    =>
       debug("Engine: Polling current state") *> pure(UserCommandResponse(ue, Outcome.Ok, None))
@@ -383,26 +383,20 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     se:          SystemEvent[F]
   )(implicit ci: Concurrent[F]): HandleType[ResultType] = se match {
     case Completed(id, _, i, r)     =>
-      debug(s"Engine: From sequence ${id.format}: Action completed ($r)") *> complete(id, i, r) *>
+      debug(s"Engine: From sequence $id: Action completed ($r)") *> complete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case StopCompleted(id, _, i, r) =>
-      debug(s"Engine: From sequence ${id.format}: Action completed with stop ($r)") *> stopComplete(
+      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *> stopComplete(
         id,
         i,
         r
       ) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Aborted(id, _, i, r)       =>
-      debug(s"Engine: From sequence ${id.format}: Action completed with abort ($r)") *> abort(id,
-                                                                                              i,
-                                                                                              r
-      ) *>
+      debug(s"Engine: From sequence $id: Action completed with abort ($r)") *> abort(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case PartialResult(id, _, i, r) =>
-      debug(s"Engine: From sequence ${id.format}: Partial result ($r)") *> partialResult(id,
-                                                                                         i,
-                                                                                         r
-      ) *>
+      debug(s"Engine: From sequence $id: Partial result ($r)") *> partialResult(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Paused(id, i, r)           =>
       debug("Engine: Action paused") *>
@@ -412,7 +406,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
         pure(SystemUpdate(se, Outcome.Ok))
     case Busy(id, _)                =>
       warning(
-        s"Cannot run sequence ${id.format} " +
+        s"Cannot run sequence $id " +
           s"because " +
           s"required systems are in use."
       ) *> pure(SystemUpdate(se, Outcome.Ok))

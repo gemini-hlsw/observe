@@ -6,7 +6,6 @@ package observe.web.client.handlers
 import scala.collection.immutable.SortedMap
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-
 import cats.implicits._
 import diode.ActionBatch
 import diode.ActionHandler
@@ -35,6 +34,8 @@ import observe.web.client.model.lenses.sequenceViewT
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.services.WebpackResources._
 import web.client.Audio
+
+import scala.util.matching.Regex
 
 /**
  * Handles messages received over the WS channel
@@ -126,9 +127,9 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
     case ServerMessage(e @ StepExecuted(obsId, sv)) =>
       val curStep =
         for {
-          obs           <- sequenceViewT.find(_.id === obsId)(e)
-          curSIdx       <- obs.runningStep.map(_.last)
-          curStep       <- sequenceStepT.find(_.id === curSIdx)(obs)
+          obs           <- sequenceViewT.find(_.idName.id === obsId)(e)
+          curSId        <- obs.runningStep.flatMap(_.id)
+          curStep       <- sequenceStepT.find(_.id === curSId)(obs)
           observeStatus <- Step.observeStatus.getOption(curStep)
           configStatus  <- Step.configStatus.getOption(curStep)
           d              = configStatus // workaround
@@ -137,7 +138,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
         } yield curStep
 
       val doneStep =
-        sequenceViewT.find(_.id === obsId)(e).forall(_.runningStep.isEmpty)
+        sequenceViewT.find(_.idName.id === obsId)(e).forall(_.runningStep.isEmpty)
 
       val audioEffect = curStep
         .filter(ifLoggedIn)
@@ -159,7 +160,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
 
   val sequenceUnloadedMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(SequenceUnloaded(id, sv))
-        if value.sequences.sessionQueue.map(_.id).contains(id) =>
+        if value.sequences.sessionQueue.map(_.idName).contains(id) =>
       updated(value.copy(sequences = filterSequences(sv)), Effect(Future(NavigateTo(Root))))
   }
 
@@ -247,8 +248,8 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
           .sessionQueueT[SequenceView]
           .getAll(sequences)
           .collect {
-            case view if value.resourceRunRequested.keySet.contains(view.id) =>
-              view.id ->
+            case view if value.resourceRunRequested.keySet.contains(view.idName.id) =>
+              view.idName.id ->
                 (for {
                   step               <- SequenceView.stepT.getAll(view)
                   (resource, status) <- Step.configStatus.getOption(step).orEmpty
@@ -267,30 +268,30 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
       updated(value.copy(sequences = filterSequences(s.view)), clearAction)
   }
 
-  val MsgRegex  = "Application exception: (.*)".r
-  val InstRegex = "Sequence execution failed with error: (.*)".r
+  val MsgRegex: Regex  = "Application exception: (.*)".r
+  val InstRegex: Regex = "Sequence execution failed with error: (.*)".r
 
   val singleRunCompleteMessage: PartialFunction[Any, ActionResult[M]] = {
-    case ServerMessage(SingleActionEvent(SingleActionOp.Completed(sid, stepId, r))) =>
-      effectOnly(Effect.action(RunResourceComplete(sid, stepId, r)))
+    case ServerMessage(SingleActionEvent(SingleActionOp.Completed(sidName, stepId, r))) =>
+      effectOnly(Effect.action(RunResourceComplete(sidName.id, stepId, r)))
 
-    case ServerMessage(SingleActionEvent(SingleActionOp.Started(sid, stepId, r))) =>
+    case ServerMessage(SingleActionEvent(SingleActionOp.Started(sidName, stepId, r))) =>
       effectOnly(
         Effect.action(
-          ActionBatch(ClearAllResourceOperationsOnStepChange(sid, stepId),
-                      RunResourceRemote(sid, stepId, r)
+          ActionBatch(ClearAllResourceOperationsOnStepChange(sidName.id, stepId),
+                      RunResourceRemote(sidName.id, stepId, r)
           )
         )
       )
 
-    case ServerMessage(SingleActionEvent(SingleActionOp.Error(sid, stepId, r, msg))) =>
+    case ServerMessage(SingleActionEvent(SingleActionOp.Error(sidName, stepId, r, msg))) =>
       // Unbundle the underlying exception message
       val actualMsg = msg match {
         case MsgRegex(m)  => m
         case InstRegex(m) => m
         case m            => m
       }
-      effectOnly(Effect(Future(RunResourceFailed(sid, stepId, r, actualMsg))))
+      effectOnly(Effect(Future(RunResourceFailed(sidName, stepId, r, actualMsg))))
   }
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {

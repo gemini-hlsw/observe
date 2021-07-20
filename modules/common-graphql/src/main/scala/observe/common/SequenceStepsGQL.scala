@@ -23,34 +23,32 @@ object SequenceStepsGQL {
   @GraphQL
   trait SequenceSteps extends GraphQLOperation[ObservationDB] {
     val document = """
-      query {
-        observations(programId: "p-2", first: 1) {
-          nodes {
-            id
-            name
-            config {
-              __typename
-              instrument
-              plannedTime {
-                total {
-                  microseconds
-                }
+      query($observationId: ObservationId!) {
+        observation(id: $observationId) {
+          id
+          name
+          config {
+            __typename
+            instrument
+            plannedTime {
+              total {
+                microseconds
               }
-              ... on GmosNorthConfig {
-                acquisitionN:acquisition {
-                  ...northSequenceFields
-                }
-                scienceN:science {
-                  ...northSequenceFields
-                }
+            }
+            ... on GmosNorthConfig {
+              acquisitionN:acquisition {
+                ...northSequenceFields
               }
-              ... on GmosSouthConfig {
-                acquisitionS: acquisition {
-                  ...southSequenceFields
-                }
-                scienceS:science {
-                  ...southSequenceFields
-                }
+              scienceN:science {
+                ...northSequenceFields
+              }
+            }
+            ... on GmosSouthConfig {
+              acquisitionS: acquisition {
+                ...southSequenceFields
+              }
+              scienceS:science {
+                ...southSequenceFields
               }
             }
           }
@@ -225,117 +223,115 @@ object SequenceStepsGQL {
     }
 
     object Data {
-      object Observations {
-        object Nodes {
-          object Config {
-            object GmosNorthConfig {
-              trait AcquisitionN extends Sequence[SeqSite.North]
-              object AcquisitionN {
-                trait Atoms extends SeqAtom[SeqSite.North]
-                object Atoms {
-                  trait Steps extends SeqStep[SeqSite.North]
-                  object Steps {
-                    // object StepType
-                    trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.North]
-                    object InstrumentConfig {
-                      type Exposure = time.Duration
-                      trait Grating extends SeqGrating[SeqSite.North]
-                      object Grating {
-                        type Wavelength = math.Wavelength
-                      }
-                      trait Fpu extends SeqFpu[SeqSite.North]
-                      trait Readout extends SeqReadout
+      object Observation {
+        object Config {
+          object GmosNorthConfig {
+            trait AcquisitionN extends Sequence[SeqSite.North]
+            object AcquisitionN {
+              trait Atoms extends SeqAtom[SeqSite.North]
+              object Atoms {
+                trait Steps extends SeqStep[SeqSite.North]
+                object Steps {
+                  // object StepType
+                  trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.North]
+                  object InstrumentConfig {
+                    type Exposure = time.Duration
+                    trait Grating extends SeqGrating[SeqSite.North]
+                    object Grating {
+                      type Wavelength = math.Wavelength
                     }
-                    trait StepConfig extends SeqStepConfig
-                    object StepConfig       {
-                      trait Science extends SeqStepConfig.SeqScienceStep
-                      object Science {
-                        type Offset = lucuma.core.math.Offset
-                      }
-                    }
+                    trait Fpu extends SeqFpu[SeqSite.North]
+                    trait Readout extends SeqReadout
                   }
-                }
-              }
-              trait ScienceN extends Sequence[SeqSite.North]
-              object ScienceN     {
-                trait Atoms extends SeqAtom[SeqSite.North]
-                object Atoms {
-                  trait Steps extends SeqStep[SeqSite.North]
-                  object Steps {
-                    // object StepType
-                    trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.North]
-                    object InstrumentConfig {
-                      type Exposure = time.Duration
-                      trait Grating extends SeqGrating[SeqSite.North]
-                      object Grating {
-                        type Wavelength = math.Wavelength
-                      }
-                      trait Fpu extends SeqFpu[SeqSite.North]
-                      trait Readout extends SeqReadout
-                    }
-                    trait StepConfig extends SeqStepConfig
-                    object StepConfig       {
-                      trait Science extends SeqStepConfig.SeqScienceStep
-                      object Science {
-                        type Offset = lucuma.core.math.Offset
-                      }
+                  trait StepConfig extends SeqStepConfig
+                  object StepConfig       {
+                    trait Science extends SeqStepConfig.SeqScienceStep
+                    object Science {
+                      type Offset = lucuma.core.math.Offset
                     }
                   }
                 }
               }
             }
-
-            object GmosSouthConfig {
-              trait AcquisitionS extends Sequence[SeqSite.South]
-              object AcquisitionS {
-                trait Atoms extends SeqAtom[SeqSite.South]
-                object Atoms {
-                  trait Steps extends SeqStep[SeqSite.South]
-                  object Steps {
-                    // object StepType
-                    trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.South]
-                    object InstrumentConfig {
-                      type Exposure = time.Duration
-                      trait Grating extends SeqGrating[SeqSite.South]
-                      object Grating {
-                        type Wavelength = math.Wavelength
-                      }
-                      trait Fpu extends SeqFpu[SeqSite.South]
-                      trait Readout extends SeqReadout
+            trait ScienceN extends Sequence[SeqSite.North]
+            object ScienceN     {
+              trait Atoms extends SeqAtom[SeqSite.North]
+              object Atoms {
+                trait Steps extends SeqStep[SeqSite.North]
+                object Steps {
+                  // object StepType
+                  trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.North]
+                  object InstrumentConfig {
+                    type Exposure = time.Duration
+                    trait Grating extends SeqGrating[SeqSite.North]
+                    object Grating {
+                      type Wavelength = math.Wavelength
                     }
-                    trait StepConfig extends SeqStepConfig
-                    object StepConfig       {
-                      trait Science extends SeqStepConfig.SeqScienceStep
-                      object Science {
-                        type Offset = lucuma.core.math.Offset
-                      }
+                    trait Fpu extends SeqFpu[SeqSite.North]
+                    trait Readout extends SeqReadout
+                  }
+                  trait StepConfig extends SeqStepConfig
+                  object StepConfig       {
+                    trait Science extends SeqStepConfig.SeqScienceStep
+                    object Science {
+                      type Offset = lucuma.core.math.Offset
                     }
                   }
                 }
               }
-              trait ScienceS extends Sequence[SeqSite.South]
-              object ScienceS     {
-                trait Atoms extends SeqAtom[SeqSite.South]
-                object Atoms {
-                  trait Steps extends SeqStep[SeqSite.South]
-                  object Steps {
-                    // object StepType
-                    trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.South]
-                    object InstrumentConfig {
-                      type Exposure = time.Duration
-                      trait Grating extends SeqGrating[SeqSite.South]
-                      object Grating {
-                        type Wavelength = math.Wavelength
-                      }
-                      trait Fpu extends SeqFpu[SeqSite.South]
-                      trait Readout extends SeqReadout
+            }
+          }
+
+          object GmosSouthConfig {
+            trait AcquisitionS extends Sequence[SeqSite.South]
+            object AcquisitionS {
+              trait Atoms extends SeqAtom[SeqSite.South]
+              object Atoms {
+                trait Steps extends SeqStep[SeqSite.South]
+                object Steps {
+                  // object StepType
+                  trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.South]
+                  object InstrumentConfig {
+                    type Exposure = time.Duration
+                    trait Grating extends SeqGrating[SeqSite.South]
+                    object Grating {
+                      type Wavelength = math.Wavelength
                     }
-                    trait StepConfig extends SeqStepConfig
-                    object StepConfig       {
-                      trait Science extends SeqStepConfig.SeqScienceStep
-                      object Science {
-                        type Offset = lucuma.core.math.Offset
-                      }
+                    trait Fpu extends SeqFpu[SeqSite.South]
+                    trait Readout extends SeqReadout
+                  }
+                  trait StepConfig extends SeqStepConfig
+                  object StepConfig       {
+                    trait Science extends SeqStepConfig.SeqScienceStep
+                    object Science {
+                      type Offset = lucuma.core.math.Offset
+                    }
+                  }
+                }
+              }
+            }
+            trait ScienceS extends Sequence[SeqSite.South]
+            object ScienceS     {
+              trait Atoms extends SeqAtom[SeqSite.South]
+              object Atoms {
+                trait Steps extends SeqStep[SeqSite.South]
+                object Steps {
+                  // object StepType
+                  trait InstrumentConfig extends SeqInstrumentConfig[SeqSite.South]
+                  object InstrumentConfig {
+                    type Exposure = time.Duration
+                    trait Grating extends SeqGrating[SeqSite.South]
+                    object Grating {
+                      type Wavelength = math.Wavelength
+                    }
+                    trait Fpu extends SeqFpu[SeqSite.South]
+                    trait Readout extends SeqReadout
+                  }
+                  trait StepConfig extends SeqStepConfig
+                  object StepConfig       {
+                    trait Science extends SeqStepConfig.SeqScienceStep
+                    object Science {
+                      type Offset = lucuma.core.math.Offset
                     }
                   }
                 }

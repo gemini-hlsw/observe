@@ -31,11 +31,11 @@ object UserPromptBox {
 
   def title(n: UserPrompt): String =
     n match {
-      case ChecksOverride(sid, _, checks) =>
+      case ChecksOverride(sidName, _, _, checks) =>
         if (checks.length > 1)
-          s"Warning! There are problems running sequence ${sid.format}:"
+          s"Warning! There are problems running sequence ${sidName.name.format}:"
         else
-          s"Warning! There is a problem running sequence ${sid.format}:"
+          s"Warning! There is a problem running sequence ${sidName.name.format}:"
     }
 
   def okButton(n: UserPrompt): String =
@@ -60,7 +60,7 @@ object UserPromptBox {
 
   def question(n: UserPrompt): List[String] =
     n match {
-      case ChecksOverride(_, _, checks) =>
+      case ChecksOverride(_, _, _, checks) =>
         checks.toList.flatMap {
           case TargetCheckOverride(self)                  =>
             List("Targets in sequence and TCS do not match",
@@ -96,7 +96,7 @@ object UserPromptBox {
     .render_P { p =>
       val UserPromptState(not) = p.prompt
       Confirm(
-        header = not.foldMap(title(_)),
+        header = not.foldMap(title),
         size = ModalSize.Tiny,
         content = ModalContent()(
           <.div(

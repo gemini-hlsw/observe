@@ -37,18 +37,18 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
     effectOnly(effect)
   }
 
-  def handlePause: PartialFunction[Any, ActionResult[M]] = { case RequestPause(id) =>
-    effectOnly(requestEffect(id, ObserveWebClient.pause, RunPaused.apply, RunPauseFailed.apply))
+  def handlePause: PartialFunction[Any, ActionResult[M]] = { case RequestPause(idName) =>
+    effectOnly(requestEffect(idName, ObserveWebClient.pause, RunPaused.apply, RunPauseFailed.apply))
   }
 
   def handleRunFrom: PartialFunction[Any, ActionResult[M]] = {
-    case RequestRunFrom(id, stepId, options) =>
+    case RequestRunFrom(idName, stepId, stepIdx, options) =>
       val effect = value
         .map(clientId =>
-          requestEffect(id,
+          requestEffect(idName,
                         ObserveWebClient.runFrom(_, stepId, clientId, options),
                         RunFromComplete(_, stepId),
-                        RunFromFailed(_, stepId)
+                        RunFromFailed(_, stepIdx)
           )
         )
         .getOrElse(VoidEffect)
@@ -65,14 +65,14 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
     )
   }
 
-  def handleStop: PartialFunction[Any, ActionResult[M]] = { case RequestStop(id, step) =>
+  def handleStop: PartialFunction[Any, ActionResult[M]] = { case RequestStop(idName, step) =>
     effectOnly(
       Effect(
         ObserveWebClient
-          .stop(id, step)
-          .as(RunStop(id))
+          .stop(idName.id, step)
+          .as(RunStop(idName.id))
           .recover { case _ =>
-            RunStopFailed(id)
+            RunStopFailed(idName)
           }
       )
     )
@@ -92,14 +92,14 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
       )
   }
 
-  def handleAbort: PartialFunction[Any, ActionResult[M]] = { case RequestAbort(id, step) =>
+  def handleAbort: PartialFunction[Any, ActionResult[M]] = { case RequestAbort(idName, step) =>
     effectOnly(
       Effect(
         ObserveWebClient
-          .abort(id, step)
-          .as(RunAbort(id))
+          .abort(idName.id, step)
+          .as(RunAbort(idName.id))
           .recover { case _ =>
-            RunAbortFailed(id)
+            RunAbortFailed(idName)
           }
       )
     )
@@ -145,16 +145,16 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
     )
   }
 
-  def handleSync: PartialFunction[Any, ActionResult[M]] = { case RequestSync(id) =>
-    effectOnly(requestEffect(id, ObserveWebClient.sync, RunSync.apply, RunSyncFailed.apply))
+  def handleSync: PartialFunction[Any, ActionResult[M]] = { case RequestSync(idName) =>
+    effectOnly(requestEffect(idName, ObserveWebClient.sync, RunSync.apply, RunSyncFailed.apply))
   }
 
   def handleResourceRun: PartialFunction[Any, ActionResult[M]] = {
-    case RequestResourceRun(id, step, resource) =>
+    case RequestResourceRun(idName, step, resource) =>
       val effect = value
         .map(clientId =>
           requestEffect(
-            id,
+            idName,
             ObserveWebClient.runResource(step, resource, _, clientId),
             RunResource(_, step, resource),
             RunResourceFailed(_, step, resource, s"Http call to configure ${resource.show} failed")
