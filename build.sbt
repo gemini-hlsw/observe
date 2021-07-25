@@ -105,6 +105,7 @@ publish / skip := true
 
 lazy val graphql = project
   .in(file("modules/common-graphql"))
+  .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
