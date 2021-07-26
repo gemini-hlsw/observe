@@ -1,3 +1,32 @@
+# DatasetEvent creation parameters
+input AddDatasetEventInput {
+  eventId: ExecutionEventId
+  observationId: ObservationId!
+  generated: Instant!
+  stepId: StepId!
+  datasetIndex: Int!
+  filename: DatasetFilename
+  stageType: DatasetStage!
+}
+
+# SequenceEvent creation parameters
+input AddSequenceEventInput {
+  eventId: ExecutionEventId
+  observationId: ObservationId!
+  generated: Instant!
+  command: SequenceCommand!
+}
+
+# StepEvent creation parameters
+input AddStepEventInput {
+  eventId: ExecutionEventId
+  observationId: ObservationId!
+  generated: Instant!
+  stepId: StepId!
+  sequenceType: SequenceType!
+  stage: StepStage!
+}
+
 type AirMassRange {
   # Minimum Airmass (unitless)
   min: BigDecimal!
@@ -26,7 +55,7 @@ type Asterism {
     programId: ProgramId
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -38,7 +67,7 @@ type Asterism {
   # All asterism targets
   targets(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -50,7 +79,7 @@ type Asterism {
   # The programs associated with the asterism.
   programs(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -94,7 +123,7 @@ type AsterismEdit implements Event {
   id: Long!
 }
 
-# AsterismId id formatted as `a-(0|[1-9a-f][0-9a-f]*)`
+# AsterismId id formatted as `a-([1-9a-f][0-9a-f]*)`
 scalar AsterismId
 
 # Asterism and the programs with which it is associated
@@ -109,7 +138,13 @@ input AsterismTargetLinks {
   targetIds: [TargetId!]!
 }
 
-# AtomId id formatted as `m-(0|[1-9a-f][0-9a-f]*)`
+# Sequence atom
+interface Atom {
+  # Atom id
+  id: AtomId!
+}
+
+# AtomId id formatted as `m-([1-9a-f][0-9a-f]*)`
 scalar AtomId
 
 # Bias calibration step
@@ -128,6 +163,18 @@ enum Breakpoint {
 
   # Breakpoint Disabled
   DISABLED
+}
+
+# Bulk edit constraint set of multiple observations
+input BulkEditConstraintSetInput {
+  constraintSet: EditConstraintSetInput!
+  observationIds: [ObservationId!]!
+}
+
+# Bulk edit science requirements set of multiple observations
+input BulkEditScienceRequirementSetInput {
+  scienceRequirements: EditScienceRequirementsInput!
+  observationIds: [ObservationId!]!
 }
 
 type CatalogId {
@@ -193,18 +240,6 @@ interface Config {
 }
 
 type ConstraintSet {
-  # Constraint set ID
-  id: ConstraintSetId!
-
-  # Deleted or Present
-  existence: Existence!
-
-  # The program that contains this constraint set
-  program(
-    # Set to true to include deleted values
-    includeDeleted: Boolean! = false
-  ): Program!
-
   # Constraint set name
   name: NonEmptyString!
 
@@ -228,11 +263,16 @@ type ConstraintSet {
 
   # Hour angle range if elevation range is an Hour angle range
   hourAngleRange: HourAngleRange
+}
 
-  # The observations associated with the constraint set
+type ConstraintSetGroup {
+  # IDs of observations that use the same constraints
+  observationIds: [ObservationId!]!
+
+  # Observations that use this constraint set
   observations(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -240,15 +280,18 @@ type ConstraintSet {
     # Set to true to include deleted values
     includeDeleted: Boolean! = false
   ): ObservationConnection!
+
+  # Constraints held in common across the observations
+  constraintSet: ConstraintSet!
 }
 
-# Constraint Sets in the current page
-type ConstraintSetConnection {
+# Observations group by common constraints
+type ConstraintSetGroupConnection {
   # The nodes in all the edges from the current page
-  nodes: [ConstraintSet!]!
+  nodes: [ConstraintSetGroup!]!
 
   # Edges in the current page
-  edges: [ContraintSetEdge!]!
+  edges: [ConstraintSetGroupEdge!]!
 
   # Count of all nodes in all pages
   totalCount: Int!
@@ -257,25 +300,12 @@ type ConstraintSetConnection {
   pageInfo: PageInfo!
 }
 
-# Event sent when a new object is created or updated
-type ConstraintSetEdit implements Event {
-  # Type of edit
-  editType: EditType!
+# A constraint set group and its cursor
+type ConstraintSetGroupEdge {
+  # ConstraintSetGroupEdge element
+  node: ConstraintSetGroup!
 
-  # Edited object
-  value: ConstraintSet!
-  id: Long!
-}
-
-# ConstraintSetId id formatted as `c-(0|[1-9a-f][0-9a-f]*)`
-scalar ConstraintSetId
-
-# A Constraint Set and its cursor
-type ContraintSetEdge {
-  # ContraintSetEdge element
-  node: ConstraintSet!
-
-  # ContraintSetEdge element cursor
+  # ConstraintSetGroupEdge element cursor
   cursor: Cursor!
 }
 
@@ -309,8 +339,6 @@ input CreateAsterismInput {
 
 # Constraint set creation parameters
 input CreateConstraintSetInput {
-  constraintSetId: ConstraintSetId
-  programId: ProgramId!
   name: NonEmptyString!
   imageQuality: ImageQuality!
   cloudExtinction: CloudExtinction!
@@ -338,7 +366,7 @@ input CreateNonsiderealInput {
   name: NonEmptyString!
   key: EphemerisKeyType!
   des: String!
-  magnitudes: [MagnitudeInput!]
+  magnitudes: [MagnitudeCreateInput!]
 }
 
 # Observation creation parameters
@@ -348,8 +376,10 @@ input CreateObservationInput {
   name: NonEmptyString
   asterismId: AsterismId
   targetId: TargetId
-  constraintSetId: ConstraintSetId
+  constraintSet: CreateConstraintSetInput
   status: ObsStatus
+  activeStatus: ObsActiveStatus
+  scienceRequirements: ScienceRequirementsInput
 }
 
 # Sidereal target parameters
@@ -364,7 +394,7 @@ input CreateSiderealInput {
   properMotion: ProperMotionInput
   radialVelocity: RadialVelocityInput
   parallax: ParallaxModelInput
-  magnitudes: [MagnitudeInput!]
+  magnitudes: [MagnitudeCreateInput!]
 }
 
 # Opaque object cursor
@@ -374,6 +404,92 @@ scalar Cursor
 type Dark implements StepConfig {
   # Step type
   stepType: StepType!
+}
+
+type Dataset {
+  # Observation associated with this dataset
+  observation: Observation!
+
+  # Step that produced the dataset
+  step: Step!
+
+  # Dataset index
+  index: Int!
+
+  # Dataset filename
+  filename: DatasetFilename!
+}
+
+# Datasets in the current page
+type DatasetConnection {
+  # The nodes in all the edges from the current page
+  nodes: [Dataset!]!
+
+  # Edges in the current page
+  edges: [DatasetEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
+
+  # Paging information
+  pageInfo: PageInfo!
+}
+
+# A Dataset and its cursor
+type DatasetEdge {
+  # DatasetEdge element
+  node: Dataset!
+
+  # DatasetEdge element cursor
+  cursor: Cursor!
+}
+
+# Dataset-level events
+type DatasetEvent implements ExecutionEvent {
+  # Step from which the dataset comes
+  step: Step!
+
+  # Dataset filename, when known
+  filename: DatasetFilename
+
+  # Dataset stage
+  stage: DatasetStage!
+
+  # Event id
+  id: ExecutionEventId!
+
+  # Observation whose execution produced this event
+  observation: Observation!
+
+  # Time at which this event was generated, according to the caller (e.g., Observe)
+  generated: Instant!
+
+  # Time at which this event was received
+  received: Instant!
+}
+
+# Dataset filename in standard format in format 'N20210519S0001.fits'
+scalar DatasetFilename
+
+# Execution stage or phase of an individual dataset
+enum DatasetStage {
+  # DatasetStage END_OBSERVE
+  END_OBSERVE
+
+  # DatasetStage END_READOUT
+  END_READOUT
+
+  # DatasetStage END_WRITE
+  END_WRITE
+
+  # DatasetStage START_OBSERVE
+  START_OBSERVE
+
+  # DatasetStage START_READOUT
+  START_READOUT
+
+  # DatasetStage START_WRITE
+  START_WRITE
 }
 
 type Declination {
@@ -460,11 +576,6 @@ input EditAsterismInput {
 
 # Edit constraint set
 input EditConstraintSetInput {
-  constraintSetId: ConstraintSetId!
-
-  # The existence field must be either specified or skipped altogether.  It cannot be unset with a null value.
-  existence: Existence
-
   # The name field must be either specified or skipped altogether.  It cannot be unset with a null value.
   name: NonEmptyString
 
@@ -484,12 +595,6 @@ input EditConstraintSetInput {
   elevationRange: CreateElevationRangeInput
 }
 
-# Edit the constraint set for a set of observations
-input EditObservationConstraintSetInput {
-  observationIds: [ObservationId!]!
-  constraintSetId: ConstraintSetId
-}
-
 # Edit observation
 input EditObservationInput {
   observationId: ObservationId!
@@ -503,14 +608,20 @@ input EditObservationInput {
   # The status field must be either specified or skipped altogether.  It cannot be unset with a null value.
   status: ObsStatus
 
+  # The activeStatus field must be either specified or skipped altogether.  It cannot be unset with a null value.
+  activeStatus: ObsActiveStatus
+
   # The asterismId field may be unset by assigning a null value, or ignored by skipping it altogether
   asterismId: AsterismId
 
   # The targetId field may be unset by assigning a null value, or ignored by skipping it altogether
   targetId: TargetId
 
-  # The constraintSetId field may be unset by assigning a null value, or ignored by skipping it altogether
-  constraintSetId: ConstraintSetId
+  # The scienceRequirements field may be unset by assigning a null value, or ignored by skipping it altogether
+  scienceRequirements: EditScienceRequirementsInput
+
+  # The constraintSet field may be unset by assigning a null value, or ignored by skipping it altogether
+  constraintSet: EditConstraintSetInput
 }
 
 # Edit the target or asterism for a set of observations
@@ -520,18 +631,21 @@ input EditObservationPointingInput {
   targetId: TargetId
 }
 
+# Edit science requirements
+input EditScienceRequirementsInput {
+  # The mode field must be either specified or skipped altogether.  It cannot be unset with a null value.
+  mode: ScienceMode
+
+  # The spectroscopyRequirements field must be either specified or skipped altogether.  It cannot be unset with a null value.
+  spectroscopyRequirements: SpectroscopyScienceRequirementsInput
+}
+
 # Sidereal target edit parameters
 input EditSiderealInput {
   targetId: TargetId!
 
-  # Replace all magnitudes with the provided values
-  magnitudes: [MagnitudeInput!]
-
-  # Update any listed magnitudes leaving unmentioned values unchanged
-  modifyMagnitudes: [MagnitudeInput!]
-
-  # Removes any listed magnitude values
-  deleteMagnitudes: [MagnitudeBand!]
+  # Edit magnitudes
+  magnitudes: MagnitudeEditList
 
   # The existence field must be either specified or skipped altogether.  It cannot be unset with a null value.
   existence: Existence
@@ -599,6 +713,131 @@ interface Event {
   id: Long!
 }
 
+# Executed step
+type ExecutedStep {
+  # Step id
+  id: StepId!
+
+  # The executed step itself
+  step: Step!
+
+  # The atom containing the executed step
+  atom: Atom!
+
+  # Datasets associated with this step
+  datasets(
+    # Retrieve `first` values after the given cursor
+    first: Int
+
+    # Retrieve values after the one associated with this cursor
+    after: Cursor
+  ): DatasetConnection!
+}
+
+# Executed steps in the current page
+type ExecutedStepConnection {
+  # The nodes in all the edges from the current page
+  nodes: [ExecutedStep!]!
+
+  # Edges in the current page
+  edges: [ExecutedStepEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
+
+  # Paging information
+  pageInfo: PageInfo!
+}
+
+# An executed step and its cursor
+type ExecutedStepEdge {
+  # ExecutedStepEdge element
+  node: ExecutedStep!
+
+  # ExecutedStepEdge element cursor
+  cursor: Cursor!
+}
+
+type Execution {
+  # Datasets associated with the observation
+  datasets(
+    # Retrieve `first` values after the given cursor
+    first: Int
+
+    # Retrieve values after the one associated with this cursor
+    after: Cursor
+  ): DatasetConnection!
+
+  # Events associated with the observation
+  events(
+    # Retrieve `first` values after the given cursor
+    first: Int
+
+    # Retrieve values after the one associated with this cursor
+    after: Cursor
+  ): ExecutionEventConnection!
+
+  # Executed steps associated with the observation
+  executedSteps(
+    # Retrieve `first` values after the given cursor
+    first: Int
+
+    # Retrieve values after the one associated with this cursor
+    after: Cursor
+  ): ExecutedStepConnection!
+
+  # Execution config
+  executionConfig: ExecutionConfig
+}
+
+# Execution configuration
+interface ExecutionConfig {
+  # Instrument type
+  instrument: InstrumentType!
+}
+
+# Execution event (sequence, step, or dataset events)
+interface ExecutionEvent {
+  # Event id
+  id: ExecutionEventId!
+
+  # Observation whose execution produced this event
+  observation: Observation!
+
+  # Time at which this event was generated, according to the caller (e.g., Observe)
+  generated: Instant!
+
+  # Time at which this event was received
+  received: Instant!
+}
+
+# ExecutionEvents in the current page
+type ExecutionEventConnection {
+  # The nodes in all the edges from the current page
+  nodes: [ExecutionEvent!]!
+
+  # Edges in the current page
+  edges: [ExecutionEventEdge!]!
+
+  # Count of all nodes in all pages
+  totalCount: Int!
+
+  # Paging information
+  pageInfo: PageInfo!
+}
+
+# An ExecutionEvent and its cursor
+type ExecutionEventEdge {
+  # ExecutionEventEdge element
+  node: ExecutionEvent!
+
+  # ExecutionEventEdge element cursor
+  cursor: Cursor!
+}
+
+# ExecutionEventId id formatted as `e-([1-9a-f][0-9a-f]*)`
+scalar ExecutionEventId
+
 # State of being: either Deleted or Present
 enum Existence {
   # Existence Present
@@ -606,6 +845,45 @@ enum Existence {
 
   # Existence Deleted
   DELETED
+}
+
+# Focal plane Single/Multi/IFU
+enum FocalPlane {
+  # FocalPlane SingleSlit
+  SINGLE_SLIT
+
+  # FocalPlane MultipleSlit
+  MULTIPLE_SLIT
+
+  # FocalPlane IFU
+  IFU
+}
+
+type focalPlaneAngle {
+  # Focal plane angle in µas
+  microarcseconds: Long!
+
+  # Focal plane angle in mas
+  milliarcseconds: BigDecimal!
+
+  # Focal plane angle in arcsec
+  arcseconds: BigDecimal!
+}
+
+# Focal plane angle source angle in appropriate units
+input FocalPlaneAngleInput {
+  microarcseconds: Long
+  milliarcseconds: BigDecimal
+  arcseconds: BigDecimal
+}
+
+# Gaussian source angle in appropriate units
+input GaussianSourceAngleInput {
+  microarcseconds: Long
+  milliarcseconds: BigDecimal
+  arcseconds: BigDecimal
+  fromLong: WavelengthLongInput
+  fromDecimal: WavelengthDecimalInput
 }
 
 # GCAL calibration step (flat / arc)
@@ -872,15 +1150,15 @@ type GmosNodAndShuffle {
 }
 
 # GmosNorth atom, a collection of steps that should be executed in their entirety
-type GmosNorthAtom {
-  # Atom id
-  id: AtomId!
-
+type GmosNorthAtom implements Atom {
   # Individual steps that comprise the atom
   steps: [GmosNorthStep!]!
 
   # Time estimate for this atom's execution, the sum of each step's time.
   time: StepTime!
+
+  # Atom id
+  id: AtomId!
 }
 
 # GMOS North builtin-in FPU
@@ -892,7 +1170,7 @@ type GmosNorthBuiltinFpu {
 # GMOS North Configuration
 type GmosNorthConfig implements Config {
   # Static/unchanging configuration
-  static: GmosNorthStaticConfig!
+  static: GmosNorthStatic!
 
   # Acquisition sequence.
   acquisition: GmosNorthSequence!
@@ -959,6 +1237,30 @@ type GmosNorthDynamic {
 
   # GMOS North FPU
   fpu: GmosNorthFpuUnion
+}
+
+# GMOS North Execution Config
+type GmosNorthExecutionConfig implements ExecutionConfig {
+  # GMOS North static configuration
+  static: GmosNorthStatic!
+
+  # GMOS North acquisition execution
+  acquisition: GmosNorthExecutionSequence!
+
+  # GMOS North science execution
+  science: GmosNorthExecutionSequence!
+
+  # Instrument type
+  instrument: InstrumentType!
+}
+
+# Next atom to execute and potential future atoms
+type GmosNorthExecutionSequence {
+  # Next atom to execute, if any
+  nextAtom: GmosNorthAtom
+
+  # Remaining atoms to execute, if any
+  possibleFuture: [GmosNorthAtom!]!
 }
 
 # GMOS North Filter
@@ -1133,7 +1435,7 @@ enum GmosNorthStageMode {
 }
 
 # Unchanging (over the course of the sequence) configuration values
-type GmosNorthStaticConfig {
+type GmosNorthStatic {
   # Stage mode
   stageMode: GmosNorthStageMode!
 
@@ -1193,15 +1495,15 @@ enum GmosRoi {
 }
 
 # GmosSouth atom, a collection of steps that should be executed in their entirety
-type GmosSouthAtom {
-  # Atom id
-  id: AtomId!
-
+type GmosSouthAtom implements Atom {
   # Individual steps that comprise the atom
   steps: [GmosSouthStep!]!
 
   # Time estimate for this atom's execution, the sum of each step's time.
   time: StepTime!
+
+  # Atom id
+  id: AtomId!
 }
 
 # GMOS South builtin-in FPU
@@ -1213,7 +1515,7 @@ type GmosSouthBuiltinFpu {
 # GMOS South Configuration
 type GmosSouthConfig implements Config {
   # Static/unchanging configuration
-  static: GmosSouthStaticConfig!
+  static: GmosSouthStatic!
 
   # Acquisition sequence.
   acquisition: GmosSouthSequence!
@@ -1274,6 +1576,30 @@ type GmosSouthDynamic {
 
   # GMOS South FPU
   fpu: GmosSouthFpuUnion
+}
+
+# GMOS South Execution Config
+type GmosSouthExecutionConfig implements ExecutionConfig {
+  # GMOS South static configuration
+  static: GmosSouthStatic!
+
+  # GMOS South acquisition execution
+  acquisition: GmosSouthExecutionSequence!
+
+  # GMOS South science execution
+  science: GmosSouthExecutionSequence!
+
+  # Instrument type
+  instrument: InstrumentType!
+}
+
+# Next atom to execute and potential future atoms
+type GmosSouthExecutionSequence {
+  # Next atom to execute, if any
+  nextAtom: GmosSouthAtom
+
+  # Remaining atoms to execute, if any
+  possibleFuture: [GmosSouthAtom!]!
 }
 
 # GMOS South Filter
@@ -1463,7 +1789,7 @@ enum GmosSouthStageMode {
 }
 
 # Unchanging (over the course of the sequence) configuration values
-type GmosSouthStaticConfig {
+type GmosSouthStatic {
   # Stage mode
   stageMode: GmosSouthStageMode!
 
@@ -1563,28 +1889,31 @@ enum ImageQuality {
   TWO_POINT_ZERO
 }
 
+# Instant of time in ISO-8601 representation in format '2011-12-03T10:15:30Z'
+scalar Instant
+
 # Instrument
 enum InstrumentType {
-  # InstrumentType Phoenix
-  PHOENIX
+  # InstrumentType AcqCam
+  ACQ_CAM
 
-  # InstrumentType Michelle
-  MICHELLE
+  # InstrumentType Bhros
+  BHROS
+
+  # InstrumentType Flamingos2
+  FLAMINGOS2
+
+  # InstrumentType Ghost
+  GHOST
+
+  # InstrumentType GmosNorth
+  GMOS_NORTH
+
+  # InstrumentType GmosSouth
+  GMOS_SOUTH
 
   # InstrumentType Gnirs
   GNIRS
-
-  # InstrumentType Niri
-  NIRI
-
-  # InstrumentType Trecs
-  TRECS
-
-  # InstrumentType Nici
-  NICI
-
-  # InstrumentType Nifs
-  NIFS
 
   # InstrumentType Gpi
   GPI
@@ -1592,26 +1921,35 @@ enum InstrumentType {
   # InstrumentType Gsaoi
   GSAOI
 
-  # InstrumentType GmosS
-  GMOS_S
+  # InstrumentType Michelle
+  MICHELLE
 
-  # InstrumentType AcqCam
-  ACQ_CAM
+  # InstrumentType Nici
+  NICI
 
-  # InstrumentType GmosN
-  GMOS_N
+  # InstrumentType Nifs
+  NIFS
 
-  # InstrumentType Bhros
-  BHROS
+  # InstrumentType Niri
+  NIRI
+
+  # InstrumentType Phoenix
+  PHOENIX
+
+  # InstrumentType Trecs
+  TRECS
 
   # InstrumentType Visitor
   VISITOR
 
-  # InstrumentType Flamingos2
-  FLAMINGOS2
+  # InstrumentType Scorpio
+  SCORPIO
 
-  # InstrumentType Ghost
-  GHOST
+  # InstrumentType Alopeke
+  ALOPEKE
+
+  # InstrumentType Zorro
+  ZORRO
 }
 
 # The `Long` scalar type represents non-fractional signed whole numeric values.
@@ -1692,12 +2030,39 @@ enum MagnitudeBand {
   AP
 }
 
-# Magnitude description
-input MagnitudeInput {
-  value: BigDecimal!
+# Magnitude creation parameters
+input MagnitudeCreateInput {
   band: MagnitudeBand!
+  value: BigDecimal!
   error: BigDecimal
   system: MagnitudeSystem = VEGA
+}
+
+# Magnitude edit action (choose one option only)
+input MagnitudeEditAction {
+  add: MagnitudeCreateInput
+  delete: MagnitudeBand
+  edit: MagnitudeEditInput
+}
+
+# Magnitude editing parameters
+input MagnitudeEditInput {
+  band: MagnitudeBand!
+
+  # The value field must be either specified or skipped altogether.  It cannot be unset with a null value.
+  value: BigDecimal
+
+  # The system field must be either specified or skipped altogether.  It cannot be unset with a null value.
+  system: MagnitudeSystem
+
+  # The error field may be unset by assigning a null value, or ignored by skipping it altogether
+  error: BigDecimal
+}
+
+# Magnitude list editing (choose one option only)
+input MagnitudeEditList {
+  replaceList: [MagnitudeCreateInput!]
+  editList: [MagnitudeEditAction!]
 }
 
 # Magnitude system
@@ -1738,22 +2103,6 @@ type Mutation {
     # Asterism ID
     asterismId: AsterismId!
   ): Asterism!
-  createConstraintSet(
-    # Constraint set description
-    input: CreateConstraintSetInput!
-  ): ConstraintSet
-  updateConstraintSet(
-    # Edit constraint set
-    input: EditConstraintSetInput!
-  ): ConstraintSet!
-  deleteConstraintSet(
-    # Constraint Set ID
-    constraintSetId: ConstraintSetId!
-  ): ConstraintSet!
-  undeleteContraintSet(
-    # Constraint Set ID
-    constraintSetId: ConstraintSetId!
-  ): ConstraintSet!
   createObservation(
     # Observation description
     input: CreateObservationInput!
@@ -1766,9 +2115,13 @@ type Mutation {
     # Edit observation asterism / target
     input: EditObservationPointingInput!
   ): [Observation!]!
-  updateObservationConstraintSet(
-    # Edit observation constraint set
-    input: EditObservationConstraintSetInput!
+  updateConstraintSet(
+    # Bulk edit constraint set
+    input: BulkEditConstraintSetInput!
+  ): [Observation!]!
+  updateScienceRequirements(
+    # Bulk edit science requirements set
+    input: BulkEditScienceRequirementSetInput!
   ): [Observation!]!
   deleteObservation(
     # Observation ID
@@ -1830,6 +2183,18 @@ type Mutation {
     # Target / program links
     input: TargetProgramLinks!
   ): Target!
+  addSequenceEvent(
+    # Sequence event description
+    input: AddSequenceEventInput!
+  ): SequenceEvent!
+  addStepEvent(
+    # Step event description
+    input: AddStepEventInput!
+  ): StepEvent!
+  addDatasetEvent(
+    # Dataset event description
+    input: AddDatasetEventInput!
+  ): DatasetEvent!
 }
 
 # A String value that cannot be empty
@@ -1841,6 +2206,15 @@ type Nonsidereal {
 
   # Nonsidereal target lookup type.
   keyType: EphemerisKeyType!
+}
+
+# Observation operational/active status options
+enum ObsActiveStatus {
+  # ObsActiveStatus Active
+  ACTIVE
+
+  # ObsActiveStatus Inactive
+  INACTIVE
 }
 
 type Observation {
@@ -1856,6 +2230,9 @@ type Observation {
   # Observation status
   status: ObsStatus!
 
+  # Observation operational status
+  activeStatus: ObsActiveStatus!
+
   # Observation planned time calculation.
   plannedTime: PlannedTimeSummary!
 
@@ -1865,11 +2242,14 @@ type Observation {
     includeDeleted: Boolean! = false
   ): Program!
 
-  # The constraint set for the observation, if any
-  constraintSet(
+  # The constraint set for the observation
+  constraintSet: ConstraintSet!
+
+  # The top level science requirements
+  scienceRequirements(
     # Set to true to include deleted values
     includeDeleted: Boolean! = false
-  ): ConstraintSet
+  ): ScienceRequirements!
 
   # The observation's asterism or target (see also `asterism` and `target` fields)
   observationTarget(
@@ -1889,8 +2269,11 @@ type Observation {
     includeDeleted: Boolean! = false
   ): Target
 
-  # Instrument configuration
-  config: Config
+  # Manual instrument configuration
+  manualConfig: Config
+
+  # Execution sequence and runtime artifacts
+  execution: Execution!
 }
 
 # Matching observations
@@ -1927,7 +2310,7 @@ type ObservationEdit implements Event {
   id: Long!
 }
 
-# ObservationId id formatted as `o-(0|[1-9a-f][0-9a-f]*)`
+# ObservationId id formatted as `o-([1-9a-f][0-9a-f]*)`
 scalar ObservationId
 
 # Either asterism or target
@@ -2066,6 +2449,12 @@ type PlannedTimeSummary {
   execution: Duration!
 }
 
+# An `Int` in the range from 1 to `Int.MaxValue`,
+scalar PosBigDecimal
+
+# An `Int` in the range from 1 to `Int.MaxValue`,
+scalar PosInt
+
 type Program {
   # Program ID
   id: ProgramId!
@@ -2079,7 +2468,7 @@ type Program {
   # All asterisms associated with the program (needs pagination).
   asterisms(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2091,7 +2480,7 @@ type Program {
   # All observations associated with the program (needs pagination).
   observations(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2103,7 +2492,7 @@ type Program {
   # All targets associated with the program (needs pagination).
   targets(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2153,7 +2542,7 @@ type ProgramEdit implements Event {
   id: Long!
 }
 
-# ProgramId id formatted as `p-(0|[1-9a-f][0-9a-f]*)`
+# ProgramId id formatted as `p-([1-9a-f][0-9a-f]*)`
 scalar ProgramId
 
 type ProperMotion {
@@ -2239,7 +2628,7 @@ type Query {
     programId: ProgramId!
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2256,38 +2645,21 @@ type Query {
     # Set to true to include deleted values
     includeDeleted: Boolean! = false
   ): Asterism
+  spectroscopy(
+    # Configuraton alternatives search parameters.
+    input: QueryConfigurationAlternativeSearchInput!
+  ): Int!
 
-  # Returns all constraint sets associated with the given program.
-  constraintSets(
-    # Program ID
-    programId: ProgramId!
-
-    # Retrieve `first` values after the given cursor
-    first: Int!
-
-    # Retrieve values after the one associated with this cursor
-    after: Cursor
-
-    # Set to true to include deleted values
-    includeDeleted: Boolean! = false
-  ): ConstraintSetConnection!
-
-  # Returns the constraint set with the given id, if any.
-  constraintSet(
-    # Constraint Set ID
-    constraintSetId: ConstraintSetId!
-
-    # Set to true to include deleted values
-    includeDeleted: Boolean! = false
-  ): ConstraintSet
-
-  # Returns all observations associated with the given program.
+  # Returns all observations associated with the given ids or program, or all observations if neither is specified.
   observations(
-    # Program ID
-    programId: ProgramId!
+    # (Optional) listing of specific observations to retrieve
+    observationIds: [ObservationId!]
+
+    # (Optional) program whose observations are sought
+    programId: ProgramId
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2305,10 +2677,28 @@ type Query {
     includeDeleted: Boolean! = false
   ): Observation
 
-  # Pages through all programs.
-  programs(
+  # Observations group by commonly held constraints
+  constraintGroups(
+    # Program ID
+    programId: ProgramId!
+
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
+
+    # Retrieve values after the one associated with this cursor
+    after: Cursor
+
+    # Set to true to include deleted values
+    includeDeleted: Boolean! = false
+  ): ConstraintSetGroupConnection!
+
+  # Pages through all requested programs (or all programs if no ids are given).
+  programs(
+    # (Optional) listing of programs to retrieve (all programs if empty)
+    programIds: [ProgramId!]
+
+    # Retrieve `first` values after the given cursor
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2332,7 +2722,7 @@ type Query {
     programId: ProgramId!
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2349,6 +2739,33 @@ type Query {
     # Set to true to include deleted values
     includeDeleted: Boolean! = false
   ): Target
+}
+
+# Configuration alternatives query
+input QueryConfigurationAlternativeSearchInput {
+  # Observing wavelength.
+  wavelength: WavelengthModelInput
+
+  # Minimum desired simultaneous wavelength coverage.
+  simultaneousCoverage: WavelengthModelInput
+
+  # Minimum desired resolution.
+  resolution: PosInt
+
+  # Minimum desired signal-to-noise ratio.
+  signalToNoise: PosInt
+
+  # Spatial profile PointSource/UniformSource/GaussianSource.
+  spatialProfile: SpatialProfileModelInput
+
+  # Spectral distribution variant BlacBode/PowerLaw/Stellar/NonStellar.
+  spectralDistribution: SpctralDistribution
+
+  # Target magnitude/system/band.
+  magnitude: MagnitudeCreateInput
+
+  # Target redshift.
+  redshift: BigDecimal
 }
 
 type RadialVelocity {
@@ -2464,6 +2881,77 @@ type Science implements StepConfig {
   stepType: StepType!
 }
 
+# Mode Spectroscopy/Imaging
+enum ScienceMode {
+  # ScienceMode Imaging
+  IMAGING
+
+  # ScienceMode Spectroscopy
+  SPECTROSCOPY
+}
+
+type ScienceRequirements {
+  # Science mode
+  mode: ScienceMode!
+
+  # Spectroscopy requirements
+  spectroscopyRequirements: SpectroscopyScienceRequirements!
+}
+
+# Science requirement input params
+input ScienceRequirementsInput {
+  mode: ScienceMode!
+  spectroscopyRequirements: SpectroscopyScienceRequirementsInput!
+}
+
+# Sequence-level command
+enum SequenceCommand {
+  # SequenceCommand ABORT
+  ABORT
+
+  # SequenceCommand CONTINUE
+  CONTINUE
+
+  # SequenceCommand PAUSE
+  PAUSE
+
+  # SequenceCommand SLEW
+  SLEW
+
+  # SequenceCommand START
+  START
+
+  # SequenceCommand STOP
+  STOP
+}
+
+# Sequence-level events
+type SequenceEvent implements ExecutionEvent {
+  # Sequence command
+  command: SequenceCommand!
+
+  # Event id
+  id: ExecutionEventId!
+
+  # Observation whose execution produced this event
+  observation: Observation!
+
+  # Time at which this event was generated, according to the caller (e.g., Observe)
+  generated: Instant!
+
+  # Time at which this event was received
+  received: Instant!
+}
+
+# Type of sequence, acquisition or science
+enum SequenceType {
+  # SequenceType ACQUISITION
+  ACQUISITION
+
+  # SequenceType SCIENCE
+  SCIENCE
+}
+
 type Sidereal {
   # Catalog id, if any, describing from where the information in this target was obtained
   catalogId: CatalogId
@@ -2499,6 +2987,93 @@ enum SkyBackground {
   BRIGHT
 }
 
+# Spatial profile PointSource/UniformSource/GaussianSource
+input SpatialProfileModelInput {
+  # Spatial profile type: Point/Uniform/Gaussian
+  sourceType: SpatialProfileType!
+
+  # Full width half maximum (including seeing) in suitable units. Required for the
+  # Gaussian spatial profile, ignored otherwise.
+  fwhm: GaussianSourceAngleInput
+}
+
+# Spatial profile type: Point/Uniform/Gaussian
+enum SpatialProfileType {
+  # SpatialProfileType PointSource
+  POINT_SOURCE
+
+  # SpatialProfileType UniformSource
+  UNIFORM_SOURCE
+
+  # SpatialProfileType GaussianSource
+  GAUSSIAN_SOURCE
+}
+
+# Spectral distribution variant
+enum SpctralDistribution {
+  # SpctralDistribution BlackBody
+  BLACK_BODY
+
+  # SpctralDistribution PowerLaw
+  POWER_LAW
+
+  # SpctralDistribution Stellar
+  STELLAR
+
+  # SpctralDistribution NonStellar
+  NON_STELLAR
+}
+
+# Spectroscopy capabilities Nod&Shuffle/Polarimetry/Corongraphy
+enum SpectroscopyCapabilities {
+  # SpectroscopyCapabilities NodAndShuffle
+  NOD_AND_SHUFFLE
+
+  # SpectroscopyCapabilities Polarimetry
+  POLARIMETRY
+
+  # SpectroscopyCapabilities Corongraphy
+  CORONGRAPHY
+}
+
+type SpectroscopyScienceRequirements {
+  # Requested central wavelength
+  wavelength: Wavelength
+
+  # Requested resolution
+  resolution: PosInt
+
+  # Requested signal to noise ratio
+  signalToNoise: PosBigDecimal
+
+  # Requested wavelength for the requested signal to noise
+  signalToNoiseAt: Wavelength
+
+  # Wavelength range
+  wavelengthRange: Wavelength
+
+  # Focal plane choice
+  focalPlane: FocalPlane
+
+  # Focal plane angle
+  focalPlaneAngle: focalPlaneAngle
+
+  # Spectroscopy Capabilities
+  capabilities: SpectroscopyCapabilities
+}
+
+# Spectroscopy science requirements create params
+input SpectroscopyScienceRequirementsInput {
+  wavelength: WavelengthModelInput
+  resolution: PosInt
+  signalToNoise: PosBigDecimal
+  signalToNoiseAt: WavelengthModelInput
+  wavelengthRange: WavelengthModelInput
+  focalPlane: FocalPlane
+  focalPlaneAngle: FocalPlaneAngleInput
+  capabilities: SpectroscopyCapabilities
+}
+
 # Sequence step
 interface Step {
   # Step id
@@ -2523,8 +3098,53 @@ interface StepConfig {
   stepType: StepType!
 }
 
-# StepId id formatted as `s-(0|[1-9a-f][0-9a-f]*)`
+# Step-level events
+type StepEvent implements ExecutionEvent {
+  # Step to which the event applies
+  step: Step!
+
+  # Sequence type
+  sequenceType: SequenceType!
+
+  # Step stage
+  stage: StepStage!
+
+  # Event id
+  id: ExecutionEventId!
+
+  # Observation whose execution produced this event
+  observation: Observation!
+
+  # Time at which this event was generated, according to the caller (e.g., Observe)
+  generated: Instant!
+
+  # Time at which this event was received
+  received: Instant!
+}
+
+# StepId id formatted as `s-([1-9a-f][0-9a-f]*)`
 scalar StepId
+
+# Execution stage or phase of an individual step
+enum StepStage {
+  # StepStage END_CONFIGURE
+  END_CONFIGURE
+
+  # StepStage END_OBSERVE
+  END_OBSERVE
+
+  # StepStage END_STEP
+  END_STEP
+
+  # StepStage START_CONFIGURE
+  START_CONFIGURE
+
+  # StepStage START_OBSERVE
+  START_OBSERVE
+
+  # StepStage START_STEP
+  START_STEP
+}
 
 # Time required for a step or steps, categorized according to use
 type StepTime {
@@ -2577,21 +3197,6 @@ type Subscription {
     # Program ID
     programId: ProgramId
   ): AsterismEdit!
-
-  #
-  # Subscribes to an event that is generated whenever a(n) constraintSet is
-  # created or updated.  If a(n) constraintSet id is provided, the event is only
-  # generated for edits to that particular constraintSet.  If a program id is
-  # provided then the event must correspond to a(n) constraintSet referenced by
-  # that program.
-  #
-  constraintSetEdit(
-    # Constraint Set ID
-    constraintSetId: ConstraintSetId
-
-    # Program ID
-    programId: ProgramId
-  ): ConstraintSetEdit!
 
   #
   # Subscribes to an event that is generated whenever a(n) observation is
@@ -2647,7 +3252,7 @@ type Target {
     programId: ProgramId
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2662,7 +3267,7 @@ type Target {
     programId: ProgramId
 
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2674,7 +3279,7 @@ type Target {
   # The programs associated with the target.
   programs(
     # Retrieve `first` values after the given cursor
-    first: Int!
+    first: Int
 
     # Retrieve values after the one associated with this cursor
     after: Cursor
@@ -2733,7 +3338,7 @@ type TargetEdit implements Event {
   id: Long!
 }
 
-# TargetId id formatted as `t-(0|[1-9a-f][0-9a-f]*)`
+# TargetId id formatted as `t-([1-9a-f][0-9a-f]*)`
 scalar TargetId
 
 # Target and the programs with which it is associated
@@ -2772,5 +3377,48 @@ type Wavelength {
 
   # Wavelength in µm
   micrometers: BigDecimal!
+}
+
+# Decimal value in Wavelength
+input WavelengthDecimalInput {
+  # decimal value in associated units
+  value: BigDecimal!
+
+  # units for associated value
+  units: WavelengthUnits!
+}
+
+# Integral value in Wavelength
+input WavelengthLongInput {
+  # integral value in associated units
+  value: Long!
+
+  # units for associated value
+  units: WavelengthUnits!
+}
+
+# Wavelength, choose one of the available units
+input WavelengthModelInput {
+  picometers: Long
+  angstroms: BigDecimal
+  nanometers: BigDecimal
+  micrometers: BigDecimal
+  fromLong: WavelengthLongInput
+  fromDecimal: WavelengthDecimalInput
+}
+
+# Wavelength units
+enum WavelengthUnits {
+  # WavelengthUnits Picometers
+  PICOMETERS
+
+  # WavelengthUnits Angstroms
+  ANGSTROMS
+
+  # WavelengthUnits Nanometers
+  NANOMETERS
+
+  # WavelengthUnits Micrometers
+  MICROMETERS
 }
 

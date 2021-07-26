@@ -5,23 +5,25 @@ package observe.common
 
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
+import observe.model
 import observe.schemas.ObservationDB
+import io.circe.Decoder
+import lucuma.core.math.Angle
+
+import java.time
+// gql: import observe.model.decoders._
 // gql: import io.circe.refined._
 
 object ObsQueriesGQL {
+  implicit val posAngleDecoder: Decoder[Angle] = Decoder.instance(
+    _.downField("microarcseconds").as[Long].map(Angle.microarcseconds.reverseGet)
+  )
 
   @GraphQL
   trait ProgramObservationsQuery extends GraphQLOperation[ObservationDB] {
     val document = """
-      query($first: Int = 2147483647) {
-        constraintSets(programId: "p-2", first: $first) {
-          nodes {
-            id
-            name
-          }
-        }
-
-        observations(programId: "p-2", first: $first) {
+      query {
+        observations(programId: "p-2") {
           nodes {
             id
             observationTarget {
@@ -36,16 +38,33 @@ object ObsQueriesGQL {
               }
             }
             constraintSet {
-              id
               imageQuality
               cloudExtinction
               skyBackground
               waterVapor
             }
+            status
+            activeStatus
+            plannedTime {
+              execution {
+                microseconds
+              }
+            }
           }
         }
       }
     """
+
+    object Data {
+      object Observations {
+        object Nodes {
+          trait ConstraintSet extends model.ConstraintsSummary
+          object PlannedTime {
+            type Execution = time.Duration
+          }
+        }
+      }
+    }
 
   }
 
@@ -87,6 +106,117 @@ object ObsQueriesGQL {
     val document = """
       mutation($oid: ObservationId!) {
         undeleteObservation(observationId: $oid) {
+          id
+        }
+      }
+    """
+  }
+
+  @GraphQL
+  trait ObsEditQuery extends GraphQLOperation[ObservationDB] {
+    val document = """
+      query($obsId: ObservationId!) {
+        observation(observationId: $obsId) {
+          id
+          constraintSet {
+            name
+            cloudExtinction
+            imageQuality
+            skyBackground
+            waterVapor
+            elevationRange {
+              type: __typename
+              ... on AirMassRange {
+                min
+                max
+              }
+              ... on HourAngleRange {
+                minHours
+                maxHours
+              }
+            }
+          }
+          scienceRequirements {
+            mode
+            spectroscopyRequirements {
+              wavelength {
+                picometers
+              }
+              resolution
+              signalToNoise
+              signalToNoiseAt {
+                picometers
+              }
+              wavelengthRange {
+                picometers
+              }
+              focalPlane
+              focalPlaneAngle {
+                microarcseconds
+              }
+              capabilities
+            }
+          }
+        }
+      }
+    """
+
+    object Data {
+      object Observation {
+        object ConstraintSet {
+          type ElevationRange = model.ElevationRange
+        }
+
+        object ScienceRequirements {
+          object SpectroscopyRequirements {
+            type Wavelength      = lucuma.core.math.Wavelength
+            type SignalToNoiseAt = lucuma.core.math.Wavelength
+            type WavelengthRange = lucuma.core.math.Wavelength
+            type FocalPlaneAngle = lucuma.core.math.Angle
+          }
+        }
+      }
+    }
+  }
+
+  @GraphQL
+  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB] {
+    val document = """
+      subscription($obsId: ObservationId!) {
+        observationEdit(observationId: $obsId) {
+          id
+        }
+      }
+    """
+  }
+
+  @GraphQL
+  trait UpdateObservationMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation ($input: EditObservationInput!){
+        updateObservation(input: $input) {
+          id
+        }
+      }
+    """
+  }
+
+  @GraphQL
+  trait UpdateConstraintSetMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation ($obsId: ObservationId!, $input: EditConstraintSetInput!){
+        updateConstraintSet(input: {observationIds: [$obsId], constraintSet: $input}) {
+          id
+        }
+      }
+    """
+  }
+
+  @GraphQL
+  trait UpdateScienceRequirementsMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation ($obsId: ObservationId!, $input: EditScienceRequirementsInput!){
+        updateScienceRequirements(input: {observationIds: [$obsId], scienceRequirements: $input}) {
           id
         }
       }
