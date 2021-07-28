@@ -63,7 +63,7 @@ object Settings {
     val ocsVersion = "2021101.2.2"
 
     val apacheXMLRPC        = "3.1.3"
-    val opencsv             = "2.1"
+    val opencsv             = "2.3"
     val epicsService        = "1.0.7"
     val gmpCommandRecords   = "0.7.7"
     val giapi               = "1.1.7"
