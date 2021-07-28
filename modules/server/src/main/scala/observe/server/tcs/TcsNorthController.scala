@@ -3,16 +3,21 @@
 
 package observe.server.tcs
 
+import cats.Show
 import cats.data.NonEmptySet
+import cats.implicits._
 import observe.model.enum.NodAndShuffleStage
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
-import observe.server.tcs.TcsController.AoGuide
-import observe.server.tcs.TcsController.AoTcsConfig
-import observe.server.tcs.TcsController.GuiderConfig
-import observe.server.tcs.TcsController.InstrumentOffset
-import observe.server.tcs.TcsController.Subsystem
-import observe.server.tcs.TcsController.TcsConfig
+import observe.server.tcs.TcsController.{
+  AoGuide,
+  AoTcsConfig,
+  BasicTcsConfig,
+  GuiderConfig,
+  InstrumentOffset,
+  Subsystem,
+  TcsConfig
+}
 import shapeless.tag.@@
 
 trait TcsNorthController[F[_]] {
@@ -39,5 +44,13 @@ object TcsNorthController {
 
   type TcsNorthConfig   = TcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
   type TcsNorthAoConfig = AoTcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
+
+  implicit val aoGuideShow: Show[GuiderConfig @@ AoGuide] =
+    Show.show(_.asInstanceOf[GuiderConfig].show)
+
+  implicit val tcsNorthConfigShow: Show[TcsNorthConfig] = Show.show {
+    case x: BasicTcsConfig   => x.show
+    case x: TcsNorthAoConfig => x.show
+  }
 
 }

@@ -54,13 +54,13 @@ object Settings {
     val xmlUnit                     = "1.6"
     val jUnitInterface              = "0.11"
     val scalaMock                   = "5.1.0"
-    lazy val munitVersion           = "0.7.26"
+    lazy val munitVersion           = "0.7.27"
     lazy val munitDisciplineVersion = "1.0.9"
     lazy val munitCatsEffectVersion = "1.0.3"
 
     // Pure JS libraries
     val fomanticUI = "2.8.7"
-    val ocsVersion = "2021102.1.1"
+    val ocsVersion = "2021101.2.2"
 
     val apacheXMLRPC        = "3.1.3"
     val opencsv             = "2.1"
@@ -74,14 +74,14 @@ object Settings {
     val gmpStatusGateway    = "0.3.7"
     val gmpStatusDatabase   = "0.3.7"
     val gmpCmdClientBridge  = "0.6.7"
-    val guava               = "30.1-jre"
-    val prometheusClient    = "0.10.0"
+    val guava               = "30.1.1-jre"
+    val prometheusClient    = "0.11.0"
     val geminiLocales       = "0.6.0"
     val pprint              = "0.6.6"
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore          = "0.8.1"
+    val lucumaCore          = "0.10.1"
     val lucumaUI            = "0.15.1"
 
     // Clue
@@ -296,7 +296,7 @@ object Settings {
 
   object PluginVersions {
     // Compiler plugins
-    val kpVersion        = "0.11.3"
+    val kpVersion        = "0.13.0"
     val betterMonadicFor = "0.3.1"
   }
 
