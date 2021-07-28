@@ -20,7 +20,8 @@ jobs:
       - name: Cache SBT
         uses: actions/cache@v2.1.6
         with:
-          java-version: adopt@1.11
+          path: ~/.sbt
+          key: sbt-${{ hashFiles('**/build.sbt') }}
       - name: Check format
         run: sbt headerCheck test:headerCheck scalafmtCheckAll
       - name: Run tests

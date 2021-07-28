@@ -793,10 +793,11 @@ object TcsControllerEpicsCommon {
 
   val OffsetTolerance: Length = 1e-6.millimeters
 
-  def offsetNear(offset: FocalPlaneOffset, other: FocalPlaneOffset): Boolean =
-    math.pow((offset.x - other.x).toMillimeters, 2) + math.pow((offset.y - other.y).toMillimeters,
-                                                               2
-    ) <= math.pow(OffsetTolerance.toMillimeters, 2)
+  def offsetNear(offset: FocalPlaneOffset, other: FocalPlaneOffset): Boolean = (
+    math.pow((offset.x - other.x).toMillimeters, 2)
+      + math.pow((offset.y - other.y).toMillimeters, 2)
+      <= math.pow(OffsetTolerance.toMillimeters, 2)
+  )
 
   // Wavelength status gives value as Angstroms, with no decimals
   val WavelengthTolerance: Length = 0.5.angstroms
