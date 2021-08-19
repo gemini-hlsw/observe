@@ -54,8 +54,7 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
 }
 
 /**
- * Observe WebApp entry point
- * Exposed to the js world
+ * Observe WebApp entry point Exposed to the js world
  */
 @JSExportTopLevel("ObserveApp")
 object ObserveApp extends IOApp {

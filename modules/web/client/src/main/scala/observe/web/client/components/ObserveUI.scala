@@ -29,10 +29,10 @@ import observe.web.client.model.Pages._
 object ObserveUI {
   private def pageTitle(site: Site)(p: ObservePages): String =
     p match {
-      case SequenceConfigPage(_, id, _) => s"Observe - ${id}"
-      case SequencePage(_, id, _)       => s"Observe - ${id}"
-      case PreviewPage(_, id, _)        => s"Observe - ${id}"
-      case PreviewConfigPage(_, id, _)  => s"Observe - ${id}"
+      case SequenceConfigPage(_, id, _) => s"Observe - $id"
+      case SequencePage(_, id, _)       => s"Observe - $id"
+      case PreviewPage(_, id, _)        => s"Observe - $id"
+      case PreviewConfigPage(_, id, _)  => s"Observe - $id"
       case CalibrationQueuePage         => s"Observe - Daycal queue"
       case _                            => s"Observe - ${site.shortName}"
     }
