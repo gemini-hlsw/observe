@@ -77,7 +77,7 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(implicit timer: Tempora
       Json.obj(
         "setKeywords" :=
           Json.obj(
-            "final" := finalFlag,
+            "final"    := finalFlag,
             "keywords" := keywords.keywords
           )
       ),
@@ -153,7 +153,7 @@ object DhsClientHttp {
   implicit def imageParametersEncode: Encoder[DhsClient.ImageParameters] =
     Encoder.instance[DhsClient.ImageParameters](p =>
       Json.obj(
-        "lifetime" := p.lifetime.str,
+        "lifetime"     := p.lifetime.str,
         "contributors" := p.contributors
       )
     )
@@ -161,8 +161,8 @@ object DhsClientHttp {
   implicit def keywordEncode: Encoder[InternalKeyword] =
     Encoder.instance[InternalKeyword](k =>
       Json.obj(
-        "name" := DhsKeywordName.all.find(_.keyword === k.name).map(_.name).getOrElse(k.name.name),
-        "type" := KeywordType.dhsKeywordType(k.keywordType),
+        "name"  := DhsKeywordName.all.find(_.keyword === k.name).map(_.name).getOrElse(k.name.name),
+        "type"  := KeywordType.dhsKeywordType(k.keywordType),
         "value" := k.value
       )
     )
@@ -187,7 +187,7 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
 
   override def createImage(p: ImageParameters): F[ImageFileId] =
     counter.modify(x => (x + 1, x + 1)).map { c =>
-      toImageFileId(f"S${date.format(format)}S${c}%04d")
+      toImageFileId(f"S${date.format(format)}S$c%04d")
     }
 
   override def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] = {

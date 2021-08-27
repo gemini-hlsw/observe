@@ -137,8 +137,10 @@ object GiapiStatusDb {
   /**
    * Creates a new status db that listens for status items as they are produced
    *
-   * @param url Url of the giapi server
-   * @param items List of items to monitor
+   * @param url
+   *   Url of the giapi server
+   * @param items
+   *   List of items to monitor
    */
   def newStatusDb[F[_]: Async](
     url:   String,
