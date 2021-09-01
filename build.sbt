@@ -18,7 +18,7 @@ ThisBuild / Compile / packageDoc / publishArtifact := false
 inThisBuild(
   Seq(
     addCompilerPlugin(
-      ("org.typelevel"                    % "kind-projector" % "0.13.0").cross(CrossVersion.full)
+      ("org.typelevel"                    % "kind-projector" % "0.13.1").cross(CrossVersion.full)
     ),
     scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
