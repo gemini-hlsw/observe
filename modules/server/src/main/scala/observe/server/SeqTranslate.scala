@@ -767,7 +767,7 @@ object SeqTranslate {
         ((_: KeywordsClient[F]) => (_: HeaderExtraData) => List.empty[Header[F]])
           .pure[F] // No headers for A&C
 
-      case StepType.Gems(_)       =>
+      case StepType.Gems(_) =>
         { kwClient: KeywordsClient[F] => ctx: HeaderExtraData =>
           List(
             commonHeaders(config, allButGaos.toList, kwClient)(ctx),
