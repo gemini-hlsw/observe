@@ -89,15 +89,14 @@ object Pages {
   implicit class RouterCtlOps(val r: RouterCtl[ObservePages]) extends AnyVal {
 
     /**
-     * Some pages are linked to actions. This methods lets you set the url
-     * and dispatch an action at the same time
+     * Some pages are linked to actions. This methods lets you set the url and dispatch an action at
+     * the same time
      */
     def setUrlAndDispatchCB(b: ObservePages): Callback =
       r.set(b) *> ObserveCircuit.dispatchCB(PageActionP.reverseGet(b))
 
     /**
-     * Some actions are linked to a page. This methods lets you dispatch and action
-     * and set the url
+     * Some actions are linked to a page. This methods lets you dispatch and action and set the url
      */
     def dispatchAndSetUrlCB(b: Action): Callback =
       PageActionP.getOption(b).map(r.set).getOrEmpty *>

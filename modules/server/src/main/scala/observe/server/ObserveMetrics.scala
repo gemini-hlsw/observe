@@ -11,7 +11,7 @@ import observe.model.enum.Instrument
 
 final case class ObserveMetrics private (
   site:           Site,
-  private val qs: Gauge, // Amount of items on the list of queues
+  private val qs: Gauge,  // Amount of items on the list of queues
   private val ss: Counter // Sequences started
 )
 
