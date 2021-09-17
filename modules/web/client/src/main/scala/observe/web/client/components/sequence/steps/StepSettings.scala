@@ -70,7 +70,7 @@ object ExposureTimeCell {
         <.span(^.display := "inline-block", ^.marginLeft := 5.px, "["),
         <.span(^.display := "inline-block",
                ^.verticalAlign := "none",
-               ^.fontStyle := "italic",
+               ^.fontStyle     := "italic",
                "s"
         ),
         <.span(^.display := "inline-block", "]")

@@ -40,9 +40,8 @@ import squants.time.Time
 import squants.time.TimeConversions._
 
 /**
- * Contains boopickle implicit picklers of model objects
- * Boopickle can auto derive encoders but it is preferred to make
- * them explicitly
+ * Contains boopickle implicit picklers of model objects Boopickle can auto derive encoders but it
+ * is preferred to make them explicitly
  */
 trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val yearPickler: Pickler[Year]                           = transformPickler(Year.of)(_.getValue)
