@@ -51,7 +51,7 @@ trait ObservationDB {
     type GmosAmpCount             = enum.GmosAmpCount
     type GmosAmpReadMode          = enum.GmosAmpReadMode
     type GmosCustomSlitWidth      = enum.GmosCustomSlitWidth
-    type GmosDetector             = enum.GmosDetector
+    type GmosDetector             = enum.GmosNorthDetector
     type GmosDtax                 = enum.GmosDtax
     type GmosEOffsetting          = enum.GmosEOffsetting
     type GmosNorthDisperser       = enum.GmosNorthDisperser
