@@ -3,7 +3,7 @@
 
 package web.client.table
 
-import japgolly.scalajs.react.raw.JsNumber
+import japgolly.scalajs.react.facade.JsNumber
 
 final case class ColumnRenderArgs[A](
   meta:      ColumnMeta[A],

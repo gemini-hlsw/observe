@@ -41,10 +41,10 @@ object AppTableStates {
   def stepsTableAtL(
     id: Observation.Id
   ): Lens[AppTableStates, Option[TableState[StepsTable.TableColumn]]] =
-    AppTableStates.stepsTables ^|-> at(id)
+    AppTableStates.stepsTables.andThen(at(id))
 
   def queueTableAtL(
     id: QueueId
   ): Lens[AppTableStates, Option[TableState[CalQueueTable.TableColumn]]] =
-    AppTableStates.queueTables ^|-> at(id)
+    AppTableStates.queueTables.andThen(at(id))
 }

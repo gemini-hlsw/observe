@@ -59,7 +59,7 @@ object InstrumentControllerSim {
       ObserveState(stopFlag = false, abortFlag = false, pauseFlag = false, remainingTime = 0)
 
     val pauseFalse = (o: ObserveState) =>
-      (ObserveState.pauseFlag.set(false)(o), ObserveState.pauseFlag.set(false)(o))
+      (ObserveState.pauseFlag.replace(false)(o), ObserveState.pauseFlag.replace(false)(o))
 
     def unsafeRef[F[_]: Sync]: Ref[F, ObserveState] = Ref.unsafe(Zero)
 
@@ -90,7 +90,7 @@ object InstrumentControllerSim {
       } else if (observeState.abortFlag) {
         ObserveCommandResult.Aborted.pure[F].widen
       } else if (observeState.pauseFlag) {
-        obsStateRef.update(ObserveState.remainingTime.set(observeState.remainingTime)) *>
+        obsStateRef.update(ObserveState.remainingTime.replace(observeState.remainingTime)) *>
           ObserveCommandResult.Paused.pure[F].widen
       } else if (timeout.exists(_ <= 0)) {
         F.raiseError(ObserveException(new TimeoutException()))
@@ -109,10 +109,10 @@ object InstrumentControllerSim {
     def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] = {
       val totalTime = expTime.millis + readOutDelay.toMillis
       log(s"Simulate taking $name observation with label $fileId") *> {
-        val upd = ObserveState.stopFlag.set(false) >>>
-          ObserveState.pauseFlag.set(false) >>>
-          ObserveState.abortFlag.set(false) >>>
-          ObserveState.remainingTime.set(totalTime)
+        val upd = ObserveState.stopFlag.replace(false) >>>
+          ObserveState.pauseFlag.replace(false) >>>
+          ObserveState.abortFlag.replace(false) >>>
+          ObserveState.remainingTime.replace(totalTime)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(useTimeout.option(totalTime + 2 * TIC))
     }
@@ -124,42 +124,42 @@ object InstrumentControllerSim {
     def stopObserve: F[Unit] =
       log(s"Simulate stopping $name exposure") *>
         T.sleep(stopObserveDelay) *>
-        obsStateRef.update(ObserveState.stopFlag.set(true))
+        obsStateRef.update(ObserveState.stopFlag.replace(true))
 
     def abortObserve: F[Unit] =
       log(s"Simulate aborting $name exposure") *>
-        obsStateRef.update(ObserveState.abortFlag.set(true))
+        obsStateRef.update(ObserveState.abortFlag.replace(true))
 
     def endObserve: F[Unit] =
       log(s"Simulate sending endObserve to $name")
 
     def pauseObserve: F[Unit] =
       log(s"Simulate pausing $name exposure") *>
-        obsStateRef.update(ObserveState.pauseFlag.set(true))
+        obsStateRef.update(ObserveState.pauseFlag.replace(true))
 
     def resumePaused: F[ObserveCommandResult] =
       log(s"Simulate resuming $name observation") *> {
-        val upd = ObserveState.stopFlag.set(false) >>>
-          ObserveState.pauseFlag.set(false) >>>
-          ObserveState.abortFlag.set(false)
+        val upd = ObserveState.stopFlag.replace(false) >>>
+          ObserveState.pauseFlag.replace(false) >>>
+          ObserveState.abortFlag.replace(false)
         obsStateRef.modify(tupledUpdate(upd))
       } >>= { s => observeTic(useTimeout.option(s.remainingTime + 2 * TIC)) }
 
     def stopPaused: F[ObserveCommandResult] =
       log(s"Simulate stopping $name paused observation") *> {
-        val upd = ObserveState.stopFlag.set(true) >>>
-          ObserveState.pauseFlag.set(false) >>>
-          ObserveState.abortFlag.set(false) >>>
-          ObserveState.remainingTime.set(1000)
+        val upd = ObserveState.stopFlag.replace(true) >>>
+          ObserveState.pauseFlag.replace(false) >>>
+          ObserveState.abortFlag.replace(false) >>>
+          ObserveState.remainingTime.replace(1000)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 
     def abortPaused: F[ObserveCommandResult] =
       log(s"Simulate aborting $name paused observation") *> {
-        val upd = ObserveState.stopFlag.set(false) >>>
-          ObserveState.pauseFlag.set(false) >>>
-          ObserveState.abortFlag.set(true) >>>
-          ObserveState.remainingTime.set(1000)
+        val upd = ObserveState.stopFlag.replace(false) >>>
+          ObserveState.pauseFlag.replace(false) >>>
+          ObserveState.abortFlag.replace(true) >>>
+          ObserveState.remainingTime.replace(1000)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 

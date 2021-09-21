@@ -296,12 +296,12 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(r: GuideConfigUpdate) =>
-      updatedL(WebSocketsFocus.guideConfig.set(r.telescope))
+      updatedL(WebSocketsFocus.guideConfig.replace(r.telescope))
   }
 
   val acMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(AlignAndCalibEvent(i)) =>
-      updatedL(WebSocketsFocus.alignAndCalib.set(AlignAndCalibStep.fromInt(i)))
+      updatedL(WebSocketsFocus.alignAndCalib.replace(AlignAndCalibStep.fromInt(i)))
   }
 
   val defaultMessage: PartialFunction[Any, ActionResult[M]] = { case ServerMessage(_) =>

@@ -43,7 +43,7 @@ class LoadedSequencesHandler[M](modelRW: ModelRW[M, SODLocationFocus])
       }
       val nextStepToRun =
         view.sessionQueue.find(_.idName === sidName).flatMap(_.nextStepToRun)
-      val upLocation    = SODLocationFocus.location.set(
+      val upLocation    = SODLocationFocus.location.replace(
         SequencePage(i, sidName.id, StepIdDisplayed(nextStepToRun))
       )
       updatedL(upSelected >>> upLocation)

@@ -67,7 +67,7 @@ final class ObserveServerLensesSpec
       .copy(selected = Map(Instrument.F2 -> observationId(1)))
     EngineState
       .instrumentLoadedL(Instrument.Gpi)
-      .set(seqId.some)
+      .replace(seqId.some)
       .apply(base) shouldEqual base.copy(selected = base.selected + (Instrument.Gpi -> seqId))
   }
   test("Support replacing loaded sequences") {
@@ -78,7 +78,7 @@ final class ObserveServerLensesSpec
       )
     EngineState
       .instrumentLoadedL(Instrument.Gpi)
-      .set(seqId.some)
+      .replace(seqId.some)
       .apply(base) shouldEqual base.copy(selected = base.selected.updated(Instrument.Gpi, seqId))
   }
 }

@@ -70,10 +70,10 @@ object ObserveCircuit
     this.zoomRWL(WebSocketsFocus.webSocketFocusL)
 
   val initialSyncFocusRW: ModelRW[ObserveAppRootModel, InitialSyncFocus] =
-    this.zoomRWL(ObserveAppRootModel.uiModel ^|-> InitialSyncFocus.initialSyncFocusL)
+    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(InitialSyncFocus.initialSyncFocusL))
 
   val tableStateRW: ModelRW[ObserveAppRootModel, AppTableStates] =
-    this.zoomRWL(ObserveAppRootModel.uiModel ^|-> ObserveUIModel.appTableStates)
+    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(ObserveUIModel.appTableStates))
 
   // Reader to indicate the allowed interactions
   val statusReader: ModelR[ObserveAppRootModel, ClientStatus] =
@@ -85,7 +85,7 @@ object ObserveCircuit
 
   // Reader for the queue operations
   val queueOperationsRW: ModelRW[ObserveAppRootModel, CalibrationQueues] =
-    this.zoomRWL(ObserveAppRootModel.uiModel ^|-> ObserveUIModel.queues)
+    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(ObserveUIModel.queues))
 
   // Reader to update the sequences in both parts of the model being used
   val sequencesReaderRW: ModelRW[ObserveAppRootModel, SequencesFocus] =
@@ -128,7 +128,7 @@ object ObserveCircuit
   ): ModelR[ObserveAppRootModel, Option[ObserveTabActive]] =
     this.zoomG(
       ObserveAppRootModel.sequencesOnDisplayL
-        .composeGetter(SequencesOnDisplay.tabG(id))
+        .andThen(SequencesOnDisplay.tabG(id))
     )
 
   def sequenceObserverReader(

@@ -123,7 +123,7 @@ object TcsNorthControllerEpicsAo {
 
         actions.map { r =>
           { (x: EpicsTcsAoConfig) =>
-            r.self.as(EpicsTcsAoConfig.aowfs.set(d)(x))
+            r.self.as(EpicsTcsAoConfig.aowfs.replace(d)(x))
           }.withDebug(s"AltairProbe(${r.debug})")
         }
       } else none
@@ -248,22 +248,28 @@ object TcsNorthControllerEpicsAo {
       (AoTcsConfig
         .gds[GuiderConfig @@ AoGuide, AltairConfig]
         .modify(
-          (AoGuidersConfig.pwfs1[GuiderConfig @@ AoGuide] ^<-> tagIso ^|-> GuiderConfig.detector)
-            .set(calc(current.base.pwfs1.detector, demand.gds.pwfs1.detector)) >>>
-            (AoGuidersConfig.oiwfs[GuiderConfig @@ AoGuide] ^<-> tagIso ^|-> GuiderConfig.detector)
-              .set(calc(current.base.oiwfs.detector, demand.gds.oiwfs.detector))
+          AoGuidersConfig
+            .pwfs1[GuiderConfig @@ AoGuide]
+            .andThen(tagIso[GuiderConfig, TcsController.P1Config])
+            .andThen(GuiderConfig.detector)
+            .replace(calc(current.base.pwfs1.detector, demand.gds.pwfs1.detector)) >>>
+            AoGuidersConfig
+              .oiwfs[GuiderConfig @@ AoGuide]
+              .andThen(tagIso[GuiderConfig, TcsController.OIConfig])
+              .andThen(GuiderConfig.detector)
+              .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.detector))
         ) >>> AoTcsConfig
         .gc[GuiderConfig @@ AoGuide, AltairConfig]
         .modify(
-          TelescopeGuideConfig.mountGuide.set(
+          TelescopeGuideConfig.mountGuide.replace(
             (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
               .fold(MountGuideOption.MountGuideOff, current.base.telescopeGuideConfig.mountGuide)
           ) >>>
-            TelescopeGuideConfig.m1Guide.set(
+            TelescopeGuideConfig.m1Guide.replace(
               (mustOff || demand.gc.m1Guide === M1GuideConfig.M1GuideOff)
                 .fold(M1GuideConfig.M1GuideOff, current.base.telescopeGuideConfig.m1Guide)
             ) >>>
-            TelescopeGuideConfig.m2Guide.set(
+            TelescopeGuideConfig.m2Guide.replace(
               (mustOff || demand.gc.m2Guide === M2GuideConfig.M2GuideOff)
                 .fold(M2GuideConfig.M2GuideOff, current.base.telescopeGuideConfig.m2Guide)
             )
@@ -319,11 +325,15 @@ object TcsNorthControllerEpicsAo {
       epicsCfg: EpicsTcsAoConfig,
       demand:   TcsNorthAoConfig
     ): EpicsTcsAoConfig = (
-      (EpicsTcsAoConfig.base ^|-> BaseEpicsTcsConfig.telescopeGuideConfig).set(demand.gc) >>>
-        (EpicsTcsAoConfig.base ^|-> BaseEpicsTcsConfig.pwfs1 ^|-> GuiderConfig.detector)
-          .set(demand.gds.pwfs1.detector) >>>
-        (EpicsTcsAoConfig.base ^|-> BaseEpicsTcsConfig.oiwfs ^|-> GuiderConfig.detector)
-          .set(demand.gds.oiwfs.detector)
+      EpicsTcsAoConfig.base.andThen(BaseEpicsTcsConfig.telescopeGuideConfig).replace(demand.gc) >>>
+        EpicsTcsAoConfig.base
+          .andThen(BaseEpicsTcsConfig.pwfs1)
+          .andThen(GuiderConfig.detector)
+          .replace(demand.gds.pwfs1.detector) >>>
+        EpicsTcsAoConfig.base
+          .andThen(BaseEpicsTcsConfig.oiwfs)
+          .andThen(GuiderConfig.detector)
+          .replace(demand.gds.oiwfs.detector)
     )(epicsCfg)
 
     def guideOff(
@@ -377,47 +387,53 @@ object TcsNorthControllerEpicsAo {
 
     // Disable M1 guiding if source is off
     def normalizeM1Guiding(gaosEnabled: Boolean): Endo[TcsNorthAoConfig] = cfg =>
-      (AoTcsConfig.gc ^|-> TelescopeGuideConfig.m1Guide).modify {
-        case g @ M1GuideConfig.M1GuideOn(src) =>
-          src match {
-            case M1Source.PWFS1 => if (cfg.gds.pwfs1.isActive) g else M1GuideConfig.M1GuideOff
-            case M1Source.OIWFS => if (cfg.gds.oiwfs.isActive) g else M1GuideConfig.M1GuideOff
-            case M1Source.GAOS  =>
-              if (cfg.gds.aoguide.detector === GuiderSensorOn && gaosEnabled) g
-              else M1GuideConfig.M1GuideOff
-            case _              => g
-          }
-        case x                                => x
-      }(cfg)
+      AoTcsConfig.gc
+        .andThen(TelescopeGuideConfig.m1Guide)
+        .modify {
+          case g @ M1GuideConfig.M1GuideOn(src) =>
+            src match {
+              case M1Source.PWFS1 => if (cfg.gds.pwfs1.isActive) g else M1GuideConfig.M1GuideOff
+              case M1Source.OIWFS => if (cfg.gds.oiwfs.isActive) g else M1GuideConfig.M1GuideOff
+              case M1Source.GAOS  =>
+                if (cfg.gds.aoguide.detector === GuiderSensorOn && gaosEnabled) g
+                else M1GuideConfig.M1GuideOff
+              case _              => g
+            }
+          case x                                => x
+        }(cfg)
 
     // Disable M2 sources if they are off, disable M2 guiding if all are off
     def normalizeM2Guiding(gaosEnabled: Boolean): Endo[TcsNorthAoConfig] = cfg =>
-      (AoTcsConfig.gc ^|-> TelescopeGuideConfig.m2Guide).modify {
-        case M2GuideConfig.M2GuideOn(coma, srcs) =>
-          val ss = srcs.filter {
-            case TipTiltSource.PWFS1 => cfg.gds.pwfs1.isActive
-            case TipTiltSource.OIWFS => cfg.gds.oiwfs.isActive
-            case TipTiltSource.GAOS  => cfg.gds.aoguide.detector === GuiderSensorOn && gaosEnabled
-            case _                   => true
-          }
-          if (ss.isEmpty) M2GuideConfig.M2GuideOff
-          else
-            M2GuideConfig.M2GuideOn(
-              (cfg.gc.m1Guide =!= M1GuideConfig.M1GuideOff).fold(coma, ComaOption.ComaOff),
-              ss
-            )
-        case x                                   => x
-      }(cfg)
+      AoTcsConfig.gc
+        .andThen(TelescopeGuideConfig.m2Guide)
+        .modify {
+          case M2GuideConfig.M2GuideOn(coma, srcs) =>
+            val ss = srcs.filter {
+              case TipTiltSource.PWFS1 => cfg.gds.pwfs1.isActive
+              case TipTiltSource.OIWFS => cfg.gds.oiwfs.isActive
+              case TipTiltSource.GAOS  => cfg.gds.aoguide.detector === GuiderSensorOn && gaosEnabled
+              case _                   => true
+            }
+            if (ss.isEmpty) M2GuideConfig.M2GuideOff
+            else
+              M2GuideConfig.M2GuideOn(
+                (cfg.gc.m1Guide =!= M1GuideConfig.M1GuideOff).fold(coma, ComaOption.ComaOff),
+                ss
+              )
+          case x                                   => x
+        }(cfg)
 
     // Disable Mount guiding if M2 guiding is disabled
     val normalizeMountGuiding: Endo[TcsNorthAoConfig] = cfg =>
-      (AoTcsConfig.gc ^|-> TelescopeGuideConfig.mountGuide).modify { m =>
-        (m, cfg.gc.m2Guide) match {
-          case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
-            MountGuideOption.MountGuideOn
-          case _                                                              => MountGuideOption.MountGuideOff
-        }
-      }(cfg)
+      AoTcsConfig.gc
+        .andThen(TelescopeGuideConfig.mountGuide)
+        .modify { m =>
+          (m, cfg.gc.m2Guide) match {
+            case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
+              MountGuideOption.MountGuideOn
+            case _                                                              => MountGuideOption.MountGuideOff
+          }
+        }(cfg)
 
   }
 

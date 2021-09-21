@@ -83,14 +83,14 @@ object Gems {
                   x.pause.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.set(true))
+                        .update(GuideConfig.gemsSkyPaused.replace(true))
                         .whenA(filteredPauseReasons.contains(PauseCondition.GaosGuideOff))
                     )
                   ),
                   x.resume.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.set(false))
+                        .update(GuideConfig.gemsSkyPaused.replace(false))
                         .whenA(filteredResumeReasons.contains(ResumeCondition.GaosGuideOn))
                     )
                   )

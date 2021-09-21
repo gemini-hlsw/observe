@@ -55,8 +55,10 @@ class SeqTranslateSpec extends TestCommon {
 
   private val baseState: EngineState[IO] =
     (ODBSequencesLoader.loadSequenceEndo[IO](seqIdName.id, seqg, executeEngine) >>>
-      (EngineState.sequenceStateIndex[IO](seqIdName.id) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqIdName.id)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
   // Observe started
   private val s0: EngineState[IO] = EngineState

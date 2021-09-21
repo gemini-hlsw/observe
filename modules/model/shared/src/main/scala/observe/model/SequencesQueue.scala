@@ -31,9 +31,9 @@ object SequencesQueue {
     Eq.by(x => (x.loaded, x.conditions, x.operator, x.queues, x.sessionQueue))
 
   def sessionQueueT[T]: Traversal[SequencesQueue[T], T] =
-    SequencesQueue.sessionQueue[T] ^|->> each
+    SequencesQueue.sessionQueue[T].andThen(each[List[T], T])
 
   def queueItemG[T](pred: T => Boolean): Getter[SequencesQueue[T], Option[T]] =
     SequencesQueue.sessionQueue
-      .composeGetter(Getter[List[T], Option[T]](_.find(pred)))
+      .andThen(Getter[List[T], Option[T]](_.find(pred)))
 }

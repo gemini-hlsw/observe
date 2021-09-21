@@ -24,6 +24,6 @@ class OpenConnectionHandler[M](modelRW: ModelRW[M, CalibrationQueues])
       val ts = u
         .as(CalQueueTable.State.EditableTableState)
         .getOrElse(CalQueueTable.State.ROTableState)
-      updatedL(CalibrationQueues.tableStatesT.set(ts))
+      updatedL(CalibrationQueues.tableStatesT.replace(ts))
   }
 }

@@ -223,7 +223,7 @@ object SequenceTab {
     })
 
   val resourcesRunOperationsL: Lens[SequenceTab, SortedMap[Resource, ResourceRunOperation]] =
-    SequenceTab.tabOperationsL ^|-> TabOperations.resourceRunRequested
+    SequenceTab.tabOperationsL.andThen(TabOperations.resourceRunRequested)
 }
 
 @Lenses
@@ -269,10 +269,16 @@ object InstrumentSequenceTab {
     )
 
   implicit val completedSequence: Optional[InstrumentSequenceTab, CompletedSequenceView] =
-    InstrumentSequenceTab.curSequence ^<-? stdLeft
+    InstrumentSequenceTab.curSequence.andThen(
+      stdLeft[InstrumentSequenceTab.CompletedSequenceView, InstrumentSequenceTab.LoadedSequenceView]
+    )
 
   implicit val loadedSequence: Optional[InstrumentSequenceTab, LoadedSequenceView] =
-    InstrumentSequenceTab.curSequence ^<-? stdRight
+    InstrumentSequenceTab.curSequence.andThen(
+      stdRight[InstrumentSequenceTab.CompletedSequenceView,
+               InstrumentSequenceTab.LoadedSequenceView
+      ]
+    )
 }
 
 @Lenses
