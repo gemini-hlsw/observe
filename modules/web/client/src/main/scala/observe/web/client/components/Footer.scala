@@ -3,8 +3,6 @@
 
 package observe.web.client.components
 
-import scala.concurrent.duration._
-
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router.RouterCtl
@@ -13,11 +11,9 @@ import lucuma.core.enum.Site
 import react.clipboard.CopyToClipboard
 import react.common._
 import react.semanticui.collections.menu._
-import react.semanticui.elements.icon.Icon
 import react.semanticui.modules.popup.Popup
 import react.semanticui.modules.popup.PopupPosition
 import react.semanticui.sizes._
-import react.semanticui.toasts._
 import observe.web.client.OcsBuildInfo
 import observe.web.client.actions.SelectCalibrationQueue
 import observe.web.client.circuit.ObserveCircuit
@@ -41,16 +37,6 @@ object Footer {
     e.preventDefaultCB *>
       p.router.dispatchAndSetUrlCB(SelectCalibrationQueue)
 
-  val onVersionCopy = (_: String, _: Boolean) =>
-    toastCB(
-      ToastOptions(title = "Copied...",
-                   icon = Icon("clipboard"),
-                   size = Small,
-                   tpe = ToastType.Success,
-                   time = Dismissal.On(500.millisecond)
-      )
-    )
-
   private val component = ScalaComponent
     .builder[Props]
     .stateless
@@ -69,7 +55,7 @@ object Footer {
           position = PopupPosition.TopCenter,
           size = Tiny,
           trigger = MenuItem(as = <.a, header = true, clazz = ObserveStyles.notInMobile)(
-            CopyToClipboard(text = OcsBuildInfo.version, onCopy = onVersionCopy)(
+            CopyToClipboard(text = OcsBuildInfo.version)(
               OcsBuildInfo.version
             )
           )

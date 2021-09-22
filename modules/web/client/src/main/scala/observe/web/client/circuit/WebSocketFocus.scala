@@ -76,7 +76,7 @@ object WebSocketsFocus {
           uiModel = m.uiModel.copy(
             user = v.user,
             sequencesOnDisplay = SequencesOnDisplay.sequenceTabs.modify(seqTab =>
-              SequenceTab.resourcesRunOperationsL.set(
+              SequenceTab.resourcesRunOperationsL.replace(
                 v.resourceRunRequested
                   .getOrElse(seqTab.obsIdName.id, SortedMap.empty)
               )(seqTab)

@@ -8,7 +8,7 @@ import cats.effect.Sync
 import cats.syntax.all._
 import diode.ModelRO
 import japgolly.scalajs.react.Callback
-import japgolly.scalajs.react.MonocleReact._
+import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enum.Site

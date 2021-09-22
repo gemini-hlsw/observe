@@ -60,20 +60,16 @@ package server {
     def instrumentLoadedL[F[_]](
       instrument: Instrument
     ): Lens[EngineState[F], Option[Observation.Id]] =
-      GenLens[EngineState[F]](_.selected) ^|-> at(instrument)
+      GenLens[EngineState[F]](_.selected).andThen(at(instrument))
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
-      EngineState.sequences ^|-? index(sid)
+      EngineState.sequences.andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
 
     def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
-      atSequence[F](sid) ^|-> SequenceData.seq
+      atSequence[F](sid).andThen(SequenceData.seq)
 
-    def engineState[F[_]]: Engine.State[F, EngineState[F]] = new Engine.State[F, EngineState[F]] {
-      override def sequenceStateIndex(
-        sid: Observation.Id
-      ): Optional[EngineState[F], Sequence.State[F]] =
-        EngineState.sequenceStateIndex(sid)
-    }
+    def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
+      EngineState.sequenceStateIndex(sid)
 
     implicit final class WithEventOps[F[_]](val f: Endo[EngineState[F]]) extends AnyVal {
       def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }

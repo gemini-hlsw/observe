@@ -215,9 +215,9 @@ class ObserveUIApiRoutes[F[_]: Async](
   private def anonymize(e: ObserveEvent) =
     // Hide the name and target name for anonymous users
     (telescopeTargetNameT
-      .set("*****")
-      .andThen(observeTargetNameT.set("*****"))
-      .andThen(sequenceNameT.set("")))(e)
+      .replace("*****")
+      .andThen(observeTargetNameT.replace("*****"))
+      .andThen(sequenceNameT.replace("")))(e)
 
   // Filter out NullEvents from the engine
   private def filterOutNull =

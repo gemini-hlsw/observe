@@ -6,10 +6,10 @@ package web.client.table
 import cats.Eq
 import cats.implicits._
 import cats.data.NonEmptyList
-import japgolly.scalajs.react.raw.JsNumber
+import japgolly.scalajs.react.facade.JsNumber
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import react.common.syntax._
+import react.common._
 import scala.annotation.nowarn
 
 trait TableArbitraries {

@@ -27,5 +27,5 @@ object ClientStatus {
     )
 
   val canOperateG: Getter[ObserveAppRootModel, Boolean] =
-    clientStatusFocusL.composeGetter(Getter[ClientStatus, Boolean](_.canOperate))
+    clientStatusFocusL.andThen(Getter[ClientStatus, Boolean](_.canOperate))
 }
