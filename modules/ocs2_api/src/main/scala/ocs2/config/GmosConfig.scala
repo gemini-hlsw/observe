@@ -8,7 +8,7 @@ import java.time.Duration
 import cats.Eq
 import cats.Order
 import io.chrisdavenport.cats.time.instances.all._
-import lucuma.core.enum._
+import lucuma.core.enum.{ GmosNorthDetector => GmosDetector, _ }
 import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
 import monocle._
@@ -53,7 +53,7 @@ object GmosConfig {
      * associated with the detector.
      */
     def defaultFromDetector(detector: GmosDetector): GmosShuffleOffset =
-      fromRowCount(detector.shuffleOffset)
+      fromRowCount(detector.shuffleOffset.value.value)
         .getOrElse(sys.error(s"Misconfigured GmosDetector $detector"))
 
     implicit val EqualGmosShuffleOffset: Eq[GmosShuffleOffset] =
@@ -136,7 +136,7 @@ object GmosConfig {
         Offset.Zero,
         Offset.Zero,
         GmosEOffsetting.Off,
-        GmosShuffleOffset.defaultFromDetector(GmosDetector.HAMAMATSU),
+        GmosShuffleOffset.defaultFromDetector(GmosDetector.Hamamatsu),
         GmosShuffleCycles.Default
       )
 
@@ -285,7 +285,7 @@ object GmosConfig {
 
     val Default: GmosCommonStaticConfig =
       GmosCommonStaticConfig(
-        GmosDetector.HAMAMATSU,
+        GmosDetector.Hamamatsu,
         MosPreImaging.IsNotMosPreImaging,
         None,
         Set.empty[GmosCustomRoiEntry]

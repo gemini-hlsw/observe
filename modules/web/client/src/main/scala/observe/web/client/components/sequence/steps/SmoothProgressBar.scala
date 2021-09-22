@@ -11,7 +11,7 @@ import cats.syntax.all._
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.CtorType
-import japgolly.scalajs.react.MonocleReact._
+import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.extra.TimerSupport

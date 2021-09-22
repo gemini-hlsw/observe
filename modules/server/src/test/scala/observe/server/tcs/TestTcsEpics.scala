@@ -685,7 +685,7 @@ class TestTcsEpics[F[_]: Async](
         cmdL.get(st).param4
       )
 
-      override protected def cmd(st: State): State = statusL.set(
+      override protected def cmd(st: State): State = statusL.replace(
         ProbeGuideConfigVals(
           if (cmdL.get(st).param1 == "On") 1 else 0,
           if (cmdL.get(st).param2 == "On") 1 else 0,
@@ -707,7 +707,7 @@ class TestTcsEpics[F[_]: Async](
       override protected def event(st: State): TestTcsEvent = evBuilder(cmdL.get(st).param1)
 
       override protected def cmd(st: State): State =
-        (statusL.set(cmdL.get(st).param1) >>> parkL.modify { v =>
+        (statusL.replace(cmdL.get(st).param1) >>> parkL.modify { v =>
           if (cmdL.get(st).param1 === "On") false else v
         })(st)
     }
@@ -720,7 +720,7 @@ class TestTcsEpics[F[_]: Async](
     new TestEpicsCommand1[F, State, TestTcsEvent, Int](cmdL, state, out) with WfsObserveCmd[F] {
       override protected def event(st: State): TestTcsEvent = ev
 
-      override protected def cmd(st: State): State = statusL.set(BinaryYesNo.Yes)(st)
+      override protected def cmd(st: State): State = statusL.replace(BinaryYesNo.Yes)(st)
 
       override def setNoexp(v: Integer): F[Unit] = setParameter1(v.toInt)
 
@@ -931,26 +931,27 @@ object TestTcsEpics {
     g:  Getter[State, ProbeGuideConfigVals]
   ): ProbeGuideConfig[F] =
     new ProbeGuideConfig[F] {
-      override def nodachopa: F[Int] = st.get.map((g ^|-> ProbeGuideConfigVals.nodachopa).get)
-      override def nodachopb: F[Int] = st.get.map((g ^|-> ProbeGuideConfigVals.nodachopb).get)
-      override def nodbchopa: F[Int] = st.get.map((g ^|-> ProbeGuideConfigVals.nodbchopa).get)
-      override def nodbchopb: F[Int] = st.get.map((g ^|-> ProbeGuideConfigVals.nodbchopb).get)
+      override def nodachopa: F[Int] = st.get.map(g.andThen(ProbeGuideConfigVals.nodachopa).get)
+      override def nodachopb: F[Int] = st.get.map(g.andThen(ProbeGuideConfigVals.nodachopb).get)
+      override def nodbchopa: F[Int] = st.get.map(g.andThen(ProbeGuideConfigVals.nodbchopa).get)
+      override def nodbchopb: F[Int] = st.get.map(g.andThen(ProbeGuideConfigVals.nodbchopb).get)
     }
 
   def targetGetters[F[_]: Applicative](st: Ref[F, State], g: Getter[State, TargetVals]): Target[F] =
     new Target[F] {
-      override def objectName: F[String]        = st.get.map((g ^|-> TargetVals.objectName).get)
-      override def ra: F[Double]                = st.get.map((g ^|-> TargetVals.ra).get)
-      override def dec: F[Double]               = st.get.map((g ^|-> TargetVals.dec).get)
-      override def frame: F[String]             = st.get.map((g ^|-> TargetVals.frame).get)
-      override def equinox: F[String]           = st.get.map((g ^|-> TargetVals.equinox).get)
-      override def epoch: F[String]             = st.get.map((g ^|-> TargetVals.epoch).get)
-      override def properMotionRA: F[Double]    = st.get.map((g ^|-> TargetVals.properMotionRA).get)
-      override def properMotionDec: F[Double]   = st.get.map((g ^|-> TargetVals.properMotionDec).get)
+      override def objectName: F[String]        = st.get.map(g.andThen(TargetVals.objectName).get)
+      override def ra: F[Double]                = st.get.map(g.andThen(TargetVals.ra).get)
+      override def dec: F[Double]               = st.get.map(g.andThen(TargetVals.dec).get)
+      override def frame: F[String]             = st.get.map(g.andThen(TargetVals.frame).get)
+      override def equinox: F[String]           = st.get.map(g.andThen(TargetVals.equinox).get)
+      override def epoch: F[String]             = st.get.map(g.andThen(TargetVals.epoch).get)
+      override def properMotionRA: F[Double]    = st.get.map(g.andThen(TargetVals.properMotionRA).get)
+      override def properMotionDec: F[Double]   =
+        st.get.map(g.andThen(TargetVals.properMotionDec).get)
       override def centralWavelenght: F[Double] =
-        st.get.map((g ^|-> TargetVals.centralWavelenght).get)
-      override def parallax: F[Double]          = st.get.map((g ^|-> TargetVals.parallax).get)
-      override def radialVelocity: F[Double]    = st.get.map((g ^|-> TargetVals.radialVelocity).get)
+        st.get.map(g.andThen(TargetVals.centralWavelenght).get)
+      override def parallax: F[Double]          = st.get.map(g.andThen(TargetVals.parallax).get)
+      override def radialVelocity: F[Double]    = st.get.map(g.andThen(TargetVals.radialVelocity).get)
     }
 
   sealed trait TestTcsEvent extends Product with Serializable

@@ -34,8 +34,8 @@ object Step {
   @Lenses
   final case class Skipped(self: Boolean) extends AnyVal
 
-  def breakpointL[F[_]]: Lens[Step[F], Boolean] = Step.breakpoint ^|-> BreakpointMark.self
-  def skippedL[F[_]]: Lens[Step[F], Boolean]    = Step.skipped ^|-> Skipped.self
+  def breakpointL[F[_]]: Lens[Step[F], Boolean] = Step.breakpoint.andThen(BreakpointMark.self)
+  def skippedL[F[_]]: Lens[Step[F], Boolean]    = Step.skipped.andThen(Skipped.self)
 
   def init[F[_]](id: StepId, executions: List[ParallelActions[F]]): Step[F] =
     Step(id = id,

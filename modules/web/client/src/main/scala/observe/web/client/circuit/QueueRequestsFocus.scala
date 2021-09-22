@@ -41,9 +41,9 @@ object QueueRequestsFocus {
     }: _*)
 
   val calTabObserverL: Optional[ObserveAppRootModel, Observer] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.sequencesOnDisplay ^|-?
-      SequencesOnDisplay.calTabObserver
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.sequencesOnDisplay)
+      .andThen(SequencesOnDisplay.calTabObserver)
 
   // This lens is read only but a getter is not usable in diode
   val unsafeQueueRequestsFocusL: Lens[ObserveAppRootModel, QueueRequestsFocus] =

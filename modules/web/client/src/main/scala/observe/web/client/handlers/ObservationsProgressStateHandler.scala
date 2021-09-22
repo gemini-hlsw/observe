@@ -85,7 +85,7 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
           updatedL(
             AllObservationsProgressState
               .progressByIdL(obsId, curSId)
-              .set(none)
+              .replace(none)
           )
         } else {
           noChange

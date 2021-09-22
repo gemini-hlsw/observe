@@ -20,7 +20,7 @@ final case class Action[F[_]](
 object Action {
 
   def runStateL[F[_]]: Lens[Action[F], ActionState[F]] =
-    Action.state ^|-> State.runState
+    Action.state.andThen(State.runState)
 
   @Lenses
   final case class State[F[_]](

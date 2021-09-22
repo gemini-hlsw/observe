@@ -15,7 +15,8 @@ object Common {
       "-sourcepath", (LocalRootProject/baseDirectory).value.getAbsolutePath,
       "-skip-packages", "scalaz",
       "-doc-title", "Gem",
-      "-doc-version", version.value
+      "-doc-version", version.value,
+      "-Xfatal-warnings"
     ),
     // Common libraries
     libraryDependencies                    += TestLibs.value,

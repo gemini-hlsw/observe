@@ -140,10 +140,10 @@ trait GcalConfigOptics {
 
   /** @group Optics */
   val continuum: Optional[GcalConfig, GcalContinuum] =
-    lamp.composePrism(stdLeft)
+    lamp.andThen(stdLeft[GcalContinuum, GcalArcs])
 
   /** @group Optics */
   val arcs: Optional[GcalConfig, NonEmptySet[GcalArc]] =
-    lamp.composePrism(stdRight).composeLens(GcalArcs.arcs)
+    lamp.andThen(stdRight[GcalContinuum, GcalArcs]).andThen(GcalArcs.arcs)
 
 }
