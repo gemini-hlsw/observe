@@ -14,7 +14,6 @@ import lucuma.core.enum.Site
 import react.common._
 import react.common.implicits._
 import react.semanticui.elements.divider.Divider
-import react.semanticui.toasts._
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.tabs.TabsArea
 import observe.web.client.model.Pages._
@@ -73,10 +72,6 @@ object ObserveMain {
     .stateless
     .render_P(p =>
       React.Fragment(
-        SemanticToastContainer(position = ContainerPosition.BottomRight,
-                               animation = SemanticAnimation.FadeUp,
-                               clazz = ObserveStyles.Toast
-        ),
         <.div(ObserveStyles.MainUI)(
           wsConnect(ws => AppTitle(p.site, ws())),
           <.div(ObserveStyles.queueAreaRow)(

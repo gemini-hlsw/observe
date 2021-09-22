@@ -6,7 +6,7 @@ package observe.web.client
 import scala.collection.immutable.SortedMap
 
 import diode.data.PotState
-import japgolly.scalajs.react.CatsReact._
+import japgolly.scalajs.react.ReactCats._
 import japgolly.scalajs.react.Reusability
 import lucuma.core.util.Enumerated
 import react.common._

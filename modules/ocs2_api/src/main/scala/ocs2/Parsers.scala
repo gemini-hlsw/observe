@@ -4,7 +4,7 @@
 package ocs2
 
 import cats.syntax.all._
-import lucuma.core.enum._
+import lucuma.core.enum.{ GmosNorthDetector => GmosDetector, _ }
 import lucuma.core.math._
 import lucuma.core.optics.syntax.prism._
 import ocs2.config.GcalConfig.GcalLamp
@@ -313,7 +313,7 @@ object Parsers {
 
     val detector: PioParse[GmosDetector] = enum(
       "E2V"       -> E2V,
-      "HAMAMATSU" -> HAMAMATSU
+      "HAMAMATSU" -> Hamamatsu
     )
 
     val disperserOrder: PioParse[GmosDisperserOrder] = enum(
@@ -439,9 +439,9 @@ object Parsers {
       "Longslit 1.50 arcsec" -> Some(LongSlit_1_50),
       "Longslit 2.00 arcsec" -> Some(LongSlit_2_00),
       "Longslit 5.00 arcsec" -> Some(LongSlit_5_00),
-      "IFU 2 Slits"          -> Some(Ifu1),
-      "IFU Left Slit (blue)" -> Some(Ifu2),
-      "IFU Right Slit (red)" -> Some(Ifu3),
+      "IFU 2 Slits"          -> Some(Ifu2Slits),
+      "IFU Left Slit (blue)" -> Some(IfuBlue),
+      "IFU Right Slit (red)" -> Some(IfuRed),
       "N and S 0.25 arcsec"  -> Some(Ns0),
       "N and S 0.50 arcsec"  -> Some(Ns1),
       "N and S 0.75 arcsec"  -> Some(Ns2),
@@ -519,13 +519,13 @@ object Parsers {
       "Longslit 1.50 arcsec"         -> Some(LongSlit_1_50),
       "Longslit 2.00 arcsec"         -> Some(LongSlit_2_00),
       "Longslit 5.00 arcsec"         -> Some(LongSlit_5_00),
-      "IFU 2 Slits"                  -> Some(Ifu1),
-      "IFU Left Slit (blue)"         -> Some(Ifu2),
-      "IFU Right Slit (red)"         -> Some(Ifu3),
+      "IFU 2 Slits"                  -> Some(Ifu2Slits),
+      "IFU Left Slit (blue)"         -> Some(IfuBlue),
+      "IFU Right Slit (red)"         -> Some(IfuRed),
       "bHROS"                        -> Some(Bhros),
-      "IFU N and S 2 Slits"          -> Some(IfuN),
-      "IFU N and S Left Slit (blue)" -> Some(IfuNB),
-      "IFU N and S Right Slit (red)" -> Some(IfuNR),
+      "IFU N and S 2 Slits"          -> Some(IfuNS2Slits),
+      "IFU N and S Left Slit (blue)" -> Some(IfuNSBlue),
+      "IFU N and S Right Slit (red)" -> Some(IfuNSRed),
       "N and S 0.50 arcsec"          -> Some(Ns1),
       "N and S 0.75 arcsec"          -> Some(Ns2),
       "N and S 1.00 arcsec"          -> Some(Ns3),

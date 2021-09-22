@@ -9,14 +9,14 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import eu.timepit.refined.types.numeric.PosLong
-import japgolly.scalajs.react.CatsReact._
-import japgolly.scalajs.react.MonocleReact._
+import japgolly.scalajs.react.ReactCats._
+import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
-import japgolly.scalajs.react.raw.JsNumber
+import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import monocle.macros.Lenses
@@ -260,13 +260,13 @@ object SessionQueueTable extends Columns {
   object State {
     // Lenses
     val columns: Lens[State, NonEmptyList[ColumnMeta[TableColumn]]] =
-      tableState ^|-> TableState.columns[TableColumn]
+      tableState.andThen(TableState.columns[TableColumn])
 
     val userModified: Lens[State, UserModified] =
-      tableState ^|-> TableState.userModified[TableColumn]
+      tableState.andThen(TableState.userModified[TableColumn])
 
     val scrollPosition: Lens[State, JsNumber] =
-      tableState ^|-> TableState.scrollPosition[TableColumn]
+      tableState.andThen(TableState.scrollPosition[TableColumn])
 
     val InitialTableState: TableState[TableColumn] =
       TableState(NotModified, 0, all)
@@ -576,8 +576,8 @@ object SessionQueueTable extends Columns {
   }
 
   def updateScrollPosition(b: Backend, pos: JsNumber): Callback = {
-    val mods = State.userModified.set(IsModified) >>>
-      State.scrollPosition.set(pos)
+    val mods = State.userModified.replace(IsModified) >>>
+      State.scrollPosition.replace(pos)
     (b.modState(mods) *> ObserveCircuit.dispatchCB(
       UpdateSessionQueueTableState(mods(b.state).tableState)
     )).unless(pos === 0 && !b.state.tableState.isModified).void
@@ -721,9 +721,9 @@ object SessionQueueTable extends Columns {
 
   private def initialState(p: Props): State =
     (
-      State.tableState.set(p.sequences.tableState) >>>
-        State.prevObsIds.set(p.obsIds) >>>
-        State.prevLoggedIn.set(p.loggedIn)
+      State.tableState.replace(p.sequences.tableState) >>>
+        State.prevObsIds.replace(p.obsIds) >>>
+        State.prevLoggedIn.replace(p.loggedIn)
     )(State.InitialState)
 
   private def onResize(b: Backend): Size => Callback =
@@ -762,8 +762,8 @@ object SessionQueueTable extends Columns {
                     )
                   )(s)
               ),
-            State.prevObsIds.set(props.obsIds),
-            State.prevLoggedIn.set(props.loggedIn)
+            State.prevObsIds.replace(props.obsIds),
+            State.prevLoggedIn.replace(props.loggedIn)
           ).some
             .filter(_ => props.obsIds =!= state.prevObsIds || props.loggedIn =!= state.prevLoggedIn)
             .orEmpty

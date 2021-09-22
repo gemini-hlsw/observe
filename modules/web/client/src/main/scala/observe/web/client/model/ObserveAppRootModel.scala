@@ -5,17 +5,15 @@ package observe.web.client.model
 
 import scala.collection.immutable.SortedMap
 import scala.scalajs.js.timers._
-
 import cats._
 import cats.syntax.all._
 import lucuma.core.enum.Site
 import monocle.Getter
 import monocle.Lens
 import monocle.Traversal
-import monocle.function.At.at
 import monocle.function.At.atSortedMap
-import monocle.function.Each.each
-import monocle.function.FilterIndex.filterIndex
+import monocle.function.Each.mapEach
+import monocle.function.FilterIndex.sortedMapFilterIndex
 import monocle.macros.Lenses
 import observe.model.CalibrationQueueId
 import observe.model.ClientId
@@ -67,55 +65,63 @@ object ObserveAppRootModel {
   )
 
   val logDisplayL: Lens[ObserveAppRootModel, SectionVisibilityState] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.globalLog ^|->
-      GlobalLog.display
+    ObserveAppRootModel.uiModel.andThen(ObserveUIModel.globalLog).andThen(GlobalLog.display)
 
   val sessionQueueFilterL: Lens[ObserveAppRootModel, SessionQueueFilter] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.sessionQueueFilter
+    ObserveAppRootModel.uiModel.andThen(ObserveUIModel.sessionQueueFilter)
 
   val sequencesOnDisplayL: Lens[ObserveAppRootModel, SequencesOnDisplay] =
-    ObserveAppRootModel.uiModel ^|-> ObserveUIModel.sequencesOnDisplay
+    ObserveAppRootModel.uiModel.andThen(ObserveUIModel.sequencesOnDisplay)
 
   val sequenceTabsT: Traversal[ObserveAppRootModel, SequenceTab] =
-    ObserveAppRootModel.sequencesOnDisplayL ^|->> SequencesOnDisplay.sequenceTabs
+    ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.sequenceTabs)
 
   val sessionQueueL: Lens[ObserveAppRootModel, List[SequenceView]] =
-    ObserveAppRootModel.sequences ^|-> SequencesQueue.sessionQueue
+    ObserveAppRootModel.sequences.andThen(SequencesQueue.sessionQueue)
 
   val sessionQueueTableStateL
     : Lens[ObserveAppRootModel, TableState[SessionQueueTable.TableColumn]] =
-    ObserveAppRootModel.uiModel ^|-> ObserveUIModel.appTableStates ^|-> AppTableStates.sessionQueueTable
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.appTableStates)
+      .andThen(AppTableStates.sessionQueueTable)
 
   def stepsTableStateL(
     id: Observation.Id
   ): Lens[ObserveAppRootModel, Option[TableState[StepsTable.TableColumn]]] =
-    ObserveAppRootModel.uiModel ^|-> ObserveUIModel.appTableStates ^|-> AppTableStates
-      .stepsTableAtL(id)
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.appTableStates)
+      .andThen(
+        AppTableStates
+          .stepsTableAtL(id)
+      )
 
   val soundSettingL: Lens[ObserveAppRootModel, SoundSelection] =
-    ObserveAppRootModel.uiModel ^|-> ObserveUIModel.sound
+    ObserveAppRootModel.uiModel.andThen(ObserveUIModel.sound)
 
   val configTableStateL: Lens[ObserveAppRootModel, TableState[StepConfigTable.TableColumn]] =
-    ObserveAppRootModel.uiModel ^|-> ObserveUIModel.appTableStates ^|-> AppTableStates.stepConfigTable
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.appTableStates)
+      .andThen(AppTableStates.stepConfigTable)
 
   def executionQueuesT(
     id: QueueId
-  ): Traversal[ObserveAppRootModel, ExecutionQueueView]           =
-    ObserveAppRootModel.sequences ^|->
-      SequencesQueue.queues ^|->>
-      filterIndex((qid: QueueId) => qid === id)
+  ): Traversal[ObserveAppRootModel, ExecutionQueueView] =
+    ObserveAppRootModel.sequences
+      .andThen(SequencesQueue.queues[SequenceView])
+      .andThen(
+        sortedMapFilterIndex[QueueId, ExecutionQueueView].filterIndex((qid: QueueId) => qid === id)
+      )
 
   val queuesT: Traversal[ObserveAppRootModel, ExecutionQueueView] =
-    ObserveAppRootModel.sequences ^|->
-      SequencesQueue.queues ^|->>
-      each
+    ObserveAppRootModel.sequences
+      .andThen(SequencesQueue.queues[SequenceView])
+      .andThen(mapEach[QueueId, ExecutionQueueView].each)
 
   val dayCalG: Getter[ObserveAppRootModel, Option[ExecutionQueueView]] =
-    (ObserveAppRootModel.sequences ^|->
-      SequencesQueue.queues ^|->
-      at(CalibrationQueueId)).asGetter
+    ObserveAppRootModel.sequences
+      .andThen(SequencesQueue.queues[SequenceView])
+      .andThen(atSortedMap[QueueId, ExecutionQueueView].at(CalibrationQueueId))
+      .asGetter
 
   implicit val eq: Eq[ObserveAppRootModel] =
     Eq.by(x => (x.sequences, x.ws, x.site, x.clientId, x.uiModel, x.serverVersion))

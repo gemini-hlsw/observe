@@ -39,5 +39,5 @@ object SequenceView {
     Eq.by(x => (x.idName, x.metadata, x.status, x.steps, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
-    SequenceView.steps ^|->> each
+    SequenceView.steps.andThen(each[List[Step], Step])
 }

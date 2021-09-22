@@ -4,7 +4,6 @@
 package observe.web.client.circuit
 
 import scala.collection.immutable.SortedMap
-
 import cats._
 import cats.implicits._
 import monocle.Getter
@@ -12,7 +11,7 @@ import monocle.Lens
 import monocle.Traversal
 import monocle.function.Each.each
 import monocle.function.Each.listEach
-import monocle.function.FilterIndex.filterIndex
+import monocle.function.FilterIndex.sortedMapFilterIndex
 import monocle.macros.Lenses
 import observe.model.ExecutionQueueView
 import observe.model.Observation
@@ -40,32 +39,35 @@ object CalQueueFocus {
 
   def seqQueueOpsT(
     id: Observation.Id
-  ): Traversal[CalQueueFocus, QueueSeqOperations]     =
-    CalQueueFocus.seqOps ^|->>
-      filterIndex((oid: Observation.Id) => oid === id)
+  ): Traversal[CalQueueFocus, QueueSeqOperations] =
+    CalQueueFocus.seqOps.andThen(
+      sortedMapFilterIndex[Observation.Id, QueueSeqOperations].filterIndex((oid: Observation.Id) =>
+        oid === id
+      )
+    )
 
   // All metadata of the given obs
   def calSeq(
     id: Observation.Id
   ): Getter[ObserveAppRootModel, Option[CalQueueSeq]] =
-    ObserveAppRootModel.sequences.composeGetter(CalQueueSeq.calQueueSeqG(id))
+    ObserveAppRootModel.sequences.andThen(CalQueueSeq.calQueueSeqG(id))
 
   def calTS(
     id: QueueId
   ): Lens[ObserveAppRootModel, Option[TableState[CalQueueTable.TableColumn]]] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.appTableStates ^|->
-      AppTableStates.queueTableAtL(id)
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.appTableStates)
+      .andThen(AppTableStates.queueTableAtL(id))
 
   private def seqOpsL(id: QueueId) =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.queues ^|-?
-      CalibrationQueues.calStateSeqOpsT(id)
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.queues)
+      .andThen(CalibrationQueues.calStateSeqOpsT(id))
 
   private def qLastOpL(id: QueueId) =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.queues ^|-?
-      CalibrationQueues.calLastOpO(id)
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.queues)
+      .andThen(CalibrationQueues.calLastOpO(id))
 
   // A fairly complicated getter
   def calQueueG(
@@ -73,9 +75,7 @@ object CalQueueFocus {
   ): Getter[ObserveAppRootModel, Option[CalQueueFocus]] = {
     // All ids on the queue
     val ids: Traversal[ObserveAppRootModel, Observation.Id] =
-      ObserveAppRootModel.executionQueuesT(id) ^|->
-        ExecutionQueueView.queue ^|->>
-        each
+      ObserveAppRootModel.executionQueuesT(id).andThen(ExecutionQueueView.queue).andThen(each)
 
     // combine
     val calQueueSeqG = (s: ObserveAppRootModel) => ids.getAll(s).map(i => calSeq(i).get(s))

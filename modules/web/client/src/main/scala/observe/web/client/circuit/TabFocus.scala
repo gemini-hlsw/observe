@@ -21,9 +21,9 @@ object TabFocus {
     Eq.by(x => (x.canOperate, x.tabs, x.defaultObserver))
 
   val tabFocusG: Getter[ObserveAppRootModel, TabFocus] = {
-    val getter = ObserveAppRootModel.uiModel.composeGetter(
+    val getter = ObserveAppRootModel.uiModel.andThen(
       (ObserveUIModel.sequencesOnDisplay
-        .composeGetter(SequencesOnDisplay.availableTabsG))
+        .andThen(SequencesOnDisplay.availableTabsG))
         .zip(ObserveUIModel.defaultObserverG)
     )
     ClientStatus.canOperateG.zip(getter) >>> { case (o, (t, ob)) =>

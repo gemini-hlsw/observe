@@ -15,7 +15,7 @@ import cats._
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import cats.Order._
-import japgolly.scalajs.react.MonocleReact._
+import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -158,7 +158,7 @@ object LogArea {
   object State {
 
     def levelLens(l: ServerLogLevel): Lens[State, Option[Boolean]] =
-      State.selectedLevels ^|-> at(l)
+      State.selectedLevels.andThen(at(l))
 
     private val DefaultTableState: TableState[TableColumn] =
       TableState[TableColumn](
