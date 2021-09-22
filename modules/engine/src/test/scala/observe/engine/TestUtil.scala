@@ -15,7 +15,7 @@ object TestUtil {
 
   object TestState extends Engine.State[IO, TestState] {
     override def sequenceStateIndex(sid: Observation.Id): Optional[TestState, Sequence.State[IO]] =
-      TestState.sequences ^|-? index(sid)
+      TestState.sequences.andThen(mapIndex[Observation.Id, Sequence.State[IO]].index(sid))
 
   }
 }

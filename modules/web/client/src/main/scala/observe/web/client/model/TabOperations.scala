@@ -205,7 +205,7 @@ object TabOperations {
   def resourceRun(
     r: Resource
   ): Lens[TabOperations, Option[ResourceRunOperation]] =
-    TabOperations.resourceRunRequested ^|-> at(r)
+    TabOperations.resourceRunRequested.andThen(at(r))
 
   // Set the resource operations in the map to idle.
   def clearAllResourceOperations: TabOperations => TabOperations =

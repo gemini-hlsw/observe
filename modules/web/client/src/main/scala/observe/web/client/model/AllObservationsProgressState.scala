@@ -37,20 +37,20 @@ object AllObservationsProgressState {
     obsId:                  Observation.Id,
     stepId:                 StepId
   )(implicit progressPrism: Prism[Progress, P]): Optional[ObserveAppRootModel, P] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.obsProgress ^|-?
-      progressByIdO(obsId, stepId)
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.obsProgress)
+      .andThen(progressByIdO(obsId, stepId))
 
   def progressByIdL(
     obsId:  Observation.Id,
     stepId: StepId
   ): Lens[AllObservationsProgressState, Option[Progress]] =
-    AllObservationsProgressState.obsProgress ^|-> at((obsId, stepId))
+    AllObservationsProgressState.obsProgress.andThen(at((obsId, stepId)))
 
   def progressByIdO[P <: Progress](
     obsId:                  Observation.Id,
     stepId:                 StepId
   )(implicit progressPrism: Prism[Progress, P]): Optional[AllObservationsProgressState, P] =
-    progressByIdL(obsId, stepId) ^<-? some ^<-? progressPrism
+    progressByIdL(obsId, stepId).andThen(some[Progress]).andThen(progressPrism)
 
 }

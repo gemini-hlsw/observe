@@ -1,4 +1,4 @@
-addSbtPlugin("edu.gemini"         % "sbt-lucuma"               % "0.3.8")
+addSbtPlugin("edu.gemini"         % "sbt-lucuma"               % "0.3.9")
 
 addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.7.0")
 
@@ -26,7 +26,7 @@ addSbtPlugin("ch.epfl.scala"      % "sbt-scalajs-bundler"      % "0.20.0")
 // Used to find dependencies
 addDependencyTreePlugin
 
-addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.5.3")
+addSbtPlugin("com.timushev.sbt"   % "sbt-updates"              % "0.6.0")
 
 addSbtPlugin("org.scalameta"      % "sbt-scalafmt"             % "2.4.3")
 

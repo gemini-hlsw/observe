@@ -41,7 +41,7 @@ package circuit {
    */
   class CircuitOps[M <: AnyRef](circuit: Circuit[M]) {
     def zoomRWL[A: Eq](lens: Lens[M, A]): ModelRW[M, A] =
-      circuit.zoomRW(lens.get)((m, a) => lens.set(a)(m))(fastEq[A])
+      circuit.zoomRW(lens.get)((m, a) => lens.replace(a)(m))(fastEq[A])
 
     def zoomL[A: Eq](lens: Lens[M, A]): ModelR[M, A] =
       circuit.zoom[A](lens.get)(fastEq[A])
@@ -127,7 +127,7 @@ package circuit {
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceInfoFocus]] = {
       val getter =
-        ObserveAppRootModel.sequencesOnDisplayL.composeGetter(SequencesOnDisplay.tabG(id))
+        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(getter) >>> {
         case (status, Some(ObserveTabActive(tab, _))) =>
           val targetName =
@@ -161,7 +161,7 @@ package circuit {
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[StatusAndStepFocus]] = {
       val getter =
-        ObserveAppRootModel.sequencesOnDisplayL.composeGetter(SequencesOnDisplay.tabG(id))
+        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(getter) >>> { case (canOperate, st) =>
         st.map { case ObserveTabActive(tab, _) =>
           StatusAndStepFocus(canOperate,
@@ -226,7 +226,7 @@ package circuit {
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceControlFocus]] = {
       val getter =
-        ObserveAppRootModel.sequencesOnDisplayL.composeGetter(SequencesOnDisplay.tabG(id))
+        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(getter) >>> {
         case (status, Some(ObserveTabActive(tab, _))) =>
           SequenceControlFocus(tab.instrument,

@@ -73,13 +73,13 @@ object NSObsState {
   val Zero: NSObsState = NSObsState(NSConfig.NoNodAndShuffle, None)
 
   val fileId: Optional[NSObsState, ImageFileId] =
-    NSObsState.current ^<-? some ^|-> NSCurrent.fileId
+    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.fileId)
 
   val exposureCount: Optional[NSObsState, Int] =
-    NSObsState.current ^<-? some ^|-> NSCurrent.exposureCount
+    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.exposureCount)
 
   val expTime: Optional[NSObsState, Time] =
-    NSObsState.current ^<-? some ^|-> NSCurrent.expTime
+    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.expTime)
 
 }
 
@@ -99,7 +99,7 @@ object GmosControllerSim {
           case s @ NSObsState(NSConfig.NodAndShuffle(cycles, _, _, _), _) =>
             // Initialize the current state
             val update =
-              NSObsState.current.set(NSCurrent(fileId, cycles, 0, expTime).some)
+              NSObsState.current.replace(NSCurrent(fileId, cycles, 0, expTime).some)
             (update(s), update(s))
         } >>= {
           case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>

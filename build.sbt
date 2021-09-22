@@ -5,7 +5,6 @@ import Common._
 import AppsCommon._
 import sbt.Keys._
 import NativePackagerHelper._
-import sbtcrossproject.crossProject
 import sbtcrossproject.CrossType
 import com.typesafe.sbt.packager.docker._
 
@@ -18,7 +17,7 @@ ThisBuild / Compile / packageDoc / publishArtifact := false
 inThisBuild(
   Seq(
     addCompilerPlugin(
-      ("org.typelevel"                    % "kind-projector" % "0.13.0").cross(CrossVersion.full)
+      ("org.typelevel"                    % "kind-projector" % "0.13.1").cross(CrossVersion.full)
     ),
     scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource := ReloadOnSourceChanges,
@@ -75,17 +74,17 @@ enablePlugins(GitBranchPrompt)
 // Custom commands to facilitate web development
 val startObserveAllCommands   = List(
   "observe_web_server/reStart",
-  "observe_web_client/fastOptJS::startWebpackDevServer",
+  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
   "~observe_web_client/fastOptJS"
 )
 val restartObserveWDSCommands = List(
-  "observe_web_client/fastOptJS::stopWebpackDevServer",
-  "observe_web_client/fastOptJS::startWebpackDevServer",
+  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer",
+  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
   "~observe_web_client/fastOptJS"
 )
 val stopObserveAllCommands    = List(
   "observe_web_server/reStop",
-  "observe_web_client/fastOptJS::stopWebpackDevServer"
+  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer"
 )
 
 addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""))

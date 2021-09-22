@@ -118,7 +118,7 @@ object AltairControllerEpics {
       val newCfg = (EpicsAltairConfig.preparedMatrixCoords.modify(v =>
         newPos.filter(_ => newPosOk && !matrixOk && !prepMatrixOk).getOrElse(v)
       ) >>>
-        EpicsAltairConfig.aoLoop.set(!needsToStop))(currCfg)
+        EpicsAltairConfig.aoLoop.replace(!needsToStop))(currCfg)
 
       // Actions to stop loops
       val actions = List(
@@ -246,8 +246,8 @@ object AltairControllerEpics {
         (startStrapGate(currCfg) *> startStrapLoop(currCfg)).whenA(strap) *>
         startSfoLoop(currCfg).whenA(sfo)
 
-    private val ttgsOffEndo: Endo[EpicsAltairConfig] = EpicsAltairConfig.strapGate.set(0) >>>
-      EpicsAltairConfig.strapLoop.set(false) >>>
+    private val ttgsOffEndo: Endo[EpicsAltairConfig] = EpicsAltairConfig.strapGate.replace(0) >>>
+      EpicsAltairConfig.strapLoop.replace(false) >>>
       EpicsAltairConfig.sfoLoop.modify { v =>
         (v === LgsSfoControl.Disable).fold(LgsSfoControl.Disable, LgsSfoControl.Pause)
       }

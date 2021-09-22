@@ -10,30 +10,30 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "1.1.0"
-    val scalajsReact            = "1.7.7"
+    val scalaDom                = "1.2.0"
+    val scalajsReact            = "2.0.0-RC3"
     val booPickle               = "1.4.0"
-    val diode                   = "1.1.14"
+    val diode                   = "0.0.0+1-6e5c7c85-SNAPSHOT"
     val javaTimeJS              = "2.3.0"
     val scalaJSReactCommon      = "0.11.3"
-    val scalaJSSemanticUI       = "0.10.8"
-    val scalaJSReactVirtualized = "0.11.3"
-    val scalaJSReactClipboard   = "1.4.3"
-    val scalaJSReactDraggable   = "0.11.3"
-    val scalaJSReactSortable    = "0.4.2"
+    val scalaJSSemanticUI       = "0.11.1"
+    val scalaJSReactVirtualized = "0.12.0"
+    val scalaJSReactClipboard   = "1.5.0"
+    val scalaJSReactDraggable   = "0.13.0"
+    val scalaJSReactSortable    = "0.5.1"
 
     // Scala libraries
-    val catsEffectVersion   = "3.2.0"
+    val catsEffectVersion   = "3.2.5"
     val catsVersion         = "2.6.1"
     val mouseVersion        = "1.0.4"
-    val fs2Version          = "3.0.6"
+    val fs2Version          = "3.1.1"
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
     val catsTime            = "0.3.4"
 
-    val http4sVersion  = "1.0.0-M21"
-    val squants        = "1.8.3"
+    val http4sVersion  = "1.0.0-M23"
+    val squants        = "1.8.2"
     val commonsHttp    = "2.0.2"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
@@ -45,7 +45,7 @@ object Settings {
     val janino         = "3.1.4"
     val logstash       = "6.6"
     val pureConfig     = "0.16.0"
-    val monocleVersion = "2.1.0"
+    val monocleVersion = "3.0.0"
     val circeVersion   = "0.14.1"
     val doobieVersion  = "0.6.0"
     val flywayVersion  = "6.0.4"
@@ -54,7 +54,7 @@ object Settings {
     val xmlUnit                     = "1.6"
     val jUnitInterface              = "0.11"
     val scalaMock                   = "5.1.0"
-    lazy val munitVersion           = "0.7.28"
+    lazy val munitVersion           = "0.7.29"
     lazy val munitDisciplineVersion = "1.0.9"
     lazy val munitCatsEffectVersion = "1.0.3"
 
@@ -75,19 +75,19 @@ object Settings {
     val gmpStatusDatabase   = "0.3.7"
     val gmpCmdClientBridge  = "0.6.7"
     val guava               = "30.1.1-jre"
-    val prometheusClient    = "0.11.0"
+    val prometheusClient    = "0.12.0"
     val geminiLocales       = "0.6.0"
     val pprint              = "0.6.6"
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore          = "0.10.1"
-    val lucumaUI            = "0.15.1"
+    val lucumaCore          = "0.13.2"
+    val lucumaUI            = "0.17.1"
 
     // Clue
-    val clue                = "0.16.0"
+    val clue                = "0.17.0"
 
-    val sttp                = "3.3.12"
+    val sttp                = "3.3.13"
   }
 
   /**
@@ -171,10 +171,10 @@ object Settings {
       "org.http4s" %% "http4s-prometheus-metrics" % LibraryVersions.http4sVersion
     val Monocle = Def.setting(
       Seq(
-        "com.github.julien-truffaut" %%% "monocle-core"   % LibraryVersions.monocleVersion,
-        "com.github.julien-truffaut" %%% "monocle-macro"  % LibraryVersions.monocleVersion,
-        "com.github.julien-truffaut" %%% "monocle-unsafe" % LibraryVersions.monocleVersion,
-        "com.github.julien-truffaut" %%% "monocle-law"    % LibraryVersions.monocleVersion
+        "dev.optics" %%% "monocle-core"   % LibraryVersions.monocleVersion,
+        "dev.optics" %%% "monocle-macro"  % LibraryVersions.monocleVersion,
+        "dev.optics" %%% "monocle-unsafe" % LibraryVersions.monocleVersion,
+        "dev.optics" %%% "monocle-law"    % LibraryVersions.monocleVersion
       )
     )
     val Circe   = Def.setting(
@@ -189,10 +189,10 @@ object Settings {
     // Client Side JS libraries
     val ReactScalaJS            = Def.setting(
       Seq(
-        "com.github.japgolly.scalajs-react" %%% "core"             % LibraryVersions.scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "extra"            % LibraryVersions.scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-monocle-cats" % LibraryVersions.scalajsReact,
-        "com.github.japgolly.scalajs-react" %%% "ext-cats"         % LibraryVersions.scalajsReact
+        "com.github.japgolly.scalajs-react" %%% "core"               % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"              % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3" % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "core-ext-cats"      % LibraryVersions.scalajsReact
       )
     )
     val Diode                   = Def.setting(
@@ -232,7 +232,7 @@ object Settings {
     val SpModelCore = "edu.gemini.ocs" %% "edu-gemini-spmodel-core" % LibraryVersions.ocsVersion
     val SeqexecOdb  = Seq(
       "edu.gemini.ocs" %% "edu-gemini-seqexec-odb" % LibraryVersions.ocsVersion,
-      ("dom4j"          % "dom4j"                  % "1.5.2")
+      ("dom4j"          % "dom4j"                  % "1.6.1")
         .exclude("jaxen", "jaxen")
         .exclude("jaxme", "jaxme-api")
         .exclude("msv", "xsdlib")

@@ -22,7 +22,7 @@ class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
   def handleUserNotification: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(UserPromptNotification(not, _)) =>
       // Update the notification state
-      val lens         = UserPromptState.notification.set(not.some)
+      val lens         = UserPromptState.notification.replace(not.some)
       // Update the model as load failed
       val modelUpdateE = not match {
         case UserPrompt.ChecksOverride(idName, _, _, _) => Effect(Future(RunStartFailed(idName.id)))
@@ -36,7 +36,7 @@ class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
         Effect(Future(RequestRunFrom(id, stp, sidx, RunOptions.ChecksOverride)))
       case _                                                                                  => VoidEffect
     }
-    updatedLE(UserPromptState.notification.set(none), overrideEffect)
+    updatedLE(UserPromptState.notification.replace(none), overrideEffect)
   }
 
   def handle: PartialFunction[Any, ActionResult[M]] =

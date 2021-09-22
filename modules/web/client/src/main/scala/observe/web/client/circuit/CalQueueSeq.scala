@@ -26,12 +26,13 @@ object CalQueueSeq {
     id: Observation.Id
   ): Getter[SequencesQueue[SequenceView], Option[CalQueueSeq]] = {
     val seqO =
-      SequencesQueue.queueItemG[SequenceView](_.idName.id === id) ^<-?
-        std.option.some
+      SequencesQueue
+        .queueItemG[SequenceView](_.idName.id === id)
+        .andThen(std.option.some[SequenceView])
 
-    val sidO = seqO ^|-> SequenceView.idName
-    val siO  = seqO ^|-> SequenceView.metadata ^|-> SequenceMetadata.instrument
-    val siS  = seqO ^|-> SequenceView.status
+    val sidO = seqO.andThen(SequenceView.idName)
+    val siO  = seqO.andThen(SequenceView.metadata).andThen(SequenceMetadata.instrument)
+    val siS  = seqO.andThen(SequenceView.status)
 
     (Getter(sidO.headOption)
       .zip(Getter(siO.headOption).zip(Getter(siS.headOption)))) >>> {

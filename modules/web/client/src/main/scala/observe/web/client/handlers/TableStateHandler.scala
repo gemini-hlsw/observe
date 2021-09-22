@@ -18,22 +18,22 @@ class TableStateHandler[M](modelRW: ModelRW[M, AppTableStates])
   override def handle: PartialFunction[Any, ActionResult[M]] = {
     case UpdateStepsConfigTableState(state)  =>
       updatedSilentL(
-        AppTableStates.stepConfigTable.set(state)
+        AppTableStates.stepConfigTable.replace(state)
       ) // We should only do silent updates as these change too quickly
 
     case UpdateSessionQueueTableState(state) =>
       updatedSilentL(
-        AppTableStates.sessionQueueTable.set(state)
+        AppTableStates.sessionQueueTable.replace(state)
       ) // We should only do silent updates as these change too quickly
 
     case UpdateStepTableState(id, state)     =>
       updatedSilentL(
-        AppTableStates.stepsTableAtL(id).set(Some(state))
+        AppTableStates.stepsTableAtL(id).replace(Some(state))
       ) // We should only do silent updates as these change too quickly
 
     case UpdateCalTableState(id, state)      =>
       updatedSilentL(
-        AppTableStates.queueTableAtL(id).set(Some(state))
+        AppTableStates.queueTableAtL(id).replace(Some(state))
       ) // We should only do silent updates as these change too quickly
   }
 }

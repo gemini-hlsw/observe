@@ -71,7 +71,8 @@ object SequenceGen {
       stepGen match {
         case p: PendingStepGen[F]          =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
-        case SkippedStepGen(id, _, _)      => EngineStep.skippedL.set(true)(EngineStep.init[F](id, Nil))
+        case SkippedStepGen(id, _, _)      =>
+          EngineStep.skippedL.replace(true)(EngineStep.init[F](id, Nil))
         case CompletedStepGen(id, _, _, _) => EngineStep.init[F](id, Nil)
       }
   }
