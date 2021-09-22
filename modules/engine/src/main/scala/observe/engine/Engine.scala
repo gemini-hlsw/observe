@@ -36,14 +36,16 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
    * Changes the `Status` and returns the new `Queue.State`.
    */
   private def switch(id: Observation.Id)(st: SequenceState): HandleType[Unit] =
-    modifyS(id)(Sequence.State.status.set(st))
+    modifyS(id)(Sequence.State.status.replace(st))
 
   def start(id: Observation.Id): Handle[F, S, Event[F, S, U], Unit] =
     getS(id).flatMap {
       case Some(seq) =>
         {
           putS(id)(
-            Sequence.State.status.set(SequenceState.Running.init)(seq.skips.getOrElse(seq).rollback)
+            Sequence.State.status.replace(SequenceState.Running.init)(
+              seq.skips.getOrElse(seq).rollback
+            )
           ) *>
             send(Event.executing(id))
         }.whenA(seq.status.isIdle || seq.status.isError)
@@ -68,7 +70,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
           s.setSkipMark(i, v = true)
         }
         putS(id)(
-          Sequence.State.status.set(SequenceState.Running.init)(
+          Sequence.State.status.replace(SequenceState.Running.init)(
             withSkips.skips.getOrElse(withSkips).rollback
           )
         ) *> send(Event.executing(id))
@@ -513,7 +515,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     modify(stateL.sequenceStateIndex(id).modify(f))
 
   private def putS(id: Observation.Id)(s: Sequence.State[F]): HandleType[Unit] =
-    modify(stateL.sequenceStateIndex(id).set(s))
+    modify(stateL.sequenceStateIndex(id).replace(s))
 
   // For debugging
   def printSequenceState(id: Observation.Id): HandleType[Unit] =

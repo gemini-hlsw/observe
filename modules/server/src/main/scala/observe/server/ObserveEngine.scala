@@ -27,7 +27,7 @@ import fs2.Pure
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enum.Site
-import monocle.Monocle.index
+import monocle.function.Index.mapIndex
 import monocle.Optional
 import mouse.all._
 import observe.engine.EventResult._
@@ -434,14 +434,14 @@ object ObserveEngine {
     }
 
     private def clearObsCmd(id: Observation.Id): HandleType[F, SeqEvent] = { (s: EngineState[F]) =>
-      ((EngineState.atSequence[F](id) ^|-> SequenceData.pendingObsCmd).set(None)(s),
+      (EngineState.atSequence[F](id).andThen(SequenceData.pendingObsCmd[F]).replace(None)(s),
        SeqEvent.NullSeqEvent: SeqEvent
       )
     }.toHandle
 
     private def setObsCmd(id: Observation.Id, cmd: PendingObserveCmd): HandleType[F, SeqEvent] = {
       (s: EngineState[F]) =>
-        ((EngineState.atSequence[F](id) ^|-> SequenceData.pendingObsCmd).set(cmd.some)(s),
+        (EngineState.atSequence[F](id).andThen(SequenceData.pendingObsCmd[F]).replace(cmd.some)(s),
          SeqEvent.NullSeqEvent: SeqEvent
         )
     }.toHandle
@@ -596,7 +596,7 @@ object ObserveEngine {
       logDebugEvent(q, s"ObserveEngine: Setting Operator name to '$name' by ${user.username}") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            (EngineState.operator[F].set(name.some) >>> refreshSequences)
+            (EngineState.operator[F].replace(name.some) >>> refreshSequences)
               .withEvent(SetOperator(name, user.some))
               .toHandle
           )
@@ -614,8 +614,10 @@ object ObserveEngine {
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.sequences[F] ^|-? index(seqId))
-              .modify(SequenceData.observer.set(name.some)) >>>
+            (EngineState
+              .sequences[F]
+              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
+              .modify(SequenceData.observer.replace(name.some)) >>>
               refreshSequence(seqId)).withEvent(SetObserver(seqId, user.some, name)).toHandle
           )
         )
@@ -628,9 +630,11 @@ object ObserveEngine {
       clientId: ClientId
     ): EventType[F] = {
       val lens =
-        (EngineState.sequences[F] ^|-? index(sid))
-          .modify(SequenceData.observer.set(observer.some)) >>>
-          EngineState.instrumentLoadedL[F](i).set(sid.some) >>>
+        EngineState
+          .sequences[F]
+          .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
+          .modify(SequenceData.observer.replace(observer.some)) >>>
+          EngineState.instrumentLoadedL[F](i).replace(sid.some) >>>
           refreshSequence(sid)
       def testRunning(st: EngineState[F]): Boolean = (for {
         sels   <- st.selected.get(i)
@@ -679,7 +683,7 @@ object ObserveEngine {
           Event.modifyState[F, EngineState[F], SeqEvent](
             EngineState
               .selected[F]
-              .set(Map.empty)
+              .replace(Map.empty)
               .withEvent(ClearLoadedSequences(user.some))
               .toHandle
           )
@@ -689,7 +693,7 @@ object ObserveEngine {
       logDebugEvent(q, "ObserveEngine: Reset conditions") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            (EngineState.conditions[F].set(Conditions.Default) >>> refreshSequences)
+            (EngineState.conditions[F].replace(Conditions.Default) >>> refreshSequences)
               .withEvent(SetConditions(Conditions.Default, None))
               .toHandle
           )
@@ -703,7 +707,7 @@ object ObserveEngine {
       logDebugEvent(q, "ObserveEngine: Setting conditions") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            (EngineState.conditions[F].set(conditions) >>> refreshSequences)
+            (EngineState.conditions[F].replace(conditions) >>> refreshSequences)
               .withEvent(SetConditions(conditions, user.some))
               .toHandle
           )
@@ -713,7 +717,7 @@ object ObserveEngine {
       logDebugEvent(q, s"ObserveEngine: Setting image quality to $iq") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.conditions[F] ^|-> Conditions.iq).set(iq) >>> refreshSequences)
+            (EngineState.conditions[F].andThen(Conditions.iq).replace(iq) >>> refreshSequences)
               .withEvent(SetImageQuality(iq, user.some))
               .toHandle
           )
@@ -723,7 +727,7 @@ object ObserveEngine {
       logDebugEvent(q, s"ObserveEngine: Setting water vapor to $wv") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.conditions[F] ^|-> Conditions.wv).set(wv) >>> refreshSequences)
+            (EngineState.conditions[F].andThen(Conditions.wv).replace(wv) >>> refreshSequences)
               .withEvent(SetWaterVapor(wv, user.some))
               .toHandle
           )
@@ -733,7 +737,7 @@ object ObserveEngine {
       logDebugEvent(q, s"ObserveEngine: Setting sky background to $sb") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.conditions[F] ^|-> Conditions.sb).set(sb) >>> refreshSequences)
+            (EngineState.conditions[F].andThen(Conditions.sb).replace(sb) >>> refreshSequences)
               .withEvent(SetSkyBackground(sb, user.some))
               .toHandle
           )
@@ -743,7 +747,7 @@ object ObserveEngine {
       logDebugEvent(q, s"ObserveEngine: Setting cloud cover to $cc") *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.conditions[F] ^|-> Conditions.cc).set(cc) >>> refreshSequences)
+            (EngineState.conditions[F].andThen(Conditions.cc).replace(cc) >>> refreshSequences)
               .withEvent(SetCloudCover(cc, user.some))
               .toHandle
           )
@@ -822,10 +826,10 @@ object ObserveEngine {
         q.offer(Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(seqId)))
 
     private def queueO(qid: QueueId): Optional[EngineState[F], ExecutionQueue] =
-      EngineState.queues[F] ^|-? index(qid)
+      EngineState.queues[F].andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
 
     private def cmdStateO(qid: QueueId): Optional[EngineState[F], BatchCommandState] =
-      queueO(qid) ^|-> ExecutionQueue.cmdState
+      queueO(qid).andThen(ExecutionQueue.cmdState)
 
     private def addSeqs(
       qid:    QueueId,
@@ -850,8 +854,11 @@ object ObserveEngine {
           } yield executeEngine.modify(queueO(qid).modify(_.addSeqs(seqs))) *>
             ((q.cmdState, q.status(st)) match {
               case (_, BatchExecState.Completed)       =>
-                ((EngineState.queues[F] ^|-? index(qid) ^|-> ExecutionQueue.cmdState)
-                  .set(BatchCommandState.Idle) >>> {
+                (EngineState
+                  .queues[F]
+                  .andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
+                  .andThen(ExecutionQueue.cmdState)
+                  .replace(BatchCommandState.Idle) >>> {
                   (_, List.empty[(Observation.Id, StepId)])
                 }).toHandle
               case (BatchCommandState.Run(o, u, c), _) =>
@@ -976,14 +983,16 @@ object ObserveEngine {
       clientId: ClientId
     ): HandleType[F, Unit] = Handle(
       StateT[F, EngineState[F], (Unit, Option[Stream[F, EventType[F]]])] { st: EngineState[F] =>
-        (EngineState.sequences[F] ^|-? index(sid))
+        EngineState
+          .sequences[F]
+          .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
           .getOption(st)
           .map { obsseq =>
             (EngineState
               .sequences[F]
               .modify(_ + (sid -> obsseq.copy(observer = observer.some))) >>>
               refreshSequence(sid) >>>
-              EngineState.instrumentLoadedL[F](obsseq.seqGen.instrument).set(sid.some) >>> {
+              EngineState.instrumentLoadedL[F](obsseq.seqGen.instrument).replace(sid.some) >>> {
                 (_,
                  ((),
                   Stream[Pure, EventType[F]](
@@ -1074,8 +1083,13 @@ object ObserveEngine {
           .map {
             _.status(st) match {
               case BatchExecState.Idle | BatchExecState.Stopping =>
-                ((EngineState.queues[F] ^|-? index(qid) ^|-> ExecutionQueue.cmdState)
-                  .set(BatchCommandState.Run(observer, user, clientId)) >>> { (_, ()) }).toHandle *>
+                (EngineState
+                  .queues[F]
+                  .andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
+                  .andThen(ExecutionQueue.cmdState)
+                  .replace(BatchCommandState.Run(observer, user, clientId)) >>> {
+                  (_, ())
+                }).toHandle *>
                   runQueue(qid, observer, user, clientId)
               case _                                             => executeEngine.pure(List.empty)
             }
@@ -1111,10 +1125,10 @@ object ObserveEngine {
                 .map {
                   _.status(st) match {
                     case BatchExecState.Running =>
-                      (cmdStateO(qid).set(BatchCommandState.Stop) >>> { (_, ()) }).toHandle *>
+                      (cmdStateO(qid).replace(BatchCommandState.Stop) >>> { (_, ()) }).toHandle *>
                         stopSequencesInQueue(qid)
                     case BatchExecState.Waiting =>
-                      (cmdStateO(qid).set(BatchCommandState.Stop) >>> { (_, ()) }).toHandle
+                      (cmdStateO(qid).replace(BatchCommandState.Stop) >>> { (_, ()) }).toHandle
                     case _                      => executeEngine.unit
                   }
                 }
@@ -1296,9 +1310,12 @@ object ObserveEngine {
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.sequences[F] ^|-? index(seqId)).modify(SequenceData.overrides.modify {
-              x => if (enabled) x.enableTcs else x.disableTcs
-            }) >>>
+            (EngineState
+              .sequences[F]
+              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
+              .modify(SequenceData.overrides.modify { x =>
+                if (enabled) x.enableTcs else x.disableTcs
+              }) >>>
               refreshSequence(seqId)).withEvent(SetTcsEnabled(seqId, user.some, enabled)).toHandle
           )
         )
@@ -1315,9 +1332,12 @@ object ObserveEngine {
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.sequences[F] ^|-? index(seqId)).modify(SequenceData.overrides.modify {
-              x => if (enabled) x.enableGcal else x.disableGcal
-            }) >>>
+            (EngineState
+              .sequences[F]
+              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
+              .modify(SequenceData.overrides.modify { x =>
+                if (enabled) x.enableGcal else x.disableGcal
+              }) >>>
               refreshSequence(seqId)).withEvent(SetGcalEnabled(seqId, user.some, enabled)).toHandle
           )
         )
@@ -1334,9 +1354,12 @@ object ObserveEngine {
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.sequences[F] ^|-? index(seqId)).modify(SequenceData.overrides.modify {
-              x => if (enabled) x.enableInstrument else x.disableInstrument
-            }) >>>
+            (EngineState
+              .sequences[F]
+              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
+              .modify(SequenceData.overrides.modify { x =>
+                if (enabled) x.enableInstrument else x.disableInstrument
+              }) >>>
               refreshSequence(seqId))
               .withEvent(SetInstrumentEnabled(seqId, user.some, enabled))
               .toHandle
@@ -1355,9 +1378,12 @@ object ObserveEngine {
       ) *>
         q.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
-            ((EngineState.sequences[F] ^|-? index(seqId)).modify(SequenceData.overrides.modify {
-              x => if (enabled) x.enableDhs else x.disableDhs
-            }) >>>
+            (EngineState
+              .sequences[F]
+              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
+              .modify(SequenceData.overrides.modify { x =>
+                if (enabled) x.enableDhs else x.disableDhs
+              }) >>>
               refreshSequence(seqId)).withEvent(SetDhsEnabled(seqId, user.some, enabled)).toHandle
           )
         )
@@ -1631,11 +1657,11 @@ object ObserveEngine {
         case steps
             if Sequence.State.isRunning(st) && steps.forall(_.status =!= StepState.Running) =>
           val (xs, y :: ys) = splitWhere(steps)(_.status === StepState.Pending)
-          xs ++ (Step.status.set(StepState.Running)(y) :: ys)
+          xs ++ (Step.status.replace(StepState.Running)(y) :: ys)
         case steps
             if st.status === SequenceState.Idle && steps.exists(_.status === StepState.Running) =>
           val (xs, y :: ys) = splitWhere(steps)(_.status === StepState.Running)
-          xs ++ (Step.status.set(StepState.Paused)(y) :: ys)
+          xs ++ (Step.status.replace(StepState.Paused)(y) :: ys)
         case x   => x
       }
 

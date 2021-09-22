@@ -13,7 +13,7 @@ import cats.syntax.all._
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react.raw.JsNumber
+import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom.raw.MouseEvent
 import react.common._

@@ -32,7 +32,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
     PageActionP
       .getOption(action)
-      .map(p => InitialSyncFocus.location.set(p))
+      .map(p => InitialSyncFocus.location.replace(p))
       .getOrElse(identity)
 
   private val noUpdate: InitialSyncFocus => InitialSyncFocus = identity
@@ -100,7 +100,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
           // No matches
           (noUpdate, VoidEffect)
       }
-      updatedLE(InitialSyncFocus.firstLoad.set(false) >>> update,
+      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> update,
                 Effect(Future(CleanSequences)) >> effect
       )
   }

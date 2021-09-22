@@ -8,15 +8,20 @@ import cats.syntax.all._
 import monocle.Getter
 import monocle.Optional
 import monocle.Traversal
-import monocle.function.At.at
+import monocle.function.At.atSortedMap
 import monocle.macros.Lenses
 import monocle.std
-import observe.model.BatchCommandState
-import observe.model.ExecutionQueueView
-import observe.model.QueueId
-import observe.model.SequencesQueue
+import observe.model.{
+  BatchCommandState,
+  ExecutionQueueView,
+  QueueId,
+  SequenceView,
+  SequencesQueue
+}
 import observe.model.enum.BatchExecState
 import observe.web.client.model._
+
+import scala.collection.immutable.SortedMap
 
 @Lenses
 final case class CalQueueControlFocus(
@@ -33,27 +38,25 @@ object CalQueueControlFocus {
     Eq.by(x => (x.canOperate, x.state, x.execState, x.ops, x.queueSize, x.selectedSeq))
 
   val allQueues: Getter[ObserveAppRootModel, Int] =
-    (ObserveAppRootModel.sequences ^|-> SequencesQueue.queues).asGetter >>> {
-      _.foldMap(_.queue.size)
-    }
+    ObserveAppRootModel.sequences
+      .andThen(SequencesQueue.queues[SequenceView])
+      .andThen(Getter[SortedMap[QueueId, ExecutionQueueView], Int](_.foldMap(_.queue.size)))
 
   def optQueue(id: QueueId): Optional[ObserveAppRootModel, QueueOperations] =
-    ObserveAppRootModel.uiModel ^|->
-      ObserveUIModel.queues ^|->
-      CalibrationQueues.queues ^|->
-      at(id) ^<-?
-      std.option.some ^|->
-      CalQueueState.ops
+    ObserveAppRootModel.uiModel
+      .andThen(ObserveUIModel.queues)
+      .andThen(CalibrationQueues.queues)
+      .andThen(atSortedMap[QueueId, CalQueueState].at(id))
+      .andThen(std.option.some[CalQueueState])
+      .andThen(CalQueueState.ops)
 
   def cmdStateT(
     id: QueueId
   ): Traversal[ObserveAppRootModel, BatchCommandState] =
-    ObserveAppRootModel.executionQueuesT(id) ^|->
-      ExecutionQueueView.cmdState
+    ObserveAppRootModel.executionQueuesT(id).andThen(ExecutionQueueView.cmdState)
 
   def execStateT(id: QueueId): Traversal[ObserveAppRootModel, BatchExecState] =
-    ObserveAppRootModel.executionQueuesT(id) ^|->
-      ExecutionQueueView.execState
+    ObserveAppRootModel.executionQueuesT(id).andThen(ExecutionQueueView.execState)
 
   def queueControlG(
     id: QueueId
@@ -71,6 +74,6 @@ object CalQueueControlFocus {
       case (status, (Some(c), (Some(s), (Some(e), (qs, f))))) =>
         CalQueueControlFocus(status, s, e, c, qs, f.length).some
       case _                                                  =>
-        none
+        none[CalQueueControlFocus]
     }
 }

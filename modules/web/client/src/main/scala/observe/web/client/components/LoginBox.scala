@@ -63,20 +63,20 @@ object LoginBox {
     def pwdMod(e: ReactEventFromInput): CallbackTo[Unit] = {
       // Capture the value outside setState, react reuses the events
       val v = e.target.value
-      b.modState(State.password.set(v))
+      b.modState(State.password.replace(v))
     }
 
     def userMod(e: ReactEventFromInput): CallbackTo[Unit] = {
       val v = e.target.value
-      b.modState(State.username.set(v))
+      b.modState(State.username.replace(v))
     }
 
     def loggedInEvent(u:     UserDetails): Callback =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(LoggedIn(u))
     def updateProgressMsg(m: String): Callback      =
-      b.modState(State.progressMsg.set(m.some) >>> State.errorMsg.set(none))
+      b.modState(State.progressMsg.replace(m.some) >>> State.errorMsg.replace(none))
     def updateErrorMsg(m:    String): Callback      =
-      b.modState(State.errorMsg.set(m.some) >>> State.progressMsg.set(none))
+      b.modState(State.errorMsg.replace(m.some) >>> State.progressMsg.replace(none))
     def closeBox: Callback =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 

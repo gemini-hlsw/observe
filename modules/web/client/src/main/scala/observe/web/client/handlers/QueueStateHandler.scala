@@ -24,28 +24,28 @@ class QueueStateHandler[M](modelRW: ModelRW[M, CalibrationQueues])
   override def handle: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.Started(qid), _)) =>
       updatedL(
-        CalibrationQueues.calLastOpO(qid).set(m.some) >>>
-          CalibrationQueues.runCalL(qid).set(RunCalOperation.RunCalIdle)
+        CalibrationQueues.calLastOpO(qid).replace(m.some) >>>
+          CalibrationQueues.runCalL(qid).replace(RunCalOperation.RunCalIdle)
       )
 
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.Stopped(qid), _)) =>
       updatedL(
-        CalibrationQueues.calLastOpO(qid).set(m.some) >>>
-          CalibrationQueues.stopCalL(qid).set(StopCalOperation.StopCalIdle)
+        CalibrationQueues.calLastOpO(qid).replace(m.some) >>>
+          CalibrationQueues.stopCalL(qid).replace(StopCalOperation.StopCalIdle)
       )
 
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.AddedSeqs(qid, _), _)) =>
-      updatedL(CalibrationQueues.calLastOpO(qid).set(m.some))
+      updatedL(CalibrationQueues.calLastOpO(qid).replace(m.some))
 
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.Clear(qid), _)) =>
-      updatedL(CalibrationQueues.calLastOpO(qid).set(m.some))
+      updatedL(CalibrationQueues.calLastOpO(qid).replace(m.some))
 
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.Moved(qid, _, _, _), _)) =>
-      updatedL(CalibrationQueues.calLastOpO(qid).set(m.some))
+      updatedL(CalibrationQueues.calLastOpO(qid).replace(m.some))
 
     case ServerMessage(QueueUpdated(m @ QueueManipulationOp.RemovedSeqs(qid, seqs, _), _)) =>
       updatedL(
-        CalibrationQueues.calLastOpO(qid).set(m.some) >>> CalibrationQueues
+        CalibrationQueues.calLastOpO(qid).replace(m.some) >>> CalibrationQueues
           .removeSeqOps(qid, seqs)
       )
   }

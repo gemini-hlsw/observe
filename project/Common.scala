@@ -12,14 +12,11 @@ object Common {
     initialCommands += "jline.TerminalFactory.get.init\n",
     Compile / doc / scalacOptions ++= Seq(
       "-groups",
-      "-sourcepath",
-      (LocalRootProject / baseDirectory).value.getAbsolutePath,
-      "-skip-packages",
-      "scalaz",
-      "-doc-title",
-      "Gem",
-      "-doc-version",
-      version.value
+      "-sourcepath", (LocalRootProject/baseDirectory).value.getAbsolutePath,
+      "-skip-packages", "scalaz",
+      "-doc-title", "Gem",
+      "-doc-version", version.value,
+      "-Xfatal-warnings"
     ),
     // Common libraries
     libraryDependencies += TestLibs.value,

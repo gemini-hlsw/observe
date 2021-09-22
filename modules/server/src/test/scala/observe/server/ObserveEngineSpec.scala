@@ -43,7 +43,7 @@ import observe.model.{
 }
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
-import monocle.Monocle._
+import monocle.function.Index.mapIndex
 import observe.common.test.stepId
 import observe.engine.EventResult.{ Outcome, UserCommandResponse }
 import observe.model.dhs.DataId
@@ -75,7 +75,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setImageQuality(q, iq, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.iq).get)) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.iq).get)) { case Some(op) =>
       op shouldBe iq
     }).unsafeRunSync()
 
@@ -87,7 +87,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setWaterVapor(q, wv, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.wv).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.wv).get(_))) { case Some(op) =>
       op shouldBe wv
     }).unsafeRunSync()
   }
@@ -98,7 +98,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setCloudCover(q, cc, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.cc).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.cc).get(_))) { case Some(op) =>
       op shouldBe cc
     }).unsafeRunSync()
   }
@@ -109,7 +109,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setSkyBackground(q, sb, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.sb).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.sb).get(_))) { case Some(op) =>
       op shouldBe sb
     }).unsafeRunSync()
   }
@@ -124,7 +124,12 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf <-
         advanceN(q, s0, observeEngine.setObserver(q, seqObsId1, UserDetails("", ""), observer), 2)
     } yield inside(
-      sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption).flatMap(_.observer)
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      ).flatMap(_.observer)
     ) { case Some(op) =>
       op shouldBe observer
     }).unsafeRunSync()
@@ -141,8 +146,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -170,8 +177,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -200,11 +209,17 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Started))(
+        s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -214,17 +229,25 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sequenceWithResources(seqObsId1, Instrument.F2, Set(Instrument.F2, TCS)),
       executeEngine
     ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Idle))(
+        s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -239,8 +262,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -248,11 +273,17 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
                        s0,
                        observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
             )
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId2))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Idle))(
+        s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -267,8 +298,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -276,11 +309,17 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
                        s0,
                        observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
             )
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId2))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Started))(
+        s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -319,8 +358,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init)).apply(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
 
     val runStepId = stepId(2)
 
@@ -762,10 +803,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.iq).set(ImageQuality.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.wv).set(WaterVapor.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.sb).set(SkyBackground.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.cc).set(CloudCover.Percent50))
+      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {
@@ -790,10 +831,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.iq).set(ImageQuality.Percent70) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.wv).set(WaterVapor.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.sb).set(SkyBackground.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.cc).set(CloudCover.Percent50))
+      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
+      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {
@@ -827,10 +868,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.iq).set(ImageQuality.Percent70) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.wv).set(WaterVapor.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.sb).set(SkyBackground.Percent20) >>>
-      (EngineState.conditions[IO] ^|-> Conditions.cc).set(CloudCover.Percent50))
+      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
+      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {

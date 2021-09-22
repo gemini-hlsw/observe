@@ -14,11 +14,19 @@ import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import observe.engine._
-import observe.model.{ Conditions, Observer, Operator, SequenceState, StepState, UserDetails }
+import observe.model.{
+  Conditions,
+  Observation,
+  Observer,
+  Operator,
+  SequenceState,
+  StepState,
+  UserDetails
+}
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import observe.server.TestCommon._
-import monocle.Monocle._
+import monocle.function.Index.mapIndex
 import observe.common.test.stepId
 
 class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions {
@@ -164,7 +172,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setImageQuality(q, iq, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.iq).get)) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.iq).get)) { case Some(op) =>
       op shouldBe iq
     }).unsafeRunSync()
 
@@ -176,7 +184,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setWaterVapor(q, wv, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.wv).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.wv).get(_))) { case Some(op) =>
       op shouldBe wv
     }).unsafeRunSync()
   }
@@ -187,7 +195,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setCloudCover(q, cc, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.cc).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.cc).get(_))) { case Some(op) =>
       op shouldBe cc
     }).unsafeRunSync()
   }
@@ -198,7 +206,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setSkyBackground(q, sb, UserDetails("", "")), 2)
-    } yield inside(sf.map((EngineState.conditions ^|-> Conditions.sb).get(_))) { case Some(op) =>
+    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.sb).get(_))) { case Some(op) =>
       op shouldBe sb
     }).unsafeRunSync()
   }
@@ -213,7 +221,12 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sf <-
         advanceN(q, s0, observeEngine.setObserver(q, seqObsId1, UserDetails("", ""), observer), 2)
     } yield inside(
-      sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption).flatMap(_.observer)
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      ).flatMap(_.observer)
     ) { case Some(op) =>
       op shouldBe observer
     }).unsafeRunSync()
@@ -230,8 +243,10 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -257,8 +272,10 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -285,11 +302,17 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Started))(
+        s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -299,17 +322,25 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sequenceWithResources(seqObsId1, Instrument.F2, Set(Instrument.F2, TCS)),
       executeEngine
     ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, stepId(1), TCS, clientId))
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId1)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId1))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Idle))(
+        s.seqGen.configActionCoord(stepId(1), TCS).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -324,8 +355,10 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -333,11 +366,17 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
                        s0,
                        observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
             )
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Idle))(
-          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId2))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Idle))(
+        s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -352,8 +391,10 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
@@ -361,11 +402,17 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
                        s0,
                        observeEngine.configSystem(q, seqObsId2, stepId(1), Instrument.F2, clientId)
             )
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
-      case Some(s) =>
-        assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
-        )
+    } yield inside(
+      sf.flatMap(
+        EngineState
+          .sequences[IO]
+          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId2))
+          .getOption
+      )
+    ) { case Some(s) =>
+      assertResult(Some(Action.ActionState.Started))(
+        s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
+      )
     }).unsafeRunSync()
   }
 
@@ -404,8 +451,10 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         sequenceWithResources(seqObsId2, Instrument.F2, Set(Instrument.F2)),
         executeEngine
       ) >>>
-      (EngineState.sequenceStateIndex[IO](seqObsId1) ^|-> Sequence.State.status)
-        .set(SequenceState.Running.init))(EngineState.default[IO])
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .andThen(Sequence.State.status[IO])
+        .replace(SequenceState.Running.init))(EngineState.default[IO])
 
     val runStepId = stepId(2)
 

@@ -81,46 +81,56 @@ class TcsNorthControllerEpicsAoSpec extends AnyFlatSpec with PrivateMethodTester
     TcsNorthControllerEpicsAo.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        (AoTcsConfig
-          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig] ^|-> TelescopeConfig.offsetA)
-          .set(
+        AoTcsConfig
+          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
+          .andThen(TelescopeConfig.offsetA)
+          .replace(
             InstrumentOffset(
               tag[OffsetP](niriAoThreshold * 2.0),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          (AoTcsConfig.gc ^|-> TelescopeGuideConfig.m2Guide).set(
-            M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.GAOS))
-          ) >>>
-          (AoTcsConfig.gds ^|-> AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide]).set(
-            tag[AoGuide](
-              GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
-            )
-          ) >>>
-          AoTcsConfig.inst.set(DummyInstrument(none))
+          AoTcsConfig.gc
+            .andThen(TelescopeGuideConfig.m2Guide)
+            .replace(
+              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.GAOS))
+            ) >>>
+          AoTcsConfig.gds
+            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+            .replace(
+              tag[AoGuide](
+                GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
+              )
+            ) >>>
+          AoTcsConfig.inst.replace(DummyInstrument(none))
       )(baseConfig)
     ) shouldBe true
 
     TcsNorthControllerEpicsAo.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        (AoTcsConfig
-          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig] ^|-> TelescopeConfig.offsetA)
-          .set(
+        AoTcsConfig
+          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
+          .andThen(TelescopeConfig.offsetA)
+          .replace(
             InstrumentOffset(
               tag[OffsetP](niriAoThreshold * 2.0),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          (AoTcsConfig.gc ^|-> TelescopeGuideConfig.m1Guide).set(
-            M1GuideConfig.M1GuideOn(M1Source.GAOS)
-          ) >>>
-          (AoTcsConfig.gds ^|-> AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide]).set(
-            tag[AoGuide](
-              GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
-            )
-          ) >>>
-          AoTcsConfig.inst.set(DummyInstrument(none))
+          AoTcsConfig.gc
+            .andThen(TelescopeGuideConfig.m1Guide)
+            .replace(
+              M1GuideConfig.M1GuideOn(M1Source.GAOS)
+            ) >>>
+          AoTcsConfig.gds
+            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+            .replace(
+              tag[AoGuide](
+                GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
+              )
+            ) >>>
+          AoTcsConfig.inst.replace(DummyInstrument(none))
       )(baseConfig)
     ) shouldBe true
 
@@ -128,23 +138,28 @@ class TcsNorthControllerEpicsAoSpec extends AnyFlatSpec with PrivateMethodTester
     TcsNorthControllerEpicsAo.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        (AoTcsConfig
-          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig] ^|-> TelescopeConfig.offsetA)
-          .set(
+        AoTcsConfig
+          .tc[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
+          .andThen(TelescopeConfig.offsetA)
+          .replace(
             InstrumentOffset(
               tag[OffsetP](niriAoThreshold / 2.0),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          (AoTcsConfig.gc ^|-> TelescopeGuideConfig.m2Guide).set(
-            M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.GAOS))
-          ) >>>
-          (AoTcsConfig.gds ^|-> AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide]).set(
-            tag[AoGuide](
-              GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
-            )
-          ) >>>
-          AoTcsConfig.inst.set(DummyInstrument(none))
+          AoTcsConfig.gc
+            .andThen(TelescopeGuideConfig.m2Guide)
+            .replace(
+              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.GAOS))
+            ) >>>
+          AoTcsConfig.gds
+            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+            .replace(
+              tag[AoGuide](
+                GuiderConfig(ProbeTrackingConfig.On(NodChopTrackingConfig.Normal), GuiderSensorOn)
+              )
+            ) >>>
+          AoTcsConfig.inst.replace(DummyInstrument(none))
       )(baseConfig)
     ) shouldBe false
 

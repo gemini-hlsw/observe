@@ -6,8 +6,8 @@ package observe.web.client.components
 import scala.concurrent.duration._
 import cats.Eq
 import cats.syntax.all._
-import japgolly.scalajs.react.CatsReact._
-import japgolly.scalajs.react.MonocleReact._
+import japgolly.scalajs.react.ReactCats._
+import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.StateSnapshot
 import japgolly.scalajs.react.extra.TimerSupport
@@ -238,14 +238,14 @@ object HeadersSideBar {
       sOpt.fold(State(operator, observer)) { s =>
         Function.chain(
           List(
-            State.operator.set(operator),
-            State.prevOperator.set(operator)
+            State.operator.replace(operator),
+            State.prevOperator.replace(operator)
           ).some
             .filter(_ => (operator =!= s.prevOperator) && operator.nonEmpty)
             .orEmpty :::
             List(
-              State.observer.set(observer),
-              State.prevObserver.set(observer)
+              State.observer.replace(observer),
+              State.prevObserver.replace(observer)
             ).some
               .filter(_ => (observer =!= s.prevObserver) && observer.nonEmpty)
               .orEmpty
