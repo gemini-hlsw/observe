@@ -30,7 +30,7 @@ object Settings {
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
-    val catsTime            = "0.3.4"
+    val catsTime            = "0.4.0"
 
     val http4sVersion  = "1.0.0-M23"
     val squants        = "1.8.2"
