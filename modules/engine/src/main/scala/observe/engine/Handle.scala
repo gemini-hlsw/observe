@@ -11,14 +11,11 @@ import cats.syntax.all._
 import fs2.Stream
 
 /**
- * Type constructor where all Observe side effect are managed.
- * Handle is a State machine inside a F, which can produce Streams as output. It is combined with the
- * input stream to run observe engine.
+ * Type constructor where all Observe side effect are managed. Handle is a State machine inside a F,
+ * which can produce Streams as output. It is combined with the input stream to run observe engine.
  *
- * Its type parameters are:
- * A: Type of the output (usually Unit)
- * V: Type of the events
- * D: Type of the state machine state.
+ * Its type parameters are: A: Type of the output (usually Unit) V: Type of the events D: Type of
+ * the state machine state.
  */
 final case class Handle[F[_], D, V, A](run: StateT[F, D, (A, Option[Stream[F, V]])])
 
@@ -100,7 +97,7 @@ object Handle {
       )
   }
 
-  implicit class StateToHandle[F[_]: Functor, D, V, A](self: StateT[F, D, A]) {
+  implicit class StateToHandle[F[_]: Functor, D, V, A](self: StateT[F, D, A])     {
     def toHandle: Handle[F, D, V, A] = Handle(self.map((_, None)))
   }
 

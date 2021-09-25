@@ -25,27 +25,27 @@ trait ArbNotification {
     } yield ResourceConflict(idName)
   }
 
-  implicit val rcCogen: Cogen[ResourceConflict] =
+  implicit val rcCogen: Cogen[ResourceConflict]   =
     Cogen[Observation.IdName].contramap(_.sidName)
 
-  implicit val rfArb: Arbitrary[RequestFailed] = Arbitrary[RequestFailed] {
+  implicit val rfArb: Arbitrary[RequestFailed]    = Arbitrary[RequestFailed] {
     arbitrary[List[String]].map(RequestFailed.apply)
   }
 
-  implicit val rfCogen: Cogen[RequestFailed] =
+  implicit val rfCogen: Cogen[RequestFailed]      =
     Cogen[List[String]].contramap(_.msgs)
 
-  implicit val inArb: Arbitrary[InstrumentInUse] = Arbitrary[InstrumentInUse] {
+  implicit val inArb: Arbitrary[InstrumentInUse]  = Arbitrary[InstrumentInUse] {
     for {
       id <- arbitrary[Observation.IdName]
       i  <- arbitrary[Instrument]
     } yield InstrumentInUse(id, i)
   }
 
-  implicit val inCogen: Cogen[InstrumentInUse] =
+  implicit val inCogen: Cogen[InstrumentInUse]    =
     Cogen[(Observation.IdName, Instrument)].contramap(x => (x.sidName, x.ins))
 
-  implicit val subsArb: Arbitrary[SubsystemBusy] = Arbitrary[SubsystemBusy] {
+  implicit val subsArb: Arbitrary[SubsystemBusy]  = Arbitrary[SubsystemBusy] {
     for {
       id <- arbitrary[Observation.IdName]
       i  <- arbitrary[StepId]
@@ -53,10 +53,10 @@ trait ArbNotification {
     } yield SubsystemBusy(id, i, r)
   }
 
-  implicit val subsCogen: Cogen[SubsystemBusy] =
+  implicit val subsCogen: Cogen[SubsystemBusy]    =
     Cogen[(Observation.IdName, StepId, Resource)].contramap(x => (x.sidName, x.stepId, x.resource))
 
-  implicit val notArb: Arbitrary[Notification] = Arbitrary[Notification] {
+  implicit val notArb: Arbitrary[Notification]    = Arbitrary[Notification] {
     for {
       r <- arbitrary[ResourceConflict]
       a <- arbitrary[InstrumentInUse]
@@ -66,7 +66,7 @@ trait ArbNotification {
     } yield s
   }
 
-  implicit val notCogen: Cogen[Notification] =
+  implicit val notCogen: Cogen[Notification]      =
     Cogen[Either[ResourceConflict, Either[InstrumentInUse, Either[RequestFailed, SubsystemBusy]]]]
       .contramap {
         case r: ResourceConflict => Left(r)

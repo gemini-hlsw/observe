@@ -22,9 +22,9 @@ import squants.time.Seconds
 
 class SeqTranslateSpec extends TestCommon {
 
-  private val config: CleanConfig = CleanConfig.empty
-  private val fileId              = "DummyFileId"
-  private val seqIdName           =
+  private val config: CleanConfig                                                     = CleanConfig.empty
+  private val fileId                                                                  = "DummyFileId"
+  private val seqIdName                                                               =
     Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-1-1"))
   private def observeActions(state: Action.ActionState[IO]): NonEmptyList[Action[IO]] =
     NonEmptyList.one(
@@ -34,7 +34,7 @@ class SeqTranslateSpec extends TestCommon {
       )
     )
 
-  private val seqg = SequenceGen(
+  private val seqg                                                                    = SequenceGen(
     seqIdName.id,
     seqIdName.name,
     "",
@@ -53,7 +53,7 @@ class SeqTranslateSpec extends TestCommon {
     )
   )
 
-  private val baseState: EngineState[IO] =
+  private val baseState: EngineState[IO]                                              =
     (ODBSequencesLoader.loadSequenceEndo[IO](seqIdName.id, seqg, executeEngine) >>>
       EngineState
         .sequenceStateIndex[IO](seqIdName.id)
@@ -99,7 +99,7 @@ class SeqTranslateSpec extends TestCommon {
     .sequenceStateIndex[IO](seqIdName.id)
     .modify(_.mark(0)(Result.OKAborted(Response.Aborted(toImageFileId(fileId)))))(baseState)
 
-  private val translator = SeqTranslate(Site.GS, defaultSystems).unsafeRunSync()
+  private val translator          = SeqTranslate(Site.GS, defaultSystems).unsafeRunSync()
 
   "SeqTranslate" should "trigger stopObserve command only if exposure is in progress" in {
     assert(translator.stopObserve(seqIdName.id, graceful = false).apply(s0).isDefined)

@@ -188,11 +188,11 @@ trait ModelLenses {
 
   def stepObserveOptional[A](
     systemName: SystemName,
-    param: String,
-    prism: Prism[String, A]
+    param:      String,
+    prism:      Prism[String, A]
   ): Optional[Step, A] =
     Step.config
-      .andThen(       // configuration of the step
+      .andThen( // configuration of the step
         configParamValueO(systemName, param)
       )
       .andThen(prism) // step type

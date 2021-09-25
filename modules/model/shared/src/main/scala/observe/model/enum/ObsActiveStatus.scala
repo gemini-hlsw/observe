@@ -10,9 +10,9 @@ import lucuma.core.util.Display
 import monocle.Iso
 
 /**
- * Determines whether an observation should be considered active.  It, for
- * example, "allows PIs to prevent or halt execution of "Ready'' or "Ongoing''
- * observations while retaining their status information".
+ * Determines whether an observation should be considered active. It, for example, "allows PIs to
+ * prevent or halt execution of "Ready'' or "Ongoing'' observations while retaining their status
+ * information".
  */
 sealed abstract class ObsActiveStatus(val label: String, val toBoolean: Boolean)
     extends Product
@@ -38,7 +38,7 @@ object ObsActiveStatus {
       Inactive
     )
 
-  implicit val DisplayObsActiveStatus: Display[ObsActiveStatus] =
+  implicit val DisplayObsActiveStatus: Display[ObsActiveStatus]       =
     Display.byShortName(_.label)
 
   val FromBoolean: Iso[Boolean, ObsActiveStatus] =

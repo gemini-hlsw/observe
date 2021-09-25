@@ -28,16 +28,16 @@ object ConfigUtilOps {
 
   /**
    * ExtractFailures are failures that occur when information cannot be extracted correctly.
-   * 1. KeyNotFound should be used when an expected key is absent.
-   * 2. ConversionError occurs when the given item was found in the step configuration, but cannot
-   *   be read as the requested type.
-   * 3. ContentError occurs when there is a logical error in the contents of a step configuration.
-   *   A typical example would be when the value of one item implies the presence of another, which is missing.
+   *   1. KeyNotFound should be used when an expected key is absent. 2. ConversionError occurs when
+   *      the given item was found in the step configuration, but cannot be read as the requested
+   *      type. 3. ContentError occurs when there is a logical error in the contents of a step
+   *      configuration. A typical example would be when the value of one item implies the presence
+   *      of another, which is missing.
    */
   sealed trait ExtractFailure
-  final case class KeyNotFound(key: ItemKey) extends ExtractFailure
+  final case class KeyNotFound(key: ItemKey)                  extends ExtractFailure
   final case class ConversionError(key: ItemKey, msg: String) extends ExtractFailure
-  final case class ContentError(msg: String) extends ExtractFailure
+  final case class ContentError(msg: String)                  extends ExtractFailure
 
   def explain(e: ExtractFailure): String = e match {
     case KeyNotFound(k)          => s"Missing config value for key ${k.getPath}"
@@ -67,11 +67,11 @@ object ConfigUtilOps {
     def /(p: PropertyDescriptor): ItemKey = /(p.getName)
   }
 
-  trait ExtractItem[A] {
+  trait ExtractItem[A]                                                                       {
     def itemValue(a: A, key: ItemKey): Option[AnyRef]
   }
 
-  implicit val ConfigExtractItem: ExtractItem[Config]                 =
+  implicit val ConfigExtractItem: ExtractItem[Config] =
     (c: Config, key: ItemKey) => Option(c.getItemValue(key))
 
   implicit val ConfigSequenceExtractItem: ExtractItem[ConfigSequence] =

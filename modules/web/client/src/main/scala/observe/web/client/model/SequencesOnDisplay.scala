@@ -194,7 +194,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
         // PreviewSequenceTab.tableState.modify(tsUpd) >>>
         PreviewSequenceTab.currentSequence.replace(s) >>>
           PreviewSequenceTab.stepConfig.replace(None)
-      val q      = withPreviewTab(s).tabs
+      val q = withPreviewTab(s).tabs
         .findFocus(_.isPreview)
         .map(_.modify(ObserveTab.previewTab.modify(update)))
       q
@@ -404,17 +404,18 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
 }
 
 /**
- * Contains the sequences displayed on the instrument tabs. Note that they are references to sequences on the Queue
+ * Contains the sequences displayed on the instrument tabs. Note that they are references to
+ * sequences on the Queue
  */
 object SequencesOnDisplay {
   // We need to initialize the model with something so we use preview
-  val Empty: SequencesOnDisplay =
+  val Empty: SequencesOnDisplay                                                     =
     SequencesOnDisplay(Zipper.fromNel[ObserveTab](NonEmptyList.of(CalibrationQueueTab.Empty)))
 
-  implicit val eq: Eq[SequencesOnDisplay] =
+  implicit val eq: Eq[SequencesOnDisplay]                                           =
     Eq.by(_.tabs)
 
-  private def previewMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
+  private def previewMatch(id: Observation.Id)(tab: ObserveTab): Boolean            =
     tab match {
       case PreviewSequenceTab(curr, _, _, _) => curr.idName.id === id
       case _                                 => false
@@ -433,7 +434,7 @@ object SequencesOnDisplay {
       case _                                                    => false
     }
 
-  private def sequenceMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
+  private def sequenceMatch(id: Observation.Id)(tab: ObserveTab): Boolean           =
     tab match {
       case t: InstrumentSequenceTab => t.obsIdName.id === id
       case t: PreviewSequenceTab    => t.obsIdName.id === id
@@ -473,7 +474,7 @@ object SequencesOnDisplay {
       )
       .andThen(ObserveTab.sequenceTab)
 
-  val previewTab: Traversal[SequencesOnDisplay, PreviewSequenceTab] =
+  val previewTab: Traversal[SequencesOnDisplay, PreviewSequenceTab]    =
     SequencesOnDisplay.tabs
       .andThen(Zipper.unsafeSelect[ObserveTab](_.isPreview))
       .andThen(ObserveTab.previewTab)
@@ -491,7 +492,7 @@ object SequencesOnDisplay {
       .andThen(Zipper.unsafeSelect(instrumentMatch(i)))
       .andThen(ObserveTab.instrumentTab)
 
-  private def instrumentTab(tab: ObserveTab): Boolean =
+  private def instrumentTab(tab: ObserveTab): Boolean                  =
     tab match {
       case _: InstrumentSequenceTab => true
       case _                        => false
@@ -502,7 +503,7 @@ object SequencesOnDisplay {
       .andThen(Zipper.unsafeSelect(instrumentTab))
       .andThen(ObserveTab.instrumentTab)
 
-  private def sequenceTab(tab: ObserveTab): Boolean =
+  private def sequenceTab(tab: ObserveTab): Boolean                        =
     tab match {
       case _: InstrumentSequenceTab => true
       case _: PreviewSequenceTab    => true
@@ -514,7 +515,7 @@ object SequencesOnDisplay {
       .andThen(Zipper.unsafeSelect(sequenceTab))
       .andThen(ObserveTab.sequenceTab)
 
-  private def completedTab(tab: ObserveTab): Boolean =
+  private def completedTab(tab: ObserveTab): Boolean           =
     tab match {
       case t: InstrumentSequenceTab => t.isComplete
       case _                        => false

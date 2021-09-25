@@ -80,7 +80,7 @@ final class ODBSequencesLoader[F[_]: Async](
       .flatten
   }
 
-  private def explain(err: Throwable): String =
+  private def explain(err: Throwable): String                  =
     err match {
       case s: ObserveFailure => ObserveFailure.explain(s)
       case _                 => ObserveFailure.explain(ObserveException(err))

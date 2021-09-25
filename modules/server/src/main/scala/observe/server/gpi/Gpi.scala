@@ -67,7 +67,7 @@ final case class Gpi[F[_]: Temporal: Logger](controller: GpiController[F])
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]]                      =
     if (Gpi.isAlignAndCalib(config)) {
       controller.alignAndCalib.as(ConfigResult(this))
     } else {
@@ -77,12 +77,12 @@ final case class Gpi[F[_]: Temporal: Logger](controller: GpiController[F])
         .as(ConfigResult(this))
     }
 
-  override def notifyObserveEnd: F[Unit] =
+  override def notifyObserveEnd: F[Unit]                                               =
     controller.endObserve
 
-  override def notifyObserveStart: F[Unit] = Applicative[F].unit
+  override def notifyObserveStart: F[Unit]                                             = Applicative[F].unit
 
-  override def calcObserveTime(config: CleanConfig): F[Time] =
+  override def calcObserveTime(config: CleanConfig): F[Time]                =
     MonadError[F, Throwable].catchNonFatal {
       val obsTime =
         for {
@@ -108,7 +108,7 @@ final case class Gpi[F[_]: Temporal: Logger](controller: GpiController[F])
 object Gpi {
   val name: String = INSTRUMENT_NAME_PROP
 
-  private def gpiAoFlags(config: CleanConfig): Either[ExtractFailure, AOFlags] =
+  private def gpiAoFlags(config: CleanConfig): Either[ExtractFailure, AOFlags]   =
     for {
       useAo      <- config.extractInstAs[JBoolean](USE_AO_PROP)
       useCal     <- config.extractInstAs[JBoolean](USE_CAL_PROP)
@@ -234,7 +234,7 @@ object Gpi {
       )
     ).widenRethrowT.widen[GpiConfig]
 
-  private def alignAndCalibConfig[F[_]: Applicative]: F[GpiConfig] =
+  private def alignAndCalibConfig[F[_]: Applicative]: F[GpiConfig]             =
     AlignAndCalibConfig.pure[F].widen[GpiConfig]
 
   def fromSequenceConfig[F[_]: MonadError[*[_], Throwable]](config: CleanConfig): F[GpiConfig] =

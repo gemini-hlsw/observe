@@ -56,7 +56,7 @@ class TcsNorthControllerEpicsAoSpec extends AnyFlatSpec with PrivateMethodTester
     ProbeTrackingConfig.Off
   )
 
-  private val baseConfig = AoTcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig](
+  private val baseConfig        = AoTcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig](
     TelescopeGuideConfig(MountGuideOption.MountGuideOff,
                          M1GuideConfig.M1GuideOff,
                          M2GuideConfig.M2GuideOff

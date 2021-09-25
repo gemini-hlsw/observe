@@ -59,7 +59,7 @@ object CalQueueFocus {
       .andThen(ObserveUIModel.appTableStates)
       .andThen(AppTableStates.queueTableAtL(id))
 
-  private def seqOpsL(id: QueueId) =
+  private def seqOpsL(id: QueueId)  =
     ObserveAppRootModel.uiModel
       .andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.calStateSeqOpsT(id))

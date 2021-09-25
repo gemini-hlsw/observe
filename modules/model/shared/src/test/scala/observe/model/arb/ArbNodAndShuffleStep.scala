@@ -20,7 +20,7 @@ import observe.model.arb.ArbNSRunningState._
 import squants._
 
 trait ArbNodAndShuffleStep {
-  implicit val nssArb = Arbitrary[NodAndShuffleStatus] {
+  implicit val nssArb                                                   = Arbitrary[NodAndShuffleStatus] {
     for {
       as <- arbitrary[ActionStatus]
       t  <- arbitrary[Time]
@@ -30,7 +30,7 @@ trait ArbNodAndShuffleStep {
     } yield NodAndShuffleStatus(as, t, n, c, s)
   }
 
-  implicit val nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
+  implicit val nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus]     =
     Cogen[(ActionStatus, Time, Time, Int)].contramap { x =>
       (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles)
     }
@@ -40,7 +40,7 @@ trait ArbNodAndShuffleStep {
       Gen.oneOf(List(PauseGracefully, StopGracefully))
     )
 
-  implicit val nodShuffleStepArb = Arbitrary[NodAndShuffleStep] {
+  implicit val nodShuffleStepArb                                        = Arbitrary[NodAndShuffleStep] {
     for {
       id <- arbitrary[StepId]
       c  <- stepConfigGen
@@ -63,7 +63,7 @@ trait ArbNodAndShuffleStep {
     )
   }
 
-  implicit val nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
+  implicit val nodShuffleStepCogen: Cogen[NodAndShuffleStep]            =
     Cogen[
       (
         StepId,

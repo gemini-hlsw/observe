@@ -58,7 +58,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       s <- r.map(_.status).pure[IO]
       k <- r.map(_.cookies).orEmpty.pure[IO]
       t  = k.find(_.name === "token")
-      c  = t.map(_.content).forall(_ === "") // Cleared cookie
+      c = t.map(_.content).forall(_ === "") // Cleared cookie
     } yield assert(c && s === Some(Status.Ok))
   }
 

@@ -60,13 +60,13 @@ object SubsystemControlCell {
     clazz = ObserveStyles.completedIcon
   )
 
-  private val RunningIcon = IconCircleNotched.copy(
+  private val RunningIcon   = IconCircleNotched.copy(
     fitted = true,
     loading = true,
     clazz = ObserveStyles.runningIcon
   )
 
-  private val FailureIcon = IconAttention.copy(
+  private val FailureIcon   = IconAttention.copy(
     fitted = true,
     inverted = true,
     clazz = ObserveStyles.errorIcon
@@ -93,7 +93,7 @@ object SubsystemControlCell {
       case _                                                  => none
     }
 
-  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props]     = ScalaComponent
     .builder[Props]
     .render_P { p =>
       <.div(

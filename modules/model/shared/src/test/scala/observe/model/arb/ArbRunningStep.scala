@@ -23,7 +23,7 @@ trait ArbRunningStep {
       } yield RunningStep.fromInt(id.some, l, i).getOrElse(RunningStep.Zero)
     }
 
-  implicit val runningStepCogen: Cogen[RunningStep] =
+  implicit val runningStepCogen: Cogen[RunningStep]   =
     Cogen[(Option[StepId], Int, Int)].contramap(x => (x.id, x.last, x.total))
 
 }

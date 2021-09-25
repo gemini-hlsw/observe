@@ -132,7 +132,7 @@ sealed abstract class NodAndShuffleProgressProps[A](
 ) extends ReactProps[A](component) {
   val summary: StepStateSummary
 
-  def isStopping: Boolean =
+  def isStopping: Boolean                                                        =
     summary.tabOperations.stopRequested === StopOperation.StopInFlight
 
   protected[steps] val connect: ReactConnectProxy[Option[NSObservationProgress]] =
@@ -312,7 +312,7 @@ object NodAndShuffleCycleRow
   implicit protected val operationLevelType: OperationLevelType[OperationLevel.NsCycle] =
     implicitly[OperationLevelType[OperationLevel.NsCycle]]
 
-  protected def progressControl(summary: StepStateSummary): VdomElement =
+  protected def progressControl(summary: StepStateSummary): VdomElement                 =
     NodAndShuffleCycleProgress(summary)
 }
 
@@ -333,6 +333,6 @@ object NodAndShuffleNodRow
   implicit protected val operationLevelType: OperationLevelType[OperationLevel.NsNod] =
     implicitly[OperationLevelType[OperationLevel.NsNod]]
 
-  protected def progressControl(summary: StepStateSummary): VdomElement =
+  protected def progressControl(summary: StepStateSummary): VdomElement               =
     NodAndShuffleNodProgress(summary)
 }

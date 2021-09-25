@@ -47,7 +47,7 @@ object StepBreakStopCell {
       )
 
   // Request a to flip the skip
-  def flipSkipped(p: Props)(e: ReactEvent): Callback =
+  def flipSkipped(p: Props)(e: ReactEvent): Callback                    =
     e.preventDefaultCB *>
       e.stopPropagationCB *>
       Callback.when(p.clientStatus.canOperate)(

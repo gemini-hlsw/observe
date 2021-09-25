@@ -51,31 +51,31 @@ object ControlButtons {
   implicit val operationsReuse: Reusability[Operations[_]] = Reusability.derive[Operations[_]]
   implicit val propsReuse: Reusability[Props]              = Reusability.derive[Props]
 
-  private def requestStop(obsIdName: Observation.IdName, stepId: StepId): Callback =
+  private def requestStop(obsIdName: Observation.IdName, stepId: StepId): Callback     =
     ObserveCircuit.dispatchCB(RequestStop(obsIdName, stepId))
 
-  private def requestGracefulStop(obsId: Observation.Id, stepId: StepId): Callback =
+  private def requestGracefulStop(obsId: Observation.Id, stepId: StepId): Callback     =
     ObserveCircuit.dispatchCB(RequestGracefulStop(obsId, stepId))
 
-  private def requestAbort(obsIdName: Observation.IdName, stepId: StepId): Callback =
+  private def requestAbort(obsIdName: Observation.IdName, stepId: StepId): Callback    =
     ObserveCircuit.dispatchCB(RequestAbort(obsIdName, stepId))
 
-  private def requestObsPause(obsId: Observation.Id, stepId: StepId): Callback =
+  private def requestObsPause(obsId: Observation.Id, stepId: StepId): Callback         =
     ObserveCircuit.dispatchCB(RequestObsPause(obsId, stepId))
 
   private def requestGracefulObsPause(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestGracefulObsPause(obsId, stepId))
 
-  private def requestObsResume(obsId: Observation.Id, stepId: StepId): Callback =
+  private def requestObsResume(obsId: Observation.Id, stepId: StepId): Callback        =
     ObserveCircuit.dispatchCB(RequestObsResume(obsId, stepId))
 
-  private def requestedIcon(icon: Icon): IconGroup =
+  private def requestedIcon(icon: Icon): IconGroup                                     =
     IconGroup(
-      icon(^.key := "main"),
+      icon(^.key                                                   := "main"),
       IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
     )
 
-  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
+  protected val component: Component[Props, Unit, Unit, CtorType.Props]                = ScalaComponent
     .builder[Props]("ControlButtons")
     .render_P { p =>
       val pauseGracefullyIcon: VdomNode =

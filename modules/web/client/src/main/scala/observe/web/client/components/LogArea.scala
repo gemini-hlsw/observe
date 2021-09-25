@@ -160,7 +160,7 @@ object LogArea {
     def levelLens(l: ServerLogLevel): Lens[State, Option[Boolean]] =
       State.selectedLevels.andThen(at(l))
 
-    private val DefaultTableState: TableState[TableColumn] =
+    private val DefaultTableState: TableState[TableColumn]         =
       TableState[TableColumn](
         userModified = NotModified,
         scrollPosition = 0,
@@ -188,7 +188,7 @@ object LogArea {
       width = VariableColumnWidth.unsafeFromDouble(0.2, TimestampMinWidth)
     )
 
-  private val LevelColumnMeta: ColumnMeta[TableColumn] =
+  private val LevelColumnMeta: ColumnMeta[TableColumn]     =
     ColumnMeta[TableColumn](
       column = LevelColumn,
       name = "level",
@@ -199,7 +199,7 @@ object LogArea {
       width = VariableColumnWidth.unsafeFromDouble(0.1, LevelMinWidth)
     )
 
-  private val MsgColumnMeta: ColumnMeta[TableColumn] =
+  private val MsgColumnMeta: ColumnMeta[TableColumn]       =
     ColumnMeta[TableColumn](
       column = MsgColumn,
       name = "msg",
@@ -218,14 +218,14 @@ object LogArea {
       width = FixedColumnWidth.unsafeFromDouble(ClipboardWidth)
     )
 
-  private val columnWidths: TableColumn => Option[Double] = {
+  private val columnWidths: TableColumn => Option[Double]  = {
     case TimestampColumn => 200.0.some
     case LevelColumn     => 100.0.some
     case MsgColumn       => 400.0.some
     case _               => none
   }
 
-  private val LogColumnStyle: String = ObserveStyles.queueText.htmlClass
+  private val LogColumnStyle: String                       = ObserveStyles.queueText.htmlClass
 
   // Custom renderers for the last column
   private val clipboardHeaderRenderer: HeaderRenderer[js.Object] =
@@ -322,7 +322,7 @@ object LogArea {
     else
       <.div()
 
-  private def onResize(b: Backend): Size => Callback =
+  private def onResize(b: Backend): Size => Callback  =
     s => b.modStateL(State.tableState)(_.recalculateWidths(s, _ => true, columnWidths))
 
   private def onLevelChange(
@@ -331,7 +331,7 @@ object LogArea {
   ): Boolean => Callback =
     s => b.setStateL(State.levelLens(l))(s.some)
 
-  private val component = ScalaComponent
+  private val component                               = ScalaComponent
     .builder[Props]
     .initialState(State.Default)
     .render { b =>

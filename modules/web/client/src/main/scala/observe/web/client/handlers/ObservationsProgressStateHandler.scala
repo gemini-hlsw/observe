@@ -94,7 +94,7 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
     upd.getOrElse(noChange)
   }
 
-  override def handle: PartialFunction[Any, ActionResult[M]] = {
+  override def handle: PartialFunction[Any, ActionResult[M]]                         = {
     case ServerMessage(ObservationProgressEvent(e)) =>
       updatedL(
         AllObservationsProgressState
@@ -109,7 +109,7 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
       resetStepProgress(e, obsId)
 
     // Remove the progress once the step completes
-    case ServerMessage(e @ StepExecuted(obsId, _))  =>
+    case ServerMessage(e @ StepExecuted(obsId, _)) =>
       resetStepProgress(
         e,
         obsId,

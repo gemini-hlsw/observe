@@ -12,7 +12,7 @@ import observe.model.enum.TipTiltSource
 sealed trait M2GuideConfig extends Product with Serializable
 
 object M2GuideConfig {
-  case object M2GuideOff extends M2GuideConfig
+  case object M2GuideOff                                                   extends M2GuideConfig
   final case class M2GuideOn(coma: ComaOption, source: Set[TipTiltSource]) extends M2GuideConfig
 
   object M2GuideOn {
@@ -20,7 +20,7 @@ object M2GuideConfig {
   }
 
   implicit val show: Show[M2GuideConfig] = Show.fromToString
-  implicit val eq: Eq[M2GuideConfig]     = Eq.instance {
+  implicit val eq: Eq[M2GuideConfig] = Eq.instance {
     case (M2GuideOff, M2GuideOff)                   => true
     case (a @ M2GuideOn(_, _), b @ M2GuideOn(_, _)) => a === b
     case _                                          => false

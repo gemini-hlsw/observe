@@ -50,7 +50,7 @@ final case class ObserveUIModel(
 )
 
 object ObserveUIModel {
-  val Initial: ObserveUIModel = ObserveUIModel(
+  val Initial: ObserveUIModel         = ObserveUIModel(
     Pages.Root,
     None,
     SectionClosed,

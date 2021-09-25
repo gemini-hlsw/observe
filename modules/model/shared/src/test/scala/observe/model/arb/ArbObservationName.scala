@@ -28,7 +28,7 @@ trait ArbObservationName {
       } yield Observation.Name(pid, Index.fromShort.unsafeGet(num))
     }
 
-  implicit val cogObservationId: Cogen[Observation.Name] =
+  implicit val cogObservationId: Cogen[Observation.Name]     =
     Cogen[(ProgramId, Index)].contramap(oid => (oid.pid, oid.index))
 
 }

@@ -179,7 +179,7 @@ class StepSpec extends CatsEffectSuite {
     case _                       => false
   }
 
-  private def runToCompletioIO(s0: TestState) =
+  private def runToCompletioIO(s0: TestState)    =
     executionEngine
       .process(PartialFunction.empty)(
         Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
@@ -198,7 +198,7 @@ class StepSpec extends CatsEffectSuite {
 
   // The difficult part is to set the pause command to interrupts the step execution in the middle.
   test("pause should stop execution in response to a pause command") {
-    val q: Stream[IO, Queue[IO, executionEngine.EventType]] =
+    val q: Stream[IO, Queue[IO, executionEngine.EventType]]     =
       Stream.eval(Queue.bounded[IO, executionEngine.EventType](10))
     def qs0(q: Queue[IO, executionEngine.EventType]): TestState =
       TestState(
@@ -620,7 +620,7 @@ class StepSpec extends CatsEffectSuite {
   test("engine should record a partial result and continue execution.") {
 
     // For result types
-    case class RetValDouble(v: Double) extends Result.RetVal
+    case class RetValDouble(v: Double)     extends Result.RetVal
     case class PartialValDouble(v: Double) extends Result.PartialVal
 
     val qs0: TestState =

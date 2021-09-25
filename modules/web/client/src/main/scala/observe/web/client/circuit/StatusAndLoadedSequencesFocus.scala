@@ -88,10 +88,10 @@ object StatusAndLoadedSequencesFocus {
   implicit val eq: Eq[StatusAndLoadedSequencesFocus] =
     Eq.by(x => (x.status, x.sequences, x.tableState, x.queueFilter))
 
-  private val sessionQueueG       = ObserveAppRootModel.sessionQueueL.asGetter
-  private val sessionQueueFilterG =
+  private val sessionQueueG                          = ObserveAppRootModel.sessionQueueL.asGetter
+  private val sessionQueueFilterG                    =
     ObserveAppRootModel.sessionQueueFilterL.asGetter
-  private val sodG                = ObserveAppRootModel.sequencesOnDisplayL.asGetter
+  private val sodG                                   = ObserveAppRootModel.sequencesOnDisplayL.asGetter
 
   val statusAndLoadedSequencesG: Getter[ObserveAppRootModel, StatusAndLoadedSequencesFocus] =
     ClientStatus.clientStatusFocusL.asGetter.zip(

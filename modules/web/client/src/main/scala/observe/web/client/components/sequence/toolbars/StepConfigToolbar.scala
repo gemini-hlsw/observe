@@ -48,7 +48,7 @@ object StepConfigToolbar {
   private def nextStepId(id: StepId, l: List[StepId]): Option[StepId] =
     l.dropWhile(_ =!= id).drop(1).headOption
 
-  private val component = ScalaComponent
+  private val component                                               = ScalaComponent
     .builder[Props]("StepConfigToolbar")
     .stateless
     .render_P { p =>

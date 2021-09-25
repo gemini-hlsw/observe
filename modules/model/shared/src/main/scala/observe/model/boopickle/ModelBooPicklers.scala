@@ -40,9 +40,8 @@ import squants.time.Time
 import squants.time.TimeConversions._
 
 /**
- * Contains boopickle implicit picklers of model objects
- * Boopickle can auto derive encoders but it is preferred to make
- * them explicitly
+ * Contains boopickle implicit picklers of model objects Boopickle can auto derive encoders but it
+ * is preferred to make them explicitly
  */
 trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val yearPickler: Pickler[Year]                           = transformPickler(Year.of)(_.getValue)
@@ -54,14 +53,14 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val lObservationIdPickler: Pickler[List[Observation.Id]] =
     iterablePickler[Observation.Id, List]
 
-  implicit val posLongPickler: Pickler[PosLong] =
+  implicit val posLongPickler: Pickler[PosLong]                     =
     transformPickler[PosLong, Long]((l: Long) =>
       RefType
         .applyRef[PosLong](l)
         .getOrElse(throw new RuntimeException(s"Failed to decode value"))
     )(_.value)
 
-  implicit val stepIdPickler: Pickler[StepId] =
+  implicit val stepIdPickler: Pickler[StepId]                       =
     transformPickler[StepId, PosLong](lucuma.core.model.Step.Id.apply)(_.value)
 
   def valuesMap[F[_]: Traverse, A, B](c: F[A], f: A => B): Map[B, A] =
@@ -72,14 +71,14 @@ trait ModelBooPicklers extends BooPicklerSyntax {
 
   def valuesMapPickler[A: Enumerated, B: Monoid: Pickler](
     valuesMap: Map[B, A]
-  ): Pickler[A]                                    =
+  ): Pickler[A] =
     transformPickler((t: B) =>
       valuesMap
         .get(t)
         .getOrElse(throw new RuntimeException(s"Failed to decode value"))
     )(t => valuesMap.find { case (_, v) => v === t }.foldMap(_._1))
 
-  def enumeratedPickler[A: Enumerated]: Pickler[A] =
+  def enumeratedPickler[A: Enumerated]: Pickler[A]    =
     valuesMapPickler[A, Int](sourceIndex[A])
 
   implicit val timeProgressPickler: Pickler[Time]     =
@@ -117,7 +116,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val sequenceStateAbortedPickler: Pickler[SequenceState.Aborted.type]     =
     generatePickler[SequenceState.Aborted.type]
 
-  implicit val sequenceStatePickler: CompositePickler[SequenceState] =
+  implicit val sequenceStatePickler: CompositePickler[SequenceState]                =
     compositePickler[SequenceState]
       .addConcreteType[SequenceState.Completed.type]
       .addConcreteType[SequenceState.Running]
@@ -125,7 +124,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
       .addConcreteType[SequenceState.Aborted.type]
       .addConcreteType[SequenceState.Idle.type]
 
-  implicit val actionStatusPickler: Pickler[ActionStatus] = enumeratedPickler[ActionStatus]
+  implicit val actionStatusPickler: Pickler[ActionStatus]                           = enumeratedPickler[ActionStatus]
 
   implicit val stepStatePendingPickler: Pickler[StepState.Pending.type]     =
     generatePickler[StepState.Pending.type]
@@ -141,7 +140,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val stepStateAbortedPickler: Pickler[StepState.Aborted.type]     =
     generatePickler[StepState.Aborted.type]
 
-  implicit val stepStatePickler: CompositePickler[StepState] = compositePickler[StepState]
+  implicit val stepStatePickler: CompositePickler[StepState]                = compositePickler[StepState]
     .addConcreteType[StepState.Pending.type]
     .addConcreteType[StepState.Completed.type]
     .addConcreteType[StepState.Skipped.type]
@@ -150,14 +149,14 @@ trait ModelBooPicklers extends BooPicklerSyntax {
     .addConcreteType[StepState.Running.type]
     .addConcreteType[StepState.Paused.type]
 
-  implicit val imageIdPickler: Pickler[String @@ ImageFileIdT] =
+  implicit val imageIdPickler: Pickler[String @@ ImageFileIdT]              =
     transformPickler((s: String) => tag[ImageFileIdT](s))(identity)
-  implicit val standardStepPickler: Pickler[StandardStep]      = generatePickler[StandardStep]
-  implicit def taggedIntPickler[A]: Pickler[Int @@ A]          =
+  implicit val standardStepPickler: Pickler[StandardStep]                   = generatePickler[StandardStep]
+  implicit def taggedIntPickler[A]: Pickler[Int @@ A]                       =
     transformPickler((s: Int) => tag[A](s))(identity)
-  implicit val nsStagePickler: Pickler[NodAndShuffleStage]     = enumeratedPickler[NodAndShuffleStage]
-  implicit val nsActionPickler: Pickler[NSAction]              = enumeratedPickler[NSAction]
-  implicit val nsSubexposurePickler: Pickler[NSSubexposure]    =
+  implicit val nsStagePickler: Pickler[NodAndShuffleStage]                  = enumeratedPickler[NodAndShuffleStage]
+  implicit val nsActionPickler: Pickler[NSAction]                           = enumeratedPickler[NSAction]
+  implicit val nsSubexposurePickler: Pickler[NSSubexposure]                 =
     transformPickler[NSSubexposure, (NsCycles, NsCycles, Int)] {
       case (t: NsCycles, c: NsCycles, i: Int) =>
         NSSubexposure
@@ -167,21 +166,21 @@ trait ModelBooPicklers extends BooPicklerSyntax {
           )
       case _                                  => throw new RuntimeException("Failed to decode ns subexposure")
     }((ns: NSSubexposure) => (ns.totalCycles, ns.cycle, ns.stageIndex))
-  implicit val nsRunningStatePickler: Pickler[NSRunningState]  = generatePickler[NSRunningState]
-  implicit val nsStatusPickler: Pickler[NodAndShuffleStatus]   = generatePickler[NodAndShuffleStatus]
-  implicit val nsPendObsCmdPickler: Pickler[PendingObserveCmd] =
+  implicit val nsRunningStatePickler: Pickler[NSRunningState]               = generatePickler[NSRunningState]
+  implicit val nsStatusPickler: Pickler[NodAndShuffleStatus]                = generatePickler[NodAndShuffleStatus]
+  implicit val nsPendObsCmdPickler: Pickler[PendingObserveCmd]              =
     enumeratedPickler[PendingObserveCmd]
-  implicit val nsStepPickler: Pickler[NodAndShuffleStep]       = generatePickler[NodAndShuffleStep]
+  implicit val nsStepPickler: Pickler[NodAndShuffleStep]                    = generatePickler[NodAndShuffleStep]
 
-  implicit val stepPickler: CompositePickler[Step] = compositePickler[Step]
+  implicit val stepPickler: CompositePickler[Step]                = compositePickler[Step]
     .addConcreteType[StandardStep]
     .addConcreteType[NodAndShuffleStep]
 
   implicit val sequenceMetadataPickler: Pickler[SequenceMetadata] =
     generatePickler[SequenceMetadata]
 
-  implicit val stepConfigPickler: Pickler[SequenceView] = generatePickler[SequenceView]
-  implicit val clientIdPickler: Pickler[ClientId]       = generatePickler[ClientId]
+  implicit val stepConfigPickler: Pickler[SequenceView]           = generatePickler[SequenceView]
+  implicit val clientIdPickler: Pickler[ClientId]                 = generatePickler[ClientId]
 
   implicit val queueIdPickler: Pickler[QueueId]                                    = generatePickler[QueueId]
   implicit val queueOpMovedPickler: Pickler[QueueManipulationOp.Moved]             =
@@ -197,7 +196,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val queueOpRemovedSeqsPickler: Pickler[QueueManipulationOp.RemovedSeqs] =
     generatePickler[QueueManipulationOp.RemovedSeqs]
 
-  implicit val queueOpPickler: CompositePickler[QueueManipulationOp] =
+  implicit val queueOpPickler: CompositePickler[QueueManipulationOp]               =
     compositePickler[QueueManipulationOp]
       .addConcreteType[QueueManipulationOp.Clear]
       .addConcreteType[QueueManipulationOp.Started]
@@ -206,34 +205,34 @@ trait ModelBooPicklers extends BooPicklerSyntax {
       .addConcreteType[QueueManipulationOp.AddedSeqs]
       .addConcreteType[QueueManipulationOp.RemovedSeqs]
 
-  implicit val singleActionOpStartedPickler: Pickler[SingleActionOp.Started]     =
+  implicit val singleActionOpStartedPickler: Pickler[SingleActionOp.Started]       =
     generatePickler[SingleActionOp.Started]
-  implicit val singleActionOpCompletedPickler: Pickler[SingleActionOp.Completed] =
+  implicit val singleActionOpCompletedPickler: Pickler[SingleActionOp.Completed]   =
     generatePickler[SingleActionOp.Completed]
-  implicit val singleActionOpErrorPickler: Pickler[SingleActionOp.Error]         =
+  implicit val singleActionOpErrorPickler: Pickler[SingleActionOp.Error]           =
     generatePickler[SingleActionOp.Error]
-  implicit val singleActionOpPickler: CompositePickler[SingleActionOp]           =
+  implicit val singleActionOpPickler: CompositePickler[SingleActionOp]             =
     compositePickler[SingleActionOp]
       .addConcreteType[SingleActionOp.Started]
       .addConcreteType[SingleActionOp.Completed]
       .addConcreteType[SingleActionOp.Error]
 
-  implicit val batchCommandStateIdlePickler: Pickler[BatchCommandState.Idle.type] =
+  implicit val batchCommandStateIdlePickler: Pickler[BatchCommandState.Idle.type]  =
     generatePickler[BatchCommandState.Idle.type]
-  implicit val batchCommandStateRun: Pickler[BatchCommandState.Run]               =
+  implicit val batchCommandStateRun: Pickler[BatchCommandState.Run]                =
     generatePickler[BatchCommandState.Run]
-  implicit val batchCommandStateStopPickler: Pickler[BatchCommandState.Stop.type] =
+  implicit val batchCommandStateStopPickler: Pickler[BatchCommandState.Stop.type]  =
     generatePickler[BatchCommandState.Stop.type]
 
-  implicit val batchCommandPickler: CompositePickler[BatchCommandState] =
+  implicit val batchCommandPickler: CompositePickler[BatchCommandState]            =
     compositePickler[BatchCommandState]
       .addConcreteType[BatchCommandState.Idle.type]
       .addConcreteType[BatchCommandState.Run]
       .addConcreteType[BatchCommandState.Stop.type]
 
-  implicit val batchExecStatePickler: Pickler[BatchExecState] = enumeratedPickler[BatchExecState]
+  implicit val batchExecStatePickler: Pickler[BatchExecState]                      = enumeratedPickler[BatchExecState]
 
-  implicit val executionQueuePickler: Pickler[ExecutionQueueView] =
+  implicit val executionQueuePickler: Pickler[ExecutionQueueView]              =
     generatePickler[ExecutionQueueView]
 
   implicit val sequenceQueueIdPickler: Pickler[SequencesQueue[Observation.Id]] =
@@ -242,43 +241,43 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val sequenceQueueViewPickler: Pickler[SequencesQueue[SequenceView]] =
     generatePickler[SequencesQueue[SequenceView]]
 
-  implicit val comaPickler: Pickler[ComaOption] = enumeratedPickler[ComaOption]
+  implicit val comaPickler: Pickler[ComaOption]                                = enumeratedPickler[ComaOption]
 
   implicit val tipTiltSourcePickler: Pickler[TipTiltSource]   = enumeratedPickler[TipTiltSource]
   implicit val serverLogLevelPickler: Pickler[ServerLogLevel] = enumeratedPickler[ServerLogLevel]
   implicit val m1SourcePickler: Pickler[M1Source]             = enumeratedPickler[M1Source]
 
-  implicit val mountGuidePickler: Pickler[MountGuideOption]              = enumeratedPickler[MountGuideOption]
-  implicit val m1GuideOnPickler: Pickler[M1GuideConfig.M1GuideOn]        =
+  implicit val mountGuidePickler: Pickler[MountGuideOption]                             = enumeratedPickler[MountGuideOption]
+  implicit val m1GuideOnPickler: Pickler[M1GuideConfig.M1GuideOn]                       =
     generatePickler[M1GuideConfig.M1GuideOn]
-  implicit val m1GuideOffPickler: Pickler[M1GuideConfig.M1GuideOff.type] =
+  implicit val m1GuideOffPickler: Pickler[M1GuideConfig.M1GuideOff.type]                =
     generatePickler[M1GuideConfig.M1GuideOff.type]
-  implicit val m1GuideConfigPickler: CompositePickler[M1GuideConfig]     =
+  implicit val m1GuideConfigPickler: CompositePickler[M1GuideConfig]                    =
     compositePickler[M1GuideConfig]
       .addConcreteType[M1GuideConfig.M1GuideOn]
       .addConcreteType[M1GuideConfig.M1GuideOff.type]
 
-  implicit val m2GuideOnPickler: Pickler[M2GuideConfig.M2GuideOn]        =
+  implicit val m2GuideOnPickler: Pickler[M2GuideConfig.M2GuideOn]                       =
     generatePickler[M2GuideConfig.M2GuideOn]
-  implicit val m2GuideOffPickler: Pickler[M2GuideConfig.M2GuideOff.type] =
+  implicit val m2GuideOffPickler: Pickler[M2GuideConfig.M2GuideOff.type]                =
     generatePickler[M2GuideConfig.M2GuideOff.type]
-  implicit val m2GuideConfigPickler: CompositePickler[M2GuideConfig]     =
+  implicit val m2GuideConfigPickler: CompositePickler[M2GuideConfig]                    =
     compositePickler[M2GuideConfig]
       .addConcreteType[M2GuideConfig.M2GuideOn]
       .addConcreteType[M2GuideConfig.M2GuideOff.type]
 
-  implicit val telescopeGuideconfigPickler: Pickler[TelescopeGuideConfig] =
+  implicit val telescopeGuideconfigPickler: Pickler[TelescopeGuideConfig]               =
     generatePickler[TelescopeGuideConfig]
 
-  implicit val resourceConflictPickler: Pickler[Notification.ResourceConflict] =
+  implicit val resourceConflictPickler: Pickler[Notification.ResourceConflict]          =
     generatePickler[Notification.ResourceConflict]
-  implicit val instrumentInUsePickler: Pickler[Notification.InstrumentInUse]   =
+  implicit val instrumentInUsePickler: Pickler[Notification.InstrumentInUse]            =
     generatePickler[Notification.InstrumentInUse]
-  implicit val requestFailedPickler: Pickler[Notification.RequestFailed]       =
+  implicit val requestFailedPickler: Pickler[Notification.RequestFailed]                =
     generatePickler[Notification.RequestFailed]
-  implicit val subsystemlBusyPickler: Pickler[Notification.SubsystemBusy]      =
+  implicit val subsystemlBusyPickler: Pickler[Notification.SubsystemBusy]               =
     generatePickler[Notification.SubsystemBusy]
-  implicit val notificatonPickler: Pickler[Notification]                       =
+  implicit val notificatonPickler: Pickler[Notification]                                =
     compositePickler[Notification]
       .addConcreteType[Notification.ResourceConflict]
       .addConcreteType[Notification.InstrumentInUse]
@@ -398,6 +397,6 @@ trait ModelBooPicklers extends BooPicklerSyntax {
     .addConcreteType[OverridesUpdated]
     .addConcreteType[NullEvent.type]
 
-  implicit val userLoginPickler: Pickler[UserLoginRequest] = generatePickler[UserLoginRequest]
+  implicit val userLoginPickler: Pickler[UserLoginRequest]   = generatePickler[UserLoginRequest]
 
 }

@@ -37,7 +37,7 @@ object Footer {
     e.preventDefaultCB *>
       p.router.dispatchAndSetUrlCB(SelectCalibrationQueue)
 
-  private val component = ScalaComponent
+  private val component                                 = ScalaComponent
     .builder[Props]
     .stateless
     .render_P(p =>

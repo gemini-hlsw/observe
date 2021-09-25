@@ -48,13 +48,13 @@ package commands {
       new DefaultConfiguration(new java.util.TreeMap(config.asJava))
   }
 
-  object Configuration {
+  object Configuration  {
     val Zero: Configuration = Configuration(Map.empty)
 
     def single[A: GiapiConfig](key: String, value: A): Configuration =
       Configuration(Map(ConfigPath.configPath(key) -> value.configValue))
 
-    implicit val eq: Eq[Configuration] = Eq.by(_.config)
+    implicit val eq: Eq[Configuration]                               = Eq.by(_.config)
 
     implicit val monoid: Monoid[Configuration] = new Monoid[Configuration] {
       def empty: Configuration = Zero
@@ -79,7 +79,7 @@ package commands {
 package object commands {
   val DataLabelCfg = "DATA_LABEL"
 
-  implicit val responseEq: Eq[Response] = Eq.instance { case (a, b) =>
+  implicit val responseEq: Eq[Response]  = Eq.instance { case (a, b) =>
     a.name === b.name
   }
 
@@ -87,11 +87,16 @@ package object commands {
 
   /**
    * Send a command over giapi
-   * @param commandsClient Client interface to send the command to the client and await the response
-   * @param command The actual command sent
-   * @param timeout Timeout to await a response, often 2 seconds
-   * @tparam F Effect type
-   * @return the result of the operation
+   * @param commandsClient
+   *   Client interface to send the command to the client and await the response
+   * @param command
+   *   The actual command sent
+   * @param timeout
+   *   Timeout to await a response, often 2 seconds
+   * @tparam F
+   *   Effect type
+   * @return
+   *   the result of the operation
    */
   def sendCommand[F[_]: Async](
     commandsClient: CommandSenderClient,

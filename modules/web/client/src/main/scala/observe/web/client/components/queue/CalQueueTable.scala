@@ -237,23 +237,21 @@ object CalQueueTable {
       State.tableState.andThen(TableState.columns)
   }
 
-  implicit val propsReuse: Reusability[Props]    = Reusability.derive[Props]
+  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
   implicit val icReuse: Reusability[IndexChange] =
     Reusability.derive[IndexChange]
   implicit val stateReuse: Reusability[State]    =
     Reusability.by(x => (x.tableState, x.moved))
 
   val obsIdRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
-    (_, _, _, r: CalQueueRow, _) => {
+    (_, _, _, r: CalQueueRow, _) =>
       <.p(ObserveStyles.queueText |+| ObserveStyles.noselect, r.obsIdName.name.format)
-    }
 
   val instrumentRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
-    (_, _, _, r: CalQueueRow, _) => {
+    (_, _, _, r: CalQueueRow, _) =>
       <.p(ObserveStyles.queueText |+| ObserveStyles.noselect, r.instrument.show)
-    }
 
-  private def removeSeq(qid: QueueId, sid: Observation.IdName): Callback =
+  private def removeSeq(qid: QueueId, sid: Observation.IdName): Callback  =
     ObserveCircuit.dispatchCB(RequestRemoveSeqCal(qid, sid))
 
   def removeSeqRenderer(p: Props): CellRenderer[js.Object, js.Object, CalQueueRow] =
@@ -279,7 +277,7 @@ object CalQueueTable {
         )
       )
 
-  private def statusIconRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
+  private def statusIconRenderer: CellRenderer[js.Object, js.Object, CalQueueRow]  =
     (_, _, _, row: CalQueueRow, _) => {
       val selectedIconStyle = ObserveStyles.selectedIcon
       val icon: TagMod      =
@@ -379,7 +377,7 @@ object CalQueueTable {
           ObserveStyles.stepRow |+| ObserveStyles.draggableRow
       }) |+| rowStatusStyle(p, s)(i)).htmlClass
 
-    def updateScrollPosition(pos: JsNumber): Callback =
+    def updateScrollPosition(pos: JsNumber): Callback   =
       b.props.zip(b.state) >>= { case (p, state) =>
         val s =
           State.scrollPosition.replace(pos)(state)
@@ -394,7 +392,7 @@ object CalQueueTable {
         disableHeader = false,
         noRowsRenderer = () =>
           <.div(
-            ^.cls := "ui center aligned segment noRows",
+            ^.cls    := "ui center aligned segment noRows",
             ObserveStyles.noRowsSegment,
             ^.height := size.height.toInt.px,
             "Cal queue empty"
@@ -475,7 +473,7 @@ object CalQueueTable {
         .copy(tableState = p.data.tableState, prevLastOp = p.data.lastOp)
     }
 
-  private val component = ScalaComponent
+  private val component             = ScalaComponent
     .builder[Props]
     .initialStateFromProps(initialState)
     .renderBackend[CalQueueTableBackend]

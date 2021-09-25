@@ -123,6 +123,6 @@ object ObserveAppRootModel {
       .andThen(atSortedMap[QueueId, ExecutionQueueView].at(CalibrationQueueId))
       .asGetter
 
-  implicit val eq: Eq[ObserveAppRootModel] =
+  implicit val eq: Eq[ObserveAppRootModel]                             =
     Eq.by(x => (x.sequences, x.ws, x.site, x.clientId, x.uiModel, x.serverVersion))
 }

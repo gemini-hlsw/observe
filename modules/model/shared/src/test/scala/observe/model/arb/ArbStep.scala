@@ -12,7 +12,7 @@ import observe.model.arb.ArbStandardStep._
 import observe.model.arb.ArbNodAndShuffleStep._
 
 trait ArbStep {
-  implicit val steArb = Arbitrary[Step] {
+  implicit val steArb                 = Arbitrary[Step] {
     for {
       ss <- arbitrary[StandardStep]
       ns <- arbitrary[NodAndShuffleStep]

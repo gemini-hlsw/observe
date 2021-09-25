@@ -18,10 +18,10 @@ import shapeless.tag
 import shapeless.tag.@@
 
 package config {
-  final case class SiteValueUnknown(site: String) extends FailureReason {
+  final case class SiteValueUnknown(site: String)         extends FailureReason {
     def description: String = s"site '$site' invalid"
   }
-  final case class ModeValueUnknown(mode: String) extends FailureReason {
+  final case class ModeValueUnknown(mode: String)         extends FailureReason {
     def description: String = s"mode '$mode' invalid"
   }
   final case class StrategyValueUnknown(strategy: String) extends FailureReason {
@@ -34,7 +34,7 @@ package config {
  */
 package object config {
 
-  implicit val siteReader: ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
+  implicit val siteReader: ConfigReader[Site]                       = ConfigReader.fromCursor[Site] { cf =>
     cf.asString.flatMap {
       case "GS" => Site.GS.asRight
       case "GN" => Site.GN.asRight
@@ -42,7 +42,7 @@ package object config {
     }
   }
 
-  implicit val modeReader: ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
+  implicit val modeReader: ConfigReader[Mode]                       = ConfigReader.fromCursor[Mode] { cf =>
     cf.asString.flatMap {
       case "production" => Mode.Production.asRight
       case "dev"        => Mode.Development.asRight
@@ -60,7 +60,7 @@ package object config {
       }
     }
 
-  implicit def uriSettings[A]: ConfigReader[Uri @@ A] = ConfigReader[Uri].map(tag[A][Uri])
+  implicit def uriSettings[A]: ConfigReader[Uri @@ A]               = ConfigReader[Uri].map(tag[A][Uri])
 
   implicit val tlsInfoHint: ProductHint[TLSConfig]                             =
     ProductHint[TLSConfig](ConfigFieldMapping(KebabCase, KebabCase))

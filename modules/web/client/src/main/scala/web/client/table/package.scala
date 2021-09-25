@@ -27,16 +27,16 @@ import web.client.utils._
 package object table {
   val DragHandleWidth: Int = 12
 
-  private[table] implicit val doubleReuse: Reusability[Double] =
+  private[table] implicit val doubleReuse: Reusability[Double]    =
     Reusability.double(0.01)
 
-  implicit val sizeReuse: Reusability[Size] =
+  implicit val sizeReuse: Reusability[Size]                       =
     Reusability.by(x => (x.width, x.height))
 
   implicit def nelR[A: Reusability]: Reusability[NonEmptyList[A]] =
     Reusability.by(_.toList)
 
-  implicit def tsR[A: Reusability]: Reusability[TableState[A]] =
+  implicit def tsR[A: Reusability]: Reusability[TableState[A]]    =
     Reusability.by(x => (x.userModified, x.scrollPosition, x.columns))
 
   // Renderer for a resizable column
@@ -113,15 +113,15 @@ package object table {
     colWidthsO[A, B, G](items, cols, get.view.mapValues(f => (a: A) => f(a).some).toMap, minW, adj)
 
   /**
-   * This methods traverses a whole set of data to find the widest value per
-   * column, trying to traverse it in one pass
+   * This methods traverses a whole set of data to find the widest value per column, trying to
+   * traverse it in one pass
    */
   def colWidthsO[A, B, G[_]: Foldable](
     items: G[A],
-    cols: NonEmptyList[B],
-    get:  Map[B, A => Option[String]],
-    minW: Map[B, Double],
-    adj:  Map[B, Double]
+    cols:  NonEmptyList[B],
+    get:   Map[B, A => Option[String]],
+    minW:  Map[B, Double],
+    adj:   Map[B, Double]
   ): B => Option[Double] =
     // Find the longest string per column
     items

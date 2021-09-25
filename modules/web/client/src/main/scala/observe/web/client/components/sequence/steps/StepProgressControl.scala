@@ -163,7 +163,7 @@ object StepProgressCell {
       stepControlButtons(props)
     )
 
-  private def textWithPopup(text: String): VdomNode =
+  private def textWithPopup(text: String): VdomNode     =
     Popup(
       trigger = <.span(text)
     )(text)
@@ -207,7 +207,7 @@ object StepProgressCell {
       props.step.show
     )
 
-  def stepDisplay(props: Props): VdomElement =
+  def stepDisplay(props: Props): VdomElement                            =
     (props.state, props.step) match {
       case (f, s) if s.status === StepState.Running && s.fileId.isEmpty && f.userStopRequested =>
         // Case pause at the sequence level

@@ -75,7 +75,7 @@ case class TcsSouth[F[_]: Sync: Logger] private (
       tcsController.applyConfig(subsystems, gaos, cfg).as(ConfigResult(this))
     }
 
-  override def notifyObserveStart: F[Unit] = tcsController.notifyObserveStart
+  override def notifyObserveStart: F[Unit]                        = tcsController.notifyObserveStart
 
   override def notifyObserveEnd: F[Unit] = tcsController.notifyObserveEnd
 
@@ -105,7 +105,7 @@ case class TcsSouth[F[_]: Sync: Logger] private (
    * configuration set from TCC. The TCC configuration has precedence: if a guider is not used in the TCC configuration,
    * it will not be used for the step, regardless of the sequence values.
    */
-  def buildBasicTcsConfig(gc: GuideConfig): F[TcsSouthConfig] =
+  def buildBasicTcsConfig(gc: GuideConfig): F[TcsSouthConfig]      =
     (BasicTcsConfig(
       gc.tcsGuide,
       TelescopeConfig(config.offsetA, config.wavelA),

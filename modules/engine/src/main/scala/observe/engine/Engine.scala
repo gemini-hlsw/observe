@@ -53,9 +53,9 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     }
 
   /**
-   * startFrom starts a sequence from an arbitrary step. It does it by marking all previous steps to be skipped and then
-   * modifying the state sequence as if it was run.
-   * If the requested step is already run or marked to be skipped, the sequence will start from the next runnable step
+   * startFrom starts a sequence from an arbitrary step. It does it by marking all previous steps to
+   * be skipped and then modifying the state sequence as if it was run. If the requested step is
+   * already run or marked to be skipped, the sequence will start from the next runnable step
    */
   def startFrom(id: Observation.Id, step: StepId): HandleType[Unit] =
     getS(id).flatMap {
@@ -77,7 +77,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
       case _ => unit
     }
 
-  def pause(id: Observation.Id): HandleType[Unit] =
+  def pause(id: Observation.Id): HandleType[Unit]               =
     modifyS(id)(Sequence.State.userStopSet(true))
 
   private def cancelPause(id: Observation.Id): HandleType[Unit] =
@@ -94,7 +94,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
   def reload(seq: Sequence.State[F], steps: List[Step[F]]): Sequence.State[F] =
     Sequence.State.reload(steps, seq)
 
-  def startSingle(c: ActionCoords): HandleType[Outcome] = get.flatMap { st =>
+  def startSingle(c: ActionCoords): HandleType[Outcome]                               = get.flatMap { st =>
     val x = for {
       seq <- stateL.sequenceStateIndex(c.sid).getOption(st)
       if (seq.status.isIdle || seq.status.isError) && !seq.getSingleState(c.actCoords).active
@@ -125,7 +125,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
   private def completeSingleRun[V <: RetVal](c: ActionCoords, r: V): HandleType[Unit] =
     modifyS(c.sid)(_.completeSingle(c.actCoords, r))
 
-  private def failSingleRun(c: ActionCoords, e: Result.Error): HandleType[Unit] =
+  private def failSingleRun(c: ActionCoords, e: Result.Error): HandleType[Unit]       =
     modifyS(c.sid)(_.failSingle(c.actCoords, e))
 
   /**
@@ -136,16 +136,18 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
 
   /**
    * Refresh the steps executions of an existing sequence. Does not add nor remove steps.
-   * @param id sequence identifier
-   * @param steps List of new steps definitions
+   * @param id
+   *   sequence identifier
+   * @param steps
+   *   List of new steps definitions
    * @return
    */
   def update(id: Observation.Id, steps: List[Step[F]]): Endo[S] =
     stateL.sequenceStateIndex(id).modify(_.update(steps.map(_.executions)))
 
   /**
-   * Adds the current `Execution` to the completed `Queue`, makes the next
-   * pending `Execution` the current one, and initiates the actual execution.
+   * Adds the current `Execution` to the completed `Queue`, makes the next pending `Execution` the
+   * current one, and initiates the actual execution.
    *
    * If there are no more pending `Execution`s, it emits the `Finished` event.
    */
@@ -182,8 +184,8 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     )
 
   /**
-   * Executes all actions in the `Current` `Execution` in parallel. When all are done it emits the `Executed` event.
-   * It also updates the `State` as needed.
+   * Executes all actions in the `Current` `Execution` in parallel. When all are done it emits the
+   * `Executed` event. It also updates the `State` as needed.
    */
   // Send the expected event when the `Action` is executed
   // It doesn't catch run time exceptions. If desired, the Action has to do it itself.
@@ -236,7 +238,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
         .getOrElse(unit)
     )
 
-  private def getState(f: S => Option[Stream[F, EventType]]): HandleType[Unit] =
+  private def getState(f: S => Option[Stream[F, EventType]]): HandleType[Unit]          =
     get.flatMap(s => Handle[F, S, EventType, Unit](f(s).pure[StateT[F, S, *]].map(((), _))))
 
   private def actionStop(
@@ -251,8 +253,8 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     }.getOrElse(unit))
 
   /**
-   * Given the index of the completed `Action` in the current `Execution`, it
-   * marks the `Action` as completed and returns the new updated `State`.
+   * Given the index of the completed `Action` in the current `Execution`, it marks the `Action` as
+   * completed and returns the new updated `State`.
    *
    * When the index doesn't exist it does nothing.
    */
@@ -309,15 +311,14 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
     }.getOrElse(unit))
 
   /**
-   * For now it only changes the `Status` to `Paused` and returns the new
-   * `State`. In the future this function should handle the failed
-   * action.
+   * For now it only changes the `Status` to `Paused` and returns the new `State`. In the future
+   * this function should handle the failed action.
    */
   private def fail(id: Observation.Id)(i: Int, e: Result.Error): HandleType[Unit] =
     modifyS(id)(_.mark(i)(e)) *>
       switch(id)(SequenceState.Failed(e.msg))
 
-  private def logError(e: Result.Error): HandleType[Unit] = error(e.errMsg.getOrElse(e.msg))
+  private def logError(e: Result.Error): HandleType[Unit]                         = error(e.errMsg.getOrElse(e.msg))
 
   /**
    * Log info lifted into Handle.
@@ -493,16 +494,16 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
   val unit: HandleType[Unit] =
     Handle.unit
 
-  val get: Handle[F, S, Event[F, S, U], S] =
+  val get: Handle[F, S, Event[F, S, U], S]         =
     Handle.get
 
   private def inspect[A](f: S => A): HandleType[A] =
     Handle.inspect(f)
 
-  def modify(f: S => S): HandleType[Unit] =
+  def modify(f: S => S): HandleType[Unit]                                                    =
     Handle.modify(f)
 
-  private def getS(id: Observation.Id): HandleType[Option[Sequence.State[F]]] =
+  private def getS(id: Observation.Id): HandleType[Option[Sequence.State[F]]]                =
     get.map(stateL.sequenceStateIndex(id).getOption(_))
 
   private def getSs[A](id: Observation.Id)(f: Sequence.State[F] => A): HandleType[Option[A]] =
@@ -513,7 +514,7 @@ class Engine[F[_]: MonadError[*[_], Throwable]: Logger, S, U](stateL: Engine.Sta
   ): HandleType[Unit] =
     modify(stateL.sequenceStateIndex(id).modify(f))
 
-  private def putS(id: Observation.Id)(s: Sequence.State[F]): HandleType[Unit] =
+  private def putS(id: Observation.Id)(s: Sequence.State[F]): HandleType[Unit]               =
     modify(stateL.sequenceStateIndex(id).replace(s))
 
   // For debugging

@@ -100,10 +100,10 @@ sealed trait ResourceRunRequested extends ResourceRunOperation {
 }
 
 object ResourceRunOperation {
-  case object ResourceRunIdle extends ResourceRunOperation
-  final case class ResourceRunInFlight(stepId: StepId) extends ResourceRunRequested
+  case object ResourceRunIdle                           extends ResourceRunOperation
+  final case class ResourceRunInFlight(stepId: StepId)  extends ResourceRunRequested
   final case class ResourceRunCompleted(stepId: StepId) extends ResourceRunRequested
-  final case class ResourceRunFailed(stepId: StepId) extends ResourceRunRequested
+  final case class ResourceRunFailed(stepId: StepId)    extends ResourceRunRequested
 
   def fromActionStatus(stepId: StepId): ActionStatus => Option[ResourceRunOperation] = {
     case ActionStatus.Running   => ResourceRunOperation.ResourceRunInFlight(stepId).some
@@ -113,7 +113,7 @@ object ResourceRunOperation {
     case _                      => none
   }
 
-  implicit val eqResourceRunOperation: Eq[ResourceRunOperation] = Eq.instance {
+  implicit val eqResourceRunOperation: Eq[ResourceRunOperation]                      = Eq.instance {
     case (ResourceRunIdle, ResourceRunIdle)                 => true
     case (ResourceRunInFlight(a), ResourceRunInFlight(b))   => a === b
     case (ResourceRunCompleted(a), ResourceRunCompleted(b)) => a === b
@@ -123,7 +123,7 @@ object ResourceRunOperation {
 }
 
 sealed trait StartFromOperation extends Product with Serializable
-object StartFromOperation {
+object StartFromOperation   {
   case object StartFromInFlight extends StartFromOperation
   case object StartFromIdle     extends StartFromOperation
 

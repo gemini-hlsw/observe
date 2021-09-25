@@ -44,14 +44,14 @@ trait ObserveModelArbitraries {
       } yield SequencesQueue(Map.empty, c, o, SortedMap.empty, b)
     }
 
-  implicit val queueIdArb: Arbitrary[QueueId] = Arbitrary {
+  implicit val queueIdArb: Arbitrary[QueueId]                                                 = Arbitrary {
     arbitrary[UUID].map(QueueId)
   }
 
-  implicit val qidCogen: Cogen[QueueId] =
+  implicit val qidCogen: Cogen[QueueId]                                                       =
     Cogen[UUID].contramap(_.self)
 
-  implicit val actArb: Arbitrary[ActionType] = Arbitrary[ActionType] {
+  implicit val actArb: Arbitrary[ActionType]                                                  = Arbitrary[ActionType] {
     for {
       c <- arbitrary[Resource].map(ActionType.Configure.apply)
       a <- Gen.oneOf(ActionType.Observe, ActionType.Undefined)
@@ -59,15 +59,15 @@ trait ObserveModelArbitraries {
     } yield b
   }
 
-  implicit val udArb: Arbitrary[UserDetails] = Arbitrary[UserDetails] {
+  implicit val udArb: Arbitrary[UserDetails]                                                  = Arbitrary[UserDetails] {
     for {
       u <- arbitrary[String]
       n <- arbitrary[String]
     } yield UserDetails(u, n)
   }
 
-  implicit val obArb: Arbitrary[Observer]         = Arbitrary[Observer](Gen.alphaStr.map(Observer.apply))
-  implicit val smArb: Arbitrary[SequenceMetadata] = Arbitrary[SequenceMetadata] {
+  implicit val obArb: Arbitrary[Observer]                                                     = Arbitrary[Observer](Gen.alphaStr.map(Observer.apply))
+  implicit val smArb: Arbitrary[SequenceMetadata]                                             = Arbitrary[SequenceMetadata] {
     for {
       i <- arbitrary[Instrument]
       o <- arbitrary[Option[Observer]]
@@ -75,14 +75,14 @@ trait ObserveModelArbitraries {
     } yield SequenceMetadata(i, o, n)
   }
 
-  implicit val sqrArb: Arbitrary[SequenceState.Running] = Arbitrary[SequenceState.Running] {
+  implicit val sqrArb: Arbitrary[SequenceState.Running]                                       = Arbitrary[SequenceState.Running] {
     for {
       u <- arbitrary[Boolean]
       i <- arbitrary[Boolean]
     } yield SequenceState.Running(u, i)
   }
 
-  implicit val sqsArb: Arbitrary[SequenceState] = Arbitrary[SequenceState] {
+  implicit val sqsArb: Arbitrary[SequenceState]                                               = Arbitrary[SequenceState] {
     for {
       f <- Gen.oneOf(SequenceState.Completed, SequenceState.Idle)
       r <- arbitrary[SequenceState.Running]
@@ -91,7 +91,7 @@ trait ObserveModelArbitraries {
     } yield s
   }
 
-  implicit val sysOverArb: Arbitrary[SystemOverrides] = Arbitrary[SystemOverrides] {
+  implicit val sysOverArb: Arbitrary[SystemOverrides]                                         = Arbitrary[SystemOverrides] {
     for {
       tcs  <- arbitrary[Boolean]
       inst <- arbitrary[Boolean]
@@ -100,7 +100,7 @@ trait ObserveModelArbitraries {
     } yield SystemOverrides(tcs, inst, gcal, dhs)
   }
 
-  implicit val svArb: Arbitrary[SequenceView]                  = Arbitrary[SequenceView] {
+  implicit val svArb: Arbitrary[SequenceView]                                                 = Arbitrary[SequenceView] {
     for {
       id <- arbitrary[Observation.IdName]
       m  <- arbitrary[SequenceMetadata]
@@ -110,32 +110,32 @@ trait ObserveModelArbitraries {
       i  <- arbitrary[Option[Int]]
     } yield SequenceView(id, m, s, o, t, i)
   }
-  implicit val sqvArb: Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
+  implicit val sqvArb: Arbitrary[SequencesQueue[SequenceView]]                                = sequencesQueueArb[SequenceView]
 
-  implicit val actCogen: Cogen[ActionType] =
+  implicit val actCogen: Cogen[ActionType]                          =
     Cogen[String].contramap(_.productPrefix)
 
-  implicit val opCogen: Cogen[Operator] =
+  implicit val opCogen: Cogen[Operator]                             =
     Cogen[String].contramap(_.value)
 
-  implicit val obCogen: Cogen[Observer] =
+  implicit val obCogen: Cogen[Observer]                             =
     Cogen[String].contramap(_.value)
 
-  implicit val sqsCogen: Cogen[SequenceState] =
+  implicit val sqsCogen: Cogen[SequenceState]                       =
     Cogen[String].contramap(_.productPrefix)
 
-  implicit val udCogen: Cogen[UserDetails] =
+  implicit val udCogen: Cogen[UserDetails]                          =
     Cogen[(String, String)].contramap(u => (u.username, u.displayName))
 
-  implicit val smCogen: Cogen[SequenceMetadata] =
+  implicit val smCogen: Cogen[SequenceMetadata]                     =
     Cogen[(Instrument, Option[Observer], String)].contramap(s => (s.instrument, s.observer, s.name))
 
-  implicit val sysOverCogen: Cogen[SystemOverrides] =
+  implicit val sysOverCogen: Cogen[SystemOverrides]                 =
     Cogen[(Boolean, Boolean, Boolean, Boolean)].contramap(x =>
       (x.isTcsEnabled, x.isInstrumentEnabled, x.isGcalEnabled, x.isDhsEnabled)
     )
 
-  implicit val svCogen: Cogen[SequenceView] =
+  implicit val svCogen: Cogen[SequenceView]                         =
     Cogen[
       (
         Observation.IdName,
@@ -148,17 +148,17 @@ trait ObserveModelArbitraries {
     ]
       .contramap(s => (s.idName, s.metadata, s.status, s.systemOverrides, s.steps, s.willStopIn))
 
-  implicit def sqCogen[A: Cogen]: Cogen[SequencesQueue[A]] =
+  implicit def sqCogen[A: Cogen]: Cogen[SequencesQueue[A]]          =
     Cogen[(Conditions, Option[Operator], List[A])].contramap(s =>
       (s.conditions, s.operator, s.sessionQueue)
     )
 
-  implicit val conCogen: Cogen[Conditions] =
+  implicit val conCogen: Cogen[Conditions]                          =
     Cogen[(CloudCover, ImageQuality, SkyBackground, WaterVapor)].contramap(c =>
       (c.cc, c.iq, c.sb, c.wv)
     )
 
-  implicit val seqBatchCmdRunArb: Arbitrary[BatchCommandState.Run] = Arbitrary {
+  implicit val seqBatchCmdRunArb: Arbitrary[BatchCommandState.Run]  = Arbitrary {
     for {
       observer <- arbitrary[Observer]
       user     <- arbitrary[UserDetails]
@@ -166,13 +166,13 @@ trait ObserveModelArbitraries {
     } yield BatchCommandState.Run(observer, user, clid)
   }
 
-  implicit val seqBatchCmdStateArb: Arbitrary[BatchCommandState] = Arbitrary(
+  implicit val seqBatchCmdStateArb: Arbitrary[BatchCommandState]    = Arbitrary(
     Gen.frequency((2, Gen.oneOf(BatchCommandState.Idle, BatchCommandState.Stop)),
                   (1, arbitrary[BatchCommandState.Run])
     )
   )
 
-  implicit val seqBatchCmdStateCogen: Cogen[BatchCommandState] =
+  implicit val seqBatchCmdStateCogen: Cogen[BatchCommandState]      =
     Cogen[(String, Option[Observer], Option[UserDetails], Option[ClientId])]
       .contramap {
         case r @ BatchCommandState.Run(obs, usd, cid) =>
@@ -191,11 +191,11 @@ trait ObserveModelArbitraries {
       } yield ExecutionQueueView(id, n, s, xs, q)
     }
 
-  implicit val executionQueueViewCogen: Cogen[ExecutionQueueView] =
+  implicit val executionQueueViewCogen: Cogen[ExecutionQueueView]   =
     Cogen[(QueueId, String, BatchCommandState, BatchExecState, List[Observation.Id])]
       .contramap(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
 
-  implicit val arbUserLoginRequest: Arbitrary[UserLoginRequest] =
+  implicit val arbUserLoginRequest: Arbitrary[UserLoginRequest]     =
     Arbitrary {
       for {
         u <- arbitrary[String]
@@ -203,19 +203,19 @@ trait ObserveModelArbitraries {
       } yield UserLoginRequest(u, p)
     }
 
-  implicit val userLoginRequestCogen: Cogen[UserLoginRequest] =
+  implicit val userLoginRequestCogen: Cogen[UserLoginRequest]       =
     Cogen[(String, String)].contramap(x => (x.username, x.password))
 
-  implicit val arbTimeUnit: Arbitrary[TimeUnit] =
+  implicit val arbTimeUnit: Arbitrary[TimeUnit]                     =
     Arbitrary {
       Gen.oneOf(Nanoseconds, Microseconds, Milliseconds, Seconds, Minutes, Hours, Days)
     }
 
-  implicit val timeUnitCogen: Cogen[TimeUnit] =
+  implicit val timeUnitCogen: Cogen[TimeUnit]                       =
     Cogen[String]
       .contramap(_.symbol)
 
-  implicit val saoStartArb: Arbitrary[SingleActionOp.Started] =
+  implicit val saoStartArb: Arbitrary[SingleActionOp.Started]       =
     Arbitrary {
       for {
         o <- arbitrary[Observation.IdName]
@@ -224,11 +224,11 @@ trait ObserveModelArbitraries {
       } yield SingleActionOp.Started(o, s, r)
     }
 
-  implicit val saoStartCogen: Cogen[SingleActionOp.Started] =
+  implicit val saoStartCogen: Cogen[SingleActionOp.Started]         =
     Cogen[(Observation.IdName, StepId, Resource)]
       .contramap(x => (x.sidName, x.stepId, x.resource))
 
-  implicit val saoCompleteArb: Arbitrary[SingleActionOp.Completed] =
+  implicit val saoCompleteArb: Arbitrary[SingleActionOp.Completed]  =
     Arbitrary {
       for {
         o <- arbitrary[Observation.IdName]
@@ -237,11 +237,11 @@ trait ObserveModelArbitraries {
       } yield SingleActionOp.Completed(o, s, r)
     }
 
-  implicit val saoCompleteCogen: Cogen[SingleActionOp.Completed] =
+  implicit val saoCompleteCogen: Cogen[SingleActionOp.Completed]    =
     Cogen[(Observation.IdName, StepId, Resource)]
       .contramap(x => (x.sidName, x.stepId, x.resource))
 
-  implicit val saoErrorArb: Arbitrary[SingleActionOp.Error] =
+  implicit val saoErrorArb: Arbitrary[SingleActionOp.Error]         =
     Arbitrary {
       for {
         o <- arbitrary[Observation.IdName]
@@ -251,11 +251,11 @@ trait ObserveModelArbitraries {
       } yield SingleActionOp.Error(o, s, r, m)
     }
 
-  implicit val saoErrorCogen: Cogen[SingleActionOp.Error] =
+  implicit val saoErrorCogen: Cogen[SingleActionOp.Error]           =
     Cogen[(Observation.IdName, StepId, Resource, String)]
       .contramap(x => (x.sidName, x.stepId, x.resource, x.msg))
 
-  implicit val saoArb: Arbitrary[SingleActionOp] = Arbitrary[SingleActionOp] {
+  implicit val saoArb: Arbitrary[SingleActionOp]                    = Arbitrary[SingleActionOp] {
     for {
       s <- arbitrary[SingleActionOp.Started]
       c <- arbitrary[SingleActionOp.Completed]
@@ -264,7 +264,7 @@ trait ObserveModelArbitraries {
     } yield m
   }
 
-  implicit val saoCogen: Cogen[SingleActionOp] =
+  implicit val saoCogen: Cogen[SingleActionOp]                      =
     Cogen[Either[SingleActionOp.Started, Either[SingleActionOp.Completed, SingleActionOp.Error]]]
       .contramap {
         case s: SingleActionOp.Started   => Left(s)
@@ -272,14 +272,14 @@ trait ObserveModelArbitraries {
         case e: SingleActionOp.Error     => Right(Right(e))
       }
 
-  implicit val arbSingleActionEvent: Arbitrary[SingleActionEvent] =
+  implicit val arbSingleActionEvent: Arbitrary[SingleActionEvent]   =
     Arbitrary {
       for {
         e <- arbitrary[SingleActionOp]
       } yield SingleActionEvent(e)
     }
 
-  implicit val singleActionEventCogen: Cogen[SingleActionEvent] =
+  implicit val singleActionEventCogen: Cogen[SingleActionEvent]     =
     Cogen[SingleActionOp]
       .contramap(_.op)
 }

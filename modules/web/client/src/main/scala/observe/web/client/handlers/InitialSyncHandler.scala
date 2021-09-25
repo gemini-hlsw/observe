@@ -20,14 +20,13 @@ import observe.web.client.circuit._
 import observe.web.client.model.Pages._
 
 /**
- * This handler is called only once. It will be triggered when the first message
- * with the full model arrives.
- * Then we sync to the first running sequence or to the route we are currently on
+ * This handler is called only once. It will be triggered when the first message with the full model
+ * arrives. Then we sync to the first running sequence or to the route we are currently on
  */
 class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
     extends ActionHandler(modelRW)
     with Handlers[M, InitialSyncFocus] {
-  def runningSequence(s: ObserveModelUpdate): Option[SequenceView] =
+  def runningSequence(s: ObserveModelUpdate): Option[SequenceView]        =
     s.view.sessionQueue.find(_.status.isRunning)
 
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
@@ -36,7 +35,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
       .map(p => InitialSyncFocus.location.replace(p))
       .getOrElse(identity)
 
-  private val noUpdate: InitialSyncFocus => InitialSyncFocus = identity
+  private val noUpdate: InitialSyncFocus => InitialSyncFocus              = identity
 
   def defaultPage(
     s: SequencesQueue[SequenceView]

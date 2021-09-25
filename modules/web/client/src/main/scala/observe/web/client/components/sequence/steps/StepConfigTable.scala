@@ -166,7 +166,7 @@ object StepConfigTable {
       disableHeader = false,
       noRowsRenderer = () =>
         <.div(
-          ^.cls := "ui center aligned segment noRows",
+          ^.cls    := "ui center aligned segment noRows",
           ^.height := size.height.toInt.px,
           "No configuration for step"
         ),
@@ -183,7 +183,7 @@ object StepConfigTable {
       headerHeight = ObserveStyles.headerHeight
     )
 
-  protected val component = ScalaComponent
+  protected val component                                     = ScalaComponent
     .builder[Props]("StepConfig")
     .initialStateFromProps(_.startState)
     .render(b =>

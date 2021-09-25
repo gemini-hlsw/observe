@@ -203,7 +203,7 @@ object TcsNorthControllerEpicsAo {
         s1 <- guideOff(subsystems, s0, tcs, pr.pause.isEmpty)
         s2 <- sysConfig(s1)
         _  <- guideOn(subsystems, s2, tcs, pr.resume.isDefined)
-        _  <- pr.resume.getOrElse(Applicative[F].unit) //resume Gaos
+        _ <- pr.resume.getOrElse(Applicative[F].unit) //resume Gaos
       } yield ()
     }
 
@@ -240,7 +240,7 @@ object TcsNorthControllerEpicsAo {
       demand:      TcsNorthAoConfig,
       gaosEnabled: Boolean
     ): TcsNorthAoConfig = {
-      val mustOff = mustPauseWhileOffsetting(current, demand)
+      val mustOff                                            = mustPauseWhileOffsetting(current, demand)
       // Only turn things off here. Things that must be turned on will be turned on in GuideOn.
       def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
         (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)

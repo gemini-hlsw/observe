@@ -12,7 +12,7 @@ import observe.model.enum._
 import observe.model.arb.ArbNSSubexposure._
 
 trait ArbNSRunningState {
-  implicit val nsRunningStateArb = Arbitrary[NSRunningState] {
+  implicit val nsRunningStateArb                          = Arbitrary[NSRunningState] {
     for {
       a <- arbitrary[NSAction]
       u <- arbitrary[NSSubexposure]

@@ -55,8 +55,8 @@ final case class Niri[F[_]: Async: Logger](
 
   import Niri._
 
-  override val contributorName: String = "mko-dc-data-niri"
-  override def observeControl(config: CleanConfig): InstrumentSystem.ObserveControl[F] =
+  override val contributorName: String                                                     = "mko-dc-data-niri"
+  override def observeControl(config: CleanConfig): InstrumentSystem.ObserveControl[F]     =
     UnpausableControl(
       StopObserveCmd(_ => controller.stopObserve),
       AbortObserveCmd(controller.abortObserve)
@@ -70,7 +70,7 @@ final case class Niri[F[_]: Async: Logger](
         .flatMap(controller.observe(fileId, _))
     }
 
-  override def calcObserveTime(config: CleanConfig): F[Time] =
+  override def calcObserveTime(config: CleanConfig): F[Time]                               =
     getDCConfig(config)
       .map(controller.calcTotalExposureTime)
       .getOrElse(60.seconds.pure[F])
@@ -80,7 +80,7 @@ final case class Niri[F[_]: Async: Logger](
     elapsed: InstrumentSystem.ElapsedTime
   ): fs2.Stream[F, Progress] = controller.observeProgress(total)
 
-  override val dhsInstrumentName: String = "NIRI"
+  override val dhsInstrumentName: String                                                   = "NIRI"
 
   override val keywordsClient: KeywordsClient[F] = this
 
@@ -96,9 +96,9 @@ final case class Niri[F[_]: Async: Logger](
       .flatMap(controller.applyConfig)
       .as(ConfigResult(this))
 
-  override def notifyObserveStart: F[Unit] = Sync[F].unit
+  override def notifyObserveStart: F[Unit]                        = Sync[F].unit
 
-  override def notifyObserveEnd: F[Unit] =
+  override def notifyObserveEnd: F[Unit]                                    =
     controller.endObserve
 
   override def instrumentActions(config: CleanConfig): InstrumentActions[F] =
@@ -196,7 +196,7 @@ object Niri {
       }
       .getOrElse(LightSinkName.Niri_f6)
 
-    override val oiOffsetGuideThreshold: Option[Length] =
+    override val oiOffsetGuideThreshold: Option[Length]     =
       (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
 
   }

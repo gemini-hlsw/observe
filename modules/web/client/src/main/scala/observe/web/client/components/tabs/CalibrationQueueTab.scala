@@ -54,21 +54,21 @@ object CalibrationQueueTab {
         .unless(p.tab.active === TabSelected.Selected)
         .void
 
-  def addToQueueE(e: ReactDragEvent): Callback =
+  def addToQueueE(e: ReactDragEvent): Callback                     =
     e.preventDefaultCB *>
       Option(e.dataTransfer.getData("text/plain"))
         .flatMap(lucuma.core.model.Observation.Id.parse)
         .map(id => ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, id)))
         .getOrEmpty
 
-  private def onDragEnter(b: Backend)(e: ReactDragEvent) =
+  private def onDragEnter(b: Backend)(e: ReactDragEvent)           =
     b.setStateL(State.draggingOver)(Option(e.dataTransfer.getData("text/plain")))
 
-  private def onDrop(b: Backend)(e: ReactDragEvent) =
+  private def onDrop(b: Backend)(e: ReactDragEvent)                =
     addToQueueE(e) *>
       onDragEnd(b)
 
-  private def onDragEnd(b: Backend) =
+  private def onDragEnd(b: Backend)                                =
     b.setStateL(State.draggingOver)(none)
 
   private def linkTo(b: Backend, page: ObservePages)(mod: TagMod*) = {
@@ -76,9 +76,9 @@ object CalibrationQueueTab {
     val active = p.tab.active
 
     <.a(
-      ^.href := p.router.urlFor(page).value,
+      ^.href  := p.router.urlFor(page).value,
       ^.onClick ==> showCalibrationQueue(p, page),
-      ^.cls := "item",
+      ^.cls   := "item",
       ^.classSet(
         "active" -> (active === TabSelected.Selected)
       ),

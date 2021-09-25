@@ -20,9 +20,9 @@ inThisBuild(
       ("org.typelevel"                    % "kind-projector" % "0.13.1").cross(CrossVersion.full)
     ),
     scalacOptions += "-Ymacro-annotations",
-    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    Global / onChangedBuildSource        := ReloadOnSourceChanges,
     scalafixDependencies += "edu.gemini" %% "clue-generator" % Settings.LibraryVersions.clue,
-    scalafixScalaBinaryVersion := "2.13"
+    scalafixScalaBinaryVersion           := "2.13"
   ) ++ lucumaPublishSettings
 )
 
@@ -102,7 +102,7 @@ publish / skip := true
 // Projects
 //////////////
 
-lazy val graphql = project
+lazy val graphql  = project
   .in(file("modules/common-graphql"))
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
@@ -112,7 +112,7 @@ lazy val graphql = project
     ) ++ LucumaCore.value
   )
 
-lazy val giapi = project
+lazy val giapi    = project
   .in(file("modules/giapi"))
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
@@ -172,8 +172,8 @@ lazy val observe_web_server = project
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version, buildInfoBuildNumber),
     buildInfoOptions += BuildInfoOption.BuildTime,
-    buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "observe.web.server"
+    buildInfoObject           := "OcsBuildInfo",
+    buildInfoPackage          := "observe.web.server"
   )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
@@ -199,26 +199,26 @@ lazy val observe_web_client = project
     // Configurations for webpack
     fastOptJS / webpackBundlingMode := BundlingMode.LibraryOnly(),
     fullOptJS / webpackBundlingMode := BundlingMode.Application,
-    webpackResources := (baseDirectory.value / "src" / "webpack") * "*.js",
-    webpackDevServerPort := 9090,
-    webpack / version := "4.44.1",
+    webpackResources                := (baseDirectory.value / "src" / "webpack") * "*.js",
+    webpackDevServerPort            := 9090,
+    webpack / version               := "4.44.1",
     startWebpackDevServer / version := "3.11.0",
     // Use a different Webpack configuration file for production and create a single bundle without source maps
-    fullOptJS / webpackConfigFile := Some(
+    fullOptJS / webpackConfigFile   := Some(
       baseDirectory.value / "src" / "webpack" / "prod.webpack.config.js"
     ),
-    fastOptJS / webpackConfigFile := Some(
+    fastOptJS / webpackConfigFile   := Some(
       baseDirectory.value / "src" / "webpack" / "dev.webpack.config.js"
     ),
-    Test / webpackConfigFile := Some(
+    Test / webpackConfigFile        := Some(
       baseDirectory.value / "src" / "webpack" / "test.webpack.config.js"
     ),
-    webpackEmitSourceMaps := false,
-    Test / parallelExecution := false,
-    installJsdom / version := "16.4.0",
-    Test / requireJsDomEnv := true,
+    webpackEmitSourceMaps           := false,
+    Test / parallelExecution        := false,
+    installJsdom / version          := "16.4.0",
+    Test / requireJsDomEnv          := true,
     // Use yarn as it is faster than npm
-    useYarn := true,
+    useYarn                         := true,
     // JS dependencies via npm
     Compile / npmDependencies ++= Seq(
       "fomantic-ui-less" -> LibraryVersions.fomanticUI,
@@ -267,8 +267,8 @@ lazy val observe_web_client = project
   .settings(
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version),
-    buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "observe.web.client"
+    buildInfoObject           := "OcsBuildInfo",
+    buildInfoPackage          := "observe.web.client"
   )
   .dependsOn(observe_model.js % "compile->compile;test->test")
 
@@ -300,7 +300,9 @@ lazy val observe_server: Project = project
         Clue
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
-    headerSources / excludeFilter := HiddenFileFilter || (file("modules/server") / "src/main/scala/pureconfig/module/http4s/package.scala").getName,
+    headerSources / excludeFilter := HiddenFileFilter || (file(
+      "modules/server"
+    ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName,
     Compile / sourceGenerators += Def.taskDyn {
       val root    = (ThisBuild / baseDirectory).value.toURI.toString
       val from    = (graphql / Compile / sourceDirectory).value
@@ -314,13 +316,12 @@ lazy val observe_server: Project = project
         (to ** "*.scala").get
       }
     }.taskValue
-
   )
   .settings(
     buildInfoUsePackageAsPath := true,
     buildInfoKeys ++= Seq[BuildInfoKey](name, version),
-    buildInfoObject := "OcsBuildInfo",
-    buildInfoPackage := "observe.server"
+    buildInfoObject           := "OcsBuildInfo",
+    buildInfoPackage          := "observe.server"
   )
   .dependsOn(observe_engine    % "compile->compile;test->test",
              giapi,
@@ -331,7 +332,7 @@ lazy val observe_server: Project = project
 
 // Unfortunately crossProject doesn't seem to work properly at the module/build.sbt level
 // We have to define the project properties at this level
-lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
+lazy val observe_model  = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/model"))
   .enablePlugins(GitBranchPrompt)
@@ -370,7 +371,7 @@ lazy val observe_engine = project
     ) ++ Monocle.value ++ MUnit.value
   )
 
-lazy val acm = project
+lazy val acm            = project
   .in(file("modules/acm"))
   .settings(commonSettings: _*)
   .enablePlugins(SbtXjcPlugin)
@@ -395,25 +396,25 @@ lazy val acm = project
  */
 lazy val observeCommonSettings = Seq(
   // Main class for launching
-  Compile / mainClass := Some("observe.web.server.http4s.WebServerLauncher"),
+  Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
   // This is important to keep the file generation order correctly
-  Universal / parallelExecution := false,
+  Universal / parallelExecution   := false,
   // Depend on webpack and add the assets created by webpack
-  Compile / packageBin / mappings ++= (observe_web_client/Compile/fullOptJS/webpack).value
+  Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName := "observe-server",
+  executableScriptName            := "observe-server",
   // No javadocs
-  Compile/packageDoc/mappings := Seq(),
+  Compile / packageDoc / mappings := Seq(),
   // Don't create launchers for Windows
-  makeBatScripts := Seq.empty,
+  makeBatScripts                  := Seq.empty,
   // Specify a different name for the config file
-  bashScriptConfigLocation := Some("${app_home}/../conf/launcher.args"),
+  bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
   bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
-    val f = (observe_web_server/Compile/resourceDirectory).value / "logback.xml"
+    val f = (observe_web_server / Compile / resourceDirectory).value / "logback.xml"
     f -> ("conf/" + f.getName)
   },
   // Launch options
@@ -447,13 +448,13 @@ lazy val observeCommonSettings = Seq(
  */
 lazy val observeLinux = Seq(
   // User/Group for execution
-  Linux / daemonUser := "software",
-  Linux / daemonGroup := "software",
+  Linux / daemonUser     := "software",
+  Linux / daemonGroup    := "software",
   Universal / maintainer := "Software Group <software@gemini.edu>",
   // This lets us build RPMs from snapshot versions
-  Linux / name := "Observe Server",
-  Linux / version := {
-    (ThisBuild / version ).value.replace("-SNAPSHOT", "").replace("-", "_").replace(" ", "")
+  Linux / name           := "Observe Server",
+  Linux / version        := {
+    (ThisBuild / version).value.replace("-SNAPSHOT", "").replace("-", "_").replace(" ", "")
   }
 )
 
@@ -467,7 +468,7 @@ lazy val app_observe_server = preventPublication(project.in(file("app/observe-se
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
   .settings(
-    description := "Observe server for local testing",
+    description          := "Observe server for local testing",
     // Put the jar files in the lib dir
     Universal / mappings += {
       val jar = (Compile / packageBin).value
@@ -510,12 +511,12 @@ lazy val app_observe_server_gs_test =
     .settings(observeLinux: _*)
     .settings(deployedAppMappings: _*)
     .settings(
-      description := "Observe GS test deployment",
-      applicationConfName := "observe",
-      applicationConfSite := DeploymentSite.GS,
+      description          := "Observe GS test deployment",
+      applicationConfName  := "observe",
+      applicationConfSite  := DeploymentSite.GS,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (app_observe_server/Universal/mappings).value
+        val universalMappings = (app_observe_server / Universal / mappings).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -539,12 +540,12 @@ lazy val app_observe_server_gn_test =
     .settings(observeLinux: _*)
     .settings(deployedAppMappings: _*)
     .settings(
-      description := "Observe GN test deployment",
-      applicationConfName := "observe",
-      applicationConfSite := DeploymentSite.GN,
+      description          := "Observe GN test deployment",
+      applicationConfName  := "observe",
+      applicationConfSite  := DeploymentSite.GN,
       Universal / mappings := {
         // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (app_observe_server/Universal/mappings).value
+        val universalMappings = (app_observe_server / Universal / mappings).value
         val filtered          = universalMappings.filter { case (_, name) =>
           !name.contains("_sjs")
         }
@@ -567,12 +568,12 @@ lazy val app_observe_server_gs = preventPublication(project.in(file("app/observe
   .settings(observeLinux: _*)
   .settings(deployedAppMappings: _*)
   .settings(
-    description := "Observe Gemini South server production",
-    applicationConfName := "observe",
-    applicationConfSite := DeploymentSite.GS,
+    description          := "Observe Gemini South server production",
+    applicationConfName  := "observe",
+    applicationConfSite  := DeploymentSite.GS,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (app_observe_server/Universal/mappings).value
+      val universalMappings = (app_observe_server / Universal / mappings).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }
@@ -595,12 +596,12 @@ lazy val app_observe_server_gn = preventPublication(project.in(file("app/observe
   .settings(observeLinux: _*)
   .settings(deployedAppMappings: _*)
   .settings(
-    description := "Observe Gemini North server production",
-    applicationConfName := "observe",
-    applicationConfSite := DeploymentSite.GN,
+    description          := "Observe Gemini North server production",
+    applicationConfName  := "observe",
+    applicationConfSite  := DeploymentSite.GN,
     Universal / mappings := {
       // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (app_observe_server/Universal/mappings).value
+      val universalMappings = (app_observe_server / Universal / mappings).value
       val filtered          = universalMappings.filter { case (_, name) =>
         !name.contains("_sjs")
       }

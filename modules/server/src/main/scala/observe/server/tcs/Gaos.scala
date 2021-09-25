@@ -125,7 +125,7 @@ object Gaos {
       case _                                          => false
     }
 
-    implicit val resumeReasonEq: Eq[ResumeCondition] = Eq.instance {
+    implicit val resumeReasonEq: Eq[ResumeCondition]           = Eq.instance {
       case (a: OffsetReached, b: OffsetReached)               => a === b
       case (a: FixedResumeCondition, b: FixedResumeCondition) => a === b
       case _                                                  => false
@@ -164,7 +164,7 @@ object Gaos {
 
   sealed case class PauseResume[F[_]](
     pause:  Option[F[Unit]], // None means Gaos will not be paused
-    resume: Option[F[Unit]] // None means Gaos will not be resumed
+    resume: Option[F[Unit]]  // None means Gaos will not be resumed
   )
 
 }

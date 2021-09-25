@@ -17,7 +17,7 @@ trait ArbObservationIdName {
     } yield Observation.IdName(id, name)
   }
 
-  implicit val cogenObservationIdName: Cogen[Observation.IdName] =
+  implicit val cogenObservationIdName: Cogen[Observation.IdName]   =
     Cogen[(Observation.Id, Observation.Name)].contramap(x => (x.id, x.name))
 }
 

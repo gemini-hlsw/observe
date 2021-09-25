@@ -32,8 +32,8 @@ import squants.space.LengthConversions._
 import squants.time.TimeConversions._
 
 /**
- * Base implementation of an Epics TcsController
- * Type parameter BaseEpicsTcsConfig is the class used to hold the current configuration
+ * Base implementation of an Epics TcsController Type parameter BaseEpicsTcsConfig is the class used
+ * to hold the current configuration
  */
 sealed trait TcsControllerEpicsCommon[F[_]] {
 
@@ -206,7 +206,7 @@ object TcsControllerEpicsCommon {
       }(cfg)
 
   // Disable Mount guiding if M2 guiding is disabled
-  private val normalizeMountGuiding: Endo[BasicTcsConfig] = cfg =>
+  private val normalizeMountGuiding: Endo[BasicTcsConfig]                                       = cfg =>
     BasicTcsConfig.gc
       .andThen(TelescopeGuideConfig.mountGuide)
       .modify { m =>
@@ -218,7 +218,7 @@ object TcsControllerEpicsCommon {
       }(cfg)
 
   private def calcGuideOff(current: BaseEpicsTcsConfig, demand: BasicTcsConfig): BasicTcsConfig = {
-    val mustOff = mustPauseWhileOffsetting(current, demand)
+    val mustOff                                            = mustPauseWhileOffsetting(current, demand)
     // Only turn things off here. Things that must be turned on will be turned on in GuideOn.
     def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
       (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
@@ -444,8 +444,9 @@ object TcsControllerEpicsCommon {
     }
 
     /**
-     * Positions Parked and OUT are equivalent for practical purposes. Therefore, if the current position is Parked and
-     * requested position is OUT (or the other way around), then it is not necessary to move the HR pickup mirror.
+     * Positions Parked and OUT are equivalent for practical purposes. Therefore, if the current
+     * position is Parked and requested position is OUT (or the other way around), then it is not
+     * necessary to move the HR pickup mirror.
      */
     override def setHrPickup[C](l: Lens[C, BaseEpicsTcsConfig])(
       subsystems:                  NonEmptySet[Subsystem],
@@ -555,7 +556,7 @@ object TcsControllerEpicsCommon {
         }
       } else none
 
-    private def pwfs1GuiderControl: GuideControl[F] =
+    private def pwfs1GuiderControl: GuideControl[F]                                     =
       GuideControl(Subsystem.PWFS1,
                    epicsSys.pwfs1Park,
                    epicsSys.pwfs1ProbeGuideCmd,
@@ -571,7 +572,7 @@ object TcsControllerEpicsCommon {
                     l.andThen(BaseEpicsTcsConfig.pwfs1).andThen(GuiderConfig.tracking).replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS1: $d"))
 
-    private def pwfs2GuiderControl: GuideControl[F] =
+    private def pwfs2GuiderControl: GuideControl[F]                                     =
       GuideControl(Subsystem.PWFS2,
                    epicsSys.pwfs2Park,
                    epicsSys.pwfs2ProbeGuideCmd,
@@ -587,7 +588,7 @@ object TcsControllerEpicsCommon {
                     l.andThen(BaseEpicsTcsConfig.pwfs2).andThen(GuiderConfig.tracking).replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS2: $d"))
 
-    private def oiwfsGuiderControl: GuideControl[F] =
+    private def oiwfsGuiderControl: GuideControl[F]                                     =
       GuideControl(Subsystem.OIWFS,
                    epicsSys.oiwfsPark,
                    epicsSys.oiwfsProbeGuideCmd,
@@ -748,13 +749,13 @@ object TcsControllerEpicsCommon {
         _  <- guideOn(subsystems, s2, tcs)
       } yield ()
     }
-    override def notifyObserveStart: F[Unit]                        =
+    override def notifyObserveStart: F[Unit]              =
       L.debug("Send observe to TCS") *>
         epicsSys.observe.mark *>
         epicsSys.post(DefaultTimeout) *>
         L.debug("Observe command sent to TCS")
 
-    override def notifyObserveEnd: F[Unit] =
+    override def notifyObserveEnd: F[Unit]                =
       L.debug("Send endObserve to TCS") *>
         epicsSys.endObserve.mark *>
         epicsSys.post(DefaultTimeout) *>

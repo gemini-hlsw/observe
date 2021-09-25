@@ -98,7 +98,7 @@ class TestCommon(implicit ioRuntime: IORuntime) extends AnyFlatSpec {
     )
   }.unsafeRunSync()
 
-  private val sm = ObserveMetrics.build[IO](Site.GS, new CollectorRegistry()).unsafeRunSync()
+  private val sm                  = ObserveMetrics.build[IO](Site.GS, new CollectorRegistry()).unsafeRunSync()
 
   val observeEngine: ObserveEngine[IO] =
     ObserveEngine.build(Site.GS, defaultSystems, defaultSettings, sm).unsafeRunSync()
@@ -177,7 +177,7 @@ object TestCommon {
         pendingAction(resource)
       )
 
-  private val fileId = toImageFileId("fileId")
+  private val fileId                                         = toImageFileId("fileId")
 
   def observing[F[_]: Applicative]: Action[F] =
     Action
@@ -233,7 +233,7 @@ object TestCommon {
       .get(oid)
       .exists(_.seq.status.isCompleted)
 
-  private val gpiSim: IO[GpiController[IO]] = GpiClient
+  private val gpiSim: IO[GpiController[IO]]                            = GpiClient
     .simulatedGpiClient[IO]
     .use(x =>
       IO(
@@ -243,7 +243,7 @@ object TestCommon {
       )
     )
 
-  private val ghostSim: IO[GhostController[IO]] = GhostClient
+  private val ghostSim: IO[GhostController[IO]]                        = GhostClient
     .simulatedGhostClient[IO]
     .use(x =>
       IO(

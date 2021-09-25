@@ -61,7 +61,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
                                       } yield Result.OK(DummyResult)
   )
 
-  val faulty: Action[IO] = fromF[IO](ActionType.Undefined,
+  val faulty: Action[IO]         = fromF[IO](ActionType.Undefined,
                                      for {
                                        _ <- IO(Thread.sleep(100))
                                      } yield Result.Error("There was an error in this action")
@@ -72,8 +72,8 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
   val executions: List[ParallelActions[IO]] =
     List(NonEmptyList.of(configureTcs, configureInst), NonEmptyList.one(observe))
 
-  val seqId: Observation.Id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1))
-  val qs1: TestState        =
+  val seqId: Observation.Id   = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1))
+  val qs1: TestState          =
     TestState(
       sequences = Map(
         (seqId,
@@ -145,7 +145,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
     assert(qs.exists(_.sequences(seqId).done.length === 2))
   }
 
-  private def actionPause: Option[TestState] = {
+  private def actionPause: Option[TestState]            = {
     val s0: TestState = TestState(
       Map(
         seqId -> Sequence.State.init(
@@ -629,9 +629,8 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       .unsafeRunSync()
 
     /**
-     * First state update must have the action started.
-     * Second state update must have the action finished.
-     * The value in `dummy` must change. That is prove that the `Action` run.
+     * First state update must have the action started. Second state update must have the action
+     * finished. The value in `dummy` must change. That is prove that the `Action` run.
      */
     inside(sfs) { case a :: b :: _ =>
       assert(TestState.sequenceStateIndex(seqId).getOption(a).exists(_.getSingleState(c).started))

@@ -47,8 +47,8 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
         cs.map { ccs =>
           ccs.postCallback {
             new CaCommandListener {
-              override def onSuccess(): Unit = f(ApplyCommandResult.Completed.asRight)
-              override def onPause(): Unit   = f(ApplyCommandResult.Paused.asRight)
+              override def onSuccess(): Unit                 = f(ApplyCommandResult.Completed.asRight)
+              override def onPause(): Unit                   = f(ApplyCommandResult.Paused.asRight)
               override def onFailure(cause: Exception): Unit = f(cause.asLeft)
             }
           }
@@ -58,11 +58,11 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
       }
       .addSystemNameToCmdError(sysName)
 
-  override def mark: F[Unit] = Sync[F].delay {
+  override def mark: F[Unit]                                        = Sync[F].delay {
     cs.map(_.mark())
   }.void
 
-  protected def setTimeout(t: FiniteDuration): F[Unit] =
+  protected def setTimeout(t: FiniteDuration): F[Unit]              =
     Sync[F].delay {
       cs.map(_.getApplySender).map(_.setTimeout(t.length, t.unit))
     }.void
@@ -147,8 +147,8 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
         os.map { oos =>
           oos.postCallback {
             new CaCommandListener {
-              override def onSuccess(): Unit = f(ObserveCommandResult.Success.asRight)
-              override def onPause(): Unit   = f(ObserveCommandResult.Paused.asRight)
+              override def onSuccess(): Unit                 = f(ObserveCommandResult.Success.asRight)
+              override def onPause(): Unit                   = f(ObserveCommandResult.Paused.asRight)
               override def onFailure(cause: Exception): Unit = cause match {
                 case _: CaObserveStopped => f(ObserveCommandResult.Stopped.asRight)
                 case _: CaObserveAborted => f(ObserveCommandResult.Aborted.asRight)
@@ -161,11 +161,11 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
       }
       .addSystemNameToCmdError(sysName)
 
-  override def mark: F[Unit] = Sync[F].delay {
+  override def mark: F[Unit]                                          = Sync[F].delay {
     cs.map(_.mark())
   }.void
 
-  protected def setTimeout(t: FiniteDuration): F[Unit] =
+  protected def setTimeout(t: FiniteDuration): F[Unit]                =
     Sync[F].delay {
       os.map(_.setTimeout(t.length, t.unit))
     }.void
@@ -178,7 +178,7 @@ object EpicsCodex {
   }
 
   object EncodeEpicsValue {
-    def apply[A, T](f:  A => T): EncodeEpicsValue[A, T]                        = (a: A) => f(a)
+    def apply[A, T](f: A => T): EncodeEpicsValue[A, T]                         = (a: A) => f(a)
     def applyO[A, T](f: PartialFunction[A, T]): EncodeEpicsValue[A, Option[T]] = (a: A) => f.lift(a)
   }
 
@@ -232,7 +232,7 @@ object EpicsUtil {
         // guarantees that only one of them will complete the IO.
         val timer          = new JTimer
         val statusListener = new CaAttributeListener[T] {
-          override def onValueChange(newVals: util.List[T]): Unit =
+          override def onValueChange(newVals: util.List[T]): Unit   =
             if (
               !newVals.isEmpty && vv.contains(newVals.get(0)) && resultGuard.getAndDecrement() === 1
             ) {
@@ -279,8 +279,8 @@ object EpicsUtil {
     Sync[F].delay(Option(get.value))
 
   /**
-   * Tries to read a value of type A from a channel
-   *  Null results are raised as error and other errors are captured
+   * Tries to read a value of type A from a channel Null results are raised as error and other
+   * errors are captured
    */
   def safeAttributeWrapF[F[_]: Sync, A >: Null](channel: String, get: => A): F[A] =
     Sync[F]
@@ -340,30 +340,39 @@ object EpicsUtil {
 
   /**
    * Decides to set a param comparing the current value and the value to be set
-   * @param c Current value on the system
-   * @param d Value to be set
-   * @param f Action to set the parameter
+   * @param c
+   *   Current value on the system
+   * @param d
+   *   Value to be set
+   * @param f
+   *   Action to set the parameter
    */
   def applyParam[F[_], A: Eq](c: A, d: A, f: A => F[Unit]): Option[F[Unit]] =
     if (c =!= d) f(d).some else none
 
   /**
-   * Test if we should set a value d given that the current value c and
-   * a given tolerance
-   * @param t Max relative tolerance allowed between the current and destination value
-   * @param c Current value on the system
-   * @param d Value to be set
+   * Test if we should set a value d given that the current value c and a given tolerance
+   * @param t
+   *   Max relative tolerance allowed between the current and destination value
+   * @param c
+   *   Current value on the system
+   * @param d
+   *   Value to be set
    */
   private def areValuesDifferentEnough(t: Double, c: Double, d: Double): Boolean =
     !(d === 0.0 && c === 0.0) && (d === 0.0 || abs((c - d) / d) > t)
 
   /**
-   * Decides to set a param comparing the current value and the value to be set with
-   * a given tolerance
-   * @param relTolerance Max relative tolerance allowed between the current and destination value
-   * @param c Current value on the system
-   * @param d Value to be set
-   * @param set Action to set the parameter
+   * Decides to set a param comparing the current value and the value to be set with a given
+   * tolerance
+   * @param relTolerance
+   *   Max relative tolerance allowed between the current and destination value
+   * @param c
+   *   Current value on the system
+   * @param d
+   *   Value to be set
+   * @param set
+   *   Action to set the parameter
    */
   def applyParamT[F[_]](
     relTolerance: Double
