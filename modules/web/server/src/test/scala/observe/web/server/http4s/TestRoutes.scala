@@ -11,7 +11,7 @@ import giapi.client.GiapiStatusDb
 import lucuma.core.enum.Site
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.http4s._
-import org.http4s.Uri.uri
+import org.http4s.implicits._
 import observe.server._
 import observe.server.tcs.GuideConfigDb
 import observe.model.events._
@@ -53,7 +53,7 @@ trait TestRoutes extends ClientBooEncoders with CatsSuite {
       s <- uiRoutes
       r <- s
              .apply(
-               Request(method = Method.POST, uri = uri("/observe/login"))
+               Request(method = Method.POST, uri = uri"/observe/login")
                  .withEntity(UserLoginRequest("telops", "pwd"))
              )
              .value

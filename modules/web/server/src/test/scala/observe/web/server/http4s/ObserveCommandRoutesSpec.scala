@@ -12,8 +12,8 @@ import lucuma.core.util.arb.ArbGid._
 
 import java.net.URLEncoder
 import org.http4s._
+import org.http4s.implicits._
 import org.scalamock.scalatest.MockFactory
-import org.http4s.Uri.uri
 
 import observe.server._
 import observe.web.server.http4s.encoder._
@@ -40,7 +40,7 @@ class ObserveCommandRoutesSpec
         s <- commandRoutes(engine)
         t <- newLoginToken
         l <- s(
-               Request[IO](method = Method.POST, uri = uri("/wv"))
+               Request[IO](method = Method.POST, uri = uri"/wv")
                  .addCookie("token", t)
                  .withEntity(wv)
              ).value
@@ -65,7 +65,7 @@ class ObserveCommandRoutesSpec
         s <- commandRoutes(engine)
         t <- newLoginToken
         l <- s(
-               Request[IO](method = Method.POST, uri = uri("/iq"))
+               Request[IO](method = Method.POST, uri = uri"/iq")
                  .addCookie("token", t)
                  .withEntity(iq)
              ).value
@@ -90,7 +90,7 @@ class ObserveCommandRoutesSpec
         s <- commandRoutes(engine)
         t <- newLoginToken
         l <- s(
-               Request[IO](method = Method.POST, uri = uri("/sb"))
+               Request[IO](method = Method.POST, uri = uri"/sb")
                  .addCookie("token", t)
                  .withEntity(sb)
              ).value
@@ -115,7 +115,7 @@ class ObserveCommandRoutesSpec
         s <- commandRoutes(engine)
         t <- newLoginToken
         l <- s(
-               Request[IO](method = Method.POST, uri = uri("/cc"))
+               Request[IO](method = Method.POST, uri = uri"/cc")
                  .addCookie("token", t)
                  .withEntity(cc)
              ).value

@@ -7,7 +7,7 @@ import cats.effect.IO
 import lucuma.core.enum.Site
 import java.nio.file.Paths
 import org.http4s.Uri
-import org.http4s.Uri._
+import org.http4s.implicits._
 import pureconfig._
 import scala.concurrent.duration._
 import observe.model.config._
@@ -16,18 +16,18 @@ import munit.CatsEffectSuite
 
 class ConfigurationLoaderSpec extends CatsEffectSuite {
   val gcal   =
-    SmartGcalConfiguration(uri("gsodbtest.gemini.edu"), Paths.get("/tmp/smartgcal"))
+    SmartGcalConfiguration(uri"gsodbtest.gemini.edu", Paths.get("/tmp/smartgcal"))
   val tls    = TLSConfig(Paths.get("file.jks"), "key", "cert")
   val auth   = AuthenticationConfig(2.hour,
                                   "ObserveToken",
                                   "somekey",
                                   false,
-                                  List(uri("ldap://sbfdc-wv1.gemini.edu:3268"))
+                                  List(uri"ldap://sbfdc-wv1.gemini.edu:3268")
   )
   val ws     = WebServerConfiguration("0.0.0.0", 7070, 7071, "localhost", Some(tls))
   val server = ObserveEngineConfiguration(
-    uri("localhost"),
-    uri("http://cpodhsxx:9090/axis2/services/dhs/images"),
+    uri"localhost",
+    uri"http://cpodhsxx:9090/axis2/services/dhs/images",
     SystemsControlConfiguration(
       altair = ControlStrategy.Simulated,
       gems = ControlStrategy.Simulated,
@@ -50,10 +50,10 @@ class ConfigurationLoaderSpec extends CatsEffectSuite {
     false,
     2,
     3.seconds,
-    tag[GpiSettings][Uri](uri("vm://gpi?marshal=false&broker.persistent=false")),
-    tag[GpiSettings][Uri](uri("http://localhost:8888/xmlrpc")),
-    tag[GhostSettings][Uri](uri("vm://ghost?marshal=false&broker.persistent=false")),
-    tag[GhostSettings][Uri](uri("http://localhost:8888/xmlrpc")),
+    tag[GpiSettings][Uri](uri"vm://gpi?marshal=false&broker.persistent=false"),
+    tag[GpiSettings][Uri](uri"http://localhost:8888/xmlrpc"),
+    tag[GhostSettings][Uri](uri"vm://ghost?marshal=false&broker.persistent=false"),
+    tag[GhostSettings][Uri](uri"http://localhost:8888/xmlrpc"),
     "tcs=tcs:, ao=ao:, gm=gm:, gc=gc:, gw=ws:, m2=m2:, oiwfs=oiwfs:, ag=ag:, f2=f2:, gsaoi=gsaoi:, aom=aom:, myst=myst:, rtc=rtc:",
     Some("127.0.0.1"),
     0,
