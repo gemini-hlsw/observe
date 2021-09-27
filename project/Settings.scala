@@ -32,7 +32,7 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.3.4"
 
-    val http4sVersion  = "1.0.0-M23"
+    val http4sVersion  = "1.0.0-M27"
     val squants        = "1.8.2"
     val commonsHttp    = "2.0.2"
     val unboundId      = "3.2.1"
@@ -85,7 +85,7 @@ object Settings {
     val lucumaUI            = "0.17.1"
 
     // Clue
-    val clue                = "0.17.0"
+    val clue                = "0.18.1"
 
     val sttp                = "3.3.13"
   }

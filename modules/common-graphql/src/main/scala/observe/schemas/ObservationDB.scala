@@ -51,7 +51,7 @@ trait ObservationDB {
     type GmosAmpCount             = enum.GmosAmpCount
     type GmosAmpReadMode          = enum.GmosAmpReadMode
     type GmosCustomSlitWidth      = enum.GmosCustomSlitWidth
-    type GmosDetector             = enum.GmosNorthDetector
+    type GmosDetector             = enum.GmosNorthDetector // FIXME when API reflects new model
     type GmosDtax                 = enum.GmosDtax
     type GmosEOffsetting          = enum.GmosEOffsetting
     type GmosNorthDisperser       = enum.GmosNorthDisperser
@@ -71,14 +71,13 @@ trait ObservationDB {
     type MagnitudeSystem          = enum.MagnitudeSystem
     type MosPreImaging            = enum.MosPreImaging
     type ObsStatus                = enum.ObsStatus
-    type ObsActiveStatus          = observe.model.enum.ObsActiveStatus
+    type ObsActiveStatus          = enum.ObsActiveStatus
     type SkyBackground            = enum.SkyBackground
     type StepType                 = enum.StepType
     type WaterVapor               = enum.WaterVapor
-    // temporal
-    type ScienceMode              = observe.model.enum.ScienceMode
-    type FocalPlane               = observe.model.enum.FocalPlane
-    type SpectroscopyCapabilities = observe.model.enum.SpectroscopyCapabilities
+    type ScienceMode              = enum.ScienceMode
+    type FocalPlane               = enum.FocalPlane
+    type SpectroscopyCapabilities = enum.SpectroscopyCapabilities
   }
 
   object Types {

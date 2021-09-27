@@ -33,7 +33,6 @@ import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{ Logger => Http4sLogger }
-import org.http4s.syntax.kleisli._
 import pureconfig._
 import observe.model.config._
 import observe.model.events._

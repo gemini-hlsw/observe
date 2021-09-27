@@ -104,12 +104,12 @@ publish / skip := true
 
 lazy val graphql = project
   .in(file("modules/common-graphql"))
-  .dependsOn(observe_model.jvm % "compile->compile;test->test")
+  .dependsOn(observe_model.jvm)
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      Clue
-    ) ++ LucumaCore.value
+      Clue,
+    )
   )
 
 lazy val giapi = project

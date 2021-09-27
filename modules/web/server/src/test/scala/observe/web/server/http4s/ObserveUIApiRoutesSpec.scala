@@ -6,7 +6,7 @@ package observe.web.server.http4s
 import cats.effect.IO
 import cats.data.Nested
 import org.http4s._
-import org.http4s.Uri.uri
+import org.http4s.implicits._
 import observe.model.UserLoginRequest
 import observe.web.server.http4s.encoder._
 import munit.CatsEffectSuite
@@ -16,7 +16,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
     for {
       s <- uiRoutes
       r <- Nested(
-             s.apply(Request(method = Method.POST, uri = uri("/observe/login"))).value
+             s.apply(Request(method = Method.POST, uri = uri"/observe/login")).value
            ).map(_.status).value
     } yield assertEquals(r, Some(Status.BadRequest))
   }
@@ -27,7 +27,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
     for {
       s <- uiRoutes
       r <- Nested(
-             s.apply(Request(method = Method.GET, uri = uri("/observe/login"))).value
+             s.apply(Request(method = Method.GET, uri = uri"/observe/login")).value
            ).map(_.status).value
     } yield assertEquals(r, Some(Status.NotFound))
   }
@@ -37,7 +37,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       s <- uiRoutes
       r <- s
              .apply(
-               Request(method = Method.POST, uri = uri("/observe/login"))
+               Request(method = Method.POST, uri = uri"/observe/login")
                  .withEntity(UserLoginRequest("telops", "pwd"))
              )
              .value
@@ -52,7 +52,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       s <- uiRoutes
       t <- newLoginToken
       r <- s(
-             Request[IO](method = Method.POST, uri = uri("/observe/logout"))
+             Request[IO](method = Method.POST, uri = uri"/observe/logout")
                .addCookie("token", t)
            ).value
       s <- r.map(_.status).pure[IO]
@@ -67,7 +67,7 @@ class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with
       s <- uiRoutes
       t <- newLoginToken
       r <- s(
-             Request[IO](method = Method.POST, uri = uri("/observe/site"))
+             Request[IO](method = Method.POST, uri = uri"/observe/site")
                .addCookie("token", t)
            ).value
       s <- r.map(_.as[String]).sequence
