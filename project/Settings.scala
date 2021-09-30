@@ -85,7 +85,7 @@ object Settings {
     val lucumaUI            = "0.17.1"
 
     // Clue
-    val clue                = "0.18.1"
+    val clue                = "0.18.2"
 
     val sttp                = "3.3.14"
   }
