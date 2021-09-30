@@ -5,7 +5,7 @@ package observe.common
 
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
-import observe.schemas.ObservationDB
+import lucuma.schemas.ObservationDB
 import io.circe.Decoder
 import lucuma.core.enum
 import lucuma.core.math
