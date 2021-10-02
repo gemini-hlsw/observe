@@ -12,7 +12,7 @@ import observe.model.enum.TipTiltSource
 sealed trait M2GuideConfig extends Product with Serializable
 
 object M2GuideConfig {
-  case object M2GuideOff extends M2GuideConfig
+  case object M2GuideOff                                                   extends M2GuideConfig
   final case class M2GuideOn(coma: ComaOption, source: Set[TipTiltSource]) extends M2GuideConfig
 
   object M2GuideOn {

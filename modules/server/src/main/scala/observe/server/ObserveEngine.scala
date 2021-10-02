@@ -197,7 +197,7 @@ trait ObserveEngine[F[_]] {
   def stopQueue(q: EventQueue[F], qid: QueueId, clientId: ClientId): F[Unit]
 
   /**
-   *  Triggers the application of a specific step configuration to a system
+   * Triggers the application of a specific step configuration to a system
    */
   def configSystem(
     q:        EventQueue[F],
@@ -233,7 +233,8 @@ object ObserveEngine {
 
     /**
      * Check if the resources to run a sequence are available
-     * @return true if resources are available
+     * @return
+     *   true if resources are available
      */
     private def checkResources(seqId: Observation.Id)(st: EngineState[F]): Boolean = {
       // Resources used by running sequences
@@ -269,7 +270,8 @@ object ObserveEngine {
 
     /**
      * Check if the target on the TCS matches the Observe target
-     * @return an F that returns an optional TargetMatchResult if the targets don't match
+     * @return
+     *   an F that returns an optional TargetMatchResult if the targets don't match
      */
     private def sequenceTcsTargetMatch(
       step: SequenceGen.StepGen[F]
@@ -285,8 +287,8 @@ object ObserveEngine {
         .getOrElse(none.pure[F])
 
     /**
-     * Extract the target name from a step configuration. Some processing is necessary to get the same string that
-     * appears in TCS.
+     * Extract the target name from a step configuration. Some processing is necessary to get the
+     * same string that appears in TCS.
      */
     private def extractTargetName(config: CleanConfig): Option[String] = {
       val BasePositionKey    = "Base:name"
@@ -627,7 +629,7 @@ object ObserveEngine {
       user:     UserDetails,
       clientId: ClientId
     ): EventType[F] = {
-      val lens =
+      val lens                                     =
         EngineState
           .sequences[F]
           .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
@@ -1038,7 +1040,7 @@ object ObserveEngine {
      * runQueue starts the queue. It founds the top eligible sequences in the queue, and runs them.
      */
     private def runQueue(
-      qid: QueueId,
+      qid:      QueueId,
       observer: Observer,
       user:     UserDetails,
       clientId: ClientId
@@ -1048,13 +1050,13 @@ object ObserveEngine {
         .flatMap(runSequences(_, observer, user, clientId))
 
     /**
-     * runNextsInQueue continues running the queue after a sequence completes. It finds the next eligible sequences in
-     * the queue, and runs them.
-     * At any given time a queue can be running, but one of the top eligible sequences are not. That is the case if the
-     * sequence ended with an error or is stopped by the user. In both cases, the sequence should not be restarted
-     * without user intervention, nor other sequence that uses the same resources should be started. Because of that,
-     * runNextsInQueue only runs sequences that are now eligible because of the resources that the just completed
-     * sequence has freed.
+     * runNextsInQueue continues running the queue after a sequence completes. It finds the next
+     * eligible sequences in the queue, and runs them. At any given time a queue can be running, but
+     * one of the top eligible sequences are not. That is the case if the sequence ended with an
+     * error or is stopped by the user. In both cases, the sequence should not be restarted without
+     * user intervention, nor other sequence that uses the same resources should be started. Because
+     * of that, runNextsInQueue only runs sequences that are now eligible because of the resources
+     * that the just completed sequence has freed.
      */
     private def runNextsInQueue(
       qid:      QueueId,
@@ -1202,7 +1204,7 @@ object ObserveEngine {
       }
 
     /**
-     *  Triggers the application of a specific step configuration to a system
+     * Triggers the application of a specific step configuration to a system
      */
     override def configSystem(
       q:        EventQueue[F],
@@ -1287,17 +1289,14 @@ object ObserveEngine {
       )(st)
 
     private def refreshSequence(id: Observation.Id): Endo[EngineState[F]] = (st: EngineState[F]) =>
-      {
-        st.sequences.get(id).map(obsseq => updateSequenceEndo(id, obsseq)).foldLeft(st) {
-          case (s, f) => f(s)
-        }
+      st.sequences.get(id).map(obsseq => updateSequenceEndo(id, obsseq)).foldLeft(st) {
+        case (s, f) => f(s)
       }
 
-    private def refreshSequences: Endo[EngineState[F]] = (st: EngineState[F]) => {
+    private def refreshSequences: Endo[EngineState[F]] = (st: EngineState[F]) =>
       st.sequences.map { case (id, obsseq) => updateSequenceEndo(id, obsseq) }.foldLeft(st) {
         case (s, f) => f(s)
       }
-    }
 
     override def setTcsEnabled(
       q:       EventQueue[F],
@@ -1410,8 +1409,8 @@ object ObserveEngine {
       .toSet
 
   /**
-   * Resource in use = Resources used by running sequences, plus the systems that are being configured because a user
-   * commanded a manual configuration apply.
+   * Resource in use = Resources used by running sequences, plus the systems that are being
+   * configured because a user commanded a manual configuration apply.
    */
   private def resourcesInUse[F[_]](st: EngineState[F]): Set[Resource] =
     st.sequences.values.toList
@@ -1437,8 +1436,8 @@ object ObserveEngine {
   }
 
   /**
-   * Creates a stream that will follow a heartbeat and raise an error if the heartbeat
-   * doesn't get emitted for timeout
+   * Creates a stream that will follow a heartbeat and raise an error if the heartbeat doesn't get
+   * emitted for timeout
    *
    * Credit: Fabio Labella
    * https://gitter.im/functional-streams-for-scala/fs2?at=5e0a6efbfd580457e79aaf0a
@@ -1469,15 +1468,18 @@ object ObserveEngine {
   }
 
   /**
-   * Find the observations in an execution queue that would be run next, taking into account the resources required by
-   * each observation and the resources currently in use.
-   * The order in the queue defines the priority of the observations.
-   * Failed or stopped sequences in the queue keep their instruments taken, preventing that the queue starts other
-   * sequences for those instruments.
-   * @param qid The execution queue id
-   * @param st The current engine state
-   * @return The set of all observations in the execution queue `qid` that can be started to run
-   *         in parallel.
+   * Find the observations in an execution queue that would be run next, taking into account the
+   * resources required by each observation and the resources currently in use. The order in the
+   * queue defines the priority of the observations. Failed or stopped sequences in the queue keep
+   * their instruments taken, preventing that the queue starts other sequences for those
+   * instruments.
+   * @param qid
+   *   The execution queue id
+   * @param st
+   *   The current engine state
+   * @return
+   *   The set of all observations in the execution queue `qid` that can be started to run in
+   *   parallel.
    */
   def findRunnableObservations[F[_]](qid: QueueId)(st: EngineState[F]): Set[Observation.Id] = {
     // Set of all resources in use
@@ -1502,11 +1504,15 @@ object ObserveEngine {
 
   /**
    * Find next runnable observations given that a set of resources has just being released
-   * @param qid The execution queue id
-   * @param st The current engine state
-   * @param freed Resources that were freed
-   * @return The set of all observations in the execution queue `qid` that can be started to run
-   *         in parallel.
+   * @param qid
+   *   The execution queue id
+   * @param st
+   *   The current engine state
+   * @param freed
+   *   Resources that were freed
+   * @return
+   *   The set of all observations in the execution queue `qid` that can be started to run in
+   *   parallel.
    */
   private def nextRunnableObservations[F[_]](qid: QueueId, freed: Set[Resource])(
     st:                                           EngineState[F]
@@ -1544,8 +1550,8 @@ object ObserveEngine {
   }
 
   /**
-   * shouldSchedule checks if a set of sequences are candidates for been run in a queue.
-   * It is used to check if sequences added to a queue should be started.
+   * shouldSchedule checks if a set of sequences are candidates for been run in a queue. It is used
+   * to check if sequences added to a queue should be started.
    */
   private def shouldSchedule[F[_]](qid: QueueId, sids: Set[Observation.Id])(
     st:                                 EngineState[F]
@@ -1627,11 +1633,11 @@ object ObserveEngine {
     val seq        = st.toSequence
     val instrument = obsSeq.seqGen.instrument
 
-    def resources(s:     SequenceGen.StepGen[F]): List[Resource] = s match {
+    def resources(s: SequenceGen.StepGen[F]): List[Resource] = s match {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
       case _                                => List.empty
     }
-    def engineSteps(seq: Sequence[F]): List[Step]                =
+    def engineSteps(seq: Sequence[F]): List[Step]            =
       obsSeq.seqGen.steps.zip(seq.steps).map { case (a, b) =>
         StepsView
           .stepsView(instrument)

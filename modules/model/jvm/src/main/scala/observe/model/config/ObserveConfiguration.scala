@@ -8,12 +8,18 @@ import lucuma.core.enum.Site
 
 /**
  * Top configuration of the observe
- * @param site Site this observe instance handles (GN/GS)
- * @param mode Execution mode
- * @param observeEngine Configuration of the engine
- * @param webServer Web side configuration
- * @param smartGcal Configuration to reach SmartGCal
- * @param authentication Configuration to support authentication
+ * @param site
+ *   Site this observe instance handles (GN/GS)
+ * @param mode
+ *   Execution mode
+ * @param observeEngine
+ *   Configuration of the engine
+ * @param webServer
+ *   Web side configuration
+ * @param smartGcal
+ *   Configuration to reach SmartGCal
+ * @param authentication
+ *   Configuration to support authentication
  */
 final case class ObserveConfiguration(
   site:           Site,

@@ -11,7 +11,7 @@ import observe.model.enum.M1Source
 sealed trait M1GuideConfig extends Product with Serializable
 
 object M1GuideConfig {
-  case object M1GuideOff extends M1GuideConfig
+  case object M1GuideOff                       extends M1GuideConfig
   final case class M1GuideOn(source: M1Source) extends M1GuideConfig
 
   object M1GuideOn {

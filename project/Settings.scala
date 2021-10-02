@@ -3,8 +3,8 @@ import java.lang.{ Runtime => JRuntime }
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 /**
-  * Application settings and dependencies
-  */
+ * Application settings and dependencies
+ */
 object Settings {
 
   /** Library versions */
@@ -81,18 +81,18 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore          = "0.13.2"
-    val lucumaUI            = "0.17.1"
+    val lucumaCore = "0.13.2"
+    val lucumaUI   = "0.17.1"
 
     // Clue
-    val clue                = "0.18.1"
+    val clue = "0.18.1"
 
-    val sttp                = "3.3.14"
+    val sttp = "3.3.14"
   }
 
   /**
-    * Global libraries
-    */
+   * Global libraries
+   */
   object Libraries {
     // Test Libraries
     val TestLibs       = Def.setting(
@@ -100,9 +100,9 @@ object Settings {
     )
     val MUnit          = Def.setting(
       Seq(
-        "org.scalameta" %%% "munit"             % LibraryVersions.munitVersion           % Test,
+        "org.scalameta" %%% "munit"               % LibraryVersions.munitVersion           % Test,
         "org.typelevel" %%% "munit-cats-effect-3" % LibraryVersions.munitCatsEffectVersion % Test,
-        "org.typelevel" %%% "discipline-munit"  % LibraryVersions.munitDisciplineVersion % Test
+        "org.typelevel" %%% "discipline-munit"    % LibraryVersions.munitDisciplineVersion % Test
       )
     )
     val XmlUnit        = "xmlunit" % "xmlunit" % LibraryVersions.xmlUnit % "test"
@@ -249,9 +249,10 @@ object Settings {
       "org.apache.xmlrpc" % "xmlrpc-client"                  % LibraryVersions.apacheXMLRPC
     )
 
-    val JAXB = Seq("javax.xml.bind" % "jaxb-api" % LibraryVersions.jaxb,
-                   "org.glassfish.jaxb" % "jaxb-runtime" % LibraryVersions.jaxb,
-                   "org.glassfish.jaxb" % "jaxb-xjc" % LibraryVersions.jaxb
+    val JAXB = Seq(
+      "javax.xml.bind"     % "jaxb-api"     % LibraryVersions.jaxb,
+      "org.glassfish.jaxb" % "jaxb-runtime" % LibraryVersions.jaxb,
+      "org.glassfish.jaxb" % "jaxb-xjc"     % LibraryVersions.jaxb
     )
 
     // GIAPI Libraries
@@ -287,9 +288,9 @@ object Settings {
 
     val Sttp = Def.setting(
       Seq(
-        "com.softwaremill.sttp.client3" %%% "core" % LibraryVersions.sttp,
+        "com.softwaremill.sttp.client3" %%% "core"  % LibraryVersions.sttp,
         "com.softwaremill.sttp.client3" %%% "circe" % LibraryVersions.sttp,
-        "com.softwaremill.sttp.client3" %%% "cats" % LibraryVersions.sttp
+        "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
       )
     )
   }

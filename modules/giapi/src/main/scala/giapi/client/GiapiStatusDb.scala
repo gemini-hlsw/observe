@@ -137,19 +137,21 @@ object GiapiStatusDb {
   /**
    * Creates a new status db that listens for status items as they are produced
    *
-   * @param url Url of the giapi server
-   * @param items List of items to monitor
+   * @param url
+   *   Url of the giapi server
+   * @param items
+   *   List of items to monitor
    */
   def newStatusDb[F[_]: Async](
     url:   String,
     items: List[String]
   ): F[GiapiStatusDb[F]] =
     for {
-      c  <- Sync[F].delay(new ActiveMQJmsProvider(url)) // Build the connection
-      ss <- Giapi.statusStreamer[F](c) // giapi artifacts
+      c <- Sync[F].delay(new ActiveMQJmsProvider(url))       // Build the connection
+      ss <- Giapi.statusStreamer[F](c)                       // giapi artifacts
       db <- GiapiDb.newDb
-      _  <- initDb[F](c, db, items) // Get the initial values
-      f  <- streamItemsToDb[F](ss.aggregate, db, items).start // run in the background
+      _ <- initDb[F](c, db, items)                           // Get the initial values
+      f <- streamItemsToDb[F](ss.aggregate, db, items).start // run in the background
     } yield new GiapiStatusDb[F] {
       def optional(i: String): F[Option[StatusValue]] =
         db.value(i)
@@ -168,9 +170,9 @@ object GiapiStatusDb {
 
       def close: F[Unit] =
         for {
-          _ <- Sync[F].delay(ss.ss.stopJms()) // Close the listener
+          _ <- Sync[F].delay(ss.ss.stopJms())    // Close the listener
           _ <- Sync[F].delay(c.stopConnection()) // Disconnect from amq
-          _ <- Sync[F].delay(f.cancel) // Stop the fiber
+          _ <- Sync[F].delay(f.cancel)           // Stop the fiber
         } yield ()
     }
 

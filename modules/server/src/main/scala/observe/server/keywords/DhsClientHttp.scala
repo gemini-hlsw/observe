@@ -77,7 +77,7 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(implicit timer: Tempora
       Json.obj(
         "setKeywords" :=
           Json.obj(
-            "final" := finalFlag,
+            "final"    := finalFlag,
             "keywords" := keywords.keywords
           )
       ),
@@ -153,7 +153,7 @@ object DhsClientHttp {
   implicit def imageParametersEncode: Encoder[DhsClient.ImageParameters] =
     Encoder.instance[DhsClient.ImageParameters](p =>
       Json.obj(
-        "lifetime" := p.lifetime.str,
+        "lifetime"     := p.lifetime.str,
         "contributors" := p.contributors
       )
     )
@@ -161,8 +161,8 @@ object DhsClientHttp {
   implicit def keywordEncode: Encoder[InternalKeyword] =
     Encoder.instance[InternalKeyword](k =>
       Json.obj(
-        "name" := DhsKeywordName.all.find(_.keyword === k.name).map(_.name).getOrElse(k.name.name),
-        "type" := KeywordType.dhsKeywordType(k.keywordType),
+        "name"  := DhsKeywordName.all.find(_.keyword === k.name).map(_.name).getOrElse(k.name.name),
+        "type"  := KeywordType.dhsKeywordType(k.keywordType),
         "value" := k.value
       )
     )

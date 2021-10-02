@@ -32,8 +32,8 @@ import squants.space.LengthConversions._
 import squants.time.TimeConversions._
 
 /**
- * Base implementation of an Epics TcsController
- * Type parameter BaseEpicsTcsConfig is the class used to hold the current configuration
+ * Base implementation of an Epics TcsController Type parameter BaseEpicsTcsConfig is the class used
+ * to hold the current configuration
  */
 sealed trait TcsControllerEpicsCommon[F[_]] {
 
@@ -218,7 +218,7 @@ object TcsControllerEpicsCommon {
       }(cfg)
 
   private def calcGuideOff(current: BaseEpicsTcsConfig, demand: BasicTcsConfig): BasicTcsConfig = {
-    val mustOff = mustPauseWhileOffsetting(current, demand)
+    val mustOff                                            = mustPauseWhileOffsetting(current, demand)
     // Only turn things off here. Things that must be turned on will be turned on in GuideOn.
     def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
       (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
@@ -444,8 +444,9 @@ object TcsControllerEpicsCommon {
     }
 
     /**
-     * Positions Parked and OUT are equivalent for practical purposes. Therefore, if the current position is Parked and
-     * requested position is OUT (or the other way around), then it is not necessary to move the HR pickup mirror.
+     * Positions Parked and OUT are equivalent for practical purposes. Therefore, if the current
+     * position is Parked and requested position is OUT (or the other way around), then it is not
+     * necessary to move the HR pickup mirror.
      */
     override def setHrPickup[C](l: Lens[C, BaseEpicsTcsConfig])(
       subsystems:                  NonEmptySet[Subsystem],
@@ -748,7 +749,7 @@ object TcsControllerEpicsCommon {
         _  <- guideOn(subsystems, s2, tcs)
       } yield ()
     }
-    override def notifyObserveStart: F[Unit]                        =
+    override def notifyObserveStart: F[Unit]              =
       L.debug("Send observe to TCS") *>
         epicsSys.observe.mark *>
         epicsSys.post(DefaultTimeout) *>

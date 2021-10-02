@@ -40,9 +40,8 @@ import squants.time.Time
 import squants.time.TimeConversions._
 
 /**
- * Contains boopickle implicit picklers of model objects
- * Boopickle can auto derive encoders but it is preferred to make
- * them explicitly
+ * Contains boopickle implicit picklers of model objects Boopickle can auto derive encoders but it
+ * is preferred to make them explicitly
  */
 trait ModelBooPicklers extends BooPicklerSyntax {
   implicit val yearPickler: Pickler[Year]                           = transformPickler(Year.of)(_.getValue)
@@ -72,7 +71,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
 
   def valuesMapPickler[A: Enumerated, B: Monoid: Pickler](
     valuesMap: Map[B, A]
-  ): Pickler[A]                                    =
+  ): Pickler[A] =
     transformPickler((t: B) =>
       valuesMap
         .get(t)
@@ -82,7 +81,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   def enumeratedPickler[A: Enumerated]: Pickler[A] =
     valuesMapPickler[A, Int](sourceIndex[A])
 
-  implicit val timeProgressPickler: Pickler[Time]     =
+  implicit val timeProgressPickler: Pickler[Time] =
     transformPickler((t: Double) => t.milliseconds)(_.toMilliseconds)
 
   implicit val instrumentPickler: Pickler[Instrument] = enumeratedPickler[Instrument]
@@ -97,7 +96,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
 
   implicit val userDetailsPickler: Pickler[UserDetails] = generatePickler[UserDetails]
 
-  implicit val instantPickler: Pickler[Instant]             =
+  implicit val instantPickler: Pickler[Instant] =
     transformPickler((t: Long) => Instant.ofEpochMilli(t))(_.toEpochMilli)
 
   implicit val cloudCoverPickler: Pickler[CloudCover]       = enumeratedPickler[CloudCover]

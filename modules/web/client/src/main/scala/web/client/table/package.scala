@@ -113,15 +113,15 @@ package object table {
     colWidthsO[A, B, G](items, cols, get.view.mapValues(f => (a: A) => f(a).some).toMap, minW, adj)
 
   /**
-   * This methods traverses a whole set of data to find the widest value per
-   * column, trying to traverse it in one pass
+   * This methods traverses a whole set of data to find the widest value per column, trying to
+   * traverse it in one pass
    */
   def colWidthsO[A, B, G[_]: Foldable](
     items: G[A],
-    cols: NonEmptyList[B],
-    get:  Map[B, A => Option[String]],
-    minW: Map[B, Double],
-    adj:  Map[B, Double]
+    cols:  NonEmptyList[B],
+    get:   Map[B, A => Option[String]],
+    minW:  Map[B, Double],
+    adj:   Map[B, Double]
   ): B => Option[Double] =
     // Find the longest string per column
     items

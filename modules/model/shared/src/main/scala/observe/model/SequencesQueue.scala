@@ -14,8 +14,8 @@ import observe.model.Observation
 import observe.model.enum.Instrument
 
 /**
- * Represents a queue with different levels of details. E.g. it could be a list of Ids
- * Or a list of fully hydrated SequenceViews
+ * Represents a queue with different levels of details. E.g. it could be a list of Ids Or a list of
+ * fully hydrated SequenceViews
  */
 @Lenses
 final case class SequencesQueue[T](

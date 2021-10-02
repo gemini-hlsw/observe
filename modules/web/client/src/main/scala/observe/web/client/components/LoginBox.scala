@@ -71,13 +71,13 @@ object LoginBox {
       b.modState(State.username.replace(v))
     }
 
-    def loggedInEvent(u:     UserDetails): Callback =
+    def loggedInEvent(u: UserDetails): Callback =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(LoggedIn(u))
-    def updateProgressMsg(m: String): Callback      =
+    def updateProgressMsg(m: String): Callback  =
       b.modState(State.progressMsg.replace(m.some) >>> State.errorMsg.replace(none))
-    def updateErrorMsg(m:    String): Callback      =
+    def updateErrorMsg(m: String): Callback     =
       b.modState(State.errorMsg.replace(m.some) >>> State.progressMsg.replace(none))
-    def closeBox: Callback =
+    def closeBox: Callback                      =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 
     val attemptLogin = (e: ReactEvent, _: Form.FormProps) =>
@@ -142,7 +142,7 @@ object LoginBox {
             action = "#",
             onSubmitE = attemptLogin
           )(
-            ^.id := formId,
+            ^.id     := formId,
             ^.method := "post"
           )
         ),
@@ -158,13 +158,13 @@ object LoginBox {
               <.div(
                 ^.cls := "ui icon input",
                 <.input(
-                  ^.`type` := "text",
+                  ^.`type`      := "text",
                   ^.placeholder := "Username",
-                  ^.name := "username",
-                  ^.id := "username",
-                  ^.value := s.username,
+                  ^.name        := "username",
+                  ^.id          := "username",
+                  ^.value       := s.username,
                   ^.onChange ==> userMod,
-                  ^.autoFocus := true
+                  ^.autoFocus   := true
                 ),
                 IconUser
               )
@@ -175,11 +175,11 @@ object LoginBox {
               <.div(
                 ^.cls := "ui icon input",
                 <.input(
-                  ^.`type` := "password",
+                  ^.`type`      := "password",
                   ^.placeholder := "Password",
-                  ^.name := "password",
-                  ^.id := "password",
-                  ^.value := s.password,
+                  ^.name        := "password",
+                  ^.id          := "password",
+                  ^.value       := s.password,
                   ^.onChange ==> pwdMod
                 ),
                 IconLock
