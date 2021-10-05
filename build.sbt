@@ -20,9 +20,10 @@ inThisBuild(
       ("org.typelevel"                    % "kind-projector" % "0.13.2").cross(CrossVersion.full)
     ),
     scalacOptions += "-Ymacro-annotations",
-    Global / onChangedBuildSource        := ReloadOnSourceChanges,
-    scalafixDependencies += "edu.gemini" %% "clue-generator" % Settings.LibraryVersions.clue,
-    scalafixScalaBinaryVersion           := "2.13"
+    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
+    scalafixScalaBinaryVersion := "2.13",
+    ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false,
   ) ++ lucumaPublishSettings
 )
 
@@ -108,7 +109,8 @@ lazy val graphql = project
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      Clue
+      Clue,
+      LucumaSchemas
     )
   )
 
@@ -297,7 +299,8 @@ lazy val observe_server: Project = project
         Log4CatsNoop.value,
         TestLibs.value,
         PPrint.value,
-        Clue
+        Clue,
+        LucumaSchemas
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
