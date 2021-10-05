@@ -6,7 +6,6 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import observe.model
-import observe.model.ConstraintsSummary
 import lucuma.schemas.ObservationDB
 import io.circe.Decoder
 import lucuma.core.math.Angle
@@ -85,16 +84,9 @@ object ObsQueriesGQL {
     object Data {
       object Observations {
         object Nodes {
-          trait ConstraintSet extends ConstraintsSummary
           object PlannedTime {
             type Execution = time.Duration
           }
-        }
-      }
-
-      object ConstraintSetGroup {
-        object Nodes {
-          type ConstraintSet = model.ConstraintSet
         }
       }
     }
@@ -211,8 +203,6 @@ object ObsQueriesGQL {
 
     object Data {
       object Observation {
-        type ConstraintSet = model.ConstraintSet
-
         object ScienceRequirements {
           object SpectroscopyRequirements {
             type Wavelength      = lucuma.core.math.Wavelength
