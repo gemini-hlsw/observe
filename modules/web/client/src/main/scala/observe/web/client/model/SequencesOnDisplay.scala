@@ -194,7 +194,7 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
         // PreviewSequenceTab.tableState.modify(tsUpd) >>>
         PreviewSequenceTab.currentSequence.replace(s) >>>
           PreviewSequenceTab.stepConfig.replace(None)
-      val q      = withPreviewTab(s).tabs
+      val q = withPreviewTab(s).tabs
         .findFocus(_.isPreview)
         .map(_.modify(ObserveTab.previewTab.modify(update)))
       q
@@ -404,7 +404,8 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
 }
 
 /**
- * Contains the sequences displayed on the instrument tabs. Note that they are references to sequences on the Queue
+ * Contains the sequences displayed on the instrument tabs. Note that they are references to
+ * sequences on the Queue
  */
 object SequencesOnDisplay {
   // We need to initialize the model with something so we use preview

@@ -370,7 +370,7 @@ final case class StepsTable(
     stepsTable.configTableState
   // Find out if offsets should be displayed
   val offsetsDisplay: OffsetsDisplay                            = stepsList.offsetsDisplay
-  private def showProp(p: InstrumentProperties): Boolean =
+  private def showProp(p: InstrumentProperties): Boolean        =
     steps.exists(s => s.instrument.displayItems.contains(p))
 
   val showOffsets: Boolean =
@@ -491,7 +491,7 @@ object StepsTable extends Columns {
     prevSequenceState:        Option[SequenceState],
     prevRunning:              Option[RunningStep],
     prevResourceRunRequested: SortedMap[Resource, ResourceRunOperation],
-    recomputeFrom:            Option[StepId], // Min row to recompute heights from
+    recomputeFrom:            Option[StepId],           // Min row to recompute heights from
     runNewStep:               Option[(StepId, Boolean)] // (New running step, scroll to it?)
   ) {
 
@@ -545,7 +545,7 @@ object StepsTable extends Columns {
 
   def stepControlRenderer(
     f:                       StepsTableFocus,
-    $                       : Scope,
+    $                      : Scope,
     rowBreakpointHoverOnCB:  StepId => Callback,
     rowBreakpointHoverOffCB: StepId => Callback,
     recomputeHeightsCB:      StepId => Callback
@@ -576,7 +576,7 @@ object StepsTable extends Columns {
       SettingsCell(p.router, f.instrument, f.idName.id, stepRow.step.id, p.isPreview)
 
   def stepProgressRenderer(
-    f: StepsTableFocus,
+    f:  StepsTableFocus,
     $ : Scope
   ): CellRenderer[js.Object, js.Object, StepRow] =
     (_, _, _, row: StepRow, index) =>
@@ -621,7 +621,7 @@ object StepsTable extends Columns {
   ): CellRenderer[js.Object, js.Object, StepRow] =
     (_, _, _, row: StepRow, _) => ObjectTypeCell(i, row.step, size)
 
-  private val stepRowStyle: Step => Css          = {
+  private val stepRowStyle: Step => Css = {
     case s if s.hasError                       => ObserveStyles.rowError
     case s if s.status === StepState.Running   => ObserveStyles.rowWarning
     case s if s.status === StepState.Paused    => ObserveStyles.rowWarning
@@ -747,7 +747,7 @@ object StepsTable extends Columns {
 
   private def columnCellRenderer(
     $ : Scope,
-    c: TableColumn
+    c:  TableColumn
   ): CellRenderer[js.Object, js.Object, StepRow] = {
     val optR = c match {
       case ControlColumn       =>
@@ -780,7 +780,7 @@ object StepsTable extends Columns {
 
   // Columns for the table
   private def colBuilder(
-    $    : Scope,
+    $   : Scope,
     size: Size
   ): ColumnRenderArgs[TableColumn] => Table.ColumnArg =
     tb => {
@@ -892,7 +892,7 @@ object StepsTable extends Columns {
       disableHeader = false,
       noRowsRenderer = () =>
         <.div(
-          ^.cls := "ui center aligned segment noRows",
+          ^.cls    := "ui center aligned segment noRows",
           ^.height := size.height.toInt.px,
           "No Steps"
         ),
@@ -958,13 +958,13 @@ object StepsTable extends Columns {
       (p.rowGetterByIndex(index), stepId) match {
         case (StepRow(s), Some(sid)) if p.showRowDetails(s, selected) && sid === s.id =>
           <.div(
-            ^.key := key,
+            ^.key   := key,
             ^.style := Style.toJsObject(style),
             ObserveStyles.expandedRunningRow,
             ObserveStyles.stepRow,
             <.div(
-              ^.cls := className,
-              ^.key := s"$key-top",
+              ^.cls    := className,
+              ^.key    := s"$key-top",
               ObserveStyles.expandedTopRow,
               ^.height := ObserveStyles.runningRowHeight.px,
               ^.onMouseDown ==> allowedClick(p, sid, onRowClick),
@@ -982,7 +982,7 @@ object StepsTable extends Columns {
 
               rowComponents.zipWithIndex.toTagMod { case (rowComponent, rowIdx) =>
                 <.div(
-                  ^.key := s"$key-subRow-$rowIdx",
+                  ^.key    := s"$key-subRow-$rowIdx",
                   ObserveStyles.expandedBottomRow,
                   ObserveStyles.tableDetailRow,
                   ObserveStyles.tableDetailRowWithGutter
@@ -998,9 +998,9 @@ object StepsTable extends Columns {
           )
         case (_, Some(sid))                                                           =>
           <.div(
-            ^.cls := className,
-            ^.key := key,
-            ^.role := "row",
+            ^.cls   := className,
+            ^.key   := key,
+            ^.role  := "row",
             ^.style := Style.toJsObject(style),
             ^.onMouseDown ==> allowedClick(p, sid, onRowClick),
             ^.onDoubleClick -->? onRowDoubleClick.map(h => h(index)),
@@ -1008,9 +1008,9 @@ object StepsTable extends Columns {
           )
         case _                                                                        =>
           <.div(
-            ^.cls := className,
-            ^.key := key,
-            ^.role := "row",
+            ^.cls   := className,
+            ^.key   := key,
+            ^.role  := "row",
             ^.style := Style.toJsObject(style),
             ^.onDoubleClick -->? onRowDoubleClick.map(h => h(index)),
             columns.toTagMod

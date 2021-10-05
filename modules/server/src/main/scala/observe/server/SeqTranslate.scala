@@ -537,7 +537,7 @@ object SeqTranslate {
       def adaptGcal(b: GcalController[F] => Gcal[F])(ov: SystemOverrides): Gcal[F] = b(
         overriddenSystems.gcal(ov)
       )
-      def defaultGcal: SystemOverrides => Gcal[F] = adaptGcal(Gcal.defaultGcal)
+      def defaultGcal: SystemOverrides => Gcal[F]                                  = adaptGcal(Gcal.defaultGcal)
 
       stepType match {
         case StepType.CelestialObject(inst) =>
@@ -568,7 +568,7 @@ object SeqTranslate {
             )
           }
 
-        case StepType.FlatOrArc(inst)   =>
+        case StepType.FlatOrArc(inst) =>
           for {
             tcs  <- getTcs(flatOrArcTcsSubsystems(inst),
                            useGaos = false,
@@ -590,7 +590,7 @@ object SeqTranslate {
             gcal <- Gcal.fromConfig(site == Site.GS, config)
           } yield Map(Resource.TCS -> tcs, Resource.Gcal -> adaptGcal(gcal) _)
 
-        case StepType.DarkOrBias(_)     => Map.empty[Resource, SystemOverrides => System[F]].pure[F]
+        case StepType.DarkOrBias(_) => Map.empty[Resource, SystemOverrides => System[F]].pure[F]
 
         case StepType.ExclusiveDarkOrBias(_) | StepType.DarkOrBiasNS(_) =>
           Map[Resource, SystemOverrides => System[F]](
@@ -767,7 +767,7 @@ object SeqTranslate {
         ((_: KeywordsClient[F]) => (_: HeaderExtraData) => List.empty[Header[F]])
           .pure[F] // No headers for A&C
 
-      case StepType.Gems(_)       =>
+      case StepType.Gems(_) =>
         { kwClient: KeywordsClient[F] => ctx: HeaderExtraData =>
           List(
             commonHeaders(config, allButGaos.toList, kwClient)(ctx),
