@@ -83,9 +83,10 @@ object Settings {
     // Gemini Libraries
     val lucumaCore          = "0.13.2"
     val lucumaUI            = "0.17.1"
+    val lucumaSchemas       = "0.0.2"
 
     // Clue
-    val clue                = "0.18.1"
+    val clue                = "0.18.2"
 
     val sttp                = "3.3.14"
   }
@@ -281,9 +282,11 @@ object Settings {
         "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore
       )
     )
-    val LucumaUI   = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
+    val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
+    val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
-    val Clue = "edu.gemini" %% "clue-http4s-jdk-client" % LibraryVersions.clue
+    val Clue          = "edu.gemini" %% "clue-http4s-jdk-client" % LibraryVersions.clue
+    val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
 
     val Sttp = Def.setting(
       Seq(

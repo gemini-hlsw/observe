@@ -7,7 +7,7 @@ import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import observe.model
 import observe.model.ConstraintsSummary
-import observe.schemas.ObservationDB
+import lucuma.schemas.ObservationDB
 import io.circe.Decoder
 import lucuma.core.math.Angle
 
