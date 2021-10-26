@@ -12,6 +12,8 @@ name := "observe"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+Global / semanticdbEnabled := true
+
 ThisBuild / Compile / packageDoc / publishArtifact := false
 
 inThisBuild(
@@ -168,7 +170,8 @@ lazy val observe_web_server = project
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
     reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
-    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
+    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher"),
+    Compile / bspEnabled := false,
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -390,8 +393,26 @@ lazy val acm = project
     ) ++ Logback ++ JAXB,
     Test / libraryDependencies ++= Logback,
     Test / testOptions := Seq(),
-    xjcCommandLine ++= Seq("-p", "edu.gemini.epics.acm.generated"),
-    xjcLibs ++= JAXB
+    Compile / bspEnabled := false,
+    Compile / sourceGenerators += Def.task {
+      import scala.sys.process._
+      val pkg = "edu.gemini.epics.acm.generated"
+      val log = state.value.log
+      val gen = (Compile / sourceManaged).value
+      val out = pkg.split("\\.").foldLeft(gen)(_ / _)
+      val xsd = sourceDirectory.value / "main" / "resources" / "CaSchema.xsd"
+      val cmd = List("xjc", "-d", gen.getAbsolutePath, "-p", pkg, xsd.getAbsolutePath)
+      val mod = xsd.getParentFile.listFiles.map(_.lastModified).max
+      val cur =
+        if (out.exists && out.listFiles.nonEmpty) out.listFiles.map(_.lastModified).min
+        else Int.MaxValue
+      if (mod > cur) {
+        out.mkdirs
+        val err = cmd.run(ProcessLogger(log.info(_), log.error(_))).exitValue
+        if (err != 0) sys.error("xjc failed")
+      }
+      out.listFiles.toSeq
+    }.taskValue
   )
 
 /**
