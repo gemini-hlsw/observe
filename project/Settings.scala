@@ -43,7 +43,6 @@ object Settings {
     val log4catsLevel  = "0.3.0"
     val logback        = "1.2.6"
     val janino         = "3.1.4"
-    val logstash       = "6.6"
     val pureConfig     = "0.17.0"
     val monocleVersion = "3.1.0"
     val circeVersion   = "0.14.1"
@@ -66,6 +65,7 @@ object Settings {
     val opencsv             = "2.3"
     val epicsService        = "1.0.7"
     val gmpCommandRecords   = "0.7.7"
+    val acm                 = "0.1.0"
     val giapi               = "1.1.7"
     val giapiJmsUtil        = "0.5.7"
     val giapiJmsProvider    = "1.6.7"
@@ -135,8 +135,6 @@ object Settings {
     val Logback          = Seq(
       "ch.qos.logback"       % "logback-core"             % LibraryVersions.logback,
       "ch.qos.logback"       % "logback-classic"          % LibraryVersions.logback,
-      "org.codehaus.janino"  % "janino"                   % LibraryVersions.janino,
-      "net.logstash.logback" % "logstash-logback-encoder" % LibraryVersions.logstash
     )
     val Log4s            = Def.setting("org.log4s" %%% "log4s" % LibraryVersions.log4s)
     val Log4CatsLogLevel = Def.setting(
@@ -275,6 +273,7 @@ object Settings {
     val GmpCmdJmsBridge =
       "edu.gemini.aspen.gmp" % "gmp-commands-jms-bridge" % LibraryVersions.gmpCmdClientBridge
     val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
+    val ACM = "edu.gemini" %% "acm" % LibraryVersions.acm
 
     // Lucuma Libraries
     val LucumaCore = Def.setting(
