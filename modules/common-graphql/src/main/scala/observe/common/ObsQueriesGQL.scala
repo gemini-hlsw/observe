@@ -5,7 +5,6 @@ package observe.common
 
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
-import observe.model
 import lucuma.schemas.ObservationDB
 import io.circe.Decoder
 import lucuma.core.math.Angle
