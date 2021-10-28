@@ -25,8 +25,8 @@ object Settings {
     // Scala libraries
     val catsEffectVersion   = "3.2.9"
     val catsVersion         = "2.6.1"
-    val mouseVersion        = "1.0.5"
-    val fs2Version          = "3.1.6"
+    val mouseVersion        = "1.0.7"
+    val fs2Version          = "3.1.3"
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
@@ -76,7 +76,7 @@ object Settings {
     val gmpCmdClientBridge  = "0.6.7"
     val guava               = "31.0.1-jre"
     val prometheusClient    = "0.12.0"
-    val geminiLocales       = "0.6.0"
+    val geminiLocales       = "0.7.0"
     val pprint              = "0.6.6"
     val jaxb                = "2.3.1"
 
