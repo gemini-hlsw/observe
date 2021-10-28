@@ -306,7 +306,7 @@ lazy val observe_server: Project = project
         PPrint.value,
         Clue,
         LucumaSchemas,
-        CM
+        ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
