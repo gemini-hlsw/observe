@@ -210,7 +210,7 @@ object SeqTranslate {
       tio:                       Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
-      //TODO: Retrive sequence name from ODB sequence
+      // TODO: Retrive sequence name from ODB sequence
       val obsName = Observation.Name.unsafeFromString("Dummy")
 
       // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
@@ -224,7 +224,7 @@ object SeqTranslate {
         .map(extractStatus)
         .lastIndexWhere(_.isFinished) + 1
 
-      //TODO: Retrieve step ids from the config
+      // TODO: Retrieve step ids from the config
       val steps = configs.zipWithIndex
         .map { case (c, i) =>
           step(

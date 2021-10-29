@@ -77,7 +77,7 @@ class TcsNorthControllerEpicsAoSpec extends AnyFlatSpec with PrivateMethodTester
   // instrument.
   it should "decide if it can keep Altair guiding active when applying an offset" in {
     val niriAoThreshold = Arcseconds(3.0)
-    //Big offset with Altair in use
+    // Big offset with Altair in use
     TcsNorthControllerEpicsAo.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
@@ -134,7 +134,7 @@ class TcsNorthControllerEpicsAoSpec extends AnyFlatSpec with PrivateMethodTester
       )(baseConfig)
     ) shouldBe true
 
-    //Small offset with Altair in use
+    // Small offset with Altair in use
     TcsNorthControllerEpicsAo.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (

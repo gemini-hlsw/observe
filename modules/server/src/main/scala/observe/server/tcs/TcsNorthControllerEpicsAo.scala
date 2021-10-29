@@ -203,7 +203,7 @@ object TcsNorthControllerEpicsAo {
         s1 <- guideOff(subsystems, s0, tcs, pr.pause.isEmpty)
         s2 <- sysConfig(s1)
         _  <- guideOn(subsystems, s2, tcs, pr.resume.isDefined)
-        _ <- pr.resume.getOrElse(Applicative[F].unit) //resume Gaos
+        _ <- pr.resume.getOrElse(Applicative[F].unit) // resume Gaos
       } yield ()
     }
 

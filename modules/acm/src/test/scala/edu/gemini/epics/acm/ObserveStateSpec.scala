@@ -1103,7 +1103,7 @@ trait ChannelsFactory extends MockFactory {
   }
 
   def dirChannelPause: CadDirectiveChannelMock = {
-    val m = mock[CadDirectiveChannelMock] //(dirCAJChannel, null, 0.1)
+    val m = mock[CadDirectiveChannelMock] // (dirCAJChannel, null, 0.1)
     (m.setValue(_: CadDirective)).expects(*).twice()
     m
   }

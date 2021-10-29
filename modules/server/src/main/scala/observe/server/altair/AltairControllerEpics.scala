@@ -110,7 +110,7 @@ object AltairControllerEpics {
       val prepMatrixOk =
         newPos.forall(validatePreparedControlMatrix(currCfg, _)) || fieldLens === FieldLens.IN
       val guideOk      =
-        !reasons.contains(PauseCondition.GaosGuideOff) //It can follow the guide star on this step
+        !reasons.contains(PauseCondition.GaosGuideOff) // It can follow the guide star on this step
 
       val needsToStop = !(newPosOk && matrixOk && guideOk)
 
