@@ -29,6 +29,15 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
   def runningSequence(s: ObserveModelUpdate): Option[SequenceView] =
     s.view.sessionQueue.find(_.status.isRunning)
 
+  def storedDisplayNames: Map[String, String] = {
+    import io.circe.parser.decode
+    (for {
+      ls <- Option(window.localStorage)
+      dn <- Option(ls.getItem("displayNames"))
+      m <- decode[Map[String, String]](dn).toOption //.getOrElse(Map.empty)
+    } yield m).getOrElse(Map.empty)
+  }
+
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
     PageActionP
       .getOption(action)
@@ -100,7 +109,9 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
           // No matches
           (noUpdate, VoidEffect)
       }
-      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> update,
+      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> InitialSyncFocus.displayNames.set(
+                  storedDisplayNames
+                ) >>> update,
                 Effect(Future(CleanSequences)) >> effect
       )
   }

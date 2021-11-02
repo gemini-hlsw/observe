@@ -20,7 +20,7 @@ object SessionQueueTableSection {
     ObserveCircuit.connect(ObserveCircuit.statusAndLoadedSequencesReader)
 
   private val component = ScalaComponent
-    .builder[RouterCtl[ObservePages]]("SessionQueueTableSection")
+    .builder[RouterCtl[ObservePages]]
     .stateless
     .render_P(p =>
       React.Fragment(

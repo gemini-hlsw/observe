@@ -18,6 +18,7 @@ import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
 import typings.loglevel.mod.{ ^ => logger }
+// import japgolly.scalajs.react.ScalaJsReactConfig
 
 /**
  * Observe WebApp entry point
@@ -51,6 +52,15 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
         elem
       }
     }
+
+//   def storedDisplayNames: F[Map[String, String]] = F.delay {
+//     import io.circe.parser.decode
+//     (for {
+//       ls <- Option(window.localStorage)
+//       dn <- Option(ls.getItem("displayNames"))
+//       m <- decode[Map[String, String]](dn).toOption //.getOrElse(Map.empty)
+//     } yield m).getOrElse(Map.empty)
+//   }
 }
 
 /**

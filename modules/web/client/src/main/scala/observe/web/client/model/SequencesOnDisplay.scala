@@ -330,25 +330,25 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   def cleanAll: SequencesOnDisplay =
     SequencesOnDisplay.Empty
 
-  /**
-   * Operator of the instrument tab if in focus
-   */
-  def selectedObserver: Option[Either[DayCalObserverFocus, SequenceObserverFocus]] =
-    SequencesOnDisplay.focusSequence
-      .getOption(this)
-      .collect { case InstrumentSequenceTab(_, Right(s), _, _, _, _, _) =>
-        SequenceObserverFocus(s.metadata.instrument,
-                              s.idName.id,
-                              s.allStepsDone,
-                              s.metadata.observer
-        ).asRight
-      }
-      .orElse {
-        SequencesOnDisplay.focusQueue.getOption(this).collect { case CalibrationQueueTab(_, o) =>
-          DayCalObserverFocus(CalibrationQueueId, o).asLeft
-        }
-      }
-
+  // /**
+  //  * Operator of the instrument tab if in focus
+  //  */
+  // def selectedObserver: Option[Either[DayCalObserverFocus, SequenceObserverFocus]] =
+  //   SequencesOnDisplay.focusSequence
+  //     .getOption(this)
+  //     .collect { case InstrumentSequenceTab(_, Right(s), _, _, _, _, _) =>
+  //       SequenceObserverFocus(s.metadata.instrument,
+  //                             s.id,
+  //                             s.allStepsDone,
+  //                             s.metadata.observer
+  //       ).asRight
+  //     }
+  //     .orElse {
+  //       SequencesOnDisplay.focusQueue.getOption(this).collect { case CalibrationQueueTab(_, o) =>
+  //         DayCalObserverFocus(CalibrationQueueId, o).asLeft
+  //       }
+  //     }
+  //
   // Update the state when load has completed
   def loadingComplete(
     obsId: Observation.Id,
