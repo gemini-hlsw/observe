@@ -49,11 +49,14 @@ class ObserveCommandRoutes[F[_]: Async](
       ) *>
         Ok(s"Started sequence ${obsId.format}")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ClientIDVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(
+          obs
+        ) / ClientIDVar(
           clientId
         ) :? OptionalRunOverride(runOverride) as _ =>
       se.startFrom(inputQueue,
                    obsId,
+                   obs,
                    stepId,
                    clientId,
                    runOverride.getOrElse(RunOverride.Default)

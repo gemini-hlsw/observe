@@ -88,7 +88,6 @@ object ObserveWebClient extends ModelBooPicklers {
       case RunOptions.Normal         => ""
       case RunOptions.ChecksOverride => "?overrideTargetCheck=true"
     }
-    println("AA")
     Ajax
       .post(
         url =
@@ -467,6 +466,7 @@ object ObserveWebClient extends ModelBooPicklers {
   def runFrom(
     obsIdName: Observation.IdName,
     stepId:    StepId,
+    name: Observer,
     clientId:  ClientId,
     options:   RunOptions
   ): Future[Unit] = {
@@ -476,8 +476,9 @@ object ObserveWebClient extends ModelBooPicklers {
     }
     Ajax
       .post(
-        url =
-          s"$baseUrl/commands/${encodeURI(obsIdName.id.toString)}/$stepId/startFrom/${encodeURI(clientId.self.show)}$param"
+        url = s"$baseUrl/commands/${encodeURI(obsIdName.self.format)}/$stepId/startFrom/${encodeURI(
+          name.value
+        )}/${encodeURI(clientId.self.show)}$param"
       )
       .void
   }

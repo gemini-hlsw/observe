@@ -91,14 +91,20 @@ object actions {
     resource: Resource,
     msg:      String
   ) extends Action
-  final case class RequestRunFrom(
-    qidName: Observation.IdName,
-    stepId:  StepId,
-    stepIdx: Int,
-    options: RunOptions
+  final case class OverrideRunFrom(
+    qid:      Observation.IdName,
+    observer: Observer,
+    step:     StepId,
+    options:  RunOptions
   ) extends Action
-  final case class RunFromComplete(idName: Observation.IdName, step: StepId) extends Action
-  final case class RunFromFailed(id: Observation.IdName, stepIndex: Int)     extends Action
+  final case class RequestRunFrom(
+    qid:      Observation.Id,
+    observer: Observer,
+    step:     StepId,
+    options:  RunOptions
+  ) extends Action
+  final case class RunFromComplete(id: Observation.Id, step: StepId)                 extends Action
+  final case class RunFromFailed(id: Observation.Id, step: StepId)                   extends Action
 
   final case class RunStarted(s: Observation.Id)                extends Action
   final case class RunPaused(s: Observation.IdName)             extends Action

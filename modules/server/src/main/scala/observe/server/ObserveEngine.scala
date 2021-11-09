@@ -75,6 +75,7 @@ trait ObserveEngine[F[_]] {
   def startFrom(
     q:           EventQueue[F],
     id:          Observation.Id,
+    observer:    Observer,
     stp:         StepId,
     clientId:    ClientId,
     runOverride: RunOverride
@@ -550,17 +551,19 @@ object ObserveEngine {
     override def startFrom(
       q:           EventQueue[F],
       id:          Observation.Id,
+      observer:    Observer,
       stp:         StepId,
       clientId:    ClientId,
       runOverride: RunOverride
     ): F[Unit] =
       q.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          clearObsCmd(id) *> startChecks(executeEngine.startFrom(id, stp),
-                                         id,
-                                         clientId,
-                                         stp.some,
-                                         runOverride
+          setObserver(id, observer) *> clearObsCmd(id) *> startChecks(
+            executeEngine.startFrom(id, stp),
+            id,
+            clientId,
+            stp.some,
+            runOverride
           )
         )
       )

@@ -14,6 +14,7 @@ import web.client.table._
 
 final case class StepsTableAndStatusFocus(
   status:           ClientStatus,
+  displayName:      Option[String],
   stepsTable:       Option[StepsTableFocus],
   tableState:       TableState[StepsTable.TableColumn],
   configTableState: TableState[StepConfigTable.TableColumn]
@@ -21,11 +22,14 @@ final case class StepsTableAndStatusFocus(
 
 object StepsTableAndStatusFocus {
   implicit val eq: Eq[StepsTableAndStatusFocus] =
-    Eq.by(x => (x.status, x.stepsTable, x.tableState, x.configTableState))
+    Eq.by(x => (x.status, x.displayName, x.stepsTable, x.tableState, x.configTableState))
 
   def stepsTableAndStatusFocusG(
     id: Observation.Id
-  ): Getter[ObserveAppRootModel, StepsTableAndStatusFocus] =
+  ): Getter[ObserveAppRootModel, StepsTableAndStatusFocus] = {
+
+    val displayNames =
+      ObserveAppRootModel.userLoginFocus.asGetter
     ClientStatus.clientStatusFocusL.asGetter
       .zip(
         StepsTableFocus
@@ -34,10 +38,16 @@ object StepsTableAndStatusFocus {
             ObserveAppRootModel
               .stepsTableStateL(id)
               .asGetter
-              .zip(ObserveAppRootModel.configTableStateL.asGetter)
+              .zip(ObserveAppRootModel.configTableStateL.asGetter.zip(displayNames))
           )
-      ) >>> { case (s, (f, (a, t))) =>
-      StepsTableAndStatusFocus(s, f, a.getOrElse(StepsTable.State.InitialTableState), t)
+      ) >>> { case (s, (f, (a, (t, dn)))) =>
+      StepsTableAndStatusFocus(s,
+                               dn.displayName,
+                               f,
+                               a.getOrElse(StepsTable.State.InitialTableState),
+                               t
+      )
     }
+  }
 
 }
