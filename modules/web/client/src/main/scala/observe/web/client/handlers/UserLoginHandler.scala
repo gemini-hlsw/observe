@@ -6,7 +6,6 @@ package observe.web.client.handlers
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.Eq
 import cats.syntax.all._
 import diode.ActionHandler
 import diode.ActionResult
@@ -18,12 +17,6 @@ import observe.model.UserDetails
 import observe.web.client.actions._
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.services.DisplayNamePersistence
-
-final case class UserLoginFocus(user: Option[UserDetails], displayNames: Map[String, String])
-
-object UserLoginFocus {
-  implicit val eqUserLoginFocus: Eq[UserLoginFocus] = Eq.by(u => (u.user, u.displayNames))
-}
 
 /**
  * Handles actions related to opening/closing the login box

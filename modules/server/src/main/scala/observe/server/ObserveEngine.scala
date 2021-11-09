@@ -67,6 +67,7 @@ trait ObserveEngine[F[_]] {
     q:           EventQueue[F],
     id:          Observation.Id,
     user:        UserDetails,
+    observer:    Observer,
     clientId:    ClientId,
     runOverride: RunOverride
   ): F[Unit]
@@ -529,12 +530,18 @@ object ObserveEngine {
       q:           EventQueue[F],
       id:          Observation.Id,
       user:        UserDetails,
+      observer:    Observer,
       clientId:    ClientId,
       runOverride: RunOverride
     ): F[Unit] =
       q.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          clearObsCmd(id) *> startChecks(executeEngine.start(id), id, clientId, none, runOverride)
+          setObserver(id, observer) *> clearObsCmd(id) *> startChecks(executeEngine.start(id),
+                                                                      id,
+                                                                      clientId,
+                                                                      none,
+                                                                      runOverride
+          )
         )
       )
 
@@ -586,6 +593,14 @@ object ObserveEngine {
               .toHandle
           )
         )
+
+    private def setObserver(id: Observation.Id, observer: Observer): HandleType[F, SeqEvent] = {
+      (s: EngineState[F]) =>
+        ((EngineState.sequences[F] ^|-? index(id))
+           .modify(SequenceData.observer.set(observer.some))(s),
+         SeqEvent.NullSeqEvent: SeqEvent
+        )
+    }.toHandle
 
     override def setObserver(
       q:     EventQueue[F],

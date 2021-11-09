@@ -11,6 +11,7 @@ import observe.model.Observer
 import observe.model.UserDetails
 import observe.web.client.model.SectionVisibilityState._
 import seqexec.web.client.handlers.UserLoginFocus
+import monocle.Getter
 
 sealed trait SoundSelection extends Product with Serializable
 
@@ -90,5 +91,8 @@ object ObserveUIModel {
        x.firstLoad
       )
     )
+
+  val displayNameG: Getter[SeqexecUIModel, Option[String]] =
+    Getter[SeqexecUIModel, Option[String]](x => x.user.flatMap(r => x.displayNames.get(r.username)))
 
 }

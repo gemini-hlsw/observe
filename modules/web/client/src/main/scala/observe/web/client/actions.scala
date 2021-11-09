@@ -64,7 +64,8 @@ object actions {
 
   // Actions related to executing sequences
 
-  final case class RequestRun(s: Observation.Id, options: RunOptions)        extends Action
+  final case class RequestRun(s: Observation.Id, observer: Observer, options: RunOptions)
+      extends Action
   final case class RequestSync(s: Observation.IdName)                        extends Action
   final case class RequestPause(s: Observation.IdName)                       extends Action
   final case class RequestCancelPause(s: Observation.Id)                     extends Action

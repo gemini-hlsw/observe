@@ -213,7 +213,8 @@ package circuit {
     systemOverrides:        SystemOverrides,
     overrideSubsysControls: SectionVisibilityState,
     canOperate:             Boolean,
-    control:                ControlModel
+    control:                ControlModel,
+    displayName:            String
   )
 
   object SequenceControlFocus {
@@ -224,25 +225,31 @@ package circuit {
          x.systemOverrides,
          x.overrideSubsysControls,
          x.canOperate,
-         x.control
+         x.control,
+         x.displayName
         )
       )
 
     def seqControlG(
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceControlFocus]] = {
-      val getter =
+      val displayNames =
+        ObserveAppRootModel.userLoginFocus.asGetter
+      val tabGetter    =
         ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
-      ClientStatus.canOperateG.zip(getter) >>> {
-        case (status, Some(ObserveTabActive(tab, _))) =>
+      ClientStatus.canOperateG.zip(tabGetter.zip(displayNames)) >>> {
+        case (status,
+              (Some(ObserveTabActive(tab, _)), UserLoginFocus(Some(UserDetails(u, _)), dn))
+            ) =>
           SequenceControlFocus(tab.instrument,
                                tab.obsIdName.id,
                                tab.sequence.systemOverrides,
                                tab.subsystemControlVisible,
                                status,
-                               ControlModel.controlModelG.get(tab)
+                               ControlModel.controlModelG.get(tab),
+                               dn.get(u).orEmpty
           ).some
-        case _                                        => none
+        case _ => none
       }
     }
   }

@@ -18,15 +18,14 @@ import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
 import typings.loglevel.mod.{ ^ => logger }
-// import japgolly.scalajs.react.ScalaJsReactConfig
 
 /**
  * Observe WebApp entry point
  */
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
-  // japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
+  japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
-  def serverSite: F[Site] =
+  def serverSite(implicit cs: ContextShift[IO]): F[Site] =
     L.liftIO(IO.fromFuture {
       IO {
         import ExecutionContext.Implicits.global
@@ -53,14 +52,6 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
       }
     }
 
-//   def storedDisplayNames: F[Map[String, String]] = F.delay {
-//     import io.circe.parser.decode
-//     (for {
-//       ls <- Option(window.localStorage)
-//       dn <- Option(ls.getItem("displayNames"))
-//       m <- decode[Map[String, String]](dn).toOption //.getOrElse(Map.empty)
-//     } yield m).getOrElse(Map.empty)
-//   }
 }
 
 /**
@@ -72,7 +63,7 @@ object ObserveApp extends IOApp {
     val launcher = new ObserveLauncher[IO]
     // Render the UI using React
     for {
-      observeSite <- launcher.serverSite
+      seqexecSite <- launcher.serverSite
       _           <- launcher.initializeDataModel(observeSite)
       router      <- ObserveUI.router[IO](observeSite)
       node        <- launcher.renderingNode
