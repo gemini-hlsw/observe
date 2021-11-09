@@ -102,14 +102,14 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
       // After connected to the Websocket request a refresh
       val refreshRequestE   = Effect(ObserveWebClient.refresh(c).as(NoAction))
       // This is a hack
-      val calQueueObserverE = u
-        .map(m => Effect(Future(UpdateCalTabObserver(Observer(m.displayName)))))
-        .getOrElse(VoidEffect)
-      val openEffect        =
+      // val calQueueObserverE = u
+      //   .map(m => Effect(Future(UpdateCalTabObserver(Observer(m.displayName)))))
+      //   .getOrElse(VoidEffect)
+      val openEffect      =
         if (value.serverVersion.exists(_ =!= v)) {
           Effect(Future(window.location.reload(true)).as(NoAction))
         } else {
-          refreshRequestE + calQueueObserverE
+          refreshRequestE //+ calQueueObserverE
         }
       updated(
         value.copy(user = u,

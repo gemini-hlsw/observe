@@ -10,6 +10,7 @@ import observe.common.FixedLengthBuffer
 import observe.model.Observer
 import observe.model.UserDetails
 import observe.web.client.model.SectionVisibilityState._
+import seqexec.web.client.handlers.UserLoginFocus
 
 sealed trait SoundSelection extends Product with Serializable
 
@@ -40,7 +41,6 @@ final case class ObserveUIModel(
   globalLog:          GlobalLog,
   sequencesOnDisplay: SequencesOnDisplay,
   appTableStates:     AppTableStates,
-  // defaultObserver:    Observer,
   notification:       UserNotificationState,
   userPrompt:         UserPromptState,
   queues:             CalibrationQueues,
@@ -59,7 +59,6 @@ object ObserveUIModel {
     GlobalLog(FixedLengthBuffer.unsafeFromInt(500), SectionClosed),
     SequencesOnDisplay.Empty,
     AppTableStates.Initial,
-    // Observer(""),
     UserNotificationState.Empty,
     UserPromptState.Empty,
     CalibrationQueues.Default,
@@ -68,6 +67,11 @@ object ObserveUIModel {
     SoundSelection.SoundOn,
     firstLoad = true
   )
+
+  val userLoginFocus: Lens[ObserveUIModel, UserLoginFocus] =
+    Lens[ObserveUIModel, UserLoginFocus](m => UserLoginFocus(m.user, m.displayNames))(n =>
+      a => a.copy(user = n.user, displayNames = n.displayNames)
+    )
 
   implicit val eq: Eq[ObserveUIModel] =
     Eq.by(x =>
@@ -78,7 +82,6 @@ object ObserveUIModel {
        x.globalLog,
        x.sequencesOnDisplay,
        x.appTableStates,
-       // x.defaultObserver,
        x.notification,
        x.userPrompt,
        x.queues,
@@ -88,5 +91,4 @@ object ObserveUIModel {
       )
     )
 
-  // val defaultObserverG = SeqexecUIModel.defaultObserver.asGetter
 }

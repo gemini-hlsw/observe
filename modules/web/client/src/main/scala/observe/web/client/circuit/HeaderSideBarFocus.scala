@@ -6,11 +6,8 @@ package observe.web.client.circuit
 import cats.Eq
 import monocle.Getter
 import monocle.macros.Lenses
-import observe.model.Observation
-import observe.model.QueueId
 import observe.model._
-import observe.model.enum.Instrument
-import observe.web.client.model._
+import ebserve.web.client.model._
 
 @Lenses
 final case class HeaderSideBarFocus(

@@ -25,18 +25,10 @@ import observe.web.client.model.Pages._
  */
 class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, InitialSyncFocus] {
+    with Handlers[M, InitialSyncFocus]
+    with DisplayNamePersistence {
   def runningSequence(s: ObserveModelUpdate): Option[SequenceView] =
-    s.view.sessionQueue.find(_.status.isRunning)
-
-  def storedDisplayNames: Map[String, String] = {
-    import io.circe.parser.decode
-    (for {
-      ls <- Option(window.localStorage)
-      dn <- Option(ls.getItem("displayNames"))
-      m <- decode[Map[String, String]](dn).toOption //.getOrElse(Map.empty)
-    } yield m).getOrElse(Map.empty)
-  }
+    s.view.sessionQueue.filter(_.status.isRunning).sortBy(_.id).headOption
 
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
     PageActionP
