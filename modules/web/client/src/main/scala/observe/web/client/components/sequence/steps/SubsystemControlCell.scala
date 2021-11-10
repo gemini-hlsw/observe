@@ -28,6 +28,7 @@ import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
 import observe.web.client.model.ResourceRunOperation
 import observe.web.client.reusability._
+import observe.model.Observer
 
 /**
  * Contains the control buttons for each subsystem
@@ -37,7 +38,8 @@ final case class SubsystemControlCell(
   stepId:         StepId,
   resources:      List[Resource],
   resourcesCalls: SortedMap[Resource, ResourceRunOperation],
-  canOperate:     Boolean
+  canOperate:     Boolean,
+  displayName:    String
 ) extends ReactProps[SubsystemControlCell](SubsystemControlCell.component)
 
 object SubsystemControlCell {
@@ -48,11 +50,12 @@ object SubsystemControlCell {
   def requestResourceCall(
     idName: Observation.IdName,
     stepId: StepId,
+    observer: Observer,
     r:      Resource
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       (e.preventDefaultCB *> e.stopPropagationCB *>
-        ObserveCircuit.dispatchCB(RequestResourceRun(idName, stepId, r)))
+        ObserveCircuit.dispatchCB(RequestResourceRun(idName, observer, stepId, r)))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   private val CompletedIcon = IconCheckmark.copy(
@@ -115,7 +118,7 @@ object SubsystemControlCell {
               labelPosition = labeled,
               icon = buttonIcon.isDefined,
               onClickE =
-                if (p.canOperate) requestResourceCall(p.idName, p.stepId, r) else js.undefined,
+                if (p.canOperate) requestResourceCall(p.idName, p.stepId, Observer(p.displayName), r) else js.undefined,
               clazz = ObserveStyles.defaultCursor.unless_(p.canOperate)
             )(buttonIcon.whenDefined(identity), r.show)
           )(s"Configure ${r.show}")

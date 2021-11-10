@@ -48,7 +48,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
         )
       )
 
-    case RequestAbort(idName, _) =>
+    case RequestAbort(idName, _, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
@@ -105,7 +105,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
   }
 
   def handleRequestResourceRun: PartialFunction[Any, ActionResult[M]] = {
-    case RequestResourceRun(idName, s, r) =>
+    case RequestResourceRun(idName, _, s, r) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,

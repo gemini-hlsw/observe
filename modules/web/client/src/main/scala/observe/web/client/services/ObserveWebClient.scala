@@ -142,33 +142,31 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to abort this sequenece immediately
    */
-  @nowarn
-  def abort(sid: Observation.Id, step: StepId): Future[Unit] =
+  def abort(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/abort"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/abort/${encodeURI(name.value)}"
       )
       .void
 
   /**
    * Requests the backend to hold the current exposure immediately
    */
-  @nowarn
-  def pauseObs(sid: Observation.Id, step: StepId): Future[Unit] =
+  def pauseObs(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObs"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObs/${encodeURI(name.value)}"
       )
       .void
 
   /**
    * Requests the backend to hold the current exposure gracefully
    */
-  @nowarn
-  def pauseObsGracefully(sid: Observation.Id, step: StepId): Future[Unit] =
+  def pauseObsGracefully(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObsGracefully"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObsGracefully/${encodeURI(name.value)}"
       )
       .void
 
@@ -444,16 +442,17 @@ object ObserveWebClient extends ModelBooPicklers {
    */
   @nowarn
   def runResource(
-    pos:       StepId,
-    resource:  Resource,
-    obsIdName: Observation.IdName,
-    clientId:  ClientId
+    pos:      StepId,
+    resource: Resource,
+    name:     Observer,
+    obsIdName:    Observation.Id,
+    clientId: ClientId
   ): Future[Unit] =
     Ajax
       .post(
         url = s"$baseUrl/commands/execute/${encodeURI(obsIdName.id.toString)}/$pos/${encodeURI(
           resource.show
-        )}/${encodeURI(clientId.self.show)}"
+        )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
       )
       .void
 
