@@ -27,6 +27,7 @@ object TabFocus {
         .zip(ObserveUIModel.displayNameG)
     )
     ClientStatus.canOperateG.zip(getter) >>> { case (o, (t, ob)) =>
+      println(s"Tab focu $ob")
       TabFocus(o, t, ob)
     }
   }

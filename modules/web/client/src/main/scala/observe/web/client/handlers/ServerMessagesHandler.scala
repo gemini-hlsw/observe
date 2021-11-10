@@ -33,6 +33,7 @@ import observe.web.client.model.lenses.sequenceStepT
 import observe.web.client.model.lenses.sequenceViewT
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.services.WebpackResources._
+import observe.web.client.services.DisplayNamePersistence
 import web.client.Audio
 
 import scala.util.matching.Regex
@@ -42,7 +43,8 @@ import scala.util.matching.Regex
  */
 class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, WebSocketsFocus] {
+    with Handlers[M, WebSocketsFocus]
+    with DisplayNamePersistence {
 
   // Global references to audio files
   private val SequencePausedAudio = Audio.selectPlayable(
@@ -100,22 +102,22 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
   val connectionOpenMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(ConnectionOpenEvent(u, c, v)) =>
       // After connected to the Websocket request a refresh
-      val refreshRequestE   = Effect(ObserveWebClient.refresh(c).as(NoAction))
-      // This is a hack
-      // val calQueueObserverE = u
-      //   .map(m => Effect(Future(UpdateCalTabObserver(Observer(m.displayName)))))
-      //   .getOrElse(VoidEffect)
+      val refreshRequestE = Effect(ObserveWebClient.refresh(c).as(NoAction))
       val openEffect      =
         if (value.serverVersion.exists(_ =!= v)) {
           Effect(Future(window.location.reload(true)).as(NoAction))
         } else {
           refreshRequestE //+ calQueueObserverE
         }
+      val displayNames    =
+        (u.map(u =>
+          if (value.displayNames.contains(u.username))
+            value.displayNames
+          else value.displayNames + (u.username -> u.displayName)
+        )).getOrElse(value.displayNames)
       updated(
         value.copy(user = u,
-                   // defaultObserver = u
-                   //   .map(m => Observer(m.displayName))
-                   //   .getOrElse(value.defaultObserver),
+                   displayNames = displayNames,
                    clientId = c.some,
                    serverVersion = v.some
         ),

@@ -111,6 +111,7 @@ object StepProgressCell {
   def stepControlButtons(props: Props): TagMod =
     StepsControlButtons(
       props.obsIdName,
+      props.displayName,
       props.instrument,
       props.state,
       props.step.id,

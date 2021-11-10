@@ -281,6 +281,7 @@ sealed trait NodAndShuffleRow[A, L <: OperationLevel] {
           ObserveStyles.nodAndShuffleControls,
           ControlButtons(
             p.stateSummary.obsIdName,
+            p.stateSummary.displayName.orEmpty,
             p.stateSummary.instrument.operations[L](p.stateSummary.step.isObservePaused),
             p.stateSummary.state,
             p.stateSummary.step.id,

@@ -338,7 +338,7 @@ final case class StepsTable(
      instrument,
      sequenceState
     )
-      .mapN(StepStateSummary(step, _, _, _, tabOperations, _))
+      .mapN(StepStateSummary(step, displayName, _, _, tabOperations, _))
 
   def detailRowCount(step: Step, selected: Option[StepId]): Option[Int] =
     stepSummary(step).map(_.detailRows(selected, hasControls).rows)
@@ -602,7 +602,7 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step, index, f.idName, f.instrument, $.props.tabOperations, f.state),
+        StepStateSummary(row.step, f.id, f.instrument, $.props.tabOperations, f.state),
         $.state.selected,
         $.props.isPreview,
         $.props.displayName.orEmpty

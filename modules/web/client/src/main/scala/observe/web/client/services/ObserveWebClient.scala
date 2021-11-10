@@ -121,22 +121,21 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to stop this sequence immediately
    */
-  @nowarn
-  def stop(sid: Observation.Id, step: StepId): Future[Unit] =
+  def stop(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stop"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stop/${encodeURI(name.value)}"
       )
       .void
 
   /**
    * Requests the backend to stop this sequence gracefully
    */
-  @nowarn
-  def stopGracefully(sid: Observation.Id, step: StepId): Future[Unit] =
+  def stopGracefully(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stopGracefully"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stopGracefully/${encodeURI(name.value)}"
       )
       .void
 
