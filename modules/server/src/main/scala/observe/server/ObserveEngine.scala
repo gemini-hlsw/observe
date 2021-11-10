@@ -166,12 +166,7 @@ trait ObserveEngine[F[_]] {
 
   def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit]
 
-  def stopObserve(
-    q:        EventQueue[F],
-    seqId:    Observation.Id,
-    observer: Observer,
-    graceful: Boolean
-  ): F[Unit]
+  def stopObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, graceful: Boolean): F[Unit]
 
   def abortObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer): F[Unit]
 
@@ -834,19 +829,11 @@ object ObserveEngine {
     ): Stream[F, (EventResult[SeqEvent], EngineState[F])] =
       executeEngine.process(iterateQueues)(p)(s0)
 
-    override def stopObserve(
-      q:        EventQueue[F],
-      seqId:    Observation.Id,
-      observer: Observer,
-      graceful: Boolean
-    ): F[Unit] =
+    override def stopObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, graceful: Boolean): F[Unit] =
       q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
-        q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, StopGracefully)))
-          .whenA(graceful) *>
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, StopGracefully))) .whenA(graceful) *>
         q.offer(
-          Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                        translator.stopObserve(seqId, graceful)
-          )
+          Event.actionStop[F, EngineState[F], SeqEvent](seqId, translator.stopObserve(seqId, graceful))
         )
 
     override def abortObserve(

@@ -603,7 +603,13 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step, f.id, f.instrument, $.props.tabOperations, f.state),
+        StepStateSummary(row.step,
+                         $.props.displayName,
+                         f.id,
+                         f.instrument,
+                         $.props.tabOperations,
+                         f.state
+        ),
         $.state.selected,
         $.props.isPreview,
         $.props.displayName.orEmpty

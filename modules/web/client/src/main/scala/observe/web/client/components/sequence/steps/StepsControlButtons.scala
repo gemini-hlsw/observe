@@ -31,6 +31,7 @@ import observe.web.client.reusability._
  */
 final case class ControlButtons(
   obsId:               Observation.Id,
+  displayName:         String,
   operations:          List[Operations[_]],
   sequenceState:       SequenceState,
   stepId:              StepId,
@@ -51,17 +52,17 @@ object ControlButtons {
   implicit val operationsReuse: Reusability[Operations[_]] = Reusability.derive[Operations[_]]
   implicit val propsReuse: Reusability[Props]              = Reusability.derive[Props]
 
-  private def requestStop(obsIdName: Observation.IdName, name: Observer, stepId: StepId): Callback =
-    ObserveCircuit.dispatchCB(RequestStop(obsIdName, name, stepId))
+  private def requestStop(obsIdName: Observation.Id, name: Observer, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestStop(obsId, name, stepId))
 
-  private def requestGracefulStop(obsId: Observation.Id, stepId: StepId): Callback =
-    ObserveCircuit.dispatchCB(RequestGracefulStop(obsId, stepId))
+  private def requestGracefulStop(obsId: Observation.Id, name: Observer, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestGracefulStop(obsId, name, stepId))
 
-  private def requestAbort(obsIdName: Observation.IdName, name: Observer, stepId: StepId): Callback =
-    ObserveCircuit.dispatchCB(RequestAbort(obsIdName, name, stepId))
+  private def requestAbort(obsIdName: Observation.Id, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestAbort(obsIdName, stepId))
 
-  private def requestObsPause(obsId: Observation.Id, name: Observer, stepId: StepId): Callback =
-    ObserveCircuit.dispatchCB(RequestObsPause(obsId, name, stepId))
+  private def requestObsPause(obsId: Observation.Id, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestObsPause(obsId, stepId))
 
   private def requestGracefulObsPause(
     obsId:  Observation.Id,
