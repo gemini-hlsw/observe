@@ -99,12 +99,11 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to set a breakpoint
    */
-  @nowarn
-  def breakpoint(sid: Observation.Id, step: Step): Future[Unit] =
+  def breakpoint(sid: Observation.Id, name: Observer, step: Step): Future[Unit] =
     Ajax
       .post(
         url =
-          s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/breakpoint/${step.breakpoint}"
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/breakpoint/${encodeURI(name.value)}/${step.breakpoint}"
       )
       .void
 

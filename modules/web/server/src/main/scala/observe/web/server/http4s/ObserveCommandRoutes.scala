@@ -71,11 +71,11 @@ class ObserveCommandRoutes[F[_]: Async](
       se.requestCancelPause(inputQueue, obsId, user) *>
         Ok(s"Cancel Pause sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / BooleanVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(obs) / BooleanVar(
           bp
         ) as user =>
-      se.setBreakpoint(inputQueue, obsId, user, stepId, bp) *>
-        Ok(s"Set breakpoint in step $stepId of sequence $obsId")
+      se.setBreakpoint(inputQueue, obsId, user, obs, stepId, bp) *>
+        Ok(s"Set breakpoint in step $stepId of sequence ${obsId.format}")
 
     case POST -> Root / ObsId(obsId) / "sync" as _ =>
       for {

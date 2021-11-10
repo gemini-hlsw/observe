@@ -5,6 +5,7 @@ package observe.web.client.circuit
 
 import cats.Eq
 import monocle.Getter
+import monocle.Lens
 import monocle.macros.Lenses
 import observe.model._
 import ebserve.web.client.model._
@@ -42,4 +43,18 @@ final case class UserPromptFocus(user: UserPromptState, displayName: Option[Stri
 
 object UserPromptFocus {
   implicit val eqUserPromptFocus: Eq[UserPromptFocus] = Eq.by(u => (u.user, u.displayName))
+}
+
+@Lenses
+final case class SequencesQueueFocus(
+  sequences:   SequencesQueue[SequenceView],
+  displayName: Option[String]
+)
+
+object SequencesQueueFocus {
+  implicit val eqSequencesQueueFocus: Eq[SequencesQueueFocus] =
+    Eq.by(u => (u.sequences, u.displayName))
+
+  val sessionQueue: Lens[SequencesQueueFocus, List[SequenceView]] =
+    sequences ^|-> SequencesQueue.sessionQueue
 }

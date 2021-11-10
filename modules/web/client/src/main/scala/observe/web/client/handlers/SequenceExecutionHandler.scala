@@ -16,13 +16,14 @@ import observe.model.SequencesQueue
 import observe.web.client.actions._
 import observe.web.client.model.ModelOps._
 import observe.web.client.services.ObserveWebClient
+import observe.web.client.circuit.SequencesQueueFocus
 
 /**
  * Handles sequence execution actions
  */
-class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueue[SequenceView]])
+class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueueFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, SequencesQueue[SequenceView]] {
+    with Handlers[M, SequencesQueueFocus] {
   // def handleUpdateObserver: PartialFunction[Any, ActionResult[M]] = {
   //   case UpdateObserver(sequenceId, name) =>
   //     val updateObserverE  = Effect(
@@ -38,26 +39,26 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueue[SequenceVie
   // }
 
   def handleFlipSkipBreakpoint: PartialFunction[Any, ActionResult[M]] = {
-    case FlipSkipStep(sequenceIdName, step) =>
-      val skipRequest = Effect(ObserveWebClient.skip(sequenceIdName.id, step.flipSkip).as(NoAction))
-      updated(value.copy(sessionQueue = value.sessionQueue.collect {
-                case s if s.idName === sequenceIdName => s.flipSkipMarkAtStep(step)
-                case s                                => s
-              }),
-              skipRequest
+    case FlipSkipStep(sequenceId, step) =>
+      val skipRequest = Effect(ObserveWebClient.skip(sequenceId, step.flipSkip).as(NoAction))
+      updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
+                  case s if s.id === sequenceId => s.flipSkipMarkAtStep(step)
+                  case s                        => s
+                }),
+                skipRequest
       )
 
     case FlipBreakpointStep(sequenceIdName, step) =>
       val breakpointRequest = Effect(
         ObserveWebClient
-          .breakpoint(sequenceIdName.id, step.flipBreakpoint)
+          .breakpoint(sequenceId, Observer(value.displayName.orEmpty), step.flipBreakpoint)
           .as(NoAction)
       )
-      updated(value.copy(sessionQueue = value.sessionQueue.collect {
-                case s if s.idName === sequenceIdName => s.flipBreakpointAtStep(step)
-                case s                                => s
-              }),
-              breakpointRequest
+      updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
+                  case s if s.id === sequenceId => s.flipBreakpointAtStep(step)
+                  case s                        => s
+                }),
+                breakpointRequest
       )
   }
 
