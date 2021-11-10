@@ -71,7 +71,9 @@ class ObserveCommandRoutes[F[_]: Async](
       se.requestCancelPause(inputQueue, obsId, user) *>
         Ok(s"Cancel Pause sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(obs) / BooleanVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(
+          obs
+        ) / BooleanVar(
           bp
         ) as user =>
       se.setBreakpoint(inputQueue, obsId, user, obs, stepId, bp) *>
@@ -84,9 +86,11 @@ class ObserveCommandRoutes[F[_]: Async](
           u.fold(_ => NotFound(s"Not found sequence $obsId"), _ => Ok(s"Sync requested for $obsId"))
       } yield resp
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / BooleanVar(bp) as user =>
-      se.setSkipMark(inputQueue, obsId, user, stepId, bp) *>
-        Ok(s"Set skip mark in step $stepId of sequence $obsId")
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / ObserverVar(
+          obs
+        ) / BooleanVar(bp) as user =>
+      se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
+        Ok(s"Set skip mark in step $stepId of sequence ${obsId.format}")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "stop" as _ =>
       se.stopObserve(inputQueue, obsId, graceful = false) *>

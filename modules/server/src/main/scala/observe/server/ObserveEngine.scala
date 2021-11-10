@@ -156,11 +156,12 @@ trait ObserveEngine[F[_]] {
   def setCloudCover(q: EventQueue[F], cc: CloudCover, user: UserDetails): F[Unit]
 
   def setSkipMark(
-    q:      EventQueue[F],
-    seqId:  Observation.Id,
-    user:   UserDetails,
-    stepId: StepId,
-    v:      Boolean
+    q:        EventQueue[F],
+    seqId:    Observation.Id,
+    user:     UserDetails,
+    observer: Observer,
+    stepId:   StepId,
+    v:        Boolean
   ): F[Unit]
 
   def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit]
@@ -538,12 +539,9 @@ object ObserveEngine {
     ): F[Unit] =
       q.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          setObserver(id, observer) *> clearObsCmd(id) *> startChecks(executeEngine.start(id),
-                                                                      id,
-                                                                      clientId,
-                                                                      none,
-                                                                      runOverride
-          )
+          setObserver(id, observer) *>
+            clearObsCmd(id) *>
+            startChecks(executeEngine.start(id), id, clientId, none, runOverride)
         )
       )
 
@@ -559,13 +557,9 @@ object ObserveEngine {
     ): F[Unit] =
       q.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          setObserver(id, observer) *> clearObsCmd(id) *> startChecks(
-            executeEngine.startFrom(id, stp),
-            id,
-            clientId,
-            stp.some,
-            runOverride
-          )
+          setObserver(id, observer) *>
+            clearObsCmd(id) *>
+            startChecks(executeEngine.startFrom(id, stp), id, clientId, stp.some, runOverride)
         )
       )
 
@@ -763,13 +757,15 @@ object ObserveEngine {
         )
 
     override def setSkipMark(
-      q:      EventQueue[F],
-      seqId:  Observation.Id,
-      user:   UserDetails,
-      stepId: StepId,
-      v:      Boolean
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      user:     UserDetails,
+      observer: Observer,
+      stepId:   StepId,
+      v:        Boolean
     ): F[Unit] =
-      q.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
+        q.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
 
     override def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit] =
       q.offer(Event.poll(clientId))

@@ -40,7 +40,11 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueueFocus])
 
   def handleFlipSkipBreakpoint: PartialFunction[Any, ActionResult[M]] = {
     case FlipSkipStep(sequenceId, step) =>
-      val skipRequest = Effect(ObserveWebClient.skip(sequenceId, step.flipSkip).as(NoAction))
+      val skipRequest = Effect(
+        ObserveWebClient
+          .skip(sequenceId, Observer(value.displayName.orEmpty), step.flipSkip)
+          .as(NoAction)
+      )
       updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
                   case s if s.id === sequenceId => s.flipSkipMarkAtStep(step)
                   case s                        => s
