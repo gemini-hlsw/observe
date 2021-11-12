@@ -79,8 +79,8 @@ object SequenceControl {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  def requestRun(id: Observation.Id, observer: Observer): Callback =
-    ObserveCircuit.dispatchCB(RequestRun(id, observer, RunOptions.Normal))
+  def requestRun(s: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestRun(s, RunOptions.Normal))
 
   def requestSync(idName: Observation.IdName): Callback =
     ObserveCircuit.dispatchCB(RequestSync(idName))
@@ -104,8 +104,7 @@ object SequenceControl {
     id:                  Observation.Id,
     isPartiallyExecuted: Boolean,
     nextStepToRun:       Int,
-    canRun:              Boolean,
-    displayName:         String
+    canRun:              Boolean
   ) = {
     val runContinueTooltip =
       s"${isPartiallyExecuted.fold("Continue", "Run")} the sequence from the step $nextStepToRun"
@@ -113,7 +112,7 @@ object SequenceControl {
       s"${isPartiallyExecuted.fold("Continue", "Run")} from step $nextStepToRun"
     controlButton(icon = IconPlay,
                   color = Blue,
-                  onClick = requestRun(id, Observer(displayName)),
+                  onClick = requestRun(id),
                   disabled = !canRun,
                   tooltip = runContinueTooltip,
                   text = runContinueButton
@@ -181,9 +180,9 @@ object SequenceControl {
     ScalaComponent
       .builder[Props]
       .renderP { ($, p) =>
-        val SequenceControlFocus(_, _, overrides, _, _, control, displayName)  = p.p
-        val ControlModel(idName, partial, nextStepIdx, status, _)              = control
-        val nextStepToRunIdx                                                   = nextStepIdx.foldMap(_ + 1)
+        val SequenceControlFocus(_, _, overrides, _, _, control) = p.p
+        val ControlModel(idName, partial, nextStepIdx, status, _)       = control
+        val nextStepToRunIdx                                        = nextStep.foldMap(_ + 1)
 
         <.div(
           ObserveStyles.SequenceControlForm,
@@ -192,7 +191,7 @@ object SequenceControl {
             syncButton(idName, p.canSync)
               .when(status.isIdle || status.isError),
             // Run button
-            runButton(id, partial, nextStepToRun, p.canRun, displayName)
+            runButton(id, partial, nextStepToRun, p.canRun)
               .when(status.isIdle || status.isError),
             // Cancel pause button
             cancelPauseButton(idName.id, p.canCancelPause)

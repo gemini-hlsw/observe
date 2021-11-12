@@ -74,11 +74,6 @@ object ObserveUIModel {
       a => a.copy(user = n.user, displayNames = n.displayNames)
     )
 
-  val unsafeUserPromptFocus: Lens[SeqexecUIModel, UserPromptFocus] =
-    Lens[SeqexecUIModel, UserPromptFocus](m =>
-      UserPromptFocus(m.userPrompt, m.user.flatMap(u => m.displayNames.get(u.username)))
-    )(n => a => a.copy(userPrompt = n.user))
-
   implicit val eq: Eq[ObserveUIModel] =
     Eq.by(x =>
       (x.navLocation,

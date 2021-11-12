@@ -32,7 +32,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
     extends ActionHandler(modelRW)
     with Handlers[M, SequencesOnDisplay] {
   def handleRequestOperation: PartialFunction[Any, ActionResult[M]] = {
-    case RequestRun(id, _, _) =>
+    case RequestRun(id, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
@@ -40,7 +40,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
         )
       )
 
-    case RequestStop(idName,_, _) =>
+    case RequestStop(id, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
@@ -48,7 +48,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
         )
       )
 
-    case RequestAbort(idName, _, _) =>
+    case RequestAbort(id, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
@@ -105,7 +105,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
   }
 
   def handleRequestResourceRun: PartialFunction[Any, ActionResult[M]] = {
-    case RequestResourceRun(idName, _, s, r) =>
+    case RequestResourceRun(id, s, r) =>
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,

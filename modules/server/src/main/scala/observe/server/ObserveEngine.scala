@@ -81,9 +81,19 @@ trait ObserveEngine[F[_]] {
     runOverride: RunOverride
   ): F[Unit]
 
-  def requestPause(q: EventQueue[F], id: Observation.Id, user: UserDetails): F[Unit]
+  def requestPause(
+    q:        EventQueue[F],
+    id:       Observation.Id,
+    observer: Observer,
+    user:     UserDetails
+  ): F[Unit]
 
-  def requestCancelPause(q: EventQueue[F], id: Observation.Id, user: UserDetails): F[Unit]
+  def requestCancelPause(
+    q:        EventQueue[F],
+    id:       Observation.Id,
+    observer: Observer,
+    user:     UserDetails
+  ): F[Unit]
 
   def setBreakpoint(
     q:        EventQueue[F],
@@ -574,15 +584,23 @@ object ObserveEngine {
         )
       )
 
-    override def requestPause(q: EventQueue[F], id: Observation.Id, user: UserDetails): F[Unit] =
-      q.offer(Event.pause[F, EngineState[F], SeqEvent](id, user))
+    override def requestPause(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails
+    ): F[Unit] =
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
+        q.offer(Event.pause[F, EngineState[F], SeqEvent](seqId, user))
 
     override def requestCancelPause(
-      q:    EventQueue[F],
-      id:   Observation.Id,
-      user: UserDetails
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails
     ): F[Unit] =
-      q.offer(Event.cancelPause[F, EngineState[F], SeqEvent](id, user))
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
+        q.effer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
 
     override def setBreakpoint(
       q:        EventQueue[F],

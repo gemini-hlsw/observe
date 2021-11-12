@@ -265,8 +265,7 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to pause a sequence
    */
-  @nowarn
-  def pause(idName: Observation.IdName): Future[Unit] =
+  def pause(idName: Observation.IdName, name: Observer): Future[Unit] =
     Ajax
       .post(
         url = s"$baseUrl/commands/${encodeURI(idName.id.toString)}/pause"
@@ -276,11 +275,10 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to cancel a pausing request in process
    */
-  @nowarn
-  def cancelPause(id: Observation.Id): Future[Unit] =
+  def cancelPause(id: Observation.Id, name: Observer): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(id.toString)}/cancelpause"
+        url = s"$baseUrl/commands/${encodeURI(id.toString)}/cancelpause/${encodeURI(name.value)}"
       )
       .void
 

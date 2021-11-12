@@ -16,10 +16,12 @@ import observe.model.events.UserPromptNotification
 import observe.web.client.actions._
 import observe.web.client.model._
 
-class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptFocus])
+class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
     extends ActionHandler(modelRW)
-    with Handlers[M, UserPromptFocus] {
-  val lens                                                          = UserPromptFocus.user ^|-> UserPromptState.notification
+    with Handlers[M, UserPromptState] {
+
+  val lens = UserPromptState.notification
+
   def handleUserNotification: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(UserPromptNotification(not, _)) =>
       // Update the model as load failed
@@ -30,11 +32,10 @@ class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptFocus])
   }
 
   def handleClosePrompt: PartialFunction[Any, ActionResult[M]] = { case CloseUserPromptBox(x) =>
-    val overrideEffect = (this.value.user.notification, this.value.displayName) match {
-      case (Some(UserPrompt.ChecksOverride(id, stp, sidx, _)), Some(dn))
-          if x === UserPromptResult.Cancel =>
-        Effect(Future(RequestRunFrom(id, Observer(dn), stp, sidx, RunOptions.ChecksOverride)))
-      case _ => VoidEffect
+    val overrideEffect = this.value.notification match {
+      case Some(UserPrompt.ChecksOverride(id, stp, _)) if x === UserPromptResult.Cancel =>
+        Effect(Future(RequestRunFrom(id, stp, RunOptions.ChecksOverride)))
+      case _                                                                            => VoidEffect
     }
     updatedLE(lens.replace(none), overrideEffect)
   }

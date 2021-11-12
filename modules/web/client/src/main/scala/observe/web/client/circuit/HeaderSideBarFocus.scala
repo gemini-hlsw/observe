@@ -12,15 +12,14 @@ import ebserve.web.client.model._
 
 @Lenses
 final case class HeaderSideBarFocus(
-  status:      ClientStatus,
-  conditions:  Conditions,
-  operator:    Option[Operator],
-  displayName: Option[String]
+  status:     ClientStatus,
+  conditions: Conditions,
+  operator:   Option[Operator]
 )
 
 object HeaderSideBarFocus {
   implicit val eq: Eq[HeaderSideBarFocus] =
-    Eq.by(x => (x.status, x.conditions, x.operator, x.displayName))
+    Eq.by(x => (x.status, x.conditions, x.operator))
 
   val headerSideBarG: Getter[ObserveAppRootModel, HeaderSideBarFocus] =
     Getter[ObserveAppRootModel, HeaderSideBarFocus] { c =>
@@ -36,13 +35,6 @@ final case class UserLoginFocus(user: Option[UserDetails], displayNames: Map[Str
 
 object UserLoginFocus {
   implicit val eqUserLoginFocus: Eq[UserLoginFocus] = Eq.by(u => (u.user, u.displayNames))
-}
-
-@Lenses
-final case class UserPromptFocus(user: UserPromptState, displayName: Option[String])
-
-object UserPromptFocus {
-  implicit val eqUserPromptFocus: Eq[UserPromptFocus] = Eq.by(u => (u.user, u.displayName))
 }
 
 @Lenses

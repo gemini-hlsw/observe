@@ -322,7 +322,6 @@ final case class StepsTable(
     InstrumentProperties.ImagingMirror
   )
   val isPreview: Boolean                  = steps.exists(_.isPreview)
-  val displayName: Option[String]         = stepsTable.displayName
   val hasControls: Boolean                = canOperate && !isPreview
   val canSetBreakpoint: Boolean           = canOperate && !isPreview
   val showObservingMode: Boolean          = showProp(
@@ -333,10 +332,8 @@ final case class StepsTable(
   val sequenceState: Option[SequenceState] = steps.map(_.state)
 
   def stepSummary(step: Step): Option[StepStateSummary] =
-    (steps.flatMap(_.steps.indexOf(step).some.flatMap(x => (x >= 0).option(x))),
-     obsIdName,
-     instrument,
-     sequenceState
+    (obsId, instrument, sequenceState).mapN(
+      StepStateSummary(step, _, _, tabOperations, _)
     )
       .mapN(StepStateSummary(step, displayName, _, _, tabOperations, _))
 
@@ -603,16 +600,9 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step,
-                         $.props.displayName,
-                         f.id,
-                         f.instrument,
-                         $.props.tabOperations,
-                         f.state
-        ),
+        StepStateSummary(row.step, f.id, f.instrument, $.props.tabOperations, f.state),
         $.state.selected,
-        $.props.isPreview,
-        $.props.displayName.orEmpty
+        $.props.isPreview
       )
 
   def stepStatusRenderer(

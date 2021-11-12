@@ -72,20 +72,16 @@ object actions {
   final case class RequestStop(idName: Observation.IdName, observer: Observer, step: StepId) extends Action
   final case class RequestGracefulStop(id: Observation.Id, observer: Observer, step: StepId)
       extends Action
-  final case class RequestAbort(id: Observation.Id, observer: Observer, step: StepId) extends Action
-  final case class RequestObsPause(id: Observation.Id, observer: Observer, step: StepId)
+  final case class RequestAbort(id: Observation.Id, step: StepId) extends Action
+  final case class RequestObsPause(id: Observation.Id, step: StepId)
       extends Action
-  final case class RequestGracefulObsPause(id: Observation.Id, observer: Observer, step: StepId)
+  final case class RequestGracefulObsPause(id: Observation.Id, step: StepId)
       extends Action
   final case class RequestObsResume(id: Observation.Id, step: StepId)                 extends Action
   case object RequestSoundEcho                                                        extends Action
 
-  final case class RequestResourceRun(
-    id:       Observation.Id,
-    observer: Observer,
-    step:     StepId,
-    resource: Resource
-  ) extends Action
+  final case class RequestResourceRun(id: Observation.Id, step: StepId, resource: Resource)
+      extends Action
   final case class RunResource(id: Observation.Id, step: StepId, resource: Resource) extends Action
   final case class RunResourceRemote(id: Observation.Id, step: StepId, resource: Resource)
       extends Action
@@ -103,12 +99,8 @@ object actions {
     step:     StepId,
     options:  RunOptions
   ) extends Action
-  final case class RequestRunFrom(
-    qid:      Observation.Id,
-    observer: Observer,
-    step:     StepId,
-    options:  RunOptions
-  ) extends Action
+  final case class RequestRunFrom(qid: Observation.Id, step: StepId, options: RunOptions)
+      extends Action
   final case class RunFromComplete(id: Observation.Id, step: StepId)                 extends Action
   final case class RunFromFailed(id: Observation.Id, step: StepId)                   extends Action
 

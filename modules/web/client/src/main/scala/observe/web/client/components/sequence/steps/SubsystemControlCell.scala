@@ -38,8 +38,7 @@ final case class SubsystemControlCell(
   stepId:         StepId,
   resources:      List[Resource],
   resourcesCalls: SortedMap[Resource, ResourceRunOperation],
-  canOperate:     Boolean,
-  displayName:    String
+  canOperate:     Boolean
 ) extends ReactProps[SubsystemControlCell](SubsystemControlCell.component)
 
 object SubsystemControlCell {
@@ -48,14 +47,13 @@ object SubsystemControlCell {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   def requestResourceCall(
-    idName: Observation.IdName,
+    id:     Observation.Id,
     stepId: StepId,
-    observer: Observer,
     r:      Resource
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       (e.preventDefaultCB *> e.stopPropagationCB *>
-        ObserveCircuit.dispatchCB(RequestResourceRun(idName, observer, stepId, r)))
+        ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, r)))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   private val CompletedIcon = IconCheckmark.copy(
@@ -96,7 +94,7 @@ object SubsystemControlCell {
       case _                                                  => none
     }
 
-  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
+  protected val component = ScalaComponent
     .builder[Props]
     .render_P { p =>
       <.div(
@@ -118,7 +116,8 @@ object SubsystemControlCell {
               labelPosition = labeled,
               icon = buttonIcon.isDefined,
               onClickE =
-                if (p.canOperate) requestResourceCall(p.idName, p.stepId, Observer(p.displayName), r) else js.undefined,
+                if (p.canOperate)(requestResourceCall(p.id, p.stepId, r))
+                else js.undefined,
               clazz = ObserveStyles.defaultCursor.unless_(p.canOperate)
             )(buttonIcon.whenDefined(identity), r.show)
           )(s"Configure ${r.show}")

@@ -40,8 +40,7 @@ final case class StepProgressCell(
   clientStatus: ClientStatus,
   stateSummary: StepStateSummary,
   selectedStep: Option[StepId],
-  isPreview:    Boolean,
-  displayName:  String
+  isPreview:    Boolean
 ) extends ReactProps[StepProgressCell](StepProgressCell.component) {
 
   val step: Step                    = stateSummary.step
@@ -111,8 +110,7 @@ object StepProgressCell {
 
   def stepControlButtons(props: Props): TagMod =
     StepsControlButtons(
-      props.obsIdName,
-      props.displayName,
+      props.obsId,
       props.instrument,
       props.state,
       props.step.id,
@@ -179,8 +177,7 @@ object StepProgressCell {
         props.step.id,
         props.stepIdx,
         props.tabOperations.resourceInFlight(props.step.id),
-        props.tabOperations.startFromRequested,
-        props.displayName
+        props.tabOperations.startFromRequested
       ).when(!props.step.isFinished && props.clientStatus.canOperate),
       <.div(
         ObserveStyles.specialStateLabel,
@@ -201,8 +198,7 @@ object StepProgressCell {
         props.step.id,
         Nested(Step.configStatus.getOption(props.step)).map(_._1).value.orEmpty,
         props.resourceRunRequested,
-        props.clientStatus.canOperate,
-        props.displayName
+        props.clientStatus.canOperate
       )
     )
 

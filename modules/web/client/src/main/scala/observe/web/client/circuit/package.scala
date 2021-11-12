@@ -213,8 +213,7 @@ package circuit {
     systemOverrides:        SystemOverrides,
     overrideSubsysControls: SectionVisibilityState,
     canOperate:             Boolean,
-    control:                ControlModel,
-    displayName:            String
+    control:                ControlModel
   )
 
   object SequenceControlFocus {
@@ -225,8 +224,7 @@ package circuit {
          x.systemOverrides,
          x.overrideSubsysControls,
          x.canOperate,
-         x.control,
-         x.displayName
+         x.control
         )
       )
 
@@ -246,10 +244,9 @@ package circuit {
                                tab.sequence.systemOverrides,
                                tab.subsystemControlVisible,
                                status,
-                               ControlModel.controlModelG.get(tab),
-                               dn.get(u).orEmpty
+                               ControlModel.controlModelG.get(tab)
           ).some
-        case _ => none
+        case _                                                                                   => none
       }
     }
   }

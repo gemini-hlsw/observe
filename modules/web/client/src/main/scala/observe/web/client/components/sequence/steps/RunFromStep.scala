@@ -30,8 +30,7 @@ final case class RunFromStep(
   stepId:           StepId,
   stepIdx:          Int,
   resourceInFlight: Boolean,
-  runFrom:          StartFromOperation,
-  displayName:      String
+  runFrom:          StartFromOperation
 ) extends ReactProps[RunFromStep](RunFromStep.component)
 
 object RunFromStep {
@@ -40,14 +39,12 @@ object RunFromStep {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   def requestRunFrom(
-    idName:  Observation.IdName,
-    displayNamo: String
-    stepId:  StepId,
-    stepIdx: Int
+    id:     Observation.Id,
+    stepId: Int
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       ObserveCircuit
-        .dispatchCB(RequestRunFrom(idName, Observer(displayName), stepId, stepIdx, RunOptions.Normal))
+        .dispatchCB(RequestRunFrom(id, stepId, RunOptions.Normal))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   protected val component = ScalaComponent
@@ -60,7 +57,7 @@ object RunFromStep {
           trigger = Button(
             icon = true,
             color = Blue,
-            onClickE = requestRunFrom(p.idName, p.displayName, p.stepId, p.stepIdx),
+            onClickE = requestRunFrom(p.id, p.stepId),
             disabled = p.resourceInFlight || p.runFrom === StartFromOperation.StartFromInFlight
           )(IconPlay)
         )(s"Run from step ${p.stepIdx + 1}")

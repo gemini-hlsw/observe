@@ -17,13 +17,13 @@ import observe.web.client.services.ObserveWebClient
 /**
  * Handles actions sending requests to the backend
  */
-class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
+class RemoteRequestsHandler[M](modelRW: ModelRW[M, ClientStatus])
     extends ActionHandler(modelRW)
-    with Handlers[M, Option[ClientId]] {
+    with Handlers[M, ClientStatus] {
 
-  def handleRun: PartialFunction[Any, ActionResult[M]] = { case RequestRun(s, observer, options) =>
-    val effect = value
-      .map(clientId =>
+  def handleRun: PartialFunction[Any, ActionResult[M]] = { case RequestRun(s, options) =>
+    val effect = (value.clientId, value.observer)
+      .mapN((clientId, observer) =>
         Effect(
           ObserveWebClient
             .run(s, observer, clientId, options)
@@ -37,16 +37,25 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
     effectOnly(effect)
   }
 
-  def handlePause: PartialFunction[Any, ActionResult[M]] = { case RequestPause(idName) =>
-    effectOnly(requestEffect(idName, ObserveWebClient.pause, RunPaused.apply, RunPauseFailed.apply))
+  def handlePause: PartialFunction[Any, ActionResult[M]] = { case RequestPause(id) =>
+    val effect = (value.clientId, value.observer)
+      .mapN((clientId, observer) =>
+        requestEffect(id,
+                      SeqexecWebClient.pause(_, observer),
+                      RunPaused.apply,
+                      RunPauseFailed.apply
+        )
+      )
+      .getOrElse(VoidEffect)
+    effectOnly(effect)
   }
 
   def handleRunFrom: PartialFunction[Any, ActionResult[M]] = {
-    case RequestRunFrom(idName, observer, stepId, stepIdx, options) =>
-      val effect = value
-        .map(clientId =>
-          requestEffect(idName,
-                        ObserveWebClient.runFrom(_, stepId, observer, clientId, options),
+    case RequestRunFrom(id, stepId, options) =>
+      val effect = (value.clientId, value.observer)
+        .mapN((clientId, observer) =>
+          requestEffect(id,
+                        SeqexecWebClient.runFrom(_, stepId, observer, clientId, options),
                         RunFromComplete(_, stepId),
                         RunFromFailed(_, stepIdx)
           )
@@ -56,81 +65,102 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
   }
 
   def handleCancelPause: PartialFunction[Any, ActionResult[M]] = { case RequestCancelPause(id) =>
-    effectOnly(
-      requestEffect(id,
-                    ObserveWebClient.cancelPause,
-                    RunCancelPaused.apply,
-                    RunCancelPauseFailed.apply
+    val effect = (value.clientId, value.observer)
+      .mapN((clientId, observer) =>
+        requestEffect(id,
+                      ObserveWebClient.cancelPause(_, observer),
+                      RunCancelPaused.apply,
+                      RunCancelPauseFailed.apply
+        )
       )
-    )
+      .getOrElse(VoidEffect)
+    effectOnly(effect)
   }
 
-  def handleStop: PartialFunction[Any, ActionResult[M]] = { case RequestStop(idName, observer, step) =>
+  def handleStop: PartialFunction[Any, ActionResult[M]] = { case RequestStop(id, step) =>
     effectOnly(
-      Effect(
-        ObserveWebClient
-          .stop(idName.id, observer, step)
-          .as(RunStop(idName.id))
-          .recover { case _ =>
-            RunStopFailed(idName)
-          }
-      )
+      (value.clientId, value.observer)
+        .mapN((clientId, observer) =>
+          Effect(
+            ObserveWebClient
+              .stop(id, observer, step)
+              .as(RunStop(id))
+              .recover { case _ =>
+                RunStopFailed(id)
+              }
+          )
+        )
+        .getOrElse(VoidEffect)
     )
   }
 
   def handleGracefulStop: PartialFunction[Any, ActionResult[M]] = {
-    case RequestGracefulStop(id, observer, step) =>
+    case RequestGracefulStop(id, step) =>
       effectOnly(
-        Effect(
-          ObserveWebClient
-            .stopGracefully(id, step)
-            .as(RunGracefulStop(id))
-            .recover { case _ =>
-              RunGracefulStopFailed(id)
-            }
-        )
+        (value.clientId, value.observer)
+          .mapN((clientId, observer) =>
+            Effect(
+              ObserveWebClient
+                .stopGracefully(id, observer, step)
+                .as(RunGracefulStop(id))
+                .recover { case _ =>
+                  RunGracefulStopFailed(id)
+                }
+            )
+          )
+          .getOrElse(VoidEffect)
       )
   }
 
-  def handleAbort: PartialFunction[Any, ActionResult[M]] = {
-    case RequestAbort(idName, observer, step) =>
-      effectOnly(
-        Effect(
-          ObserveWebClient
-            .abort(idName.id, observer, step)
-            .as(RunAbort(id))
-            .recover { case _ =>
-              RunAbortFailed(id)
-            }
+  def handleAbort: PartialFunction[Any, ActionResult[M]] = { case RequestAbort(id, step) =>
+    effectOnly(
+      (value.clientId, value.observer)
+        .mapN((clientId, observer) =>
+          Effect(
+            ObserveWebClient
+              .abort(id, observer, step)
+              .as(RunAbort(id))
+              .recover { case _ =>
+                RunAbortFailed(id)
+              }
+          )
         )
-      )
+        .getOrElse(VoidEffect)
+    )
   }
 
-  def handleObsPause: PartialFunction[Any, ActionResult[M]] = {
-    case RequestObsPause(idName, observer, step) =>
-      effectOnly(
-        Effect(
-          ObserveWebClient
-            .pauseObs(id, observer, step)
-            .as(RunObsPause(id))
-            .recover { case _ =>
-              RunObsPauseFailed(id)
-            }
+  def handleObsPause: PartialFunction[Any, ActionResult[M]] = { case RequestObsPause(id, step) =>
+    effectOnly(
+      (value.clientId, value.observer)
+        .mapN((clientId, observer) =>
+          Effect(
+            ObserveWebClient
+              .pauseObs(id, observer, step)
+              .as(RunObsPause(id))
+              .recover { case _ =>
+                RunObsPauseFailed(id)
+              }
+          )
         )
-      )
+        .getOrElse(VoidEffect)
+    )
   }
 
   def handleGracefulObsPause: PartialFunction[Any, ActionResult[M]] = {
-    case RequestGracefulObsPause(id, observer, step) =>
+    case RequestGracefulObsPause(id, step) =>
       effectOnly(
-        Effect(
-          ObserveWebClient
-            .pauseObsGracefully(id, observer, step)
-            .as(RunGracefulObsPause(id))
-            .recover { case _ =>
-              RunGracefulObsPauseFailed(id)
-            }
-        )
+        (value.clientId, value.observer)
+          .mapN((clientId, observer) =>
+            Effect(
+              ObserveWebClient
+                .pauseObsGracefully(id, observer, step)
+                .as(RunGracefulObsPause(id))
+                .recover { case _ =>
+                  RunGracefulObsPauseFailed(id)
+                }
+            )
+          )
+          .getOrElse(VoidEffect)
       )
   }
 
@@ -152,9 +182,9 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, Option[ClientId]])
   }
 
   def handleResourceRun: PartialFunction[Any, ActionResult[M]] = {
-    case RequestResourceRun(idName, observer, step, resource) =>
-      val effect = value
-        .map(clientId =>
+    case RequestResourceRun(id, step, resource) =>
+      val effect = (value.clientId, value.observer)
+        .mapN((clientId, observer) =>
           requestEffect(
             idName,
             ObserveWebClient.runResource(step, resource, observer, _, clientId),
