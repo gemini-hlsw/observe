@@ -129,10 +129,6 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     val instTabs       = loaded.collect { case Some(x) =>
       val tab              = currentInsTabs
         .find(_.obsIdName === x.idName)
-      // FIXME
-      // val curTableState = tab
-      //   .map(_.tableState)
-      //   .getOrElse(StepsTable.State.InitialTableState)
       val left             = tag[InstrumentSequenceTab.CompletedSV][SequenceView](x)
       val right            = tag[InstrumentSequenceTab.LoadedSV][SequenceView](x)
       val seq              = tab.filter(_.isComplete).as(left).toLeft(right)
@@ -186,10 +182,6 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
     val isLoaded = loadedIds.contains(s.idName)
     // Replace the sequence for the instrument or the completed sequence and reset displaying a step
     val seq      = if (s.metadata.instrument === i && !isLoaded) {
-      // val newPreview = SequencesOnDisplay.previewTabById(obsId).isEmpty(this)
-      // FIXME
-      // val tsUpd = (ts: TableState[StepsTable.TableColumn]) =>
-      //   if (newPreview) StepsTable.State.InitialTableState else ts
       val update =
         // PreviewSequenceTab.tableState.modify(tsUpd) >>>
         PreviewSequenceTab.currentSequence.replace(s) >>>
@@ -330,25 +322,6 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   def cleanAll: SequencesOnDisplay =
     SequencesOnDisplay.Empty
 
-  // /**
-  //  * Operator of the instrument tab if in focus
-  //  */
-  // def selectedObserver: Option[Either[DayCalObserverFocus, SequenceObserverFocus]] =
-  //   SequencesOnDisplay.focusSequence
-  //     .getOption(this)
-  //     .collect { case InstrumentSequenceTab(_, Right(s), _, _, _, _, _) =>
-  //       SequenceObserverFocus(s.metadata.instrument,
-  //                             s.id,
-  //                             s.allStepsDone,
-  //                             s.metadata.observer
-  //       ).asRight
-  //     }
-  //     .orElse {
-  //       SequencesOnDisplay.focusQueue.getOption(this).collect { case CalibrationQueueTab(_, o) =>
-  //         DayCalObserverFocus(CalibrationQueueId, o).asLeft
-  //       }
-  //     }
-  //
   // Update the state when load has completed
   def loadingComplete(
     obsId: Observation.Id,

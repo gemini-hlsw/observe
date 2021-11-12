@@ -40,8 +40,6 @@ final case class HeadersSideBar(model: HeaderSideBarFocus)
 
   def canOperate: Boolean = model.status.canOperate
 
-  // def selectedObserver: Either[Observer, Either[DayCalObserverFocus, SequenceObserverFocus]] =
-  //   model.observer
 }
 
 /**

@@ -107,7 +107,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
         if (value.serverVersion.exists(_ =!= v)) {
           Effect(Future(window.location.reload(true)).as(NoAction))
         } else {
-          refreshRequestE //+ calQueueObserverE
+          refreshRequestE
         }
       val displayNames    =
         (u.map(u =>
