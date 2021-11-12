@@ -173,11 +173,10 @@ object ObserveWebClient extends ModelBooPicklers {
   /**
    * Requests the backend to resume the current exposure
    */
-  @nowarn
-  def resumeObs(sid: Observation.Id, step: StepId): Future[Unit] =
+  def resumeObs(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/resumeObs"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/resumeObs/${encodeURI(name.value)}"
       )
       .void
 
