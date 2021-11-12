@@ -192,7 +192,7 @@ trait ObserveEngine[F[_]] {
     graceful: Boolean
   ): F[Unit]
 
-  def resumeObserve(q: EventQueue[F], seqId: Observation.Id): F[Unit]
+  def resumeObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer): F[Unit]
 
   def addSequencesToQueue(q: EventQueue[F], qid: QueueId, seqIds: List[Observation.Id]): F[Unit]
 
@@ -893,8 +893,13 @@ object ObserveEngine {
           )
         )
 
-    override def resumeObserve(q: EventQueue[F], seqId: Observation.Id): F[Unit] =
+    override def resumeObserve(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer
+    ): F[Unit] =
       q.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
+        q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
         q.offer(Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(seqId)))
 
     private def queueO(qid: QueueId): Optional[EngineState[F], ExecutionQueue] =

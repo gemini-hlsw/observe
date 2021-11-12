@@ -118,9 +118,9 @@ class ObserveCommandRoutes[F[_]: Async](
       se.pauseObserve(inputQueue, obsId, obs, graceful = true) *>
         Ok(s"Pause observation gracefully requested for ${obsId.format} on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "resumeObs" as _ =>
-      se.resumeObserve(inputQueue, obsId) *>
-        Ok(s"Resume observation requested for $obsId on step $stepId")
+    case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "resumeObs" / ObserverVar(obs) as _ =>
+      se.resumeObserve(inputQueue, obsId, obs) *>
+        Ok(s"Resume observation requested for ${obsId.format} on step $stepId")
 
     case POST -> Root / "operator" / OperatorVar(op) as user =>
       se.setOperator(inputQueue, user, op) *> Ok(s"Set operator name to '${op.value}'")
