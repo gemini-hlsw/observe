@@ -30,7 +30,7 @@ object Settings {
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
-    val catsTime            = "0.4.0"
+    val catsTime            = "0.5.0"
 
     val http4sVersion  = "1.0.0-M27"
     val squants        = "1.8.2"
@@ -81,12 +81,12 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore          = "0.13.2"
-    val lucumaUI            = "0.17.1"
-    val lucumaSchemas       = "0.0.2"
+    val lucumaCore    = "0.13.2"
+    val lucumaUI      = "0.17.1"
+    val lucumaSchemas = "0.0.2"
 
     // Clue
-    val clue                = "0.18.2"
+    val clue = "0.18.2"
 
     val sttp = "3.3.14"
   }
@@ -127,7 +127,7 @@ object Settings {
     val JuliSlf4j        = "org.slf4j"      % "jul-to-slf4j" % LibraryVersions.slf4j
     val NopSlf4j         = "org.slf4j"      % "slf4j-nop"    % LibraryVersions.slf4j
     val CatsTime         = Def.setting(
-      "io.chrisdavenport" %%% "cats-time" % LibraryVersions.catsTime % "compile->compile;test->test"
+      "org.typelevel" %%% "cats-time" % LibraryVersions.catsTime % "compile->compile;test->test"
     )
     val Log4Cats         = Def.setting("org.typelevel" %%% "log4cats-slf4j" % LibraryVersions.log4cats)
     val Log4CatsNoop     =
@@ -277,7 +277,7 @@ object Settings {
     val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
 
     // Lucuma Libraries
-    val LucumaCore = Def.setting(
+    val LucumaCore    = Def.setting(
       Seq(
         "edu.gemini" %%% "lucuma-core"         % LibraryVersions.lucumaCore,
         "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore
@@ -287,7 +287,7 @@ object Settings {
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
     val Clue          = "edu.gemini" %% "clue-http4s-jdk-client" % LibraryVersions.clue
-    val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
+    val ClueGenerator = "edu.gemini" %% "clue-generator"         % LibraryVersions.clue
 
     val Sttp = Def.setting(
       Seq(
