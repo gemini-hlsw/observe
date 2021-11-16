@@ -1291,12 +1291,13 @@ object ObserveEngine {
       sys:      Resource,
       clientID: ClientId
     ): F[Unit] =
-      q.offer(
-        Event.modifyState[F, EngineState[F], SeqEvent](
-          configSystemHandle(sid, stepId, sys, clientID)
-        )
-      ) *>
-        q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(sid, observer)))
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(sid, observer))) *>
+        q.offer(
+          Event.modifyState[F, EngineState[F], SeqEvent](
+            configSystemHandle(sid, stepId, sys, clientID)
+          )
+        ) *>
+        requestRefresh(q, clientID)
 
     def notifyODB(
       i: (EventResult[SeqEvent], EngineState[F])
