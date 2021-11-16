@@ -26,7 +26,7 @@ object Settings {
     val catsEffectVersion   = "3.2.9"
     val catsVersion         = "2.6.1"
     val mouseVersion        = "1.0.7"
-    val fs2Version          = "3.1.6"
+    val fs2Version          = "3.2.2"
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
@@ -134,9 +134,9 @@ object Settings {
     val Log4CatsNoop     =
       Def.setting("org.typelevel" %%% "log4cats-noop" % LibraryVersions.log4cats % "test")
     val Logback          = Seq(
-      "ch.qos.logback"       % "logback-core"             % LibraryVersions.logback,
-      "ch.qos.logback"       % "logback-classic"          % LibraryVersions.logback,
-      "org.codehaus.janino"  % "janino"                   % LibraryVersions.janino,
+      "ch.qos.logback"      % "logback-core"    % LibraryVersions.logback,
+      "ch.qos.logback"      % "logback-classic" % LibraryVersions.logback,
+      "org.codehaus.janino" % "janino"          % LibraryVersions.janino
     )
     val Log4s            = Def.setting("org.log4s" %%% "log4s" % LibraryVersions.log4s)
     val Log4CatsLogLevel = Def.setting(
@@ -275,7 +275,7 @@ object Settings {
     val GmpCmdJmsBridge =
       "edu.gemini.aspen.gmp" % "gmp-commands-jms-bridge" % LibraryVersions.gmpCmdClientBridge
     val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
-    val ACM = "edu.gemini" %% "acm" % LibraryVersions.acm
+    val ACM   = "edu.gemini"      %% "acm"   % LibraryVersions.acm
 
     // Lucuma Libraries
     val LucumaCore    = Def.setting(
