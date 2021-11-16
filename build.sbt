@@ -12,6 +12,8 @@ name := "observe"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
+Global / semanticdbEnabled := true
+
 ThisBuild / Compile / packageDoc / publishArtifact := false
 
 inThisBuild(
@@ -31,6 +33,8 @@ inThisBuild(
 ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
+
+Global / resolvers += Resolver.sonatypeRepo("public")
 
 // This key is used to find the JRE dir. It could/should be overriden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
@@ -168,7 +172,8 @@ lazy val observe_web_server = project
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
     reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
-    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
+    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher"),
+    Compile / bspEnabled := false,
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -300,7 +305,8 @@ lazy val observe_server: Project = project
         TestLibs.value,
         PPrint.value,
         Clue,
-        LucumaSchemas
+        LucumaSchemas,
+        ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
@@ -329,8 +335,7 @@ lazy val observe_server: Project = project
   .dependsOn(observe_engine    % "compile->compile;test->test",
              giapi,
              ocs2_api.jvm,
-             observe_model.jvm % "compile->compile;test->test",
-             acm               % "compile->compile;test->test"
+             observe_model.jvm % "compile->compile;test->test"
   )
 
 // Unfortunately crossProject doesn't seem to work properly at the module/build.sbt level
@@ -372,26 +377,6 @@ lazy val observe_engine = project
                                 Log4s.value,
                                 Log4Cats.value
     ) ++ Monocle.value ++ MUnit.value
-  )
-
-lazy val acm = project
-  .in(file("modules/acm"))
-  .settings(commonSettings: _*)
-  .enablePlugins(SbtXjcPlugin)
-  .settings(
-    libraryDependencies ++= Seq(
-      EpicsService,
-      GmpCommandsRecords,
-      Guava,
-      Slf4j,
-      XmlUnit,
-      ScalaMock,
-      JUnitInterface
-    ) ++ Logback ++ JAXB,
-    Test / libraryDependencies ++= Logback,
-    Test / testOptions := Seq(),
-    xjcCommandLine ++= Seq("-p", "edu.gemini.epics.acm.generated"),
-    xjcLibs ++= JAXB
   )
 
 /**
