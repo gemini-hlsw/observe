@@ -321,17 +321,11 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
                        s0,
                        observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
             )
-    } yield inside(
-      sf.flatMap(
-        EngineState
-          .sequences[IO]
-          .andThen(mapIndex[Observation.Id, SequenceData[IO]].index(seqObsId2))
-          .getOption
-      )
-    ) { case Some(s) =>
-      assertResult(Some(Action.ActionState.Started))(
-        s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
-      )
+    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
+      case Some(s) =>
+        assertResult(Some(Action.ActionState.Started))(
+          s.seqGen.configActionCoord(1, Instrument.F2).map(s.seq.getSingleState)
+        )
     }).unsafeRunSync()
   }
 
