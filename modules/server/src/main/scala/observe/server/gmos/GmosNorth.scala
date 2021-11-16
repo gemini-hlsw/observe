@@ -8,7 +8,7 @@ import edu.gemini.spModel.gemini.gmos.GmosNorthType
 import edu.gemini.spModel.gemini.gmos.GmosNorthType.FPUnitNorth._
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.FPU_PROP_NAME
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.STAGE_MODE_PROP
-import edu.gemini.spModel.gemini.gmos.InstGmosNorth._
+import edu.gemini.spModel.gemini.gmos.InstGmosNorth
 import org.typelevel.log4cats.Logger
 import lucuma.core.enum.LightSinkName
 import observe.model.enum.Instrument
@@ -38,12 +38,12 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
         def extractFilter(
           config: CleanConfig
         ): Either[ConfigUtilOps.ExtractFailure, NorthTypes#Filter] =
-          config.extractInstAs[NorthTypes#Filter](FILTER_PROP)
+          config.extractInstAs[NorthTypes#Filter](InstGmosNorth.FILTER_PROP)
 
         def extractDisperser(
           config: CleanConfig
         ): Either[ConfigUtilOps.ExtractFailure, GmosNorthType.DisperserNorth] =
-          config.extractInstAs[NorthTypes#Disperser](DISPERSER_PROP)
+          config.extractInstAs[NorthTypes#Disperser](InstGmosNorth.DISPERSER_PROP)
 
         def extractFPU(
           config: CleanConfig
@@ -72,7 +72,7 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
 }
 
 object GmosNorth {
-  val name: String = INSTRUMENT_NAME_PROP
+  val name: String = InstGmosNorth.INSTRUMENT_NAME_PROP
 
   def apply[F[_]: Temporal: Logger](
     c:         GmosController[F, NorthTypes],

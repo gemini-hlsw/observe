@@ -7,7 +7,6 @@ import cats.Monad
 import cats.effect._
 import cats.syntax.all._
 import edu.gemini.epics.acm.CaService
-import edu.gemini.spModel.core.Peer
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
 import org.typelevel.log4cats.Logger
@@ -33,6 +32,11 @@ import observe.server.nifs._
 import observe.server.niri._
 import observe.server.tcs._
 import cats.effect.Temporal
+import clue._
+import lucuma.schemas.ObservationDB
+
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 
 final case class Systems[F[_]](
   odb:                 OdbProxy[F],
@@ -71,12 +75,28 @@ object Systems {
     service:    CaService,
     tops:       Map[String, String]
   )(implicit L: Logger[IO], T: Temporal[IO]) {
-    def odbProxy[F[_]: Sync: Logger]: OdbProxy[F] = OdbProxy[F](
-      new Peer(settings.odb.renderString, 8443, null),
-      if (settings.odbNotifications)
-        OdbProxy.OdbCommandsImpl[F](new Peer(settings.odb.renderString, 8442, null))
-      else new OdbProxy.DummyOdbCommands[F]
-    )
+    val reconnectionStrategy: WebSocketReconnectionStrategy =
+      (attempt, reason) =>
+        // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
+        if (reason.toOption.flatMap(_.toOption.flatMap(_.code)).exists(_ === 1000))
+          none
+        else // Increase the delay to get exponential backoff with a minimum of 1s and a max of 1m
+          FiniteDuration(
+            math.min(60.0, math.pow(2, attempt.toDouble - 1)).toLong,
+            TimeUnit.SECONDS
+          ).some
+
+    def odbProxy[F[_]: Async: Logger: WebSocketBackend]: F[OdbProxy[F]] =
+      ApolloWebSocketClient
+        .of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
+        .map(socket =>
+          OdbProxy[F](
+            socket,
+            if (settings.odbNotifications)
+              OdbProxy.OdbCommandsImpl[F](socket)
+            else new OdbProxy.DummyOdbCommands[F]
+          )
+        )
 
     def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClient[F]] =
       if (settings.systemControl.dhs.command)
@@ -337,7 +357,9 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        odbProxy                                   <- Resource.pure[IO, OdbProxy[IO]](odbProxy[IO])
+        webSocketBackend                           <- clue.http4sjdk.Http4sJDKWSBackend[IO]
+        odbProxy                                   <-
+          Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
         dhsClient                                  <- Resource.eval(dhs[IO](httpClient))
         gcdb                                       <- Resource.eval(GuideConfigDb.newDb[IO])
         (gcalCtr, gcalKR)                          <- Resource.eval(gcal)

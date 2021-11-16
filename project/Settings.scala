@@ -11,15 +11,15 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val scalaDom                = "1.2.0"
-    val scalajsReact            = "2.0.0-RC3"
+    val scalajsReact            = "2.0.0"
     val booPickle               = "1.4.0"
     val diode                   = "0.0.0+1-6e5c7c85-SNAPSHOT"
     val javaTimeJS              = "2.3.0"
-    val scalaJSReactCommon      = "0.11.3"
-    val scalaJSSemanticUI       = "0.12.0"
-    val scalaJSReactVirtualized = "0.12.0"
-    val scalaJSReactClipboard   = "1.5.0"
-    val scalaJSReactDraggable   = "0.13.0"
+    val scalaJSReactCommon      = "0.14.7"
+    val scalaJSSemanticUI       = "0.13.1"
+    val scalaJSReactVirtualized = "0.13.1"
+    val scalaJSReactClipboard   = "1.5.1"
+    val scalaJSReactDraggable   = "0.14.1"
     val scalaJSReactSortable    = "0.5.1"
 
     // Scala libraries
@@ -82,12 +82,12 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.13.2"
-    val lucumaUI      = "0.17.1"
-    val lucumaSchemas = "0.0.2"
+    val lucumaCore          = "0.14.3"
+    val lucumaUI            = "0.18.1"
+    val lucumaSchemas       = "0.1.7"
 
     // Clue
-    val clue = "0.18.2"
+    val clue                = "0.19.1"
 
     val sttp = "3.3.14"
   }

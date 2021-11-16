@@ -18,6 +18,7 @@ import ConfigUtilOps._
 import SeqEvent._
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
+import observe.server.transition.OcsOdbTranslator
 
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:            OdbProxy[F],
@@ -42,7 +43,7 @@ final class ODBSequencesLoader[F[_]: Async](
   def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
     //Three ways of handling errors are mixed here: java exceptions, Either and MonadError
     val t: F[(List[Throwable], Option[SequenceGen[F]])] =
-      odbProxy.read(seqId).flatMap { odbSeq =>
+      odbProxy.read(seqId).map(OcsOdbTranslator.translate).flatMap { odbSeq =>
         val configObsId: F[String] =
           odbSeq.config
             .extractAs[String](OCS_KEY / InstConstants.PROGRAMID_PROP)
