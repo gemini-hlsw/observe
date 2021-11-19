@@ -28,7 +28,7 @@ addDependencyTreePlugin
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.0")
 
-addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.3")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.4")
 
 addSbtPlugin("org.scala-sbt.plugins" % "sbt-xjc" % "0.10")
 
