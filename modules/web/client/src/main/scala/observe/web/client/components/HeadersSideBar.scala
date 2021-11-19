@@ -142,7 +142,7 @@ object HeadersSideBar {
           FormGroup(widths = Two, clazz = ObserveStyles.fieldsNoBottom)(
             <.div(
               ^.cls := "sixteen wide field",
-              FormLabel("My display name", Some("displayName")),
+              FormLabel("My observer name", Some("displayName")),
               InputEV[StateSnapshot, String](
                 "displayName",
                 "displayName",
