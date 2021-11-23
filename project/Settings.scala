@@ -44,7 +44,7 @@ object Settings {
     val logback        = "1.2.7"
     val janino         = "3.1.6"
     val logstash       = "7.0"
-    val pureConfig     = "0.17.0"
+    val pureConfig     = "0.17.1"
     val monocleVersion = "3.1.0"
     val circeVersion   = "0.14.1"
     val doobieVersion  = "0.6.0"
