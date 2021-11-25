@@ -211,7 +211,7 @@ object SeqTranslate {
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
       //TODO: Retrive sequence name from ODB sequence
-      val obsName = Observation.Name.unsafeFromString("Dummy")
+      val obsName = "Dummy"
 
       // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
       val configs = sequence.config.getAllSteps.toList.map(CleanConfig(_))
@@ -222,17 +222,17 @@ object SeqTranslate {
 
       val nextToRun = configs
         .map(extractStatus)
-        .lastIndexWhere(_.isFinished) + 1
+        .lastIndexWhere(_.isFinished) + 2
 
       //TODO: Retrieve step ids from the config
       val steps = configs.zipWithIndex
         .map { case (c, i) =>
           step(
             Observation.IdName(obsId, obsName),
-            lucuma.core.model.Step.Id(PosLong.unsafeFrom(i.toLong)),
+            lucuma.core.model.Step.Id(PosLong.unsafeFrom((i+1).toLong)),
             c,
             lucuma.core.model.Step.Id(PosLong.unsafeFrom(nextToRun.toLong)),
-            sequence.datasets.mapKeys(x => lucuma.core.model.Step.Id(PosLong.unsafeFrom(x.toLong))),
+            sequence.datasets.mapKeys(x => lucuma.core.model.Step.Id(PosLong.unsafeFrom((x+1).toLong))),
             isNightSeq
           ).attempt
         }

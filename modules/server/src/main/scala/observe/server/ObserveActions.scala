@@ -120,12 +120,12 @@ trait ObserveActions {
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsIdName.id, fileId))
       _ <-
         info(
-          s"Start ${env.inst.resource.show} observation ${env.obsIdName.name.format} with label $fileId"
+          s"Start ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
         )
       r <- env.inst.observe(env.config)(fileId)
       _ <-
         info(
-          s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name.format} with label $fileId"
+          s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
         )
     } yield r
 

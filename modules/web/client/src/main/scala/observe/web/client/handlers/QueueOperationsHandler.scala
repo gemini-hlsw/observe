@@ -135,7 +135,7 @@ class QueueOperationsHandler[M](modelRW: ModelRW[M, CalibrationQueues])
 
   def handleSeqRequestResultFailed: PartialFunction[Any, ActionResult[M]] = {
     case RemoveSeqCalFailed(qid, idName) =>
-      val msg          = s"Failed to remove sequence ${idName.name.format} from the queue"
+      val msg          = s"Failed to remove sequence ${idName.name} from the queue"
       val notification = Effect(Future(RequestFailedNotification(RequestFailed(List(msg)))))
       updatedLE(CalibrationQueues.modifyOrAddSeqOps(
                   qid,
@@ -146,7 +146,7 @@ class QueueOperationsHandler[M](modelRW: ModelRW[M, CalibrationQueues])
       )
 
     case MoveCalFailed(qid, idName) =>
-      val msg          = s"Failed to move sequence ${idName.name.format} on the queue"
+      val msg          = s"Failed to move sequence ${idName.name} on the queue"
       val notification = Effect(Future(RequestFailedNotification(RequestFailed(List(msg)))))
       updatedLE(
         CalibrationQueues.modifyOrAddSeqOps(qid,

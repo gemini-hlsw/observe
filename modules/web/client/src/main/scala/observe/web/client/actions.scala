@@ -218,12 +218,12 @@ object actions {
 
   implicit val show: Show[Action] = Show.show {
     case FlipBreakpointStep(oid, st)                     =>
-      s"FlipBreakpointStep(${oid.name.format}, ${st.id})"
+      s"FlipBreakpointStep(${oid.name}, ${st.id})"
     case FlipSkipStep(oid, st)                           =>
-      s"FlipSkipStep(${oid.name.format}, ${st.id})"
+      s"FlipSkipStep(${oid.name}, ${st.id})"
     case s @ ServerMessage(u @ ObserveModelUpdate(view)) =>
       val someSteps   = view.sessionQueue.map(s =>
-        (s"id: ${s.idName.name.format}",
+        (s"id: ${s.idName.name}",
          s"steps: ${s.steps.length}",
          s"state: ${s.status}",
          s.steps

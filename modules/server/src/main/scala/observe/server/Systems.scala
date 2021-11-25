@@ -34,6 +34,7 @@ import observe.server.tcs._
 import cats.effect.Temporal
 import clue._
 import lucuma.schemas.ObservationDB
+import io.circe.syntax._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -86,17 +87,17 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
-    def odbProxy[F[_]: Async: Logger: WebSocketBackend]: F[OdbProxy[F]] =
-      ApolloWebSocketClient
-        .of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
-        .map(socket =>
-          OdbProxy[F](
-            socket,
-            if (settings.odbNotifications)
-              OdbProxy.OdbCommandsImpl[F](socket)
-            else new OdbProxy.DummyOdbCommands[F]
-          )
-        )
+    def odbProxy[F[_]: Async: Logger: WebSocketBackend]: F[OdbProxy[F]] = for {
+      sk <- ApolloWebSocketClient
+            .of[F, ObservationDB] (settings.odb, "ODB", reconnectionStrategy)
+      _ <- sk.connect()
+      _ <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
+    } yield OdbProxy[F] (
+      sk,
+      if (settings.odbNotifications)
+        OdbProxy.OdbCommandsImpl[F](sk)
+      else new OdbProxy.DummyOdbCommands[F]
+    )
 
     def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClient[F]] =
       if (settings.systemControl.dhs.command)

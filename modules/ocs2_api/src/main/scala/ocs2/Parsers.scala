@@ -111,7 +111,7 @@ object Parsers {
     PioParse(Program.Id.fromString.getOption)
 
   val obsId: PioParse[Observation.Name] =
-    PioParse(Observation.Name.fromString)
+    PioParse(_.some)
 
   val datasetLabel: PioParse[Dataset.Label] =
     PioParse(Dataset.Label.fromString.getOption)

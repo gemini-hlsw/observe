@@ -2,29 +2,24 @@ package observe.server.transition
 
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.shared.util.immutable.MapOp
-import edu.gemini.spModel.config2.{ Config, ConfigSequence, ItemEntry, ItemKey }
+import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemEntry, ItemKey}
 import edu.gemini.spModel.gemini.calunit.CalUnitConstants._
 import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
 import edu.gemini.spModel.guide.StandardGuideOptions
-import edu.gemini.spModel.seqcomp.SeqConfigNames.{ CALIBRATION_KEY, TELESCOPE_KEY }
+import edu.gemini.spModel.seqcomp.SeqConfigNames.{CALIBRATION_KEY, OBSERVE_KEY, OCS_KEY, TELESCOPE_KEY}
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS_PROP
+import edu.gemini.spModel.obsclass.ObsClass
+import edu.gemini.spModel.obscomp.InstConstants.{CAL_OBSERVE_TYPE, DATA_LABEL_PROP, OBSERVE_TYPE_PROP, OBS_CLASS_PROP, SCIENCE_OBSERVE_TYPE, STATUS_PROP}
 import lucuma.core.`enum`._
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Config.{
-  GmosNorthConfig,
-  GmosSouthConfig
-}
-import observe.common.ObsQueriesGQL.ObsQuery.{
-  GmosSite,
-  GmosStatic,
-  InsConfig,
-  SeqStep,
-  SeqStepConfig
-}
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Config.{GmosNorthConfig, GmosSouthConfig}
+import observe.common.ObsQueriesGQL.ObsQuery.{GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig}
 import observe.server.tcs.Tcs
 import observe.server.ConfigUtilOps._
 import observe.server.transition.GmosTranslator._
 import cats.implicits._
+import edu.gemini.spModel.gemini.calunit.CalUnitParams
+import edu.gemini.spModel.obscomp.InstConstants
 
 import java.util
 import scala.collection.mutable
@@ -51,34 +46,72 @@ object OcsOdbTranslator {
     )
   }
 
+  val defaultProgramId: String = "p-2"
+
   def convertGmosStep[S <: GmosSite: GmosSiteConversions](
     static: GmosStatic[S],
     step:   SeqStep[InsConfig.Gmos[S]]
   ): Config = {
-    val stepItems: Map[ItemKey, AnyRef] = (step.stepConfig match {
-      case SeqStepConfig.SeqScienceStep(offset) =>
+    val stepItems: Map[ItemKey, AnyRef] = ((step.stepConfig match {
+      case SeqStepConfig.SeqScienceStep(offset)          =>
         List[(ItemKey, AnyRef)](
-          (TELESCOPE_KEY / Tcs.P_OFFSET_PROP)         -> offset.p,
-          (TELESCOPE_KEY / Tcs.Q_OFFSET_PROP)         -> offset.q,
+          (TELESCOPE_KEY / Tcs.P_OFFSET_PROP)         -> (offset.p.toAngle.toMicroarcseconds.toDouble / 1e6).toString,
+          (TELESCOPE_KEY / Tcs.Q_OFFSET_PROP)         -> (offset.q.toAngle.toMicroarcseconds.toDouble / 1e6).toString,
           (TELESCOPE_KEY / Tcs.GUIDE_WITH_PWFS1_PROP) -> StandardGuideOptions.Value.park,
           (TELESCOPE_KEY / Tcs.GUIDE_WITH_PWFS2_PROP) -> StandardGuideOptions.Value.park,
           (TELESCOPE_KEY / GUIDE_WITH_OIWFS_PROP)     -> StandardGuideOptions.Value.park,
-          (TELESCOPE_KEY / Tcs.GUIDE_WITH_AOWFS_PROP) -> StandardGuideOptions.Value.park
+          (TELESCOPE_KEY / Tcs.GUIDE_WITH_AOWFS_PROP) -> StandardGuideOptions.Value.park,
+          (OBSERVE_KEY / OBS_CLASS_PROP)              -> ObsClass.SCIENCE.headerValue(),
+          (OBSERVE_KEY / OBSERVE_TYPE_PROP)           -> SCIENCE_OBSERVE_TYPE
         )
-      case SeqStepConfig.Gcal(shutter)          =>
+      case SeqStepConfig.Gcal(filter, diffuser, shutter) =>
         List[(ItemKey, AnyRef)](
           (CALIBRATION_KEY / SHUTTER_PROP) -> (
             shutter match {
               case GcalShutter.Open   => Shutter.OPEN
               case GcalShutter.Closed => Shutter.CLOSED
             }
-          )
+          ),
+          (CALIBRATION_KEY / FILTER_PROP) -> (
+            filter match {
+              case GcalFilter.None => CalUnitParams.Filter.NONE
+              case GcalFilter.Gmos => CalUnitParams.Filter.GMOS
+              case GcalFilter.Hros => CalUnitParams.Filter.HROS
+              case GcalFilter.Nir  => CalUnitParams.Filter.NIR
+              case GcalFilter.Nd10 => CalUnitParams.Filter.ND_10
+              case GcalFilter.Nd16 => CalUnitParams.Filter.ND_16
+              case GcalFilter.Nd20 => CalUnitParams.Filter.ND_20
+              case GcalFilter.Nd30 => CalUnitParams.Filter.ND_30
+              case GcalFilter.Nd40 => CalUnitParams.Filter.ND_40
+              case GcalFilter.Nd45 => CalUnitParams.Filter.ND_45
+              case GcalFilter.Nd50 => CalUnitParams.Filter.ND_50
+            }
+          ),
+          (CALIBRATION_KEY / DIFFUSER_PROP) -> (
+            diffuser match {
+              case GcalDiffuser.Ir      => CalUnitParams.Diffuser.IR
+              case GcalDiffuser.Visible => CalUnitParams.Diffuser.VISIBLE
+            }
+          ),
+          (OBSERVE_KEY / OBS_CLASS_PROP)              -> ObsClass.PROG_CAL,
+          (OBSERVE_KEY / OBSERVE_TYPE_PROP)           -> CAL_OBSERVE_TYPE
         )
-    }).toMap
+    }) ++ List(
+      (OBSERVE_KEY / DATA_LABEL_PROP) -> step.id.toString(),
+      (OBSERVE_KEY / STATUS_PROP) -> "ready"
+    )).toMap
+
+    val baseItems: Map[ItemKey, AnyRef] = Map(
+      OCS_KEY / InstConstants.PROGRAMID_PROP -> defaultProgramId
+    )
 
     val instrumentItems: Map[ItemKey, AnyRef] = GmosTranslator.instrumentParameters(static, step.instrumentConfig)
 
-    new ConfigImpl(stepItems ++ instrumentItems)
+    new ConfigImpl(
+      baseItems
+        ++ stepItems
+        ++ instrumentItems
+    )
   }
 
   class ConfigImpl(items: Map[ItemKey, AnyRef] = Map.empty) extends Config {

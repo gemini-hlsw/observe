@@ -120,9 +120,9 @@ object SequenceTab {
 
       val tabTitle = b.props.tab.runningStep match {
         case Some(RunningStep(_, last, total)) =>
-          s"${sequenceIdName.name.format} - ${last + 1}/$total"
+          s"${sequenceIdName.name} - ${last + 1}/$total"
         case _                                 =>
-          sequenceIdName.name.format
+          sequenceIdName.name
       }
 
       val icon: Icon = status match {
@@ -147,7 +147,7 @@ object SequenceTab {
 
       val loadButton: TagMod =
         Popup(
-          content = s"Load sequence ${sequenceIdName.name.format}",
+          content = s"Load sequence ${sequenceIdName.name}",
           trigger = Button(
             size = Large,
             clazz = ObserveStyles.LoadButton,

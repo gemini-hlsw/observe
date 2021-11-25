@@ -19,7 +19,7 @@ import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import monocle.macros.Lenses
 import mouse.all.booleanSyntaxMouse
-import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.HTMLElement
 import react.common._
 import react.common.implicits._
 import react.semanticui.sizes._

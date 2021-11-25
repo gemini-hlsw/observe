@@ -10,8 +10,9 @@ import lucuma.core.`enum`.{GmosDisperserOrder, GmosNorthDisperser, GmosNorthFilt
 import observe.common.ObsQueriesGQL.ObsQuery.{GmosFpu, GmosGrating, GmosInstrumentConfig, GmosSite, GmosStatic}
 import observe.server.ConfigUtilOps._
 import cats.implicits._
-import edu.gemini.spModel.obscomp.InstConstants.EXPOSURE_TIME_PROP
+import edu.gemini.spModel.obscomp.InstConstants.{EXPOSURE_TIME_PROP, INSTRUMENT_NAME_PROP}
 import observe.server.gmos.GmosController.{NorthTypes, SiteDependentTypes, SouthTypes}
+import observe.server.gmos.{GmosNorth, GmosSouth}
 
 object GmosTranslator {
 
@@ -23,6 +24,8 @@ object GmosTranslator {
     def convertStageMode(v: S#StageMode): List[(ItemKey, AnyRef)]
 
     def convertFpu(v: Option[GmosFpu[S]]): List[(ItemKey, AnyRef)]
+
+    val instrumentName: String
   }
 
   private trait TypeTranslations[S <: GmosSite, T <: SiteDependentTypes] {
@@ -31,6 +34,7 @@ object GmosTranslator {
     def translateStageMode(v:  S#StageMode): T#GmosStageMode
     def translateBuiltInFpu(v: S#BuiltInFpu): T#FPU
     val customMaskName: T#FPU
+    val name: String
   }
 
   private object GmosSouthTranslations extends TypeTranslations[GmosSite.South, SouthTypes] {
@@ -109,6 +113,8 @@ object GmosTranslator {
     }
 
     override val customMaskName: FPUnitSouth = FPUnitSouth.CUSTOM_MASK
+
+    override val name: String = GmosSouth.name
   }
 
   private object GmosNorthTranslations extends TypeTranslations[GmosSite.North, NorthTypes] {
@@ -184,6 +190,8 @@ object GmosTranslator {
     }
 
     override val customMaskName: FPUnitNorth = FPUnitNorth.CUSTOM_MASK
+
+    override val name: String = GmosNorth.name
   }
 
   private def gmosConversionImpl[S <: GmosSite, T <: SiteDependentTypes](
@@ -220,16 +228,19 @@ object GmosTranslator {
 
       override def convertFpu(v: Option[GmosFpu[S]]): List[(ItemKey, AnyRef)] =
         v.map {
-          case GmosFpu.GmosBuiltinFpu(builtin)     =>
+          case fpu: GmosFpu.GmosBuiltinFpu[S]     =>
             List(
-              (INSTRUMENT_KEY / FPU_PROP_NAME, t.translateBuiltInFpu(builtin).asInstanceOf[AnyRef])
+              (INSTRUMENT_KEY / FPU_PROP_NAME, t.translateBuiltInFpu(fpu.builtin).asInstanceOf[AnyRef])
             )
-          case GmosFpu.GmosCustomMask(filename, _) =>
+          case customMask: GmosFpu.GmosCustomMask[S] =>
             List(
               (INSTRUMENT_KEY / FPU_PROP_NAME, t.customMaskName.asInstanceOf[AnyRef]),
-              (INSTRUMENT_KEY / FPU_MASK_PROP, filename: AnyRef)
+              (INSTRUMENT_KEY / FPU_MASK_PROP, customMask.filename: AnyRef)
             )
+          case _ => List.empty
         }.orEmpty
+
+      override val instrumentName: String = t.name
     }
 
   implicit val gmosSouthConversions: GmosSiteConversions[GmosSite.South] = gmosConversionImpl(
@@ -241,13 +252,18 @@ object GmosTranslator {
   )
 
   def instrumentParameters[S <: GmosSite](staticConfig: GmosStatic[S], instConfig: GmosInstrumentConfig[S])(implicit conversions: GmosSiteConversions[S]): Map[ItemKey, AnyRef] = {
+    val baseParams = List(
+      (INSTRUMENT_KEY / INSTRUMENT_NAME_PROP, conversions.instrumentName),
+
+    )
+
     val dcParams = List(
       (OBSERVE_KEY / EXPOSURE_TIME_PROP, java.lang.Double.valueOf(instConfig.exposure.toMillis / 1000.0): AnyRef)
     )
 
     val ccParams = conversions.convertFilter(instConfig.filter) ++ conversions.convertFpu(instConfig.fpu) ++ conversions.convertDisperser(instConfig.grating) ++ conversions.convertStageMode(staticConfig.stageMode)
 
-    (dcParams ++ ccParams).toMap
+    (baseParams ++ dcParams ++ ccParams).toMap
   }
 
 }

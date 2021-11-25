@@ -391,7 +391,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     SequenceGen[IO](
       id = seqObsId1,
-      Observation.Name.unsafeFromString("GS-ENG20210713-1"),
+      "GS-ENG20210713-1",
       title = "",
       instrument = Instrument.GmosS,
       steps = obsClass.zip(obsType).zipWithIndex.map { case ((obC, obT), i) =>
@@ -773,7 +773,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     SequenceGen[IO](
       id = seqObsId1,
-      name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
+      name = "GS-ENG20210713-1",
       title = "",
       instrument = Instrument.GmosS,
       steps = obsClass.zip(obsType).zipWithIndex.map { case ((obC, obT), i) =>

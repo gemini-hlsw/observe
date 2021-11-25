@@ -218,7 +218,7 @@ object SessionQueueTable extends Columns {
     val user: Option[UserDetails] = sequences.status.u
 
     val extractors = List[(TableColumn, SequenceInSessionQueue => String)](
-      (ObsIdColumn, _.idName.name.format),
+      (ObsIdColumn, _.idName.name),
       (StateColumn, s => statusText(s.status, s.runningStep)),
       (InstrumentColumn, _.instrument.show),
       (TargetNameColumn, _.targetName.orEmpty),
@@ -364,7 +364,7 @@ object SessionQueueTable extends Columns {
     object Empty extends SessionQueueRow {
       override var obsIdName: Observation.IdName    =
         Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue),
-                           Observation.Name.unsafeFromString("Zero-1")
+                           "Zero-1"
         )
       override var status: SequenceState            = SequenceState.Idle
       override var instrument: Instrument           = Instrument.F2
@@ -554,7 +554,7 @@ object SessionQueueTable extends Columns {
     case IconColumn       => statusIconRenderer(b)
     case AddQueueColumn   => addToQueueRenderer(b)
     case ClassColumn      => classIconRenderer(b)
-    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsIdName.name.format)
+    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsIdName.name)
     case StateColumn      => linkedTextRenderer(b.props)(r => statusText(r.status, r.runningStep))
     case InstrumentColumn => linkedTextRenderer(b.props)(_.instrument.show)
     case TargetNameColumn => linkedTextRenderer(b.props)(_.targetName.getOrElse(UnknownTargetName))

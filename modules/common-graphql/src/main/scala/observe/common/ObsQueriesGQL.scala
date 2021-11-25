@@ -83,8 +83,22 @@ object ObsQueriesGQL {
                 detector
                 mosPreImaging
                 nodAndShuffle {
-                  posA
-                  posB
+                  posA {
+                    p {
+                      microarcseconds
+                    }
+                    q {
+                      microarcseconds
+                    }
+                  }
+                  posB {
+                    p {
+                      microarcseconds
+                    }
+                    q {
+                      microarcseconds
+                    }
+                  }
                   eOffset
                   shuffleOffset
                   shuffleCycles
@@ -103,8 +117,22 @@ object ObsQueriesGQL {
                 detector
                 mosPreImaging
                 nodAndShuffle {
-                  posA
-                  posB
+                  posA {
+                    p {
+                      microarcseconds
+                    }
+                    q {
+                      microarcseconds
+                    }
+                  }
+                  posB {
+                    p {
+                      microarcseconds
+                    }
+                    q {
+                      microarcseconds
+                    }
+                  }
                   eOffset
                   shuffleOffset
                   shuffleCycles
@@ -140,12 +168,12 @@ object ObsQueriesGQL {
               }
               filter
               fpu {
+                ... on GmosNorthBuiltinFpu {
+                  builtin
+                }
                 ... on GmosCustomMask {
                   filename
                   slitWidth
-                }
-                ... on GmosNorthBuiltinFpu {
-                  builtin
                 }
               }
               readout {
@@ -160,6 +188,8 @@ object ObsQueriesGQL {
             }
             stepConfig {
               ... on Gcal {
+                filter
+                diffuser
                 shutter
               }
               ... on Science {
@@ -195,12 +225,12 @@ object ObsQueriesGQL {
                 }
               }
               fpu {
+                ... on GmosSouthBuiltinFpu {
+                  builtin
+                }
                 ... on GmosCustomMask {
                   filename
                   slitWidth
-                }
-                ... on GmosSouthBuiltinFpu {
-                  builtin
                 }
               }
               filter
@@ -216,6 +246,8 @@ object ObsQueriesGQL {
             }
             stepConfig {
               ... on Gcal {
+                filter
+                diffuser
                 shutter
               }
               ... on Science {
@@ -232,6 +264,7 @@ object ObsQueriesGQL {
           }
         }
       }
+
     """
 
     implicit def offsetComponentDecoder[T]: Decoder[math.Offset.Component[T]] = Decoder.instance(c =>
@@ -257,10 +290,26 @@ object ObsQueriesGQL {
       Decoder[GmosSite.South].widen
     ).reduceLeft(_ or _)
 
-    def seqFpuDecoder[Site <: GmosSite](implicit d1: Decoder[GmosFpu.GmosBuiltinFpu[Site]]): Decoder[GmosFpu[Site]] = List[Decoder[GmosFpu[Site]]](
+    def seqFpuDecoder[Site <: GmosSite](implicit d1: Decoder[GmosFpu.GmosBuiltinFpu[Site]],
+      d2: Decoder[GmosFpu.GmosCustomMask[Site]]): Decoder[GmosFpu[Site]] = List[Decoder[GmosFpu[Site]]](
       Decoder[GmosFpu.GmosBuiltinFpu[Site]].widen,
       Decoder[GmosFpu.GmosCustomMask[Site]].widen
     ).reduceLeft(_ or _)
+//
+//    def gmosBuiltinFpuDecoder[Site <: GmosSite]: Decoder[GmosFpu.GmosBuiltinFpu[Site]] =
+//      Decoder.instance(_.downField("builtin")
+//      .as[Site#BuiltInFpu]).map()
+//
+//    def gmosCustomMaskDecoder[Site <: GmosSite]: Decoder[GmosFpu.GmosCustomMask[Site]] =
+//      Decoder.instance{ c =>
+//        for {
+//          mask  <- c.downField("filename").as[String]
+//          slitW <- c.downField("slitWidth").as[enum.GmosCustomSlitWidth]
+//        } yield GmosFpu.GmosCustomMask()
+//      }
+//
+    implicit val fpuSouthDecoder: Decoder[GmosFpu[GmosSite.South]] = seqFpuDecoder[GmosSite.South]
+    implicit val fpuNorthDecoder: Decoder[GmosFpu[GmosSite.North]] = seqFpuDecoder[GmosSite.North]
 
     sealed trait GmosSite {
       type Detector <: AnyRef
@@ -294,10 +343,17 @@ object ObsQueriesGQL {
     sealed trait GmosFpu[Site <: GmosSite]
     object GmosFpu {
       case class GmosBuiltinFpu[Site <: GmosSite](builtin: Site#BuiltInFpu) extends GmosFpu[Site]
-      case class GmosCustomMask[Site <: GmosSite] (
+      case class GmosCustomMask[Site <: GmosSite](
         filename: String,
         slitWidth: enum.GmosCustomSlitWidth
       ) extends GmosFpu[Site]
+//      trait GmosBuiltinFpu[Site <: GmosSite] extends GmosFpu[Site] {
+//        val builtin: Site#BuiltInFpu
+//      }
+//      trait GmosCustomMask[Site <: GmosSite] extends GmosFpu[Site] {
+//        val filename: String
+//        val slitWidth: enum.GmosCustomSlitWidth
+//      }
     }
     case class GmosReadout                           (
       xBin: enum.GmosXBinning,
@@ -318,7 +374,7 @@ object ObsQueriesGQL {
     sealed trait SeqStepConfig
     object SeqStepConfig                       {
       case class SeqScienceStep(offset: math.Offset) extends SeqStepConfig
-      case class Gcal(shutter: enum.GcalShutter) extends SeqStepConfig
+      case class Gcal(filter: enum.GcalFilter, diffuser: enum.GcalDiffuser, shutter: enum.GcalShutter) extends SeqStepConfig
     }
     trait InsConfig{
       type StaticConfig

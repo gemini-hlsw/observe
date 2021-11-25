@@ -119,7 +119,7 @@ object OdbProxy {
       fileId:    ImageFileId
     ): F[Boolean] =
       L.debug(
-        s"Send ODB event datasetStart for obsId: ${obsIdName.name.format} and dataId: $dataId, with fileId: $fileId"
+        s"Send ODB event datasetStart for obsId: ${obsIdName.name} and dataId: $dataId, with fileId: $fileId"
       ) *>
         Sync[F]
           .raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented."))
@@ -132,7 +132,7 @@ object OdbProxy {
       fileId:    ImageFileId
     ): F[Boolean] =
       L.debug(
-        s"Send ODB event datasetComplete for obsId: ${obsIdName.name.format} and dataId: $dataId, with fileId: $fileId"
+        s"Send ODB event datasetComplete for obsId: ${obsIdName.name} and dataId: $dataId, with fileId: $fileId"
       ) *>
         Sync[F]
           .raiseError(
@@ -143,7 +143,7 @@ object OdbProxy {
 
     override def obsAbort(obsIdName: Observation.IdName, reason: String): F[Boolean] =
       L.debug(
-        s"Send ODB event observationAbort for obsId: ${obsIdName.name.format} reason: $reason"
+        s"Send ODB event observationAbort for obsId: ${obsIdName.name} reason: $reason"
       ) *>
         Sync[F]
           .raiseError(ObserveFailure.Unexpected("OdbCommandsImpl.read: Not implemented."))
@@ -151,7 +151,7 @@ object OdbProxy {
         L.debug("ODB event observationAbort sent")
 
     override def sequenceEnd(obsIdName: Observation.IdName): F[Boolean] =
-      L.debug(s"Send ODB event sequenceEnd for obsId: ${obsIdName.name.format}") *>
+      L.debug(s"Send ODB event sequenceEnd for obsId: ${obsIdName.name}") *>
         Sync[F]
           .raiseError(
             ObserveFailure.Unexpected("OdbCommandsImpl.obsAbort: Not implemented.")
@@ -161,7 +161,7 @@ object OdbProxy {
 
     override def sequenceStart(obsIdName: Observation.IdName, dataId: DataId): F[Boolean] =
       L.debug(
-        s"Send ODB event sequenceStart for obsId: ${obsIdName.name.format} and dataId: $dataId"
+        s"Send ODB event sequenceStart for obsId: ${obsIdName.name} and dataId: $dataId"
       ) *>
         Sync[F]
           .raiseError(
@@ -171,7 +171,7 @@ object OdbProxy {
         L.debug("ODB event sequenceStart sent")
 
     override def obsContinue(obsIdName: Observation.IdName): F[Boolean] =
-      L.debug(s"Send ODB event observationContinue for obsId: ${obsIdName.name.format}") *>
+      L.debug(s"Send ODB event observationContinue for obsId: ${obsIdName.name}") *>
         Sync[F]
           .raiseError(
             ObserveFailure.Unexpected("OdbCommandsImpl.obsContinue: Not implemented.")
@@ -180,7 +180,7 @@ object OdbProxy {
         L.debug("ODB event observationContinue sent")
 
     override def obsPause(obsIdName: Observation.IdName, reason: String): F[Boolean] =
-      L.debug(s"Send ODB event observationPause for obsId: ${obsIdName.name.format} $reason") *>
+      L.debug(s"Send ODB event observationPause for obsId: ${obsIdName.name} $reason") *>
         Sync[F]
           .raiseError(
             ObserveFailure.Unexpected("OdbCommandsImpl.obsPause: Not implemented.")
@@ -189,7 +189,7 @@ object OdbProxy {
         L.debug("ODB event observationPause sent")
 
     override def obsStop(obsIdName: Observation.IdName, reason: String): F[Boolean] =
-      L.debug(s"Send ODB event observationStop for obsID: ${obsIdName.name.format} $reason") *>
+      L.debug(s"Send ODB event observationStop for obsID: ${obsIdName.name} $reason") *>
         Sync[F]
           .raiseError(
             ObserveFailure.Unexpected("OdbCommandsImpl.obsStop: Not implemented.")
