@@ -14,6 +14,8 @@ import org.typelevel.log4cats.Logger
 import observe.model.Observation
 import observe.model.dhs._
 import lucuma.schemas.ObservationDB
+import observe.common.ObsQueriesGQL.ObsQuery.Data
+import observe.model.Observation.Id
 
 sealed trait OdbEventCommands[F[_]] {
   def datasetStart(obsId:  Observation.IdName, dataId: DataId, fileId: ImageFileId): F[Boolean]
@@ -196,6 +198,41 @@ object OdbProxy {
           )
           .as(false) <*
         L.debug("ODB event observationStop sent")
+  }
+
+  final class TestOdbProxy[F[_]: Sync] extends OdbProxy[F] {
+    val evCmds = new DummyOdbCommands[F]
+
+    override def read(oid: Id): F[Data.Observation] = Sync[F]
+      .raiseError(
+        ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented.")
+      )
+
+    override def queuedSequences: F[List[Id]] = List.empty[Id].pure[F]
+
+    def datasetStart(
+      obsIdName: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
+    ): F[Boolean] =
+      evCmds.datasetStart(obsIdName, dataId, fileId)
+    def datasetComplete(
+      obsIdName: Observation.IdName,
+      dataId:    DataId,
+      fileId:    ImageFileId
+    ): F[Boolean] =
+      evCmds.datasetComplete(obsIdName, dataId, fileId)
+    def obsAbort(obsIdName: Observation.IdName, reason: String): F[Boolean]      =
+      evCmds.obsAbort(obsIdName, reason)
+    def sequenceEnd(obsIdName: Observation.IdName): F[Boolean]                   = evCmds.sequenceEnd(obsIdName)
+    def sequenceStart(obsIdName: Observation.IdName, dataId: DataId): F[Boolean] =
+      evCmds.sequenceStart(obsIdName, dataId)
+    def obsContinue(obsIdName: Observation.IdName): F[Boolean]                   = evCmds.obsContinue(obsIdName)
+    def obsPause(obsIdName: Observation.IdName, reason: String): F[Boolean]      =
+      evCmds.obsPause(obsIdName, reason)
+    def obsStop(obsIdName: Observation.IdName, reason: String): F[Boolean]       =
+      evCmds.obsStop(obsIdName, reason)
+
   }
 
 }

@@ -229,10 +229,12 @@ object SeqTranslate {
         .map { case (c, i) =>
           step(
             Observation.IdName(obsId, obsName),
-            lucuma.core.model.Step.Id(PosLong.unsafeFrom((i+1).toLong)),
+            lucuma.core.model.Step.Id(PosLong.unsafeFrom((i + 1).toLong)),
             c,
             lucuma.core.model.Step.Id(PosLong.unsafeFrom(nextToRun.toLong)),
-            sequence.datasets.mapKeys(x => lucuma.core.model.Step.Id(PosLong.unsafeFrom((x+1).toLong))),
+            sequence.datasets.mapKeys(x =>
+              lucuma.core.model.Step.Id(PosLong.unsafeFrom((x + 1).toLong))
+            ),
             isNightSeq
           ).attempt
         }

@@ -363,9 +363,7 @@ object SessionQueueTable extends Columns {
 
     object Empty extends SessionQueueRow {
       override var obsIdName: Observation.IdName    =
-        Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue),
-                           "Zero-1"
-        )
+        Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
       override var status: SequenceState            = SequenceState.Idle
       override var instrument: Instrument           = Instrument.F2
       override var targetName: Option[String]       = None

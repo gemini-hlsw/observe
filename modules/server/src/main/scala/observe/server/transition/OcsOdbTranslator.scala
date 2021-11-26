@@ -1,19 +1,43 @@
+// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
 package observe.server.transition
 
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.shared.util.immutable.MapOp
-import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemEntry, ItemKey}
+import edu.gemini.spModel.config2.{ Config, ConfigSequence, ItemEntry, ItemKey }
 import edu.gemini.spModel.gemini.calunit.CalUnitConstants._
 import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
 import edu.gemini.spModel.guide.StandardGuideOptions
-import edu.gemini.spModel.seqcomp.SeqConfigNames.{CALIBRATION_KEY, OBSERVE_KEY, OCS_KEY, TELESCOPE_KEY}
+import edu.gemini.spModel.seqcomp.SeqConfigNames.{
+  CALIBRATION_KEY,
+  OBSERVE_KEY,
+  OCS_KEY,
+  TELESCOPE_KEY
+}
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS_PROP
 import edu.gemini.spModel.obsclass.ObsClass
-import edu.gemini.spModel.obscomp.InstConstants.{CAL_OBSERVE_TYPE, DATA_LABEL_PROP, OBSERVE_TYPE_PROP, OBS_CLASS_PROP, SCIENCE_OBSERVE_TYPE, STATUS_PROP}
+import edu.gemini.spModel.obscomp.InstConstants.{
+  CAL_OBSERVE_TYPE,
+  DATA_LABEL_PROP,
+  OBSERVE_TYPE_PROP,
+  OBS_CLASS_PROP,
+  SCIENCE_OBSERVE_TYPE,
+  STATUS_PROP
+}
 import lucuma.core.`enum`._
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Config.{GmosNorthConfig, GmosSouthConfig}
-import observe.common.ObsQueriesGQL.ObsQuery.{GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig}
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.Config.{
+  GmosNorthExecutionConfig,
+  GmosSouthExecutionConfig
+}
+import observe.common.ObsQueriesGQL.ObsQuery.{
+  GmosSite,
+  GmosStatic,
+  InsConfig,
+  SeqStep,
+  SeqStepConfig
+}
 import observe.server.tcs.Tcs
 import observe.server.ConfigUtilOps._
 import observe.server.transition.GmosTranslator._
@@ -28,15 +52,13 @@ import scala.jdk.CollectionConverters._
 object OcsOdbTranslator {
 
   def translate(obs: Observation): SeqexecSequence = {
-    val steps = obs.config.toList.flatMap {
-      case GmosNorthConfig(_, _, staticN, acquisitionN, scienceN) =>
-        (acquisitionN.atoms.flatMap(_.steps) ++ scienceN.atoms.flatMap(_.steps)).map(x =>
-          convertGmosStep[GmosSite.North](staticN, x)
-        )
-      case GmosSouthConfig(_, _, staticS, acquisitionS, scienceS) =>
-        (acquisitionS.atoms.flatMap(_.steps) ++ scienceS.atoms.flatMap(_.steps)).map(x =>
-          convertGmosStep[GmosSite.South](staticS, x)
-        )
+    val steps = obs.execution.config.toList.flatMap {
+      case GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) =>
+        (acquisitionN.nextAtom.toList.flatMap(_.steps) ++ scienceN.possibleFuture.flatMap(_.steps))
+          .map(x => convertGmosStep[GmosSite.North](staticN, x))
+      case GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) =>
+        (acquisitionS.nextAtom.toList.flatMap(_.steps) ++ scienceS.possibleFuture.flatMap(_.steps))
+          .map(x => convertGmosStep[GmosSite.South](staticS, x))
     }
 
     SeqexecSequence(obs.name.map(_.value).getOrElse("Untitled"),
@@ -66,13 +88,13 @@ object OcsOdbTranslator {
         )
       case SeqStepConfig.Gcal(filter, diffuser, shutter) =>
         List[(ItemKey, AnyRef)](
-          (CALIBRATION_KEY / SHUTTER_PROP) -> (
+          (CALIBRATION_KEY / SHUTTER_PROP)  -> (
             shutter match {
               case GcalShutter.Open   => Shutter.OPEN
               case GcalShutter.Closed => Shutter.CLOSED
             }
           ),
-          (CALIBRATION_KEY / FILTER_PROP) -> (
+          (CALIBRATION_KEY / FILTER_PROP)   -> (
             filter match {
               case GcalFilter.None => CalUnitParams.Filter.NONE
               case GcalFilter.Gmos => CalUnitParams.Filter.GMOS
@@ -93,19 +115,20 @@ object OcsOdbTranslator {
               case GcalDiffuser.Visible => CalUnitParams.Diffuser.VISIBLE
             }
           ),
-          (OBSERVE_KEY / OBS_CLASS_PROP)              -> ObsClass.PROG_CAL,
-          (OBSERVE_KEY / OBSERVE_TYPE_PROP)           -> CAL_OBSERVE_TYPE
+          (OBSERVE_KEY / OBS_CLASS_PROP)    -> ObsClass.PROG_CAL,
+          (OBSERVE_KEY / OBSERVE_TYPE_PROP) -> CAL_OBSERVE_TYPE
         )
     }) ++ List(
       (OBSERVE_KEY / DATA_LABEL_PROP) -> step.id.toString(),
-      (OBSERVE_KEY / STATUS_PROP) -> "ready"
+      (OBSERVE_KEY / STATUS_PROP)     -> "ready"
     )).toMap
 
     val baseItems: Map[ItemKey, AnyRef] = Map(
       OCS_KEY / InstConstants.PROGRAMID_PROP -> defaultProgramId
     )
 
-    val instrumentItems: Map[ItemKey, AnyRef] = GmosTranslator.instrumentParameters(static, step.instrumentConfig)
+    val instrumentItems: Map[ItemKey, AnyRef] =
+      GmosTranslator.instrumentParameters(static, step.instrumentConfig)
 
     new ConfigImpl(
       baseItems

@@ -89,10 +89,10 @@ object Systems {
 
     def odbProxy[F[_]: Async: Logger: WebSocketBackend]: F[OdbProxy[F]] = for {
       sk <- ApolloWebSocketClient
-            .of[F, ObservationDB] (settings.odb, "ODB", reconnectionStrategy)
-      _ <- sk.connect()
-      _ <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
-    } yield OdbProxy[F] (
+              .of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
+      _  <- sk.connect()
+      _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
+    } yield OdbProxy[F](
       sk,
       if (settings.odbNotifications)
         OdbProxy.OdbCommandsImpl[F](sk)

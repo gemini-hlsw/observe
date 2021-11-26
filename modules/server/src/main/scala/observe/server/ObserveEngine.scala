@@ -779,8 +779,8 @@ object ObserveEngine {
               .asRight
           )
         }
-        .handleErrorWith { e             =>
-            Stream.emit(ObserveFailure.ObserveException(e).asLeft)
+        .handleErrorWith { e =>
+          Stream.emit(ObserveFailure.ObserveException(e).asLeft)
         }
     }
 

@@ -73,9 +73,7 @@ object CalQueueRow {
 
   def Empty: CalQueueRow =
     apply(
-      Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue),
-                         "Default-1"
-      ),
+      Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Default-1"),
       Instrument.F2,
       SequenceState.Idle
     )

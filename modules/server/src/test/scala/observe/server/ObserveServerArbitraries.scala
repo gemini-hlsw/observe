@@ -7,7 +7,6 @@ import cats.effect.IO
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
 import observe.model.Observation
-import observe.model.arb.ArbObservationName._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.{ Arbitrary, Cogen }
 import observe.model.BatchCommandState
