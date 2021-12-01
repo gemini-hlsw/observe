@@ -368,9 +368,11 @@ final case class StepsTable(
 
   val configTableState: TableState[StepConfigTable.TableColumn] =
     stepsTable.configTableState
+
   // Find out if offsets should be displayed
-  val offsetsDisplay: OffsetsDisplay                            = stepsList.offsetsDisplay
-  private def showProp(p: InstrumentProperties): Boolean        =
+  val offsetsDisplay: OffsetsDisplay = stepsList.offsetsDisplay
+
+  private def showProp(p: InstrumentProperties): Boolean =
     steps.exists(s => s.instrument.displayItems.contains(p))
 
   val showOffsets: Boolean =
@@ -415,7 +417,18 @@ final case class StepsTable(
   private val visibleColumns: TableColumn => Boolean =
     shownForInstrument.map(_.column).contains _
 
-  private val extractors = List[(TableColumn, Step => Option[String])](
+  def visibleColumnValues(s: Step) = (exposure(s),
+                                      disperser(s),
+                                      filter(s),
+                                      fpuOrMask(s),
+                                      camera(s),
+                                      s.deckerName,
+                                      s.imagingMirrorName,
+                                      s.observingMode,
+                                      s.readMode
+  )
+
+  val extractors = List[(TableColumn, Step => Option[String])](
     (ExposureColumn, exposure),
     (FPUColumn, fpuOrMask),
     (FilterColumn, filter),
@@ -476,7 +489,7 @@ object StepsTable extends Columns {
   object StepSummary {
     def fromStep(step: Step): StepSummary = StepSummary(step.id, step.status, step.breakpoint)
 
-    implicit val stepSummaryEq: Eq[StepSummary] = Eq.fromUniversalEquals
+    implicit val stepSummaryEq: Eq[StepSummary] = Eq.by(x => (x.id, x.status, x.breakpoint))
   }
 
   @Lenses
@@ -532,10 +545,16 @@ object StepsTable extends Columns {
     )
   }
 
-  implicit val propsReuse: Reusability[Props]      =
+  implicit val propsReuse: Reusability[Props] =
     Reusability.by(x =>
-      (x.canOperate, x.selectedStep, x.stepsList, x.tabOperations.resourceRunRequested)
+      (x.canOperate,
+       x.selectedStep,
+       x.stepsList,
+       x.stepsList.map(x.visibleColumnValues),
+       x.tabOperations.resourceRunRequested
+      )
     )
+
   implicit val tcReuse: Reusability[TableColumn]   = Reusability.byRef
   implicit val scrollBarReuse: Reusability[Double] = Reusability.double(1.0)
   implicit val stateReuse: Reusability[State]      =
