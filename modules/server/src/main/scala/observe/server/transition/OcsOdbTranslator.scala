@@ -44,6 +44,7 @@ import observe.server.transition.GmosTranslator._
 import cats.implicits._
 import edu.gemini.spModel.gemini.calunit.CalUnitParams
 import edu.gemini.spModel.obscomp.InstConstants
+import lucuma.schemas.ObservationDB.Enums.SequenceType
 
 import java.util
 import scala.collection.mutable
@@ -54,11 +55,22 @@ object OcsOdbTranslator {
   def translate(obs: Observation): SeqexecSequence = {
     val steps = obs.execution.config.toList.flatMap {
       case GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) =>
-        (acquisitionN.nextAtom.toList.flatMap(_.steps) ++ scienceN.possibleFuture.flatMap(_.steps))
-          .map(x => convertGmosStep[GmosSite.North](staticN, x))
+        acquisitionN.nextAtom.toList
+          .flatMap(_.steps)
+          .map(
+            convertGmosStep[GmosSite.North](staticN, _, SequenceType.Acquisition)
+          ) ++ scienceN.possibleFuture
+          .flatMap(_.steps)
+          .map(convertGmosStep[GmosSite.North](staticN, _, SequenceType.Science))
       case GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) =>
-        (acquisitionS.nextAtom.toList.flatMap(_.steps) ++ scienceS.possibleFuture.flatMap(_.steps))
-          .map(x => convertGmosStep[GmosSite.South](staticS, x))
+        acquisitionS.nextAtom.toList
+          .flatMap(_.steps)
+          .map(
+            convertGmosStep[GmosSite.South](staticS, _, SequenceType.Acquisition)
+          ) ++ scienceS.possibleFuture
+          .flatMap(_.steps)
+          .map(convertGmosStep[GmosSite.South](staticS, _, SequenceType.Science))
+
     }
 
     SeqexecSequence(obs.name.map(_.value).getOrElse("Untitled"),
@@ -71,8 +83,9 @@ object OcsOdbTranslator {
   val defaultProgramId: String = "p-2"
 
   def convertGmosStep[S <: GmosSite: GmosSiteConversions](
-    static: GmosStatic[S],
-    step:   SeqStep[InsConfig.Gmos[S]]
+    static:       GmosStatic[S],
+    step:         SeqStep[InsConfig.Gmos[S]],
+    sequenceType: SequenceType
   ): Config = {
     val stepItems: Map[ItemKey, AnyRef] = ((step.stepConfig match {
       case SeqStepConfig.SeqScienceStep(offset)          =>
@@ -124,7 +137,9 @@ object OcsOdbTranslator {
     )).toMap
 
     val baseItems: Map[ItemKey, AnyRef] = Map(
-      OCS_KEY / InstConstants.PROGRAMID_PROP -> defaultProgramId
+      OCS_KEY / InstConstants.PROGRAMID_PROP -> defaultProgramId,
+      OCS_KEY / STEP_ID_NAME                 -> step.id,
+      OCS_KEY / SEQUENCE_TYPE_NAME           -> sequenceType
     )
 
     val instrumentItems: Map[ItemKey, AnyRef] =

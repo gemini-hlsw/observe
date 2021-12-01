@@ -19,9 +19,7 @@ import observe.common.test.observationId
 /**
  * Tests ObserveServer Lenses
  */
-final class ObserveServerLensesSpec
-    extends CatsSuite
-    with ObserveServerArbitraries {
+final class ObserveServerLensesSpec extends CatsSuite with ObserveServerArbitraries {
 
   implicit val eqItemKeys: Eq[Map[ItemKey, AnyRef]] = Eq.fromUniversalEquals
   implicit val eqLegacyConfig: Eq[Config]           = Eq.fromUniversalEquals

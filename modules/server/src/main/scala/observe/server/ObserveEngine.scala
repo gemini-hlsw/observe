@@ -454,20 +454,16 @@ object ObserveEngine {
           .atSequence(id)
           .getOption(s)
           .flatMap { seq =>
-            seq.seq.currentStep.flatMap { step =>
-              seq.seqGen.steps
-                .find(_.id === step.id)
-                .map { x =>
-                  Handle
-                    .fromStream[F, EngineState[F], EventType[F]](
-                      Stream.eval(
-                        systems.odb
-                          .sequenceStart(Observation.IdName(id, seq.name), x.dataId)
-                          .as(Event.nullEvent[F])
-                      )
-                    )
-                    .as((id, step.id).some)
-                }
+            seq.seq.currentStep.map { step =>
+              Handle
+                .fromStream[F, EngineState[F], EventType[F]](
+                  Stream.eval(
+                    systems.odb
+                      .sequenceStart(Observation.IdName(id, seq.name))
+                      .as(Event.nullEvent[F])
+                  )
+                )
+                .as((id, step.id).some)
             }
           }
           .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))

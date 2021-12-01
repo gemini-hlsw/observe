@@ -14,10 +14,7 @@ import lucuma.core.model
 import cats.syntax.functor._
 
 import java.time
-import lucuma.core.model.Atom
-import lucuma.core.model.Observation
-import lucuma.core.model.Step
-import lucuma.core.model.Target
+import lucuma.core.model.{ Atom, ExecutionEvent, Observation, Step, Target }
 
 // gql: import lucuma.schemas.decoders._
 // gql: import io.circe.refined._
@@ -25,11 +22,13 @@ import lucuma.core.model.Target
 object ObsQueriesGQL {
 
   // I don't know why, but these implicits prevent several warnings in the generated code
-  implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id] =
+  implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id]         =
     Observation.Id.GidId
-  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]              = Atom.Id.GidId
-  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]              = Step.Id.GidId
-  implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]        = Target.Id.GidId
+  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.GidId
+  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.GidId
+  implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]                = Target.Id.GidId
+  implicit val eventIdCodex: Decoder[ExecutionEvent.Id] with Encoder[ExecutionEvent.Id] =
+    ExecutionEvent.Id.GidId
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
@@ -686,5 +685,41 @@ object ObsQueriesGQL {
 //      }
 //    """
 //  }
+
+  @GraphQL
+  trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $cmd: SequenceCommand!)  {
+        addSequenceEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, command: $cmd } ) {
+          command
+          received
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait AddStepEventMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $stpId: StepId!, $seqType: SequenceType!, $stg: StepStage!)  {
+        addStepEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, stepId: $stpId, sequenceType: $seqType, stage: $stg } ) {
+          stage
+          received
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait AddDatasetEventMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $stpId: StepId!, $dtIdx: Int!, $flName: DatasetFilename, $stg: DatasetStage!)  {
+        addDatasetEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, stepId: $stpId, datasetIndex: $dtIdx, filename: $flName, stageType: $stg } ) {
+          stage
+          received
+        }
+      }
+      """
+  }
 
 }

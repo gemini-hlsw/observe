@@ -4,20 +4,20 @@
 package observe.server
 
 import scala.concurrent.duration._
-
 import cats._
 import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.engine._
-import observe.model.Observation
+import observe.model.{ Observation, StepId }
 import observe.model.dhs._
 import observe.model.enum.ObserveCommandResult
 import InstrumentSystem._
 import squants.time.Time
 import squants.time.TimeConversions._
 import cats.effect.Temporal
+//import lucuma.schemas.ObservationDB.Enums.SequenceType
 
 /**
  * Methods usedd to generate observation related actions
@@ -46,13 +46,14 @@ trait ObserveActions {
    * Send the datasetStart command to the odb
    */
   private def sendDataStart[F[_]: MonadError[*[_], Throwable]](
-    odb:         OdbProxy[F],
-    obsIdName:   Observation.IdName,
-    imageFileId: ImageFileId,
-    dataId:      DataId
+    odb:          OdbProxy[F],
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    datasetIndex: Int,
+    fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(obsIdName, dataId, imageFileId)
+      .datasetStart(obsIdName, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -62,13 +63,14 @@ trait ObserveActions {
    * Send the datasetEnd command to the odb
    */
   private def sendDataEnd[F[_]: MonadError[*[_], Throwable]](
-    odb:         OdbProxy[F],
-    obsIdName:   Observation.IdName,
-    imageFileId: ImageFileId,
-    dataId:      DataId
+    odb:          OdbProxy[F],
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    datasetIndex: Int,
+    fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(obsIdName, dataId, imageFileId)
+      .datasetComplete(obsIdName, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -115,7 +117,7 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- sendDataStart(env.odb, env.obsIdName, fileId, env.dataId)
+      _ <- sendDataStart(env.odb, env.obsIdName, env.stepId, env.datasetIndex, fileId)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsIdName.id, fileId))
       _ <-
@@ -142,7 +144,8 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <- sendDataEnd(env.odb, env.obsIdName, fileId, env.dataId)
+      _ <-
+        sendDataEnd(env.odb, env.obsIdName, env.stepId, env.datasetIndex, fileId)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))
