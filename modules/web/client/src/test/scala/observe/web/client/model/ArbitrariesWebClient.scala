@@ -6,7 +6,6 @@ package observe.web.client.model
 import cats.data.NonEmptyList
 import cats.implicits._
 import diode.data._
-import observe.model.arb.ArbObservationName
 import lucuma.core.util.arb.ArbEnumerated._
 import observe.model.Observation
 import lucuma.core.enum.Site
@@ -44,7 +43,7 @@ import org.scalajs.dom.WebSocket
 import web.client.table.TableArbitraries
 import web.client.table.TableState
 
-trait ArbitrariesWebClient extends ArbObservationName with TableArbitraries with ArbTabOperations {
+trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
 
   implicit val arbQueueOperations: Arbitrary[QueueOperations] =
     Arbitrary {
