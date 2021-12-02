@@ -38,11 +38,6 @@ object GuideConfigStatus {
     case ComaOption.ComaOff => "Off"
   }
 
-  // implicit val m1GuideShow = Show.show[M1GuideConfig] {
-  //   case M1GuideConfig.M1GuideOn(s) => s.source
-  //   case M1GuideConfig.M1GuideOff   => "Off"
-  // }
-
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   private val component = ScalaComponent

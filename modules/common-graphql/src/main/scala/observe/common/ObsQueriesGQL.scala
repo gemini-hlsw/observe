@@ -327,13 +327,6 @@ object ObsQueriesGQL {
         filename:  String,
         slitWidth: enum.GmosCustomSlitWidth
       ) extends GmosFpu[Site]
-//      trait GmosBuiltinFpu[Site <: GmosSite] extends GmosFpu[Site] {
-//        val builtin: Site#BuiltInFpu
-//      }
-//      trait GmosCustomMask[Site <: GmosSite] extends GmosFpu[Site] {
-//        val filename: String
-//        val slitWidth: enum.GmosCustomSlitWidth
-//      }
     }
     case class GmosReadout(
       xBin:        enum.GmosXBinning,
@@ -454,7 +447,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosNorth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
 
                     object InstrumentConfig {
@@ -484,7 +476,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosNorth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
 
                     object InstrumentConfig {
@@ -510,7 +501,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosNorth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
 
                     object InstrumentConfig {
@@ -555,7 +545,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosSouth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
 
                     object InstrumentConfig {
@@ -581,7 +570,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosSouth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
 
                     object InstrumentConfig {
@@ -637,7 +625,6 @@ object ObsQueriesGQL {
                   trait Steps extends SeqStep[InsConfig.GmosSouth]
 
                   object Steps {
-                    // object StepType
                     trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
 
                     object InstrumentConfig {
@@ -664,27 +651,27 @@ object ObsQueriesGQL {
     }
   }
 
-//  @GraphQL
-//  trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB] {
-//    val document = """
-//      subscription {
-//        observationEdit(programId:"p-2") {
-//          id
-//        }
-//      }
-//    """
-//  }
-//
-//  @GraphQL
-//  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB] {
-//    val document = """
-//      subscription($obsId: ObservationId!) {
-//        observationEdit(observationId: $obsId) {
-//          id
-//        }
-//      }
-//    """
-//  }
+  @GraphQL
+  trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB] {
+    val document = """
+      subscription {
+        observationEdit(programId:"p-2") {
+          id
+        }
+      }
+    """
+  }
+
+  @GraphQL
+  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB] {
+    val document = """
+      subscription($obsId: ObservationId!) {
+        observationEdit(observationId: $obsId) {
+          id
+        }
+      }
+    """
+  }
 
   @GraphQL
   trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB] {
