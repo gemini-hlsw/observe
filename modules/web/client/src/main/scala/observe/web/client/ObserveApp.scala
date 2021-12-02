@@ -11,7 +11,7 @@ import cats.effect.Sync
 import cats.effect._
 import lucuma.core.enum.Site
 import org.scalajs.dom.document
-import org.scalajs.dom.raw.Element
+import org.scalajs.dom.Element
 import observe.web.client.actions.Initialize
 import observe.web.client.actions.WSClose
 import observe.web.client.circuit.ObserveCircuit

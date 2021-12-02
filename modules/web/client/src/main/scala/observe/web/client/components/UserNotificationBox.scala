@@ -40,12 +40,12 @@ object UserNotificationBox {
     n match {
       case ResourceConflict(sidName)     =>
         List(
-          s"There is a conflict trying to run the sequence '${sidName.name.format}'",
+          s"There is a conflict trying to run the sequence '${sidName.name}'",
           "Possibly another sequence is being executed on the same instrument"
         )
       case InstrumentInUse(sidName, ins) =>
         List(
-          s"Cannot select sequence '${sidName.name.format}' for instrument '${ins.label}'",
+          s"Cannot select sequence '${sidName.name}' for instrument '${ins.label}'",
           "Possibly another sequence is being executed on the same instrument"
         )
       case RequestFailed(msgs)           =>

@@ -454,20 +454,16 @@ object ObserveEngine {
           .atSequence(id)
           .getOption(s)
           .flatMap { seq =>
-            seq.seq.currentStep.flatMap { step =>
-              seq.seqGen.steps
-                .find(_.id === step.id)
-                .map { x =>
-                  Handle
-                    .fromStream[F, EngineState[F], EventType[F]](
-                      Stream.eval(
-                        systems.odb
-                          .sequenceStart(Observation.IdName(id, seq.name), x.dataId)
-                          .as(Event.nullEvent[F])
-                      )
-                    )
-                    .as((id, step.id).some)
-                }
+            seq.seq.currentStep.map { step =>
+              Handle
+                .fromStream[F, EngineState[F], EventType[F]](
+                  Stream.eval(
+                    systems.odb
+                      .sequenceStart(Observation.IdName(id, seq.name))
+                      .as(Event.nullEvent[F])
+                  )
+                )
+                .as((id, step.id).some)
             }
           }
           .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))
@@ -645,7 +641,7 @@ object ObserveEngine {
         ((st: EngineState[F]) => {
           val idName = Observation.IdName(
             sid,
-            st.sequences.get(sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+            st.sequences.get(sid).fold("Unknown")(_.name)
           )
           if (!testRunning(st)) lens.withEvent(AddLoadedSequence(i, idName, user, clientId))(st)
           else (st, NotifyUser(InstrumentInUse(idName, i), clientId))
@@ -765,7 +761,27 @@ object ObserveEngine {
     override def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit] =
       q.offer(Event.poll(clientId))
 
-    private val heartbeatPeriod: FiniteDuration = FiniteDuration(10, TimeUnit.SECONDS)
+    private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] = {
+      val fd = Duration(settings.odbQueuePollingInterval.toSeconds, TimeUnit.SECONDS)
+      Stream
+        .fixedDelay[F](fd)
+        .evalMap(_ => systems.odb.queuedSequences)
+        .flatMap { x =>
+          Stream.emit(
+            Event
+              .getState[F, EngineState[F], SeqEvent] { st =>
+                Stream.eval(odbLoader.refreshSequenceList(x, st)).flatMap(Stream.emits).some
+              }
+              .asRight
+          )
+        }
+        .handleErrorWith { e =>
+          Stream.emit(ObserveFailure.ObserveException(e).asLeft)
+        }
+    }
+
+    //TODO Don't you forget to restore the original value
+    private val heartbeatPeriod: FiniteDuration = FiniteDuration(600, TimeUnit.SECONDS)
 
     private def heartbeatStream: Stream[F, EventType[F]] = {
       // If there is no heartbeat in 5 periods throw an error
@@ -785,7 +801,7 @@ object ObserveEngine {
       stream(
         Stream
           .fromQueueUnterminated(q)
-          .mergeHaltL(heartbeatStream)
+          .mergeHaltBoth(seqQueueRefreshStream.rethrow.mergeHaltL(heartbeatStream))
       )(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
         case Right((ev, qState)) =>
           val sequences = qState.sequences.values.map(viewSequence).toList
@@ -1002,7 +1018,7 @@ object ObserveEngine {
                           sid,
                           st.sequences
                             .get(sid)
-                            .fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+                            .fold("Unknown")(_.name)
                         )
                         (s,
                          AddLoadedSequence(obsseq.seqGen.instrument,
@@ -1185,7 +1201,7 @@ object ObserveEngine {
       executeEngine.get.flatMap { st =>
         val idName = Observation.IdName(
           sid,
-          st.sequences.get(sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+          st.sequences.get(sid).fold("Unknown")(_.name)
         )
         if (configSystemCheck(sid, sys)(st)) {
           st.sequences
@@ -1693,7 +1709,7 @@ object ObserveEngine {
 
     def idName(id: Observation.Id): Observation.IdName = Observation.IdName(
       id,
-      qState.sequences.get(id).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+      qState.sequences.get(id).fold("Unknown")(_.name)
     )
 
     ev match {
@@ -1766,7 +1782,7 @@ object ObserveEngine {
   ): ObserveEvent = {
     val idName = Observation.IdName(
       c.sid,
-      qState.sequences.get(c.sid).fold(Observation.Name.unsafeFromString("Unknown"))(_.name)
+      qState.sequences.get(c.sid).fold("Unknown")(_.name)
     )
     qState.sequences
       .get(c.sid)

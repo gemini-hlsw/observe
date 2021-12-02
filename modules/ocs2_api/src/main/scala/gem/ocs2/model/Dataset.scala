@@ -61,11 +61,11 @@ object Dataset {
             case -1 => None
             case n  =>
               val (a, b) = s.splitAt(n)
-              b.drop(1).parseIntOption.filter(_ > 0).flatMap { n =>
-                Observation.Name.fromString(a).map(oid => Dataset.Label(oid, n))
+              b.drop(1).parseIntOption.filter(_ > 0).map { n =>
+                Dataset.Label(a, n)
               }
           },
-        l => f"${l.observationId.format}-${l.index}%03d"
+        l => f"${l.observationId}-${l.index}%03d"
       )
 
   }

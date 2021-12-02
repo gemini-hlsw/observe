@@ -38,11 +38,6 @@ object GuideConfigStatus {
     case ComaOption.ComaOff => "Off"
   }
 
-  implicit val m1GuideShow = Show.show[M1GuideConfig] {
-    case s: M1GuideConfig.M1GuideOn => s.show
-    case M1GuideConfig.M1GuideOff   => "Off"
-  }
-
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   private val component = ScalaComponent
@@ -62,7 +57,7 @@ object GuideConfigStatus {
                clazz = ObserveStyles.item |+| ObserveStyles.activeGuide
                  .when_(p.config.m1Guide =!= M1GuideConfig.M1GuideOff)
         )(
-          s"M1: ${p.config.m1Guide.show}"
+          s"M1: ${p.config.m1Guide.toString}"
         ),
         p.config.m2Guide match {
           case M2GuideConfig.M2GuideOn(c, s) =>
@@ -80,7 +75,7 @@ object GuideConfigStatus {
                 clazz =
                   ObserveStyles.item |+| ObserveStyles.activeGuide.when_(c === ComaOption.ComaOn)
               )(
-                s"Coma: ${c.show}"
+                s"Coma: ${c.toString}"
               )
             )
           case M2GuideConfig.M2GuideOff      =>

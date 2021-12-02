@@ -33,9 +33,9 @@ object UserPromptBox {
     n match {
       case ChecksOverride(sidName, _, _, checks) =>
         if (checks.length > 1)
-          s"Warning! There are problems running sequence ${sidName.name.format}:"
+          s"Warning! There are problems running sequence ${sidName.name}:"
         else
-          s"Warning! There is a problem running sequence ${sidName.name.format}:"
+          s"Warning! There is a problem running sequence ${sidName.name}:"
     }
 
   def okButton(n: UserPrompt): String =

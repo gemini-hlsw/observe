@@ -20,6 +20,7 @@ import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enum.Site
+import lucuma.schemas.ObservationDB.Enums.SequenceType
 import mouse.all._
 import observe.engine.Action.ActionState
 import observe.engine._
@@ -74,8 +75,10 @@ import observe.server.niri._
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs._
+import observe.server.transition.{ SEQUENCE_TYPE_NAME, STEP_ID_NAME }
 import squants.Time
 import squants.time.TimeConversions._
+import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
 
 trait SeqTranslate[F[_]] extends ObserveActions {
 
@@ -112,23 +115,24 @@ object SeqTranslate {
 
     private def step(
       obsIdName:  Observation.IdName,
-      i:          StepId,
+      dataIdx:    Int,
       config:     CleanConfig,
-      nextToRun:  StepId,
       datasets:   Map[StepId, ExecutedDataset],
       isNightSeq: Boolean
     ): F[StepGen[F]] = {
       def buildStep(
-        dataId:    DataId,
-        instRes:   Resource,
-        insSpec:   InstrumentSpecifics,
-        instf:     SystemOverrides => InstrumentSystem[F],
-        otherSysf: Map[Resource, SystemOverrides => System[F]],
-        headers:   SystemOverrides => HeaderExtraData => List[Header[F]],
-        stepType:  StepType
+        stepId:       StepId,
+        dataId:       DataId,
+        sequenceType: SequenceType,
+        instRes:      Resource,
+        insSpec:      InstrumentSpecifics,
+        instf:        SystemOverrides => InstrumentSystem[F],
+        otherSysf:    Map[Resource, SystemOverrides => System[F]],
+        headers:      SystemOverrides => HeaderExtraData => List[Header[F]],
+        stepType:     StepType
       ): SequenceGen.StepGen[F] = {
 
-        def configs: Map[Resource, SystemOverrides => Action[F]] = otherSysf.map { case (r, sf) =>
+        val configs: Map[Resource, SystemOverrides => Action[F]] = otherSysf.map { case (r, sf) =>
           val kind = ActionType.Configure(r)
           r -> { ov: SystemOverrides =>
             sf(ov).configure(config).as(Response.Configured(r)).toAction(kind)
@@ -142,17 +146,20 @@ object SeqTranslate {
 
         def rest(ctx: HeaderExtraData, ov: SystemOverrides): List[ParallelActions[F]] = {
           val inst = instf(ov)
-          val env  = ObserveEnvironment(systemss.odb,
-                                       overriddenSystems.dhs(ov),
-                                       config,
-                                       stepType,
-                                       obsIdName,
-                                       dataId,
-                                       instf(ov),
-                                       insSpec,
-                                       otherSysf.values.toList.map(_(ov)),
-                                       headers(ov),
-                                       ctx
+          val env  = ObserveEnvironment(
+            systemss.odb,
+            overriddenSystems.dhs(ov),
+            config,
+            stepType,
+            obsIdName,
+            stepId,
+            dataIdx,
+            sequenceType,
+            instf(ov),
+            insSpec,
+            otherSysf.values.toList.map(_(ov)),
+            headers(ov),
+            ctx
           )
           // Request the instrument to build the observe actions and merge them with the progress
           // Also catches any errors in the process of running an observation
@@ -160,28 +167,28 @@ object SeqTranslate {
         }
 
         extractStatus(config) match {
-          case StepState.Pending if i >= nextToRun =>
+          case StepState.Pending =>
             SequenceGen.PendingStepGen(
-              i,
+              stepId,
               dataId,
               config,
               otherSysf.keys.toSet + instRes,
               { ov: SystemOverrides => instf(ov).observeControl(config) },
               StepActionsGen(configs, rest)
             )
-          case StepState.Pending                   =>
+          case StepState.Skipped =>
             SequenceGen.SkippedStepGen(
-              i,
+              stepId,
               dataId,
               config
             )
           // TODO: This case should be for completed Steps only. Fail when step status is unknown.
-          case _                                   =>
+          case _                 =>
             SequenceGen.CompletedStepGen(
-              i,
+              stepId,
               dataId,
               config,
-              datasets.get(i).map(_.filename).map(toImageFileId)
+              datasets.get(stepId).map(_.filename).map(toImageFileId)
             )
         }
       }
@@ -191,12 +198,16 @@ object SeqTranslate {
         insSpecs  = instrumentSpecs(inst)
         stepType <-
           insSpecs.calcStepType(config, isNightSeq).fold(_.raiseError[F, StepType], _.pure[F])
+        stepId   <- config.extractAs[StepId](OCS_KEY / STEP_ID_NAME).toF
+        seqType  <- config.extractAs[SequenceType](OCS_KEY / SEQUENCE_TYPE_NAME).toF
         dataId   <- dataIdFromConfig[F](config)
         is        = toInstrumentSys(inst)
         systems  <- calcSystems(config, stepType, insSpecs)
         headers  <- calcHeaders(config, stepType, inst)
       } yield buildStep(
+        stepId,
         dataId,
+        seqType,
         inst,
         insSpecs,
         is,
@@ -211,7 +222,7 @@ object SeqTranslate {
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
       //TODO: Retrive sequence name from ODB sequence
-      val obsName = Observation.Name.unsafeFromString("Dummy")
+      val obsName = "Dummy"
 
       // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
       val configs = sequence.config.getAllSteps.toList.map(CleanConfig(_))
@@ -220,19 +231,16 @@ object SeqTranslate {
         _.extractObsAs[String](OBSERVE_TYPE_PROP).exists(_ === SCIENCE_OBSERVE_TYPE)
       )
 
-      val nextToRun = configs
-        .map(extractStatus)
-        .lastIndexWhere(_.isFinished) + 1
-
       //TODO: Retrieve step ids from the config
       val steps = configs.zipWithIndex
         .map { case (c, i) =>
           step(
             Observation.IdName(obsId, obsName),
-            lucuma.core.model.Step.Id(PosLong.unsafeFrom(i.toLong)),
+            i + 1,
             c,
-            lucuma.core.model.Step.Id(PosLong.unsafeFrom(nextToRun.toLong)),
-            sequence.datasets.mapKeys(x => lucuma.core.model.Step.Id(PosLong.unsafeFrom(x.toLong))),
+            sequence.datasets.mapKeys(x =>
+              lucuma.core.model.Step.Id(PosLong.unsafeFrom((x + 1).toLong))
+            ),
             isNightSeq
           ).attempt
         }

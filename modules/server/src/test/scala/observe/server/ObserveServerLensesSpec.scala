@@ -6,7 +6,6 @@ package observe.server
 import cats.Eq
 import cats.tests.CatsSuite
 import edu.gemini.spModel.config2.{ Config, ItemKey }
-import observe.model.arb.ArbObservationName
 import monocle.law.discipline.LensTests
 import lucuma.core.util.arb.ArbGid._
 import observe.model.enum.Instrument
@@ -20,10 +19,7 @@ import observe.common.test.observationId
 /**
  * Tests ObserveServer Lenses
  */
-final class ObserveServerLensesSpec
-    extends CatsSuite
-    with ObserveServerArbitraries
-    with ArbObservationName {
+final class ObserveServerLensesSpec extends CatsSuite with ObserveServerArbitraries {
 
   implicit val eqItemKeys: Eq[Map[ItemKey, AnyRef]] = Eq.fromUniversalEquals
   implicit val eqLegacyConfig: Eq[Config]           = Eq.fromUniversalEquals

@@ -14,7 +14,6 @@ import org.typelevel.log4cats.noop.NoOpLogger
 import org.typelevel.log4cats.Logger
 
 import java.util.UUID
-import edu.gemini.spModel.core.Peer
 import observe.model.{ ActionType, ClientId, Observation, SystemOverrides }
 import lucuma.core.enum.Site
 import giapi.client.ghost.GhostClient
@@ -29,6 +28,7 @@ import observe.model.enum.{ Instrument, Resource }
 import observe.model.dhs._
 import observe.model.config._
 import observe.common.test._
+import observe.server.OdbProxy.TestOdbProxy
 import observe.server.altair.{ AltairControllerSim, AltairKeywordReaderDummy }
 import observe.server.flamingos2.Flamingos2ControllerSim
 import observe.server.gcal.{ DummyGcalKeywordsReader, GcalControllerSim }
@@ -68,7 +68,7 @@ class TestCommon(implicit ioRuntime: IORuntime) extends AnyFlatSpec {
                                      NifsControllerSim[IO]
   ).mapN { (dhs, f2, gmosS, gmosN, gnirs, gsaoi, gpi, ghost, niri, nifs) =>
     Systems[IO](
-      OdbProxy(new Peer("localhost", 8443, null), new OdbProxy.DummyOdbCommands),
+      new TestOdbProxy[IO],
       dhs,
       TcsSouthControllerSim[IO],
       TcsNorthControllerSim[IO],
@@ -251,17 +251,17 @@ object TestCommon {
       )
     )
 
-  val seqName1: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-1")
+  val seqName1: Observation.Name = "GS-2018B-Q-0-1"
   val seqObsId1: Observation.Id  = observationId(1)
-  val seqName2: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-2")
+  val seqName2: Observation.Name = "GS-2018B-Q-0-2"
   val seqObsId2: Observation.Id  = observationId(2)
-  val seqName3: Observation.Name = Observation.Name.unsafeFromString("GS-2018B-Q-0-3")
+  val seqName3: Observation.Name = "GS-2018B-Q-0-3"
   val seqObsId3: Observation.Id  = observationId(3)
   val clientId: ClientId         = ClientId(UUID.randomUUID)
 
   def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
     id = id,
-    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
+    name = "GS-ENG20210713-1",
     title = "",
     instrument = Instrument.F2,
     steps = List(
@@ -281,7 +281,7 @@ object TestCommon {
 
   def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
     id = id,
-    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
+    name = "GS-ENG20210713-1",
     title = "",
     instrument = Instrument.F2,
     steps = List
@@ -307,7 +307,7 @@ object TestCommon {
     resources: Set[Resource]
   ): SequenceGen[IO] = SequenceGen[IO](
     id = id,
-    name = Observation.Name.unsafeFromString("GS-ENG20210713-1"),
+    name = "GS-ENG20210713-1",
     title = "",
     instrument = ins,
     steps = List(

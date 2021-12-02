@@ -159,7 +159,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunSyncFailed(idName) =>
-      val msg          = s"Failed to sync sequence ${idName.name.format}"
+      val msg          = s"Failed to sync sequence ${idName.name}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
@@ -171,14 +171,14 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunAbortFailed(idName) =>
-      val msg          = s"Failed to abort sequence ${idName.name.format}"
+      val msg          = s"Failed to abort sequence ${idName.name}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
       updatedLE(SequencesOnDisplay.resetOperations(idName.id), notification)
 
     case RunStopFailed(idName) =>
-      val msg          = s"Failed to stop sequence ${idName.name.format}"
+      val msg          = s"Failed to stop sequence ${idName.name}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
@@ -190,7 +190,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunPauseFailed(idName) =>
-      val msg          = s"Failed to pause sequence ${idName.name.format}"
+      val msg          = s"Failed to pause sequence ${idName.name}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
@@ -202,7 +202,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunFromFailed(idName, stepIndex) =>
-      val msg          = s"Failed to start sequence ${idName.name.format} from step ${stepIndex + 1}"
+      val msg          = s"Failed to start sequence ${idName.name} from step ${stepIndex + 1}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
@@ -215,7 +215,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunResourceFailed(idName, s, r, m) =>
-      val msg          = s"Failed to configure ${r.show} for sequence ${idName.name.format}"
+      val msg          = s"Failed to configure ${r.show} for sequence ${idName.name}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg, m))))
       )

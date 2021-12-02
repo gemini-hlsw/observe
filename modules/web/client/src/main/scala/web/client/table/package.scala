@@ -15,7 +15,7 @@ import japgolly.scalajs.react.React
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
-import org.scalajs.dom.raw.MouseEvent
+import org.scalajs.dom.MouseEvent
 import react.common._
 import react.common.implicits._
 import react.draggable._

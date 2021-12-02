@@ -25,7 +25,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   test("Support adding preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val s   = SequenceView(
-      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      Observation.IdName(observationId(1), "GS-2018A-Q-0-1"),
       m,
       SequenceState.Idle,
       SystemOverrides.AllEnabled,
@@ -39,7 +39,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   test("Focus on preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val s   = SequenceView(
-      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      Observation.IdName(observationId(1), "GS-2018A-Q-0-1"),
       m,
       SequenceState.Idle,
       SystemOverrides.AllEnabled,
@@ -54,7 +54,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
   test("Unset preview") {
     val m   = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val s   = SequenceView(
-      Observation.IdName(observationId(1), Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      Observation.IdName(observationId(1), "GS-2018A-Q-0-1"),
       m,
       SequenceState.Idle,
       SystemOverrides.AllEnabled,
@@ -70,7 +70,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     val obsId = observationId(1)
     val m     = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val s     =
-      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      SequenceView(Observation.IdName(obsId, "GS-2018A-Q-0-1"),
                    m,
                    SequenceState.Idle,
                    SystemOverrides.AllEnabled,
@@ -96,7 +96,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     val m      = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val obsId  = observationId(1)
     val s      =
-      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GN-ENG20071001-1")),
+      SequenceView(Observation.IdName(obsId, "GN-ENG20071001-1"),
                    m,
                    SequenceState.Idle,
                    SystemOverrides.AllEnabled,
@@ -117,7 +117,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     val m      = SequenceMetadata(Instrument.Gpi, None, "Obs")
     val obsId  = observationId(1)
     val s      =
-      SequenceView(Observation.IdName(obsId, Observation.Name.unsafeFromString("GS-2018A-Q-0-1")),
+      SequenceView(Observation.IdName(obsId, "GS-2018A-Q-0-1"),
                    m,
                    SequenceState.Idle,
                    SystemOverrides.AllEnabled,
@@ -131,7 +131,7 @@ final class SequencesOnDisplaySpec extends CatsSuite with ArbitrariesWebClient {
     )
 
     val obs2 =
-      Observation.IdName(observationId(2), Observation.Name.unsafeFromString("GS-2018A-Q-0-2"))
+      Observation.IdName(observationId(2), "GS-2018A-Q-0-2")
     val s2   = SequenceView(obs2, m, SequenceState.Idle, SystemOverrides.AllEnabled, Nil, None)
     val sod2 = sod.previewSequence(s2.metadata.instrument, s2)
 
