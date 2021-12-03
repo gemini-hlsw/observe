@@ -310,7 +310,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         f      <- Resource.eval(
                     engine.eventStream(inq).through(out.publish).compile.drain.onError(logError).start
                   )
-        _ <- Resource.eval(f.join) // We need to join to catch uncaught errors
+        _ <- Resource.eval(f.join)        // We need to join to catch uncaught errors
       } yield ExitCode.Success
 
     observe.use(_ => IO.never)

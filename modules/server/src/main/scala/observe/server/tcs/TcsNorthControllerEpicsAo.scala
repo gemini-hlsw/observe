@@ -187,9 +187,11 @@ object TcsNorthControllerEpicsAo {
                            .whenA(!s0.base.useAo)
         pr            <- pauseResumeGaos(gaos, s0, tcs)
         adjustedDemand =
-          (AoTcsConfig.gds.andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide]).andThen(tagIso[GuiderConfig, AoGuide]).andThen(GuiderConfig.tracking)).modify(t =>
-            (pr.forceFreeze && t.isActive).fold(ProbeTrackingConfig.Off, t)
-          )(tcs)
+          (AoTcsConfig.gds
+            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+            .andThen(tagIso[GuiderConfig, AoGuide])
+            .andThen(GuiderConfig.tracking))
+            .modify(t => (pr.forceFreeze && t.isActive).fold(ProbeTrackingConfig.Off, t))(tcs)
         _             <- pr.pause.getOrElse(Applicative[F].unit)
         s1            <- guideOff(subsystems, s0, adjustedDemand, pr.guideWhilePaused)
         s2            <- sysConfig(
@@ -311,17 +313,27 @@ object TcsNorthControllerEpicsAo {
       (AoTcsConfig
         .gds[GuiderConfig @@ AoGuide, AltairConfig]
         .modify(
-          (AoGuidersConfig.pwfs1[GuiderConfig @@ AoGuide].andThen(tagIso[GuiderConfig, P1Config]).andThen(GuiderConfig.detector))
+          (AoGuidersConfig
+            .pwfs1[GuiderConfig @@ AoGuide]
+            .andThen(tagIso[GuiderConfig, P1Config])
+            .andThen(GuiderConfig.detector))
             .replace(calc(current.base.pwfs1.detector, demand.gds.pwfs1.detector)) >>>
-            (AoGuidersConfig.oiwfs[GuiderConfig @@ AoGuide].andThen(tagIso[GuiderConfig, OIConfig]).andThen(GuiderConfig.detector))
+            (AoGuidersConfig
+              .oiwfs[GuiderConfig @@ AoGuide]
+              .andThen(tagIso[GuiderConfig, OIConfig])
+              .andThen(GuiderConfig.detector))
               .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.detector))
         ) >>> m1Enabled.fold(
         identity[AoTcsConfig[GuiderConfig @@ AoGuide, AltairConfig]](_),
-        (AoTcsConfig.gc[GuiderConfig @@ AoGuide, AltairConfig].andThen(TelescopeGuideConfig.m1Guide))
+        (AoTcsConfig
+          .gc[GuiderConfig @@ AoGuide, AltairConfig]
+          .andThen(TelescopeGuideConfig.m1Guide))
           .replace(M1GuideConfig.M1GuideOff)
-      ) >>> (AoTcsConfig.gc.andThen(TelescopeGuideConfig.m2Guide)).replace(
-        m2config
-      ) >>> normalizeMountGuiding)(demand)
+      ) >>> (AoTcsConfig.gc
+        .andThen(TelescopeGuideConfig.m2Guide))
+        .replace(
+          m2config
+        ) >>> normalizeMountGuiding)(demand)
     }
 
     def calcAoPauseConditions(
@@ -425,9 +437,11 @@ object TcsNorthControllerEpicsAo {
         enableM1Guide.fold[TcsNorthAoConfig => TcsNorthAoConfig](
           identity,
           (AoTcsConfig.gc.andThen(TelescopeGuideConfig.m1Guide)).replace(M1GuideConfig.M1GuideOff)
-        ) >>> (AoTcsConfig.gc.andThen(TelescopeGuideConfig.m2Guide)).replace(
-          m2config
-        ) >>> normalizeMountGuiding
+        ) >>> (AoTcsConfig.gc
+          .andThen(TelescopeGuideConfig.m2Guide))
+          .replace(
+            m2config
+          ) >>> normalizeMountGuiding
       )(demand)
 
       val paramList = guideParams(subsystems, current, newGuideConfig)

@@ -669,10 +669,10 @@ object TcsControllerEpicsCommon {
       setPwfs1Probe(Iso.id)(subsystems, current.pwfs1.tracking, tcs.gds.pwfs1.tracking),
       setPwfs2Probe(Iso.id)(subsystems, current.pwfs2.tracking, tcs.gds.pwfs2.tracking),
       setOiwfsProbe(Iso.id)(subsystems,
-                             current.oiwfs.tracking,
-                             tcs.gds.oiwfs.tracking,
-                             current.oiName,
-                             tcs.inst.instrument
+                            current.oiwfs.tracking,
+                            tcs.gds.oiwfs.tracking,
+                            current.oiName,
+                            tcs.inst.instrument
       ),
       setPwfs1(Iso.id)(subsystems, current.pwfs1.detector, tcs.gds.pwfs1.detector),
       setPwfs2(Iso.id)(subsystems, current.pwfs2.detector, tcs.gds.pwfs2.detector),

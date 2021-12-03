@@ -212,7 +212,7 @@ object EpicsUtil {
     name:    String
   ): F[T] =
     Async[F].async_[T] { (f: Either[Throwable, T] => Unit) =>
-      //The task is created with async. So we do whatever we need to do,
+      // The task is created with async. So we do whatever we need to do,
       // and then call `f` to signal the completion of the task.
 
       // `resultGuard` and `lock` are used for synchronization.
