@@ -356,7 +356,7 @@ object GmosTranslator {
       (INSTRUMENT_KEY / INSTRUMENT_NAME_PROP, conversions.instrumentName)
     )
 
-    //TODO: GainSetting is missing
+    // TODO: GainSetting is missing
     val defaultGainSetting = 1.0
 
     val dcParams = List(

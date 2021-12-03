@@ -221,7 +221,7 @@ object SeqTranslate {
       tio:                       Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
-      //TODO: Retrive sequence name from ODB sequence
+      // TODO: Retrive sequence name from ODB sequence
       val obsName = "Dummy"
 
       // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
@@ -231,7 +231,7 @@ object SeqTranslate {
         _.extractObsAs[String](OBSERVE_TYPE_PROP).exists(_ === SCIENCE_OBSERVE_TYPE)
       )
 
-      //TODO: Retrieve step ids from the config
+      // TODO: Retrieve step ids from the config
       val steps = configs.zipWithIndex
         .map { case (c, i) =>
           step(
@@ -505,22 +505,18 @@ object SeqTranslate {
             }.pure[F]
 
           case Site.GN =>
-            if (useGaos)
-              Altair
-                .fromConfig(config)
-                .map(a =>
-                  (ov: SystemOverrides) =>
-                    TcsNorth.fromConfig[F](overriddenSystems.tcsNorth(ov),
-                                           subs,
-                                           a(overriddenSystems.altair(ov)).some,
-                                           inst,
-                                           systemss.guideDb
-                    )(
-                      config,
-                      LightPath(lsource, inst.sfName(config)),
-                      w
-                    ): System[F]
-                )
+            if (useGaos) { (ov: SystemOverrides) =>
+              TcsNorth.fromConfig[F](overriddenSystems.tcsNorth(ov),
+                                     subs,
+                                     Altair(overriddenSystems.altair(ov)).some,
+                                     inst,
+                                     systemss.guideDb
+              )(
+                config,
+                LightPath(lsource, inst.sfName(config)),
+                w
+              ): System[F]
+            }.pure[F]
             else { (ov: SystemOverrides) =>
               TcsNorth.fromConfig[F](overriddenSystems.tcsNorth(ov),
                                      subs,
