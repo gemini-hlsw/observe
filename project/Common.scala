@@ -13,20 +13,19 @@ object Common {
     Compile / doc / scalacOptions ++= Seq(
       "-groups",
       "-sourcepath",
-      (LocalRootProject / baseDirectory).value.getAbsolutePath,
+      (baseDirectory in LocalRootProject).value.getAbsolutePath,
       "-skip-packages",
       "scalaz",
       "-doc-title",
       "Gem",
       "-doc-version",
-      version.value,
-      "-Xfatal-warnings"
+      version.value
     ),
     // Common libraries
     libraryDependencies += TestLibs.value,
     // Don't build javadoc when we're packaging the docker image.
-    Compile / packageDoc / mappings := Seq(),
-    Compile / doc / sources         := Seq.empty,
+    mappings in (Compile, packageDoc) := Seq(),
+    sources in (Compile, doc)         := Seq.empty,
 
     // We don't care to see updates about the scala language itself
     dependencyUpdatesFilter -= moduleFilter(name = "scala-library"),
@@ -37,9 +36,9 @@ object Common {
     dependencyUpdatesFilter -= moduleFilter(organization = "dom4j"),
     dependencyUpdatesFilter -= moduleFilter(organization = "net.sf.opencsv"),
     dependencyUpdatesFilter -= moduleFilter(organization = "commons-httpclient"),
-    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest,
-                                         "-l",
-                                         "gem.test.Tags.RequiresNetwork"
+    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest,
+                                          "-l",
+                                          "gem.test.Tags.RequiresNetwork"
     ), // by default, ignore network tests
     // Don't worry about monocle versions that start with the same prefix.
     dependencyUpdatesFilter -= moduleFilter(

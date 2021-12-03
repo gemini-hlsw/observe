@@ -4,7 +4,6 @@
 package observe.server.tcs
 
 import java.time.Duration
-
 import cats._
 import cats.data.NonEmptySet
 import cats.effect.Async
@@ -42,8 +41,8 @@ import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.tcs.TcsSouthController.TcsSouthAoConfig
 import squants.time.TimeConversions._
-
 import TcsSouthController._
+import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 
 /**
  * Controller of Gemini's South AO system over epics
@@ -279,10 +278,7 @@ object TcsSouthControllerEpicsAo {
       current: EpicsTcsAoConfig,
       demand:  TcsSouthAoConfig
     ): Boolean = {
-      val distanceSquared = demand.tc.offsetA
-        .map(_.toFocalPlaneOffset(current.base.iaa))
-        .map(o => (o.x - current.base.offset.x, o.y - current.base.offset.y))
-        .map(d => d._1 * d._1 + d._2 * d._2)
+      val distanceSquared = calcMoveDistanceSquared(current.base, demand.tc)
 
       val isAnyGemsSourceUsed = (demand.gaos.isCwfs1Used && current.cwfs1.isActive) ||
         (demand.gaos.isCwfs2Used && !current.cwfs2.isActive) ||
@@ -304,10 +300,7 @@ object TcsSouthControllerEpicsAo {
       current: EpicsTcsAoConfig,
       demand:  TcsSouthAoConfig
     ): Boolean = {
-      val distanceSquared = demand.tc.offsetA
-        .map(_.toFocalPlaneOffset(current.base.iaa))
-        .map(o => (o.x - current.base.offset.x, o.y - current.base.offset.y))
-        .map(d => d._1 * d._1 + d._2 * d._2)
+      val distanceSquared = calcMoveDistanceSquared(current.base, demand.tc)
 
       val becauseP1 = distanceSquared.exists(dd =>
         Tcs.calcGuiderInUse(demand.gc, TipTiltSource.PWFS1, M1Source.PWFS1)
@@ -340,7 +333,11 @@ object TcsSouthControllerEpicsAo {
               current,
               demand
             ))
-              .option(PauseCondition.OffsetMove(o.toFocalPlaneOffset(current.base.iaa)))
+              .option(
+                PauseCondition.OffsetMove(current.base.offset,
+                                          o.toFocalPlaneOffset(current.base.iaa)
+                )
+              )
           )
         ).flattenOption
       )
@@ -356,7 +353,7 @@ object TcsSouthControllerEpicsAo {
           isComingBackFromUnguidedStep(current, baseAoConfig, demand).option(
             ResumeCondition.GaosGuideOn
           ),
-          pauseReasons.offsetO.map(o => ResumeCondition.OffsetReached(o.newOffset))
+          pauseReasons.offsetO.map(o => ResumeCondition.OffsetReached(o.to))
         ).flattenOption
       )
 
@@ -456,7 +453,7 @@ object TcsSouthControllerEpicsAo {
 
       if (paramList.nonEmpty) {
         val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-        val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+        val debug  = paramList.map(_.debug).mkString(", ")
         for {
           _ <- L.debug("Turning guide off")
           _ <- L.debug(s"guideOff set because $debug").whenA(trace)
@@ -483,7 +480,7 @@ object TcsSouthControllerEpicsAo {
 
       if (paramList.nonEmpty) {
         val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-        val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+        val debug  = paramList.map(_.debug).mkString(", ")
         for {
           _ <- L.debug("Turning guide on")
           _ <- L.debug(s"guideOn set because $debug").whenA(trace)
@@ -511,7 +508,9 @@ object TcsSouthControllerEpicsAo {
           ),
           commonController.setOiwfsProbe(EpicsTcsAoConfig.base)(subsystems,
                                                                 current.base.oiwfs.tracking,
-                                                                tcs.gds.oiwfs.tracking
+                                                                tcs.gds.oiwfs.tracking,
+                                                                current.base.oiName,
+                                                                tcs.inst.instrument
           ),
           commonController.setScienceFold(EpicsTcsAoConfig.base)(subsystems,
                                                                  current,
@@ -534,7 +533,7 @@ object TcsSouthControllerEpicsAo {
 
         if (paramList.nonEmpty) {
           val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-          val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+          val debug  = paramList.map(_.debug).mkString(", ")
           for {
             _ <- L.debug("Start TCS configuration")
             _ <- L.debug(s"TCS configuration: ${tcs.show}")

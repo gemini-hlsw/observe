@@ -5,9 +5,9 @@ package observe.server.altair
 
 import cats.{ Eq, Show }
 import cats.syntax.all._
-import observe.server.tcs.Gaos.PauseConditionSet
-import observe.server.tcs.Gaos.PauseResume
-import observe.server.tcs.Gaos.ResumeConditionSet
+import observe.model.`enum`.Instrument
+import observe.server.tcs.Gaos.{ GuideCapabilities, PauseConditionSet, ResumeConditionSet }
+import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 import squants.space.Length
 
@@ -17,14 +17,16 @@ trait AltairController[F[_]] {
   def pauseResume(
     pauseReasons:  PauseConditionSet,
     resumeReasons: ResumeConditionSet,
-    fieldLens:     FieldLens
-  )(cfg:           AltairConfig): F[PauseResume[F]]
+    currentOffset: FocalPlaneOffset,
+    instrument:    Instrument
+  )(cfg:           AltairConfig): F[AltairPauseResume[F]]
 
   def observe(expTime: Time)(cfg: AltairConfig): F[Unit]
 
   def endObserve(cfg: AltairConfig): F[Unit]
 
   def isFollowing: F[Boolean]
+
 }
 
 object AltairController {
@@ -52,5 +54,15 @@ object AltairController {
   }
 
   implicit val showAltairConfig: Show[AltairConfig] = Show.fromToString[AltairConfig]
+
+  sealed case class AltairPauseResume[F[_]](
+    pause:            Option[F[Unit]],
+    guideWhilePaused: GuideCapabilities,
+    filterTarget:     Boolean,
+    resume:           Option[F[Unit]],
+    restoreOnResume:  GuideCapabilities,
+    config:           Option[F[Unit]],
+    forceFreeze:      Boolean
+  )
 
 }

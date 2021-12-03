@@ -6,10 +6,10 @@ package observe.server.altair
 import cats.Applicative
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
-import observe.server.altair.AltairController.FieldLens
-import observe.server.tcs.Gaos.PauseConditionSet
-import observe.server.tcs.Gaos.PauseResume
-import observe.server.tcs.Gaos.ResumeConditionSet
+import observe.model.`enum`.Instrument
+import observe.server.altair.AltairController.AltairPauseResume
+import observe.server.tcs.Gaos.{ GuideCapabilities, PauseConditionSet, ResumeConditionSet }
+import observe.server.tcs.TcsController
 import squants.Time
 
 object AltairControllerSim {
@@ -19,13 +19,17 @@ object AltairControllerSim {
     override def pauseResume(
       pauseReasons:  PauseConditionSet,
       resumeReasons: ResumeConditionSet,
-      fieldLens:     FieldLens
-    )(
-      cfg:           AltairController.AltairConfig
-    ): F[PauseResume[F]] =
-      PauseResume(
+      currentOffset: TcsController.FocalPlaneOffset,
+      instrument:    Instrument
+    )(cfg:           AltairController.AltairConfig): F[AltairPauseResume[F]] =
+      AltairPauseResume(
         L.info(s"Simulate pausing Altair loops because of $pauseReasons").some,
-        L.info(s"Simulate restoring Altair configuration $cfg because of $resumeReasons").some
+        GuideCapabilities(canGuideM2 = false, canGuideM1 = false),
+        filterTarget = false,
+        L.info(s"Simulate restoring Altair configuration $cfg because of $resumeReasons").some,
+        GuideCapabilities(canGuideM2 = false, canGuideM1 = false),
+        none,
+        forceFreeze = true
       ).pure[F]
 
     override def observe(expTime: Time)(cfg: AltairController.AltairConfig): F[Unit] =

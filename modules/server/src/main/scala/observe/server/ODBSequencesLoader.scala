@@ -41,7 +41,7 @@ final class ODBSequencesLoader[F[_]: Async](
     )
 
   def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
-    //Three ways of handling errors are mixed here: java exceptions, Either and MonadError
+    // Three ways of handling errors are mixed here: java exceptions, Either and MonadError
     val t: F[(List[Throwable], Option[SequenceGen[F]])] =
       odbProxy.read(seqId).map(OcsOdbTranslator.translate).flatMap { odbSeq =>
         val configObsId: F[String] =

@@ -331,12 +331,12 @@ object GmosControllerEpics extends GmosEncoders {
               )
             }
 
-          //TODO Improve data model to remove this case. It is here because search includes types of
+          // TODO Improve data model to remove this case. It is here because search includes types of
           // both sites.
           case _ => List.empty
         }
 
-        //If disperser, order or wavelength are set, force mode configuration. If not, check if it needs to be set anyways
+        // If disperser, order or wavelength are set, force mode configuration. If not, check if it needs to be set anyways
         if (params.exists(_.isDefined)) params :+ CC.setDisperserMode(disperserMode0).some
         else
           List(
@@ -352,27 +352,30 @@ object GmosControllerEpics extends GmosEncoders {
         cfg:   GmosController.Config[T],
         cc:    GmosFPU
       ): List[Option[F[Unit]]] = {
-        def builtInFPU(fpu: T#FPU): (Option[String], Option[String]) = Encoders[T].fpu.encode(fpu)
+        def builtInFPU(fpu: T#FPU): Option[(String, String)] = Encoders[T].fpu.encode(fpu)
 
-        def customFPU(name: String): (Option[String], Option[String]) = name match {
-          case "None" => (none, beamEncoder.encode(Beam.OutOfBeam).some)
-          case _      => (name.some, beamEncoder.encode(Beam.InBeam).some)
+        def customFPU(name: String): (String, String) = name match {
+          case "None" => ("None", beamEncoder.encode(Beam.OutOfBeam))
+          case _      => (name, beamEncoder.encode(Beam.InBeam))
         }
 
-        def setFPUParams(p: (Option[String], Option[String])): List[Option[F[Unit]]] = p match {
+        def setFPUParams(p: (String, String)): List[Option[F[Unit]]] = p match {
           case (fpuName, beam) =>
-            List(fpuName.flatMap(v => applyParam(state.fpu, v, CC.setFpu)),
-                 beam.flatMap(v => applyParam(inBeamDecode(state.inBeam), v, CC.setInBeam))
+            List(
+              applyParam(state.fpu, fpuName, CC.setFpu),
+              applyParam(inBeamDecode(state.inBeam), beam, CC.setInBeam)
             )
         }
 
         cc match {
           case cfg.BuiltInFPU(fpu) =>
-            L.debug(s"Set GMOS built in fpu $fpu").some +: setFPUParams(builtInFPU(fpu))
+            builtInFPU(fpu)
+              .map(x => L.debug(s"Set GMOS built in fpu $fpu").some +: setFPUParams(x))
+              .orEmpty
           case CustomMaskFPU(name) =>
             L.debug(s"Set GMOS custom fpu $name").some +: setFPUParams(customFPU(name))
           case UnknownFPU          => List.empty
-          //TODO Improve data model to remove this case. It is here because the BuiltInFPU of the
+          // TODO Improve data model to remove this case. It is here because the BuiltInFPU of the
           // other site is also a type of GmosFPU, even if it never will appear here.
           case _                   => List.empty
         }
@@ -428,7 +431,7 @@ object GmosControllerEpics extends GmosEncoders {
           setGainSetting(state, config.r.ampReadMode, config.r.ampGain),
           applyParam(state.ampCount, encode(config.r.ampCount), DC.setAmpCount),
           // TODO revert this change when FR-41232 is resolved
-          //applyParam(state.roiNumUsed, roiNumUsed(config.roi), DC.setRoiNumUsed),
+          // applyParam(state.roiNumUsed, roiNumUsed(config.roi), DC.setRoiNumUsed),
           DC.setRoiNumUsed(roiNumUsed(config.roi)).some,
           applyParam(state.ccdXBinning, encode(config.bi.x), DC.setCcdXBinning),
           applyParam(state.ccdYBinning, encode(config.bi.y), DC.setCcdYBinning)
@@ -613,7 +616,7 @@ object GmosControllerEpics extends GmosEncoders {
 
   trait Encoders[T <: GmosController.SiteDependentTypes] {
     val filter: EncodeEpicsValue[T#Filter, (String, String)]
-    val fpu: EncodeEpicsValue[T#FPU, (Option[String], Option[String])]
+    val fpu: EncodeEpicsValue[T#FPU, Option[(String, String)]]
     val stageMode: EncodeEpicsValue[T#GmosStageMode, String]
     val disperser: EncodeEpicsValue[T#Disperser, String]
     val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]]

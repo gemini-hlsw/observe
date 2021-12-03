@@ -70,7 +70,7 @@ object TcsSettleTimeCalculator {
     inst:        Instrument
   ): Time = {
     val displacement = calcDisplacement(startOffset, endOffset)
-    (subsystems.exists(_ === Subsystem.OIWFS).option(oiwfsSettleTimeCalculators(inst))
+    (subsystems.contains(Subsystem.OIWFS).option(oiwfsSettleTimeCalculators(inst))
       :: subsystems.toList.map(settleTimeCalculators.get)).flattenOption
       .map(_.calc(displacement))
       .maximumOption

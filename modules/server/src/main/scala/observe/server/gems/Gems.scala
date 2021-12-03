@@ -11,10 +11,10 @@ import edu.gemini.spModel.gemini.gems.CanopusWfs
 import edu.gemini.spModel.gemini.gsaoi.GsaoiOdgw
 import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS_PROP
+import org.typelevel.log4cats.Logger
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps._
-import observe.server.ObserveFailure
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.gems.GemsController.Cwfs1Usage
@@ -55,7 +55,8 @@ object Gems {
     controller:    GemsController[F],
     config:        GemsConfig,
     guideConfigDb: GuideConfigDb[F]
-  ) extends Gems[F] {
+  )(implicit L:    Logger[F])
+      extends Gems[F] {
 
     override val cfg: GemsConfig = config
 
@@ -97,9 +98,12 @@ object Gems {
                 )
               )
           case _                    =>
-            ObserveFailure
-              .Execution("Attempting to run GeMS sequence before GeMS has being configured.")
-              .raiseError[F, PauseResume[F]]
+            // If there is no configuration coming from TCC we just ignore it. This is the case when taking dome flats
+            // We check in TcsSouth.scala that it is not an error
+            L.info(
+              "No GeMS guide configuration from TCC. GeMS control skipped for unguided step."
+            ) *>
+              PauseResume[F](none, none).pure[F]
         }
       }
 
@@ -137,7 +141,7 @@ object Gems {
       OIUsage.fromBoolean(opConfig.isOIUsed && stepConfig.isOIUsed)
     )
 
-  def fromConfig[F[_]: MonadError[*[_], Throwable]](
+  def fromConfig[F[_]: MonadError[*[_], Throwable]: Logger](
     guideConfigDb: GuideConfigDb[F],
     config:        CleanConfig
   ): F[GemsController[F] => Gems[F]] = {
