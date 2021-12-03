@@ -19,6 +19,7 @@ import mouse.boolean._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
+import observe.model.enum.Instrument
 import observe.model.enum.ComaOption
 import observe.model.enum.M1Source
 import observe.model.enum.MountGuideOption
@@ -28,6 +29,7 @@ import observe.server.EpicsCommand
 import observe.server.ObserveFailure
 import observe.server.tcs.TcsController._
 import squants.Length
+import squants.space.Area
 import squants.space.LengthConversions._
 import squants.time.TimeConversions._
 
@@ -108,7 +110,9 @@ sealed trait TcsControllerEpicsCommon[F[_]] {
   def setOiwfsProbe[C](l: Lens[C, BaseEpicsTcsConfig])(
     a:                    NonEmptySet[Subsystem],
     b:                    ProbeTrackingConfig,
-    c:                    ProbeTrackingConfig
+    c:                    ProbeTrackingConfig,
+    oiName:               String,
+    inst:                 Instrument
   ): Option[WithDebug[C => F[C]]]
 
   def setNodChopProbeTrackingConfig(s: TcsEpics.ProbeGuideCmd[F])(
@@ -139,10 +143,7 @@ object TcsControllerEpicsCommon {
     current: BaseEpicsTcsConfig,
     demand:  BasicTcsConfig
   ): Boolean = {
-    val distanceSquared = demand.tc.offsetA
-      .map(_.toFocalPlaneOffset(current.iaa))
-      .map(o => (o.x - current.offset.x, o.y - current.offset.y))
-      .map(d => d._1 * d._1 + d._2 * d._2)
+    val distanceSquared = calcMoveDistanceSquared(current, demand.tc)
 
     val thresholds = List(
       (Tcs.calcGuiderInUse(demand.gc,
@@ -480,7 +481,7 @@ object TcsControllerEpicsCommon {
 
       if (paramList.nonEmpty) {
         val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-        val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+        val debug  = paramList.map(_.debug).mkString(", ")
         for {
           _ <- L.debug("Turning guide off")
           _ <- L.debug(s"guideOff set because $debug").whenA(trace)
@@ -598,11 +599,16 @@ object TcsControllerEpicsCommon {
     override def setOiwfsProbe[C](l: Lens[C, BaseEpicsTcsConfig])(
       a:                             NonEmptySet[Subsystem],
       b:                             ProbeTrackingConfig,
-      c:                             ProbeTrackingConfig
-    ): Option[WithDebug[C => F[C]]] =
-      setGuideProbe(oiwfsGuiderControl,
-                    l.andThen(BaseEpicsTcsConfig.oiwfs).andThen(GuiderConfig.tracking).replace
-      )(a, b, c).map(_.mapDebug(d => s"OIWFS: $d"))
+      c:                             ProbeTrackingConfig,
+      oiName:                        String,
+      inst:                          Instrument
+    ): Option[WithDebug[C => F[C]]] = oiSelectionName(inst).flatMap { x =>
+      if (x === oiName)
+        setGuideProbe(oiwfsGuiderControl,
+                      l.andThen(BaseEpicsTcsConfig.oiwfs).andThen(GuiderConfig.tracking).replace
+        )(a, b, c).map(_.mapDebug(d => s"OIWFS: $d"))
+      else none
+    }
 
     // Same offset is applied to all the beams
     override def setTelescopeOffset(c: FocalPlaneOffset): F[Unit] =
@@ -662,7 +668,12 @@ object TcsControllerEpicsCommon {
     ): List[WithDebug[BaseEpicsTcsConfig => F[BaseEpicsTcsConfig]]] = List(
       setPwfs1Probe(Iso.id)(subsystems, current.pwfs1.tracking, tcs.gds.pwfs1.tracking),
       setPwfs2Probe(Iso.id)(subsystems, current.pwfs2.tracking, tcs.gds.pwfs2.tracking),
-      setOiwfsProbe(Iso.id)(subsystems, current.oiwfs.tracking, tcs.gds.oiwfs.tracking),
+      setOiwfsProbe(Iso.id)(subsystems,
+                             current.oiwfs.tracking,
+                             tcs.gds.oiwfs.tracking,
+                             current.oiName,
+                             tcs.inst.instrument
+      ),
       setPwfs1(Iso.id)(subsystems, current.pwfs1.detector, tcs.gds.pwfs1.detector),
       setPwfs2(Iso.id)(subsystems, current.pwfs2.detector, tcs.gds.pwfs2.detector),
       setOiwfs(Iso.id)(subsystems, current.oiwfs.detector, tcs.gds.oiwfs.detector),
@@ -684,7 +695,7 @@ object TcsControllerEpicsCommon {
 
       if (paramList.nonEmpty) {
         val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-        val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+        val debug  = paramList.map(_.debug).mkString(", ")
         for {
           _ <- L.debug("Turning guide on")
           _ <- L.debug(s"guideOn set because $debug").whenA(trace)
@@ -713,7 +724,7 @@ object TcsControllerEpicsCommon {
 
         if (paramList.nonEmpty) {
           val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
-          val debug  = paramList.map(_.debug).reduce((m, n) => m + ", " + n)
+          val debug  = paramList.map(_.debug).mkString(", ")
 
           for {
             _ <- L.debug("Start TCS configuration")
@@ -825,5 +836,20 @@ object TcsControllerEpicsCommon {
 
   def wavelengthNear(wavel: Wavelength, other: Wavelength): Boolean =
     math.abs(wavel.length.toAngstroms - other.length.toAngstroms) <= WavelengthTolerance.toAngstroms
+
+  def oiSelectionName(i: Instrument): Option[String] = i match {
+    case Instrument.F2                                        => "F2".some
+    case Instrument.GmosS | Instrument.GmosN                  => "GMOS".some
+    case Instrument.Gnirs                                     => "GNIRS".some
+    case Instrument.Niri                                      => "NIRI".some
+    case Instrument.Nifs                                      => "NIFS".some
+    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
+  }
+
+  def calcMoveDistanceSquared(current: BaseEpicsTcsConfig, demand: TelescopeConfig): Option[Area] =
+    demand.offsetA
+      .map(_.toFocalPlaneOffset(current.iaa))
+      .map(o => (o.x - current.offset.x, o.y - current.offset.y))
+      .map(d => d._1 * d._1 + d._2 * d._2)
 
 }

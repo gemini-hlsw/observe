@@ -280,7 +280,7 @@ object ObserveEngine {
         .map { seqTarget =>
           systems.tcsKeywordReader.sourceATarget.objectName.map { tcsTarget =>
             (seqTarget =!= tcsTarget).option(
-              TargetCheckOverride(UserPrompt.Discrepancy(seqTarget, tcsTarget))
+              TargetCheckOverride(UserPrompt.Discrepancy(tcsTarget, seqTarget))
             )
           }
         }
@@ -292,17 +292,6 @@ object ObserveEngine {
      */
     private def extractTargetName(config: CleanConfig): Option[String] = {
       val BasePositionKey    = "Base:name"
-      val SolarSystemObjects = Map(
-        ("199", "Mercury"),
-        ("299", "Venus"),
-        ("301", "Moon"),
-        ("499", "Mars"),
-        ("599", "Jupiter"),
-        ("699", "Saturn"),
-        ("799", "Uranus"),
-        ("899", "Neptune"),
-        ("999", "Pluto")
-      )
       val baseName           = config.extractTelescopeAs[String](BasePositionKey).toOption
       val EphemerisExtension = ".eph"
 
@@ -310,7 +299,7 @@ object ObserveEngine {
         if (x.endsWith(EphemerisExtension)) {
           x.dropRight(EphemerisExtension.length)
         } else {
-          SolarSystemObjects.getOrElse(x, x)
+          x
         }
       }
     }
@@ -780,8 +769,7 @@ object ObserveEngine {
         }
     }
 
-    //TODO Don't you forget to restore the original value
-    private val heartbeatPeriod: FiniteDuration = FiniteDuration(600, TimeUnit.SECONDS)
+    private val heartbeatPeriod: FiniteDuration = FiniteDuration(10, TimeUnit.SECONDS)
 
     private def heartbeatStream: Stream[F, EventType[F]] = {
       // If there is no heartbeat in 5 periods throw an error

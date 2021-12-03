@@ -172,7 +172,7 @@ lazy val observe_web_server = project
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
     reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
-    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher"),
+    reStart / mainClass  := Some("observe.web.server.http4s.WebServerLauncher"),
     Compile / bspEnabled := false,
   )
   .settings(
@@ -252,7 +252,8 @@ lazy val observe_web_client = project
       "terser-webpack-plugin"         -> "3.0.6",
       "html-webpack-plugin"           -> "4.3.0",
       "css-minimizer-webpack-plugin"  -> "1.1.5",
-      "favicons-webpack-plugin"       -> "4.2.0"
+      "favicons-webpack-plugin"       -> "4.2.0",
+      "@packtracker/webpack-plugin"   -> "2.3.0"
     ),
     libraryDependencies ++= Seq(
       Cats.value,
@@ -280,7 +281,7 @@ lazy val observe_web_client = project
   .dependsOn(observe_model.js % "compile->compile;test->test")
 
 // List all the modules and their inter dependencies
-lazy val observe_server: Project = project
+lazy val observe_server = project
   .in(file("modules/server"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
@@ -385,20 +386,20 @@ lazy val observe_engine = project
  */
 lazy val observeCommonSettings = Seq(
   // Main class for launching
-  Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
+  Compile / mainClass               := Some("observe.web.server.http4s.WebServerLauncher"),
   // This is important to keep the file generation order correctly
-  Universal / parallelExecution   := false,
+  Universal / parallelExecution     := false,
   // Depend on webpack and add the assets created by webpack
   Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName            := "observe-server",
+  executableScriptName              := "observe-server",
   // No javadocs
-  Compile / packageDoc / mappings := Seq(),
+  Compile / packageDoc / mappings   := Seq(),
   // Don't create launchers for Windows
-  makeBatScripts                  := Seq.empty,
+  makeBatScripts                    := Seq.empty,
   // Specify a different name for the config file
-  bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
+  bashScriptConfigLocation          := Some("${app_home}/../conf/launcher.args"),
   bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site

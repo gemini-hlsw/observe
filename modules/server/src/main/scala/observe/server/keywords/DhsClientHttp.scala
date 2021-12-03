@@ -187,7 +187,7 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
 
   override def createImage(p: ImageParameters): F[ImageFileId] =
     counter.modify(x => (x + 1, x + 1)).map { c =>
-      toImageFileId(f"S${date.format(format)}S${c}%04d")
+      toImageFileId(f"S${date.format(format)}S$c%04d")
     }
 
   override def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] = {
