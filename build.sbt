@@ -15,6 +15,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / semanticdbEnabled := true
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
+ThisBuild / Test / bspEnabled := false
 
 inThisBuild(
   Seq(
