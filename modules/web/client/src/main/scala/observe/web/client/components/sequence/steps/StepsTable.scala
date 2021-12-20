@@ -18,7 +18,7 @@ import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import monocle.macros.Lenses
-import mouse.all.booleanSyntaxMouse
+import mouse.boolean._
 import org.scalajs.dom.HTMLElement
 import react.common._
 import react.common.implicits._
@@ -321,10 +321,10 @@ final case class StepsTable(
   val showImagingMirror: Boolean            = showProp(
     InstrumentProperties.ImagingMirror
   )
-  val isPreview: Boolean                  = steps.exists(_.isPreview)
-  val hasControls: Boolean                = canOperate && !isPreview
-  val canSetBreakpoint: Boolean           = canOperate && !isPreview
-  val showObservingMode: Boolean          = showProp(
+  val isPreview: Boolean                    = steps.exists(_.isPreview)
+  val hasControls: Boolean                  = canOperate && !isPreview
+  val canSetBreakpoint: Boolean             = canOperate && !isPreview
+  val showObservingMode: Boolean            = showProp(
     InstrumentProperties.ObservingMode
   )
   val showReadMode: Boolean                 = showProp(InstrumentProperties.ReadMode)
@@ -332,10 +332,12 @@ final case class StepsTable(
   val sequenceState: Option[SequenceState] = steps.map(_.state)
 
   def stepSummary(step: Step): Option[StepStateSummary] =
-    (obsId, instrument, sequenceState).mapN(
-      StepStateSummary(step, _, _, tabOperations, _)
+    (steps.flatMap(_.steps.indexOf(step).some.flatMap(x => (x >= 0).option(x))),
+     obsIdName.map(_.id),
+     instrument,
+     sequenceState
     )
-      .mapN(StepStateSummary(step, displayName, _, _, tabOperations, _))
+      .mapN(StepStateSummary(step, _, _, _, tabOperations, _))
 
   def detailRowCount(step: Step, selected: Option[StepId]): Option[Int] =
     stepSummary(step).map(_.detailRows(selected, hasControls).rows)
@@ -599,7 +601,13 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step, f.id, f.instrument, $.props.tabOperations, f.state),
+        StepStateSummary(row.step,
+                         index,
+                         f.idName.id,
+                         f.instrument,
+                         $.props.tabOperations,
+                         f.state
+        ),
         $.state.selected,
         $.props.isPreview
       )

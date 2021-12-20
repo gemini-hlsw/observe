@@ -25,7 +25,7 @@ import typings.loglevel.mod.{ ^ => logger }
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
-  def serverSite(implicit cs: ContextShift[IO]): F[Site] =
+  def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {
         import ExecutionContext.Implicits.global
@@ -63,7 +63,7 @@ object ObserveApp extends IOApp {
     val launcher = new ObserveLauncher[IO]
     // Render the UI using React
     for {
-      seqexecSite <- launcher.serverSite
+      observeSite <- launcher.serverSite
       _           <- launcher.initializeDataModel(observeSite)
       router      <- ObserveUI.router[IO](observeSite)
       node        <- launcher.renderingNode

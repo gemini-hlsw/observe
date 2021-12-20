@@ -600,7 +600,7 @@ object ObserveEngine {
       user:     UserDetails
     ): F[Unit] =
       q.offer(Event.modifyState[F, EngineState[F], SeqEvent](setObserver(seqId, observer))) *>
-        q.effer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
+        q.offer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
 
     override def setBreakpoint(
       q:        EventQueue[F],
@@ -628,8 +628,10 @@ object ObserveEngine {
       observer: Observer,
       event:    SeqEvent = SeqEvent.NullSeqEvent
     ): HandleType[F, SeqEvent] = { (s: EngineState[F]) =>
-      ((EngineState.sequences[F] ^|-? index(id))
-         .modify(SequenceData.observer.set(observer.some))(s),
+      ((EngineState
+         .sequences[F]
+         .index(id))
+         .modify(SequenceData.observer.replace(observer.some))(s),
        event
       )
     }.toHandle

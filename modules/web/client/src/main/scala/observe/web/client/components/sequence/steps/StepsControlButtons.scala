@@ -42,7 +42,7 @@ final case class ControlButtons(
   val requestInFlight: Boolean = tabOperations.stepRequestInFlight
 
   protected[steps] val connect: ReactConnectProxy[Option[Progress]] =
-    ObserveCircuit.connect(ObserveCircuit.obsProgressReader[Progress](obsIdName.id, stepId))
+    ObserveCircuit.connect(ObserveCircuit.obsProgressReader[Progress](obsId, stepId))
 }
 
 object ControlButtons {
@@ -63,8 +63,8 @@ object ControlButtons {
   private def requestObsPause(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestObsPause(obsId, stepId))
 
-  private def requestGracefulObsPause(obsId: Observation.Id, stepId: Int): Callback =
-    SeqexecCircuit.dispatchCB(RequestGracefulObsPause(obsId, stepId))
+  private def requestGracefulObsPause(obsId: Observation.Id, stepId: StepId): Callback =
+    ObserveCircuit.dispatchCB(RequestGracefulObsPause(obsId, stepId))
 
   private def requestObsResume(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestObsResume(obsId, stepId))
@@ -135,7 +135,7 @@ object ControlButtons {
                 trigger = Button(
                   icon = true,
                   color = Blue,
-                  onClick = requestObsResume(p.obsIdName.id, p.stepId),
+                  onClick = requestObsResume(p.obsId, p.stepId),
                   disabled = p.requestInFlight || !p.isObservePaused || isReadingOut
                 )(IconPlay)
               )("Resume the current exposure")

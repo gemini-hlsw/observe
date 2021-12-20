@@ -13,10 +13,10 @@ import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import observe.common.HttpStatusCodes
-import observe.model.UserDetails
 import observe.web.client.actions._
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.services.DisplayNamePersistence
+import observe.web.client.circuit.UserLoginFocus
 
 /**
  * Handles actions related to opening/closing the login box

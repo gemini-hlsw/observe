@@ -123,11 +123,11 @@ object ObserveCircuit
   val acProgressRW: ModelRW[ObserveAppRootModel, AlignAndCalibStep] =
     this.zoomRWL(ObserveAppRootModel.alignAndCalib)
 
-  val userLoginRW: ModelRW[SeqexecAppRootModel, UserLoginFocus] =
-    this.zoomRWL(SeqexecAppRootModel.userLoginFocus)
+  val userLoginRW: ModelRW[ObserveAppRootModel, UserLoginFocus] =
+    this.zoomRWL(ObserveAppRootModel.userLoginFocus)
 
-  val sequencesQueueRW: ModelRW[SeqexecAppRootModel, SequencesQueueFocus] =
-    this.zoomRWL(SeqexecAppRootModel.unsafeSequencesQueueFocus)
+  val sequencesQueueRW: ModelRW[ObserveAppRootModel, SequencesQueueFocus] =
+    this.zoomRWL(ObserveAppRootModel.unsafeSequencesQueueFocus)
 
   def sequenceTab(
     id: Observation.Id

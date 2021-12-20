@@ -140,7 +140,7 @@ class ObserveCommandRoutesSpec
         l <- s(
                Request[IO](method = Method.POST,
                            uri = Uri.unsafeFromString(
-                             s"/${obsId.show}/start/${clientId.self}"
+                             s"/${obsId.show}/start/observer/${clientId.self}"
                            )
                )
                  .addCookie("token", t)
@@ -161,7 +161,7 @@ class ObserveCommandRoutesSpec
     }
     forAll { (obsId: Observation.Id, startFrom: StepId, clientId: ClientId) =>
       val uri    = Uri.unsafeFromString(
-        s"/${obsId.show}/${startFrom.show}/startFrom/${clientId.self}"
+        s"/${obsId.show}/${startFrom.show}/startFrom/observer/${clientId.self}"
       )
       val (s, b) = (for {
         s <- commandRoutes(engine)
@@ -188,7 +188,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/pause")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/pause/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -210,7 +210,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/cancelpause")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/cancelpause/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -232,7 +232,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, toSet: StepId, set: Boolean) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/breakpoint/$set")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/breakpoint/observer/$set")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -258,7 +258,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, toSet: StepId, set: Boolean) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/skip/$set")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/skip/observer/$set")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -284,7 +284,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/stop")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/stop/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -310,7 +310,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/stopGracefully")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/stopGracefully/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -336,7 +336,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/abort")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/abort/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -362,7 +362,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/pauseObs")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/pauseObs/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -389,7 +389,7 @@ class ObserveCommandRoutesSpec
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
       val uri    =
-        Uri.unsafeFromString(s"/${obsId.show}/$step/pauseObsGracefully")
+        Uri.unsafeFromString(s"/${obsId.show}/$step/pauseObsGracefully/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken
@@ -415,7 +415,7 @@ class ObserveCommandRoutesSpec
         .returning(IO.unit)
     }
     forAll { (obsId: Observation.Id, step: StepId) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/resumeObs")
+      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$step/resumeObs/observer")
       val (s, b) = (for {
         s <- commandRoutes(engine)
         t <- newLoginToken

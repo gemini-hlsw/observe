@@ -67,7 +67,7 @@ object SequenceTab {
         e.stopPropagationCB *>
         b.setStateL(State.loading)(true).when(b.props.displayName.isDefined) *>
         b.props.displayName
-          .map(d => SeqexecCircuit.dispatchCB(LoadSequence(Observer(d), inst, id)))
+          .map(d => ObserveCircuit.dispatchCB(LoadSequence(Observer(d), inst, idName)))
           .getOrEmpty
 
   private def showSequence(p: Props, page: ObservePages)(e: ReactEvent): Callback =

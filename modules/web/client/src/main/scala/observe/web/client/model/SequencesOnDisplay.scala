@@ -24,8 +24,6 @@ import observe.model.SequencesQueue
 import observe.model.StepId
 import observe.model.SystemOverrides
 import observe.model.enum._
-import observe.web.client.circuit.DayCalObserverFocus
-import observe.web.client.circuit.SequenceObserverFocus
 import observe.web.client.model.ModelOps._
 import shapeless.tag
 

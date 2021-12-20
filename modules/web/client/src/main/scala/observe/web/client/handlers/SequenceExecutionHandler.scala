@@ -11,8 +11,7 @@ import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import diode.NoAction
-import observe.model.SequenceView
-import observe.model.SequencesQueue
+import observe.model.Observer
 import observe.web.client.actions._
 import observe.web.client.model.ModelOps._
 import observe.web.client.services.ObserveWebClient
@@ -27,23 +26,27 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueueFocus])
 
   def handleFlipSkipBreakpoint: PartialFunction[Any, ActionResult[M]] = {
     case FlipSkipStep(sequenceId, step) =>
-      val skipRequest = Effect(ObserveWebClient.skip(sequenceId, step.flipSkip).as(NoAction))
+      val skipRequest = Effect(
+        ObserveWebClient
+          .skip(sequenceId.id, Observer(value.displayName.orEmpty), step.flipSkip)
+          .as(NoAction)
+      )
       updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
-                  case s if s.id === sequenceId => s.flipSkipMarkAtStep(step)
-                  case s                        => s
+                  case s if s.idName.id === sequenceId.id => s.flipSkipMarkAtStep(step)
+                  case s                                  => s
                 }),
                 skipRequest
       )
 
-    case FlipBreakpointStep(sequenceIdName, step) =>
+    case FlipBreakpointStep(sequenceId, step) =>
       val breakpointRequest = Effect(
         ObserveWebClient
-          .breakpoint(sequenceId, Observer(value.displayName.orEmpty), step.flipBreakpoint)
+          .breakpoint(sequenceId.id, Observer(value.displayName.orEmpty), step.flipBreakpoint)
           .as(NoAction)
       )
       updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
-                  case s if s.id === sequenceId => s.flipBreakpointAtStep(step)
-                  case s                        => s
+                  case s if s.idName.id === sequenceId.id => s.flipBreakpointAtStep(step)
+                  case s                                  => s
                 }),
                 breakpointRequest
       )

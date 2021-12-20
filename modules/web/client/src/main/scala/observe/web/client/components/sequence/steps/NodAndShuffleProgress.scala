@@ -137,7 +137,7 @@ sealed abstract class NodAndShuffleProgressProps[A](
 
   protected[steps] val connect: ReactConnectProxy[Option[NSObservationProgress]] =
     ObserveCircuit.connect(
-      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsIdName.id, summary.step.id)
+      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsIdName, summary.step.id)
     )
 }
 
@@ -281,7 +281,6 @@ sealed trait NodAndShuffleRow[A, L <: OperationLevel] {
           ObserveStyles.nodAndShuffleControls,
           ControlButtons(
             p.stateSummary.obsIdName,
-            p.stateSummary.displayName.orEmpty,
             p.stateSummary.instrument.operations[L](p.stateSummary.step.isObservePaused),
             p.stateSummary.state,
             p.stateSummary.step.id,

@@ -220,7 +220,12 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId))
+      sf <-
+        advanceN(q,
+                 s0,
+                 observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId),
+                 2
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -248,7 +253,11 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId))
+      sf <-
+        advanceOne(q,
+                   s0,
+                   observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId)
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -281,10 +290,12 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q,
-                       s0,
-                       observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
-            )
+      sf <-
+        advanceOne(
+          q,
+          s0,
+          observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -317,14 +328,18 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q,
-                       s0,
-                       observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
-            )
-    } yield inside(sf.flatMap((EngineState.sequences[IO] ^|-? index(seqObsId2)).getOption)) {
+      sf <-
+        advanceN(
+          q,
+          s0,
+          observeEngine
+            .configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId),
+          2
+        )
+    } yield inside(sf.flatMap((EngineState.sequences[IO].index(seqObsId2)).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Started))(
-          s.seqGen.configActionCoord(1, Instrument.F2).map(s.seq.getSingleState)
+          s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
         )
     }).unsafeRunSync()
   }
@@ -337,7 +352,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      _  <- observeEngine.startFrom(q, seqObsId1, Observer(""), runStepId, clientId, RunOverride.Default)
+      _  <- observeEngine.startFrom(q,
+                                    seqObsId1,
+                                    Observer(""),
+                                    runStepId,
+                                    clientId,
+                                    RunOverride.Default
+            )
       sf <- observeEngine
               .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
@@ -373,7 +394,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      _  <- observeEngine.startFrom(q, seqObsId2, Observer(""), runStepId, clientId, RunOverride.Default)
+      _  <- observeEngine.startFrom(q,
+                                    seqObsId2,
+                                    Observer(""),
+                                    runStepId,
+                                    clientId,
+                                    RunOverride.Default
+            )
       sf <- observeEngine
               .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
@@ -452,7 +479,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -477,7 +510,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -502,7 +541,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -527,7 +572,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -552,7 +603,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -577,7 +634,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Override)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Override
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -602,7 +665,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Override)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Override
+                         )
                        )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -631,7 +700,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <-
         advanceOne(q,
                    s0,
-                   observeEngine.startFrom(q, seqObsId1, Observer(""),  stepId(2), clientId, RunOverride.Default)
+                   observeEngine.startFrom(q,
+                                           seqObsId1,
+                                           Observer(""),
+                                           stepId(2),
+                                           clientId,
+                                           RunOverride.Default
+                   )
         )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -658,7 +733,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
       q             <- Queue.bounded[IO, executeEngine.EventType](10)
       result        <-
-        observeEngine.startFrom(q, seqObsId1, Observer(""), stepId(2), clientId, RunOverride.Default) *>
+        observeEngine.startFrom(q,
+                                seqObsId1,
+                                Observer(""),
+                                stepId(2),
+                                clientId,
+                                RunOverride.Default
+        ) *>
           observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(1).compile.last
     } yield inside(result) { case Some((out, sf)) =>
       inside(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).map(_.status)) {
@@ -699,7 +780,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <-
         advanceOne(q,
                    s0,
-                   observeEngine.startFrom(q, seqObsId1, Observer(""), stepId(2), clientId, RunOverride.Override)
+                   observeEngine.startFrom(q,
+                                           seqObsId1,
+                                           Observer(""),
+                                           stepId(2),
+                                           clientId,
+                                           RunOverride.Override
+                   )
         )
     } yield inside(sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)) {
       case Some(s) =>
@@ -730,7 +817,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <-
         advanceOne(q,
                    s0,
-                   observeEngine.startFrom(q, seqObsId1, Observer(""), stepId(2), clientId, RunOverride.Default)
+                   observeEngine.startFrom(q,
+                                           seqObsId1,
+                                           Observer(""),
+                                           stepId(2),
+                                           clientId,
+                                           RunOverride.Default
+                   )
         )
     } yield inside(
       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
@@ -797,7 +890,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf            <- advanceOne(
                          q,
                          s0,
-                         observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+                         observeEngine.start(q,
+                                             seqObsId1,
+                                             UserDetails("", ""),
+                                             Observer(""),
+                                             clientId,
+                                             RunOverride.Default
+                         )
                        )
     } yield inside(sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)) {
       case Some(s) =>
@@ -823,7 +922,13 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       observeEngine <- ObserveEngine.build(Site.GS, defaultSystems, defaultSettings, sm)
       q             <- Queue.bounded[IO, executeEngine.EventType](10)
       result        <-
-        observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Default) *>
+        observeEngine.start(q,
+                            seqObsId1,
+                            UserDetails("", ""),
+                            Observer(""),
+                            clientId,
+                            RunOverride.Default
+        ) *>
           observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(1).compile.last
     } yield inside(result) { case Some((out, sf)) =>
       inside(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).map(_.status)) {
@@ -863,7 +968,8 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         advanceN(
           q,
           s0,
-          observeEngine.start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Override),
+          observeEngine
+            .start(q, seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Override),
           3
         )
     } yield inside(sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)) {

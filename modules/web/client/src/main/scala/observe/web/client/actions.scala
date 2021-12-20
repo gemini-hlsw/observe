@@ -62,23 +62,18 @@ object actions {
   final case class ShowPreviewStepConfig(i: Instrument, obsId: Observation.Id, step: StepId)
       extends Action
 
-  // Actions related to executing sequences
-
-  final case class RequestRun(s: Observation.Id, observer: Observer, options: RunOptions)
-      extends Action
-  final case class RequestSync(s: Observation.Id)                                    extends Action
-  final case class RequestPause(s: Observation.Id)                                   extends Action
-  final case class RequestCancelPause(s: Observation.Id)                             extends Action
-  final case class RequestStop(idName: Observation.IdName, observer: Observer, step: StepId) extends Action
-  final case class RequestGracefulStop(id: Observation.Id, observer: Observer, step: StepId)
-      extends Action
-  final case class RequestAbort(id: Observation.Id, step: StepId) extends Action
-  final case class RequestObsPause(id: Observation.Id, step: StepId)
-      extends Action
-  final case class RequestGracefulObsPause(id: Observation.Id, step: StepId)
-      extends Action
-  final case class RequestObsResume(id: Observation.Id, step: StepId)                 extends Action
-  case object RequestSoundEcho                                                        extends Action
+  // Action to select a sequenc
+  final case class RequestRun(s: Observation.Id, options: RunOptions)        extends Action
+  final case class RequestSync(s: Observation.IdName)                        extends Action
+  final case class RequestPause(s: Observation.IdName)                       extends Action
+  final case class RequestCancelPause(s: Observation.Id)                     extends Action
+  final case class RequestAbort(id: Observation.Id, step: StepId)            extends Action
+  final case class RequestStop(id: Observation.Id, step: StepId)             extends Action
+  final case class RequestGracefulStop(id: Observation.Id, step: StepId)     extends Action
+  final case class RequestObsPause(id: Observation.Id, step: StepId)         extends Action
+  final case class RequestGracefulObsPause(id: Observation.Id, step: StepId) extends Action
+  final case class RequestObsResume(id: Observation.Id, step: StepId)        extends Action
+  case object RequestSoundEcho                                               extends Action
 
   final case class RequestResourceRun(id: Observation.Id, step: StepId, resource: Resource)
       extends Action
@@ -88,7 +83,7 @@ object actions {
   final case class RunResourceComplete(id: Observation.Id, step: StepId, resource: Resource)
       extends Action
   final case class RunResourceFailed(
-    id:       Observation.IdName,
+    id:       Observation.Id,
     step:     StepId,
     resource: Resource,
     msg:      String
@@ -115,10 +110,10 @@ object actions {
   final case class RunStop(s: Observation.Id)                   extends Action
   final case class RunGracefulStop(s: Observation.Id)           extends Action
   final case class RunStopCompleted(s: Observation.Id)          extends Action
-  final case class RunStopFailed(s: Observation.IdName)         extends Action
+  final case class RunStopFailed(s: Observation.Id)             extends Action
   final case class RunGracefulStopFailed(s: Observation.Id)     extends Action
   final case class RunAbort(s: Observation.Id)                  extends Action
-  final case class RunAbortFailed(s: Observation.IdName)        extends Action
+  final case class RunAbortFailed(s: Observation.Id)            extends Action
   final case class RunObsPause(s: Observation.Id)               extends Action
   final case class RunGracefulObsPause(s: Observation.Id)       extends Action
   final case class RunObsResume(s: Observation.Id)              extends Action

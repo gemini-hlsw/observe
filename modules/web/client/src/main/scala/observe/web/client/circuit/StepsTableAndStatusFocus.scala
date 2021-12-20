@@ -25,10 +25,7 @@ object StepsTableAndStatusFocus {
 
   def stepsTableAndStatusFocusG(
     id: Observation.Id
-  ): Getter[ObserveAppRootModel, StepsTableAndStatusFocus] = {
-
-    val displayNames =
-      ObserveAppRootModel.userLoginFocus.asGetter
+  ): Getter[ObserveAppRootModel, StepsTableAndStatusFocus] =
     ClientStatus.clientStatusFocusL.asGetter
       .zip(
         StepsTableFocus
@@ -37,7 +34,7 @@ object StepsTableAndStatusFocus {
             ObserveAppRootModel
               .stepsTableStateL(id)
               .asGetter
-              .zip(ObserveAppRootModel.configTableStateL.asGetter.zip(displayNames))
+              .zip(ObserveAppRootModel.configTableStateL)
           )
       ) >>> { case (s, (f, (a, t))) =>
       StepsTableAndStatusFocus(s, f, a.getOrElse(StepsTable.State.InitialTableState), t)

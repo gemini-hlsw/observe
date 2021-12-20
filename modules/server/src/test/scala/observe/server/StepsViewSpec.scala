@@ -14,15 +14,7 @@ import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import observe.engine._
-import observe.model.{
-  Conditions,
-  Observation,
-  Observer,
-  Operator,
-  SequenceState,
-  StepState,
-  UserDetails
-}
+import observe.model._
 import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import observe.server.TestCommon._
@@ -253,7 +245,13 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sf <- advanceOne(
               q,
               s0,
-              observeEngine.start(q, seqObsId2, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+              observeEngine.start(q,
+                                  seqObsId2,
+                                  UserDetails("", ""),
+                                  Observer(""),
+                                  clientId,
+                                  RunOverride.Default
+              )
             )
     } yield inside(sf.flatMap(EngineState.sequenceStateIndex(seqObsId2).getOption).map(_.status)) {
       case Some(status) => assert(status.isIdle)
@@ -282,7 +280,13 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sf <- advanceN(
               q,
               s0,
-              observeEngine.start(q, seqObsId2, UserDetails("", ""), Observer(""), clientId, RunOverride.Default),
+              observeEngine.start(q,
+                                  seqObsId2,
+                                  UserDetails("", ""),
+                                  Observer(""),
+                                  clientId,
+                                  RunOverride.Default
+              ),
               2
             )
     } yield inside(sf.flatMap(EngineState.sequenceStateIndex(seqObsId2).getOption).map(_.status)) {
@@ -301,7 +305,12 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId))
+      sf <-
+        advanceN(q,
+                 s0,
+                 observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId),
+                 2
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -329,7 +338,11 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q, s0, observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId))
+      sf <-
+        advanceOne(q,
+                   s0,
+                   observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId)
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -362,10 +375,12 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q,
-                       s0,
-                       observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
-            )
+      sf <-
+        advanceOne(
+          q,
+          s0,
+          observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -398,10 +413,14 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      sf <- advanceOne(q,
-                       s0,
-                       observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
-            )
+      sf <-
+        advanceN(
+          q,
+          s0,
+          observeEngine
+            .configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId),
+          2
+        )
     } yield inside(
       sf.flatMap(
         EngineState
@@ -424,7 +443,13 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      _  <- observeEngine.startFrom(q, seqObsId1, runStepId, clientId, RunOverride.Default)
+      _  <- observeEngine.startFrom(q,
+                                    seqObsId1,
+                                    Observer(""),
+                                    runStepId,
+                                    clientId,
+                                    RunOverride.Default
+            )
       sf <- observeEngine
               .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)
@@ -460,7 +485,13 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
-      _  <- observeEngine.startFrom(q, seqObsId2, Observer(""), runStepId, clientId, RunOverride.Default)
+      _  <- observeEngine.startFrom(q,
+                                    seqObsId2,
+                                    Observer(""),
+                                    runStepId,
+                                    clientId,
+                                    RunOverride.Default
+            )
       sf <- observeEngine
               .stream(Stream.fromQueueUnterminated(q))(s0)
               .map(_._2)

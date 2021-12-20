@@ -6,9 +6,8 @@ package observe.web.client.components.sequence.steps
 import cats.data.Nested
 import cats.syntax.all._
 import cats.Order._
-import japgolly.scalajs.react.{ CtorType, Reusability, _ }
-import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react._
 import react.common._
 import react.semanticui.SemanticColor
 import react.semanticui.colors._
@@ -43,12 +42,12 @@ final case class StepProgressCell(
   isPreview:    Boolean
 ) extends ReactProps[StepProgressCell](StepProgressCell.component) {
 
-  val step: Step                    = stateSummary.step
-  val stepIdx: Int                  = stateSummary.stepIdx
-  val obsIdName: Observation.IdName = stateSummary.obsIdName
-  val instrument: Instrument        = stateSummary.instrument
-  val tabOperations: TabOperations  = stateSummary.tabOperations
-  val state: SequenceState          = stateSummary.state
+  val step: Step                   = stateSummary.step
+  val stepIdx: Int                 = stateSummary.stepIdx
+  val obsIdName: Observation.Id    = stateSummary.obsIdName
+  val instrument: Instrument       = stateSummary.instrument
+  val tabOperations: TabOperations = stateSummary.tabOperations
+  val state: SequenceState         = stateSummary.state
 
   val resourceRunRequested: SortedMap[Resource, ResourceRunOperation] =
     tabOperations.resourceRunRequested
@@ -110,7 +109,7 @@ object StepProgressCell {
 
   def stepControlButtons(props: Props): TagMod =
     StepsControlButtons(
-      props.obsId,
+      props.obsIdName,
       props.instrument,
       props.state,
       props.step.id,
@@ -128,7 +127,7 @@ object StepProgressCell {
       ObserveStyles.configuringRow,
       if (props.stateSummary.isBias)
         BiasStatus(
-          props.obsIdName.id,
+          props.obsIdName,
           props.step.id,
           fileId,
           stopping = !paused && props.isStopping,
@@ -136,14 +135,14 @@ object StepProgressCell {
         )
       else
         props.stateSummary.nsStatus.fold[VdomElement] {
-          ObservationProgressBar(props.obsIdName.id,
+          ObservationProgressBar(props.obsIdName,
                                  props.step.id,
                                  fileId,
                                  stopping = !paused && props.isStopping,
                                  paused
           )
         } { nsStatus =>
-          NodAndShuffleProgressMessage(props.obsIdName.id,
+          NodAndShuffleProgressMessage(props.obsIdName,
                                        props.step.id,
                                        fileId,
                                        props.isStopping,

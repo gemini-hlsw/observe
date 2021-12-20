@@ -7,6 +7,8 @@ import cats.Eq
 import monocle.Getter
 import monocle.Lens
 import observe.model.UserDetails
+import observe.model.ClientId
+import observe.model.Observer
 
 /**
  * Utility class to let components more easily switch parts of the UI depending on the user and

@@ -19,11 +19,7 @@ import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
 import observe.model.{ Observation, SystemOverrides }
-import observe.web.client.actions.FlipSubystemsControls
-import observe.web.client.actions.RequestCancelPause
-import observe.web.client.actions.RequestPause
-import observe.web.client.actions.RequestRun
-import observe.web.client.actions.RequestSync
+import observe.web.client.actions._
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit._
 import observe.web.client.components.ObserveStyles
@@ -180,9 +176,9 @@ object SequenceControl {
     ScalaComponent
       .builder[Props]
       .renderP { ($, p) =>
-        val SequenceControlFocus(_, _, overrides, _, _, control) = p.p
-        val ControlModel(idName, partial, nextStepIdx, status, _)       = control
-        val nextStepToRunIdx                                        = nextStep.foldMap(_ + 1)
+        val SequenceControlFocus(_, _, overrides, _, _, control)  = p.p
+        val ControlModel(idName, partial, nextStepIdx, status, _) = control
+        val nextStepToRunIdx                                      = nextStepIdx.foldMap(_ + 1)
 
         <.div(
           ObserveStyles.SequenceControlForm,
@@ -191,7 +187,7 @@ object SequenceControl {
             syncButton(idName, p.canSync)
               .when(status.isIdle || status.isError),
             // Run button
-            runButton(id, partial, nextStepToRun, p.canRun)
+            runButton(idName.id, partial, nextStepToRunIdx, p.canRun)
               .when(status.isIdle || status.isError),
             // Cancel pause button
             cancelPauseButton(idName.id, p.canCancelPause)

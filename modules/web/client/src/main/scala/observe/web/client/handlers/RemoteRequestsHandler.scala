@@ -10,9 +10,9 @@ import diode.ActionHandler
 import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
-import observe.model.ClientId
 import observe.web.client.actions._
 import observe.web.client.services.ObserveWebClient
+import observe.web.client.model.ClientStatus
 
 /**
  * Handles actions sending requests to the backend
@@ -41,7 +41,7 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, ClientStatus])
     val effect = (value.clientId, value.observer)
       .mapN((clientId, observer) =>
         requestEffect(id,
-                      SeqexecWebClient.pause(_, observer),
+                      ObserveWebClient.pause(_, observer),
                       RunPaused.apply,
                       RunPauseFailed.apply
         )
@@ -54,10 +54,11 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, ClientStatus])
     case RequestRunFrom(id, stepId, options) =>
       val effect = (value.clientId, value.observer)
         .mapN((clientId, observer) =>
-          requestEffect(id,
-                        SeqexecWebClient.runFrom(_, stepId, observer, clientId, options),
-                        RunFromComplete(_, stepId),
-                        RunFromFailed(_, stepIdx)
+          requestEffect(
+            id,
+            ObserveWebClient.runFrom(_, stepId, observer, clientId, options),
+            RunFromComplete(_, stepId),
+            RunFromFailed(_, stepId)
           )
         )
         .getOrElse(VoidEffect)
@@ -190,7 +191,7 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, ClientStatus])
       val effect = (value.clientId, value.observer)
         .mapN((clientId, observer) =>
           requestEffect(
-            idName,
+            id,
             ObserveWebClient.runResource(step, resource, observer, _, clientId),
             RunResource(_, step, resource),
             RunResourceFailed(_, step, resource, s"Http call to configure ${resource.show} failed")

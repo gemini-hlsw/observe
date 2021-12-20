@@ -7,7 +7,6 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import monocle.Getter
-import observe.model._
 import observe.web.client.model._
 
 final case class TabFocus(

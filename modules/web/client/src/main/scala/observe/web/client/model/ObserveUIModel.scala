@@ -7,11 +7,11 @@ import cats.Eq
 import lucuma.core.util.Enumerated
 import monocle.macros.Lenses
 import observe.common.FixedLengthBuffer
-import observe.model.Observer
 import observe.model.UserDetails
 import observe.web.client.model.SectionVisibilityState._
-import seqexec.web.client.handlers.UserLoginFocus
+import observe.web.client.circuit.UserLoginFocus
 import monocle.Getter
+import monocle.Lens
 
 sealed trait SoundSelection extends Product with Serializable
 
@@ -92,7 +92,7 @@ object ObserveUIModel {
       )
     )
 
-  val displayNameG: Getter[SeqexecUIModel, Option[String]] =
-    Getter[SeqexecUIModel, Option[String]](x => x.user.flatMap(r => x.displayNames.get(r.username)))
+  val displayNameG: Getter[ObserveUIModel, Option[String]] =
+    Getter[ObserveUIModel, Option[String]](x => x.user.flatMap(r => x.displayNames.get(r.username)))
 
 }

@@ -28,14 +28,14 @@ class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
       val modelUpdateE = not match {
         case UserPrompt.ChecksOverride(idName, _, _, _) => Effect(Future(RunStartFailed(idName.id)))
       }
-      updatedLE(lens.set(not.some), modelUpdateE)
+      updatedLE(lens.replace(not.some), modelUpdateE)
   }
 
   def handleClosePrompt: PartialFunction[Any, ActionResult[M]] = { case CloseUserPromptBox(x) =>
     val overrideEffect = this.value.notification match {
-      case Some(UserPrompt.ChecksOverride(id, stp, _)) if x === UserPromptResult.Cancel =>
-        Effect(Future(RequestRunFrom(id, stp, RunOptions.ChecksOverride)))
-      case _                                                                            => VoidEffect
+      case Some(UserPrompt.ChecksOverride(id, stp, _, _)) if x === UserPromptResult.Cancel =>
+        Effect(Future(RequestRunFrom(id.id, stp, RunOptions.ChecksOverride)))
+      case _                                                                               => VoidEffect
     }
     updatedLE(lens.replace(none), overrideEffect)
   }

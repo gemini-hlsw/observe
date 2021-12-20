@@ -21,7 +21,6 @@ import react.common._
 import react.semanticui.collections.form._
 import react.semanticui.elements.segment.Segment
 import react.semanticui.widths._
-import observe.model.Observer
 import observe.model.Operator
 import observe.model.enum.CloudCover
 import observe.model.enum.ImageQuality
@@ -86,7 +85,7 @@ object HeadersSideBar {
 
     private def updateDisplayName(dn: String): Callback =
       $.props >>= { p =>
-        SeqexecCircuit
+        ObserveCircuit
           .dispatchCB(UpdateDisplayName(p.model.status.user.foldMap(_.username), dn))
           .when_(p.canOperate)
       }
@@ -153,7 +152,7 @@ object HeadersSideBar {
               )
             )
           ),
-          FormGroup(widths = Two, clazz = SeqexecStyles.fieldsNoBottom)(
+          FormGroup(widths = Two, clazz = ObserveStyles.fieldsNoBottom)(
             <.div(
               ^.cls := "sixteen wide field",
               FormLabel("Operator", Some("operator")),
@@ -216,8 +215,8 @@ object HeadersSideBar {
             .filter(_ => (operator =!= s.prevOperator) && operator.nonEmpty)
             .orEmpty :::
             List(
-              State.displayName.set(displayName),
-              State.prevDisplayName.set(displayName)
+              State.displayName.replace(displayName),
+              State.prevDisplayName.replace(displayName)
             ).some
               .filter(_ => (displayName =!= s.prevDisplayName) && displayName.nonEmpty)
               .orEmpty

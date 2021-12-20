@@ -47,7 +47,7 @@ class ObserveCommandRoutes[F[_]: Async](
                clientId,
                runOverride.getOrElse(RunOverride.Default)
       ) *>
-        Ok(s"Started sequence ${obsId.format}")
+        Ok(s"Started sequence $obsId")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(
           obs
@@ -65,11 +65,11 @@ class ObserveCommandRoutes[F[_]: Async](
 
     case POST -> Root / ObsIdVar(obsId) / "pause" / ObserverVar(obs) as user =>
       se.requestPause(inputQueue, obsId, obs, user) *>
-        Ok(s"Pause sequence ${obsId.format}")
+        Ok(s"Pause sequence $obsId")
 
     case POST -> Root / ObsId(obsId) / "cancelpause" / ObserverVar(obs) as user =>
       se.requestCancelPause(inputQueue, obsId, obs, user) *>
-        Ok(s"Cancel Pause sequence ${obsId.format}")
+        Ok(s"Cancel Pause sequence $obsId")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(
           obs
@@ -77,7 +77,7 @@ class ObserveCommandRoutes[F[_]: Async](
           bp
         ) as user =>
       se.setBreakpoint(inputQueue, obsId, user, obs, stepId, bp) *>
-        Ok(s"Set breakpoint in step $stepId of sequence ${obsId.format}")
+        Ok(s"Set breakpoint in step $stepId of sequence $obsId")
 
     case POST -> Root / ObsId(obsId) / "sync" as _ =>
       for {
@@ -90,37 +90,37 @@ class ObserveCommandRoutes[F[_]: Async](
           obs
         ) / BooleanVar(bp) as user =>
       se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
-        Ok(s"Set skip mark in step $stepId of sequence ${obsId.format}")
+        Ok(s"Set skip mark in step $stepId of sequence $obsId")
 
-    case POST -> Root / ObsIdVar(obsId) / PosIntVar(stepId) / "stop" / ObserverVar(
+    case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "stop" / ObserverVar(
           obs
         ) as _ =>
       se.stopObserve(inputQueue, obsId, obs, graceful = false) *>
-        Ok(s"Stop requested for ${obsId.format} on step $stepId")
+        Ok(s"Stop requested for $obsId on step $stepId")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "stopGracefully" / ObserverVar(
           obs
         ) as _ =>
       se.stopObserve(inputQueue, obsId, obs, graceful = true) *>
-        Ok(s"Stop gracefully requested for ${obsId.format} on step $stepId")
+        Ok(s"Stop gracefully requested for $obsId on step $stepId")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "abort" / ObserverVar(obs) as _ =>
       se.abortObserve(inputQueue, obsId, obs) *>
-        Ok(s"Abort requested for ${obsId.format} on step $stepId")
+        Ok(s"Abort requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepIdVar(stepId) / "pauseObs" / ObserverVar(obs) as _ =>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObs" / ObserverVar(obs) as _ =>
       se.pauseObserve(inputQueue, obsId, obs, graceful = false) *>
-        Ok(s"Pause observation requested for ${obsId.format} on step $stepId")
+        Ok(s"Pause observation requested for $obsId on step $stepId")
 
     case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObsGracefully" / ObserverVar(
           obs
         ) as _ =>
       se.pauseObserve(inputQueue, obsId, obs, graceful = true) *>
-        Ok(s"Pause observation gracefully requested for ${obsId.format} on step $stepId")
+        Ok(s"Pause observation gracefully requested for $obsId on step $stepId")
 
     case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "resumeObs" / ObserverVar(obs) as _ =>
       se.resumeObserve(inputQueue, obsId, obs) *>
-        Ok(s"Resume observation requested for ${obsId.format} on step $stepId")
+        Ok(s"Resume observation requested for $obsId on step $stepId")
 
     case POST -> Root / "operator" / OperatorVar(op) as user =>
       se.setOperator(inputQueue, user, op) *> Ok(s"Set operator name to '${op.value}'")
@@ -214,7 +214,7 @@ class ObserveCommandRoutes[F[_]: Async](
           resource
         ) / ObserverVar(obs) / ClientIDVar(clientId) as u =>
       se.configSystem(inputQueue, oid, obs, step, resource, clientId) *>
-        Ok(s"Run ${resource.show} from config at ${oid.format}/$step by ${u.username}/${obs.value}")
+        Ok(s"Run ${resource.show} from config at $oid/$step by ${u.username}/${obs.value}")
 
   }
 

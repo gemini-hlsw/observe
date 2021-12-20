@@ -9,15 +9,12 @@ import cats.Eq
 import monocle.Lens
 import monocle.macros.Lenses
 import observe.model.BatchCommandState
-import observe.model.ClientId
 import observe.model.ExecutionQueueView
 import observe.model.Observer
 import observe.model.QueueId
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.web.client.model.ObserveAppRootModel
-import observe.web.client.model.ObserveUIModel
-import observe.web.client.model.SequencesOnDisplay
 import observe.web.client.model.SessionQueueFilter
 import observe.web.client.model.ClientStatus
 

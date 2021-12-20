@@ -26,7 +26,7 @@ import observe.web.client.reusability._
  * Contains the control to start a step from an arbitrary point
  */
 final case class RunFromStep(
-  idName:           Observation.IdName,
+  idName:           Observation.Id,
   stepId:           StepId,
   stepIdx:          Int,
   resourceInFlight: Boolean,
@@ -40,7 +40,7 @@ object RunFromStep {
 
   def requestRunFrom(
     id:     Observation.Id,
-    stepId: Int
+    stepId: StepId
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       ObserveCircuit
@@ -57,7 +57,7 @@ object RunFromStep {
           trigger = Button(
             icon = true,
             color = Blue,
-            onClickE = requestRunFrom(p.id, p.stepId),
+            onClickE = requestRunFrom(p.idName, p.stepId),
             disabled = p.resourceInFlight || p.runFrom === StartFromOperation.StartFromInFlight
           )(IconPlay)
         )(s"Run from step ${p.stepIdx + 1}")

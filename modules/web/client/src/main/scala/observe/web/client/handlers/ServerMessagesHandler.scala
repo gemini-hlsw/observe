@@ -14,7 +14,6 @@ import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import org.scalajs.dom.window
-import observe.model.Observer
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.SingleActionOp
@@ -293,7 +292,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
         case InstRegex(m) => m
         case m            => m
       }
-      effectOnly(Effect(Future(RunResourceFailed(sidName, stepId, r, actualMsg))))
+      effectOnly(Effect(Future(RunResourceFailed(sidName.id, stepId, r, actualMsg))))
   }
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {

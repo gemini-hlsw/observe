@@ -8,7 +8,7 @@ import monocle.Getter
 import monocle.Lens
 import monocle.macros.Lenses
 import observe.model._
-import ebserve.web.client.model._
+import observe.web.client.model._
 
 @Lenses
 final case class HeaderSideBarFocus(
@@ -23,9 +23,8 @@ object HeaderSideBarFocus {
 
   val headerSideBarG: Getter[ObserveAppRootModel, HeaderSideBarFocus] =
     Getter[ObserveAppRootModel, HeaderSideBarFocus] { c =>
-      val clientStatus = ClientStatus(c.uiModel.user, c.ws)
-      val displayName  = c.uiModel.user.flatMap(u => c.uiModel.displayNames.get(u.username))
-      HeaderSideBarFocus(clientStatus, c.sequences.conditions, c.sequences.operator, displayName)
+      val clientStatus = ClientStatus(c.uiModel.user, c.clientId, c.uiModel.displayNames, c.ws)
+      HeaderSideBarFocus(clientStatus, c.sequences.conditions, c.sequences.operator)
     }
 }
 
@@ -48,5 +47,5 @@ object SequencesQueueFocus {
     Eq.by(u => (u.sequences, u.displayName))
 
   val sessionQueue: Lens[SequencesQueueFocus, List[SequenceView]] =
-    sequences ^|-> SequencesQueue.sessionQueue
+    sequences.andThen(SequencesQueue.sessionQueue)
 }
