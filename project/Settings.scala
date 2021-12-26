@@ -25,8 +25,8 @@ object Settings {
     // Scala libraries
     val catsEffectVersion   = "3.3.0"
     val catsVersion         = "2.7.0"
-    val mouseVersion        = "1.0.8"
-    val fs2Version          = "3.2.3"
+    val mouseVersion        = "1.0.7"
+    val fs2Version          = "3.2.4"
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
@@ -41,7 +41,7 @@ object Settings {
     val log4s          = "1.10.0"
     val log4cats       = "2.1.1"
     val log4catsLevel  = "0.3.0"
-    val logback        = "1.2.7"
+    val logback        = "1.2.9"
     val janino         = "3.1.6"
     val logstash       = "7.0"
     val pureConfig     = "0.17.1"
@@ -51,16 +51,16 @@ object Settings {
     val flywayVersion  = "6.0.4"
 
     // test libraries
-    val xmlUnit                     = "1.6"
-    val jUnitInterface              = "0.13.2"
-    val scalaMock                   = "5.1.0"
-    lazy val munitVersion           = "0.7.29"
-    lazy val munitDisciplineVersion = "1.0.9"
-    lazy val munitCatsEffectVersion = "1.0.7"
+    val xmlUnit                = "1.6"
+    val jUnitInterface         = "0.13.2"
+    val scalaMock              = "5.2.0"
+    val munitVersion           = "0.7.29"
+    val munitDisciplineVersion = "1.0.9"
+    val munitCatsEffectVersion = "1.0.7"
 
     // Pure JS libraries
     val fomanticUI = "2.8.7"
-    val ocsVersion = "2021101.2.2"
+    val ocsVersion = "2021101.1.4"
 
     val apacheXMLRPC        = "3.1.3"
     val opencsv             = "2.3"
@@ -78,7 +78,7 @@ object Settings {
     val guava               = "31.0.1-jre"
     val prometheusClient    = "0.12.0"
     val geminiLocales       = "0.7.0"
-    val pprint              = "0.7.0"
+    val pprint              = "0.7.1"
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
