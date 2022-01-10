@@ -5,49 +5,47 @@ package observe.web.client.circuit
 
 import cats.Eq
 import monocle.Getter
+import monocle.Lens
 import monocle.macros.Lenses
-import observe.model.Observation
-import observe.model.QueueId
 import observe.model._
-import observe.model.enum.Instrument
 import observe.web.client.model._
-
-final case class SequenceObserverFocus(
-  instrument: Instrument,
-  obsId:      Observation.Id,
-  completed:  Boolean,
-  observer:   Option[Observer]
-)
-
-object SequenceObserverFocus {
-  implicit val eq: Eq[SequenceObserverFocus] =
-    Eq.by(x => (x.instrument, x.obsId, x.completed, x.observer))
-}
-
-final case class DayCalObserverFocus(queueId: QueueId, observer: Option[Observer])
-
-object DayCalObserverFocus {
-  implicit val eq: Eq[DayCalObserverFocus] =
-    Eq.by(x => (x.queueId, x.observer))
-}
 
 @Lenses
 final case class HeaderSideBarFocus(
   status:     ClientStatus,
   conditions: Conditions,
-  operator:   Option[Operator],
-  observer:   Either[Observer, Either[DayCalObserverFocus, SequenceObserverFocus]]
+  operator:   Option[Operator]
 )
 
 object HeaderSideBarFocus {
   implicit val eq: Eq[HeaderSideBarFocus] =
-    Eq.by(x => (x.status, x.conditions, x.operator, x.observer))
+    Eq.by(x => (x.status, x.conditions, x.operator))
 
   val headerSideBarG: Getter[ObserveAppRootModel, HeaderSideBarFocus] =
     Getter[ObserveAppRootModel, HeaderSideBarFocus] { c =>
-      val clientStatus = ClientStatus(c.uiModel.user, c.ws)
-      val obs          = c.uiModel.sequencesOnDisplay.selectedObserver
-        .toRight(c.uiModel.defaultObserver)
-      HeaderSideBarFocus(clientStatus, c.sequences.conditions, c.sequences.operator, obs)
+      val clientStatus = ClientStatus(c.uiModel.user, c.clientId, c.uiModel.displayNames, c.ws)
+      HeaderSideBarFocus(clientStatus, c.sequences.conditions, c.sequences.operator)
     }
+}
+
+final case class UserLoginFocus(user: Option[UserDetails], displayNames: Map[String, String]) {
+  val displayName: Option[String] = user.flatMap(u => displayNames.get(u.username))
+}
+
+object UserLoginFocus {
+  implicit val eqUserLoginFocus: Eq[UserLoginFocus] = Eq.by(u => (u.user, u.displayNames))
+}
+
+@Lenses
+final case class SequencesQueueFocus(
+  sequences:   SequencesQueue[SequenceView],
+  displayName: Option[String]
+)
+
+object SequencesQueueFocus {
+  implicit val eqSequencesQueueFocus: Eq[SequencesQueueFocus] =
+    Eq.by(u => (u.sequences, u.displayName))
+
+  val sessionQueue: Lens[SequencesQueueFocus, List[SequenceView]] =
+    sequences.andThen(SequencesQueue.sessionQueue)
 }

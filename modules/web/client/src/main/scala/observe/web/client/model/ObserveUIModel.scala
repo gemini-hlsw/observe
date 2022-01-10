@@ -7,9 +7,11 @@ import cats.Eq
 import lucuma.core.util.Enumerated
 import monocle.macros.Lenses
 import observe.common.FixedLengthBuffer
-import observe.model.Observer
 import observe.model.UserDetails
 import observe.web.client.model.SectionVisibilityState._
+import observe.web.client.circuit.UserLoginFocus
+import monocle.Getter
+import monocle.Lens
 
 sealed trait SoundSelection extends Product with Serializable
 
@@ -35,11 +37,11 @@ object SoundSelection {
 final case class ObserveUIModel(
   navLocation:        Pages.ObservePages,
   user:               Option[UserDetails],
+  displayNames:       Map[String, String],
   loginBox:           SectionVisibilityState,
   globalLog:          GlobalLog,
   sequencesOnDisplay: SequencesOnDisplay,
   appTableStates:     AppTableStates,
-  defaultObserver:    Observer,
   notification:       UserNotificationState,
   userPrompt:         UserPromptState,
   queues:             CalibrationQueues,
@@ -53,11 +55,11 @@ object ObserveUIModel {
   val Initial: ObserveUIModel = ObserveUIModel(
     Pages.Root,
     None,
+    Map.empty,
     SectionClosed,
     GlobalLog(FixedLengthBuffer.unsafeFromInt(500), SectionClosed),
     SequencesOnDisplay.Empty,
     AppTableStates.Initial,
-    Observer(""),
     UserNotificationState.Empty,
     UserPromptState.Empty,
     CalibrationQueues.Default,
@@ -67,15 +69,20 @@ object ObserveUIModel {
     firstLoad = true
   )
 
+  val userLoginFocus: Lens[ObserveUIModel, UserLoginFocus] =
+    Lens[ObserveUIModel, UserLoginFocus](m => UserLoginFocus(m.user, m.displayNames))(n =>
+      a => a.copy(user = n.user, displayNames = n.displayNames)
+    )
+
   implicit val eq: Eq[ObserveUIModel] =
     Eq.by(x =>
       (x.navLocation,
        x.user,
+       x.displayNames,
        x.loginBox,
        x.globalLog,
        x.sequencesOnDisplay,
        x.appTableStates,
-       x.defaultObserver,
        x.notification,
        x.userPrompt,
        x.queues,
@@ -85,5 +92,7 @@ object ObserveUIModel {
       )
     )
 
-  val defaultObserverG = ObserveUIModel.defaultObserver.asGetter
+  val displayNameG: Getter[ObserveUIModel, Option[String]] =
+    Getter[ObserveUIModel, Option[String]](x => x.user.flatMap(r => x.displayNames.get(r.username)))
+
 }

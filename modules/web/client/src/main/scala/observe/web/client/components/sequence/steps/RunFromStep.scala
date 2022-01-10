@@ -26,7 +26,7 @@ import observe.web.client.reusability._
  * Contains the control to start a step from an arbitrary point
  */
 final case class RunFromStep(
-  idName:           Observation.IdName,
+  idName:           Observation.Id,
   stepId:           StepId,
   stepIdx:          Int,
   resourceInFlight: Boolean,
@@ -39,17 +39,16 @@ object RunFromStep {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   def requestRunFrom(
-    idName:  Observation.IdName,
-    stepId:  StepId,
-    stepIdx: Int
+    id:     Observation.Id,
+    stepId: StepId
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       ObserveCircuit
-        .dispatchCB(RequestRunFrom(idName, stepId, stepIdx, RunOptions.Normal))
+        .dispatchCB(RequestRunFrom(id, stepId, RunOptions.Normal))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   protected val component = ScalaComponent
-    .builder[Props]("RunFromStep")
+    .builder[Props]
     .render_P { p =>
       <.div(
         ObserveStyles.runFrom,
@@ -58,7 +57,7 @@ object RunFromStep {
           trigger = Button(
             icon = true,
             color = Blue,
-            onClickE = requestRunFrom(p.idName, p.stepId, p.stepIdx),
+            onClickE = requestRunFrom(p.idName, p.stepId),
             disabled = p.resourceInFlight || p.runFrom === StartFromOperation.StartFromInFlight
           )(IconPlay)
         )(s"Run from step ${p.stepIdx + 1}")

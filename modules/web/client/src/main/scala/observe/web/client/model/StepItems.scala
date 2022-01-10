@@ -218,7 +218,7 @@ object StepItems {
   final case class StepStateSummary(
     step:          Step,
     stepIdx:       Int,
-    obsIdName:     Observation.IdName,
+    obsIdName:     Observation.Id,
     instrument:    Instrument,
     tabOperations: TabOperations,
     state:         SequenceState

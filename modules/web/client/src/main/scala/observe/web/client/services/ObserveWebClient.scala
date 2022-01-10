@@ -32,7 +32,6 @@ import observe.model.enum.Resource
 import observe.model.enum.SkyBackground
 import observe.model.enum.WaterVapor
 import observe.web.client.actions.RunOptions
-
 import scala.annotation.nowarn
 
 /**
@@ -79,7 +78,12 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to execute a sequence
    */
   @nowarn
-  def run(id: Observation.Id, clientId: ClientId, options: RunOptions): Future[Unit] = {
+  def run(
+    id:       Observation.Id,
+    name:     Observer,
+    clientId: ClientId,
+    options:  RunOptions
+  ): Future[Unit] = {
     val param = options match {
       case RunOptions.Normal         => ""
       case RunOptions.ChecksOverride => "?overrideTargetCheck=true"
@@ -87,7 +91,7 @@ object ObserveWebClient extends ModelBooPicklers {
     Ajax
       .post(
         url =
-          s"$baseUrl/commands/${encodeURI(id.toString)}/start/${encodeURI(clientId.self.show)}$param"
+          s"$baseUrl/commands/${encodeURI(id.toString)}/start/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}$param"
       )
       .void
   }
@@ -96,11 +100,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to set a breakpoint
    */
   @nowarn
-  def breakpoint(sid: Observation.Id, step: Step): Future[Unit] =
+  def breakpoint(sid: Observation.Id, name: Observer, step: Step): Future[Unit] =
     Ajax
       .post(
         url =
-          s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/breakpoint/${step.breakpoint}"
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/breakpoint/${encodeURI(name.value)}/${step.breakpoint}"
       )
       .void
 
@@ -108,10 +112,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to set a breakpoint
    */
   @nowarn
-  def skip(sid: Observation.Id, step: Step): Future[Unit] =
+  def skip(sid: Observation.Id, name: Observer, step: Step): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/skip/${step.skip}"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/${step.id}/skip/${encodeURI(name.value)}/${step.skip}"
       )
       .void
 
@@ -119,10 +124,10 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to stop this sequence immediately
    */
   @nowarn
-  def stop(sid: Observation.Id, step: StepId): Future[Unit] =
+  def stop(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stop"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stop/${encodeURI(name.value)}"
       )
       .void
 
@@ -130,10 +135,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to stop this sequence gracefully
    */
   @nowarn
-  def stopGracefully(sid: Observation.Id, step: StepId): Future[Unit] =
+  def stopGracefully(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stopGracefully"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/stopGracefully/${encodeURI(name.value)}"
       )
       .void
 
@@ -141,10 +147,10 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to abort this sequenece immediately
    */
   @nowarn
-  def abort(sid: Observation.Id, step: StepId): Future[Unit] =
+  def abort(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/abort"
+        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/abort/${encodeURI(name.value)}"
       )
       .void
 
@@ -152,10 +158,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to hold the current exposure immediately
    */
   @nowarn
-  def pauseObs(sid: Observation.Id, step: StepId): Future[Unit] =
+  def pauseObs(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObs"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObs/${encodeURI(name.value)}"
       )
       .void
 
@@ -163,10 +170,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to hold the current exposure gracefully
    */
   @nowarn
-  def pauseObsGracefully(sid: Observation.Id, step: StepId): Future[Unit] =
+  def pauseObsGracefully(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObsGracefully"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/pauseObsGracefully/${encodeURI(name.value)}"
       )
       .void
 
@@ -174,10 +182,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to resume the current exposure
    */
   @nowarn
-  def resumeObs(sid: Observation.Id, step: StepId): Future[Unit] =
+  def resumeObs(sid: Observation.Id, name: Observer, step: StepId): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/resumeObs"
+        url =
+          s"$baseUrl/commands/${encodeURI(sid.toString)}/$step/resumeObs/${encodeURI(name.value)}"
       )
       .void
 
@@ -266,7 +275,7 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to pause a sequence
    */
   @nowarn
-  def pause(idName: Observation.IdName): Future[Unit] =
+  def pause(idName: Observation.IdName, name: Observer): Future[Unit] =
     Ajax
       .post(
         url = s"$baseUrl/commands/${encodeURI(idName.id.toString)}/pause"
@@ -277,10 +286,10 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to cancel a pausing request in process
    */
   @nowarn
-  def cancelPause(id: Observation.Id): Future[Unit] =
+  def cancelPause(id: Observation.Id, name: Observer): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(id.toString)}/cancelpause"
+        url = s"$baseUrl/commands/${encodeURI(id.toString)}/cancelpause/${encodeURI(name.value)}"
       )
       .void
 
@@ -444,14 +453,15 @@ object ObserveWebClient extends ModelBooPicklers {
   def runResource(
     pos:       StepId,
     resource:  Resource,
-    obsIdName: Observation.IdName,
+    name:      Observer,
+    obsIdName: Observation.Id,
     clientId:  ClientId
   ): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/execute/${encodeURI(obsIdName.id.toString)}/$pos/${encodeURI(
+        url = s"$baseUrl/commands/execute/${encodeURI(obsIdName.toString)}/$pos/${encodeURI(
           resource.show
-        )}/${encodeURI(clientId.self.show)}"
+        )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
       )
       .void
 
@@ -460,8 +470,9 @@ object ObserveWebClient extends ModelBooPicklers {
    */
   @nowarn
   def runFrom(
-    obsIdName: Observation.IdName,
+    obsIdName: Observation.Id,
     stepId:    StepId,
+    name:      Observer,
     clientId:  ClientId,
     options:   RunOptions
   ): Future[Unit] = {
@@ -471,8 +482,9 @@ object ObserveWebClient extends ModelBooPicklers {
     }
     Ajax
       .post(
-        url =
-          s"$baseUrl/commands/${encodeURI(obsIdName.id.toString)}/$stepId/startFrom/${encodeURI(clientId.self.show)}$param"
+        url = s"$baseUrl/commands/${encodeURI(obsIdName.toString)}/$stepId/startFrom/${encodeURI(
+          name.value
+        )}/${encodeURI(clientId.self.show)}$param"
       )
       .void
   }

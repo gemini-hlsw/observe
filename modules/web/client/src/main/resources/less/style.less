@@ -205,6 +205,8 @@ body {
   border-width: 1px;
   border-style: solid;
   border-color: @borderColor;
+  padding-top: 0.5em !important;
+  padding-bottom: 0.5em !important;
   .normalizedSegment;
   .widerColumn;
 }
@@ -429,15 +431,16 @@ body {
 .ObserveStyles-queueAreaRow {
   display: flex;
   flex-direction: column;
+  padding-bottom: 0.2em;
 }
 
 .ObserveStyles-queueArea {
-  width: 100%;
+  flex-grow: 4;
   .mobileSegment;
 }
 
 .ObserveStyles-headerSidebarArea {
-  width: 100%;
+  flex-grow: 4;
   display: none;
   padding-left: 0.5rem !important;
 }
@@ -1283,10 +1286,6 @@ body {
     display: none !important;
   }
 
-  .ObserveStyles-queueListPane {
-    max-height: 180px;
-    min-height: 180px;
-  }
 }
 .mobileSegment() {
   padding-right: 0 !important;
@@ -1379,11 +1378,9 @@ p.ObserveStyles-confirmLine {
     flex-direction: row;
   }
   .ObserveStyles-queueArea {
-    width: 50%;
   }
   .ObserveStyles-headerSidebarArea {
-    width: 50%;
-    display: block;
+    display: inherit;
   }
 }
 @media only screen and (max-width: 767px) {
@@ -1395,10 +1392,6 @@ p.ObserveStyles-confirmLine {
     width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
-  }
-  .ObserveStyles-queueListPane {
-    max-height: 10.1em;
-    min-height: 10.1em;
   }
   .ObserveStyles-tabSegment {
     .mobileSegment;

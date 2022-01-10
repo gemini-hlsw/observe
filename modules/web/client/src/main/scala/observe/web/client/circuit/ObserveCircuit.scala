@@ -76,8 +76,8 @@ object ObserveCircuit
     this.zoomRWL(ObserveAppRootModel.uiModel.andThen(ObserveUIModel.appTableStates))
 
   // Reader to indicate the allowed interactions
-  val statusReader: ModelR[ObserveAppRootModel, ClientStatus] =
-    this.zoomL(ClientStatus.clientStatusFocusL)
+  val statusReader: ModelRW[ObserveAppRootModel, ClientStatus] =
+    this.zoomRWL(ClientStatus.clientStatusFocusL)
 
   // Reader to read/write the sound setting
   val soundSettingReader: ModelR[ObserveAppRootModel, SoundSelection] =
@@ -122,6 +122,12 @@ object ObserveCircuit
 
   val acProgressRW: ModelRW[ObserveAppRootModel, AlignAndCalibStep] =
     this.zoomRWL(ObserveAppRootModel.alignAndCalib)
+
+  val userLoginRW: ModelRW[ObserveAppRootModel, UserLoginFocus] =
+    this.zoomRWL(ObserveAppRootModel.userLoginFocus)
+
+  val sequencesQueueRW: ModelRW[ObserveAppRootModel, SequencesQueueFocus] =
+    this.zoomRWL(ObserveAppRootModel.unsafeSequencesQueueFocus)
 
   def sequenceTab(
     id: Observation.Id
@@ -182,16 +188,16 @@ object ObserveCircuit
                                                            CloseUserNotificationBox,
                                                            zoomTo(_.uiModel.notification.visibility)
   )
-  private val userLoginHandler        = new UserLoginHandler(zoomTo(_.uiModel.user))
+  private val userLoginHandler        = new UserLoginHandler(userLoginRW)
   private val userNotificationHandler = new NotificationsHandler(zoomTo(_.uiModel.notification))
   private val userPromptHandler       = new UserPromptHandler(zoomTo(_.uiModel.userPrompt))
   private val sequenceDisplayHandler  = new SequenceDisplayHandler(sequencesReaderRW)
-  private val sequenceExecHandler     = new SequenceExecutionHandler(zoomTo(_.sequences))
+  private val sequenceExecHandler     = new SequenceExecutionHandler(sequencesQueueRW)
   private val globalLogHandler        = new GlobalLogHandler(zoomTo(_.uiModel.globalLog))
   private val conditionsHandler       = new ConditionsHandler(zoomTo(_.sequences.conditions))
   private val operatorHandler         = new OperatorHandler(zoomTo(_.sequences.operator))
-  private val defaultObserverHandler  = new DefaultObserverHandler(zoomTo(_.uiModel.defaultObserver))
-  private val remoteRequestsHandler   = new RemoteRequestsHandler(zoomTo(_.clientId))
+  private val displayNameHandler      = new DisplayNameHandler(zoomTo(_.uiModel.displayNames))
+  private val remoteRequestsHandler   = new RemoteRequestsHandler(statusReader)
   private val queueRequestsHandler    = new QueueRequestsHandler(queueFocusRW)
   private val tableStateHandler       = new TableStateHandler(tableStateRW)
   private val loadSequencesHandler    = new LoadedSequencesHandler(sodLocationReaderRW)
@@ -233,7 +239,7 @@ object ObserveCircuit
       globalLogHandler,
       conditionsHandler,
       operatorHandler,
-      defaultObserverHandler,
+      displayNameHandler,
       foldHandlers(remoteRequestsHandler, operationsStateHandler),
       foldHandlers(queueOpsHandler, queueRequestsHandler),
       navigationHandler,

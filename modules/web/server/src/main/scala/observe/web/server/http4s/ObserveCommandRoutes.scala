@@ -35,35 +35,48 @@ class ObserveCommandRoutes[F[_]: Async](
   private val httpAuthentication = new Http4sAuthentication(auth)
 
   private val commandServices: AuthedRoutes[UserDetails, F] = AuthedRoutes.of {
-    case POST -> Root / ObsId(obsId) / "start" / ClientIDVar(clientId) :? OptionalRunOverride(
+    case POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
+          clientId
+        ) :? OptionalRunOverride(
           runOverride
         ) as user =>
-      se.start(inputQueue, obsId, user, clientId, runOverride.getOrElse(RunOverride.Default)) *>
+      se.start(inputQueue,
+               obsId,
+               user,
+               obs,
+               clientId,
+               runOverride.getOrElse(RunOverride.Default)
+      ) *>
         Ok(s"Started sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ClientIDVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(
+          obs
+        ) / ClientIDVar(
           clientId
         ) :? OptionalRunOverride(runOverride) as _ =>
       se.startFrom(inputQueue,
                    obsId,
+                   obs,
                    stepId,
                    clientId,
                    runOverride.getOrElse(RunOverride.Default)
       ) *>
         Ok(s"Started sequence $obsId from step $stepId")
 
-    case POST -> Root / ObsId(obsId) / "pause" as user =>
-      se.requestPause(inputQueue, obsId, user) *>
+    case POST -> Root / ObsIdVar(obsId) / "pause" / ObserverVar(obs) as user =>
+      se.requestPause(inputQueue, obsId, obs, user) *>
         Ok(s"Pause sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / "cancelpause" as user =>
-      se.requestCancelPause(inputQueue, obsId, user) *>
+    case POST -> Root / ObsId(obsId) / "cancelpause" / ObserverVar(obs) as user =>
+      se.requestCancelPause(inputQueue, obsId, obs, user) *>
         Ok(s"Cancel Pause sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / BooleanVar(
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(
+          obs
+        ) / BooleanVar(
           bp
         ) as user =>
-      se.setBreakpoint(inputQueue, obsId, user, stepId, bp) *>
+      se.setBreakpoint(inputQueue, obsId, user, obs, stepId, bp) *>
         Ok(s"Set breakpoint in step $stepId of sequence $obsId")
 
     case POST -> Root / ObsId(obsId) / "sync" as _ =>
@@ -73,32 +86,40 @@ class ObserveCommandRoutes[F[_]: Async](
           u.fold(_ => NotFound(s"Not found sequence $obsId"), _ => Ok(s"Sync requested for $obsId"))
       } yield resp
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / BooleanVar(bp) as user =>
-      se.setSkipMark(inputQueue, obsId, user, stepId, bp) *>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / ObserverVar(
+          obs
+        ) / BooleanVar(bp) as user =>
+      se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
         Ok(s"Set skip mark in step $stepId of sequence $obsId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "stop" as _ =>
-      se.stopObserve(inputQueue, obsId, graceful = false) *>
+    case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "stop" / ObserverVar(
+          obs
+        ) as _ =>
+      se.stopObserve(inputQueue, obsId, obs, graceful = false) *>
         Ok(s"Stop requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "stopGracefully" as _ =>
-      se.stopObserve(inputQueue, obsId, graceful = true) *>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "stopGracefully" / ObserverVar(
+          obs
+        ) as _ =>
+      se.stopObserve(inputQueue, obsId, obs, graceful = true) *>
         Ok(s"Stop gracefully requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "abort" as _ =>
-      se.abortObserve(inputQueue, obsId) *>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "abort" / ObserverVar(obs) as _ =>
+      se.abortObserve(inputQueue, obsId, obs) *>
         Ok(s"Abort requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObs" as _ =>
-      se.pauseObserve(inputQueue, obsId, graceful = false) *>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObs" / ObserverVar(obs) as _ =>
+      se.pauseObserve(inputQueue, obsId, obs, graceful = false) *>
         Ok(s"Pause observation requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObsGracefully" as _ =>
-      se.pauseObserve(inputQueue, obsId, graceful = true) *>
+    case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObsGracefully" / ObserverVar(
+          obs
+        ) as _ =>
+      se.pauseObserve(inputQueue, obsId, obs, graceful = true) *>
         Ok(s"Pause observation gracefully requested for $obsId on step $stepId")
 
-    case POST -> Root / ObsId(obsId) / StepId(stepId) / "resumeObs" as _ =>
-      se.resumeObserve(inputQueue, obsId) *>
+    case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "resumeObs" / ObserverVar(obs) as _ =>
+      se.resumeObserve(inputQueue, obsId, obs) *>
         Ok(s"Resume observation requested for $obsId on step $stepId")
 
     case POST -> Root / "operator" / OperatorVar(op) as user =>
@@ -191,9 +212,9 @@ class ObserveCommandRoutes[F[_]: Async](
 
     case POST -> Root / "execute" / ObsIdVar(oid) / StepId(step) / ResourceVar(
           resource
-        ) / ClientIDVar(clientId) as u =>
-      se.configSystem(inputQueue, oid, step, resource, clientId) *>
-        Ok(s"Run ${resource.show} from config at $oid/$step by ${u.username}")
+        ) / ObserverVar(obs) / ClientIDVar(clientId) as u =>
+      se.configSystem(inputQueue, oid, obs, step, resource, clientId) *>
+        Ok(s"Run ${resource.show} from config at $oid/$step by ${u.username}/${obs.value}")
 
   }
 

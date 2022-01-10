@@ -26,6 +26,7 @@ final case class SequenceInSessionQueue(
   name:          String,
   obsClass:      ObsClass,
   targetName:    Option[TargetName],
+  observer:      Option[Observer],
   runningStep:   Option[RunningStep],
   nextStepToRun: Option[StepId],
   inDayCalQueue: Boolean
@@ -42,6 +43,7 @@ object SequenceInSessionQueue {
        x.name,
        x.obsClass,
        x.targetName,
+       x.observer,
        x.runningStep,
        x.nextStepToRun,
        x.inDayCalQueue
@@ -61,17 +63,19 @@ object SequenceInSessionQueue {
         .headOption(s)
         .map(ObsClass.fromString)
         .getOrElse(ObsClass.Nighttime)
-      SequenceInSessionQueue(s.idName,
-                             s.status,
-                             s.metadata.instrument,
-                             active,
-                             loaded,
-                             s.metadata.name,
-                             obsClass,
-                             targetName,
-                             s.runningStep,
-                             s.nextStepToRun,
-                             dayCal.contains(s.idName.id)
+      SequenceInSessionQueue(
+        s.idName,
+        s.status,
+        s.metadata.instrument,
+        active,
+        loaded,
+        s.metadata.name,
+        obsClass,
+        targetName,
+        null,
+        s.runningStep,
+        s.nextStepToRun,
+        dayCal.contains(s.idName.id)
       )
     }
 
@@ -111,7 +115,7 @@ object StatusAndLoadedSequencesFocus {
       )
     }
 
-  val filteredSequencesG: Getter[ObserveAppRootModel, List[SequenceInSessionQueue]] = {
+  val filteredSequencesG: Getter[ObserveAppRootModel, List[SequenceInSessionQueue]] =
     sessionQueueFilterG.zip(sessionQueueG.zip(sodG.zip(ObserveAppRootModel.dayCalG))) >>> {
       case (f, (s, (sod, dayCal))) =>
         f.filter(
@@ -119,6 +123,5 @@ object StatusAndLoadedSequencesFocus {
             .toSequenceInSessionQueue(sod, s, dayCal.foldMap(_.queue))
         )
     }
-  }
 
 }

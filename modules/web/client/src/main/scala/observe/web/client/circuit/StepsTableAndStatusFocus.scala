@@ -34,7 +34,7 @@ object StepsTableAndStatusFocus {
             ObserveAppRootModel
               .stepsTableStateL(id)
               .asGetter
-              .zip(ObserveAppRootModel.configTableStateL.asGetter)
+              .zip(ObserveAppRootModel.configTableStateL)
           )
       ) >>> { case (s, (f, (a, t))) =>
       StepsTableAndStatusFocus(s, f, a.getOrElse(StepsTable.State.InitialTableState), t)

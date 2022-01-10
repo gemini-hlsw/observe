@@ -18,6 +18,7 @@ import observe.model.events.ObserveModelUpdate
 import observe.web.client.actions._
 import observe.web.client.circuit._
 import observe.web.client.model.Pages._
+import observe.web.client.services.DisplayNamePersistence
 
 /**
  * This handler is called only once. It will be triggered when the first message with the full model
@@ -25,9 +26,10 @@ import observe.web.client.model.Pages._
  */
 class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, InitialSyncFocus] {
+    with Handlers[M, InitialSyncFocus]
+    with DisplayNamePersistence {
   def runningSequence(s: ObserveModelUpdate): Option[SequenceView] =
-    s.view.sessionQueue.find(_.status.isRunning)
+    s.view.sessionQueue.filter(_.status.isRunning).sortBy(_.idName.name).headOption
 
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
     PageActionP
@@ -100,7 +102,9 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
           // No matches
           (noUpdate, VoidEffect)
       }
-      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> update,
+      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> InitialSyncFocus.displayNames.replace(
+                  storedDisplayNames
+                ) >>> update,
                 Effect(Future(CleanSequences)) >> effect
       )
   }

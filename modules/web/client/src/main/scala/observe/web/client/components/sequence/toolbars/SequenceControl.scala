@@ -19,11 +19,7 @@ import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
 import observe.model.{ Observation, SystemOverrides }
-import observe.web.client.actions.FlipSubystemsControls
-import observe.web.client.actions.RequestCancelPause
-import observe.web.client.actions.RequestPause
-import observe.web.client.actions.RequestRun
-import observe.web.client.actions.RequestSync
+import observe.web.client.actions._
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit._
 import observe.web.client.components.ObserveStyles
@@ -79,8 +75,8 @@ object SequenceControl {
 
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
-  def requestRun(id: Observation.Id): Callback =
-    ObserveCircuit.dispatchCB(RequestRun(id, RunOptions.Normal))
+  def requestRun(s: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestRun(s, RunOptions.Normal))
 
   def requestSync(idName: Observation.IdName): Callback =
     ObserveCircuit.dispatchCB(RequestSync(idName))

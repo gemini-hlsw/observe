@@ -137,7 +137,7 @@ sealed abstract class NodAndShuffleProgressProps[A](
 
   protected[steps] val connect: ReactConnectProxy[Option[NSObservationProgress]] =
     ObserveCircuit.connect(
-      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsIdName.id, summary.step.id)
+      ObserveCircuit.obsProgressReader[NSObservationProgress](summary.obsIdName, summary.step.id)
     )
 }
 

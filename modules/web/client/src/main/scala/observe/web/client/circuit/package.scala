@@ -95,9 +95,10 @@ package circuit {
 
   @Lenses
   final case class InitialSyncFocus(
-    location:  Pages.ObservePages,
-    sod:       SequencesOnDisplay,
-    firstLoad: Boolean
+    location:     Pages.ObservePages,
+    sod:          SequencesOnDisplay,
+    displayNames: Map[String, String],
+    firstLoad:    Boolean
   )
 
   object InitialSyncFocus {
@@ -106,9 +107,14 @@ package circuit {
 
     val initialSyncFocusL: Lens[ObserveUIModel, InitialSyncFocus] =
       Lens[ObserveUIModel, InitialSyncFocus](m =>
-        InitialSyncFocus(m.navLocation, m.sequencesOnDisplay, m.firstLoad)
+        InitialSyncFocus(m.navLocation, m.sequencesOnDisplay, m.displayNames, m.firstLoad)
       )(v =>
-        m => m.copy(navLocation = v.location, sequencesOnDisplay = v.sod, firstLoad = v.firstLoad)
+        m =>
+          m.copy(navLocation = v.location,
+                 sequencesOnDisplay = v.sod,
+                 displayNames = v.displayNames,
+                 firstLoad = v.firstLoad
+          )
       )
   }
 
@@ -225,10 +231,14 @@ package circuit {
     def seqControlG(
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceControlFocus]] = {
-      val getter =
+      val displayNames =
+        ObserveAppRootModel.userLoginFocus.asGetter
+      val tabGetter    =
         ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
-      ClientStatus.canOperateG.zip(getter) >>> {
-        case (status, Some(ObserveTabActive(tab, _))) =>
+      ClientStatus.canOperateG.zip(tabGetter.zip(displayNames)) >>> {
+        case (status,
+              (Some(ObserveTabActive(tab, _)), UserLoginFocus(Some(UserDetails(u, _)), dn))
+            ) =>
           SequenceControlFocus(tab.instrument,
                                tab.obsIdName.id,
                                tab.sequence.systemOverrides,
@@ -236,7 +246,7 @@ package circuit {
                                status,
                                ControlModel.controlModelG.get(tab)
           ).some
-        case _                                        => none
+        case _ => none
       }
     }
   }

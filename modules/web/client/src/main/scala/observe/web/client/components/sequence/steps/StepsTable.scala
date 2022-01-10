@@ -18,7 +18,7 @@ import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import monocle.macros.Lenses
-import mouse.all.booleanSyntaxMouse
+import mouse.boolean._
 import org.scalajs.dom.HTMLElement
 import react.common._
 import react.common.implicits._
@@ -333,7 +333,7 @@ final case class StepsTable(
 
   def stepSummary(step: Step): Option[StepStateSummary] =
     (steps.flatMap(_.steps.indexOf(step).some.flatMap(x => (x >= 0).option(x))),
-     obsIdName,
+     obsIdName.map(_.id),
      instrument,
      sequenceState
     )
@@ -601,7 +601,13 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step, index, f.idName, f.instrument, $.props.tabOperations, f.state),
+        StepStateSummary(row.step,
+                         index,
+                         f.idName.id,
+                         f.instrument,
+                         $.props.tabOperations,
+                         f.state
+        ),
         $.state.selected,
         $.props.isPreview
       )

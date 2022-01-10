@@ -14,7 +14,6 @@ import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import org.scalajs.dom.window
-import observe.model.Observer
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.SingleActionOp
@@ -33,6 +32,7 @@ import observe.web.client.model.lenses.sequenceStepT
 import observe.web.client.model.lenses.sequenceViewT
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.services.WebpackResources._
+import observe.web.client.services.DisplayNamePersistence
 import web.client.Audio
 
 import scala.util.matching.Regex
@@ -42,7 +42,8 @@ import scala.util.matching.Regex
  */
 class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, WebSocketsFocus] {
+    with Handlers[M, WebSocketsFocus]
+    with DisplayNamePersistence {
 
   // Global references to audio files
   private val SequencePausedAudio = Audio.selectPlayable(
@@ -100,22 +101,22 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
   val connectionOpenMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(ConnectionOpenEvent(u, c, v)) =>
       // After connected to the Websocket request a refresh
-      val refreshRequestE   = Effect(ObserveWebClient.refresh(c).as(NoAction))
-      // This is a hack
-      val calQueueObserverE = u
-        .map(m => Effect(Future(UpdateCalTabObserver(Observer(m.displayName)))))
-        .getOrElse(VoidEffect)
-      val openEffect        =
+      val refreshRequestE = Effect(ObserveWebClient.refresh(c).as(NoAction))
+      val openEffect      =
         if (value.serverVersion.exists(_ =!= v)) {
           Effect(Future(window.location.reload(true)).as(NoAction))
         } else {
-          refreshRequestE + calQueueObserverE
+          refreshRequestE
         }
+      val displayNames    =
+        (u.map(u =>
+          if (value.displayNames.contains(u.username))
+            value.displayNames
+          else value.displayNames + (u.username -> u.displayName)
+        )).getOrElse(value.displayNames)
       updated(
         value.copy(user = u,
-                   defaultObserver = u
-                     .map(m => Observer(m.displayName))
-                     .getOrElse(value.defaultObserver),
+                   displayNames = displayNames,
                    clientId = c.some,
                    serverVersion = v.some
         ),
@@ -132,7 +133,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
           curStep       <- sequenceStepT.find(_.id === curSId)(obs)
           observeStatus <- Step.observeStatus.getOption(curStep)
           configStatus  <- Step.configStatus.getOption(curStep)
-          d = configStatus // workaround
+          d              = configStatus // workaround
           if observeStatus === ActionStatus.Pending && curStep.status === StepState.Running
           if configStatus.map(_._2).forall(_ === ActionStatus.Pending)
         } yield curStep
@@ -291,7 +292,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
         case InstRegex(m) => m
         case m            => m
       }
-      effectOnly(Effect(Future(RunResourceFailed(sidName, stepId, r, actualMsg))))
+      effectOnly(Effect(Future(RunResourceFailed(sidName.id, stepId, r, actualMsg))))
   }
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {

@@ -13,7 +13,6 @@ import japgolly.scalajs.react.ReactCats._
 import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
-import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.facade.JsNumber
@@ -48,6 +47,8 @@ import observe.web.client.reusability._
 import web.client.table._
 
 trait Columns {
+  import SessionQueueTable._
+
   val IconColumnWidth       = 25.0
   val AddQueueColumnWidth   = 30.0
   val ClassColumnWidth      = 26.0
@@ -59,24 +60,10 @@ trait Columns {
   val InstrumentMinWidth    = 90.4333 + ObserveStyles.TableBorderWidth
   val TargetNameColumnWidth = 140.0
   val TargetMinWidth        = 60.0167 + ObserveStyles.TableBorderWidth
-  val ObsNameColumnWidth    = 140.0
+  val ObsNameColumnWidth    = 100.0
   val ObsNameMinWidth       = 89.7340 + ObserveStyles.TableBorderWidth
-
-  sealed trait TableColumn     extends Product with Serializable
-  case object IconColumn       extends TableColumn
-  case object AddQueueColumn   extends TableColumn
-  case object ClassColumn      extends TableColumn
-  case object ObsIdColumn      extends TableColumn
-  case object StateColumn      extends TableColumn
-  case object InstrumentColumn extends TableColumn
-  case object ObsNameColumn    extends TableColumn
-  case object TargetNameColumn extends TableColumn
-
-  object TableColumn {
-    implicit val equal: Eq[TableColumn] = Eq.fromUniversalEquals
-
-    implicit val tcReuse: Reusability[TableColumn] = Reusability.byRef
-  }
+  val ObserverColumnWidth   = 100.0
+  val ObserverMinWidth      = 89.7340 + ObserveStyles.TableBorderWidth
 
   val IconColumnMeta: ColumnMeta[TableColumn] = ColumnMeta[TableColumn](
     IconColumn,
@@ -149,14 +136,26 @@ trait Columns {
     width = VariableColumnWidth.unsafeFromDouble(0.25, ObsNameMinWidth)
   )
 
-  val all: NonEmptyList[ColumnMeta[TableColumn]] = NonEmptyList.of(IconColumnMeta,
-                                                                   AddQueueColumnMeta,
-                                                                   ClassColumnMeta,
-                                                                   ObsIdColumnMeta,
-                                                                   StateColumnMeta,
-                                                                   InstrumentColumnMeta,
-                                                                   TargetNameColumnMeta,
-                                                                   ObsNameColumnMeta
+  val ObserverColumnMeta: ColumnMeta[TableColumn] = ColumnMeta[TableColumn](
+    ObserverColumn,
+    name = "observer",
+    label = "Observer",
+    visible = true,
+    removeable = 3,
+    grow = 3,
+    width = VariableColumnWidth.unsafeFromDouble(0.25, ObserverMinWidth)
+  )
+
+  val all: NonEmptyList[ColumnMeta[TableColumn]] = NonEmptyList.of(
+    IconColumnMeta,
+    AddQueueColumnMeta,
+    ClassColumnMeta,
+    ObsIdColumnMeta,
+    StateColumnMeta,
+    InstrumentColumnMeta,
+    TargetNameColumnMeta,
+    ObsNameColumnMeta,
+    ObserverColumnMeta
   )
 
   val allTC = all.map(_.column)
@@ -169,7 +168,8 @@ trait Columns {
     StateColumn      -> StateColumnWidth,
     InstrumentColumn -> InstrumentColumnWidth,
     TargetNameColumn -> TargetNameColumnWidth,
-    ObsNameColumn    -> ObsNameColumnWidth
+    ObsNameColumn    -> ObsNameColumnWidth,
+    ObserverColumn   -> ObserverColumnWidth
   )
 
   val columnsMinWidth: Map[TableColumn, Double] = Map(
@@ -177,67 +177,194 @@ trait Columns {
     StateColumn      -> StateMinWidth,
     InstrumentColumn -> InstrumentMinWidth,
     TargetNameColumn -> TargetMinWidth,
-    ObsNameColumn    -> ObsNameMinWidth
+    ObsNameColumn    -> ObsNameMinWidth,
+    ObserverColumn   -> ObserverMinWidth
   )
+
+  def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
+    s"${status.show} ${runningStep.map(u => s" ${u.show}").getOrElse("")}"
+
+}
+
+// ScalaJS defined trait
+trait SessionQueueRow extends js.Object {
+  var obsId: Observation.IdName
+  var status: SequenceState
+  var instrument: Instrument
+  var targetName: Option[String]
+  var observer: Option[Observer]
+  var name: String
+  var obsClass: ObsClass
+  var active: Boolean
+  var loaded: Boolean
+  var nextStepToRun: Option[StepId]
+  var runningStep: Option[RunningStep]
+  var inDayCalQueue: Boolean
+}
+
+object SessionQueueRow {
+
+  def apply(
+    obsIdName:     Observation.IdName,
+    status:        SequenceState,
+    instrument:    Instrument,
+    targetName:    Option[String],
+    observer:      Option[Observer],
+    name:          String,
+    obsClass:      ObsClass,
+    active:        Boolean,
+    loaded:        Boolean,
+    nextStepToRun: Option[StepId],
+    runningStep:   Option[RunningStep],
+    inDayCalQueue: Boolean
+  ): SessionQueueRow = {
+    val p = (new js.Object).asInstanceOf[SessionQueueRow]
+    p.obsId = obsIdName
+    p.status = status
+    p.instrument = instrument
+    p.targetName = targetName
+    p.observer = observer
+    p.name = name
+    p.obsClass = obsClass
+    p.active = active
+    p.nextStepToRun = nextStepToRun
+    p.runningStep = runningStep
+    p.loaded = loaded
+    p.inDayCalQueue = inDayCalQueue
+    p
+  }
+
+  def unapply(l: SessionQueueRow): Option[
+    (
+      Observation.IdName,
+      SequenceState,
+      Instrument,
+      Option[String],
+      Option[Observer],
+      String,
+      ObsClass,
+      Boolean,
+      Boolean,
+      Option[StepId],
+      Option[RunningStep],
+      Boolean
+    )
+  ] =
+    Some(
+      (l.obsId,
+       l.status,
+       l.instrument,
+       l.targetName,
+       l.observer,
+       l.name,
+       l.obsClass,
+       l.active,
+       l.loaded,
+       l.nextStepToRun,
+       l.runningStep,
+       l.inDayCalQueue
+      )
+    )
+
+  object Empty extends SessionQueueRow {
+    override var obsId: Observation.IdName        =
+      Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
+    override var status: SequenceState            = SequenceState.Idle
+    override var instrument: Instrument           = Instrument.F2
+    override var targetName: Option[String]       = None
+    override var observer: Option[Observer]       = None
+    override var name                             = ""
+    override var obsClass: ObsClass               = ObsClass.Nighttime
+    override var active: Boolean                  = false
+    override var loaded: Boolean                  = false
+    override var nextStepToRun: Option[StepId]    = None
+    override var runningStep: Option[RunningStep] = None
+    override var inDayCalQueue: Boolean           = false
+  }
+}
+
+final case class SessionQueueTable(
+  ctl:       RouterCtl[ObservePages],
+  sequences: StatusAndLoadedSequencesFocus
+) extends ReactProps[SessionQueueTable](SessionQueueTable.component)
+    with Columns {
+  import SessionQueueTable._
+
+  val sequencesList: List[SequenceInSessionQueue] =
+    sequences.queueFilter.filter(sequences.sequences)
+
+  val obsIds: List[Observation.Id] = sequencesList.map(_.idName.id)
+
+  def rowGetter(i: Int): SessionQueueRow =
+    sequencesList
+      .lift(i)
+      .map { s =>
+        SessionQueueRow(s.idName,
+                        s.status,
+                        s.instrument,
+                        s.targetName,
+                        s.observer,
+                        s.name,
+                        s.obsClass,
+                        s.active,
+                        s.loaded,
+                        s.nextStepToRun,
+                        s.runningStep,
+                        s.inDayCalQueue
+        )
+      }
+      .getOrElse(SessionQueueRow.Empty)
+
+  val rowCount: Int = sequencesList.size
+
+  val canOperate: Boolean = sequences.status.canOperate
+
+  val loggedIn: Boolean = sequences.status.isLogged
+
+  val user: Option[UserDetails] = sequences.status.user
+
+  val extractors = List[(TableColumn, SequenceInSessionQueue => String)](
+    (ObsIdColumn, _.idName.name),
+    (StateColumn, s => statusText(s.status, s.runningStep)),
+    (InstrumentColumn, _.instrument.show),
+    (TargetNameColumn, _.targetName.orEmpty),
+    (ObsNameColumn, _.name)
+  ).toMap
+
+  private val columnAdjustmens =
+    Map[TableColumn, Double](ObsIdColumn -> ObserveStyles.TableRightPadding.toDouble)
+
+  val columnWidths: TableColumn => Option[Double] =
+    colWidths(sequencesList, allTC, extractors, columnsMinWidth, columnAdjustmens)
+
+  // Hide some columns depending on login state
+  val visibleColumns: TableColumn => Boolean = {
+    case ObsNameColumn | AddQueueColumn | TargetNameColumn =>
+      loggedIn
+    case _                                                 => true
+  }
+
 }
 
 object SessionQueueTable extends Columns {
   type Backend = RenderScope[Props, State, Unit]
+  type Props   = SessionQueueTable
 
-  final case class Props(ctl: RouterCtl[ObservePages], sequences: StatusAndLoadedSequencesFocus) {
-    val sequencesList: List[SequenceInSessionQueue] =
-      sequences.queueFilter.filter(sequences.sequences)
+  sealed trait TableColumn     extends Product with Serializable
+  case object IconColumn       extends TableColumn
+  case object AddQueueColumn   extends TableColumn
+  case object ClassColumn      extends TableColumn
+  case object ObsIdColumn      extends TableColumn
+  case object StateColumn      extends TableColumn
+  case object InstrumentColumn extends TableColumn
+  case object ObsNameColumn    extends TableColumn
+  case object TargetNameColumn extends TableColumn
+  case object ObserverColumn   extends TableColumn
 
-    val obsIds: List[Observation.Id] = sequencesList.map(_.idName.id)
+  object TableColumn {
+    implicit val equal: Eq[TableColumn] = Eq.fromUniversalEquals
 
-    def rowGetter(i: Int): SessionQueueRow =
-      sequencesList
-        .lift(i)
-        .map { s =>
-          SessionQueueRow(s.idName,
-                          s.status,
-                          s.instrument,
-                          s.targetName,
-                          s.name,
-                          s.obsClass,
-                          s.active,
-                          s.loaded,
-                          s.nextStepToRun,
-                          s.runningStep,
-                          s.inDayCalQueue
-          )
-        }
-        .getOrElse(SessionQueueRow.Empty)
-
-    val rowCount: Int = sequencesList.size
-
-    val canOperate: Boolean = sequences.status.canOperate
-
-    val loggedIn: Boolean = sequences.status.isLogged
-
-    val user: Option[UserDetails] = sequences.status.u
-
-    val extractors = List[(TableColumn, SequenceInSessionQueue => String)](
-      (ObsIdColumn, _.idName.name),
-      (StateColumn, s => statusText(s.status, s.runningStep)),
-      (InstrumentColumn, _.instrument.show),
-      (TargetNameColumn, _.targetName.orEmpty),
-      (ObsNameColumn, _.name)
-    ).toMap
-
-    private val columnAdjustmens =
-      Map[TableColumn, Double](ObsIdColumn -> ObserveStyles.TableRightPadding.toDouble)
-
-    val columnWidths: TableColumn => Option[Double] =
-      colWidths(sequencesList, allTC, extractors, columnsMinWidth, columnAdjustmens)
-
-    // Hide some columns depending on login state
-    val visibleColumns: TableColumn => Boolean = {
-      case ObsNameColumn | AddQueueColumn | TargetNameColumn =>
-        loggedIn
-      case _                                                 => true
-    }
-
+    implicit val tcReuse: Reusability[TableColumn] = Reusability.byRef
   }
 
   @Lenses
@@ -286,97 +413,6 @@ object SessionQueueTable extends Columns {
   implicit val stateReuse: Reusability[State]                             =
     Reusability.by(s => (s.tableState, s.rowLoading, s.lastSize))
 
-  // ScalaJS defined trait
-  trait SessionQueueRow extends js.Object {
-    var obsIdName: Observation.IdName
-    var status: SequenceState
-    var instrument: Instrument
-    var targetName: Option[String]
-    var name: String
-    var obsClass: ObsClass
-    var active: Boolean
-    var loaded: Boolean
-    var nextStepToRun: Option[StepId]
-    var runningStep: Option[RunningStep]
-    var inDayCalQueue: Boolean
-  }
-
-  object SessionQueueRow {
-
-    def apply(
-      obsIdName:     Observation.IdName,
-      status:        SequenceState,
-      instrument:    Instrument,
-      targetName:    Option[String],
-      name:          String,
-      obsClass:      ObsClass,
-      active:        Boolean,
-      loaded:        Boolean,
-      nextStepToRun: Option[StepId],
-      runningStep:   Option[RunningStep],
-      inDayCalQueue: Boolean
-    ): SessionQueueRow = {
-      val p = (new js.Object).asInstanceOf[SessionQueueRow]
-      p.obsIdName = obsIdName
-      p.status = status
-      p.instrument = instrument
-      p.targetName = targetName
-      p.name = name
-      p.obsClass = obsClass
-      p.active = active
-      p.nextStepToRun = nextStepToRun
-      p.runningStep = runningStep
-      p.loaded = loaded
-      p.inDayCalQueue = inDayCalQueue
-      p
-    }
-
-    def unapply(l: SessionQueueRow): Option[
-      (
-        Observation.IdName,
-        SequenceState,
-        Instrument,
-        Option[String],
-        String,
-        ObsClass,
-        Boolean,
-        Boolean,
-        Option[StepId],
-        Option[RunningStep],
-        Boolean
-      )
-    ] =
-      Some(
-        (l.obsIdName,
-         l.status,
-         l.instrument,
-         l.targetName,
-         l.name,
-         l.obsClass,
-         l.active,
-         l.loaded,
-         l.nextStepToRun,
-         l.runningStep,
-         l.inDayCalQueue
-        )
-      )
-
-    object Empty extends SessionQueueRow {
-      override var obsIdName: Observation.IdName    =
-        Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
-      override var status: SequenceState            = SequenceState.Idle
-      override var instrument: Instrument           = Instrument.F2
-      override var targetName: Option[String]       = None
-      override var name                             = ""
-      override var obsClass: ObsClass               = ObsClass.Nighttime
-      override var active: Boolean                  = false
-      override var loaded: Boolean                  = false
-      override var nextStepToRun: Option[StepId]    = None
-      override var runningStep: Option[RunningStep] = None
-      override var inDayCalQueue: Boolean           = false
-    }
-  }
-
   private def linkTo(p: Props, page: ObservePages)(mod: TagMod*) =
     <.a(
       ^.href      := p.ctl.urlFor(page).value,
@@ -387,9 +423,9 @@ object SessionQueueTable extends Columns {
 
   private def pageOf(row: SessionQueueRow): ObservePages =
     if (row.loaded) {
-      SequencePage(row.instrument, row.obsIdName.id, StepIdDisplayed(row.nextStepToRun))
+      SequencePage(row.instrument, row.obsId.id, StepIdDisplayed(row.nextStepToRun))
     } else {
-      PreviewPage(row.instrument, row.obsIdName.id, StepIdDisplayed(row.nextStepToRun))
+      PreviewPage(row.instrument, row.obsId.id, StepIdDisplayed(row.nextStepToRun))
     }
 
   private def linkedTextRenderer(p: Props)(
@@ -458,7 +494,7 @@ object SessionQueueTable extends Columns {
                  fitted = true,
                  clazz = ObserveStyles.selectedIcon
             ),
-            ^.onClick ==> removeFromQueueE(row.obsIdName)
+            ^.onClick ==> removeFromQueueE(row.obsId)
           )
         } else {
           <.span(
@@ -467,7 +503,7 @@ object SessionQueueTable extends Columns {
                  fitted = true,
                  clazz = ObserveStyles.selectedIcon
             ),
-            ^.onClick ==> addToQueueE(row.obsIdName)
+            ^.onClick ==> addToQueueE(row.obsId)
           )
         }
       )
@@ -492,9 +528,6 @@ object SessionQueueTable extends Columns {
         icon
       )
     }
-
-  private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-    s"${status.show} ${runningStep.map(u => s" ${u.show}").getOrElse("")}"
 
   private val statusHeaderRenderer: HeaderRenderer[js.Object] =
     (_, _, _, _, _, _) =>
@@ -552,11 +585,12 @@ object SessionQueueTable extends Columns {
     case IconColumn       => statusIconRenderer(b)
     case AddQueueColumn   => addToQueueRenderer(b)
     case ClassColumn      => classIconRenderer(b)
-    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsIdName.name)
+    case ObsIdColumn      => linkedTextRenderer(b.props)(_.obsId.name)
     case StateColumn      => linkedTextRenderer(b.props)(r => statusText(r.status, r.runningStep))
     case InstrumentColumn => linkedTextRenderer(b.props)(_.instrument.show)
     case TargetNameColumn => linkedTextRenderer(b.props)(_.targetName.getOrElse(UnknownTargetName))
     case ObsNameColumn    => linkedTextRenderer(b.props)(_.name)
+    case ObserverColumn   => linkedTextRenderer(b.props)(_.observer.foldMap(_.value))
   }
 
   private val fixedHeaderRenderer: TableColumn => HeaderRenderer[js.Object] = {
@@ -633,7 +667,7 @@ object SessionQueueTable extends Columns {
     if (r.loaded) {
       // If already loaded switch tabs
       b.props.ctl.dispatchAndSetUrlCB(
-        SelectIdToDisplay(r.instrument, r.obsIdName.id, StepIdDisplayed(r.nextStepToRun))
+        SelectIdToDisplay(r.instrument, r.obsId.id, StepIdDisplayed(r.nextStepToRun))
       )
     } else { // Try to load it
       b.props.user
@@ -641,7 +675,7 @@ object SessionQueueTable extends Columns {
         .map { u =>
           val load =
             ObserveCircuit.dispatchCB(
-              LoadSequence(Observer(u.displayName), r.instrument, r.obsIdName)
+              LoadSequence(Observer(u.displayName), r.instrument, r.obsId)
             )
           val spin = b.modState(_.copy(rowLoading = i.some))
           spin *> load
@@ -663,7 +697,7 @@ object SessionQueueTable extends Columns {
               "Session queue empty"
             ),
           overscanRowCount = ObserveStyles.overscanRowCount,
-          height = 180,
+          height = 230,
           rowCount = b.props.rowCount,
           rowHeight = ObserveStyles.rowHeight,
           rowClassName = rowClassName(b.props) _,
@@ -708,7 +742,7 @@ object SessionQueueTable extends Columns {
         ^.draggable := b.props.canOperate,
         ^.key       := key,
         ^.role      := "row",
-        ^.onDragStart ==> dragStart(b, rowData.obsIdName.id),
+        ^.onDragStart ==> dragStart(b, rowData.obsId.id),
         ^.style     := style.toJsObject,
         ^.onClick -->? onRowClick.map(h => h(index)),
         ^.onDoubleClick -->? onRowDoubleClick.map(h => h(index)),
@@ -766,11 +800,5 @@ object SessionQueueTable extends Columns {
       )(state)
     }
     .build
-
-  def apply(
-    ctl: RouterCtl[ObservePages],
-    p:   StatusAndLoadedSequencesFocus
-  ): Unmounted[Props, State, Unit] =
-    component(Props(ctl, p))
 
 }

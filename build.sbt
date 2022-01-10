@@ -271,7 +271,7 @@ lazy val observe_web_client = project
       LucumaUI.value,
       PPrint.value,
       TestLibs.value
-    ) ++ MUnit.value ++ ReactScalaJS.value ++ Diode.value ++ Log4CatsLogLevel.value
+    ) ++ MUnit.value ++ ReactScalaJS.value ++ Diode.value ++ Log4CatsLogLevel.value ++ Circe.value
   )
   .settings(
     buildInfoUsePackageAsPath := true,

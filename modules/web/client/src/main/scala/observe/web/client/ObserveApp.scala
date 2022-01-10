@@ -23,7 +23,7 @@ import typings.loglevel.mod.{ ^ => logger }
  * Observe WebApp entry point
  */
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
-  // japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
+  japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
@@ -51,6 +51,7 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
         elem
       }
     }
+
 }
 
 /**

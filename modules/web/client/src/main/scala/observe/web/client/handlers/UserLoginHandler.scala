@@ -13,35 +13,41 @@ import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import observe.common.HttpStatusCodes
-import observe.model.UserDetails
 import observe.web.client.actions._
 import observe.web.client.services.ObserveWebClient
+import observe.web.client.services.DisplayNamePersistence
+import observe.web.client.circuit.UserLoginFocus
 
 /**
  * Handles actions related to opening/closing the login box
  */
-class UserLoginHandler[M](modelRW: ModelRW[M, Option[UserDetails]])
+class UserLoginHandler[M](modelRW: ModelRW[M, UserLoginFocus])
     extends ActionHandler(modelRW)
-    with Handlers[M, Option[UserDetails]] {
+    with Handlers[M, UserLoginFocus]
+    with DisplayNamePersistence {
   override def handle: PartialFunction[Any, ActionResult[M]] = {
     case LoggedIn(u) =>
+      val dn               = value.displayNames + (u.username -> u.displayName)
+      val resetDisplayName = Effect(persistDisplayName(dn).as(NoAction))
       // Close the login box
-      val effect    = Effect(Future(CloseLoginBox))
+      val effect           = Effect(Future(CloseLoginBox))
       // Close the websocket and reconnect
-      val reconnect = Effect(Future(Reconnect))
-      updated(Some(u), reconnect + effect)
+      val reconnect        = Effect(Future(Reconnect))
+      updated(value.copy(user = u.some, displayNames = dn), reconnect + effect + resetDisplayName)
 
     case VerifyLoggedStatus =>
       val effect = Effect(ObserveWebClient.ping().map {
-        case HttpStatusCodes.Unauthorized if value.isDefined => Logout
-        case _                                               => NoAction
+        case HttpStatusCodes.Unauthorized if value.user.isDefined => Logout
+        case _                                                    => NoAction
       })
       effectOnly(effect)
 
     case Logout =>
-      val effect    = Effect(ObserveWebClient.logout().as(NoAction))
-      val reConnect = Effect(Future(Reconnect))
+      val dn               = value.displayNames.removed(value.user.foldMap(_.username))
+      val cleanDisplayName = Effect(removeDisplayName(dn).as(NoAction))
+      val effect           = Effect(ObserveWebClient.logout().as(NoAction))
+      val reConnect        = Effect(Future(Reconnect))
       // Remove the user and call logout
-      updated(None, effect + reConnect)
+      updated(value.copy(user = none, displayNames = dn), effect + reConnect + cleanDisplayName)
   }
 }

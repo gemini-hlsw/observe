@@ -40,18 +40,18 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
         )
       )
 
-    case RequestStop(idName, _) =>
+    case RequestStop(id, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
-          idName.id,
+          id,
           TabOperations.stopRequested.replace(StopOperation.StopInFlight)
         )
       )
 
-    case RequestAbort(idName, _) =>
+    case RequestAbort(id, _) =>
       updatedL(
         SequencesOnDisplay.markOperations(
-          idName.id,
+          id,
           TabOperations.abortRequested.replace(AbortOperation.AbortInFlight)
         )
       )
@@ -82,7 +82,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
 
     case RunFromComplete(idName, _) =>
       updatedL(
-        SequencesOnDisplay.markOperations(idName.id,
+        SequencesOnDisplay.markOperations(idName,
                                           TabOperations.startFromRequested
                                             .replace(StartFromOperation.StartFromIdle)
         )
@@ -105,10 +105,10 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
   }
 
   def handleRequestResourceRun: PartialFunction[Any, ActionResult[M]] = {
-    case RequestResourceRun(idName, s, r) =>
+    case RequestResourceRun(id, s, r) =>
       updatedL(
         SequencesOnDisplay.markOperations(
-          idName.id,
+          id,
           TabOperations
             .resourceRun(r)
             .replace(ResourceRunOperation.ResourceRunInFlight(s).some)
@@ -171,19 +171,19 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunAbortFailed(idName) =>
-      val msg          = s"Failed to abort sequence ${idName.name}"
+      val msg          = s"Failed to abort sequence $idName"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
-      updatedLE(SequencesOnDisplay.resetOperations(idName.id), notification)
+      updatedLE(SequencesOnDisplay.resetOperations(idName), notification)
 
     case RunStopFailed(idName) =>
-      val msg          = s"Failed to stop sequence ${idName.name}"
+      val msg          = s"Failed to stop sequence ${idName}"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
       updatedLE(SequencesOnDisplay.markOperations(
-                  idName.id,
+                  idName,
                   TabOperations.stopRequested.replace(StopOperation.StopIdle)
                 ),
                 notification
@@ -202,26 +202,26 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
 
     case RunFromFailed(idName, stepIndex) =>
-      val msg          = s"Failed to start sequence ${idName.name} from step ${stepIndex + 1}"
+      val msg          = s"Failed to start sequence $idName from step $stepIndex"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg))))
       )
       updatedLE(
         SequencesOnDisplay.markOperations(
-          idName.id,
+          idName,
           TabOperations.startFromRequested.replace(StartFromOperation.StartFromIdle)
         ),
         notification
       )
 
     case RunResourceFailed(idName, s, r, m) =>
-      val msg          = s"Failed to configure ${r.show} for sequence ${idName.name}"
+      val msg          = s"Failed to configure ${r.show} for sequence $idName"
       val notification = Effect(
         Future(RequestFailedNotification(RequestFailed(List(msg, m))))
       )
       updatedLE(SequencesOnDisplay
                   .markOperations(
-                    idName.id,
+                    idName,
                     TabOperations
                       .resourceRun(r)
                       .replace(ResourceRunOperation.ResourceRunFailed(s).some)

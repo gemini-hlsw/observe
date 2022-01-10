@@ -7,9 +7,8 @@ import scala.collection.immutable.SortedMap
 import scala.scalajs.js
 import cats.syntax.all._
 import cats.Order._
-import japgolly.scalajs.react.{ Callback, CtorType, ReactMouseEvent, Reusability, ScalaComponent }
+import japgolly.scalajs.react._
 import japgolly.scalajs.react.Reusability._
-import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.SemanticColor
@@ -33,7 +32,7 @@ import observe.web.client.reusability._
  * Contains the control buttons for each subsystem
  */
 final case class SubsystemControlCell(
-  idName:         Observation.IdName,
+  id:             Observation.Id,
   stepId:         StepId,
   resources:      List[Resource],
   resourcesCalls: SortedMap[Resource, ResourceRunOperation],
@@ -46,13 +45,13 @@ object SubsystemControlCell {
   implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
 
   def requestResourceCall(
-    idName: Observation.IdName,
+    id:     Observation.Id,
     stepId: StepId,
     r:      Resource
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       (e.preventDefaultCB *> e.stopPropagationCB *>
-        ObserveCircuit.dispatchCB(RequestResourceRun(idName, stepId, r)))
+        ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, r)))
         .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   private val CompletedIcon = IconCheckmark.copy(
@@ -93,7 +92,7 @@ object SubsystemControlCell {
       case _                                                  => none
     }
 
-  protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
+  protected val component = ScalaComponent
     .builder[Props]
     .render_P { p =>
       <.div(
@@ -115,7 +114,8 @@ object SubsystemControlCell {
               labelPosition = labeled,
               icon = buttonIcon.isDefined,
               onClickE =
-                if (p.canOperate) requestResourceCall(p.idName, p.stepId, r) else js.undefined,
+                if (p.canOperate)(requestResourceCall(p.id, p.stepId, r))
+                else js.undefined,
               clazz = ObserveStyles.defaultCursor.unless_(p.canOperate)
             )(buttonIcon.whenDefined(identity), r.show)
           )(s"Configure ${r.show}")

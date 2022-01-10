@@ -19,24 +19,25 @@ import observe.web.client.model._
 class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
     extends ActionHandler(modelRW)
     with Handlers[M, UserPromptState] {
+
+  val lens = UserPromptState.notification
+
   def handleUserNotification: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(UserPromptNotification(not, _)) =>
-      // Update the notification state
-      val lens         = UserPromptState.notification.replace(not.some)
       // Update the model as load failed
       val modelUpdateE = not match {
         case UserPrompt.ChecksOverride(idName, _, _, _) => Effect(Future(RunStartFailed(idName.id)))
       }
-      updatedLE(lens, modelUpdateE)
+      updatedLE(lens.replace(not.some), modelUpdateE)
   }
 
   def handleClosePrompt: PartialFunction[Any, ActionResult[M]] = { case CloseUserPromptBox(x) =>
     val overrideEffect = this.value.notification match {
-      case Some(UserPrompt.ChecksOverride(id, stp, sidx, _)) if x === UserPromptResult.Cancel =>
-        Effect(Future(RequestRunFrom(id, stp, sidx, RunOptions.ChecksOverride)))
-      case _                                                                                  => VoidEffect
+      case Some(UserPrompt.ChecksOverride(id, stp, _, _)) if x === UserPromptResult.Cancel =>
+        Effect(Future(RequestRunFrom(id.id, stp, RunOptions.ChecksOverride)))
+      case _                                                                               => VoidEffect
     }
-    updatedLE(UserPromptState.notification.replace(none), overrideEffect)
+    updatedLE(lens.replace(none), overrideEffect)
   }
 
   def handle: PartialFunction[Any, ActionResult[M]] =

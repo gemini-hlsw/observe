@@ -30,6 +30,8 @@ import observe.model.enum.MountGuideOption._
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable
+import observe.web.client.circuit.UserLoginFocus
+import observe.web.client.circuit.SequencesQueueFocus
 import web.client.table._
 
 /**
@@ -67,6 +69,9 @@ object ObserveAppRootModel {
   val logDisplayL: Lens[ObserveAppRootModel, SectionVisibilityState] =
     ObserveAppRootModel.uiModel.andThen(ObserveUIModel.globalLog).andThen(GlobalLog.display)
 
+  val userLoginFocus: Lens[ObserveAppRootModel, UserLoginFocus] =
+    ObserveAppRootModel.uiModel.andThen(ObserveUIModel.userLoginFocus)
+
   val sessionQueueFilterL: Lens[ObserveAppRootModel, SessionQueueFilter] =
     ObserveAppRootModel.uiModel.andThen(ObserveUIModel.sessionQueueFilter)
 
@@ -94,6 +99,13 @@ object ObserveAppRootModel {
         AppTableStates
           .stepsTableAtL(id)
       )
+
+  val unsafeSequencesQueueFocus: Lens[ObserveAppRootModel, SequencesQueueFocus] =
+    Lens[ObserveAppRootModel, SequencesQueueFocus](m =>
+      SequencesQueueFocus(m.sequences,
+                          m.uiModel.user.flatMap(u => m.uiModel.displayNames.get(u.username))
+      )
+    )(n => a => a.copy(sequences = n.sequences))
 
   val soundSettingL: Lens[ObserveAppRootModel, SoundSelection] =
     ObserveAppRootModel.uiModel.andThen(ObserveUIModel.sound)
