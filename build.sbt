@@ -15,18 +15,18 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / semanticdbEnabled := true
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
-ThisBuild / Test / bspEnabled := false
+ThisBuild / Test / bspEnabled                      := false
 
 inThisBuild(
   Seq(
     addCompilerPlugin(
-      ("org.typelevel"                    % "kind-projector" % "0.13.2").cross(CrossVersion.full)
+      ("org.typelevel"                                        % "kind-projector" % "0.13.2").cross(CrossVersion.full)
     ),
     scalacOptions += "-Ymacro-annotations",
-    Global / onChangedBuildSource := ReloadOnSourceChanges,
+    Global / onChangedBuildSource                            := ReloadOnSourceChanges,
     scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
-    scalafixScalaBinaryVersion := "2.13",
-    ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false,
+    scalafixScalaBinaryVersion                               := "2.13",
+    ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
   ) ++ lucumaPublishSettings
 )
 
@@ -174,7 +174,7 @@ lazy val observe_web_server = project
     // Supports launching the server in the background
     reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
     reStart / mainClass  := Some("observe.web.server.http4s.WebServerLauncher"),
-    Compile / bspEnabled := false,
+    Compile / bspEnabled := false
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -387,20 +387,20 @@ lazy val observe_engine = project
  */
 lazy val observeCommonSettings = Seq(
   // Main class for launching
-  Compile / mainClass               := Some("observe.web.server.http4s.WebServerLauncher"),
+  Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
   // This is important to keep the file generation order correctly
-  Universal / parallelExecution     := false,
+  Universal / parallelExecution   := false,
   // Depend on webpack and add the assets created by webpack
   Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName              := "observe-server",
+  executableScriptName            := "observe-server",
   // No javadocs
-  Compile / packageDoc / mappings   := Seq(),
+  Compile / packageDoc / mappings := Seq(),
   // Don't create launchers for Windows
-  makeBatScripts                    := Seq.empty,
+  makeBatScripts                  := Seq.empty,
   // Specify a different name for the config file
-  bashScriptConfigLocation          := Some("${app_home}/../conf/launcher.args"),
+  bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
   bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
