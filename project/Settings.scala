@@ -11,7 +11,7 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val scalaDom                = "2.1.0"
-    val scalajsReact            = "2.0.0"
+    val scalajsReact            = "2.0.1"
     val booPickle               = "1.4.0"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.3.0"
@@ -36,8 +36,8 @@ object Settings {
     val squants        = "1.8.2"
     val commonsHttp    = "2.0.2"
     val unboundId      = "3.2.1"
-    val jwt            = "9.0.3"
-    val slf4j          = "1.7.33"
+    val jwt            = "5.0.0"
+    val slf4j          = "1.7.34"
     val log4s          = "1.10.0"
     val log4cats       = "2.1.1"
     val log4catsLevel  = "0.3.0"
