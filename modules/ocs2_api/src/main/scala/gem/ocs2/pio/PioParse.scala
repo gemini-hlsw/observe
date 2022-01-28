@@ -23,7 +23,7 @@ object PioParse {
         PioParse(pa.run.andThen(_.map(f)))
     }
 
-  def enum[A](dictionary: (String, A)*): PioParse[A] =
+  def `enum`[A](dictionary: (String, A)*): PioParse[A] =
     PioParse(dictionary.toMap.lift)
 
   /**
