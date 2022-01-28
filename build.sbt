@@ -1,14 +1,14 @@
 import Settings.Libraries._
 import Settings.LibraryVersions
-import Settings.Plugins
 import Common._
 import AppsCommon._
 import sbt.Keys._
 import NativePackagerHelper._
-import sbtcrossproject.CrossType
 import com.typesafe.sbt.packager.docker._
 
 name := "observe"
+ThisBuild / tlBaseVersion := "1.1"
+ThisBuild / tlCiReleaseBranches := Seq("develop")
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -19,9 +19,6 @@ ThisBuild / Test / bspEnabled                      := false
 
 inThisBuild(
   Seq(
-    addCompilerPlugin(
-      ("org.typelevel"                                        % "kind-projector" % "0.13.2").cross(CrossVersion.full)
-    ),
     scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource                            := ReloadOnSourceChanges,
     scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
@@ -34,8 +31,6 @@ inThisBuild(
 ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
-
-Global / resolvers += Resolver.sonatypeRepo("public")
 
 // This key is used to find the JRE dir. It could/should be overriden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
@@ -50,30 +45,6 @@ Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 // Uncomment for local gmp testing
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
-
-// Settings to use git to define the version of the project
-def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
-  val dirtySuffix = if (out.dirtySuffix.mkString("", "").nonEmpty) {
-    "-UNCOMMITED"
-  } else {
-    ""
-  }
-  s"-${out.commitSuffix.sha}$dirtySuffix"
-}
-
-def fallbackVersion(d: java.util.Date): String = s"HEAD-${sbtdynver.DynVer.timestamp(d)}"
-
-val dateFormatter = java.time.format.DateTimeFormatter.BASIC_ISO_DATE
-
-inThisBuild(
-  List(
-    version := dateFormatter.format(
-      dynverCurrentDate.value.toInstant.atZone(java.time.ZoneId.of("UTC")).toLocalDate
-    ) + dynverGitDescribeOutput.value.mkVersion(versionFmt,
-                                                fallbackVersion(dynverCurrentDate.value)
-    )
-  )
-)
 
 enablePlugins(GitBranchPrompt)
 
@@ -102,11 +73,20 @@ ThisBuild / resolvers +=
 
 ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 
-publish / skip := true
-
 //////////////
 // Projects
 //////////////
+
+lazy val root = tlCrossRootProject.aggregate(
+  graphql,
+  giapi,
+  ocs2_api,
+  observe_web_server,
+  observe_web_client,
+  observe_server,
+  observe_model,
+  observe_engine
+)
 
 lazy val graphql = project
   .in(file("modules/common-graphql"))
@@ -124,7 +104,6 @@ lazy val giapi = project
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
   .settings(
-    addCompilerPlugin(Plugins.kindProjectorPlugin),
     libraryDependencies ++= Seq(Cats.value,
                                 Mouse.value,
                                 Shapeless.value,
@@ -161,7 +140,6 @@ lazy val observe_web_server = project
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
   .settings(
-    addCompilerPlugin(Plugins.kindProjectorPlugin),
     libraryDependencies ++= Seq(UnboundId,
                                 JwtCore,
                                 JwtCirce,
@@ -193,7 +171,6 @@ lazy val observe_web_client = project
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(GitBranchPrompt)
   .disablePlugins(RevolverPlugin)
-  .settings(lucumaScalaJsSettings: _*)
   .settings(
     // Needed for Monocle macros
     scalacOptions += "-Ymacro-annotations",
@@ -289,8 +266,6 @@ lazy val observe_server = project
   .settings(commonSettings: _*)
   .settings(
     scalacOptions += "-Ymacro-annotations",
-    addCompilerPlugin(Plugins.kindProjectorPlugin),
-    addCompilerPlugin(Plugins.betterMonadicForPlugin),
     libraryDependencies ++=
       Seq(
         Http4sCirce,
@@ -360,11 +335,9 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
     commonSettings,
     libraryDependencies += Http4sCore
   )
-  .jsSettings(lucumaScalaJsSettings)
   .jsSettings(
     // And add a custom one
     libraryDependencies += JavaTimeJS.value,
-    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
 lazy val observe_engine = project
@@ -373,7 +346,6 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    addCompilerPlugin(Plugins.kindProjectorPlugin),
     scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Seq(Fs2,
                                 CatsEffect.value,
@@ -452,7 +424,8 @@ lazy val observeLinux = Seq(
 /**
  * Project for the observe server app for development
  */
-lazy val app_observe_server = preventPublication(project.in(file("app/observe-server")))
+lazy val app_observe_server = project.in(file("app/observe-server"))
+  .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(JavaServerAppPackaging)
@@ -491,7 +464,8 @@ lazy val app_observe_server = preventPublication(project.in(file("app/observe-se
  * Project for the observe test server at GS on Linux 64
  */
 lazy val app_observe_server_gs_test =
-  preventPublication(project.in(file("app/observe-server-gs-test")))
+  project.in(file("app/observe-server-gs-test"))
+    .enablePlugins(NoPublishPlugin)
     .dependsOn(observe_web_server, observe_web_client)
     .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin)
@@ -521,7 +495,8 @@ lazy val app_observe_server_gs_test =
  * Project for the observe test server at GN on Linux 64
  */
 lazy val app_observe_server_gn_test =
-  preventPublication(project.in(file("app/observe-server-gn-test")))
+  project.in(file("app/observe-server-gn-test"))
+    .enablePlugins(NoPublishPlugin)
     .dependsOn(observe_web_server, observe_web_client)
     .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin, RpmPlugin)
@@ -549,7 +524,8 @@ lazy val app_observe_server_gn_test =
 /**
  * Project for the observe server app for production on Linux 64
  */
-lazy val app_observe_server_gs = preventPublication(project.in(file("app/observe-server-gs")))
+lazy val app_observe_server_gs = project.in(file("app/observe-server-gs"))
+  .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
@@ -577,7 +553,8 @@ lazy val app_observe_server_gs = preventPublication(project.in(file("app/observe
 /**
  * Project for the GN observe server app for production on Linux 64
  */
-lazy val app_observe_server_gn = preventPublication(project.in(file("app/observe-server-gn")))
+lazy val app_observe_server_gn = project.in(file("app/observe-server-gn"))
+  .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)

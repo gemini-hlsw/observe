@@ -76,15 +76,4 @@ object AppsCommon {
 
   lazy val embeddedJreSettingsLinux64 = embeddedJreSettings(DeploymentTarget.Linux64)
 
-  /**
-   * Settings for meta projects to make them non-publishable
-   */
-  def preventPublication(p: Project) =
-    p.settings(
-      publish           := {},
-      publishLocal      := {},
-      publishArtifact   := false,
-      publishTo         := Some(Resolver.file("Unused transient repository", target.value / "fakepublish")),
-      packagedArtifacts := Map.empty
-    )
 }
