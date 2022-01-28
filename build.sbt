@@ -6,8 +6,8 @@ import sbt.Keys._
 import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
 
-name := "observe"
-ThisBuild / tlBaseVersion := "1.1"
+name                            := "observe"
+ThisBuild / tlBaseVersion       := "1.1"
 ThisBuild / tlCiReleaseBranches := Seq("develop")
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -337,7 +337,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(
     // And add a custom one
-    libraryDependencies += JavaTimeJS.value,
+    libraryDependencies += JavaTimeJS.value
   )
 
 lazy val observe_engine = project
@@ -424,7 +424,8 @@ lazy val observeLinux = Seq(
 /**
  * Project for the observe server app for development
  */
-lazy val app_observe_server = project.in(file("app/observe-server"))
+lazy val app_observe_server = project
+  .in(file("app/observe-server"))
   .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
@@ -464,7 +465,8 @@ lazy val app_observe_server = project.in(file("app/observe-server"))
  * Project for the observe test server at GS on Linux 64
  */
 lazy val app_observe_server_gs_test =
-  project.in(file("app/observe-server-gs-test"))
+  project
+    .in(file("app/observe-server-gs-test"))
     .enablePlugins(NoPublishPlugin)
     .dependsOn(observe_web_server, observe_web_client)
     .aggregate(observe_web_server, observe_web_client)
@@ -495,7 +497,8 @@ lazy val app_observe_server_gs_test =
  * Project for the observe test server at GN on Linux 64
  */
 lazy val app_observe_server_gn_test =
-  project.in(file("app/observe-server-gn-test"))
+  project
+    .in(file("app/observe-server-gn-test"))
     .enablePlugins(NoPublishPlugin)
     .dependsOn(observe_web_server, observe_web_client)
     .aggregate(observe_web_server, observe_web_client)
@@ -524,7 +527,8 @@ lazy val app_observe_server_gn_test =
 /**
  * Project for the observe server app for production on Linux 64
  */
-lazy val app_observe_server_gs = project.in(file("app/observe-server-gs"))
+lazy val app_observe_server_gs = project
+  .in(file("app/observe-server-gs"))
   .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
@@ -553,7 +557,8 @@ lazy val app_observe_server_gs = project.in(file("app/observe-server-gs"))
 /**
  * Project for the GN observe server app for production on Linux 64
  */
-lazy val app_observe_server_gn = project.in(file("app/observe-server-gn"))
+lazy val app_observe_server_gn = project
+  .in(file("app/observe-server-gn"))
   .enablePlugins(NoPublishPlugin)
   .dependsOn(observe_web_server, observe_web_client)
   .aggregate(observe_web_server, observe_web_client)
