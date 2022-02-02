@@ -1,4 +1,5 @@
-addSbtPlugin("edu.gemini" % "sbt-lucuma" % "0.5.0")
+resolvers += Resolver.sonatypeRepo("snapshots")
+addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % "0.6-3ce8fc2-SNAPSHOT")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.7.1")
 

@@ -7,8 +7,6 @@ import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
 
 name                            := "observe"
-ThisBuild / tlBaseVersion       := "1.1"
-ThisBuild / tlCiReleaseBranches := Seq("develop")
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
