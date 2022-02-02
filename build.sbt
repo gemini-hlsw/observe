@@ -6,7 +6,7 @@ import sbt.Keys._
 import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
 
-name                            := "observe"
+name := "observe"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
