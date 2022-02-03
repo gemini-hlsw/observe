@@ -52,21 +52,21 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Check that workflows are up to date
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'project /' githubWorkflowCheck
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'project /' githubWorkflowCheck
 
       - name: Check headers and formatting
         if: matrix.java == 'temurin@17'
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck lucumaScalafmtCheck
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck lucumaScalafmtCheck
 
       - name: fastLinkJS
         if: matrix.project == 'rootJS'
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' Test/fastLinkJS
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' Test/fastLinkJS
 
       - name: Test
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' test
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' test
 
       - name: Aggregate coverage reports
-        run: sbt 'project ${{ matrix.project }}' '++${{ matrix.scala }}' coverageReport coverageAggregate
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' coverageReport coverageAggregate
 
       - name: Upload code coverage data
         run: 'bash <(curl -s https://codecov.io/bash)'

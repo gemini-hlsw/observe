@@ -15,6 +15,8 @@ Global / semanticdbEnabled := true
 ThisBuild / Compile / packageDoc / publishArtifact := false
 ThisBuild / Test / bspEnabled                      := false
 
+ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
+
 inThisBuild(
   Seq(
     scalacOptions += "-Ymacro-annotations",
