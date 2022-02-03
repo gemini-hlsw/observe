@@ -181,6 +181,7 @@ lazy val observe_web_client = project
         "-Wunused:explicits"
       )
     )),
+    coverageEnabled                 := false,
     // Configurations for webpack
     fastOptJS / webpackBundlingMode := BundlingMode.LibraryOnly(),
     fullOptJS / webpackBundlingMode := BundlingMode.Application,
