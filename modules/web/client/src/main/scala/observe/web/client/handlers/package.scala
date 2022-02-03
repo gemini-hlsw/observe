@@ -3,7 +3,7 @@
 
 package observe.web.client
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 import scala.concurrent.Future
 
 import cats.Monoid

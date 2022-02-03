@@ -14,7 +14,6 @@ import observe.model.StepId
 import observe.model.enum._
 import observe.web.client.actions._
 import observe.web.client.circuit.ObserveCircuit
-import scala.annotation.nowarn
 
 // Pages
 object Pages {
@@ -64,7 +63,6 @@ object Pages {
   }
 
   // Pages forms a prism with Page
-  @nowarn
   val PageActionP: Prism[Action, ObservePages] = Prism[Action, ObservePages] {
     case SelectRoot                         => Root.some
     case RequestSoundEcho                   => SoundTest.some

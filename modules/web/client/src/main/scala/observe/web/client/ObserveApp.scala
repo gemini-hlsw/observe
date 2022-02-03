@@ -3,7 +3,6 @@
 
 package observe.web.client
 
-import scala.concurrent.ExecutionContext
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -28,7 +27,7 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {
-        import ExecutionContext.Implicits.global
+        import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 
         // Read the site from the webserver
         ObserveWebClient.site().map(Site.fromTag(_).getOrElse(Site.GS))

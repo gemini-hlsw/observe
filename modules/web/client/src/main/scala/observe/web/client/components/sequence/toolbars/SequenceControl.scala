@@ -3,7 +3,7 @@
 
 package observe.web.client.components.sequence.toolbars
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 import scala.concurrent.Future
 import cats.syntax.all._
 import japgolly.scalajs.react.AsyncCallback

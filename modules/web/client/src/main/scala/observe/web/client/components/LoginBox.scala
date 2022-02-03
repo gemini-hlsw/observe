@@ -3,7 +3,7 @@
 
 package observe.web.client.components
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 
 import cats.syntax.all._
 import japgolly.scalajs.react._
