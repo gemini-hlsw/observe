@@ -252,7 +252,7 @@ package object keywords {
   def boolDefault[F[_]: Applicative]: F[Boolean]    = BooleanDefault.pure[F]
   def listDefault[F[_]: Applicative, A]: F[List[A]] = List.empty[A].pure[F]
 
-  def internalKeywordConvert[_](k: Keyword[_]): InternalKeyword =
+  def internalKeywordConvert(k: Keyword[_]): InternalKeyword =
     InternalKeyword(k.n, k.t, k.stringValue)
 
   implicit class DefaultValueOps[A](a: Option[A])(implicit d: DefaultHeaderValue[A]) {
