@@ -131,6 +131,7 @@ lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(CatsTime.value) ++
       LucumaCore.value
   )
+  .jsSettings(coverageEnabled := false)
   .dependsOn(observe_model)
 
 // Project for the server side application
@@ -338,7 +339,8 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(
     // And add a custom one
-    libraryDependencies += JavaTimeJS.value
+    libraryDependencies += JavaTimeJS.value,
+    coverageEnabled := false
   )
 
 lazy val observe_engine = project
