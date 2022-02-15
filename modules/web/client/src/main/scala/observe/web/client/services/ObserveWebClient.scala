@@ -342,8 +342,8 @@ object ObserveWebClient extends ModelBooPicklers {
     Ajax
       .post(
         url = s"$baseUrl/commands/load/${encodeURI(instrument.show)}/${encodeURI(
-          id.toString
-        )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
+            id.toString
+          )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
       )
       .void
 
@@ -441,8 +441,8 @@ object ObserveWebClient extends ModelBooPicklers {
     Ajax
       .post(
         url = s"$baseUrl/commands/queue/${encodeURI(queueId.self.show)}/move/${encodeURI(
-          obsId.toString
-        )}/$pos/${encodeURI(clientId.self.show)}"
+            obsId.toString
+          )}/$pos/${encodeURI(clientId.self.show)}"
       )
       .void
 
@@ -460,8 +460,8 @@ object ObserveWebClient extends ModelBooPicklers {
     Ajax
       .post(
         url = s"$baseUrl/commands/execute/${encodeURI(obsIdName.toString)}/$pos/${encodeURI(
-          resource.show
-        )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
+            resource.show
+          )}/${encodeURI(name.value)}/${encodeURI(clientId.self.show)}"
       )
       .void
 
@@ -483,8 +483,8 @@ object ObserveWebClient extends ModelBooPicklers {
     Ajax
       .post(
         url = s"$baseUrl/commands/${encodeURI(obsIdName.toString)}/$stepId/startFrom/${encodeURI(
-          name.value
-        )}/${encodeURI(clientId.self.show)}$param"
+            name.value
+          )}/${encodeURI(clientId.self.show)}$param"
       )
       .void
   }
