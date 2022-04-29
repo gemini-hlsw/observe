@@ -8,7 +8,7 @@ import scala.math._
 import scala.scalajs.js
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.{ CtorType, Reusability, _ }
 import japgolly.scalajs.react.component.Scala.Component

@@ -7,7 +7,7 @@ import java.time.Duration
 import cats._
 import cats.data._
 import cats.effect.Async
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import monocle.macros.Lenses
 import mouse.boolean._

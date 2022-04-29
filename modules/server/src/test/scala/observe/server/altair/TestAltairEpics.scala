@@ -6,7 +6,7 @@ package observe.server.altair
 import cats.Applicative
 import cats.effect.Sync
 import cats.effect.Ref
-import cats.implicits._
+import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
 import monocle.macros.Lenses

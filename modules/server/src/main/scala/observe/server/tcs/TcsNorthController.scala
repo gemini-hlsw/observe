@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats.Show
 import cats.data.NonEmptySet
-import cats.implicits._
+import cats.syntax.all._
 import observe.model.enum.NodAndShuffleStage
 import observe.server.altair.Altair
 import observe.server.altair.AltairController

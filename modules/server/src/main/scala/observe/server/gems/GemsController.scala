@@ -4,7 +4,7 @@
 package observe.server.gems
 
 import cats.{ Eq, Show }
-import cats.implicits._
+import cats.syntax.all._
 import mouse.boolean._
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.tcs.Gaos.PauseConditionSet
