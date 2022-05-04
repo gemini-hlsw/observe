@@ -4,7 +4,6 @@
 package observe.server.tcs
 
 import cats.data.NonEmptySet
-import cats.implicits._
 import org.typelevel.log4cats.Logger
 import observe.model.enum.NodAndShuffleStage
 import observe.server.tcs.TcsController._

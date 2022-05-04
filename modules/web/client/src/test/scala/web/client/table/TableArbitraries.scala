@@ -4,7 +4,7 @@
 package web.client.table
 
 import cats.Eq
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import japgolly.scalajs.react.facade.JsNumber
 import org.scalacheck._

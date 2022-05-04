@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
-import cats.instances.string._
 import cats.syntax.eq._
 import org.http4s.CacheDirective._
 import org.http4s.{ HttpRoutes, Request, Response, StaticFile }

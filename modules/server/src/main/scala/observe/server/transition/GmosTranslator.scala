@@ -45,7 +45,7 @@ import observe.common.ObsQueriesGQL.ObsQuery.{
   GmosStatic
 }
 import observe.server.ConfigUtilOps._
-import cats.implicits._
+import cats.syntax.all._
 import edu.gemini.spModel.obscomp.InstConstants.{ EXPOSURE_TIME_PROP, INSTRUMENT_NAME_PROP }
 import observe.server.gmos.GmosController.{ NorthTypes, SiteDependentTypes, SouthTypes }
 import observe.server.gmos.{ GmosNorth, GmosSouth }

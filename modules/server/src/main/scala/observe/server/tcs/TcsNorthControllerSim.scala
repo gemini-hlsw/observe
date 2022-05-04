@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats.Applicative
 import cats.data.NonEmptySet
-import cats.implicits._
+import cats.syntax.all._
 import org.typelevel.log4cats.Logger
 import observe.model.enum.NodAndShuffleStage
 import observe.server.altair.Altair

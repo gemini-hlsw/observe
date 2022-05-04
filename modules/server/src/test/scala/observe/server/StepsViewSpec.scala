@@ -5,7 +5,7 @@ package observe.server
 
 import cats.Id
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global

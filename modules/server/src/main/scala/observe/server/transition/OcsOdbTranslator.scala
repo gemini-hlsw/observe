@@ -41,7 +41,7 @@ import observe.common.ObsQueriesGQL.ObsQuery.{
 import observe.server.tcs.Tcs
 import observe.server.ConfigUtilOps._
 import observe.server.transition.GmosTranslator._
-import cats.implicits._
+import cats.syntax.all._
 import edu.gemini.spModel.gemini.calunit.CalUnitParams
 import edu.gemini.spModel.obscomp.InstConstants
 import lucuma.schemas.ObservationDB.Enums.SequenceType

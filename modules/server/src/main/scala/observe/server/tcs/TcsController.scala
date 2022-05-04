@@ -6,7 +6,7 @@ package observe.server.tcs
 import cats._
 import cats.data.NonEmptySet
 import cats.data.OneAnd
-import cats.implicits._
+import cats.syntax.all._
 import edu.gemini.spModel.core.Wavelength
 import lucuma.core.enum._
 import monocle.macros.Lenses
