@@ -14,7 +14,7 @@ object Settings {
     val scalajsReact            = "2.0.1"
     val booPickle               = "1.4.0"
     val diode                   = "1.2.0-RC4"
-    val javaTimeJS              = "2.3.0"
+    val javaTimeJS              = "2.4.0"
     val scalaJSReactCommon      = "0.14.7"
     val scalaJSSemanticUI       = "0.13.1"
     val scalaJSReactVirtualized = "0.13.1"
