@@ -34,7 +34,7 @@ object Settings {
 
     val http4sVersion  = "1.0.0-M27"
     val squants        = "1.8.2"
-    val commonsHttp    = "2.0.2"
+    val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
     val slf4j          = "1.7.35"
