@@ -2,8 +2,6 @@
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enum
-
-import cats.instances.string._
 import cats.syntax.eq._
 import lucuma.core.enum.ProgramType
 import lucuma.core.util.Enumerated

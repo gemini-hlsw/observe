@@ -5,7 +5,6 @@ package ocs2
 
 import cats.Order
 import cats.Show
-import cats.instances.short._
 import lucuma.core.optics.syntax.prism._
 import monocle.Prism
 
