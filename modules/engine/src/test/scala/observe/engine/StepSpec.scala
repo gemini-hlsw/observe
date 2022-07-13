@@ -5,7 +5,7 @@ package observe.engine
 
 import cats.effect.IO
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.syntax.all._
 import munit.CatsEffectSuite
 import cats.effect.std.Queue
 import fs2.Stream
