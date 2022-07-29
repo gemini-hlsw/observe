@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "2.1.0"
+    val scalaDom                = "2.2.0"
     val scalajsReact            = "2.0.1"
     val booPickle               = "1.4.0"
     val diode                   = "1.2.0-RC4"
@@ -23,26 +23,26 @@ object Settings {
     val scalaJSReactSortable    = "0.5.2"
 
     // Scala libraries
-    val catsEffectVersion   = "3.3.5"
+    val catsEffectVersion   = "3.3.14"
     val catsVersion         = "2.7.0"
     val mouseVersion        = "1.0.7"
-    val fs2Version          = "3.2.4"
+    val fs2Version          = "3.2.9"
     val shapelessVersion    = "2.3.7"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
     val http4sVersion  = "1.0.0-M27"
-    val squants        = "1.8.2"
+    val squants        = "1.8.3"
     val commonsHttp    = "2.0.2"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
-    val slf4j          = "1.7.35"
+    val slf4j          = "1.7.36"
     val log4s          = "1.10.0"
     val log4cats       = "2.1.1"
     val log4catsLevel  = "0.3.0"
     val logback        = "1.2.10"
-    val janino         = "3.1.6"
+    val janino         = "3.1.7"
     val logstash       = "7.0"
     val pureConfig     = "0.17.1"
     val monocleVersion = "3.1.0"
@@ -76,9 +76,9 @@ object Settings {
     val gmpStatusDatabase   = "0.3.7"
     val gmpCmdClientBridge  = "0.6.7"
     val guava               = "31.0.1-jre"
-    val prometheusClient    = "0.15.0"
+    val prometheusClient    = "0.16.0"
     val geminiLocales       = "0.7.0"
-    val pprint              = "0.7.1"
+    val pprint              = "0.7.3"
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
@@ -87,7 +87,7 @@ object Settings {
     val lucumaSchemas = "0.1.7"
 
     // Clue
-    val clue = "0.20.2"
+    val clue = "0.20.3"
 
     val sttp = "3.3.14"
   }
