@@ -1,9 +1,8 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client
 
-import scala.concurrent.ExecutionContext
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
 
@@ -28,7 +27,7 @@ final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {
-        import ExecutionContext.Implicits.global
+        import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 
         // Read the site from the webserver
         ObserveWebClient.site().map(Site.fromTag(_).getOrElse(Site.GS))

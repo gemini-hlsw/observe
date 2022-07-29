@@ -300,17 +300,4 @@ object Settings {
     )
   }
 
-  object PluginVersions {
-    // Compiler plugins
-    val kpVersion        = "0.13.0"
-    val betterMonadicFor = "0.3.1"
-  }
-
-  object Plugins {
-    val kindProjectorPlugin =
-      ("org.typelevel" % "kind-projector" % PluginVersions.kpVersion).cross(CrossVersion.full)
-    val betterMonadicForPlugin =
-      "com.olegpy" %% "better-monadic-for" % PluginVersions.betterMonadicFor
-  }
-
 }
