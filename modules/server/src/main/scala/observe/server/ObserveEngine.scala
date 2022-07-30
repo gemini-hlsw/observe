@@ -628,9 +628,9 @@ object ObserveEngine {
       observer: Observer,
       event:    SeqEvent = SeqEvent.NullSeqEvent
     ): HandleType[F, SeqEvent] = { (s: EngineState[F]) =>
-      ((EngineState
+      (EngineState
          .sequences[F]
-         .index(id))
+         .index(id)
          .modify(SequenceData.observer.replace(observer.some))(s),
        event
       )
