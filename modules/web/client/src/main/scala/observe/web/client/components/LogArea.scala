@@ -360,7 +360,7 @@ object LogArea {
                   clazz = ObserveStyles.logLevelBox,
                   checked = s,
                   onChangeE = (_: ReactMouseEvent, p: Checkbox.CheckboxProps) =>
-                    (onLevelChange(b, l)(p.checked.getOrElse(false)))
+                    onLevelChange(b, l)(p.checked.getOrElse(false))
                 )
               }
             )

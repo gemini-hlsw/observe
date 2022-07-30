@@ -44,7 +44,7 @@ object ObserveTabs {
           tabsL
             .sortBy {
               case Left(_)                 => Int.MinValue
-              case Right(t) if t.isPreview => (Int.MinValue + 1)
+              case Right(t) if t.isPreview => Int.MinValue + 1
               case Right(t)                => t.instrument.ordinal
             }
             .map {
