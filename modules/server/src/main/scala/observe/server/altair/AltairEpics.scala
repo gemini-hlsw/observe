@@ -13,10 +13,10 @@ import cats.syntax.all._
 import edu.gemini.epics.acm._
 import edu.gemini.observe.server.altair.LgsSfoControl
 import mouse.boolean._
-import seqexec.model.`enum`.ApplyCommandResult
-import seqexec.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
-import seqexec.server.EpicsCommandBase.setParameter
-import seqexec.server.EpicsUtil._
+import observe.model.`enum`.ApplyCommandResult
+import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
+import observe.server.EpicsCommandBase.setParameter
+import observe.server.EpicsUtil._
 
 trait AltairEpics[F[_]] {
   import AltairEpics._

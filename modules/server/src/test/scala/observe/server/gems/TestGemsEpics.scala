@@ -1,28 +1,27 @@
 // Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package seqexec.server.gems
+package observe.server.gems
 
 import cats.Applicative
-import cats.effect.Sync
-import cats.effect.concurrent.Ref
+import cats.effect.{ Async, Ref }
 import cats.syntax.all._
 import mouse.boolean._
-import edu.gemini.seqexec.server.gems.LoopState
+import edu.gemini.observe.server.gems.LoopState
 import monocle.macros.Lenses
-import seqexec.server.TestEpicsCommand.TestEpicsCommand2
-import seqexec.server.gems.GemsControllerEpics.{
+import observe.server.TestEpicsCommand.TestEpicsCommand2
+import observe.server.gems.GemsControllerEpics.{
   InstrumentCondition,
   OffsetCondition,
   PauseCmd,
   ResumeCmd,
   UnguidedCondition
 }
-import seqexec.server.gems.GemsEpics.LoopControl
+import observe.server.gems.GemsEpics.LoopControl
 
 import scala.concurrent.duration.FiniteDuration
 
-case class TestGemsEpics[F[_]: Sync](
+case class TestGemsEpics[F[_]: Async](
   state: Ref[F, TestGemsEpics.State],
   out:   Ref[F, List[TestGemsEpics.LoopEvent]]
 ) extends GemsEpics[F] {
@@ -287,7 +286,7 @@ object TestGemsEpics {
 
   final case class LoopEvent(cmd: String, reasons: String)
 
-  def build[F[_]: Sync](s0: TestGemsEpics.State): F[TestGemsEpics[F]] = for {
+  def build[F[_]: Async](s0: TestGemsEpics.State): F[TestGemsEpics[F]] = for {
     st <- Ref.of(s0)
     ev <- Ref.of(List.empty[TestGemsEpics.LoopEvent])
   } yield TestGemsEpics(st, ev)

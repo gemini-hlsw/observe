@@ -670,9 +670,9 @@ object SessionQueueTable extends Columns {
         SelectIdToDisplay(r.instrument, r.obsId.id, StepIdDisplayed(r.nextStepToRun))
       )
     } else { // Try to load it
-      b.props.sequences.status.displayName
+      b.props.user
         .filter(_ => b.props.canOperate && i >= 0 && !r.loaded)
-        .map { dn =>
+        .map { u =>
           val load =
             ObserveCircuit.dispatchCB(
               LoadSequence(Observer(u.displayName), r.instrument, r.obsId)

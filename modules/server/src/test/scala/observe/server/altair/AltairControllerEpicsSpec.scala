@@ -4,8 +4,7 @@
 package observe.server.altair
 
 import cats.syntax.all._
-import cats.effect.{ Async, IO }
-import cats.effect.Ref
+import cats.effect.IO
 import edu.gemini.observe.server.altair.LgsSfoControl
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger

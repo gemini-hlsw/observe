@@ -37,7 +37,7 @@ object TcsSettleTimeCalculator {
     def *(a: Angle): Time     = times(a)
   }
 
-  // We are using constant values for now. Values are taken from old Seqexec
+  // We are using constant values for now. Values are taken from old Observe
   val settleTimeCalculators: Map[Subsystem, SettleTimeCalculator] = Map(
     Subsystem.Mount -> constantSettleTime(1.seconds),
     Subsystem.PWFS1 -> constantSettleTime(1.seconds),

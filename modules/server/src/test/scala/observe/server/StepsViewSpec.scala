@@ -27,7 +27,6 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     "build empty without tasks" in {
       StepsView.configStatus(Nil) shouldBe List.empty
     }
-
   it should "be all running if none has a result" in {
     val status                                = List(Resource.TCS -> ActionStatus.Running)
     val executions: List[ParallelActions[Id]] = List(NonEmptyList.one(running(Resource.TCS)))
@@ -308,8 +307,15 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sf <-
         advanceN(q,
                  s0,
-                 observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId),
-                 2
+                 observeEngine.configSystem(q,
+                                            seqObsId1,
+                                            Observer(""),
+                                            UserDetails("", ""),
+                                            stepId(1),
+                                            TCS,
+                                            clientId
+                 ),
+                 3
         )
     } yield inside(
       sf.flatMap(
@@ -341,7 +347,14 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
       sf <-
         advanceOne(q,
                    s0,
-                   observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId)
+                   observeEngine.configSystem(q,
+                                              seqObsId1,
+                                              Observer(""),
+                                              UserDetails("", ""),
+                                              stepId(1),
+                                              TCS,
+                                              clientId
+                   )
         )
     } yield inside(
       sf.flatMap(
@@ -379,7 +392,14 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
         advanceOne(
           q,
           s0,
-          observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
+          observeEngine.configSystem(q,
+                                     seqObsId2,
+                                     Observer(""),
+                                     UserDetails("", ""),
+                                     stepId(1),
+                                     Instrument.F2,
+                                     clientId
+          )
         )
     } yield inside(
       sf.flatMap(
@@ -418,8 +438,15 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
           q,
           s0,
           observeEngine
-            .configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId),
-          2
+            .configSystem(q,
+                          seqObsId2,
+                          Observer(""),
+                          UserDetails("", ""),
+                          stepId(1),
+                          Instrument.F2,
+                          clientId
+            ),
+          3
         )
     } yield inside(
       sf.flatMap(

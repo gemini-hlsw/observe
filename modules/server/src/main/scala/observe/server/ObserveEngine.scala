@@ -641,9 +641,9 @@ object ObserveEngine {
       observer: Observer,
       event:    SeqEvent = SeqEvent.NullSeqEvent
     ): HandleType[F, SeqEvent] = { (s: EngineState[F]) =>
-      ((EngineState
+      (EngineState
          .sequences[F]
-         .index(id))
+         .index(id)
          .modify(SequenceData.observer.replace(observer.some))(s),
        event
       )
@@ -917,7 +917,7 @@ object ObserveEngine {
       observer: Observer,
       user:     UserDetails
     ): F[Unit] =
-      q.enqueue1(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
+      q.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
         setObserver(q, seqId, user, observer) *>
         q.offer(Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(seqId)))
 

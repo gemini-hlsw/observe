@@ -35,7 +35,7 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
-Global / resolvers += Resolver.sonatypeRepo("public")
+Global / resolvers ++= Resolver.sonatypeOssRepos("public")
 
 // This key is used to find the JRE dir. It could/should be overriden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
@@ -97,8 +97,8 @@ addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""
 addCommandAlias("restartObserveWDS", restartObserveWDSCommands.mkString(";", ";", ""))
 addCommandAlias("stopObserveAll", stopObserveAllCommands.mkString(";", ";", ""))
 
-ThisBuild / resolvers +=
-  Resolver.sonatypeRepo("snapshots")
+ThisBuild / resolvers ++=
+  Resolver.sonatypeOssRepos("snapshots")
 
 ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 
@@ -394,7 +394,7 @@ lazy val observeCommonSettings = Seq(
   Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName            := "seqexec-server",
+  executableScriptName            := "observe-server",
   // No javadocs
   Compile / packageDoc / mappings := Seq(),
   // Don't create launchers for Windows
@@ -405,7 +405,7 @@ lazy val observeCommonSettings = Seq(
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
-    val f = (seqexec_web_server / Compile / resourceDirectory).value / "logback.xml"
+    val f = (observe_web_server / Compile / resourceDirectory).value / "logback.xml"
     f -> ("conf/" + f.getName)
   },
   // Launch options

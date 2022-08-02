@@ -214,10 +214,10 @@ class ObserveUIApiRoutes[F[_]: Async](
   // Stream observe events to clients and a ping
   private def anonymize(e: ObserveEvent) =
     // Hide the name and target name for anonymous users
-    (telescopeTargetNameT
+    telescopeTargetNameT
       .replace("*****")
       .andThen(observeTargetNameT.replace("*****"))
-      .andThen(sequenceNameT.replace("")))(e)
+      .andThen(sequenceNameT.replace(""))(e)
 
   // Filter out NullEvents from the engine
   private def filterOutNull =

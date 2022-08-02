@@ -1,15 +1,15 @@
 // Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package seqexec.server.gems
+package observe.server.gems
 
 import cats.syntax.all._
 import cats.effect.IO
-import edu.gemini.seqexec.server.gems.LoopState
+import edu.gemini.observe.server.gems.LoopState
 import munit.CatsEffectSuite
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import seqexec.server.gems.GemsController.{
+import observe.server.gems.GemsController.{
   Cwfs1Usage,
   Cwfs2Usage,
   Cwfs3Usage,
@@ -20,12 +20,12 @@ import seqexec.server.gems.GemsController.{
   Odgw4Usage,
   P1Usage
 }
-import seqexec.server.gems.GemsControllerEpicsSpec.DummyGsaoiGuider
-import seqexec.server.gems.TestGemsEpics.LoopEvent
-import seqexec.server.gsaoi.GsaoiGuider
-import seqexec.server.tcs.Gaos
-import seqexec.server.tcs.Gaos.{ PauseCondition, ResumeCondition }
-import seqexec.server.tcs.TcsController.{ FocalPlaneOffset, OffsetX, OffsetY }
+import observe.server.gems.GemsControllerEpicsSpec.DummyGsaoiGuider
+import observe.server.gems.TestGemsEpics.LoopEvent
+import observe.server.gsaoi.GsaoiGuider
+import observe.server.tcs.Gaos
+import observe.server.tcs.Gaos.{ PauseCondition, ResumeCondition }
+import observe.server.tcs.TcsController.{ FocalPlaneOffset, OffsetX, OffsetY }
 import shapeless.tag
 import squants.space.LengthConversions._
 

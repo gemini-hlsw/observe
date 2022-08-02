@@ -18,7 +18,7 @@ import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil._
 
 trait GemsEpics[F[_]] {
-  import seqexec.server.gems.GemsEpics.LoopControl
+  import observe.server.gems.GemsEpics.LoopControl
 
   val loopControl: LoopControl[F]
 
