@@ -21,8 +21,8 @@ object TabFocus {
 
   val tabFocusG: Getter[ObserveAppRootModel, TabFocus] = {
     val getter = ObserveAppRootModel.uiModel.andThen(
-      (ObserveUIModel.sequencesOnDisplay
-        .andThen(SequencesOnDisplay.availableTabsG))
+      ObserveUIModel.sequencesOnDisplay
+        .andThen(SequencesOnDisplay.availableTabsG)
         .zip(ObserveUIModel.displayNameG)
     )
     ClientStatus.canOperateG.zip(getter) >>> { case (o, (t, ob)) =>

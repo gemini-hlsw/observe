@@ -23,7 +23,7 @@ object HeaderSideBarFocus {
 
   val headerSideBarG: Getter[ObserveAppRootModel, HeaderSideBarFocus] =
     Getter[ObserveAppRootModel, HeaderSideBarFocus] { c =>
-      val clientStatus = ClientStatus(c.uiModel.user, c.clientId, c.uiModel.displayNames, c.ws)
+      val clientStatus = ClientStatus.clientStatusFocusL.get(c)
       HeaderSideBarFocus(clientStatus, c.sequences.conditions, c.sequences.operator)
     }
 }
