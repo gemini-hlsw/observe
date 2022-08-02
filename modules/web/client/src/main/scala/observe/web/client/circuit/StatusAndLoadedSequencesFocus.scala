@@ -72,7 +72,7 @@ object SequenceInSessionQueue {
         s.metadata.name,
         obsClass,
         targetName,
-        null,
+        s.metadata.observer,
         s.runningStep,
         s.nextStepToRun,
         dayCal.contains(s.idName.id)

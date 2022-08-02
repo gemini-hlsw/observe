@@ -22,7 +22,7 @@ import observe.server.gcal.GcalController.Shutter
 import observe.server.gcal.GcalController._
 
 object GcalControllerEpics {
-  // Default value from Tcl Seqexec
+  // Default value from Tcl Observe
   private val SetupTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
 
   implicit private val encodeLampState: EncodeEpicsValue[LampState, BinaryOnOff] =

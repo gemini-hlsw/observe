@@ -283,7 +283,7 @@ object TcsControllerEpicsCommon {
       with ScienceFoldPositionCodex {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
     private val trace              =
-      Option(System.getProperty("seqexec.server.tcs.trace")).flatMap(_.toBooleanOption).isDefined
+      Option(System.getProperty("observe.server.tcs.trace")).flatMap(_.toBooleanOption).isDefined
 
     override def setMountGuide[C](l: Lens[C, BaseEpicsTcsConfig])(
       subsystems:                    NonEmptySet[Subsystem],

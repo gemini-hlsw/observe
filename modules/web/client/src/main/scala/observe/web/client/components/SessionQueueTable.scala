@@ -693,7 +693,7 @@ object SessionQueueTable extends Columns {
             <.div(
               ^.cls    := "ui center aligned segment noRows",
               ObserveStyles.noRowsSegment,
-              ^.height := 180.px,
+              ^.height := 230.px,
               "Session queue empty"
             ),
           overscanRowCount = ObserveStyles.overscanRowCount,

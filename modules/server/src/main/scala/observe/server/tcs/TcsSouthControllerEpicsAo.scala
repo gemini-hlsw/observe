@@ -77,7 +77,7 @@ object TcsSouthControllerEpicsAo {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
     private val commonController   = TcsControllerEpicsCommon[F](epicsSys)
     private val trace              =
-      Option(System.getProperty("seqexec.server.tcs.trace")).flatMap(_.toBooleanOption).isDefined
+      Option(System.getProperty("observe.server.tcs.trace")).flatMap(_.toBooleanOption).isDefined
 
     def setNgsGuide(followCmd: ProbeFollowCmd[F], l: Lens[EpicsTcsAoConfig, GuiderConfig])(
       name:                    String

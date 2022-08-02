@@ -4,7 +4,7 @@
 package observe.server.altair
 
 import cats.Applicative
-import cats.effect.Sync
+import cats.effect.Async
 import cats.effect.Ref
 import cats.implicits._
 import edu.gemini.epics.acm.CarStateGEM5
@@ -21,7 +21,7 @@ import observe.server.altair.AltairEpics.{
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 
-case class TestAltairEpics[F[_]: Sync](
+case class TestAltairEpics[F[_]: Async](
   state: Ref[F, TestAltairEpics.State],
   out:   Ref[F, List[TestAltairEpics.Event]]
 ) extends AltairEpics[F] {
@@ -279,5 +279,11 @@ object TestAltairEpics {
     sfoControlCmd = TestEpicsCommand1.State[LgsSfoControl](mark = false, LgsSfoControl.Disable),
     btoControlCmd = TestEpicsCommand1.State[String](mark = false, "OFF")
   )
+
+  def build[F[_]: Async](baseState: TestAltairEpics.State): F[TestAltairEpics[F]] =
+    for {
+      st  <- Ref.of(baseState)
+      out <- Ref.of(List.empty[TestAltairEpics.Event])
+    } yield TestAltairEpics[F](st, out)
 
 }

@@ -32,6 +32,8 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
+Global / resolvers ++= Resolver.sonatypeOssRepos("public")
+
 // This key is used to find the JRE dir. It could/should be overriden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres11"
@@ -68,8 +70,8 @@ addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""
 addCommandAlias("restartObserveWDS", restartObserveWDSCommands.mkString(";", ";", ""))
 addCommandAlias("stopObserveAll", stopObserveAllCommands.mkString(";", ";", ""))
 
-ThisBuild / resolvers +=
-  Resolver.sonatypeRepo("snapshots")
+ThisBuild / resolvers ++=
+  Resolver.sonatypeOssRepos("snapshots")
 
 ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 
@@ -188,7 +190,7 @@ lazy val observe_web_client = project
     fullOptJS / webpackBundlingMode := BundlingMode.Application,
     webpackResources                := (baseDirectory.value / "src" / "webpack") * "*.js",
     webpackDevServerPort            := 9090,
-    webpack / version               := "4.44.1",
+    webpack / version               := "4.46.0",
     startWebpackDevServer / version := "3.11.0",
     // Use a different Webpack configuration file for production and create a single bundle without source maps
     fullOptJS / webpackConfigFile   := Some(

@@ -223,8 +223,15 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf <-
         advanceN(q,
                  s0,
-                 observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId),
-                 2
+                 observeEngine.configSystem(q,
+                                            seqObsId1,
+                                            Observer(""),
+                                            UserDetails("", ""),
+                                            stepId(1),
+                                            TCS,
+                                            clientId
+                 ),
+                 3
         )
     } yield inside(
       sf.flatMap(
@@ -256,7 +263,14 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
       sf <-
         advanceOne(q,
                    s0,
-                   observeEngine.configSystem(q, seqObsId1, Observer(""), stepId(1), TCS, clientId)
+                   observeEngine.configSystem(q,
+                                              seqObsId1,
+                                              Observer(""),
+                                              UserDetails("", ""),
+                                              stepId(1),
+                                              TCS,
+                                              clientId
+                   )
         )
     } yield inside(
       sf.flatMap(
@@ -294,7 +308,14 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
         advanceOne(
           q,
           s0,
-          observeEngine.configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId)
+          observeEngine.configSystem(q,
+                                     seqObsId2,
+                                     Observer(""),
+                                     UserDetails("", ""),
+                                     stepId(1),
+                                     Instrument.F2,
+                                     clientId
+          )
         )
     } yield inside(
       sf.flatMap(
@@ -333,10 +354,17 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
           q,
           s0,
           observeEngine
-            .configSystem(q, seqObsId2, Observer(""), stepId(1), Instrument.F2, clientId),
-          2
+            .configSystem(q,
+                          seqObsId2,
+                          Observer(""),
+                          UserDetails("", ""),
+                          stepId(1),
+                          Instrument.F2,
+                          clientId
+            ),
+          3
         )
-    } yield inside(sf.flatMap((EngineState.sequences[IO].index(seqObsId2)).getOption)) {
+    } yield inside(sf.flatMap(EngineState.sequences[IO].index(seqObsId2).getOption)) {
       case Some(s) =>
         assertResult(Some(Action.ActionState.Started))(
           s.seqGen.configActionCoord(stepId(1), Instrument.F2).map(s.seq.getSingleState)
