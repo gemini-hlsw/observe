@@ -670,9 +670,9 @@ object SessionQueueTable extends Columns {
         SelectIdToDisplay(r.instrument, r.obsId.id, StepIdDisplayed(r.nextStepToRun))
       )
     } else { // Try to load it
-      b.props.user
+      b.props.sequences.status.displayName
         .filter(_ => b.props.canOperate && i >= 0 && !r.loaded)
-        .map { u =>
+        .map { dn =>
           val load =
             ObserveCircuit.dispatchCB(
               LoadSequence(Observer(u.displayName), r.instrument, r.obsId)
@@ -693,7 +693,7 @@ object SessionQueueTable extends Columns {
             <.div(
               ^.cls    := "ui center aligned segment noRows",
               ObserveStyles.noRowsSegment,
-              ^.height := 180.px,
+              ^.height := 230.px,
               "Session queue empty"
             ),
           overscanRowCount = ObserveStyles.overscanRowCount,

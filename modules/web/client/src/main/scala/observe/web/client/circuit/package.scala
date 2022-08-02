@@ -230,15 +230,11 @@ package circuit {
 
     def seqControlG(
       id: Observation.Id
-    ): Getter[ObserveAppRootModel, Option[SequenceControlFocus]] = {
-      val displayNames =
-        ObserveAppRootModel.userLoginFocus.asGetter
-      val tabGetter    =
-        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
-      ClientStatus.canOperateG.zip(tabGetter.zip(displayNames)) >>> {
-        case (status,
-              (Some(ObserveTabActive(tab, _)), UserLoginFocus(Some(UserDetails(u, _)), dn))
-            ) =>
+    ): Getter[ObserverAppRootModel, Option[SequenceControlFocus]] = {
+      val tabGetter =
+        ObserverAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
+      ClientStatus.canOperateG.zip(tabGetter) >>> {
+        case (status, Some(SeqexecTabActive(tab, _))) =>
           SequenceControlFocus(tab.instrument,
                                tab.obsIdName.id,
                                tab.sequence.systemOverrides,

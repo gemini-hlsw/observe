@@ -129,6 +129,12 @@ object ObserveCircuit
   val sequencesQueueRW: ModelRW[ObserveAppRootModel, SequencesQueueFocus] =
     this.zoomRWL(ObserveAppRootModel.unsafeSequencesQueueFocus)
 
+  val userLoginRW: ModelRW[SeqexecAppRootModel, UserLoginFocus] =
+    this.zoomRWL(SeqexecAppRootModel.userLoginFocus)
+
+  val sequencesQueueRW: ModelRW[SeqexecAppRootModel, SequencesQueueFocus] =
+    this.zoomRWL(SeqexecAppRootModel.unsafeSequencesQueueFocus)
+
   def sequenceTab(
     id: Observation.Id
   ): ModelR[ObserveAppRootModel, Option[ObserveTabActive]] =

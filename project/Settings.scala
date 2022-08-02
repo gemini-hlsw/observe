@@ -34,7 +34,7 @@ object Settings {
 
     val http4sVersion  = "1.0.0-M27"
     val squants        = "1.8.3"
-    val commonsHttp    = "2.0.2"
+    val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
     val slf4j          = "1.7.36"
@@ -60,7 +60,7 @@ object Settings {
 
     // Pure JS libraries
     val fomanticUI = "2.8.7"
-    val ocsVersion = "2021101.1.4"
+    val ocsVersion = "2022101.1.1"
 
     val apacheXMLRPC        = "3.1.3"
     val opencsv             = "2.3"

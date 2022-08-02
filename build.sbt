@@ -209,7 +209,7 @@ lazy val observe_web_client = project
     fullOptJS / webpackBundlingMode := BundlingMode.Application,
     webpackResources                := (baseDirectory.value / "src" / "webpack") * "*.js",
     webpackDevServerPort            := 9090,
-    webpack / version               := "4.44.1",
+    webpack / version               := "4.46.0",
     startWebpackDevServer / version := "3.11.0",
     // Use a different Webpack configuration file for production and create a single bundle without source maps
     fullOptJS / webpackConfigFile   := Some(
@@ -394,7 +394,7 @@ lazy val observeCommonSettings = Seq(
   Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
     .map(f => f.data -> f.data.getName()),
   // Name of the launch script
-  executableScriptName            := "observe-server",
+  executableScriptName            := "seqexec-server",
   // No javadocs
   Compile / packageDoc / mappings := Seq(),
   // Don't create launchers for Windows
@@ -405,7 +405,7 @@ lazy val observeCommonSettings = Seq(
   bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
-    val f = (observe_web_server / Compile / resourceDirectory).value / "logback.xml"
+    val f = (seqexec_web_server / Compile / resourceDirectory).value / "logback.xml"
     f -> ("conf/" + f.getName)
   },
   // Launch options
