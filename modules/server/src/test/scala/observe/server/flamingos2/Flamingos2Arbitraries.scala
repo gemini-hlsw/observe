@@ -3,7 +3,7 @@
 
 package observe.server.flamingos2
 
-import edu.gemini.spModel.gemini.flamingos2.{ Flamingos2 => LegacyF2 }
+import edu.gemini.spModel.gemini.flamingos2.{Flamingos2 => LegacyF2}
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen

@@ -5,7 +5,7 @@ package observe.server.transition
 
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.shared.util.immutable.MapOp
-import edu.gemini.spModel.config2.{ Config, ConfigSequence, ItemEntry, ItemKey }
+import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemEntry, ItemKey}
 import edu.gemini.spModel.gemini.calunit.CalUnitConstants._
 import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
 import edu.gemini.spModel.guide.StandardGuideOptions

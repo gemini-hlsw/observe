@@ -4,7 +4,7 @@
 package ocs2
 
 import cats.syntax.all._
-import lucuma.core.enum.{ GmosNorthDetector => GmosDetector, _ }
+import lucuma.core.enum.{GmosNorthDetector => GmosDetector, _}
 import lucuma.core.math._
 import lucuma.core.optics.syntax.prism._
 import ocs2.config.GcalConfig.GcalLamp
@@ -224,7 +224,7 @@ object Parsers {
 
     import F2Fpu._
     import ocs2.config.F2Config.F2FpuChoice
-    import ocs2.config.F2Config.F2FpuChoice.{ Builtin, Custom }
+    import ocs2.config.F2Config.F2FpuChoice.{Builtin, Custom}
 
     val fpu: PioParse[Option[F2FpuChoice]] = enum(
       "PINHOLE"        -> Some(Builtin(Pinhole)),

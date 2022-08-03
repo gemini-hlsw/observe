@@ -24,8 +24,8 @@ import observe.server.gems.GemsControllerEpicsSpec.DummyGsaoiGuider
 import observe.server.gems.TestGemsEpics.LoopEvent
 import observe.server.gsaoi.GsaoiGuider
 import observe.server.tcs.Gaos
-import observe.server.tcs.Gaos.{ PauseCondition, ResumeCondition }
-import observe.server.tcs.TcsController.{ FocalPlaneOffset, OffsetX, OffsetY }
+import observe.server.tcs.Gaos.{PauseCondition, ResumeCondition}
+import observe.server.tcs.TcsController.{FocalPlaneOffset, OffsetX, OffsetY}
 import shapeless.tag
 import squants.space.LengthConversions._
 

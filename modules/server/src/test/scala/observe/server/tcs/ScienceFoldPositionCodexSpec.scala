@@ -6,8 +6,8 @@ package observe.server.tcs
 import org.scalatest.matchers.should.Matchers._
 import ScienceFoldPositionCodex._
 import observe.server.EpicsCodex._
-import lucuma.core.enum.LightSinkName.{ F2, Gmos, Gsaoi, Nifs, Niri_f32 }
-import observe.server.tcs.TcsController.LightSource.{ AO, GCAL, Sky }
+import lucuma.core.enum.LightSinkName.{F2, Gmos, Gsaoi, Nifs, Niri_f32}
+import observe.server.tcs.TcsController.LightSource.{AO, GCAL, Sky}
 import org.scalatest.flatspec.AnyFlatSpec
 
 class ScienceFoldPositionCodexSpec extends AnyFlatSpec {

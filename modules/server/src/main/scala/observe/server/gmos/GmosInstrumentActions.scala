@@ -26,7 +26,7 @@ import observe.server.tcs.TcsController.OffsetQ
 import shapeless.tag
 import squants.Time
 import squants.space.AngleConversions._
-import cats.effect.{ Ref, Temporal }
+import cats.effect.{Ref, Temporal}
 
 /**
  * Gmos needs different actions for N&S

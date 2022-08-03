@@ -8,7 +8,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all._
 import lucuma.core.enum.Site
 import mouse.all.booleanSyntaxMouse
-import observe.model.{ SequenceState, SequenceView, Step, StepId, StepState }
+import observe.model.{SequenceState, SequenceView, Step, StepId, StepState}
 import observe.model.enum.Instrument
 import observe.model.enum.Resource
 

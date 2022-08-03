@@ -14,7 +14,7 @@ object F2Config {
   /** Focal plane unit choice, custom or builtin. */
   sealed trait F2FpuChoice extends Product with Serializable {
 
-    import F2FpuChoice.{ Builtin, Custom }
+    import F2FpuChoice.{Builtin, Custom}
 
     /** Extracts the builtin FPU, if any. */
     def toBuiltin: Option[F2Fpu] =

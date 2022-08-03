@@ -4,7 +4,7 @@
 package observe.server.gmos
 
 import cats.Show
-import cats.effect.{ Async, Ref, Temporal }
+import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger

@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats.effect.{ IO, Ref }
+import cats.effect.{IO, Ref}
 import org.typelevel.log4cats.noop.NoOpLogger
 
 import scala.concurrent.duration._

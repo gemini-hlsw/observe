@@ -3,9 +3,9 @@
 
 package observe.server.gpi
 
-import java.lang.{ Boolean => JBoolean }
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Boolean => JBoolean}
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 
 import scala.concurrent.duration._
 
@@ -13,7 +13,7 @@ import cats._
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ReadoutArea => _, _ }
+import edu.gemini.spModel.gemini.gpi.Gpi.{ReadoutArea => _, _}
 import edu.gemini.spModel.obsclass.ObsClass
 import edu.gemini.spModel.obscomp.InstConstants
 import edu.gemini.spModel.seqcomp.SeqConfigNames._

@@ -6,7 +6,7 @@ package observe.web.client.components.sequence.steps
 import scala.math.max
 import cats.syntax.all._
 import diode.react.ReactConnectProxy
-import japgolly.scalajs.react.{ CtorType, _ }
+import japgolly.scalajs.react.{CtorType, _}
 import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.extra.TimerSupport

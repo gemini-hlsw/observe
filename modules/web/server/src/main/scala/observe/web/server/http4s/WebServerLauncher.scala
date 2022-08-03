@@ -4,7 +4,7 @@
 package observe.web.server.http4s
 
 import java.io.FileInputStream
-import java.nio.file.{ Path => FilePath }
+import java.nio.file.{Path => FilePath}
 import java.security.KeyStore
 import java.security.Security
 import javax.net.ssl.KeyManagerFactory
@@ -17,7 +17,7 @@ import cats.syntax.all._
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import fs2.Stream
-import cats.effect.std.{ Dispatcher, Queue }
+import cats.effect.std.{Dispatcher, Queue}
 import fs2.concurrent.Topic
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -32,7 +32,7 @@ import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
 import org.http4s.server.middleware.Metrics
-import org.http4s.server.middleware.{ Logger => Http4sLogger }
+import org.http4s.server.middleware.{Logger => Http4sLogger}
 import pureconfig._
 import observe.model.config._
 import observe.model.events._
@@ -51,7 +51,7 @@ import observe.web.server.security.AuthenticationService
 import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 import web.server.common.StaticRoutes
-import cats.effect.{ Ref, Resource, Temporal }
+import cats.effect.{Ref, Resource, Temporal}
 import org.http4s.asynchttpclient.client.AsyncHttpClient
 import org.http4s.blaze.server.BlazeServerBuilder
 
@@ -205,7 +205,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     out:        Topic[IO, ObserveEvent],
     dispatcher: Dispatcher[IO]
   ): IO[Appender[ILoggingEvent]] = IO.apply {
-    import ch.qos.logback.classic.{ AsyncAppender, Logger, LoggerContext }
+    import ch.qos.logback.classic.{AsyncAppender, Logger, LoggerContext}
     import org.slf4j.LoggerFactory
 
     val asyncAppender = new AsyncAppender

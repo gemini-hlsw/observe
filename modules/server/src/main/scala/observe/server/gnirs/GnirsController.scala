@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.Eq
 import cats.Show
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{ ReadMode => LegacyReadMode }
+import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{ReadMode => LegacyReadMode}
 import observe.model.dhs.ImageFileId
 import observe.model.enum.ObserveCommandResult
 import observe.server.Progress

@@ -10,7 +10,7 @@ import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.ghost.{ Ghost => SPGhost }
+import edu.gemini.spModel.gemini.ghost.{Ghost => SPGhost}
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
 import fs2.Stream
 import org.typelevel.log4cats.Logger

@@ -4,7 +4,7 @@
 package observe.server
 
 import lucuma.schemas.ObservationDB.Enums.SequenceType
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.server.keywords._
 import observe.server.tcs.Tcs
 

@@ -18,7 +18,7 @@ import react.semanticui.collections.form.FormCheckbox
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
-import observe.model.{ Observation, SystemOverrides }
+import observe.model.{Observation, SystemOverrides}
 import observe.web.client.actions._
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit._

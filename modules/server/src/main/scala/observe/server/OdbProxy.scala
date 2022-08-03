@@ -9,11 +9,11 @@ import cats.syntax.all._
 import clue.TransactionalClient
 import clue.data.Assign
 import edu.gemini.seqexec.odb.SeqexecSequence
-import lucuma.core.`enum`.{ DatasetStage, SequenceCommand, StepStage }
+import lucuma.core.`enum`.{DatasetStage, SequenceCommand, StepStage}
 import observe.common.ObsQueriesGQL
 import observe.common.ObsQueriesGQL._
 import org.typelevel.log4cats.Logger
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.model.dhs._
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType

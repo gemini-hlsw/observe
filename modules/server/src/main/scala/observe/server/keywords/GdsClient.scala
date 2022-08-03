@@ -5,7 +5,7 @@ package observe.server.keywords
 
 import scala.concurrent.duration._
 import scala.xml.Elem
-import cats.effect.{ Async, Temporal }
+import cats.effect.{Async, Temporal}
 import cats.syntax.all._
 import org.http4s._
 import org.http4s.client.Client

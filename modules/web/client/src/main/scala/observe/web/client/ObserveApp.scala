@@ -16,7 +16,7 @@ import observe.web.client.actions.WSClose
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
-import typings.loglevel.mod.{ ^ => logger }
+import typings.loglevel.mod.{^ => logger}
 
 /**
  * Observe WebApp entry point

@@ -3,8 +3,8 @@
 
 package observe.server.niri
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
@@ -13,7 +13,7 @@ import edu.gemini.observe.server.niri.ReadMode
 import edu.gemini.spModel.gemini.niri.InstNIRI._
 import edu.gemini.spModel.gemini.niri.Niri.Camera
 import edu.gemini.spModel.gemini.niri.Niri.WellDepth
-import edu.gemini.spModel.gemini.niri.Niri.{ ReadMode => OCSReadMode }
+import edu.gemini.spModel.gemini.niri.Niri.{ReadMode => OCSReadMode}
 import edu.gemini.spModel.obscomp.InstConstants.BIAS_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.DARK_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP

@@ -6,7 +6,7 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import io.circe.{ Decoder, Encoder }
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.auto._
 import lucuma.core.math
 import lucuma.core.enum
@@ -14,7 +14,7 @@ import lucuma.core.model
 import cats.syntax.functor._
 
 import java.time
-import lucuma.core.model.{ Atom, ExecutionEvent, Observation, Step, Target }
+import lucuma.core.model.{Atom, ExecutionEvent, Observation, Step, Target}
 
 // gql: import lucuma.schemas.decoders._
 // gql: import io.circe.refined._

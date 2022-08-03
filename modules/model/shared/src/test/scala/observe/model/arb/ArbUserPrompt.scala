@@ -6,8 +6,8 @@ package observe.model.arb
 import cats.data.NonEmptyList
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
-import observe.model.{ Observation, StepId, UserPrompt }
-import org.scalacheck.{ Arbitrary, Cogen, Gen }
+import observe.model.{Observation, StepId, UserPrompt}
+import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import observe.model.UserPrompt.{
   ChecksOverride,

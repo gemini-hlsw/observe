@@ -6,7 +6,7 @@ package observe.web.client.circuit
 import cats.Eq
 import cats.syntax.all._
 import monocle.Getter
-import observe.web.client.model.{ ClientStatus, ObserveAppRootModel }
+import observe.web.client.model.{ClientStatus, ObserveAppRootModel}
 import observe.model.Observation
 import observe.model._
 import observe.model.enum._

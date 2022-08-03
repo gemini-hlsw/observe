@@ -14,9 +14,9 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers._
-import lucuma.core.model.{ Observation => LObservation }
-import lucuma.core.model.{ Step => LStep }
-import observe.model.{ ActionType, ClientId, SequenceState, StepId, UserDetails }
+import lucuma.core.model.{Observation => LObservation}
+import lucuma.core.model.{Step => LStep}
+import observe.model.{ActionType, ClientId, SequenceState, StepId, UserDetails}
 import observe.engine.TestUtil.TestState
 import observe.common.test._
 

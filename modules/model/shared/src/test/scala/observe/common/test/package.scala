@@ -4,7 +4,7 @@
 package observe.common
 
 import eu.timepit.refined.types.numeric.PosLong
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 
 package object test {
   def observationId(i: Int): Observation.Id =

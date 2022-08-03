@@ -5,13 +5,13 @@ package observe.server
 
 import cats.Eq
 import cats.tests.CatsSuite
-import edu.gemini.spModel.config2.{ Config, ItemKey }
+import edu.gemini.spModel.config2.{Config, ItemKey}
 import monocle.law.discipline.LensTests
 import lucuma.core.util.arb.ArbGid._
 import observe.model.enum.Instrument
 import observe.model.SystemOverrides
 import observe.engine
-import observe.engine.{ Action, ParallelActions }
+import observe.engine.{Action, ParallelActions}
 import SequenceGen._
 import cats.effect.IO
 import observe.common.test.observationId

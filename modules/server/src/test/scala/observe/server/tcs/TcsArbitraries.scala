@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
+import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
