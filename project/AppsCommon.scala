@@ -1,7 +1,7 @@
 import com.typesafe.sbt.packager.MappingsHelper._
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 import sbt.Keys._
-import sbt.{ Project, Resolver, _ }
+import sbt.{Project, Resolver, _}
 
 /**
  * Define tasks and settings used by application definitions
