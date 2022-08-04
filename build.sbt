@@ -165,6 +165,7 @@ lazy val observe_web_server = project
     libraryDependencies ++= Seq(UnboundId,
                                 JwtCore,
                                 JwtCirce,
+                                Http4sServer,
                                 Http4sPrometheus,
                                 CommonsHttp,
                                 ScalaMock,

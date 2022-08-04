@@ -32,7 +32,7 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.14"
+    val http4sVersion                  = "0.23.14-27-fd0137d-SNAPSHOT"
     val http4sBlazeVersion             = "0.23.12"
     val http4sAsyncHttpClientVersion   = "0.23.11"
     val http4sBoopickleVersion         = "0.23.11"
@@ -173,6 +173,7 @@ object Settings {
     val Http4sBoopickle =
       "org.http4s" %% "http4s-boopickle" % LibraryVersions.http4sBoopickleVersion
     val Http4sCore       = "org.http4s" %% "http4s-core"      % LibraryVersions.http4sVersion
+    val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion
     val Http4sCirce      = "org.http4s" %% "http4s-circe"     % LibraryVersions.http4sVersion
     val Http4sXml        = "org.http4s" %% "http4s-scala-xml" % LibraryVersions.http4sScalaXmlVersion
     val Http4sPrometheus =

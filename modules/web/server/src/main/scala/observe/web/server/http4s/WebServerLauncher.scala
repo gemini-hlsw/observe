@@ -30,6 +30,7 @@ import org.http4s.metrics.prometheus.PrometheusExportService
 import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{ Logger => Http4sLogger }
 import pureconfig._
@@ -128,18 +129,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
     val ssl: F[Option[SSLContext]] = conf.webServer.tls.map(makeContext[F]).sequence
 
-    def build(all: F[HttpRoutes[F]]): Resource[F, Server] =
-      Resource
-        .eval(all.flatMap { all =>
-          val builder =
-            BlazeServerBuilder[F]
-              .bindHttp(conf.webServer.port, conf.webServer.host)
-              .withHttpApp((prRouter <+> all).orNotFound)
-          ssl.map(_.fold(builder)(builder.withSslContext)).map(_.resource)
-        })
-        .flatten
+    def build(all: WebSocketBuilder2[F] => HttpRoutes[F]): Resource[F, Server] =
+      Resource.eval {
+        val builder =
+          BlazeServerBuilder[F]
+            .bindHttp(conf.webServer.port, conf.webServer.host)
+            .withHttpWebSocketApp(wsb => (prRouter <+> all(wsb)).orNotFound)
+        ssl.map(_.fold(builder)(builder.withSslContext)).map(_.resource)
+      }.flatten
 
-    val router = Router[F](
+    def router(wsb: WebSocketBuilder2[F]) = Router[F](
       "/"                     -> new StaticRoutes(conf.mode === Mode.Development, OcsBuildInfo.builtAtMillis).service,
       "/api/observe/commands" -> new ObserveCommandRoutes(as, inputs, se).service,
       "/api"                  -> new ObserveUIApiRoutes(conf.site,
@@ -148,7 +147,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
                                        se.systems.guideDb,
                                        se.systems.gpi.statusDb,
                                        clientsDb,
-                                       outputs
+                                       outputs,
+                                       wsb
       ).service,
       "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
       "/smartgcal"            -> new SmartGcalRoutes[F](cal).service
@@ -158,12 +158,12 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/ping" -> new PingRoutes(as).service
     )
 
-    val loggedRoutes                                  =
-      pingRouter <+> Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router)
-    val metricsMiddleware: Resource[F, HttpRoutes[F]] =
-      Prometheus.metricsOps[F](cr, "observe").map(Metrics[F](_)(loggedRoutes))
+    def loggedRoutes(wsb: WebSocketBuilder2[F])                               =
+      pingRouter <+> Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb))
+    val metricsMiddleware: Resource[F, WebSocketBuilder2[F] => HttpRoutes[F]] =
+      Prometheus.metricsOps[F](cr, "observe").map(x => wsb => Metrics[F](x)(loggedRoutes(wsb)))
 
-    metricsMiddleware.flatMap(x => build(x.pure[F]))
+    metricsMiddleware.flatMap(x => build(x))
 
   }
 
