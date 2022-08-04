@@ -34,7 +34,7 @@ object Settings {
 
     val http4sVersion                  = "0.23.14-27-fd0137d-SNAPSHOT"
     val http4sBlazeVersion             = "0.23.12"
-    val http4sAsyncHttpClientVersion   = "0.23.11"
+    val http4sJdkHttpClientVersion     = "0.7.0"
     val http4sBoopickleVersion         = "0.23.11"
     val http4sPrometheusMetricsVersion = "0.23.12"
     val http4sScalaXmlVersion          = "0.23.12"
@@ -167,8 +167,8 @@ object Settings {
                      "org.http4s" %% "http4s-blaze-server" % LibraryVersions.http4sBlazeVersion
     )
     val Http4sClient    = Seq(
-      "org.http4s" %% "http4s-dsl"               % LibraryVersions.http4sVersion,
-      "org.http4s" %% "http4s-async-http-client" % LibraryVersions.http4sAsyncHttpClientVersion
+      "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
+      "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
     )
     val Http4sBoopickle =
       "org.http4s" %% "http4s-boopickle" % LibraryVersions.http4sBoopickleVersion

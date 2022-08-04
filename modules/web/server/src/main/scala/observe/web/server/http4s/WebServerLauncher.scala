@@ -12,6 +12,7 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import scala.concurrent.duration._
 import cats.effect._
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
@@ -21,8 +22,6 @@ import fs2.concurrent.Topic
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import io.prometheus.client.CollectorRegistry
-import org.asynchttpclient.AsyncHttpClientConfig
-import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import org.http4s.HttpRoutes
 import org.http4s.client.Client
 import org.http4s.metrics.prometheus.Prometheus
@@ -52,7 +51,7 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 import web.server.common.StaticRoutes
 import cats.effect.{ Ref, Resource, Temporal }
-import org.http4s.asynchttpclient.client.AsyncHttpClient
+import org.http4s.jdkhttpclient.JdkHttpClient
 import org.http4s.blaze.server.BlazeServerBuilder
 
 object WebServerLauncher extends IOApp with LogInitialization {
@@ -241,10 +240,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
   def observe: IO[ExitCode] = {
 
     // Override the default client config
-    def clientConfig(timeout: FiniteDuration): AsyncHttpClientConfig =
-      new DefaultAsyncHttpClientConfig.Builder(AsyncHttpClient.defaultConfig)
-        .setRequestTimeout(timeout.toMillis.toInt) // Change the timeout
-        .build()
+    def mkClient(timeout: FiniteDuration): Resource[IO, Client[IO]] =
+      JdkHttpClient.simple[IO].map(c => Client(r => c.run(r).timeout(timeout)))
 
     def engineIO(
       conf:       ObserveConfiguration,
@@ -281,7 +278,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         _      <- Resource.eval(configLog[IO]) // Initialize log before the engine is setup
         conf   <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _      <- Resource.eval(printBanner(conf))
-        cli    <- AsyncHttpClient.resource[IO](clientConfig(conf.observeEngine.dhsTimeout))
+        cli    <- mkClient(conf.observeEngine.dhsTimeout)
         inq    <- Resource.eval(Queue.bounded[IO, executeEngine.EventType](10))
         out    <- Resource.eval(Topic[IO, ObserveEvent])
         dsp    <- Dispatcher[IO]
