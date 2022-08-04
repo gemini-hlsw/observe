@@ -10,7 +10,6 @@ import java.security.Security
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import cats.effect._
 import cats.syntax.all._
@@ -133,9 +132,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
       Resource
         .eval(all.flatMap { all =>
           val builder =
-            BlazeServerBuilder[F](global)
+            BlazeServerBuilder[F]
               .bindHttp(conf.webServer.port, conf.webServer.host)
-              .withWebSockets(true)
               .withHttpApp((prRouter <+> all).orNotFound)
           ssl.map(_.fold(builder)(builder.withSslContext)).map(_.resource)
         })
@@ -179,7 +177,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/"                  -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
     )
 
-    BlazeServerBuilder[F](global)
+    BlazeServerBuilder[F]
       .bindHttp(conf.insecurePort, conf.host)
       .withHttpApp(router.orNotFound)
       .resource
