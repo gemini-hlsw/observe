@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -23,7 +23,7 @@ import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.SKY_BACKGROUND_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.WATER_VAPOR_PROP
 import cats.effect.std.Queue
 import fs2.Stream
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import io.prometheus.client.CollectorRegistry
 import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions

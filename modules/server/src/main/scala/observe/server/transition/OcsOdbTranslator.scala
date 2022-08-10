@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.transition
@@ -25,7 +25,7 @@ import edu.gemini.spModel.obscomp.InstConstants.{
   SCIENCE_OBSERVE_TYPE,
   STATUS_PROP
 }
-import lucuma.core.`enum`._
+import lucuma.core.enums._
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.Config.{
   GmosNorthExecutionConfig,
@@ -53,7 +53,7 @@ import scala.jdk.CollectionConverters._
 object OcsOdbTranslator {
 
   def translate(obs: Observation): SeqexecSequence = {
-    val steps = obs.execution.config.toList.flatMap {
+    val steps = obs.execution.config match {
       case GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) =>
         acquisitionN.nextAtom.toList
           .flatMap(_.steps)
@@ -73,11 +73,7 @@ object OcsOdbTranslator {
 
     }
 
-    SeqexecSequence(obs.name.map(_.value).getOrElse("Untitled"),
-                    Map.empty,
-                    new ConfigSequence(steps.toArray),
-                    List.empty
-    )
+    SeqexecSequence(obs.title, Map.empty, new ConfigSequence(steps.toArray), List.empty)
   }
 
   val defaultProgramId: String = "p-2"

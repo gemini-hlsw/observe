@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -17,6 +17,8 @@ import InstrumentSystem._
 import squants.time.Time
 import squants.time.TimeConversions._
 import cats.effect.Temporal
+import eu.timepit.refined.types.numeric.PosInt
+import lucuma.schemas.ObservationDB.Scalars.VisitId
 //import lucuma.schemas.ObservationDB.Enums.SequenceType
 
 /**
@@ -31,29 +33,34 @@ trait ObserveActions {
    */
   def abortTail[F[_]: MonadError[*[_], Throwable]](
     odb:         OdbProxy[F],
+    visitId:     Option[VisitId],
     obsIdName:   Observation.IdName,
     imageFileId: ImageFileId
-  ): F[Result[F]] =
-    odb
-      .obsAbort(obsIdName, imageFileId)
-      .ensure(
-        ObserveFailure
-          .Unexpected("Unable to send ObservationAborted message to ODB.")
-      )(identity)
-      .as(Result.OKAborted(Response.Aborted(imageFileId)))
+  ): F[Result[F]] = visitId
+    .map(
+      odb
+        .obsAbort(_, obsIdName, imageFileId)
+        .ensure(
+          ObserveFailure
+            .Unexpected("Unable to send ObservationAborted message to ODB.")
+        )(identity)
+    )
+    .getOrElse(Applicative[F].unit)
+    .as(Result.OKAborted(Response.Aborted(imageFileId)))
 
   /**
    * Send the datasetStart command to the odb
    */
   private def sendDataStart[F[_]: MonadError[*[_], Throwable]](
     odb:          OdbProxy[F],
+    visitId:      VisitId,
     obsIdName:    Observation.IdName,
     stepId:       StepId,
-    datasetIndex: Int,
+    datasetIndex: PosInt,
     fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(obsIdName, stepId, datasetIndex, fileId)
+      .datasetStart(visitId, obsIdName, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -64,13 +71,14 @@ trait ObserveActions {
    */
   private def sendDataEnd[F[_]: MonadError[*[_], Throwable]](
     odb:          OdbProxy[F],
+    visitId:      VisitId,
     obsIdName:    Observation.IdName,
     stepId:       StepId,
-    datasetIndex: Int,
+    datasetIndex: PosInt,
     fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(obsIdName, stepId, datasetIndex, fileId)
+      .datasetComplete(visitId, obsIdName, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -117,7 +125,9 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- sendDataStart(env.odb, env.obsIdName, env.stepId, env.datasetIndex, fileId)
+      _ <- env.ctx.visitId
+             .map(sendDataStart(env.odb, _, env.obsIdName, env.stepId, env.datasetIndex, fileId))
+             .getOrElse(Applicative[F].unit)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsIdName.id, fileId))
       _ <-
@@ -144,8 +154,9 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <-
-        sendDataEnd(env.odb, env.obsIdName, env.stepId, env.datasetIndex, fileId)
+      _ <- env.ctx.visitId
+             .map(sendDataEnd(env.odb, _, env.obsIdName, env.stepId, env.datasetIndex, fileId))
+             .getOrElse(Applicative[F].unit)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))
@@ -163,7 +174,7 @@ trait ObserveActions {
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.obsIdName, fileId)
+        abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
         env.inst
           .calcObserveTime(env.config)

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
@@ -18,8 +18,8 @@ import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
 import giapi.client.StatusValue
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.GiapiStatus
-import lucuma.core.enum.Site
+import lucuma.core.enums.GiapiStatus
+import lucuma.core.enums.Site
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.headers.`User-Agent`

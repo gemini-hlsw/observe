@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.config
 
 import cats.effect.IO
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import java.nio.file.Paths
 import org.http4s.Uri
 import org.http4s.implicits._

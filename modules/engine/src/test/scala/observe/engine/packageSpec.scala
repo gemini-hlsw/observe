@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -82,14 +82,14 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
              steps = List(
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                  executions = List(
                    NonEmptyList.of(configureTcs, configureInst), // Execution
                    NonEmptyList.one(observe)                     // Execution
                  )
                ),
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                  executions = executions
                )
              )
@@ -153,7 +153,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
             steps = List(
               Step.init(
-                id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                 executions = List(
                   NonEmptyList.one(
                     fromF[IO](ActionType.Undefined,
@@ -226,7 +226,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
                 id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
                 steps = List(
                   Step.init(
-                    id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                    id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                     executions = List(
                       NonEmptyList.one(
                         fromF[IO](ActionType.Configure(TCS),
@@ -275,7 +275,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
              steps = List(
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                  executions = List(
                    NonEmptyList.one(
                      fromF[IO](ActionType.Undefined,
@@ -307,14 +307,14 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(6)),
              steps = List(
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                          executions = executions
                ),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                          executions = executions
                )
              )
@@ -339,15 +339,15 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
            Sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(7)),
              steps = List(
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                          executions = executions
                ),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                          executions = executions
                )
              )
@@ -372,25 +372,25 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
            Sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(8)),
              steps = List(
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                          executions = executions
                ),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(4)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(4)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(5)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(5)),
                          executions = executions
                )
              )
@@ -422,14 +422,14 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
            Sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                          executions = executions
                ),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                          executions = executions
                ),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true))
@@ -458,7 +458,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true))
@@ -485,16 +485,16 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                          executions = executions
                )
              )
@@ -520,17 +520,17 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                        executions = executions
                  )
                  .copy(skipped = Step.Skipped(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true))
@@ -556,20 +556,20 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
            Sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                          executions = executions
                ),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true)),
                Step
-                 .init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+                 .init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                        executions = executions
                  )
                  .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
-               Step.init(id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(4)),
+               Step.init(id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(4)),
                          executions = executions
                )
              )
@@ -589,7 +589,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
   it should "run single Action" in {
     val dummy         = new AtomicInteger(0)
     val markVal       = 1
-    val stepId        = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1))
+    val stepId        = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1))
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -648,7 +648,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              steps = List(
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(1)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(1)),
                  executions = List(
                    NonEmptyList.one(
                      Action[IO](ActionType.Undefined,
@@ -659,15 +659,15 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
                  )
                ),
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(2)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(2)),
                  executions = executions
                ),
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(3)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)),
                  executions = executions
                ),
                Step.init(
-                 id = lucuma.core.model.Step.Id(PosLong.unsafeFrom(4)),
+                 id = lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(4)),
                  executions = executions
                )
              )
@@ -679,7 +679,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
 
   it should "be able to start sequence from arbitrary step" in {
     val event = Event.modifyState[IO, TestState, Unit](
-      executionEngine.startFrom(seqId, lucuma.core.model.Step.Id(PosLong.unsafeFrom(3))).void
+      executionEngine
+        .startFrom(seqId, lucuma.core.model.sequence.Step.Id(PosLong.unsafeFrom(3)))
+        .void
     )
 
     val sf = executionEngine
