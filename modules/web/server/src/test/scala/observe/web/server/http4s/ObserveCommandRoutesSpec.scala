@@ -9,6 +9,7 @@ import cats.tests.CatsSuite
 import observe.model.{ ClientId, Observation, StepId }
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 
 import java.net.URLEncoder
 import org.http4s._

@@ -6,6 +6,7 @@ package observe.server
 import cats.effect.IO
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import observe.model.Observation
 import org.scalacheck.Arbitrary._
 import org.scalacheck.{ Arbitrary, Cogen }

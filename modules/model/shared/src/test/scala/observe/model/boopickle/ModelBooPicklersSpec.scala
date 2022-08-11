@@ -5,6 +5,7 @@ package observe.model.boopickle
 
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import observe.model.enum._
 import observe.model._
 import observe.model.events._

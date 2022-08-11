@@ -10,6 +10,7 @@ import org.scalacheck._
 import scala.collection.immutable.SortedMap
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import observe.model.StepId
 import observe.model.enum.Resource
 import observe.web.client.model._
