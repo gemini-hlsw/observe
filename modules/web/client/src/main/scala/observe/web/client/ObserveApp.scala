@@ -6,7 +6,6 @@ package observe.web.client
 import scala.concurrent.ExecutionContext
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
-
 import cats.effect.Sync
 import cats.effect._
 import lucuma.core.enums.Site
@@ -19,12 +18,15 @@ import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
 import typings.loglevel.mod.{ ^ => logger }
 
+import scala.annotation.nowarn
+
 /**
  * Observe WebApp entry point
  */
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
+  @nowarn("cat=other")
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {

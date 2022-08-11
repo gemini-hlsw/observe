@@ -33,6 +33,8 @@ import observe.web.client.reusability._
 import observe.web.client.semanticui.controlButton
 import observe.web.client.services.ObserveWebClient
 
+import scala.annotation.nowarn
+
 final case class SequenceControl(p: SequenceControlFocus)
     extends ReactProps[SequenceControl](SequenceControl.component) {
   private val runRequested: RunOperation =
@@ -137,6 +139,7 @@ object SequenceControl {
 
   private def subsystemsButton($ : RenderScope[Props, Unit, Unit], overrides: SystemOverrides) = {
 
+    @nowarn("cat=other")
     def subsystemCheck(
       label:   String,
       checked: => Boolean,

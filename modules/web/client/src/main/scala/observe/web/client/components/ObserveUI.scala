@@ -12,9 +12,9 @@ import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import lucuma.core.util.{Gid, Uid}
+import lucuma.core.util.{ Gid, Uid }
 import monocle.Prism
-import observe.model.{Observation, StepId}
+import observe.model.{ Observation, StepId }
 import observe.model.enum.Instrument
 import observe.web.client.actions.NavigateSilentTo
 import observe.web.client.actions.RequestSoundEcho
@@ -87,7 +87,7 @@ object ObserveUI {
         string(gid.regexPattern).pmapL(gid.fromString)
 
       def uuid[Id](implicit uid: Uid[Id]): StaticDsl.RouteB[Id] =
-              string(uid.regexPattern).pmapL(uid.fromString)
+        string(uid.regexPattern).pmapL(uid.fromString)
 
       (emptyRule
         | staticRoute(root, Root) ~> renderR(r => ObserveMain(site, r))

@@ -20,29 +20,28 @@ object JsNumberOps {
     }
   }
 
-implicit final class JsNumberOps(val d: JsNumber) extends AnyVal {
-  // Some uglies for js union types
-  def toDouble: Double =
-    (d: Any) match {
-      case d: Float  => d.toDouble
-      case d: Double => d
-      case d: Byte   => d.toDouble
-      case d: Short  => d.toDouble
-      case d: Int    => d.toDouble
-      case _         => sys.error("Unsupported type")
-    }
+  implicit final class JsNumberOps(val d: JsNumber) extends AnyVal {
+    // Some uglies for js union types
+    def toDouble: Double =
+      (d: Any) match {
+        case d: Float  => d.toDouble
+        case d: Double => d
+        case d: Byte   => d.toDouble
+        case d: Short  => d.toDouble
+        case d: Int    => d.toDouble
+        case _         => sys.error("Unsupported type")
+      }
 
-  // Some uglies for js union types
-  def toInt: Int =
-    (d: Any) match {
-      case d: Float  => d.toInt
-      case d: Double => d.toInt
-      case d: Byte   => d.toInt
-      case d: Short  => d.toInt
-      case d: Int    => d
-      case _         => sys.error("Unsupported type")
-    }
-}
-
+    // Some uglies for js union types
+    def toInt: Int =
+      (d: Any) match {
+        case d: Float  => d.toInt
+        case d: Double => d.toInt
+        case d: Byte   => d.toInt
+        case d: Short  => d.toInt
+        case d: Int    => d
+        case _         => sys.error("Unsupported type")
+      }
+  }
 
 }

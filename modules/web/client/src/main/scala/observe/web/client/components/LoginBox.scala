@@ -4,7 +4,6 @@
 package observe.web.client.components
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -31,6 +30,8 @@ import observe.web.client.model.SectionVisibilityState._
 import observe.web.client.model._
 import observe.web.client.reusability._
 import observe.web.client.services.ObserveWebClient
+
+import scala.annotation.nowarn
 
 /**
  * UI for the login box
@@ -80,6 +81,7 @@ object LoginBox {
     def closeBox: Callback                      =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 
+    @nowarn("cat=other")
     val attemptLogin = (e: ReactEvent, _: Form.FormProps) =>
       e.preventDefaultCB *>
         b.state >>= { s =>

@@ -14,7 +14,6 @@ import observe.model.StepId
 import observe.model.enum._
 import observe.web.client.actions._
 import observe.web.client.circuit.ObserveCircuit
-import scala.annotation.nowarn
 
 // Pages
 object Pages {
