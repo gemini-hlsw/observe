@@ -312,8 +312,7 @@ lazy val observe_server = project
         ClueHttp4s,
         LucumaSchemas,
         ClueGenerator,
-        ACM,
-        Http4sJdkWsClient
+        ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(

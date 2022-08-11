@@ -15,7 +15,6 @@ import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers._
 import lucuma.core.model.{ Observation => LObservation }
-import lucuma.core.model.sequence.{ Step => LStep }
 import observe.model.{ ActionType, ClientId, SequenceState, StepId, UserDetails }
 import observe.engine.TestUtil.TestState
 import observe.common.test._
@@ -93,8 +92,8 @@ class SequenceSpec extends AnyFlatSpec {
           (seqId,
            Sequence.State.init(
              Sequence(id = seqId,
-                      steps = List(simpleStep(LStep.Id(PosLong.unsafeFrom(1)), breakpoint = false),
-                                   simpleStep(LStep.Id(PosLong.unsafeFrom(2)), breakpoint = true)
+                      steps = List(simpleStep(stepId(1), breakpoint = false),
+                                   simpleStep(stepId(2), breakpoint = true)
                       )
              )
            )
