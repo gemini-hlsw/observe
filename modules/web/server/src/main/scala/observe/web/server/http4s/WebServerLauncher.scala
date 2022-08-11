@@ -10,9 +10,9 @@ import java.security.Security
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
-import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration._
 import cats.effect._
+import cats.effect.syntax.all._
 import cats.syntax.all._
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
@@ -22,8 +22,6 @@ import fs2.concurrent.Topic
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import io.prometheus.client.CollectorRegistry
-import org.asynchttpclient.AsyncHttpClientConfig
-import org.asynchttpclient.DefaultAsyncHttpClientConfig
 import org.http4s.HttpRoutes
 import org.http4s.client.Client
 import org.http4s.metrics.prometheus.Prometheus
@@ -31,6 +29,7 @@ import org.http4s.metrics.prometheus.PrometheusExportService
 import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{ Logger => Http4sLogger }
 import pureconfig._
@@ -52,7 +51,7 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 import web.server.common.StaticRoutes
 import cats.effect.{ Ref, Resource, Temporal }
-import org.http4s.asynchttpclient.client.AsyncHttpClient
+import org.http4s.jdkhttpclient.JdkHttpClient
 import org.http4s.blaze.server.BlazeServerBuilder
 
 object WebServerLauncher extends IOApp with LogInitialization {
@@ -129,19 +128,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
     val ssl: F[Option[SSLContext]] = conf.webServer.tls.map(makeContext[F]).sequence
 
-    def build(all: F[HttpRoutes[F]]): Resource[F, Server] =
-      Resource
-        .eval(all.flatMap { all =>
-          val builder =
-            BlazeServerBuilder[F](global)
-              .bindHttp(conf.webServer.port, conf.webServer.host)
-              .withWebSockets(true)
-              .withHttpApp((prRouter <+> all).orNotFound)
-          ssl.map(_.fold(builder)(builder.withSslContext)).map(_.resource)
-        })
-        .flatten
+    def build(all: WebSocketBuilder2[F] => HttpRoutes[F]): Resource[F, Server] =
+      Resource.eval {
+        val builder =
+          BlazeServerBuilder[F]
+            .bindHttp(conf.webServer.port, conf.webServer.host)
+            .withHttpWebSocketApp(wsb => (prRouter <+> all(wsb)).orNotFound)
+        ssl.map(_.fold(builder)(builder.withSslContext)).map(_.resource)
+      }.flatten
 
-    val router = Router[F](
+    def router(wsb: WebSocketBuilder2[F]) = Router[F](
       "/"                     -> new StaticRoutes(conf.mode === Mode.Development, OcsBuildInfo.builtAtMillis).service,
       "/api/observe/commands" -> new ObserveCommandRoutes(as, inputs, se).service,
       "/api"                  -> new ObserveUIApiRoutes(conf.site,
@@ -150,7 +146,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
                                        se.systems.guideDb,
                                        se.systems.gpi.statusDb,
                                        clientsDb,
-                                       outputs
+                                       outputs,
+                                       wsb
       ).service,
       "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
       "/smartgcal"            -> new SmartGcalRoutes[F](cal).service
@@ -160,12 +157,12 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/ping" -> new PingRoutes(as).service
     )
 
-    val loggedRoutes                                  =
-      pingRouter <+> Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router)
-    val metricsMiddleware: Resource[F, HttpRoutes[F]] =
-      Prometheus.metricsOps[F](cr, "observe").map(Metrics[F](_)(loggedRoutes))
+    def loggedRoutes(wsb: WebSocketBuilder2[F])                               =
+      pingRouter <+> Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb))
+    val metricsMiddleware: Resource[F, WebSocketBuilder2[F] => HttpRoutes[F]] =
+      Prometheus.metricsOps[F](cr, "observe").map(x => wsb => Metrics[F](x)(loggedRoutes(wsb)))
 
-    metricsMiddleware.flatMap(x => build(x.pure[F]))
+    metricsMiddleware.flatMap(x => build(x))
 
   }
 
@@ -179,7 +176,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/"                  -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
     )
 
-    BlazeServerBuilder[F](global)
+    BlazeServerBuilder[F]
       .bindHttp(conf.insecurePort, conf.host)
       .withHttpApp(router.orNotFound)
       .resource
@@ -243,10 +240,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
   def observe: IO[ExitCode] = {
 
     // Override the default client config
-    def clientConfig(timeout: FiniteDuration): AsyncHttpClientConfig =
-      new DefaultAsyncHttpClientConfig.Builder(AsyncHttpClient.defaultConfig)
-        .setRequestTimeout(timeout.toMillis.toInt) // Change the timeout
-        .build()
+    def mkClient(timeout: FiniteDuration): Resource[IO, Client[IO]] =
+      JdkHttpClient.simple[IO].map(c => Client(r => c.run(r).timeout(timeout)))
 
     def engineIO(
       conf:       ObserveConfiguration,
@@ -283,7 +278,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         _      <- Resource.eval(configLog[IO]) // Initialize log before the engine is setup
         conf   <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _      <- Resource.eval(printBanner(conf))
-        cli    <- AsyncHttpClient.resource[IO](clientConfig(conf.observeEngine.dhsTimeout))
+        cli    <- mkClient(conf.observeEngine.dhsTimeout)
         inq    <- Resource.eval(Queue.bounded[IO, executeEngine.EventType](10))
         out    <- Resource.eval(Topic[IO, ObserveEvent])
         dsp    <- Dispatcher[IO]
