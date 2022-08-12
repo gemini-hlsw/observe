@@ -25,4 +25,4 @@ jobs:
       - name: Check format
         run: sbt headerCheck test:headerCheck scalafmtCheckAll
       - name: Run tests
-        run: sbt +compile observe_modelJVM/test observe_modelJS/test observe_engine/test observe_server/test observe_web_server/test observe_web_client/test
+        run: sbt -J-Xmx2G -J-XX:+UseG1GC +compile observe_modelJVM/test observe_modelJS/test observe_engine/test observe_server/test observe_web_server/test observe_web_client/test

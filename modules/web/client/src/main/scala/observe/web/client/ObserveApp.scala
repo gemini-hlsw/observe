@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client
@@ -6,10 +6,9 @@ package observe.web.client
 import scala.concurrent.ExecutionContext
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
-
 import cats.effect.Sync
 import cats.effect._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import org.scalajs.dom.document
 import org.scalajs.dom.Element
 import observe.web.client.actions.Initialize
@@ -19,12 +18,15 @@ import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
 import typings.loglevel.mod.{ ^ => logger }
 
+import scala.annotation.nowarn
+
 /**
  * Observe WebApp entry point
  */
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
+  @nowarn("cat=other")
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {

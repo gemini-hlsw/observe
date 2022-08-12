@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.components
@@ -11,8 +11,8 @@ import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
-import lucuma.core.enum.Site
-import lucuma.core.util.Gid
+import lucuma.core.enums.Site
+import lucuma.core.util.{ Gid, Uid }
 import monocle.Prism
 import observe.model.{ Observation, StepId }
 import observe.model.enum.Instrument
@@ -86,26 +86,29 @@ object ObserveUI {
       def id[Id](implicit gid: Gid[Id]): StaticDsl.RouteB[Id] =
         string(gid.regexPattern).pmapL(gid.fromString)
 
+      def uuid[Id](implicit uid: Uid[Id]): StaticDsl.RouteB[Id] =
+        string(uid.regexPattern).pmapL(uid.fromString)
+
       (emptyRule
         | staticRoute(root, Root) ~> renderR(r => ObserveMain(site, r))
         | staticRoute("/soundtest", SoundTest) ~> renderR(r => ObserveMain(site, r))
         | staticRoute("/daycal", CalibrationQueuePage) ~> renderR(r => ObserveMain(site, r))
         | dynamicRouteCT(
-          ("/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / "configuration" / id[StepId])
+          ("/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / "configuration" / uuid[StepId])
             .pmapL(configPageP(instrumentNames))
         ) ~> dynRenderR((_: SequenceConfigPage, r) => ObserveMain(site, r))
         | dynamicRouteCT(
-          ("/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / ("step" / id[StepId]).option)
+          ("/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / ("step" / uuid[StepId]).option)
             .pmapL(sequencePageSP(instrumentNames))
         ) ~> dynRenderR((_: SequencePage, r) => ObserveMain(site, r))
         | dynamicRouteCT(
-          ("/preview/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / ("step" / id[
+          ("/preview/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / ("step" / uuid[
             StepId
           ]).option)
             .pmapL(previewPageSP(instrumentNames))
         ) ~> dynRenderR((_: PreviewPage, r) => ObserveMain(site, r))
         | dynamicRouteCT(
-          ("/preview/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / "configuration" / id[
+          ("/preview/" ~ string("[a-zA-Z0-9-]+") / id[Observation.Id] / "configuration" / uuid[
             StepId
           ])
             .pmapL(previewConfigPageP(instrumentNames))

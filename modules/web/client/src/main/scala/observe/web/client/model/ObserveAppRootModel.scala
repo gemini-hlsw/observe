@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.model
@@ -7,7 +7,7 @@ import scala.collection.immutable.SortedMap
 import scala.scalajs.js.timers._
 import cats._
 import cats.syntax.all._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import monocle.Getter
 import monocle.Lens
 import monocle.Traversal

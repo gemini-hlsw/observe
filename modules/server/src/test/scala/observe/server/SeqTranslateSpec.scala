@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -10,7 +10,7 @@ import cats.effect.unsafe.implicits.global
 import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import observe.common.test._
 import observe.engine.{ Action, Result, Sequence }
 import observe.model.enum.Instrument.GmosS

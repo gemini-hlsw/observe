@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -9,6 +9,7 @@ import lucuma.core.optics.laws.discipline.FormatTests
 import lucuma.core.math.arb.ArbOffset._
 import lucuma.core.math.arb.ArbAngle._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import lucuma.core.math.Axis
 import monocle.law.discipline._
 import org.scalacheck.Arbitrary._

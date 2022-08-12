@@ -1,10 +1,9 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.components
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import cats.syntax.all._
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
@@ -31,6 +30,8 @@ import observe.web.client.model.SectionVisibilityState._
 import observe.web.client.model._
 import observe.web.client.reusability._
 import observe.web.client.services.ObserveWebClient
+
+import scala.annotation.nowarn
 
 /**
  * UI for the login box
@@ -80,6 +81,7 @@ object LoginBox {
     def closeBox: Callback                      =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 
+    @nowarn("cat=other")
     val attemptLogin = (e: ReactEvent, _: Form.FormProps) =>
       e.preventDefaultCB *>
         b.state >>= { s =>

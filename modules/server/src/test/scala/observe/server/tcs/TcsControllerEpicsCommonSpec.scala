@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
@@ -8,7 +8,7 @@ import cats.syntax.all._
 import cats.effect.unsafe.implicits.global
 import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
 import edu.gemini.spModel.core.Wavelength
-import lucuma.core.enum.LightSinkName.Gmos
+import lucuma.core.enums.LightSinkName.Gmos
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.scalatest.PrivateMethodTester
