@@ -65,7 +65,9 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
           }
       },
       nsCmdR
-    )(northConfigTypes) {
+    )(
+      northConfigTypes
+    ) {
   override val resource: Instrument      = Instrument.GmosN
   override val dhsInstrumentName: String = "GMOS-N"
 
