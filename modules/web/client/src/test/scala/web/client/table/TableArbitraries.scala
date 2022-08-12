@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package web.client.table
@@ -9,8 +9,7 @@ import cats.data.NonEmptyList
 import japgolly.scalajs.react.facade.JsNumber
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import react.common._
-import scala.annotation.nowarn
+import web.client.JsNumberOps._
 
 trait TableArbitraries {
   implicit val arbUserModified: Arbitrary[UserModified] = Arbitrary {
@@ -61,7 +60,6 @@ trait TableArbitraries {
     )
   }
 
-  @nowarn
   implicit val jsNumberCogen: Cogen[JsNumber] =
     Cogen[Double].contramap { x =>
       (x: Any) match {

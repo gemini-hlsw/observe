@@ -1,15 +1,16 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2
 
 import cats.syntax.all._
-import lucuma.core.enum.{ GmosNorthDetector => GmosDetector, _ }
-import lucuma.core.math._
-import lucuma.core.optics.syntax.prism._
-import ocs2.config.GcalConfig.GcalLamp
-import observe.model.Observation
-import observe.model.Program
+import lucuma.core.enums.GpiObservingMode
+//import lucuma.core.enums.{ GmosNorthDetector => GmosDetector, _ }
+//import lucuma.core.math._
+//import lucuma.core.optics.syntax.prism._
+//import ocs2.config.GcalConfig.GcalLamp
+//import observe.model.Observation
+//import observe.model.Program
 
 /**
  * String parsers for our model types.
@@ -18,7 +19,7 @@ object Parsers {
 
   import gem.ocs2.pio.PioParse
   import gem.ocs2.pio.PioParse._
-
+  /*
   val yesNo: PioParse[Boolean] = enum(
     "No"  -> false,
     "Yes" -> true
@@ -86,25 +87,25 @@ object Parsers {
   )
 
   val instrument: PioParse[Instrument] = enum(
-    "AcqCam"             -> lucuma.core.enum.Instrument.AcqCam,
-    "bHROS"              -> lucuma.core.enum.Instrument.Bhros,
-    "BHROS"              -> lucuma.core.enum.Instrument.Bhros,
-    "Flamingos2"         -> lucuma.core.enum.Instrument.Flamingos2,
-    "GMOS"               -> lucuma.core.enum.Instrument.GmosNorth,
-    "GMOS-N"             -> lucuma.core.enum.Instrument.GmosNorth,
-    "GMOSSouth"          -> lucuma.core.enum.Instrument.GmosSouth,
-    "GMOS-S"             -> lucuma.core.enum.Instrument.GmosSouth,
-    "GNIRS"              -> lucuma.core.enum.Instrument.Gnirs,
-    "GPI"                -> lucuma.core.enum.Instrument.Gpi,
-    "GSAOI"              -> lucuma.core.enum.Instrument.Gsaoi,
-    "Michelle"           -> lucuma.core.enum.Instrument.Michelle,
-    "NICI"               -> lucuma.core.enum.Instrument.Nici,
-    "NIFS"               -> lucuma.core.enum.Instrument.Nifs,
-    "NIRI"               -> lucuma.core.enum.Instrument.Niri,
-    "Phoenix"            -> lucuma.core.enum.Instrument.Phoenix,
-    "TReCS"              -> lucuma.core.enum.Instrument.Trecs,
-    "Visitor"            -> lucuma.core.enum.Instrument.Visitor,
-    "Visitor Instrument" -> lucuma.core.enum.Instrument.Visitor
+    "AcqCam"             -> lucuma.core.enums.Instrument.AcqCam,
+    "bHROS"              -> lucuma.core.enums.Instrument.Bhros,
+    "BHROS"              -> lucuma.core.enums.Instrument.Bhros,
+    "Flamingos2"         -> lucuma.core.enums.Instrument.Flamingos2,
+    "GMOS"               -> lucuma.core.enums.Instrument.GmosNorth,
+    "GMOS-N"             -> lucuma.core.enums.Instrument.GmosNorth,
+    "GMOSSouth"          -> lucuma.core.enums.Instrument.GmosSouth,
+    "GMOS-S"             -> lucuma.core.enums.Instrument.GmosSouth,
+    "GNIRS"              -> lucuma.core.enums.Instrument.Gnirs,
+    "GPI"                -> lucuma.core.enums.Instrument.Gpi,
+    "GSAOI"              -> lucuma.core.enums.Instrument.Gsaoi,
+    "Michelle"           -> lucuma.core.enums.Instrument.Michelle,
+    "NICI"               -> lucuma.core.enums.Instrument.Nici,
+    "NIFS"               -> lucuma.core.enums.Instrument.Nifs,
+    "NIRI"               -> lucuma.core.enums.Instrument.Niri,
+    "Phoenix"            -> lucuma.core.enums.Instrument.Phoenix,
+    "TReCS"              -> lucuma.core.enums.Instrument.Trecs,
+    "Visitor"            -> lucuma.core.enums.Instrument.Visitor,
+    "Visitor Instrument" -> lucuma.core.enums.Instrument.Visitor
   )
 
   val progId: PioParse[Program.Id] =
@@ -715,10 +716,10 @@ object Parsers {
     }
 
   }
-
+   */
   object Gpi {
 
-    val observingMode: PioParse[GpiObservingMode] = enum(
+    val observingMode: PioParse[GpiObservingMode] = enumerated(
       GpiObservingMode.all.fproduct(_.longName).map(_.swap): _*
     )
 

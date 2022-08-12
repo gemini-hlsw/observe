@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe
@@ -20,7 +20,7 @@ package object model {
   type ParamValue      = String
   type Parameters      = Map[ParamName, ParamValue]
   type StepConfig      = Map[SystemName, Parameters]
-  type StepId          = lucuma.core.model.Step.Id
+  type StepId          = lucuma.core.model.sequence.Step.Id
   type ObservationName = String
   type TargetName      = String
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
@@ -6,6 +6,7 @@ package observe.model.arb
 import observe.model.Observation
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen

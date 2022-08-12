@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -9,17 +9,16 @@ import cats.data.EitherT
 import cats.data.NonEmptySet
 import cats.effect.{ Async, Ref, Sync, Temporal }
 import cats.syntax.all._
-import edu.gemini.seqexec.odb.ExecutedDataset
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.spModel.core.Wavelength
 import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
 import edu.gemini.spModel.obscomp.InstConstants.DATA_LABEL_PROP
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
 import edu.gemini.spModel.obscomp.InstConstants.SCIENCE_OBSERVE_TYPE
-import eu.timepit.refined.types.numeric.PosLong
+import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import mouse.all._
 import observe.engine.Action.ActionState
@@ -114,11 +113,11 @@ object SeqTranslate {
     private val overriddenSystems = new OverriddenSystems[F](systemss)
 
     private def step(
-      obsIdName:  Observation.IdName,
-      dataIdx:    Int,
-      config:     CleanConfig,
-      datasets:   Map[StepId, ExecutedDataset],
-      isNightSeq: Boolean
+      obsIdName:   Observation.IdName,
+      dataIdx:     PosInt,
+      config:      CleanConfig,
+      imageFileId: Option[ImageFileId],
+      isNightSeq:  Boolean
     ): F[StepGen[F]] = {
       def buildStep(
         stepId:       StepId,
@@ -188,7 +187,7 @@ object SeqTranslate {
               stepId,
               dataId,
               config,
-              datasets.get(stepId).map(_.filename).map(toImageFileId)
+              imageFileId
             )
         }
       }
@@ -236,11 +235,9 @@ object SeqTranslate {
         .map { case (c, i) =>
           step(
             Observation.IdName(obsId, obsName),
-            i + 1,
+            PosInt.unsafeFrom(i + 1),
             c,
-            sequence.datasets.mapKeys(x =>
-              lucuma.core.model.Step.Id(PosLong.unsafeFrom((x + 1).toLong))
-            ),
+            sequence.datasets.get(i).map(x => toImageFileId(x.filename)),
             isNightSeq
           ).attempt
         }

@@ -36,6 +36,7 @@ import squants.Time
 
 package server {
 
+  import lucuma.schemas.ObservationDB.Scalars.VisitId
   import observe.server.InstrumentSystem.ElapsedTime
 
   @Lenses
@@ -79,10 +80,11 @@ package server {
   final case class HeaderExtraData(
     conditions: Conditions,
     operator:   Option[Operator],
-    observer:   Option[Observer]
+    observer:   Option[Observer],
+    visitId:    Option[VisitId]
   )
   object HeaderExtraData {
-    val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None)
+    val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None)
   }
 
   final case class ObserveContext[F[_]](

@@ -1,11 +1,10 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import cats.Monoid
 import cats.syntax.all._
 import diode.Action
@@ -14,7 +13,12 @@ import diode.ActionResult
 import diode.Effect
 import diode.NoAction
 
+import scala.annotation.nowarn
+
 package handlers {
+
+  import scala.annotation.nowarn
+
   trait Handlers[M, T] { this: ActionHandler[M, T] =>
     implicit def pfMonoid[A, B]: Monoid[PartialFunction[A, B]] =
       new Monoid[PartialFunction[A, B]] {
@@ -35,6 +39,7 @@ package handlers {
     def updatedLE(lens: T => T, effect: Effect): ActionResult[M] =
       updated(lens(value), effect)
 
+    @nowarn("cat=other")
     def requestEffect[A, B <: Action, C <: Action](
       a: A,
       f: A => Future[Unit],
@@ -49,6 +54,7 @@ package handlers {
           }
       )
 
+    @nowarn("cat=other")
     def requestEffect2[A, B, C <: Action, D <: Action](
       a: (A, B),
       f: (A, B) => Future[Unit],
@@ -67,5 +73,6 @@ package handlers {
 }
 
 package object handlers {
+  @nowarn("cat=other")
   val VoidEffect: Effect = Effect(Future(NoAction: Action))
 }

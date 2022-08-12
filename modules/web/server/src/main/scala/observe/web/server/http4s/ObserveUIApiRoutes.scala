@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
@@ -18,14 +18,14 @@ import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
 import giapi.client.StatusValue
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.GiapiStatus
-import lucuma.core.enum.Site
+import lucuma.core.enums.GiapiStatus
+import lucuma.core.enums.Site
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.headers.`User-Agent`
 import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.server.middleware.GZip
-import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.Binary
 import org.http4s.websocket.WebSocketFrame.Close
@@ -50,15 +50,16 @@ import observe.web.server.security.TokenRefresher
  * Rest Endpoints under the /api route
  */
 class ObserveUIApiRoutes[F[_]: Async](
-  site:         Site,
-  mode:         Mode,
-  auth:         AuthenticationService[F],
-  guideConfigS: GuideConfigDb[F],
-  giapiDB:      GiapiStatusDb[F],
-  clientsDb:    ClientsSetDb[F],
-  engineOutput: Topic[F, ObserveEvent]
+  site:             Site,
+  mode:             Mode,
+  auth:             AuthenticationService[F],
+  guideConfigS:     GuideConfigDb[F],
+  giapiDB:          GiapiStatusDb[F],
+  clientsDb:        ClientsSetDb[F],
+  engineOutput:     Topic[F, ObserveEvent],
+  webSocketBuilder: WebSocketBuilder2[F]
 )(implicit
-  L:            Logger[F]
+  L:                Logger[F]
 ) extends BooEncoders
     with ModelLenses
     with Http4sDsl[F] {
@@ -195,8 +196,8 @@ class ObserveUIApiRoutes[F[_]: Async](
                              engineEvents(clientId)
                       ).parJoinUnbounded
                         .onFinalize[F](clientsDb.removeClient(clientId))
-          ws       <- WebSocketBuilder[F]
-                        .copy(filterPingPongs = false)
+          ws       <- webSocketBuilder
+                        .withFilterPingPongs(false)
                         .build(initial ++ streams, clientEventsSink(clientId))
         } yield ws
 

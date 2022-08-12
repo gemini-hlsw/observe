@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2.config
@@ -8,7 +8,7 @@ import java.time.Duration
 import cats.Eq
 import cats.Order
 import io.chrisdavenport.cats.time.instances.all._
-import lucuma.core.enum.{ GmosNorthDetector => GmosDetector, _ }
+import lucuma.core.enums.{ GmosNorthDetector => GmosDetector, _ }
 import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
 import monocle._
@@ -457,7 +457,7 @@ object GmosConfig {
    */
   final case class GmosGrating[D](
     disperser:  D,
-    order:      GmosDisperserOrder,
+    order:      GmosGratingOrder,
     wavelength: Wavelength
   )
 
@@ -475,8 +475,8 @@ object GmosConfig {
       Lens[GmosGrating[D], D](_.disperser)(a => _.copy(disperser = a))
 
     /** @group Optics */
-    def order[D]: Lens[GmosGrating[D], GmosDisperserOrder] =
-      Lens[GmosGrating[D], GmosDisperserOrder](_.order)(a => _.copy(order = a))
+    def order[D]: Lens[GmosGrating[D], GmosGratingOrder] =
+      Lens[GmosGrating[D], GmosGratingOrder](_.order)(a => _.copy(order = a))
 
     /** @group Optics */
     def wavelength[D]: Lens[GmosGrating[D], Wavelength] =

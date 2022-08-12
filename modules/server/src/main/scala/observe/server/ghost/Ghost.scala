@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.ghost
@@ -14,7 +14,7 @@ import edu.gemini.spModel.gemini.ghost.{ Ghost => SPGhost }
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import lucuma.core.math.Coordinates
 import lucuma.core.math.Declination
 import lucuma.core.math.RightAscension

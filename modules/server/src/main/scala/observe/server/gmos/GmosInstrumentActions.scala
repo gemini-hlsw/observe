@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
@@ -55,7 +55,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.SiteDepe
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.obsIdName, fileId)
+        abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
         env.inst
           .calcObserveTime(env.config)
