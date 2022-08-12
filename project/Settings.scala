@@ -11,22 +11,22 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val scalaDom                = "2.2.0"
-    val scalajsReact            = "2.0.1"
+    val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
     val diode                   = "1.2.0-RC4"
-    val javaTimeJS              = "2.3.0"
-    val scalaJSReactCommon      = "0.14.7"
-    val scalaJSSemanticUI       = "0.13.1"
+    val javaTimeJS              = "2.4.0"
+    val scalaJSReactCommon      = "0.17.0"
+    val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
     val scalaJSReactClipboard   = "1.5.1"
-    val scalaJSReactDraggable   = "0.14.1"
+    val scalaJSReactDraggable   = "0.16.0"
     val scalaJSReactSortable    = "0.5.2"
 
     // Scala libraries
     val catsEffectVersion   = "3.3.14"
-    val catsVersion         = "2.7.0"
-    val mouseVersion        = "1.0.7"
-    val fs2Version          = "3.2.9"
+    val catsVersion         = "2.8.0"
+    val mouseVersion        = "1.1.0"
+    val fs2Version          = "3.2.12"
     val shapelessVersion    = "2.3.9"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
@@ -45,14 +45,14 @@ object Settings {
     val jwt            = "5.0.0"
     val slf4j          = "1.7.36"
     val log4s          = "1.10.0"
-    val log4cats       = "2.1.1"
-    val log4catsLevel  = "0.3.0"
+    val log4cats       = "2.4.0"
+    val log4catsLevel  = "0.3.1"
     val logback        = "1.2.11"
     val janino         = "3.1.7"
     val logstash       = "7.0"
     val pureConfig     = "0.17.1"
     val monocleVersion = "3.1.0"
-    val circeVersion   = "0.14.1"
+    val circeVersion   = "0.14.2"
     val doobieVersion  = "0.6.0"
     val flywayVersion  = "6.0.4"
 
@@ -88,14 +88,14 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.15.1"
-    val lucumaUI      = "0.20.0"
-    val lucumaSchemas = "0.1.7"
+    val lucumaCore    = "0.45.0"
+    val lucumaUI      = "0.39.0"
+    val lucumaSchemas = "0.33.0"
 
     // Clue
-    val clue = "0.20.3"
+    val clue = "0.23.1"
 
-    val sttp = "3.3.14"
+    val sttp = "3.7.4"
   }
 
   /**
@@ -296,7 +296,7 @@ object Settings {
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
     val Clue          = "edu.gemini" %% "clue-core"              % LibraryVersions.clue
-    val ClueHttp4s    = "edu.gemini" %% "clue-http4s-jdk-client" % LibraryVersions.clue
+    val ClueHttp4s    = "edu.gemini" %% "clue-http4s" % LibraryVersions.clue
     val ClueGenerator = "edu.gemini" %% "clue-generator"         % LibraryVersions.clue
 
     val Sttp = Def.setting(
@@ -310,7 +310,7 @@ object Settings {
 
   object PluginVersions {
     // Compiler plugins
-    val kpVersion        = "0.13.0"
+    val kpVersion        = "0.13.2"
     val betterMonadicFor = "0.3.1"
   }
 

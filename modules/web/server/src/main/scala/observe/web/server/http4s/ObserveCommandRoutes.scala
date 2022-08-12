@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
@@ -19,7 +19,7 @@ import observe.web.server.security.AuthenticationService
 import observe.web.server.security.Http4sAuthentication
 import observe.web.server.security.TokenRefresher
 import lucuma.core.model.Observation.{ Id => ObsId }
-import lucuma.core.model.Step.{ Id => StepId }
+import lucuma.core.model.sequence.Step.{ Id => StepId }
 
 /**
  * Rest Endpoints under the /api route

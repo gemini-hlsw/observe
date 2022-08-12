@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.components.sequence.toolbars
@@ -32,6 +32,8 @@ import observe.web.client.model.SyncOperation
 import observe.web.client.reusability._
 import observe.web.client.semanticui.controlButton
 import observe.web.client.services.ObserveWebClient
+
+import scala.annotation.nowarn
 
 final case class SequenceControl(p: SequenceControlFocus)
     extends ReactProps[SequenceControl](SequenceControl.component) {
@@ -137,6 +139,7 @@ object SequenceControl {
 
   private def subsystemsButton($ : RenderScope[Props, Unit, Unit], overrides: SystemOverrides) = {
 
+    @nowarn("cat=other")
     def subsystemCheck(
       label:   String,
       checked: => Boolean,

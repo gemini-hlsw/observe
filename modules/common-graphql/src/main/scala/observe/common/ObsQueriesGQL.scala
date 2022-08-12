@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.common
@@ -9,12 +9,13 @@ import lucuma.schemas.ObservationDB
 import io.circe.{ Decoder, Encoder }
 import io.circe.generic.auto._
 import lucuma.core.math
-import lucuma.core.enum
+import lucuma.core.enums
 import lucuma.core.model
 import cats.syntax.functor._
+import lucuma.core.model.sequence.{ Atom, Step }
 
 import java.time
-import lucuma.core.model.{ Atom, ExecutionEvent, Observation, Step, Target }
+import lucuma.core.model.{ ExecutionEvent, Observation, Target }
 
 // gql: import lucuma.schemas.decoders._
 // gql: import io.circe.refined._
@@ -24,8 +25,8 @@ object ObsQueriesGQL {
   // I don't know why, but these implicits prevent several warnings in the generated code
   implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id]         =
     Observation.Id.GidId
-  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.GidId
-  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.GidId
+  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.UidId
+  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.UidId
   implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]                = Target.Id.GidId
   implicit val eventIdCodex: Decoder[ExecutionEvent.Id] with Encoder[ExecutionEvent.Id] =
     ExecutionEvent.Id.GidId
@@ -34,10 +35,10 @@ object ObsQueriesGQL {
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = """
       query {
-        observations(programId: "p-2") {
-          nodes {
+        observations(WHERE: { status: { eq: { EQ: READY } } }) {
+          matches {
             id
-            name
+            title
           }
         }
       }
@@ -50,8 +51,15 @@ object ObsQueriesGQL {
       query($obsId: ObservationId!) {
         observation(observationId: $obsId) {
           id
-          name
-          targets {
+          title
+          status
+          activeStatus
+          plannedTime {
+            execution {
+              microseconds
+            }
+          }
+          targetEnvironment {
             firstScienceTarget {
               targetId: id
               targetName: name
@@ -62,13 +70,6 @@ object ObsQueriesGQL {
             cloudExtinction
             skyBackground
             waterVapor
-          }
-          status
-          activeStatus
-          plannedTime {
-            execution {
-              microseconds
-            }
           }
           execution {
             config:executionConfig {
@@ -114,7 +115,9 @@ object ObsQueriesGQL {
         id
         steps {
           id
-          stepType
+          stepConfig {
+            ...stepConfig
+          }
           instrumentConfig {
             exposure {
               microseconds
@@ -124,8 +127,8 @@ object ObsQueriesGQL {
             }
             dtax
             roi
-            grating {
-              disperser
+            gratingConfig {
+              grating
               order
               wavelength {
                 picometers
@@ -133,17 +136,12 @@ object ObsQueriesGQL {
             }
             filter
             fpu {
-              ... on GmosNorthBuiltinFpu {
-                builtin
-              }
-              ... on GmosCustomMask {
+              builtin
+              customMask {
                 filename
                 slitWidth
               }
             }
-          }
-          stepConfig {
-            ...stepConfig
           }
         }
       }
@@ -152,7 +150,9 @@ object ObsQueriesGQL {
         id
         steps {
           id
-          stepType
+          stepConfig {
+            ...stepConfig
+          }
           instrumentConfig {
             exposure {
               microseconds
@@ -162,8 +162,8 @@ object ObsQueriesGQL {
             }
             dtax
             roi
-            grating {
-              disperser
+            gratingConfig {
+              grating
               order
               wavelength {
                 picometers
@@ -171,17 +171,12 @@ object ObsQueriesGQL {
             }
             filter
             fpu {
-              ... on GmosSouthBuiltinFpu {
-                builtin
-              }
-              ... on GmosCustomMask {
+              builtin
+              customMask {
                 filename
                 slitWidth
               }
             }
-          }
-          stepConfig {
-            ...stepConfig
           }
         }
       }
@@ -240,6 +235,7 @@ object ObsQueriesGQL {
       }
 
       fragment stepConfig on StepConfig {
+        stepType
         ... on Gcal {
           ...gcal
         }
@@ -280,67 +276,69 @@ object ObsQueriesGQL {
       Decoder[GmosSite.South].widen
     ).reduceLeft(_ or _)
 
-    def seqFpuDecoder[Site <: GmosSite](implicit
-      d1: Decoder[GmosFpu.GmosBuiltinFpu[Site]],
-      d2: Decoder[GmosFpu.GmosCustomMask[Site]]
-    ): Decoder[GmosFpu[Site]] = List[Decoder[GmosFpu[Site]]](
-      Decoder[GmosFpu.GmosBuiltinFpu[Site]].widen,
-      Decoder[GmosFpu.GmosCustomMask[Site]].widen
-    ).reduceLeft(_ or _)
+//    def seqFpuDecoder[Site <: GmosSite](implicit
+//      d1: Decoder[GmosFpu.GmosBuiltinFpu[Site]],
+//      d2: Decoder[GmosFpu.GmosCustomMask[Site]]
+//    ): Decoder[GmosFpu[Site]] = List[Decoder[GmosFpu[Site]]](
+//      Decoder[GmosFpu.GmosBuiltinFpu[Site]].widen,
+//      Decoder[GmosFpu.GmosCustomMask[Site]].widen
+//    ).reduceLeft(_ or _)
 
-    implicit val fpuSouthDecoder: Decoder[GmosFpu[GmosSite.South]] = seqFpuDecoder[GmosSite.South]
-    implicit val fpuNorthDecoder: Decoder[GmosFpu[GmosSite.North]] = seqFpuDecoder[GmosSite.North]
+//    implicit val fpuSouthDecoder: Decoder[GmosFpu[GmosSite.South]] = seqFpuDecoder[GmosSite.South]
+//    implicit val fpuNorthDecoder: Decoder[GmosFpu[GmosSite.North]] = seqFpuDecoder[GmosSite.North]
 
     sealed trait GmosSite {
       type Detector <: AnyRef
-      type Disperser <: AnyRef
+      type Grating <: AnyRef
       type BuiltInFpu <: AnyRef
       type Filter <: AnyRef
       type StageMode <: AnyRef
     }
     object GmosSite       {
       case class North() extends GmosSite {
-        override type Detector   = enum.GmosNorthDetector
-        override type Disperser  = enum.GmosNorthDisperser
-        override type BuiltInFpu = enum.GmosNorthFpu
-        override type Filter     = enum.GmosNorthFilter
-        override type StageMode  = enum.GmosNorthStageMode
+        override type Detector   = enums.GmosNorthDetector
+        override type Grating    = enums.GmosNorthGrating
+        override type BuiltInFpu = enums.GmosNorthFpu
+        override type Filter     = enums.GmosNorthFilter
+        override type StageMode  = enums.GmosNorthStageMode
       }
       case class South() extends GmosSite {
-        override type Detector   = enum.GmosSouthDetector
-        override type Disperser  = enum.GmosSouthDisperser
-        override type BuiltInFpu = enum.GmosSouthFpu
-        override type Filter     = enum.GmosSouthFilter
-        override type StageMode  = enum.GmosSouthStageMode
+        override type Detector   = enums.GmosSouthDetector
+        override type Grating    = enums.GmosSouthGrating
+        override type BuiltInFpu = enums.GmosSouthFpu
+        override type Filter     = enums.GmosSouthFilter
+        override type StageMode  = enums.GmosSouthStageMode
       }
     }
 
     trait GmosGrating[Site <: GmosSite]          {
-      val disperser: Site#Disperser
-      val order: enum.GmosDisperserOrder
+      val grating: Site#Grating
+      val order: enums.GmosGratingOrder
       val wavelength: math.Wavelength
     }
-    sealed trait GmosFpu[Site <: GmosSite]
-    object GmosFpu                               {
-      case class GmosBuiltinFpu[Site <: GmosSite](builtin: Site#BuiltInFpu) extends GmosFpu[Site]
-      case class GmosCustomMask[Site <: GmosSite](
-        filename:  String,
-        slitWidth: enum.GmosCustomSlitWidth
-      ) extends GmosFpu[Site]
-    }
+
+    case class GmosCustomMask(
+      filename:  String,
+      slitWidth: enums.GmosCustomSlitWidth
+    )
+    case class GmosFpu[Site <: GmosSite](
+      customMask: Option[GmosCustomMask],
+      builtin:    Option[Site#BuiltInFpu]
+    )
+
     case class GmosReadout(
-      xBin:        enum.GmosXBinning,
-      yBin:        enum.GmosYBinning,
-      ampCount:    enum.GmosAmpCount,
-      ampGain:     enum.GmosAmpGain,
-      ampReadMode: enum.GmosAmpReadMode
+      xBin:        enums.GmosXBinning,
+      yBin:        enums.GmosYBinning,
+      ampCount:    enums.GmosAmpCount,
+      ampGain:     enums.GmosAmpGain,
+      ampReadMode: enums.GmosAmpReadMode
     )
     trait GmosInstrumentConfig[Site <: GmosSite] {
       val exposure: time.Duration
       val readout: GmosReadout
-      val dtax: enum.GmosDtax
-      val roi: enum.GmosRoi
-      val grating: Option[GmosGrating[Site]]
+      val dtax: enums.GmosDtax
+      val roi: enums.GmosRoi
+      val gratingConfig: Option[GmosGrating[Site]]
       val filter: Option[Site#Filter]
       val fpu: Option[GmosFpu[Site]]
     }
@@ -348,9 +346,9 @@ object ObsQueriesGQL {
     object SeqStepConfig                         {
       case class SeqScienceStep(offset: math.Offset) extends SeqStepConfig
       case class Gcal(
-        filter:   enum.GcalFilter,
-        diffuser: enum.GcalDiffuser,
-        shutter:  enum.GcalShutter
+        filter:   enums.GcalFilter,
+        diffuser: enums.GcalDiffuser,
+        shutter:  enums.GcalShutter
       ) extends SeqStepConfig
     }
     trait InsConfig                              {
@@ -367,13 +365,12 @@ object ObsQueriesGQL {
     }
 
     trait SeqStep[I <: InsConfig]      {
-      val id: model.Step.Id
+      val id: model.sequence.Step.Id
       val instrumentConfig: I#StepConfig
-      val stepType: enum.StepType
       val stepConfig: SeqStepConfig
     }
     trait SeqAtom[I <: InsConfig]      {
-      val id: model.Atom.Id
+      val id: model.sequence.Atom.Id
       val steps: List[SeqStep[I]]
     }
     trait Sequence[I <: InsConfig]     {
@@ -383,14 +380,14 @@ object ObsQueriesGQL {
     trait GmosNodAndShuffle            {
       val posA: math.Offset
       val posB: math.Offset
-      val eOffset: enum.GmosEOffsetting
+      val eOffset: enums.GmosEOffsetting
       val shuffleOffset: Int
       val shuffleCycles: Int
     }
     trait GmosStatic[Site <: GmosSite] {
       val stageMode: Site#StageMode
       val detector: Site#Detector
-      val mosPreImaging: enum.MosPreImaging
+      val mosPreImaging: enums.MosPreImaging
       val nodAndShuffle: Option[GmosNodAndShuffle]
     }
 
@@ -427,9 +424,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.North]
+                      trait GratingConfig extends GmosGrating[GmosSite.North]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -452,9 +449,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.North]
+                      trait GratingConfig extends GmosGrating[GmosSite.North]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -481,9 +478,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.North]
+                      trait GratingConfig extends GmosGrating[GmosSite.North]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -506,9 +503,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.North]
+                      trait GratingConfig extends GmosGrating[GmosSite.North]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -550,9 +547,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.South]
+                      trait GratingConfig extends GmosGrating[GmosSite.South]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -575,9 +572,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.South]
+                      trait GratingConfig extends GmosGrating[GmosSite.South]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -605,9 +602,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.South]
+                      trait GratingConfig extends GmosGrating[GmosSite.South]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -630,9 +627,9 @@ object ObsQueriesGQL {
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait Grating extends GmosGrating[GmosSite.South]
+                      trait GratingConfig extends GmosGrating[GmosSite.South]
 
-                      object Grating {
+                      object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
@@ -676,10 +673,12 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $cmd: SequenceCommand!)  {
-        addSequenceEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, command: $cmd } ) {
-          command
-          received
+      mutation($vId: VisitId!, $obsId: ObservationId!, $cmd: SequenceCommand!) {
+        addSequenceEvent(input: { visitId: $vId, location: { observationId: $obsId }, payload: { command: $cmd } } ) {
+          event {
+            visitId
+            received
+          }
         }
       }
       """
@@ -688,10 +687,11 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddStepEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $stpId: StepId!, $seqType: SequenceType!, $stg: StepStage!)  {
-        addStepEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, stepId: $stpId, sequenceType: $seqType, stage: $stg } ) {
-          stage
-          received
+      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $seqType: SequenceType!, $stg: StepStage!)  {
+        addStepEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId }, payload: { sequenceType: $seqType, stage: $stg } } ) {
+          event {
+            received
+          }
         }
       }
       """
@@ -700,10 +700,11 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddDatasetEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($evId: ExecutionEventId, $obsId: ObservationId!, $t: Instant!, $stpId: StepId!, $dtIdx: Int!, $flName: DatasetFilename, $stg: DatasetStage!)  {
-        addDatasetEvent(input: { eventId: $evId, observationId: $obsId, generated: $t, stepId: $stpId, datasetIndex: $dtIdx, filename: $flName, stageType: $stg } ) {
-          stage
-          received
+      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $dtIdx: PosInt!, $stg: DatasetStage!, $flName: DatasetFilename)  {
+        addDatasetEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId, index: $dtIdx }, payload: { datasetStage: $stg, filename: $flName } } ) {
+          event {
+            received
+          }
         }
       }
       """

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -122,7 +122,8 @@ object ODBSequencesLoader {
         .modify(ss =>
           ss + (seqId -> SequenceData[F](
             seqg.name,
-            None,
+            none,
+            none,
             SystemOverrides.AllEnabled,
             seqg,
             execEngine.load(
@@ -130,7 +131,7 @@ object ODBSequencesLoader {
                 seqId,
                 SystemOverrides.AllEnabled,
                 seqg,
-                HeaderExtraData(st.conditions, st.operator, None)
+                HeaderExtraData(st.conditions, st.operator, None, None)
               )
             ),
             none
@@ -153,7 +154,7 @@ object ODBSequencesLoader {
               toStepList(
                 seqg,
                 sd.overrides,
-                HeaderExtraData(st.conditions, st.operator, sd.observer)
+                HeaderExtraData(st.conditions, st.operator, sd.observer, sd.visitId)
               )
             )
           )

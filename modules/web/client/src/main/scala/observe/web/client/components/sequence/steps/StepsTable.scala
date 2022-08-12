@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.components.sequence.steps
@@ -55,6 +55,7 @@ import observe.web.client.model.TabOperations
 import observe.web.client.model.lenses._
 import observe.web.client.reusability._
 import web.client.table._
+import web.client.JsNumberOps._
 
 trait Columns {
   val ControlWidth: Double          = 40
