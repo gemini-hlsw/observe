@@ -4,11 +4,9 @@
 package observe.server.gmos
 
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gmos.GmosNorthType
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.FPUnitNorth._
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.FPU_PROP_NAME
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.STAGE_MODE_PROP
-import edu.gemini.spModel.gemini.gmos.InstGmosNorth
+import edu.gemini.spModel.gemini.gmos.InstGmosNorth.{ DISPERSER_PROP, FILTER_PROP }
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.enum.Instrument
@@ -37,32 +35,35 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
       new SiteSpecifics[NorthTypes] {
         def extractFilter(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, NorthTypes#Filter] =
-          config.extractInstAs[NorthTypes#Filter](InstGmosNorth.FILTER_PROP)
+        ): Either[ExtractFailure, Option[NorthTypes#Filter]] =
+          config.extractInstAs[NorthTypes#Filter](FILTER_PROP) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(value)         => value.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractDisperser(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosNorthType.DisperserNorth] =
-          config.extractInstAs[NorthTypes#Disperser](InstGmosNorth.DISPERSER_PROP)
+        ): Either[ConfigUtilOps.ExtractFailure, Option[NorthTypes#Grating]] =
+          config.extractInstAs[NorthTypes#Grating](DISPERSER_PROP) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(value)         => value.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractFPU(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosNorthType.FPUnitNorth] =
-          config.extractInstAs[NorthTypes#FPU](FPU_PROP_NAME)
+        ): Either[ConfigUtilOps.ExtractFailure, Option[NorthTypes#FPU]] =
+          config.extractInstAs[NorthTypes#FPU](FPU_PROP_NAME) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(value)         => value.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractStageMode(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosNorthType.StageModeNorth] =
+        ): Either[ConfigUtilOps.ExtractFailure, NorthTypes#GmosStageMode] =
           config.extractInstAs[NorthTypes#GmosStageMode](STAGE_MODE_PROP)
-
-        val fpuDefault: GmosNorthType.FPUnitNorth = FPU_NONE
-
-        def isCustomFPU(config: CleanConfig): Boolean =
-          (extractFPU(config), extractCustomFPU(config)) match {
-            case (Right(builtIn), Right(_)) => builtIn.isCustom
-            case (_, Right(_))              => true
-            case _                          => false
-          }
       },
       nsCmdR
     )(
@@ -74,7 +75,7 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
 }
 
 object GmosNorth {
-  val name: String = InstGmosNorth.INSTRUMENT_NAME_PROP
+  val name: String = INSTRUMENT_NAME_PROP
 
   def apply[F[_]: Temporal: Logger](
     c:         GmosController[F, NorthTypes],

@@ -4,8 +4,6 @@
 package observe.server.gmos
 
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gmos.GmosSouthType
-import edu.gemini.spModel.gemini.gmos.GmosSouthType.FPUnitSouth._
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.FPU_PROP_NAME
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.STAGE_MODE_PROP
 import edu.gemini.spModel.gemini.gmos.InstGmosSouth._
@@ -35,34 +33,38 @@ final case class GmosSouth[F[_]: Temporal: Logger] private (
 ) extends Gmos[F, SouthTypes](
       c,
       new SiteSpecifics[SouthTypes] {
-        val fpuDefault: GmosSouthType.FPUnitSouth = FPU_NONE
 
         def extractFilter(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, SouthTypes#Filter] =
-          config.extractInstAs[SouthTypes#Filter](FILTER_PROP)
+        ): Either[ConfigUtilOps.ExtractFailure, Option[SouthTypes#Filter]] =
+          config.extractInstAs[SouthTypes#Filter](FILTER_PROP) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(x)             => x.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractDisperser(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosSouthType.DisperserSouth] =
-          config.extractInstAs[SouthTypes#Disperser](DISPERSER_PROP)
+        ): Either[ConfigUtilOps.ExtractFailure, Option[SouthTypes#Grating]] =
+          config.extractInstAs[SouthTypes#Grating](DISPERSER_PROP) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(value)         => value.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractFPU(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosSouthType.FPUnitSouth] =
-          config.extractInstAs[SouthTypes#FPU](FPU_PROP_NAME)
+        ): Either[ConfigUtilOps.ExtractFailure, Option[SouthTypes#FPU]] =
+          config.extractInstAs[SouthTypes#FPU](FPU_PROP_NAME) match {
+            case Left(KeyNotFound(_)) => none.asRight
+            case Right(value)         => value.some.asRight
+            case Left(e)              => e.asLeft
+          }
 
         def extractStageMode(
           config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, GmosSouthType.StageModeSouth] =
+        ): Either[ConfigUtilOps.ExtractFailure, SouthTypes#GmosStageMode] =
           config.extractInstAs[SouthTypes#GmosStageMode](STAGE_MODE_PROP)
-
-        def isCustomFPU(config: CleanConfig): Boolean =
-          (extractFPU(config), extractCustomFPU(config)) match {
-            case (Right(builtIn), Right(_)) => builtIn.isCustom
-            case (_, Right(_))              => true
-            case _                          => false
-          }
       },
       nsCmdR
     )(

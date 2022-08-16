@@ -3,19 +3,19 @@
 
 package observe.server.gmos
 
-import java.lang.{Double => JDouble}
-import java.lang.{Integer => JInt}
-
+import java.lang.{ Double => JDouble }
+import java.lang.{ Integer => JInt }
 import scala.concurrent.duration._
-
 import cats._
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all._
 import edu.gemini.spModel.config2.ItemKey
-import edu.gemini.spModel.gemini.gmos.GmosCommonType
-import edu.gemini.spModel.gemini.gmos.GmosCommonType._
+import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpReadMode
+import lucuma.core.enums.{ GmosAmpReadMode, GmosGratingOrder, GmosRoi }
+//import edu.gemini.spModel.gemini.gmos.GmosCommonType
+//import edu.gemini.spModel.gemini.gmos.GmosCommonType._
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon._
 import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.obscomp.InstConstants.EXPOSURE_TIME_PROP
@@ -48,7 +48,7 @@ import squants.Seconds
 import squants.Time
 import squants.space.Length
 import squants.space.LengthConversions._
-import cats.effect.{Ref, Temporal}
+import cats.effect.{ Ref, Temporal }
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosController.SiteDependentTypes](
   val controller: GmosController[F, T],
@@ -119,26 +119,26 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosController.SiteDependentTyp
       }
 
   private def calcDisperser(
-    disp:  T#Disperser,
+    grt:   Option[T#Grating],
     order: Option[DisperserOrder],
     wl:    Option[Length]
   ): Either[ConfigUtilOps.ExtractFailure, configTypes.GmosDisperser] =
-    if (configTypes.isMirror(disp)) {
-      configTypes.GmosDisperser.Mirror.asRight
-    } else {
-      // Workaround for missing order: Use order 1 as default
-      val o = order.getOrElse(GmosCommonType.Order.ONE)
+    grt
+      .map { disp =>
+        // Workaround for missing order: Use order 1 as default
+        val o = order.getOrElse(GmosGratingOrder.One)
 
-      if (o === GmosCommonType.Order.ZERO)
-        configTypes.GmosDisperser.Order0(disp).asRight
-      else
-        wl.map(w => configTypes.GmosDisperser.OrderN(disp, o, w).asRight)
-          .getOrElse(
-            ConfigUtilOps
-              .ContentError(s"Disperser order ${o.displayValue} is missing a wavelength.")
-              .asLeft
-          )
-    }
+        if (o === GmosGratingOrder.Zero)
+          configTypes.GmosDisperser.Order0(disp).asRight
+        else
+          wl.map(w => configTypes.GmosDisperser.OrderN(disp, o, w).asRight)
+            .getOrElse(
+              ConfigUtilOps
+                .ContentError(s"Disperser order ${o.longName} is missing a wavelength.")
+                .asLeft
+            )
+      }
+      .getOrElse(configTypes.GmosDisperser.Mirror.asRight)
 
   private def ccConfigFromSequenceConfig(
     config: CleanConfig
@@ -149,10 +149,9 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosController.SiteDependentTyp
       disperserOrder   = config.extractInstAs[DisperserOrder](DISPERSER_ORDER_PROP)
       disperserLambda  =
         config.extractInstAs[JDouble](DISPERSER_LAMBDA_PROP).map(_.toDouble.nanometers)
-      fpuName          = ss.extractFPU(config)
-      customMask       = ss.isCustomFPU(config)
+      fpuName         <- ss.extractFPU(config)
       fpuMask          = config.extractInstAs[String](FPU_MASK_PROP)
-      fpu              = fpuFromFPUnit(fpuName.toOption, fpuMask.toOption, customMask)
+      fpu              = fpuFromFPUnit(fpuName, fpuMask.toOption)
       stageMode       <- ss.extractStageMode(config)
       dtax            <- config.extractInstAs[DTAX](DTAX_OFFSET_PROP)
       adc             <- config.extractInstAs[ADC](ADC_PROP)
@@ -222,20 +221,16 @@ object Gmos {
   trait SiteSpecifics[T <: SiteDependentTypes] {
     final val FPU_CUSTOM_MASK = "fpuCustomMask"
 
-    def extractFilter(config: CleanConfig): Either[ExtractFailure, T#Filter]
+    def extractFilter(config: CleanConfig): Either[ExtractFailure, Option[T#Filter]]
 
-    def extractDisperser(config: CleanConfig): Either[ExtractFailure, T#Disperser]
+    def extractDisperser(config: CleanConfig): Either[ExtractFailure, Option[T#Grating]]
 
-    def extractFPU(config: CleanConfig): Either[ExtractFailure, T#FPU]
+    def extractFPU(config: CleanConfig): Either[ExtractFailure, Option[T#FPU]]
 
     def extractStageMode(config: CleanConfig): Either[ExtractFailure, T#GmosStageMode]
 
-    val fpuDefault: T#FPU
-
     def extractCustomFPU(config: CleanConfig): Either[ConfigUtilOps.ExtractFailure, String] =
       config.extractInstAs[String](FPU_CUSTOM_MASK)
-
-    def isCustomFPU(config: CleanConfig): Boolean
   }
 
   val NSKey: ItemKey = INSTRUMENT_KEY / USE_NS_PROP
@@ -369,12 +364,12 @@ object Gmos {
       obsType      <- config.extractObsAs[String](OBSERVE_TYPE_PROP)
       shutterState <- shutterStateObserveType(obsType).asRight
       exposureTime <- exposureTime(config, nsConfig)
-      ampReadMode  <- config.extractAs[AmpReadMode](AmpReadMode.KEY)
+      ampReadMode  <- config.extractAs[GmosAmpReadMode](AmpReadMode.KEY)
       gainChoice   <- config.extractInstAs[AmpGain](AMP_GAIN_CHOICE_PROP)
       ampCount     <- config.extractInstAs[AmpCount](AMP_COUNT_PROP)
       gainSetting  <- config.extractInstAs[String](AMP_GAIN_SETTING_PROP).flatMap(toGain)
-      xBinning     <- config.extractInstAs[Binning](CCD_X_BIN_PROP)
-      yBinning     <- config.extractInstAs[Binning](CCD_Y_BIN_PROP)
+      xBinning     <- config.extractInstAs[BinningX](CCD_X_BIN_PROP)
+      yBinning     <- config.extractInstAs[BinningY](CCD_Y_BIN_PROP)
       roi          <- extractROIs(config)
     } yield DCConfig(exposureTime,
                      shutterState,
@@ -388,7 +383,7 @@ object Gmos {
 
   def extractROIs(config: CleanConfig): Either[ExtractFailure, RegionsOfInterest] = for {
     builtInROI <- config.extractInstAs[BuiltinROI](BUILTIN_ROI_PROP)
-    customROI   = if (builtInROI === BuiltinROI.CUSTOM) customROIs(config) else Nil
+    customROI   = if (builtInROI === GmosRoi.Custom) customROIs(config) else Nil
     roi        <- RegionsOfInterest
                     .fromOCS(builtInROI, customROI)
                     .leftMap(e => ContentError(ObserveFailure.explain(e)))

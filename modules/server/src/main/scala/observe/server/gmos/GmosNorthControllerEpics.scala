@@ -4,123 +4,114 @@
 package observe.server.gmos
 
 import cats.effect._
-import cats.syntax.all._
-import edu.gemini.spModel.gemini.gmos.GmosCommonType
-import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpGain
-import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpReadMode
-import edu.gemini.spModel.gemini.gmos.GmosCommonType.BuiltinROI
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{DisperserNorth => Disperser}
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{FPUnitNorth => FPU}
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{FilterNorth => Filter}
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{StageModeNorth => StageMode}
+import lucuma.core.enums.{
+  GmosAmpGain,
+  GmosAmpReadMode,
+  GmosNorthFilter,
+  GmosNorthFpu,
+  GmosNorthGrating,
+  GmosNorthStageMode,
+  GmosRoi
+}
 import org.typelevel.log4cats.Logger
 import observe.server.EpicsCodex
 import observe.server.EpicsCodex.EncodeEpicsValue
-import observe.server.gmos.GmosController.Config.Beam
 import observe.server.gmos.GmosController.NorthTypes
 import observe.server.gmos.GmosController.northConfigTypes
 import observe.server.gmos.GmosControllerEpics.ROIValues
 
 object GmosNorthEncoders extends GmosControllerEpics.Encoders[NorthTypes] {
-  override val filter: EpicsCodex.EncodeEpicsValue[NorthTypes#Filter, (String, String)] =
+  override val filter: EpicsCodex.EncodeEpicsValue[Option[NorthTypes#Filter], (String, String)] =
     EncodeEpicsValue {
-      case Filter.NONE                    => ("open1-6", "open2-8")
-      case Filter.g_G0301                 => ("open1-6", "g_G0301")
-      case Filter.r_G0303                 => ("open1-6", "r_G0303")
-      case Filter.i_G0302                 => ("open1-6", "i_G0302")
-      case Filter.z_G0304                 => ("open1-6", "z_G0304")
-      case Filter.Z_G0322                 => ("Z_G0322", "open2-8")
-      case Filter.Y_G0323                 => ("Y_G0323", "open2-8")
-      case Filter.GG455_G0305             => ("GG455_G0305", "open2-8")
-      case Filter.OG515_G0306             => ("OG515_G0306", "open2-8")
-      case Filter.RG610_G0307             => ("RG610_G0307", "open2-8")
-      case Filter.CaT_G0309               => ("CaT_G0309", "open2-8")
-      case Filter.Ha_G0310                => ("open1-6", "Ha_G0310")
-      case Filter.HaC_G0311               => ("open1-6", "HaC_G0311")
-      case Filter.DS920_G0312             => ("open1-6", "DS920_G0312")
-      case Filter.SII_G0317               => ("SII_G0317", "open2-8")
-      case Filter.OIII_G0318              => ("OIII_G0318", "open2-8")
-      case Filter.OIIIC_G0319             => ("OIIIC_G0319", "open2-8")
-      case Filter.OVI_G0345               => ("open1-6", "OVI_G0345")
-      case Filter.OVIC_G0346              => ("open1-6", "OVIC_G0346")
-      case Filter.HeII_G0320              => ("open1-6", "HeII_G0320")
-      case Filter.HeIIC_G0321             => ("open1-6", "HeIIC_G0321")
-      case Filter.HartmannA_G0313_r_G0303 => ("HartmannA_G0313", "r_G0303")
-      case Filter.HartmannB_G0314_r_G0303 => ("HartmannB_G0314", "r_G0303")
-      case Filter.g_G0301_GG455_G0305     => ("GG455_G0305", "g_G0301")
-      case Filter.g_G0301_OG515_G0306     => ("OG515_G0306", "g_G0301")
-      case Filter.r_G0303_RG610_G0307     => ("RG610_G0307", "r_G0303")
-      case Filter.i_G0302_CaT_G0309       => ("CaT_G0309", "i_G0302")
-      case Filter.z_G0304_CaT_G0309       => ("CaT_G0309", "z_G0304")
-      case Filter.u_G0308                 => ("open1-6", "open2-8")
-      case Filter.ri_G0349                => ("open1-6", "ri_G0349")
+      _.map {
+        case GmosNorthFilter.GPrime           => ("open1-6", "g_G0301")
+        case GmosNorthFilter.RPrime           => ("open1-6", "r_G0303")
+        case GmosNorthFilter.IPrime           => ("open1-6", "i_G0302")
+        case GmosNorthFilter.ZPrime           => ("open1-6", "z_G0304")
+        case GmosNorthFilter.Z                => ("Z_G0322", "open2-8")
+        case GmosNorthFilter.Y                => ("Y_G0323", "open2-8")
+        case GmosNorthFilter.GG455            => ("GG455_G0305", "open2-8")
+        case GmosNorthFilter.OG515            => ("OG515_G0306", "open2-8")
+        case GmosNorthFilter.RG610            => ("RG610_G0307", "open2-8")
+        case GmosNorthFilter.CaT              => ("CaT_G0309", "open2-8")
+        case GmosNorthFilter.Ha               => ("open1-6", "Ha_G0310")
+        case GmosNorthFilter.HaC              => ("open1-6", "HaC_G0311")
+        case GmosNorthFilter.DS920            => ("open1-6", "DS920_G0312")
+        case GmosNorthFilter.SII              => ("SII_G0317", "open2-8")
+        case GmosNorthFilter.OIII             => ("OIII_G0318", "open2-8")
+        case GmosNorthFilter.OIIIC            => ("OIIIC_G0319", "open2-8")
+        case GmosNorthFilter.HeII             => ("open1-6", "HeII_G0320")
+        case GmosNorthFilter.HeIIC            => ("open1-6", "HeIIC_G0321")
+        case GmosNorthFilter.HartmannA_RPrime => ("HartmannA_G0313", "r_G0303")
+        case GmosNorthFilter.HartmannB_RPrime => ("HartmannB_G0314", "r_G0303")
+        case GmosNorthFilter.GPrime_GG455     => ("GG455_G0305", "g_G0301")
+        case GmosNorthFilter.GPrime_OG515     => ("OG515_G0306", "g_G0301")
+        case GmosNorthFilter.RPrime_RG610     => ("RG610_G0307", "r_G0303")
+        case GmosNorthFilter.IPrime_CaT       => ("CaT_G0309", "i_G0302")
+        case GmosNorthFilter.ZPrime_CaT       => ("CaT_G0309", "z_G0304")
+        case GmosNorthFilter.UPrime           => ("open1-6", "open2-8")
+      }
+        .getOrElse(("open1-6", "open2-8"))
     }
 
-  override val fpu: EpicsCodex.EncodeEpicsValue[NorthTypes#FPU, Option[(String, String)]] =
-    EncodeEpicsValue { a =>
-      val r = a match {
-        case FPU.FPU_NONE    => ("None", Beam.OutOfBeam).some
-        case FPU.LONGSLIT_1  => ("0.25arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_2  => ("0.5arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_3  => ("0.75arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_4  => ("1.0arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_5  => ("1.5arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_6  => ("2.0arcsec", Beam.InBeam).some
-        case FPU.LONGSLIT_7  => ("5.0arcsec", Beam.InBeam).some
-        case FPU.IFU_1       => ("IFU-2", Beam.InBeam).some
-        case FPU.IFU_2       => ("IFU-B", Beam.InBeam).some
-        case FPU.IFU_3       => ("IFU-R", Beam.InBeam).some
-        case FPU.NS_0        => ("NS0.25arcsec", Beam.InBeam).some
-        case FPU.NS_1        => ("NS0.5arcsec", Beam.InBeam).some
-        case FPU.NS_2        => ("NS0.75arcsec", Beam.InBeam).some
-        case FPU.NS_3        => ("NS1.0arcsec", Beam.InBeam).some
-        case FPU.NS_4        => ("NS1.5arcsec", Beam.InBeam).some
-        case FPU.NS_5        => ("NS2.0arcsec", Beam.InBeam).some
-        case FPU.CUSTOM_MASK => none
-      }
-      r.map(x => (x._1, GmosControllerEpics.beamEncoder.encode(x._2)))
+  override val fpu: EpicsCodex.EncodeEpicsValue[NorthTypes#FPU, String] =
+    EncodeEpicsValue {
+      case GmosNorthFpu.LongSlit_0_25 => "0.25arcsec"
+      case GmosNorthFpu.LongSlit_0_50 => "0.5arcsec"
+      case GmosNorthFpu.LongSlit_0_75 => "0.75arcsec"
+      case GmosNorthFpu.LongSlit_1_00 => "1.0arcsec"
+      case GmosNorthFpu.LongSlit_1_50 => "1.5arcsec"
+      case GmosNorthFpu.LongSlit_2_00 => "2.0arcsec"
+      case GmosNorthFpu.LongSlit_5_00 => "5.0arcsec"
+      case GmosNorthFpu.Ifu2Slits     => "IFU-2"
+      case GmosNorthFpu.IfuBlue       => "IFU-B"
+      case GmosNorthFpu.IfuRed        => "IFU-R"
+      case GmosNorthFpu.Ns0           => "NS0.25arcsec"
+      case GmosNorthFpu.Ns1           => "NS0.5arcsec"
+      case GmosNorthFpu.Ns2           => "NS0.75arcsec"
+      case GmosNorthFpu.Ns3           => "NS1.0arcsec"
+      case GmosNorthFpu.Ns4           => "NS1.5arcsec"
+      case GmosNorthFpu.Ns5           => "NS2.0arcsec"
     }
 
   override val stageMode: EpicsCodex.EncodeEpicsValue[NorthTypes#GmosStageMode, String] =
     EncodeEpicsValue {
-      case StageMode.NO_FOLLOW     => "MOVE"
-      case StageMode.FOLLOW_XYZ    => "FOLLOW"
-      case StageMode.FOLLOW_XY     => "FOLLOW-XY"
-      case StageMode.FOLLOW_Z_ONLY => "FOLLOW-Z"
+      case GmosNorthStageMode.NoFollow  => "MOVE"
+      case GmosNorthStageMode.FollowXyz => "FOLLOW"
+      case GmosNorthStageMode.FollowXy  => "FOLLOW-XY"
+      case GmosNorthStageMode.FollowZ   => "FOLLOW-Z"
     }
 
-  override val disperser: EpicsCodex.EncodeEpicsValue[NorthTypes#Disperser, String] =
+  override val disperser: EpicsCodex.EncodeEpicsValue[NorthTypes#Grating, String] =
     EncodeEpicsValue {
-      case Disperser.MIRROR      => "mirror"
-      case Disperser.B1200_G5301 => "B1200+_G5301"
-      case Disperser.R831_G5302  => "R831+_G5302"
-      case Disperser.B600_G5307  => "B600+_G5307"
-      case Disperser.R600_G5304  => "R600+_G5304"
-      case Disperser.R400_G5305  => "R400+_G5305"
-      case Disperser.R150_G5308  => "R150+_G5308"
-      case Disperser.B600_G5303  => "B600+_G5303"
-      case Disperser.R150_G5306  => "R150+_G5306"
-      case Disperser.B480_G5309  => "B480+_G5309"
+      case GmosNorthGrating.B1200_G5301 => "B1200+_G5301"
+      case GmosNorthGrating.R831_G5302  => "R831+_G5302"
+      case GmosNorthGrating.B600_G5307  => "B600+_G5307"
+      case GmosNorthGrating.R600_G5304  => "R600+_G5304"
+      case GmosNorthGrating.R400_G5305  => "R400+_G5305"
+      case GmosNorthGrating.R150_G5308  => "R150+_G5308"
+      case GmosNorthGrating.B600_G5303  => "B600+_G5303"
+      case GmosNorthGrating.R150_G5306  => "R150+_G5306"
+      case GmosNorthGrating.B480_G5309  => "B480+_G5309"
     }
 
-  override val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]] = EncodeEpicsValue {
-    case BuiltinROI.FULL_FRAME       =>
+  override val builtInROI: EncodeEpicsValue[GmosRoi, Option[ROIValues]] = EncodeEpicsValue {
+    case GmosRoi.FullFrame       =>
       ROIValues.fromInt(xStart = 1, xSize = 6144, yStart = 1, ySize = 4224)
-    case BuiltinROI.CCD2             => ROIValues.fromInt(xStart = 2049, xSize = 2048, yStart = 1, ySize = 4224)
-    case BuiltinROI.CENTRAL_SPECTRUM =>
+    case GmosRoi.Ccd2            => ROIValues.fromInt(xStart = 2049, xSize = 2048, yStart = 1, ySize = 4224)
+    case GmosRoi.CentralSpectrum =>
       ROIValues.fromInt(xStart = 1, xSize = 6144, yStart = 1625, ySize = 1024)
-    case BuiltinROI.CENTRAL_STAMP    =>
+    case GmosRoi.CentralStamp    =>
       ROIValues.fromInt(xStart = 2923, xSize = 300, yStart = 1987, ySize = 308)
-    case _                           => None
+    case _                       => None
   }
 
-  override val autoGain
-    : EncodeEpicsValue[(GmosCommonType.AmpReadMode, GmosCommonType.AmpGain), Int] = {
+  override val autoGain: EncodeEpicsValue[(GmosAmpReadMode, GmosAmpGain), Int] = {
     // gmosAutoGain.lut
-    case (AmpReadMode.SLOW, AmpGain.LOW)  => 4
-    case (AmpReadMode.SLOW, AmpGain.HIGH) => 0
-    case (AmpReadMode.FAST, AmpGain.LOW)  => 15
-    case (AmpReadMode.FAST, AmpGain.HIGH) => 3
+    case (GmosAmpReadMode.Slow, GmosAmpGain.Low)  => 4
+    case (GmosAmpReadMode.Slow, GmosAmpGain.High) => 0
+    case (GmosAmpReadMode.Fast, GmosAmpGain.Low)  => 15
+    case (GmosAmpReadMode.Fast, GmosAmpGain.High) => 3
   }
 
 }

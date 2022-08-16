@@ -4,14 +4,12 @@
 package observe.server.gmos
 
 import scala.concurrent.duration.Duration
-
 import cats.Show
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gmos.GmosCommonType.BuiltinROI
-import edu.gemini.spModel.gemini.gmos.GmosNorthType
-import edu.gemini.spModel.gemini.gmos.GmosSouthType
+import lucuma.core.enums.{ GmosRoi, GmosXBinning, GmosYBinning }
 import lucuma.core.math.Offset
 import lucuma.core.util.Enumerated
+import observe.model.GmosParameters
 import observe.model.GmosParameters._
 import observe.model.dhs.ImageFileId
 import observe.model.enum.Guiding
@@ -62,19 +60,16 @@ object GmosController {
 
     sealed trait GmosDisperser extends Product with Serializable
     object GmosDisperser {
-      case object Mirror                        extends GmosDisperser
-      case class Order0(disperser: T#Disperser) extends GmosDisperser
-      case class OrderN(disperser: T#Disperser, order: DisperserOrder, lambda: Length)
+      case object Mirror                      extends GmosDisperser
+      case class Order0(disperser: T#Grating) extends GmosDisperser
+      case class OrderN(disperser: T#Grating, order: DisperserOrder, lambda: Length)
           extends GmosDisperser
     }
 
-    val mirror: T#Disperser
-    def isMirror(v: T#Disperser): Boolean
-
     case class CCConfig(
-      filter:              T#Filter,
+      filter:              Option[T#Filter],
       disperser:           GmosDisperser,
-      fpu:                 GmosFPU,
+      fpu:                 Option[GmosFPU],
       stage:               T#GmosStageMode,
       dtaX:                DTAX,
       adc:                 ADC,
@@ -85,17 +80,27 @@ object GmosController {
   }
 
   object Config {
-    type DTAX           = edu.gemini.spModel.gemini.gmos.GmosCommonType.DTAX
-    type ADC            = edu.gemini.spModel.gemini.gmos.GmosCommonType.ADC
-    type DisperserOrder = edu.gemini.spModel.gemini.gmos.GmosCommonType.Order
-    type Binning        = edu.gemini.spModel.gemini.gmos.GmosCommonType.Binning
-    type AmpReadMode    = edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpReadMode
-    type AmpGain        = edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpGain
-    type AmpCount       = edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpCount
-    type BuiltinROI     = edu.gemini.spModel.gemini.gmos.GmosCommonType.BuiltinROI
-    type ROI            = edu.gemini.spModel.gemini.gmos.GmosCommonType.ROIDescription
+    type DTAX           = lucuma.core.enums.GmosDtax
+    type ADC            = lucuma.core.enums.GmosAdc
+    type DisperserOrder = lucuma.core.enums.GmosGratingOrder
+    type BinningX       = lucuma.core.enums.GmosXBinning
+    type BinningY       = lucuma.core.enums.GmosYBinning
+    type AmpReadMode    = lucuma.core.enums.GmosAmpReadMode
+    type AmpGain        = lucuma.core.enums.GmosAmpGain
+    type AmpCount       = lucuma.core.enums.GmosAmpCount
+    type BuiltinROI     = lucuma.core.enums.GmosRoi
+    type ROI            = ROIDescription
     type ExposureTime   = Duration
-    type PosAngle       = edu.gemini.spModel.core.Angle
+    type PosAngle       = lucuma.core.math.Angle
+
+    // TODO: Replace by lucuma type when it exists.
+    sealed case class ROIDescription(getXStart: Int, getYStart: Int, xSize: Int, ySize: Int) {
+      def getXSize(bvalue: BinningX = GmosXBinning.One): Int =
+        xSize / bvalue.count
+
+      def getYSize(bvalue: BinningY = GmosYBinning.One): Int =
+        ySize / bvalue.count
+    }
 
     // Used for the shutterState
     sealed trait ShutterState extends Product with Serializable
@@ -148,7 +153,7 @@ object GmosController {
       gainSetting: Double
     )
 
-    final case class CCDBinning(x: Binning, y: Binning)
+    final case class CCDBinning(x: BinningX, y: BinningY)
 
     sealed abstract class RegionsOfInterest(val rois: Either[BuiltinROI, List[ROI]])
 
@@ -165,10 +170,10 @@ object GmosController {
 
     object NSConfig {
       case object NoNodAndShuffle extends NSConfig {
-        val nsPairs         = tag[NsPairsI][Int](0)
-        val nsRows          = tag[NsRowsI][Int](0)
-        val exposureDivider = tag[NsExposureDividerI][Int](1)
-        val nsState         = NodAndShuffleState.Classic
+        val nsPairs: GmosParameters.NsPairs                   = tag[NsPairsI][Int](0)
+        val nsRows: GmosParameters.NsRows                     = tag[NsRowsI][Int](0)
+        val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](1)
+        val nsState: NodAndShuffleState                       = NodAndShuffleState.Classic
       }
 
       final case class NodAndShuffle(
@@ -177,13 +182,15 @@ object GmosController {
         positions:    Vector[NSPosition],
         exposureTime: Time
       ) extends NSConfig {
-        val nsPairs                 = tag[NsPairsI][Int](cycles * NodAndShuffleStage.NsSequence.length / 2)
-        val nsRows                  = tag[NsRowsI][Int](Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
-        val exposureDivider         = tag[NsExposureDividerI][Int](2)
-        val nsState                 = NodAndShuffleState.NodShuffle
-        val totalExposureTime: Time =
+        val nsPairs: GmosParameters.NsPairs                   =
+          tag[NsPairsI][Int](cycles * NodAndShuffleStage.NsSequence.length / 2)
+        val nsRows: GmosParameters.NsRows                     =
+          tag[NsRowsI][Int](Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
+        val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](2)
+        val nsState: NodAndShuffleState                       = NodAndShuffleState.NodShuffle
+        val totalExposureTime: Time                           =
           cycles * exposureTime / exposureDivider.toDouble
-        val nodExposureTime: Time   =
+        val nodExposureTime: Time                             =
           exposureTime / exposureDivider.toDouble
       }
     }
@@ -194,10 +201,10 @@ object GmosController {
         custom:  List[ROI]
       ): Either[ObserveFailure, RegionsOfInterest] =
         (builtIn, custom) match {
-          case (b, r) if b =!= BuiltinROI.CUSTOM && r.isEmpty =>
+          case (b, r) if b =!= GmosRoi.Custom && r.isEmpty =>
             new RegionsOfInterest(b.asLeft) {}.asRight
-          case (BuiltinROI.CUSTOM, r) if r.nonEmpty           => new RegionsOfInterest(r.asRight) {}.asRight
-          case _                                              => Unexpected("Inconsistent values for GMOS regions of interest").asLeft
+          case (GmosRoi.Custom, r) if r.nonEmpty           => new RegionsOfInterest(r.asRight) {}.asRight
+          case _                                           => Unexpected("Inconsistent values for GMOS regions of interest").asLeft
         }
 
       def unapply(r: RegionsOfInterest): Option[Either[BuiltinROI, List[ROI]]] = r.rois.some
@@ -217,42 +224,36 @@ object GmosController {
     type Filter
     type FPU
     type GmosStageMode
-    type Disperser
+    type Grating
   }
 
   final class SouthTypes extends SiteDependentTypes {
-    override type Filter        = edu.gemini.spModel.gemini.gmos.GmosSouthType.FilterSouth
-    override type FPU           = edu.gemini.spModel.gemini.gmos.GmosSouthType.FPUnitSouth
-    override type GmosStageMode = edu.gemini.spModel.gemini.gmos.GmosSouthType.StageModeSouth
-    override type Disperser     = edu.gemini.spModel.gemini.gmos.GmosSouthType.DisperserSouth
+    override type Filter        = lucuma.core.enums.GmosSouthFilter
+    override type FPU           = lucuma.core.enums.GmosSouthFpu
+    override type GmosStageMode = lucuma.core.enums.GmosSouthStageMode
+    override type Grating       = lucuma.core.enums.GmosSouthGrating
   }
 
-  final class SouthConfigTypes extends Config[SouthTypes] {
-    override val mirror                                             = edu.gemini.spModel.gemini.gmos.GmosSouthType.DisperserSouth.MIRROR
-    override def isMirror(v: GmosSouthType.DisperserSouth): Boolean = v === mirror
-  }
+  final class SouthConfigTypes extends Config[SouthTypes]
   val southConfigTypes: SouthConfigTypes = new SouthConfigTypes
 
   final class NorthTypes extends SiteDependentTypes {
-    override type Filter        = edu.gemini.spModel.gemini.gmos.GmosNorthType.FilterNorth
-    override type FPU           = edu.gemini.spModel.gemini.gmos.GmosNorthType.FPUnitNorth
-    override type GmosStageMode = edu.gemini.spModel.gemini.gmos.GmosNorthType.StageModeNorth
-    override type Disperser     = edu.gemini.spModel.gemini.gmos.GmosNorthType.DisperserNorth
+    override type Filter        = lucuma.core.enums.GmosNorthFilter
+    override type FPU           = lucuma.core.enums.GmosNorthFpu
+    override type GmosStageMode = lucuma.core.enums.GmosNorthStageMode
+    override type Grating       = lucuma.core.enums.GmosNorthGrating
   }
 
-  final class NorthConfigTypes extends Config[NorthTypes] {
-    override val mirror                                             = edu.gemini.spModel.gemini.gmos.GmosNorthType.DisperserNorth.MIRROR
-    override def isMirror(v: GmosNorthType.DisperserNorth): Boolean = v === mirror
-  }
+  final class NorthConfigTypes extends Config[NorthTypes]
 
   val northConfigTypes: NorthConfigTypes = new NorthConfigTypes
 
   // This is a trick to allow using a type from a class parameter to define the type of another class parameter
   final case class GmosConfig[T <: SiteDependentTypes] private (
-    val cc: Config[T]#CCConfig,
-    val dc: DCConfig,
-    val c:  Config[T],
-    val ns: NSConfig
+    cc: Config[T]#CCConfig,
+    dc: DCConfig,
+    c:  Config[T],
+    ns: NSConfig
   ) {
     def this(c: Config[T])(cc: c.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)
   }

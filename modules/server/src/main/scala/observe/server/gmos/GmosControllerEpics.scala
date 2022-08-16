@@ -5,16 +5,14 @@ package observe.server.gmos
 
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
-
 import scala.concurrent.duration.FiniteDuration
-
 import cats.Applicative
 import cats.ApplicativeError
 import cats.effect.Async
 import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGeneric
-import edu.gemini.spModel.gemini.gmos.GmosCommonType._
 import fs2.Stream
+import lucuma.core.enums.{ GmosAmpCount, GmosAmpReadMode, GmosGratingOrder }
 import org.typelevel.log4cats.Logger
 import mouse.all._
 import observe.model.GmosParameters._
@@ -42,8 +40,8 @@ import squants.time.TimeConversions._
 
 trait GmosEncoders {
   implicit val ampReadModeEncoder: EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {
-    case AmpReadMode.SLOW => "SLOW"
-    case AmpReadMode.FAST => "FAST"
+    case GmosAmpReadMode.Slow => "SLOW"
+    case GmosAmpReadMode.Fast => "FAST"
   }
 
   implicit val shutterStateEncoder: EncodeEpicsValue[ShutterState, String] = EncodeEpicsValue {
@@ -54,22 +52,22 @@ trait GmosEncoders {
 
   implicit val ampCountEncoder: EncodeEpicsValue[AmpCount, String] = EncodeEpicsValue {
     // gmosAmpCount.lut
-    case AmpCount.THREE  => ""
-    case AmpCount.SIX    => "BEST"
-    case AmpCount.TWELVE => "ALL"
+    case GmosAmpCount.Three  => ""
+    case GmosAmpCount.Six    => "BEST"
+    case GmosAmpCount.Twelve => "ALL"
   }
 
-  implicit val binningEncoder: EncodeEpicsValue[Binning, Int] = EncodeEpicsValue(b => b.getValue)
+  implicit val binningXEncoder: EncodeEpicsValue[BinningX, Int] = EncodeEpicsValue(_.count)
+
+  implicit val binningYEncoder: EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
 
   implicit val disperserOrderEncoder: EncodeEpicsValue[DisperserOrder, String] = EncodeEpicsValue(
-    _.sequenceValue
+    _.longName
   )
 
-  implicit val disperserOrderEncoderInt: EncodeEpicsValue[DisperserOrder, Int] = EncodeEpicsValue {
-    case Order.ZERO => 0
-    case Order.ONE  => 1
-    case Order.TWO  => 2
-  }
+  implicit val disperserOrderEncoderInt: EncodeEpicsValue[DisperserOrder, Int] = EncodeEpicsValue(
+    _.count
+  )
 
   implicit val nsStateEncoder: EncodeEpicsValue[NodAndShuffleState, String] = EncodeEpicsValue {
     case NodAndShuffleState.Classic    => "CLASSIC"
@@ -113,8 +111,6 @@ trait GmosEncoders {
   def disperserModeDecode(v: Int): String = if (v === 0) disperserMode0 else disperserMode1
 
 }
-
-object GmosEncoders extends GmosEncoders
 
 private[gmos] final case class GmosDCEpicsState(
   shutterState: String,
@@ -270,12 +266,15 @@ object GmosControllerEpics extends GmosEncoders {
         roi:     Option[ROIValues]
       ): Option[F[Unit]] = (roi, DC.rois.get(index)).mapN { (roi, r) =>
         r.setCcdXstart1(roi.xStart.value) *>
-          r.setCcdXsize1(roi.xSize.value / binning.x.getValue) *>
+          r.setCcdXsize1(roi.xSize.value / binning.x.count) *>
           r.setCcdYstart1(roi.yStart.value) *>
-          r.setCcdYsize1(roi.ySize.value / binning.y.getValue)
+          r.setCcdYsize1(roi.ySize.value / binning.y.count)
       }
 
-      private def setFilters(state: GmosCCEpicsState, f: T#Filter): List[Option[F[Unit]]] = {
+      private def setFilters(
+        state: GmosCCEpicsState,
+        f:     Option[T#Filter]
+      ): List[Option[F[Unit]]] = {
         val (filter1, filter2) = Encoders[T].filter.encode(f)
 
         List(applyParam(state.filter1, filter1, CC.setFilter1),
@@ -283,8 +282,10 @@ object GmosControllerEpics extends GmosEncoders {
         )
       }
 
-      def setDisperser(state: GmosCCEpicsState, d: T#Disperser): Option[F[Unit]] = {
-        val encodedVal = Encoders[T].disperser.encode(d)
+      val mirrorEncodedVal: String = "mirror"
+
+      def setDisperser(state: GmosCCEpicsState, d: Option[T#Grating]): Option[F[Unit]] = {
+        val encodedVal = d.map(Encoders[T].disperser.encode).getOrElse(mirrorEncodedVal)
         val s          = applyParam(state.disperser.toUpperCase,
                            encodedVal.toUpperCase,
                            (_: String) => CC.setDisperser(encodedVal)
@@ -305,18 +306,20 @@ object GmosControllerEpics extends GmosEncoders {
       def setDisperserParams(
         state: GmosCCEpicsState,
         cfg:   GmosController.Config[T],
-        d:     GmosController.Config[T]#GmosDisperser
+        g:     GmosController.Config[T]#GmosDisperser
       ): List[Option[F[Unit]]] = {
-        val params: List[Option[F[Unit]]] = d match {
-          case cfg.GmosDisperser.Mirror          => List(setDisperser(state, cfg.mirror))
+        val params: List[Option[F[Unit]]] = g match {
+          case cfg.GmosDisperser.Mirror          => List(setDisperser(state, none))
           case cfg.GmosDisperser.Order0(d)       =>
-            val s0: Option[F[Unit]] = setDisperser(state, d)
+            val s0: Option[F[Unit]] = setDisperser(state, d.some)
             // If disperser is set, force order configuration
-            if (s0.isEmpty) List(setOrder(state, Order.ZERO))
-            else CC.setDisperserOrder(disperserOrderEncoder.encode(Order.ZERO)).some :: List(s0)
+            if (s0.isEmpty) List(setOrder(state, GmosGratingOrder.Zero))
+            else
+              CC.setDisperserOrder(disperserOrderEncoder.encode(GmosGratingOrder.Zero))
+                .some :: List(s0)
           case cfg.GmosDisperser.OrderN(d, o, w) =>
             val s0: Option[F[Unit]] =
-              setDisperser(state, d) // None means disperser is already in the right position
+              setDisperser(state, d.some) // None means disperser is already in the right position
             // If disperser is set, the order has to be set regardless of current value.
             if (s0.isEmpty) {
               List(
@@ -350,35 +353,39 @@ object GmosControllerEpics extends GmosEncoders {
       def setFPU(
         state: GmosCCEpicsState,
         cfg:   GmosController.Config[T],
-        cc:    GmosFPU
+        cc:    Option[GmosFPU]
       ): List[Option[F[Unit]]] = {
-        def builtInFPU(fpu: T#FPU): Option[(String, String)] = Encoders[T].fpu.encode(fpu)
+        def builtInFPU(fpu: T#FPU): String = Encoders[T].fpu.encode(fpu)
 
-        def customFPU(name: String): (String, String) = name match {
-          case "None" => ("None", beamEncoder.encode(Beam.OutOfBeam))
-          case _      => (name, beamEncoder.encode(Beam.InBeam))
-        }
-
-        def setFPUParams(p: (String, String)): List[Option[F[Unit]]] = p match {
-          case (fpuName, beam) =>
+        def setFPUParams(p: Option[String]): List[Option[F[Unit]]] = p
+          .map(g =>
             List(
-              applyParam(state.fpu, fpuName, CC.setFpu),
-              applyParam(inBeamDecode(state.inBeam), beam, CC.setInBeam)
+              applyParam(state.fpu, g, CC.setFpu),
+              applyParam(inBeamDecode(state.inBeam), beamEncoder.encode(Beam.InBeam), CC.setInBeam)
             )
-        }
+          )
+          .getOrElse(
+            List(
+              applyParam(state.fpu, "None", CC.setFpu),
+              applyParam(inBeamDecode(state.inBeam),
+                         beamEncoder.encode(Beam.OutOfBeam),
+                         CC.setInBeam
+              )
+            )
+          )
 
-        cc match {
+        cc.map {
           case cfg.BuiltInFPU(fpu) =>
-            builtInFPU(fpu)
-              .map(x => L.debug(s"Set GMOS built in fpu $fpu").some +: setFPUParams(x))
-              .orEmpty
+            L.debug(s"Set GMOS built in fpu $fpu").some +: setFPUParams(builtInFPU(fpu).some)
           case CustomMaskFPU(name) =>
-            L.debug(s"Set GMOS custom fpu $name").some +: setFPUParams(customFPU(name))
+            L.debug(s"Set GMOS custom fpu $name").some +: setFPUParams(name.some)
           case UnknownFPU          => List.empty
           // TODO Improve data model to remove this case. It is here because the BuiltInFPU of the
           // other site is also a type of GmosFPU, even if it never will appear here.
           case _                   => List.empty
-        }
+        }.getOrElse(
+          L.debug(s"Set GMOS fpu to None").some +: setFPUParams(none)
+        )
       }
 
       private def setStage(state: GmosCCEpicsState, v: T#GmosStageMode): Option[F[Unit]] = {
@@ -391,7 +398,7 @@ object GmosControllerEpics extends GmosEncoders {
         val PixelsToMicrons = 15.0
         val Tolerance       = 0.001
 
-        val offsetInMicrons = v.intValue.toDouble * PixelsToMicrons
+        val offsetInMicrons = v.dtax.toDouble * PixelsToMicrons
 
         // It seems that the reported dtaXOffset is absolute, but the applied offset is relative to
         // XCenter value
@@ -607,18 +614,18 @@ object GmosControllerEpics extends GmosEncoders {
     // Built from OCS ROI values
     def fromOCS(roi: ROI): Option[ROIValues] =
       (XStart.fromInt(roi.getXStart),
-       XSize.fromInt(roi.getXSize),
+       XSize.fromInt(roi.getXSize()),
        YStart.fromInt(roi.getYStart),
-       YSize.fromInt(roi.getYSize)
+       YSize.fromInt(roi.getYSize())
       ).mapN(new ROIValues(_, _, _, _) {})
 
   }
 
   trait Encoders[T <: GmosController.SiteDependentTypes] {
-    val filter: EncodeEpicsValue[T#Filter, (String, String)]
-    val fpu: EncodeEpicsValue[T#FPU, Option[(String, String)]]
+    val filter: EncodeEpicsValue[Option[T#Filter], (String, String)]
+    val fpu: EncodeEpicsValue[T#FPU, String]
     val stageMode: EncodeEpicsValue[T#GmosStageMode, String]
-    val disperser: EncodeEpicsValue[T#Disperser, String]
+    val disperser: EncodeEpicsValue[T#Grating, String]
     val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]]
     val autoGain: EncodeEpicsValue[(AmpReadMode, AmpGain), Int]
   }
