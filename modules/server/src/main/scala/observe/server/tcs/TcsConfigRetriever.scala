@@ -7,7 +7,7 @@ import cats._
 import cats.data.OneAnd
 import cats.syntax.all._
 import edu.gemini.observe.server.tcs.BinaryYesNo
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import mouse.boolean._
 import observe.model.TelescopeGuideConfig
 import observe.model.enum.ComaOption
@@ -47,7 +47,6 @@ import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import shapeless.tag
 import squants.Angle
 import squants.Length
-import squants.space.Angstroms
 import squants.space.Degrees
 import squants.space.Millimeters
 
@@ -203,7 +202,7 @@ object TcsConfigRetriever {
     private def getOffsetY: F[Length] = epicsSys.yoffsetPoA1.map(Millimeters(_))
 
     private def getWavelength: F[Wavelength] =
-      epicsSys.sourceAWavelength.map(v => Wavelength(Angstroms(v)))
+      epicsSys.sourceAWavelength.map(v => Wavelength.fromAngstroms(v.toInt).get)
 
     private def getGemsMap: F[Map[GemsSource, VirtualGemsTelescope]] = for {
       v1 <- epicsSys.g1MapName

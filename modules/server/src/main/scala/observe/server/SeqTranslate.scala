@@ -10,7 +10,7 @@ import cats.data.NonEmptySet
 import cats.effect.{Async, Ref, Sync, Temporal}
 import cats.syntax.all._
 import edu.gemini.seqexec.odb.SeqexecSequence
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
 import edu.gemini.spModel.obscomp.InstConstants.DATA_LABEL_PROP
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
@@ -401,9 +401,7 @@ object SeqTranslate {
     def toInstrumentSys(inst: Instrument): SystemOverrides => InstrumentSystem[F] = inst match {
       case Instrument.F2    =>
         ov: SystemOverrides =>
-          Flamingos2(overriddenSystems.flamingos2(ov), overriddenSystems.dhs(ov)): InstrumentSystem[
-            F
-          ]
+          Flamingos2(overriddenSystems.flamingos2(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
       case Instrument.GmosS =>
         ov: SystemOverrides =>
           GmosSouth(overriddenSystems.gmosSouth(ov),

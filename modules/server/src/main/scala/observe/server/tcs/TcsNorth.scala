@@ -6,7 +6,7 @@ package observe.server.tcs
 import cats.data.NonEmptySet
 import cats.effect.Sync
 import cats.syntax.all._
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants._
 import org.typelevel.log4cats.Logger

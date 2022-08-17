@@ -11,7 +11,7 @@ import cats.data._
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all._
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import monocle.{Iso, Lens}
@@ -619,8 +619,8 @@ object TcsControllerEpicsCommon {
 
     // Same wavelength is applied to all the beams
     override def setWavelength(w: Wavelength): F[Unit] =
-      epicsSys.wavelSourceA.setWavel(w.toMicrons) *>
-        epicsSys.wavelSourceB.setWavel(w.toMicrons)
+      epicsSys.wavelSourceA.setWavel(w.micrometer.value.toDouble) *>
+        epicsSys.wavelSourceB.setWavel(w.micrometer.value.toDouble)
 
     def scienceFoldFromRequested(ports: InstrumentPorts)(r: LightPath): Option[ScienceFold] =
       portFromSinkName(ports)(r.sink).map { p =>
@@ -835,7 +835,7 @@ object TcsControllerEpicsCommon {
   val WavelengthTolerance: Length = 0.5.angstroms
 
   def wavelengthNear(wavel: Wavelength, other: Wavelength): Boolean =
-    math.abs(wavel.length.toAngstroms - other.length.toAngstroms) <= WavelengthTolerance.toAngstroms
+    math.abs(wavel.angstrom.value.toDouble - other.angstrom.value.toDouble) <= WavelengthTolerance.toAngstroms
 
   def oiSelectionName(i: Instrument): Option[String] = i match {
     case Instrument.F2                                        => "F2".some

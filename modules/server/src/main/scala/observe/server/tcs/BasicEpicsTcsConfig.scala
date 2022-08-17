@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import monocle.macros.Lenses
 import observe.model.TelescopeGuideConfig
 import observe.server.tcs.TcsController._

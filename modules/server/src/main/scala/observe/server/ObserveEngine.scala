@@ -12,7 +12,6 @@ import cats.data.StateT
 import cats.effect.Async
 import cats.syntax.all._
 import cats._
-import edu.gemini.spModel.gemini.obscomp.SPSiteQuality
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.CLOUD_COVER_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.IMAGE_QUALITY_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.SKY_BACKGROUND_PROP
@@ -350,83 +349,81 @@ object ObserveEngine {
       obsClass === ObsClass.PARTNER_CAL.headerValue()) && obsType === SCIENCE_OBSERVE_TYPE)
       .getOrElse(false)
 
-    private def checkCloudCover(actual: CloudCover, requested: SPSiteQuality.CloudCover): Boolean =
-      actual.toInt.getOrElse(100) <= requested.getPercentage
+    private def checkCloudCover(actual: CloudCover, requested: CloudCover): Boolean =
+      requested.toInt.forall(_ >= actual.toInt.getOrElse(100))
 
     private def checkImageQuality(
       actual:    ImageQuality,
-      requested: SPSiteQuality.ImageQuality
+      requested: ImageQuality
     ): Boolean =
-      actual.toInt.getOrElse(100) <= requested.getPercentage
+      requested.toInt.forall(_ >= actual.toInt.getOrElse(100))
 
     private def checkSkyBackground(
       actual:    SkyBackground,
-      requested: SPSiteQuality.SkyBackground
+      requested: SkyBackground
     ): Boolean =
-      actual.toInt.getOrElse(100) <= requested.getPercentage
+      requested.toInt.forall(_ >= actual.toInt.getOrElse(100))
 
-    private def checkWaterVapor(actual: WaterVapor, requested: SPSiteQuality.WaterVapor): Boolean =
-      actual.toInt.getOrElse(100) <= requested.getPercentage
+    private def checkWaterVapor(actual: WaterVapor, requested: WaterVapor): Boolean =
+      requested.toInt.forall(_ >= actual.toInt.getOrElse(100))
 
     val ObsConditionsProp = "obsConditions"
 
-    private def extractCloudCover(config: CleanConfig): Option[SPSiteQuality.CloudCover] =
+    private def extractCloudCover(config: CleanConfig): CloudCover =
       config
         .extractAs[String](OCS_KEY / ObsConditionsProp / CLOUD_COVER_PROP)
         .flatMap(_.parseInt)
         .toOption
         .flatMap { x =>
           List(
-            SPSiteQuality.CloudCover.PERCENT_20,
-            SPSiteQuality.CloudCover.PERCENT_50,
-            SPSiteQuality.CloudCover.PERCENT_70,
-            SPSiteQuality.CloudCover.PERCENT_80,
-            SPSiteQuality.CloudCover.PERCENT_90,
-            SPSiteQuality.CloudCover.ANY
-          ).find(_.getPercentage.toInt === x)
-        }
+            CloudCover.Percent50,
+            CloudCover.Percent70,
+            CloudCover.Percent80,
+            CloudCover.Any,
+          ).find(_.toInt.exists(_ === x))
+        }.getOrElse(CloudCover.Unknown)
 
-    private def extractImageQuality(config: CleanConfig): Option[SPSiteQuality.ImageQuality] =
+    private def extractImageQuality(config: CleanConfig): ImageQuality =
       config
         .extractAs[String](OCS_KEY / ObsConditionsProp / IMAGE_QUALITY_PROP)
         .flatMap(_.parseInt)
         .toOption
         .flatMap { x =>
           List(
-            SPSiteQuality.ImageQuality.PERCENT_20,
-            SPSiteQuality.ImageQuality.PERCENT_70,
-            SPSiteQuality.ImageQuality.PERCENT_85,
-            SPSiteQuality.ImageQuality.ANY
-          ).find(_.getPercentage.toInt === x)
-        }
+            ImageQuality.Percent20,
+            ImageQuality.Percent70,
+            ImageQuality.Percent85,
+            ImageQuality.Any
+          ).find(_.toInt.exists(_ === x))
+        }.getOrElse(ImageQuality.Unknown)
 
-    private def extractSkyBackground(config: CleanConfig): Option[SPSiteQuality.SkyBackground] =
+    private def extractSkyBackground(config: CleanConfig): SkyBackground =
       config
         .extractAs[String](OCS_KEY / ObsConditionsProp / SKY_BACKGROUND_PROP)
         .flatMap(_.parseInt)
         .toOption
         .flatMap { x =>
           List(
-            SPSiteQuality.SkyBackground.PERCENT_20,
-            SPSiteQuality.SkyBackground.PERCENT_50,
-            SPSiteQuality.SkyBackground.PERCENT_80,
-            SPSiteQuality.SkyBackground.ANY
-          ).find(_.getPercentage.toInt === x)
-        }
+            SkyBackground.Percent20,
+            SkyBackground.Percent50,
+            SkyBackground.Percent80,
+            SkyBackground.Any
+          ).find(_.toInt.exists(_ === x))
+        }.getOrElse(SkyBackground.Unknown)
 
-    private def extractWaterVapor(config: CleanConfig): Option[SPSiteQuality.WaterVapor] =
+    private def extractWaterVapor(config: CleanConfig): WaterVapor =
       config
         .extractAs[String](OCS_KEY / ObsConditionsProp / WATER_VAPOR_PROP)
         .flatMap(_.parseInt)
         .toOption
         .flatMap { x =>
           List(
-            SPSiteQuality.WaterVapor.PERCENT_20,
-            SPSiteQuality.WaterVapor.PERCENT_50,
-            SPSiteQuality.WaterVapor.PERCENT_80,
-            SPSiteQuality.WaterVapor.ANY
-          ).find(_.getPercentage.toInt === x)
-        }
+            WaterVapor.Percent20,
+            WaterVapor.Percent50,
+            WaterVapor.Percent80,
+            WaterVapor.Any
+          ).find(_.toInt.exists(_ === x))
+        }.getOrElse(WaterVapor.Unknown)
 
     private def observingConditionsMatch(
       actualObsConditions: Conditions,
@@ -438,22 +435,17 @@ object ObserveEngine {
       val reqSB = extractSkyBackground(step.config)
       val reqWV = extractWaterVapor(step.config)
 
-      val ccCmp = reqCC.flatMap(x =>
-        (!checkCloudCover(actualObsConditions.cc, x))
-          .option(Discrepancy(actualObsConditions.cc.label, x.displayValue()))
-      )
-      val iqCmp = reqIQ.flatMap(x =>
-        (!checkImageQuality(actualObsConditions.iq, x))
-          .option(Discrepancy(actualObsConditions.iq.label, x.displayValue()))
-      )
-      val sbCmp = reqSB.flatMap(x =>
-        (!checkSkyBackground(actualObsConditions.sb, x))
-          .option(Discrepancy(actualObsConditions.sb.label, x.displayValue()))
-      )
-      val wvCmp = reqWV.flatMap(x =>
-        (!checkWaterVapor(actualObsConditions.wv, x))
-          .option(Discrepancy(actualObsConditions.wv.label, x.displayValue()))
-      )
+      val ccCmp = (!checkCloudCover(actualObsConditions.cc, reqCC))
+        .option(Discrepancy(actualObsConditions.cc.label, reqCC.label))
+
+      val iqCmp = (!checkImageQuality(actualObsConditions.iq, reqIQ))
+        .option(Discrepancy(actualObsConditions.iq.label, reqIQ.label))
+
+      val sbCmp = (!checkSkyBackground(actualObsConditions.sb, reqSB))
+        .option(Discrepancy(actualObsConditions.sb.label, reqSB.label))
+
+      val wvCmp =(!checkWaterVapor(actualObsConditions.wv, reqWV))
+        .option(Discrepancy(actualObsConditions.wv.label, reqWV.label))
 
       (ccCmp.nonEmpty || iqCmp.nonEmpty || sbCmp.nonEmpty || wvCmp.nonEmpty)
         .option(ObsConditionsCheckOverride(ccCmp, iqCmp, sbCmp, wvCmp))

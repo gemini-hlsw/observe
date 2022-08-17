@@ -3,11 +3,11 @@
 
 package observe.server.tcs
 
-import cats.effect.{Async, IO}
+import cats.effect.{ Async, IO }
 import cats.syntax.all._
 import cats.effect.unsafe.implicits.global
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import edu.gemini.spModel.core.Wavelength
+import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
+import lucuma.core.math.Wavelength
 import lucuma.core.enums.LightSinkName.Gmos
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
@@ -40,7 +40,7 @@ import observe.server.tcs.TcsController.{
   TelescopeConfig
 }
 import shapeless.tag
-import squants.space.{Arcseconds, Length, Microns, Millimeters}
+import squants.space.{ Arcseconds, Length, Millimeters }
 import org.scalatest.flatspec.AnyFlatSpec
 import observe.server.keywords.USLocale
 import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
@@ -58,7 +58,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
     Arcseconds(33.8),
     FocalPlaneOffset(tag[OffsetX](Millimeters(0.0)), tag[OffsetY](Millimeters(0.0))),
-    Wavelength(Microns(400)),
+    Wavelength.fromMicrometers(400).get,
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
@@ -878,7 +878,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     val offsetCurrent =
       InstrumentOffset(tag[OffsetP](10.00001.arcseconds), tag[OffsetQ](-5.arcseconds))
     val iaa           = 33.degrees
-    val wavelength    = Wavelength(440.nanometers)
+    val wavelength    = Wavelength.fromNanometers(440).get
     val recordPrec    = 14
 
     val dumbEpics = buildTcsController[IO](
@@ -890,7 +890,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           epicsTransform(recordPrec)(offsetCurrent.toFocalPlaneOffset(iaa).y.toMillimeters)
         ),
         instrAA = epicsTransform(recordPrec)(iaa.toDegrees),
-        sourceAWavelength = epicsTransform(recordPrec)(wavelength.length.toAngstroms)
+        sourceAWavelength = epicsTransform(recordPrec)(wavelength.angstrom.value.toDouble)
       )
     )
 
@@ -920,7 +920,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
     val offset     = InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](-5.arcseconds))
     val iaa        = 33.degrees
-    val wavelength = Wavelength(440.nanometers)
+    val wavelength = Wavelength.fromNanometers(440).get
     val recordPrec = 14
 
     val dumbEpics = buildTcsController[IO](
@@ -930,7 +930,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
         yoffsetPoA1 =
           tag[OffsetX](epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).y.toMillimeters)),
         instrAA = epicsTransform(recordPrec)(iaa.toDegrees),
-        sourceAWavelength = epicsTransform(recordPrec)(wavelength.length.toAngstroms)
+        sourceAWavelength = epicsTransform(recordPrec)(wavelength.angstrom.value.toDouble)
       )
     )
 
@@ -958,13 +958,13 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   it should "apply the target wavelength if it changes" in {
 
-    val wavelengthDemand  = Wavelength((2000.0 / 7.0).nanometers)
-    val wavelengthCurrent = Wavelength((2000.0 / 7.0).nanometers + 1.angstroms)
+    val wavelengthDemand: Wavelength  = Wavelength.fromNanometers((2000.0 / 7.0).toInt).get
+    val wavelengthCurrent: Wavelength = Wavelength.fromNanometers((2000.0 / 7.0 + 0.1).toInt).get
     val recordPrec        = 0
 
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
-        sourceAWavelength = epicsTransform(recordPrec)(wavelengthCurrent.length.toAngstroms)
+        sourceAWavelength = epicsTransform(recordPrec)(wavelengthCurrent.angstrom.value.toDouble)
       )
     )
 
@@ -992,12 +992,12 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   it should "not reapply the target wavelength if it is already at the right value" in {
 
-    val wavelength = Wavelength((2000.0 / 7.0).nanometers)
+    val wavelength = Wavelength.fromNanometers((2000.0 / 7.0).toInt).get
     val recordPrec = 0
 
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
-        sourceAWavelength = epicsTransform(recordPrec)(wavelength.length.toAngstroms)
+        sourceAWavelength = epicsTransform(recordPrec)(wavelength.angstrom.value.toDouble)
       )
     )
 

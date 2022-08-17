@@ -14,12 +14,9 @@ import cats.syntax.all._
 import edu.gemini.spModel.config2.ItemKey
 import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpReadMode
 import lucuma.core.enums.{ GmosAmpReadMode, GmosGratingOrder, GmosRoi }
-//import edu.gemini.spModel.gemini.gmos.GmosCommonType
-//import edu.gemini.spModel.gemini.gmos.GmosCommonType._
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon._
 import edu.gemini.spModel.guide.StandardGuideOptions
-import edu.gemini.spModel.obscomp.InstConstants.EXPOSURE_TIME_PROP
-import edu.gemini.spModel.obscomp.InstConstants._
+import edu.gemini.spModel.obscomp.InstConstants.{EXPOSURE_TIME_PROP, OBSERVE_TYPE_PROP, DARK_OBSERVE_TYPE, BIAS_OBSERVE_TYPE, INSTRUMENT_NAME_PROP, SCIENCE_OBSERVE_TYPE, FLAT_OBSERVE_TYPE, ARC_OBSERVE_TYPE}
 import edu.gemini.spModel.seqcomp.SeqConfigNames.INSTRUMENT_KEY
 import org.typelevel.log4cats.Logger
 import lucuma.core.math.Angle

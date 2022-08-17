@@ -3,11 +3,9 @@
 
 package observe.server
 
-import cats.ApplicativeError
 import cats.Endo
 import cats.effect.Async
 import cats.syntax.all._
-import edu.gemini.spModel.core.SPProgramID
 import edu.gemini.spModel.obscomp.InstConstants
 import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
 import observe.engine.Event
@@ -18,6 +16,7 @@ import ConfigUtilOps._
 import SeqEvent._
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
+import lucuma.core.model.Program
 import observe.server.transition.OcsOdbTranslator
 
 final class ODBSequencesLoader[F[_]: Async](
@@ -44,15 +43,15 @@ final class ODBSequencesLoader[F[_]: Async](
     // Three ways of handling errors are mixed here: java exceptions, Either and MonadError
     val t: F[(List[Throwable], Option[SequenceGen[F]])] =
       odbProxy.read(seqId).map(OcsOdbTranslator.translate).flatMap { odbSeq =>
-        val configObsId: F[String] =
+        val programId: F[String] =
           odbSeq.config
             .extractAs[String](OCS_KEY / InstConstants.PROGRAMID_PROP)
             .toF[F]
 
         // Verify that the program id is valid
-        configObsId
-          .adaptErr { case _ => ObserveFailure.Unexpected(s"Invalid $configObsId") }
-          .flatMap(s => ApplicativeError[F, Throwable].catchNonFatal(SPProgramID.toProgramID(s)))
+        programId
+          .adaptErr { e => ObserveFailure.Unexpected(s"Error while extracting Program Id: ${e.getMessage}") }
+          .flatMap(s => Program.Id.parse(s).map(_.pure[F]).getOrElse(Async[F].raiseError(ObserveFailure.Unexpected("Unable to parse Program Id: $s"))))
           .flatMap(_ => translator.sequence(seqId, odbSeq))
       }
 

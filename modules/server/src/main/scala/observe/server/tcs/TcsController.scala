@@ -7,7 +7,7 @@ import cats._
 import cats.data.NonEmptySet
 import cats.data.OneAnd
 import cats.implicits._
-import edu.gemini.spModel.core.Wavelength
+import lucuma.core.math.Wavelength
 import lucuma.core.enums._
 import monocle.macros.Lenses
 import observe.model.TelescopeGuideConfig
@@ -268,7 +268,7 @@ object TcsController {
     wavelA:  Option[Wavelength]
   )
 
-  implicit val wavelengthEq: Eq[Wavelength] = Eq.by(_.length.value)
+//  implicit val wavelengthEq: Eq[Wavelength] = Eq.by(_.length.value)
 
   object TelescopeConfig {
     implicit val show: Show[TelescopeConfig] = Show.fromToString

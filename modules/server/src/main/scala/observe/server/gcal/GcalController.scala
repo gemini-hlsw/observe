@@ -6,7 +6,7 @@ package observe.server.gcal
 import cats.Eq
 import cats.Show
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
 
 trait GcalController[F[_]] {
 
@@ -79,11 +79,11 @@ object GcalController {
       Eq[LampState].contramap(_.self)
   }
 
-  type Shutter = edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+  type Shutter = GcalShutter
 
-  type Filter = edu.gemini.spModel.gemini.calunit.CalUnitParams.Filter
+  type Filter = GcalFilter
 
-  type Diffuser = edu.gemini.spModel.gemini.calunit.CalUnitParams.Diffuser
+  type Diffuser = GcalDiffuser
 
   sealed trait GcalConfig {
     val lampAr: ArLampState
@@ -124,7 +124,7 @@ object GcalController {
       override val lampThAr: ThArLampState      = ThArLampState(LampState.Off)
       override val lampXe: XeLampState          = XeLampState(LampState.Off)
       override val lampIrO: Option[IrLampState] = IrLampState(LampState.Off).some
-      override val shutter: Shutter             = Shutter.CLOSED
+      override val shutter: Shutter             = GcalShutter.Closed
       override val filterO: Option[Filter]      = none
       override val diffuserO: Option[Diffuser]  = none
     }
@@ -138,7 +138,7 @@ object GcalController {
       override val lampThAr: ThArLampState      = ThArLampState(LampState.Off)
       override val lampXe: XeLampState          = XeLampState(LampState.Off)
       override val lampIrO: Option[IrLampState] = none
-      override val shutter: Shutter             = Shutter.CLOSED
+      override val shutter: Shutter             = GcalShutter.Closed
       override val filterO: Option[Filter]      = none
       override val diffuserO: Option[Diffuser]  = none
     }
