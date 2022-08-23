@@ -32,7 +32,7 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.14-27-fd0137d-SNAPSHOT"
+    val http4sVersion                  = "0.23.15"
     val http4sBlazeVersion             = "0.23.12"
     val http4sJdkHttpClientVersion     = "0.7.0"
     val http4sBoopickleVersion         = "0.23.11"
@@ -295,9 +295,9 @@ object Settings {
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
-    val Clue          = "edu.gemini" %% "clue-core"              % LibraryVersions.clue
-    val ClueHttp4s    = "edu.gemini" %% "clue-http4s" % LibraryVersions.clue
-    val ClueGenerator = "edu.gemini" %% "clue-generator"         % LibraryVersions.clue
+    val Clue          = "edu.gemini" %% "clue-core"      % LibraryVersions.clue
+    val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
+    val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
 
     val Sttp = Def.setting(
       Seq(
