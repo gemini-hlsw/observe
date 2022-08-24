@@ -5,6 +5,7 @@ import AppsCommon._
 import sbt.Keys._
 import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
+import org.scalajs.linker.interface.ModuleSplitStyle
 
 name := "observe"
 
@@ -49,6 +50,19 @@ Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 enablePlugins(GitBranchPrompt)
+
+lazy val esModule = Seq(
+  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+  Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
+  Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
+  Compile / fastLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
+    // If the browser is too slow for the SmallModulesFor switch to ModuleSplitStyle.FewestModules
+    ModuleSplitStyle.SmallModulesFor(List("explore"))
+  )),
+  Compile / fullLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
+    ModuleSplitStyle.FewestModules
+  ))
+)
 
 // Custom commands to facilitate web development
 val startObserveAllCommands   = List(
@@ -250,6 +264,24 @@ lazy val observe_web_server = project
     buildInfoPackage          := "observe.web.client"
   )
   .dependsOn(observe_model.js % "compile->compile;test->test")*/
+
+lazy val new_web = project
+  .in(file("modules/new_web"))
+  .settings(lucumaGlobalSettings: _*)
+  .settings(esModule: _*)
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    scalaVersion    := "3.1.3",
+    Test / test     := {},
+    coverageEnabled := false,
+    libraryDependencies ++= Seq(
+      Cats.value,
+      CatsEffect.value,
+      Crystal.value,
+      Fs2
+    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ Log4CatsLogLevel.value,
+    scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
+  )
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project

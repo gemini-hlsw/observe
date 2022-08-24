@@ -13,8 +13,11 @@ object Settings {
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
+    val crystal                 = "0.30.0"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
+    val javaTimeJS              = "2.4.0"
+    val lucumaReact             = "0.1.0"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -148,7 +151,7 @@ object Settings {
     val Log4CatsLogLevel = Def.setting(
       Seq(
         "org.typelevel" %%% "log4cats-core"     % LibraryVersions.log4cats,
-        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLevel
+        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLogLevel
       )
     )
     val PrometheusClient =
@@ -196,6 +199,21 @@ object Settings {
     )
 
     // Client Side JS libraries
+    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
+    val Crystal                 = Def.setting("com.rpiaggio" %%% "crystal" % LibraryVersions.crystal)
+    val LucumaReact             = Def.setting(
+      Seq(
+        "edu.gemini" %%% "lucuma-react-common" % LibraryVersions.lucumaReact
+      )
+    )
+    val ScalaJSReactIO          = Def.setting(
+      Seq(
+        "com.github.japgolly.scalajs-react" %%% "core-bundle-cb_io"        % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"                    % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3"       % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "callback-ext-cats_effect" % LibraryVersions.scalajsReact
+      )
+    )
     val ReactScalaJS            = Def.setting(
       Seq(
         "com.github.japgolly.scalajs-react" %%% "core"               % LibraryVersions.scalajsReact,
@@ -230,7 +248,6 @@ object Settings {
     val ScalaJSReactClipboard   = Def.setting(
       "io.github.cquiroz.react" %%% "react-clipboard" % LibraryVersions.scalaJSReactClipboard
     )
-    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
     val JavaTimeJS              =
       Def.setting("io.github.cquiroz" %%% "scala-java-time" % LibraryVersions.javaTimeJS)
     val GeminiLocales           =
