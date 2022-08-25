@@ -1,4 +1,6 @@
 import "./styles/style.scss";
+import "primereact/resources/themes/nova/theme.css";  //theme
+import "primereact/resources/primereact.min.css";                  //core css
 
 import { Main } from "@sjs/main.js";
 

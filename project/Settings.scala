@@ -17,7 +17,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.1.0"
+    val lucumaReact             = "0.2.0-3-fcebfd3-SNAPSHOT"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -203,7 +203,9 @@ object Settings {
     val Crystal                 = Def.setting("com.rpiaggio" %%% "crystal" % LibraryVersions.crystal)
     val LucumaReact             = Def.setting(
       Seq(
-        "edu.gemini" %%% "lucuma-react-common" % LibraryVersions.lucumaReact
+        "edu.gemini" %%% "lucuma-react-common"       % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-prime-react"  % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-font-awesome" % LibraryVersions.lucumaReact
       )
     )
     val ScalaJSReactIO          = Def.setting(

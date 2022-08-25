@@ -15,9 +15,6 @@ object Layout {
   protected type Props = Layout
 
   protected val component = ScalaFnComponent[Props] { props =>
-    <.div(^.cls  := "app")(
-      <.h2(^.cls := "topbar", "Observe"),
-      <.div(props.r.render())
-    )
+    props.r.render()
   }
 }
