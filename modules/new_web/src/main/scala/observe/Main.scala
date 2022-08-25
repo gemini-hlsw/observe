@@ -50,6 +50,7 @@ object Main {
   def run: IO[Unit] =
     for {
       logger <- setupLogger[IO](LogLevelDesc.DEBUG)
+      _      <- Theme.Light.setup[IO]
       _      <- buildPage(logger)
     } yield ()
 }

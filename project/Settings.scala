@@ -92,6 +92,7 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.45.0"
+    val lucumaCore3   = "0.53.0"
     val lucumaUI      = "0.39.0"
     val lucumaSchemas = "0.33.0"
 
@@ -309,6 +310,12 @@ object Settings {
       Seq(
         "edu.gemini" %%% "lucuma-core"         % LibraryVersions.lucumaCore,
         "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore
+      )
+    )
+    val LucumaCore3   = Def.setting(
+      Seq(
+        "edu.gemini" %%% "lucuma-core"         % LibraryVersions.lucumaCore3,
+        "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore3
       )
     )
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)

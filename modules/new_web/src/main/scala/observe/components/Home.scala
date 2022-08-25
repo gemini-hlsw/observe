@@ -17,10 +17,8 @@ import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
 import observe.Icons
-// import react.common.style._
-// import react.fa.given
 
-final case class Home() extends ReactFnProps[Home](Home.component)
+final case class Home() extends ReactFnProps(Home.component)
 
 object Home {
   protected type Props = Home
@@ -75,7 +73,8 @@ object Home {
                 )
               )
             ),
-          Toolbar().left("Observe - GS")
+          Accordion(AccordionTab().header("Show Log")(<.div(^.height := "200px"))),
+          Toolbar().left("Observe - GS").right(React.Fragment(ThemeSelector()).rawElement)
         )
       }
 }

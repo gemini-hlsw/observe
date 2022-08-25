@@ -1,3 +1,11 @@
+.light-theme {
+  @import "primereact/resources/themes/nova/theme";
+}
+
+.dark-theme {
+  @import "primereact/resources/themes/luna-blue/theme";
+}
+
 body {
   margin: 0;
 }
