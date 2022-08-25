@@ -42,7 +42,7 @@ object Settings {
     val squants        = "1.8.3"
     val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
-    val jwt            = "9.1.0"
+    val jwt            = "5.0.0"
     val slf4j          = "1.7.36"
     val log4s          = "1.10.0"
     val log4cats       = "2.4.0"
@@ -295,9 +295,9 @@ object Settings {
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
-    val Clue          = "edu.gemini" %% "clue-core"      % LibraryVersions.clue
-    val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
-    val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
+    val Clue          = "edu.gemini" %% "clue-core"              % LibraryVersions.clue
+    val ClueHttp4s    = "edu.gemini" %% "clue-http4s" % LibraryVersions.clue
+    val ClueGenerator = "edu.gemini" %% "clue-generator"         % LibraryVersions.clue
 
     val Sttp = Def.setting(
       Seq(
