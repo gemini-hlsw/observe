@@ -18,6 +18,7 @@ import monocle.function.Each._
 import monocle.function.Index._
 import react.common._
 import react.virtualized._
+import web.client.JsNumberOps._
 
 /**
  * State of a table

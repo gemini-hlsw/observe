@@ -12,11 +12,11 @@ import cats.Eq
 import cats.data.NonEmptySet
 import cats.syntax.all._
 import io.chrisdavenport.cats.time.instances.all._
-import lucuma.core.enum.GcalArc
-import lucuma.core.enum.GcalContinuum
-import lucuma.core.enum.GcalDiffuser
-import lucuma.core.enum.GcalFilter
-import lucuma.core.enum.GcalShutter
+import lucuma.core.enums.GcalArc
+import lucuma.core.enums.GcalContinuum
+import lucuma.core.enums.GcalDiffuser
+import lucuma.core.enums.GcalFilter
+import lucuma.core.enums.GcalShutter
 import monocle._
 import monocle.std.either.stdLeft
 import monocle.std.either.stdRight

@@ -10,7 +10,7 @@ import cats.effect.unsafe.implicits.global
 import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import observe.common.test._
 import observe.engine.{Action, Result, Sequence}
 import observe.model.enum.Instrument.GmosS

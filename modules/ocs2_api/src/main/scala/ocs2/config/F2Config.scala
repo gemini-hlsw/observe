@@ -4,7 +4,7 @@
 package ocs2.config
 
 import cats.Eq
-import lucuma.core.enum.F2Fpu
+import lucuma.core.enums.F2Fpu
 
 /**
  * Additional type hierarchy over the low-level F2 enums.

@@ -25,7 +25,7 @@ import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.obscomp.InstConstants._
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import lucuma.core.syntax.string._
 import mouse.boolean._
 import observe.server.CleanConfig

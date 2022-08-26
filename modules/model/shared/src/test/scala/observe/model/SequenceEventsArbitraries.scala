@@ -10,6 +10,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Arbitrary._
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import lucuma.core.arb.ArbTime._
 import java.time.Instant
 import observe.model.enum._

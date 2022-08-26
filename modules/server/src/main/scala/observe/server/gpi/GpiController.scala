@@ -24,8 +24,8 @@ import giapi.client.commands.CommandResultException
 import giapi.client.commands.Configuration
 import giapi.client.gpi.GpiClient
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.GiapiStatusApply._
-import lucuma.core.enum.GpiReadMode
+import lucuma.core.enums.GiapiStatusApply._
+import lucuma.core.enums.GpiReadMode
 import mouse.boolean._
 import observe.server.AbstractGiapiInstrumentController
 import observe.server.GiapiInstrumentController

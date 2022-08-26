@@ -7,6 +7,7 @@ import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import observe.model._
 import observe.model.GmosParameters._
 import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}

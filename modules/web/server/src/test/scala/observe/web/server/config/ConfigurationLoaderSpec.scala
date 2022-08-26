@@ -4,7 +4,7 @@
 package observe.web.server.config
 
 import cats.effect.IO
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import java.nio.file.Paths
 import org.http4s.Uri
 import org.http4s.implicits._

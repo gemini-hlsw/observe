@@ -6,7 +6,7 @@ package observe.web.client
 import cats.Show
 import cats.syntax.all._
 import diode.Action
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import org.scalajs.dom.WebSocket
 import pprint.PPrinter
 import observe.model.Notification.RequestFailed

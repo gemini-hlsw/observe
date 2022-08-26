@@ -19,8 +19,8 @@ import edu.gemini.spModel.obscomp.InstConstants
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.GpiReadMode
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.GpiReadMode
+import lucuma.core.enums.LightSinkName
 import observe.model.dhs.ImageFileId
 import observe.model.enum.Instrument
 import observe.model.enum.ObserveCommandResult

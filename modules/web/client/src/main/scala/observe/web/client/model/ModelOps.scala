@@ -6,7 +6,7 @@ package observe.web.client.model
 import cats.Show
 import cats.data.NonEmptyList
 import cats.syntax.all._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import mouse.all.booleanSyntaxMouse
 import observe.model.{SequenceState, SequenceView, Step, StepId, StepState}
 import observe.model.enum.Instrument

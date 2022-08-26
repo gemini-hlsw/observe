@@ -3,7 +3,7 @@
 
 package observe.server.keywords
 
-import lucuma.core.enum.KeywordName
+import lucuma.core.enums.KeywordName
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen

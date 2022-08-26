@@ -5,7 +5,6 @@ package observe.web.client
 
 import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 import scala.concurrent.Future
-
 import cats.Monoid
 import cats.syntax.all._
 import diode.Action
@@ -15,6 +14,7 @@ import diode.Effect
 import diode.NoAction
 
 package handlers {
+
   trait Handlers[M, T] { this: ActionHandler[M, T] =>
     implicit def pfMonoid[A, B]: Monoid[PartialFunction[A, B]] =
       new Monoid[PartialFunction[A, B]] {

@@ -11,7 +11,7 @@ import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import diode.NoAction
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import observe.model.Operator
 import observe.web.client.actions._
 import observe.web.client.model.GlobalLog

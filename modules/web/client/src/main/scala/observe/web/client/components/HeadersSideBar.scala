@@ -14,7 +14,7 @@ import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.util.Display
 import lucuma.ui.forms._
-import lucuma.ui.optics.InputFormat
+import lucuma.ui.input.InputFormat
 import monocle.macros.Lenses
 import observe.web.client.circuit.ObserveCircuit
 import react.common._
@@ -168,28 +168,28 @@ object HeadersSideBar {
             )
           ),
           FormGroup(widths = Two, clazz = ObserveStyles.fieldsNoBottom)(
-            EnumSelect[ImageQuality]("Image Quality",
-                                     p.model.conditions.iq.some,
+            EnumSelect[ImageQuality](p.model.conditions.iq.some,
+                                     "Image Quality",
                                      "Select",
                                      disabled = !enabled,
                                      iqChanged
             ),
-            EnumSelect[CloudCover]("Cloud Cover",
-                                   p.model.conditions.cc.some,
+            EnumSelect[CloudCover](p.model.conditions.cc.some,
+                                   "Cloud Cover",
                                    "Select",
                                    disabled = !enabled,
                                    ccChanged
             )
           ),
           FormGroup(widths = Two, clazz = ObserveStyles.fieldsNoBottom)(
-            EnumSelect[WaterVapor]("Water Vapor",
-                                   p.model.conditions.wv.some,
+            EnumSelect[WaterVapor](p.model.conditions.wv.some,
+                                   "Water Vapor",
                                    "Select",
                                    disabled = !enabled,
                                    wvChanged
             ),
-            EnumSelect[SkyBackground]("Sky Background",
-                                      p.model.conditions.sb.some,
+            EnumSelect[SkyBackground](p.model.conditions.sb.some,
+                                      "Sky Background",
                                       "Select",
                                       disabled = !enabled,
                                       sbChanged

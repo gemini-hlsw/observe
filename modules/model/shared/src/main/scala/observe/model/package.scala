@@ -20,7 +20,7 @@ package object model {
   type ParamValue      = String
   type Parameters      = Map[ParamName, ParamValue]
   type StepConfig      = Map[SystemName, Parameters]
-  type StepId          = lucuma.core.model.Step.Id
+  type StepId          = lucuma.core.model.sequence.Step.Id
   type ObservationName = String
   type TargetName      = String
 

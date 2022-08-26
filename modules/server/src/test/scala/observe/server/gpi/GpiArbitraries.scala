@@ -13,7 +13,7 @@ import edu.gemini.spModel.gemini.gpi.Gpi.{Lyot => LegacyLyot}
 import edu.gemini.spModel.gemini.gpi.Gpi.{ObservingMode => LegacyObservingMode}
 import edu.gemini.spModel.gemini.gpi.Gpi.{PupilCamera => LegacyPupilCamera}
 import edu.gemini.spModel.gemini.gpi.Gpi.{Shutter => LegacyShutter}
-import lucuma.core.enum.GpiReadMode
+import lucuma.core.enums.GpiReadMode
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.arb.ArbTime
 import org.scalacheck.Arbitrary._

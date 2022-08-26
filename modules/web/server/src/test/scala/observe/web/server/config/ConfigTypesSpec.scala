@@ -4,7 +4,7 @@
 package observe.web.server.config
 
 import cats.tests.CatsSuite
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import pureconfig._
 import pureconfig.generic.auto._
 

@@ -5,7 +5,7 @@ package observe.model.enum
 
 import cats.instances.string._
 import cats.syntax.eq._
-import lucuma.core.enum.ProgramType
+import lucuma.core.enums.ProgramType
 import lucuma.core.util.Enumerated
 
 /**

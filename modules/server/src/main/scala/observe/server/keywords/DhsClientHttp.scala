@@ -18,7 +18,7 @@ import io.circe.DecodingFailure
 import io.circe.Encoder
 import io.circe.Json
 import io.circe.syntax._
-import lucuma.core.enum.DhsKeywordName
+import lucuma.core.enums.DhsKeywordName
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.client.Client

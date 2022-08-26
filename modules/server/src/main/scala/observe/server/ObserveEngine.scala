@@ -26,7 +26,7 @@ import fs2.Pipe
 import fs2.Pure
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import monocle.function.Index.mapIndex
 import monocle.Optional
 import mouse.all._
@@ -481,16 +481,29 @@ object ObserveEngine {
           .atSequence(id)
           .getOption(s)
           .flatMap { seq =>
-            seq.seq.currentStep.map { step =>
-              Handle
-                .fromStream[F, EngineState[F], EventType[F]](
-                  Stream.eval(
-                    systems.odb
-                      .sequenceStart(Observation.IdName(id, seq.name))
-                      .as(Event.nullEvent[F])
-                  )
-                )
-                .as((id, step.id).some)
+            seq.seq.currentStep.flatMap { step =>
+              seq.visitId match {
+                case Some(_) => none
+                case None    =>
+                  Handle
+                    .fromStream[F, EngineState[F], EventType[F]](
+                      Stream.eval[F, EventType[F]](
+                        systems.odb
+                          .sequenceStart(Observation.IdName(id, seq.name))
+                          .map { i =>
+                            Event.modifyState {
+                              executeEngine
+                                .modify(
+                                  EngineState.atSequence(id).modify(SequenceData.visitId.replace(i))
+                                )
+                                .as[SeqEvent](SeqEvent.NullSeqEvent)
+                            }
+                          }
+                      )
+                    )
+                    .as((id, step.id).some)
+                    .some
+              }
             }
           }
           .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))
@@ -1327,27 +1340,37 @@ object ObserveEngine {
             .get(id)
             .map { seq =>
               Logger[F].error(s"Error executing ${seq.name} due to $e") *>
-                systems.odb
-                  .obsAbort(Observation.IdName(id, seq.name), e.msg)
-                  .ensure(
-                    ObserveFailure
-                      .Unexpected("Unable to send ObservationAborted message to ODB.")
-                  )(identity)
+                seq.visitId
+                  .map(vid =>
+                    systems.odb
+                      .obsAbort(vid, Observation.IdName(id, seq.name), e.msg)
+                      .ensure(
+                        ObserveFailure
+                          .Unexpected("Unable to send ObservationAborted message to ODB.")
+                      )(identity)
+                  )
+                  .getOrElse(Applicative[F].unit)
             }
             .getOrElse(Applicative[F].unit)
         case (SystemUpdate(SystemEvent.Executed(id), _), st)     =>
           st.sequences
             .get(id)
             .filter(_.seq.status === SequenceState.Idle)
-            .map { seq =>
-              systems.odb.obsPause(Observation.IdName(id, seq.name), "Sequence paused by user").void
+            .flatMap { seq =>
+              seq.visitId.map(vid =>
+                systems.odb
+                  .obsPause(vid, Observation.IdName(id, seq.name), "Sequence paused by user")
+                  .void
+              )
             }
             .getOrElse(Applicative[F].unit)
         case (SystemUpdate(SystemEvent.Finished(id), _), st)     =>
           st.sequences
             .get(id)
-            .map { seq =>
-              systems.odb.sequenceEnd(Observation.IdName(id, seq.name)).void
+            .flatMap { seq =>
+              seq.visitId.map(vid =>
+                systems.odb.sequenceEnd(vid, Observation.IdName(id, seq.name)).void
+              )
             }
             .getOrElse(Applicative[F].unit)
         case _                                                   => Applicative[F].unit
@@ -1380,11 +1403,16 @@ object ObserveEngine {
       seqId:  Observation.Id,
       obsseq: SequenceData[F]
     ): Endo[EngineState[F]] = st =>
-      executeEngine.update(seqId,
-                           toStepList(obsseq.seqGen,
-                                      obsseq.overrides,
-                                      HeaderExtraData(st.conditions, st.operator, obsseq.observer)
-                           )
+      executeEngine.update(
+        seqId,
+        toStepList(obsseq.seqGen,
+                   obsseq.overrides,
+                   HeaderExtraData(st.conditions,
+                                   st.operator,
+                                   obsseq.observer,
+                                   st.sequences.get(seqId).flatMap(_.visitId)
+                   )
+        )
       )(st)
 
     private def refreshSequence(id: Observation.Id): Endo[EngineState[F]] = (st: EngineState[F]) =>

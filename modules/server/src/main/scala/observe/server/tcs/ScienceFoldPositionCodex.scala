@@ -6,7 +6,7 @@ package observe.server.tcs
 import atto.Atto._
 import atto._
 import cats.syntax.all._
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import observe.server.EpicsCodex.DecodeEpicsValue
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.tcs.ScienceFold.Parked

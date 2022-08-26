@@ -8,7 +8,7 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import react.common._
 import observe.web.client.circuit._
 import observe.web.client.components.queue.CalQueueTabContent

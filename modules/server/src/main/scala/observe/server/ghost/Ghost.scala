@@ -14,7 +14,7 @@ import edu.gemini.spModel.gemini.ghost.{Ghost => SPGhost}
 import edu.gemini.spModel.seqcomp.SeqConfigNames._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import lucuma.core.math.Coordinates
 import lucuma.core.math.Declination
 import lucuma.core.math.RightAscension

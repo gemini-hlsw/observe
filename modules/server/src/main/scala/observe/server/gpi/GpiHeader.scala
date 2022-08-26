@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all._
-import lucuma.core.enum.KeywordName
+import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.server.keywords._

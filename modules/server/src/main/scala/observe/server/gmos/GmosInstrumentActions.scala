@@ -55,7 +55,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.SiteDepe
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.obsIdName, fileId)
+        abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
         env.inst
           .calcObserveTime(env.config)

@@ -15,7 +15,7 @@ import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
 import org.http4s.Uri

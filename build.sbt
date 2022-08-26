@@ -34,7 +34,7 @@ ThisBuild / resolvers += "Gemini Repository".at(
 
 Global / resolvers ++= Resolver.sonatypeOssRepos("public")
 
-// This key is used to find the JRE dir. It could/should be overriden on a user basis
+// This key is used to find the JRE dir. It could/should be overridden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres11"
 
@@ -97,7 +97,8 @@ lazy val graphql = project
   .settings(
     libraryDependencies ++= Seq(
       Clue,
-      LucumaSchemas
+      LucumaSchemas,
+      ClueGenerator
     )
   )
 
@@ -146,6 +147,7 @@ lazy val observe_web_server = project
     libraryDependencies ++= Seq(UnboundId,
                                 JwtCore,
                                 JwtCirce,
+                                Http4sServer,
                                 Http4sPrometheus,
                                 CommonsHttp,
                                 ScalaMock,
@@ -288,6 +290,7 @@ lazy val observe_server = project
         Clue,
         ClueHttp4s,
         LucumaSchemas,
+        ClueGenerator,
         ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
         Circe.value,

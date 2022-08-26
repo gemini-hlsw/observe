@@ -9,7 +9,7 @@ import cats.data.NonEmptyList
 import japgolly.scalajs.react.facade.JsNumber
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import react.common._
+import web.client.JsNumberOps._
 
 trait TableArbitraries {
   implicit val arbUserModified: Arbitrary[UserModified] = Arbitrary {

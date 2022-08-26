@@ -10,7 +10,7 @@ import edu.gemini.spModel.gemini.gmos.InstGmosCommon.FPU_PROP_NAME
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.STAGE_MODE_PROP
 import edu.gemini.spModel.gemini.gmos.InstGmosNorth
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import observe.model.enum.Instrument
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
@@ -65,7 +65,9 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
           }
       },
       nsCmdR
-    )(northConfigTypes) {
+    )(
+      northConfigTypes
+    ) {
   override val resource: Instrument      = Instrument.GmosN
   override val dhsInstrumentName: String = "GMOS-N"
 

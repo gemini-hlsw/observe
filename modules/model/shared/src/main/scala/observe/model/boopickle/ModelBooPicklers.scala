@@ -39,6 +39,8 @@ import shapeless.tag.@@
 import squants.time.Time
 import squants.time.TimeConversions._
 
+import java.util.UUID
+
 /**
  * Contains boopickle implicit picklers of model objects Boopickle can auto derive encoders but it
  * is preferred to make them explicitly
@@ -61,7 +63,7 @@ trait ModelBooPicklers extends BooPicklerSyntax {
     )(_.value)
 
   implicit val stepIdPickler: Pickler[StepId] =
-    transformPickler[StepId, PosLong](lucuma.core.model.Step.Id.apply)(_.value)
+    transformPickler[StepId, UUID](lucuma.core.model.sequence.Step.Id.apply)(_.toUuid)
 
   def valuesMap[F[_]: Traverse, A, B](c: F[A], f: A => B): Map[B, A] =
     c.fproduct(f).map(_.swap).toList.toMap

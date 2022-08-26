@@ -4,7 +4,7 @@
 package observe.model.config
 
 import cats.Eq
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 
 /**
  * Top configuration of the observe

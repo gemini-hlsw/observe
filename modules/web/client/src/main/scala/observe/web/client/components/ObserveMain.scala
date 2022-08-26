@@ -10,7 +10,7 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import react.common._
 import react.common.implicits._
 import react.semanticui.elements.divider.Divider

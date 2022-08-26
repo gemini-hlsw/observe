@@ -13,6 +13,7 @@ import observe.engine.TestUtil.TestState
 import observe.model.ObserveModelArbitraries._
 import observe.model.SequenceState
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 
 final class EngineSpec extends munit.DisciplineSuite {
 

@@ -5,10 +5,9 @@ package observe.web.client
 
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
-
 import cats.effect.Sync
 import cats.effect._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import org.scalajs.dom.document
 import org.scalajs.dom.Element
 import observe.web.client.actions.Initialize

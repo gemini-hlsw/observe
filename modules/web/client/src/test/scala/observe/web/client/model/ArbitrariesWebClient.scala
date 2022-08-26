@@ -8,10 +8,11 @@ import cats.implicits._
 import diode.data._
 import lucuma.core.util.arb.ArbEnumerated._
 import observe.model.Observation
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import lucuma.core.data.Zipper
 import lucuma.core.data.arb.ArbZipper._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import scala.collection.immutable.SortedMap
 import observe.model.enum.Instrument
 import observe.model.enum.Resource

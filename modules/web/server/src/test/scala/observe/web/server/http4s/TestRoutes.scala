@@ -8,7 +8,7 @@ import cats.tests.CatsSuite
 import cats.effect.std.Queue
 import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.http4s._
 import org.http4s.implicits._
@@ -21,6 +21,7 @@ import observe.web.server.security.AuthenticationService
 import observe.model.UserLoginRequest
 import scala.concurrent.duration._
 import cats.effect.Ref
+import org.http4s.server.websocket.WebSocketBuilder2
 
 trait TestRoutes extends ClientBooEncoders with CatsSuite {
   private implicit def logger = NoOpLogger.impl[IO]
@@ -35,7 +36,7 @@ trait TestRoutes extends ClientBooEncoders with CatsSuite {
       q <- Queue.bounded[IO, executeEngine.EventType](10)
     } yield new ObserveCommandRoutes[IO](authService, q, engine).service
 
-  val uiRoutes =
+  def uiRoutes(wsb: WebSocketBuilder2[IO]) =
     for {
       o  <- Topic[IO, ObserveEvent]
       cs <- Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
@@ -45,12 +46,13 @@ trait TestRoutes extends ClientBooEncoders with CatsSuite {
                                    GuideConfigDb.constant[IO],
                                    statusDb,
                                    cs,
-                                   o
+                                   o,
+                                   wsb
     ).service
 
-  def newLoginToken: IO[String] =
+  def newLoginToken(wsb: WebSocketBuilder2[IO]): IO[String] =
     for {
-      s <- uiRoutes
+      s <- uiRoutes(wsb)
       r <- s
              .apply(
                Request(method = Method.POST, uri = uri"/observe/login")

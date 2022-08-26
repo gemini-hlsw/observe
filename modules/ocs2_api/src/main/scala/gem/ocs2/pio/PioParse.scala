@@ -23,7 +23,7 @@ object PioParse {
         PioParse(pa.run.andThen(_.map(f)))
     }
 
-  def `enum`[A](dictionary: (String, A)*): PioParse[A] =
+  def enumerated[A](dictionary: (String, A)*): PioParse[A] =
     PioParse(dictionary.toMap.lift)
 
   /**
@@ -31,7 +31,7 @@ object PioParse {
    * lookup keys. In other words, this is an option for enumerations whose OCS2 export happen to
    * match the new model enum tags.
    */
-  def enumFromTag[A](as: List[A])(implicit ev: Enumerated[A]): PioParse[A] =
+  def enumeratedFromTag[A](as: List[A])(implicit ev: Enumerated[A]): PioParse[A] =
     PioParse(as.map(a => ev.tag(a) -> a).toMap.lift)
 
   // ********  Primitives

@@ -11,9 +11,9 @@ import org.scalacheck._
 import org.scalacheck.Gen._
 import org.scalacheck.Arbitrary._
 import lucuma.core.model.Semester
-import lucuma.core.enum.ProgramType
+import lucuma.core.enums.ProgramType
 import lucuma.core.math.Index
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import observe.model.enum.DailyProgramType
 import observe.model.ProgramId
 

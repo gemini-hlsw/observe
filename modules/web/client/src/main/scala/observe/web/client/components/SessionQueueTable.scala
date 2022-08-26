@@ -45,6 +45,7 @@ import observe.web.client.model.Pages._
 import observe.web.client.model.SessionQueueFilter
 import observe.web.client.reusability._
 import web.client.table._
+import web.client.JsNumberOps._
 
 trait Columns {
   import SessionQueueTable._

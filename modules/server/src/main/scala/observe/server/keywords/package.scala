@@ -6,7 +6,7 @@ package observe.server
 import cats._
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.KeywordName
+import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 

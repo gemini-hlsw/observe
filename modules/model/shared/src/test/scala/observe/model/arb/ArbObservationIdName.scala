@@ -7,6 +7,7 @@ import observe.model.Observation
 import org.scalacheck.{Arbitrary, Cogen}
 import org.scalacheck.Arbitrary._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 
 trait ArbObservationIdName {
   implicit val arbObservationIdName: Arbitrary[Observation.IdName] = Arbitrary[Observation.IdName] {

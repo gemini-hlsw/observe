@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats._
 import cats.syntax.all._
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import observe.server.tcs.TcsController._
 
 sealed trait ScienceFold extends Product with Serializable

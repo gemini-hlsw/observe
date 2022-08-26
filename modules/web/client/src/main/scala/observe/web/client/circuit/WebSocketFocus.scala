@@ -7,7 +7,7 @@ import scala.collection.immutable.SortedMap
 
 import cats._
 import cats.Order._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import monocle.Lens
 import monocle.macros.Lenses
 import observe.model.Observation

@@ -7,7 +7,7 @@ import scala.collection.immutable.SortedMap
 import scala.scalajs.js.timers._
 import cats._
 import cats.syntax.all._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import monocle.Getter
 import monocle.Lens
 import monocle.Traversal

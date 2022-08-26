@@ -19,20 +19,20 @@ import edu.gemini.spModel.gemini.gmos.GmosSouthType.{
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon._
 import edu.gemini.spModel.gemini.gmos.GmosCommonType._
 import edu.gemini.spModel.seqcomp.SeqConfigNames.{INSTRUMENT_KEY, OBSERVE_KEY}
-import lucuma.core.`enum`.{
+import lucuma.core.enums.{
   GmosAmpCount,
   GmosAmpGain,
   GmosAmpReadMode,
-  GmosDisperserOrder,
   GmosDtax,
-  GmosNorthDisperser,
+  GmosGratingOrder,
   GmosNorthFilter,
   GmosNorthFpu,
+  GmosNorthGrating,
   GmosNorthStageMode,
   GmosRoi,
-  GmosSouthDisperser,
   GmosSouthFilter,
   GmosSouthFpu,
+  GmosSouthGrating,
   GmosSouthStageMode,
   GmosXBinning,
   GmosYBinning
@@ -55,7 +55,7 @@ object GmosTranslator {
   trait GmosSiteConversions[S <: GmosSite] {
     def convertFilter(v: Option[S#Filter]): List[(ItemKey, AnyRef)]
 
-    def convertDisperser(v: Option[GmosGrating[S]]): List[(ItemKey, AnyRef)]
+    def convertGrating(v: Option[GmosGrating[S]]): List[(ItemKey, AnyRef)]
 
     def convertStageMode(v: S#StageMode): List[(ItemKey, AnyRef)]
 
@@ -66,7 +66,7 @@ object GmosTranslator {
 
   private trait TypeTranslations[S <: GmosSite, T <: SiteDependentTypes] {
     def translateFilter(v:     Option[S#Filter]): T#Filter
-    def translateDisperser(v:  Option[S#Disperser]): T#Disperser
+    def translateGrating(v:    Option[S#Grating]): T#Disperser
     def translateStageMode(v:  S#StageMode): T#GmosStageMode
     def translateBuiltInFpu(v: S#BuiltInFpu): T#FPU
     val customMaskName: T#FPU
@@ -107,15 +107,15 @@ object GmosTranslator {
       }
       .getOrElse(FilterSouth.NONE)
 
-    override def translateDisperser(v: Option[GmosSouthDisperser]): DisperserSouth = v
+    override def translateGrating(v: Option[GmosSouthGrating]): DisperserSouth = v
       .map {
-        case GmosSouthDisperser.B1200_G5321 => DisperserSouth.B1200_G5321
-        case GmosSouthDisperser.R831_G5322  => DisperserSouth.R831_G5322
-        case GmosSouthDisperser.B600_G5323  => DisperserSouth.B600_G5323
-        case GmosSouthDisperser.R600_G5324  => DisperserSouth.R600_G5324
-        case GmosSouthDisperser.B480_G5327  => DisperserSouth.B480_G5327
-        case GmosSouthDisperser.R400_G5325  => DisperserSouth.R400_G5325
-        case GmosSouthDisperser.R150_G5326  => DisperserSouth.R150_G5326
+        case GmosSouthGrating.B1200_G5321 => DisperserSouth.B1200_G5321
+        case GmosSouthGrating.R831_G5322  => DisperserSouth.R831_G5322
+        case GmosSouthGrating.B600_G5323  => DisperserSouth.B600_G5323
+        case GmosSouthGrating.R600_G5324  => DisperserSouth.R600_G5324
+        case GmosSouthGrating.B480_G5327  => DisperserSouth.B480_G5327
+        case GmosSouthGrating.R400_G5325  => DisperserSouth.R400_G5325
+        case GmosSouthGrating.R150_G5326  => DisperserSouth.R150_G5326
       }
       .getOrElse(DisperserSouth.MIRROR)
 
@@ -185,17 +185,17 @@ object GmosTranslator {
       }
       .getOrElse(FilterNorth.NONE)
 
-    override def translateDisperser(v: Option[GmosNorthDisperser]): DisperserNorth = v
+    override def translateGrating(v: Option[GmosNorthGrating]): DisperserNorth = v
       .map {
-        case GmosNorthDisperser.B1200_G5301 => DisperserNorth.B1200_G5301
-        case GmosNorthDisperser.R831_G5302  => DisperserNorth.R831_G5302
-        case GmosNorthDisperser.B600_G5303  => DisperserNorth.B600_G5303
-        case GmosNorthDisperser.B600_G5307  => DisperserNorth.B600_G5307
-        case GmosNorthDisperser.R600_G5304  => DisperserNorth.R600_G5304
-        case GmosNorthDisperser.B480_G5309  => DisperserNorth.B480_G5309
-        case GmosNorthDisperser.R400_G5305  => DisperserNorth.R400_G5305
-        case GmosNorthDisperser.R150_G5306  => DisperserNorth.R150_G5306
-        case GmosNorthDisperser.R150_G5308  => DisperserNorth.R150_G5308
+        case GmosNorthGrating.B1200_G5301 => DisperserNorth.B1200_G5301
+        case GmosNorthGrating.R831_G5302  => DisperserNorth.R831_G5302
+        case GmosNorthGrating.B600_G5303  => DisperserNorth.B600_G5303
+        case GmosNorthGrating.B600_G5307  => DisperserNorth.B600_G5307
+        case GmosNorthGrating.R600_G5304  => DisperserNorth.R600_G5304
+        case GmosNorthGrating.B480_G5309  => DisperserNorth.B480_G5309
+        case GmosNorthGrating.R400_G5305  => DisperserNorth.R400_G5305
+        case GmosNorthGrating.R150_G5306  => DisperserNorth.R150_G5306
+        case GmosNorthGrating.R150_G5308  => DisperserNorth.R150_G5308
       }
       .getOrElse(DisperserNorth.MIRROR)
 
@@ -238,16 +238,16 @@ object GmosTranslator {
         (INSTRUMENT_KEY / FILTER_PROP_NAME: ItemKey, t.translateFilter(v).asInstanceOf[AnyRef])
       )
 
-      override def convertDisperser(v: Option[GmosGrating[S]]): List[(ItemKey, AnyRef)] = List(
+      override def convertGrating(v: Option[GmosGrating[S]]): List[(ItemKey, AnyRef)] = List(
         (INSTRUMENT_KEY / DISPERSER_PROP_NAME,
-         t.translateDisperser(v.map(_.disperser)).asInstanceOf[AnyRef]
+         t.translateGrating(v.map(_.grating)).asInstanceOf[AnyRef]
         ).some,
         v.map(x =>
           (INSTRUMENT_KEY / DISPERSER_ORDER_PROP,
            x.order match {
-             case GmosDisperserOrder.Zero => Order.ZERO
-             case GmosDisperserOrder.One  => Order.ONE
-             case GmosDisperserOrder.Two  => Order.TWO
+             case GmosGratingOrder.Zero => Order.ZERO
+             case GmosGratingOrder.One  => Order.ONE
+             case GmosGratingOrder.Two  => Order.TWO
            }
           )
         ),
@@ -264,18 +264,16 @@ object GmosTranslator {
 
       override def convertFpu(v: Option[GmosFpu[S]]): List[(ItemKey, AnyRef)] =
         v.map {
-          case fpu: GmosFpu.GmosBuiltinFpu[S]        =>
+          case GmosFpu(_, Some(b))    =>
             List(
-              (INSTRUMENT_KEY / FPU_PROP_NAME,
-               t.translateBuiltInFpu(fpu.builtin).asInstanceOf[AnyRef]
-              )
+              (INSTRUMENT_KEY / FPU_PROP_NAME, t.translateBuiltInFpu(b).asInstanceOf[AnyRef])
             )
-          case customMask: GmosFpu.GmosCustomMask[S] =>
+          case GmosFpu(Some(c), None) =>
             List(
               (INSTRUMENT_KEY / FPU_PROP_NAME, t.customMaskName.asInstanceOf[AnyRef]),
-              (INSTRUMENT_KEY / FPU_MASK_PROP, customMask.filename: AnyRef)
+              (INSTRUMENT_KEY / FPU_MASK_PROP, c.filename: AnyRef)
             )
-          case _                                     => List.empty
+          case _                      => List.empty
         }.orEmpty
 
       override val instrumentName: String = t.name
@@ -377,7 +375,7 @@ object GmosTranslator {
 
     val ccParams =
       conversions.convertFilter(instConfig.filter) ++ conversions.convertFpu(instConfig.fpu) ++
-        conversions.convertDisperser(instConfig.grating) ++ conversions.convertStageMode(
+        conversions.convertGrating(instConfig.gratingConfig) ++ conversions.convertStageMode(
           staticConfig.stageMode
         ) ++
         List(

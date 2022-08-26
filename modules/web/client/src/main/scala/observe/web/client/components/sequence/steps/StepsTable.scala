@@ -55,6 +55,7 @@ import observe.web.client.model.TabOperations
 import observe.web.client.model.lenses._
 import observe.web.client.reusability._
 import web.client.table._
+import web.client.JsNumberOps._
 
 trait Columns {
   val ControlWidth: Double          = 40

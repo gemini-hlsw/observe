@@ -3,7 +3,7 @@
 
 package observe.server
 
-import lucuma.core.enum.LightSinkName
+import lucuma.core.enums.LightSinkName
 import squants.Length
 
 trait InstrumentSpecifics extends InstrumentGuide {

@@ -6,9 +6,9 @@ package observe.web.client.model
 import cats.Eq
 import cats.Monoid
 import cats.syntax.all._
-import lucuma.core.enum.GpiDisperser
-import lucuma.core.enum.GpiFilter
-import lucuma.core.enum.GpiObservingMode
+import lucuma.core.enums.GpiDisperser
+import lucuma.core.enums.GpiFilter
+import lucuma.core.enums.GpiObservingMode
 import lucuma.core.math.Offset
 import observe.model.NodAndShuffleStatus
 import observe.model.NodAndShuffleStep

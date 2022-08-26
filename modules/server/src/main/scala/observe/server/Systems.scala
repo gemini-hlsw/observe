@@ -10,9 +10,10 @@ import edu.gemini.epics.acm.CaService
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
 import org.typelevel.log4cats.Logger
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import mouse.boolean._
 import org.http4s.client.Client
+import org.http4s.jdkhttpclient.JdkWSClient
 import observe.model.config._
 import observe.server.altair._
 import observe.server.flamingos2._
@@ -358,7 +359,8 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        webSocketBackend                           <- clue.http4sjdk.Http4sJDKWSBackend[IO]
+        clt                                        <- JdkWSClient.simple[IO]
+        webSocketBackend                            = clue.http4s.Http4sWSBackend[IO](clt)
         odbProxy                                   <-
           Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
         dhsClient                                  <- Resource.eval(dhs[IO](httpClient))

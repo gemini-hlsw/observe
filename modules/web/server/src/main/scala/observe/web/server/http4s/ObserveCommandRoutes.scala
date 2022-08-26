@@ -19,7 +19,7 @@ import observe.web.server.security.AuthenticationService
 import observe.web.server.security.Http4sAuthentication
 import observe.web.server.security.TokenRefresher
 import lucuma.core.model.Observation.{Id => ObsId}
-import lucuma.core.model.Step.{Id => StepId}
+import lucuma.core.model.sequence.Step.{Id => StepId}
 
 /**
  * Rest Endpoints under the /api route

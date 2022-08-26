@@ -8,7 +8,7 @@ import cats.syntax.all._
 import cats.effect.unsafe.implicits.global
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import edu.gemini.spModel.core.Wavelength
-import lucuma.core.enum.LightSinkName.Gmos
+import lucuma.core.enums.LightSinkName.Gmos
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.scalatest.PrivateMethodTester

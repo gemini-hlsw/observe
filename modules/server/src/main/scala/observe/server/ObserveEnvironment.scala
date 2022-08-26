@@ -3,8 +3,10 @@
 
 package observe.server
 
+import eu.timepit.refined.types.numeric.PosInt
 import lucuma.schemas.ObservationDB.Enums.SequenceType
-import observe.model.{Observation, StepId}
+import lucuma.schemas.ObservationDB.Scalars.StepId
+import observe.model.Observation
 import observe.server.keywords._
 import observe.server.tcs.Tcs
 
@@ -18,7 +20,7 @@ final case class ObserveEnvironment[F[_]](
   stepType:     StepType,
   obsIdName:    Observation.IdName,
   stepId:       StepId,
-  datasetIndex: Int,
+  datasetIndex: PosInt,
   sequenceType: SequenceType,
   inst:         InstrumentSystem[F],
   insSpecs:     InstrumentSpecifics,

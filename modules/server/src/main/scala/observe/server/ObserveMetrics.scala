@@ -6,7 +6,7 @@ package observe.server
 import cats.effect.Sync
 import cats.syntax.all._
 import io.prometheus.client._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import observe.model.enum.Instrument
 
 final case class ObserveMetrics private (

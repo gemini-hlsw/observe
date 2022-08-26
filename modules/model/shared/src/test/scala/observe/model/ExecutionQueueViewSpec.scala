@@ -5,6 +5,7 @@ package observe.model
 
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
+import lucuma.core.util.arb.ArbUid._
 import monocle.law.discipline.LensTests
 import observe.model.ObserveModelArbitraries._
 

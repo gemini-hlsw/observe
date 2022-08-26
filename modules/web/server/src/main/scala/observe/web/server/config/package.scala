@@ -5,7 +5,7 @@ package observe.web.server
 
 import cats.effect.Sync
 import cats.syntax.all._
-import lucuma.core.enum.Site
+import lucuma.core.enums.Site
 import org.http4s.Uri
 import pureconfig._
 import pureconfig.error._
