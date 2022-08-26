@@ -1,4 +1,4 @@
-val sbtLucumaVersion = "0.9.2"
+val sbtLucumaVersion = "0.9.4"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app"         % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-sjs-bundler" % sbtLucumaVersion)
 
@@ -16,6 +16,13 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9")
 // Check the style with scalastyle
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
 
+<<<<<<< HEAD
+=======
+// Built the version out of git
+//addSbtPlugin("com.github.sbt" % "sbt-git"    % "2.0.0")
+addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.1.1")
+
+>>>>>>> upstream/update/sbt-lucuma-app-0.9.4
 // Use NPM modules rather than webjars
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
 
