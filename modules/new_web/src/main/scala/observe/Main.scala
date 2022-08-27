@@ -10,6 +10,7 @@ import cats.effect.unsafe.implicits._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import log4cats.loglevel.LogLevelLogger
+import lucuma.ui.enums.Theme
 import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
@@ -50,7 +51,7 @@ object Main {
   def run: IO[Unit] =
     for {
       logger <- setupLogger[IO](LogLevelDesc.DEBUG)
-      _      <- Theme.Light.setup[IO]
+      _      <- Theme.init[IO]
       _      <- buildPage(logger)
     } yield ()
 }

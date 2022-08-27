@@ -8,18 +8,17 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import reactST.primereact.components.*
 import crystal.react.hooks.*
-import observe.Theme
+import lucuma.ui.enums.Theme
 import crystal.Pot
 import reactST.primereact.messageMod.MessageSeverityType
 import cats.syntax.all.given
 import japgolly.scalajs.react.callback.CallbackCatsEffect.given
 
-// TODO All the "potRender" methods should go in lucuma-ui
+// TODO All the "potRender" methods should go in lucuma-ui, but let's unify once we settle on a component library everywhere
 val DefaultPendingRender: VdomNode = ProgressSpinner()
 
 val DefaultErrorRender: Throwable => VdomNode =
   t => Message().text(t.getMessage).severity(MessageSeverityType.error)
-
 
 def potRender[A](
   valueRender:   A => VdomNode,

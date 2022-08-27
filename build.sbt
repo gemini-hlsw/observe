@@ -278,7 +278,8 @@ lazy val new_web = project
       Cats.value,
       CatsEffect.value,
       Crystal.value,
-      Fs2
+      Fs2,
+      LucumaUI.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore3.value ++ Log4CatsLogLevel.value,
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
