@@ -1,4 +1,4 @@
-addSbtPlugin("edu.gemini"   % "sbt-lucuma-app" % "0.9.2")
+addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % "0.9.2")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.7.1")
 
@@ -18,10 +18,10 @@ addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "1.0.0")
 
 // Built the version out of git
 //addSbtPlugin("com.github.sbt" % "sbt-git"    % "2.0.0")
-addSbtPlugin("com.dwijnand"   % "sbt-dynver" % "4.1.1")
+addSbtPlugin("com.dwijnand" % "sbt-dynver" % "4.1.1")
 
 // Use NPM modules rather than webjars
-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.0")
 
 // Used to find dependencies
 addDependencyTreePlugin
