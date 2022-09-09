@@ -271,7 +271,7 @@ lazy val new_web = project
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin)
   .settings(
-    scalaVersion    := "3.1.3",
+    scalaVersion    := "3.2.1-RC1",
     Test / test     := {},
     coverageEnabled := false,
     libraryDependencies ++= Seq(
@@ -279,7 +279,7 @@ lazy val new_web = project
       CatsEffect.value,
       Crystal.value,
       Fs2,
-      LucumaUI.value
+      LucumaUI3.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore3.value ++ Log4CatsLogLevel.value,
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )

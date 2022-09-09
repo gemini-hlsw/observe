@@ -6,7 +6,7 @@ const mkcert = require('vite-plugin-mkcert');
 
 // https://vitejs.dev/config/
 module.exports = ({ command, mode }) => {
-  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.1.3');
+  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.2.1-RC1');
   const isProduction = mode == 'production';
   const sjs = isProduction
     ? path.resolve(scalaClassesDir, 'new_web-opt')

@@ -17,7 +17,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.2.0-3-fcebfd3-SNAPSHOT"
+    val lucumaReact             = "0.4-249bdd6-SNAPSHOT"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -93,7 +93,8 @@ object Settings {
     // Gemini Libraries
     val lucumaCore    = "0.45.0"
     val lucumaCore3   = "0.53.0"
-    val lucumaUI      = "0.42.0"
+    val lucumaUI      = "0.39.0"
+    val lucumaUI3     = "0.44.0"
     val lucumaSchemas = "0.33.0"
 
     // Clue
@@ -319,6 +320,7 @@ object Settings {
       )
     )
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
+    val LucumaUI3     = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI3)
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
     val Clue          = "edu.gemini" %% "clue-core"      % LibraryVersions.clue
