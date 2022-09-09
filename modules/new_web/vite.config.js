@@ -2,7 +2,19 @@ const { defineConfig } = require('vite');
 const react = require('@vitejs/plugin-react');
 const path = require('path');
 const fs = require('fs');
+const ViteFonts = require('vite-plugin-fonts');
 const mkcert = require('vite-plugin-mkcert');
+
+const fontImport = ViteFonts.Plugin({
+  google: {
+    families: [
+      {
+        name: 'Lato',
+        styles: 'ital,wght@0,400;0,700;1,400;1,700',
+      },
+    ],
+  },
+});
 
 // https://vitejs.dev/config/
 module.exports = ({ command, mode }) => {
@@ -16,6 +28,7 @@ module.exports = ({ command, mode }) => {
   const imagesCommon = path.resolve(webappCommon, 'images');
   const publicDirProd = path.resolve(common, 'src/main/public');
   const publicDirDev = path.resolve(common, 'src/main/publicdev');
+  const resourceDir = path.resolve(scalaClassesDir, 'classes');
 
   const publicDir = mode == 'production' ? publicDirProd : publicDirDev;
   return {
@@ -41,6 +54,10 @@ module.exports = ({ command, mode }) => {
         {
           find: '/images',
           replacement: imagesCommon,
+        },
+        {
+          find: '@resources',
+          replacement: resourceDir
         }
       ],
     },
@@ -82,6 +99,7 @@ module.exports = ({ command, mode }) => {
         ? null
         : mkcert.default({ hosts: ['localhost', 'local.lucuma.xyz'] }),
       react(),
+      fontImport
     ],
   };
 };

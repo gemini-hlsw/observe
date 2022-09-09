@@ -75,7 +75,11 @@ object Home {
                 )
               )
             ),
-          Accordion(AccordionTab().header("Show Log")(<.div(^.height := "200px"))),
+          Accordion(
+            AccordionTab()
+              .header("Show Log")
+              .className(ObserveStyles.LogArea.htmlClass)(<.div(^.height := "200px"))
+          ),
           Toolbar()
             .className(ObserveStyles.Footer.htmlClass)
             .left("Observe - GS")

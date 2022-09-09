@@ -15,5 +15,6 @@ object ObserveStyles {
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
 
-  val Footer: Css = Css("ObserveStyles-footer")
+  val LogArea: Css = Css("ObserveStyles-logArea")
+  val Footer: Css  = Css("ObserveStyles-footer")
 }

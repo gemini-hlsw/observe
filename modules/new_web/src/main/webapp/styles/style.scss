@@ -6,8 +6,10 @@
   @import "primereact/resources/themes/luna-blue/theme";
 }
 
-body {
+body,
+body .p-component {
   margin: 0;
+  font-family: 'Lato' !important;
 }
 
 .ObserveStyles-mainUI {
@@ -44,6 +46,13 @@ body {
 
 .ObserveStyles-labelPointer {
   margin-top: .2em;
+}
+
+.ObserveStyles-logArea {
+  .p-accordion-header-link {
+    padding: 0.6em 0.8em !important;
+    font-size: small;
+  }
 }
 
 .ObserveStyles-footer {
