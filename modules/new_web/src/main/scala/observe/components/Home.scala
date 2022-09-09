@@ -58,12 +58,14 @@ object Home {
                 TabView()(
                   TabPanel()
                     .className(ObserveStyles.TabPanel.htmlClass)
+                    // ObserveStyles-tab ObserveStyles-activeTabContent
                     .header(
                       React.Fragment(
-                        "Daytime Queue",
+                        <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
                         Tag(Icons.CircleDot, "Idle")
                           // .icon("fa-regular fa-circle-dot")
                           .severity(TagSeverityType.warning)
+                          .className(ObserveStyles.LabelPointer.htmlClass)
                       )
                     )(
                       s"You clicked ${clicks.value} time(s).",
@@ -74,7 +76,10 @@ object Home {
               )
             ),
           Accordion(AccordionTab().header("Show Log")(<.div(^.height := "200px"))),
-          Toolbar().left("Observe - GS").right(React.Fragment(ThemeSelector()).rawElement)
+          Toolbar()
+            .className(ObserveStyles.Footer.htmlClass)
+            .left("Observe - GS")
+            .right(React.Fragment(ThemeSelector()).rawElement)
         )
       }
 }

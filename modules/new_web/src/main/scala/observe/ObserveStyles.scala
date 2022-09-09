@@ -11,4 +11,9 @@ object ObserveStyles {
   // Prime components restyling
   val Divider: Css  = Css("ObserveStyles-divider")
   val TabPanel: Css = Css("ObserveStyles-tab-panel")
+
+  val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
+  val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
+
+  val Footer: Css = Css("ObserveStyles-footer")
 }

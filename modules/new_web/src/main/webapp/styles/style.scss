@@ -25,9 +25,30 @@ body {
 }
 
 .ObserveStyles-tab-panel {
+  min-width: 20%;
+
+  & .p-tabview-nav-link {
+    justify-content: center;
+  }
+
   & .p-tabview-title {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
+}
+
+.ObserveStyles-activeInstrumentLabel {
+  padding-bottom: 0.2em;
+}
+
+.ObserveStyles-labelPointer {
+  margin-top: .2em;
+}
+
+.ObserveStyles-footer {
+  border-radius: unset !important;
+  height: 46px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
