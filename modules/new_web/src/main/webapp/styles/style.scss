@@ -6,10 +6,18 @@
   @import "primereact/resources/themes/luna-blue/theme";
 }
 
+html {
+  font-size: 14px !important;
+}
+
 body,
 body .p-component {
   margin: 0;
   font-family: 'Lato' !important;
+}
+
+.p-tag {
+  font-size: 0.85rem !important;
 }
 
 .ObserveStyles-mainUI {
@@ -24,6 +32,7 @@ body .p-component {
 .p-divider.ObserveStyles-divider {
   margin: 0 !important;
   font-weight: bold;
+  font-size: 1.1rem !important;
 }
 
 .ObserveStyles-tab-panel {
@@ -41,11 +50,15 @@ body .p-component {
 }
 
 .ObserveStyles-activeInstrumentLabel {
-  padding-bottom: 0.2em;
+  padding-bottom: 0.5em;
 }
 
 .ObserveStyles-labelPointer {
-  margin-top: .2em;
+  margin-top: 0.2em;
+
+  .p-tag-icon {
+    margin-right: 0.75em !important;
+  }
 }
 
 .ObserveStyles-logArea {

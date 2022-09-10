@@ -8,7 +8,7 @@ import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common.ReactFnProps
 
-final case class Layout(c: RouterCtl[Page], r: Resolution[Page])
+case class Layout(c: RouterCtl[Page], r: Resolution[Page])
     extends ReactFnProps[Layout](Layout.component)
 
 object Layout {

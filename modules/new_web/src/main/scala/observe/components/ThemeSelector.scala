@@ -27,22 +27,19 @@ def potRender[A](
 ): Pot[A] => VdomNode =
   _.fold(pendingRender, errorRender, valueRender)
 
-
-
-final implicit class PotRenderOps[A](val pot: Pot[A]) extends AnyVal {
+extension [A](pot: Pot[A])
   inline def render(
     valueRender:   A => VdomNode,
     pendingRender: => VdomNode = DefaultPendingRender,
     errorRender:   Throwable => VdomNode = DefaultErrorRender
   ): VdomNode = potRender(valueRender, pendingRender, errorRender)(pot)
-}
 
-final case class ThemeSelector() extends ReactFnProps(ThemeSelector.component)
+case class ThemeSelector() extends ReactFnProps(ThemeSelector.component)
 
 object ThemeSelector:
-  type Props = ThemeSelector
+  private type Props = ThemeSelector
 
-  val component = ScalaFnComponent
+  private val component = ScalaFnComponent
     .withHooks[Props]
     .useState(false) // just to force rerenders
     .useEffectResultWithDepsBy( (_, toggle) => toggle.value)( (_, _) => _ => Theme.current)

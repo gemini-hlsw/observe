@@ -17,21 +17,28 @@ import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
 import observe.Icons
+import observe.PrimeStyles
 
-final case class Home() extends ReactFnProps(Home.component)
+case class Home() extends ReactFnProps(Home.component)
 
 object Home {
-  protected type Props = Home
+  private type Props = Home
 
-  protected val component =
+  def usingContext[P, T](fn: Logger[IO] ?=> P => T): (P, AppContext[IO]) => T = 
+    (props, ctx) => 
+      import ctx.given
+      fn(props)
+
+  // def usingContext[P, H1, T](fn: Logger[IO] ?=> (P, H1) => T): (P, AppContext[IO], H1) => T = 
+  //   (props, ctx, h1) => 
+  //     import ctx.given
+  //     fn(props, h1)      
+
+  private val component =
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useEffectBy { (_, ctx) =>
-        import ctx.given
-
-        Logger[IO].debug("Rendering Home component") // Running an IO in useEffect
-      }
+      .useEffectBy(usingContext(_ => Logger[IO].debug("Rendering Home component")))
       .useState(0)
       .render { (_, _, clicks) =>
         <.div(ObserveStyles.MainUI)(
@@ -62,8 +69,9 @@ object Home {
                     .header(
                       React.Fragment(
                         <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                        Tag(Icons.CircleDot, "Idle")
-                          // .icon("fa-regular fa-circle-dot")
+                        Tag()
+                          .icon(Icons.CircleDot.clazz(PrimeStyles.Tag.Icon).raw)
+                          .value("Idle")
                           .severity(TagSeverityType.warning)
                           .className(ObserveStyles.LabelPointer.htmlClass)
                       )
