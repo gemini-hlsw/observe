@@ -17,7 +17,6 @@ import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
 import observe.Icons
-import observe.PrimeStyles
 
 case class Home() extends ReactFnProps(Home.component)
 
@@ -43,7 +42,7 @@ object Home {
       .render { (_, _, clicks) =>
         <.div(ObserveStyles.MainUI)(
           Divider("Observe GS")
-            .className(ObserveStyles.Divider.htmlClass)
+            .clazz(ObserveStyles.Divider)
             .align(DividerAlignType.center),
           Splitter(^.height := "100%")
             .layout(SplitterLayoutType.vertical)
@@ -64,16 +63,15 @@ object Home {
               SplitterPanel(
                 TabView()(
                   TabPanel()
-                    .className(ObserveStyles.TabPanel.htmlClass)
-                    // ObserveStyles-tab ObserveStyles-activeTabContent
+                    .clazz(ObserveStyles.TabPanel)
                     .header(
                       React.Fragment(
                         <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
                         Tag()
-                          .icon(Icons.CircleDot.clazz(PrimeStyles.Tag.Icon).raw)
+                          .iconFA(Icons.CircleDot)
                           .value("Idle")
                           .severity(TagSeverityType.warning)
-                          .className(ObserveStyles.LabelPointer.htmlClass)
+                          .clazz(ObserveStyles.LabelPointer)
                       )
                     )(
                       s"You clicked ${clicks.value} time(s).",
@@ -86,10 +84,10 @@ object Home {
           Accordion(
             AccordionTab()
               .header("Show Log")
-              .className(ObserveStyles.LogArea.htmlClass)(<.div(^.height := "200px"))
+              .clazz(ObserveStyles.LogArea)(<.div(^.height := "200px"))
           ),
           Toolbar()
-            .className(ObserveStyles.Footer.htmlClass)
+            .clazz(ObserveStyles.Footer)
             .left("Observe - GS")
             .right(React.Fragment(ThemeSelector()).rawElement)
         )
