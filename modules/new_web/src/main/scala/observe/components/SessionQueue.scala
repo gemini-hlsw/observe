@@ -8,13 +8,15 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.table.*
 import observe.model.*
+import reactST.{tanstackTableCore => raw}
+import lucuma.core.syntax.display.*
 
 case class SessionQueue() extends ReactFnProps(SessionQueue.component)
 
 object SessionQueue:
   private type Props = SessionQueue
 
-  private val ColDef = ColumnDefiner[SessionQueueRow]()
+  private val ColDef = ColumnDef[SessionQueueRow]
 
   private def statusIconRenderer(row: SessionQueueRow): VdomNode =
     <.div
@@ -92,16 +94,28 @@ object SessionQueue:
     //   icon
     // )
 
+  private def linked[T, A](f: raw.mod.CellContext[T, A] => VdomNode): raw.mod.CellContext[T, A] => VdomNode =
+    f
+    //  (_, _, _, row: SessionQueueRow, _) =>
+    //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
+
   private val columns = List(
-    ColDef("icon", cell = cell => <.div), //statusIconRenderer(cell.row.original)) // Compiler bug
-    ColDef("addQueue", cell = cell => <.div), //addToQueueRenderer(cell.row.original)) // Compiler bug
-    ColDef("class", cell = cell => <.div), //classIconRenderer(cell.row.original)) // Compiler bug
-    ColDef("obsId", _.obsId, cell = _.value.toString)
-    // case object StateColumn      extends TableColumn
-    // case object InstrumentColumn extends TableColumn
-    // case object ObsNameColumn    extends TableColumn
-    // case object TargetNameColumn extends TableColumn
-    // case object ObserverColumn   extends TableColumn
+    ColDef("icon", cell = cell => statusIconRenderer(cell.row.original)),
+    ColDef("addQueue", cell = cell => addToQueueRenderer(cell.row.original)),
+    ColDef("class", cell = cell => classIconRenderer(cell.row.original)),
+    ColDef("obsId", _.obsId, cell = linked(_.value.shortName)),
+    // ColDef("state", _.obsId, cell = ???)
+    ColDef("instrument", _.instrument, cell = linked(_.value.shortName)),
+    ColDef("targetName", _.targetName, cell = linked(_.value.getOrElse(UnknownTargetName))),
+    ColDef("obsName", _.name, cell = linked(_.value.toString)),
+    // ColDef("observer", _.observer.foldMap(_.value), cell = ???),
   )
 
-  private val component = ScalaFnComponent.withHooks[Props].render( props => <.div)
+  private val component = 
+    ScalaFnComponent.withHooks[Props]
+    .useMemo(())(_ => columns)
+    .useMemo(())(_ => List.empty[SessionQueueRow])
+    .useReactTableBy( (_, cols, rows) => TableOptions(cols, rows, enableColumnResizing = true)) 
+    .render( (props, _, _, table) => 
+      HTMLTable(table)
+    )

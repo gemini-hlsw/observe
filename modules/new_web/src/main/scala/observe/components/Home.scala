@@ -23,16 +23,6 @@ case class Home() extends ReactFnProps(Home.component)
 object Home {
   private type Props = Home
 
-  def usingContext[P, T](fn: Logger[IO] ?=> P => T): (P, AppContext[IO]) => T = 
-    (props, ctx) => 
-      import ctx.given
-      fn(props)
-
-  // def usingContext[P, H1, T](fn: Logger[IO] ?=> (P, H1) => T): (P, AppContext[IO], H1) => T = 
-  //   (props, ctx, h1) => 
-  //     import ctx.given
-  //     fn(props, h1)      
-
   private val component =
     ScalaFnComponent
       .withHooks[Props]
@@ -53,7 +43,7 @@ object Home {
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
-                      "OBSERVATIONS"
+                      SessionQueue()
                     ),
                     SplitterPanel(
                       "CONDITIONS"

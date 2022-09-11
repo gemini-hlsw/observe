@@ -17,7 +17,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.4-f862686-20220910T164204Z-SNAPSHOT"
+    val lucumaReact             = "0.4-e2558ea-20220911T233004Z-SNAPSHOT"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -92,7 +92,7 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.45.0"
-    val lucumaCore3   = "0.53.0"
+    val lucumaCore3   = "0.55.1"
     val lucumaUI      = "0.39.0"
     val lucumaUI3     = "0.44.0"
     val lucumaSchemas = "0.33.0"
@@ -206,9 +206,9 @@ object Settings {
     val LucumaReact             = Def.setting(
       Seq(
         "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
-        "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-font-awesome"   % LibraryVersions.lucumaReact,
-        "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact
+        "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact // Must be last, lest we hit a compiler snag
       )
     )
     val ScalaJSReactIO          = Def.setting(

@@ -3,38 +3,19 @@
 
 package observe.components
 
-import react.fa.FontAwesomeIcon
-import reactST.primereact.components.*
-import observe.PrimeStyles
-import react.common.*
-import scala.annotation.targetName
+import org.typelevel.log4cats.Logger
+import cats.effect.IO
+import observe.AppContext
 
-// TODO Move all these to prime-react facade
+val UnknownTargetName: String = "None"
 
-extension (tag: Tag.Builder)
-  inline def iconFA(v: FontAwesomeIcon): Tag.Builder =
-    tag.icon(v.clazz(PrimeStyles.Tag.Icon).raw)
+// TODO See if this can be generalized to any number of hooks
+def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T = 
+  (props, ctx) => 
+    import ctx.given
+    fn(props)
 
-  @targetName("Tag-clazz")
-  inline def clazz(v: Css): Tag.Builder = 
-    tag.className(v.htmlClass)
-
-extension (tag: Divider.Builder)
-  @targetName("Divider-clazz")
-  inline def clazz(v: Css): Divider.Builder = 
-    tag.className(v.htmlClass)
-
-extension (tag: TabPanel.Builder)
-  @targetName("TabPanel-clazz")
-  inline def clazz(v: Css): TabPanel.Builder = 
-    tag.className(v.htmlClass)
-
-extension (tag: AccordionTab.Builder)
-  @targetName("AccordionTab-clazz")
-  inline def clazz(v: Css): AccordionTab.Builder = 
-    tag.className(v.htmlClass)
-
-extension (tag: Toolbar.Builder)
-  @targetName("Toolbar-clazz")
-  inline def clazz(v: Css): Toolbar.Builder = 
-    tag.className(v.htmlClass)      
+// def usingContext[F[_],P, H1, T](fn: Logger[F] ?=> (P, H1) => T): (P, AppContext[F], H1) => T = 
+//   (props, ctx, h1) => 
+//     import ctx.given
+//     fn(props, h1)  
