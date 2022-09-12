@@ -31,15 +31,14 @@ object Home {
       .useState(0)
       .render { (_, _, clicks) =>
         <.div(ObserveStyles.MainUI)(
-          Divider("Observe GS")
-            .clazz(ObserveStyles.Divider)
+          Divider(ObserveStyles.Divider, "Observe GS")
             .align(DividerAlignType.center),
           Splitter(^.height := "100%")
             .layout(SplitterLayoutType.vertical)
             .stateKey("main-splitter")
             .stateStorage(SplitterStateStorageType.local)(
               SplitterPanel(
-                Splitter()
+                Splitter
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
@@ -51,17 +50,15 @@ object Home {
                   )
               ),
               SplitterPanel(
-                TabView()(
-                  TabPanel()
-                    .clazz(ObserveStyles.TabPanel)
+                TabView(
+                  TabPanel(ObserveStyles.TabPanel)
                     .header(
                       React.Fragment(
                         <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                        Tag()
+                        Tag(ObserveStyles.LabelPointer)
                           .iconFA(Icons.CircleDot)
                           .value("Idle")
                           .severity(TagSeverityType.warning)
-                          .clazz(ObserveStyles.LabelPointer)
                       )
                     )(
                       s"You clicked ${clicks.value} time(s).",
@@ -72,12 +69,12 @@ object Home {
               )
             ),
           Accordion(
-            AccordionTab()
-              .header("Show Log")
-              .clazz(ObserveStyles.LogArea)(<.div(^.height := "200px"))
+            AccordionTab(ObserveStyles.LogArea)
+              .header("Show Log")(
+                <.div(^.height := "200px")
+              )
           ),
-          Toolbar()
-            .clazz(ObserveStyles.Footer)
+          Toolbar(ObserveStyles.Footer)
             .left("Observe - GS")
             .right(React.Fragment(ThemeSelector()).rawElement)
         )

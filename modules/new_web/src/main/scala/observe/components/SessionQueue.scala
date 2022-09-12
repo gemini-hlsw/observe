@@ -7,6 +7,7 @@ import react.common.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.table.*
+import lucuma.ui.table.*
 import observe.model.*
 import reactST.{tanstackTableCore => raw}
 import lucuma.core.syntax.display.*
@@ -117,5 +118,5 @@ object SessionQueue:
     .useMemo(())(_ => List.empty[SessionQueueRow])
     .useReactTableBy( (_, cols, rows) => TableOptions(cols, rows, enableColumnResizing = true)) 
     .render( (props, _, _, table) => 
-      HTMLTable(table)
+      PrimeTable(table)
     )
