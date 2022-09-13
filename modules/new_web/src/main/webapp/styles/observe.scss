@@ -1,9 +1,13 @@
 .light-theme {
   @import "primereact/resources/themes/nova/theme";
+
+  --active-row: var(--orange-50);
 }
 
 .dark-theme {
   @import "primereact/resources/themes/luna-blue/theme";
+
+  --active-row: var(--orange-900);
 }
 
 html {
@@ -83,3 +87,54 @@ body .p-component {
   display: flex;
   justify-content: center;
 }
+
+// .ObserveStyles-rowPositive {
+//   background-color: @positiveBackgroundColor;
+//   color: @positiveTextColor;
+//   box-shadow: @positiveBoxShadow;
+// }
+
+.ObserveStyles-rowWarning {
+  background-color: var(--active-row);
+  // color: @warningTextColor;
+  // box-shadow: @warningBoxShadow;
+}
+
+// .ObserveStyles-rowActive {
+//   background-color: @background;
+//   color: @textColor;
+//   box-shadow: 0px 0px 0px @textColor inset;
+//   background-clip: padding-box;
+// }
+
+// .ObserveStyles-rowNegative {
+//   background-color: @negativeBackgroundColor;
+//   color: @negativeTextColor;
+//   box-shadow: @negativeBoxShadow;
+// }
+
+// .ObserveStyles-rowError {
+//   background-color: @negativeBackgroundColor;
+//   color: @negativeTextColor;
+//   box-shadow: @negativeBoxShadow;
+// }
+
+// .ObserveStyles-rowDisabled {
+//   pointer-events: none;
+//   background: @background;
+//   color: @disabledTextColor;
+// }
+
+// .rowDone(@background_color) {
+//   pointer-events: none;
+//   color: fadein(@disabledTextColor, 30%);
+//   background: @background_color;
+// }
+
+// .ObserveStyles-rowDone {
+//   .rowDone(@gutter_end_color);
+// }
+
+// .ObserveStyles-rowNone {
+//   background: @background;
+// }

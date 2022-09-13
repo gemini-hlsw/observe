@@ -5,6 +5,21 @@ const fs = require('fs');
 const ViteFonts = require('vite-plugin-fonts');
 const mkcert = require('vite-plugin-mkcert');
 
+
+const fixCssRoot = (opts = {}) => {
+  return {
+    postcssPlugin: 'postcss-fix-nested-root',
+    Once(root, { result }) {
+      root.walkRules(rule => {
+        if (rule.selector.includes(' :root')) {
+          rule.selector = rule.selector.replace(' :root', '');
+        }
+      });
+    }
+  }
+}
+fixCssRoot.postcss = true;
+
 const fontImport = ViteFonts.Plugin({
   google: {
     families: [
@@ -58,7 +73,7 @@ module.exports = ({ command, mode }) => {
         {
           find: '@resources',
           replacement: resourceDir
-        }
+        },
       ],
     },
     css: {
@@ -67,6 +82,9 @@ module.exports = ({ command, mode }) => {
           charset: false,
         },
       },
+      postcss: {
+        plugins: [fixCssRoot]
+      }
     },
     server: {
       strictPort: true,

@@ -21,4 +21,13 @@ object ObserveStyles {
   val Footer: Css  = Css("ObserveStyles-footer")
 
   val SessionQueueTable: Css = Css("ObserveStyles-sessionQueueTable")
+
+  val rowPositive: Css = Css("ObserveStyles-rowPositive")
+  val rowWarning: Css  = Css("ObserveStyles-rowWarning")
+  val rowActive: Css   = Css("ObserveStyles-rowActive")
+  val rowNegative: Css = Css("ObserveStyles-rowNegative")
+  val rowError: Css    = Css("ObserveStyles-rowError")
+  val rowDisabled: Css = Css("ObserveStyles-rowDisabled")
+  val rowDone: Css     = Css("ObserveStyles-rowDone")
+  val rowNone: Css     = Css.Empty
 }

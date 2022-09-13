@@ -23,20 +23,20 @@ object SessionQueue:
 
   private val ColDef = ColumnDef[SessionQueueRow]
 
-  // private def rowClassName(p: Props)(i: Int): Css =
-  //   (i, p.rowGetter(i)) match {
-  //     case (-1, _)                                                         =>
-  //       ObserveStyles.headerRowStyle
-  //     case (_, r: SessionQueueRow) if r.status === SequenceState.Completed =>
-  //       ObserveStyles.rowPositive
-  //     case (_, r: SessionQueueRow) if r.status.isRunning                   =>
-  //       ObserveStyles.rowWarning
-  //     case (_, r: SessionQueueRow) if r.status.isError                     =>
-  //       ObserveStyles.rowNegative
-  //     case (_, r: SessionQueueRow) if r.active && !r.status.isInProcess    =>
-  //       ObserveStyles.rowActive
-  //     case _                                                               =>
-  //       Css.Empty
+  private def rowClass(index: Int, row: SessionQueueRow): Css =
+    //   (i, p.rowGetter(i)) match {
+    //     case (-1, _)                                                         =>
+    //       ObserveStyles.headerRowStyle
+    if (row.status === SequenceState.Completed)
+      ObserveStyles.rowPositive
+    else if (row.status.isRunning)
+      ObserveStyles.rowWarning
+    //     case (_, r: SessionQueueRow) if r.status.isError                     =>
+    //       ObserveStyles.rowNegative
+    //     case (_, r: SessionQueueRow) if r.active && !r.status.isInProcess    =>
+    //       ObserveStyles.rowActive
+    else
+      Css.Empty
   //   }
 
   private def statusIconRenderer(row: SessionQueueRow): VdomNode =
@@ -166,5 +166,5 @@ object SessionQueue:
         )
       )
       .render((props, _, _, table) =>
-        PrimeTable(table, tableClass = ObserveStyles.SessionQueueTable)
+        PrimeTable(table, tableClass = ObserveStyles.SessionQueueTable, rowClassFn = rowClass)
       )
