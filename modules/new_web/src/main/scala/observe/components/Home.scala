@@ -42,7 +42,7 @@ object Home {
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
-                      SessionQueue()
+                      SessionQueue(observe.demo.demoSessionQueue)
                     ),
                     SplitterPanel(
                       "CONDITIONS"

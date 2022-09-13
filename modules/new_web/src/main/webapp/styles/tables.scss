@@ -22,10 +22,12 @@
     text-align: left;
     position: relative;
     height: 30px;
+    white-space: nowrap;
   }
 
   td {
     padding: 6px;
+    white-space: nowrap;
   }
 
   tr {
@@ -53,16 +55,19 @@
     right: 0;
     top: 0;
     height: 100%;
-    width: 5px;
-    background: rgba(0, 0, 0, 0.5);
+    width: 8px;
     cursor: col-resize;
     user-select: none;
     touch-action: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .resizer.isResizingCol {
-    background: blue;
+    background: rgba(0, 0, 0, 0.2); // TODO Adapt to style
     opacity: 1;
+    z-index: 10000;
   }
 
   @media (hover: hover) {

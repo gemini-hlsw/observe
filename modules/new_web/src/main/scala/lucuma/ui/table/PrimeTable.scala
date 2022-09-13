@@ -32,7 +32,7 @@ final case class PrimeVirtualizedTable[T](
     with HTMLVirtualizedTableProps[T]
 
 private val baseHTMLRenderer: HTMLTableRenderer[Any] =
-  new HTMLTableRenderer[Any] { self =>
+  new HTMLTableRenderer[Any]:
     override protected val TableClass: Css = Css("react-table p-datatable p-component p-datatable-hoverable-rows") // TODO Hoverable as prop?
     override protected val TheadClass: Css   = Css("p-datatable-thead")
     override protected val TheadTrClass: Css = Css.Empty
@@ -40,10 +40,11 @@ private val baseHTMLRenderer: HTMLTableRenderer[Any] =
     override protected val TbodyClass: Css   = Css("p-datatable-table")
     override protected val TbodyTrClass: Css = Css.Empty
     override protected val TbodyTdClass: Css = Css.Empty
-    override protected val TfootClass: Css   = Css.Empty
+    override protected val TfootClass: Css   = Css("p-datatable-tfoot")
     override protected val TfootTrClass: Css = Css.Empty
     override protected val TfootThClass: Css = Css.Empty
-  }
+
+    override protected val ResizerContent: VdomNode = "⋮"
 
 object PrimeTable:
   private val component = HTMLTableRenderer.componentBuilder[Any, HTMLTable](baseHTMLRenderer)
