@@ -24,20 +24,16 @@ object SessionQueue:
   private val ColDef = ColumnDef[SessionQueueRow]
 
   private def rowClass(index: Int, row: SessionQueueRow): Css =
-    //   (i, p.rowGetter(i)) match {
-    //     case (-1, _)                                                         =>
-    //       ObserveStyles.headerRowStyle
     if (row.status === SequenceState.Completed)
       ObserveStyles.rowPositive
     else if (row.status.isRunning)
       ObserveStyles.rowWarning
-    //     case (_, r: SessionQueueRow) if r.status.isError                     =>
-    //       ObserveStyles.rowNegative
-    //     case (_, r: SessionQueueRow) if r.active && !r.status.isInProcess    =>
-    //       ObserveStyles.rowActive
+    else if (row.status.isError)
+      ObserveStyles.rowNegative
+    else if (row.active && !row.status.isInProcess)
+      ObserveStyles.rowActive
     else
       Css.Empty
-  //   }
 
   private def statusIconRenderer(row: SessionQueueRow): VdomNode =
     // <.div
