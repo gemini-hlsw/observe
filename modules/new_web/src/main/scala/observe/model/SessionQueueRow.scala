@@ -18,6 +18,6 @@ case class SessionQueueRow(
   active:        Boolean,
   loaded:        Boolean,
   nextStepToRun: Option[Step.Id],
-  //  runningStep: Option[RunningStep],
+  runningStep:   Option[RunningStep],
   inDayCalQueue: Boolean
 )

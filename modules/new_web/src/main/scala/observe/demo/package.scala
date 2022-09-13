@@ -21,7 +21,7 @@ val demoSessionQueue: List[SessionQueueRow] =
       true,
       true,
       none,
-      //  runningStep: Option[RunningStep],
+      RunningStep.fromInt(none, 0, 20),
       false
     )
   )

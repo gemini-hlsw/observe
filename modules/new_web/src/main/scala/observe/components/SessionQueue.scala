@@ -28,26 +28,21 @@ object SessionQueue:
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
-        case SequenceState.Completed     =>
-          Icons.Checkmark // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _) =>
-          Icons.CircleNotch.copy(spin = true)
+        case SequenceState.Completed     => Icons.Checkmark // clazz = selectedIconStyle)
+        case SequenceState.Running(_, _) => Icons.CircleNotch.copy(spin = true)
         // Icon(name = "circle notched",
         //      fitted = true,
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
         // )
-        case SequenceState.Failed(_)     =>
-          EmptyVdom
+        case SequenceState.Failed(_)     => EmptyVdom
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused              =>
-          EmptyVdom
+        case _ if isFocused              => EmptyVdom
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
-        case _                           =>
-          EmptyVdom
+        case _                           => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,
@@ -87,6 +82,9 @@ object SessionQueue:
     icon
     // )
 
+  private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
+    s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").getOrElse("")}"
+
   private def linked[T, A](
     f: raw.mod.CellContext[T, A] => VdomNode
   ): raw.mod.CellContext[T, A] => VdomNode =
@@ -118,7 +116,12 @@ object SessionQueue:
       enableResizing = false
     ),
     ColDef("obsId", _.obsId, header = "Obs. ID", cell = linked(_.value.shortName)),
-    // ColDef("state", _.obsId, cell = ???, size = 20, enableResizing = false),
+    ColDef(
+      "state",
+      row => (row.status, row.runningStep),
+      header = "State",
+      cell = linked(cell => statusText(cell.value._1, cell.value._2))
+    ),
     ColDef("instrument", _.instrument, header = "Instrument", cell = linked(_.value.shortName)),
     ColDef(
       "target",
