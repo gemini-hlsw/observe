@@ -15,7 +15,7 @@ val demoSessionQueue: List[SessionQueueRow] =
       SequenceState.Running(false, false),
       Instrument.GmosSouth,
       "Untitled".some,
-      //  observer: Option[Observer],
+      Observer("Telops").some,
       "GMOS-S Observation",
       ObsClass.Nighttime,
       true,

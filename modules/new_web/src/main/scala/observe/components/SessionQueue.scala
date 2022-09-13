@@ -14,6 +14,7 @@ import lucuma.core.syntax.display.*
 import observe.ObserveStyles
 import observe.Icons
 import react.fa.IconSize
+import cats.syntax.all.*
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 
@@ -21,6 +22,22 @@ object SessionQueue:
   private type Props = SessionQueue
 
   private val ColDef = ColumnDef[SessionQueueRow]
+
+  // private def rowClassName(p: Props)(i: Int): Css =
+  //   (i, p.rowGetter(i)) match {
+  //     case (-1, _)                                                         =>
+  //       ObserveStyles.headerRowStyle
+  //     case (_, r: SessionQueueRow) if r.status === SequenceState.Completed =>
+  //       ObserveStyles.rowPositive
+  //     case (_, r: SessionQueueRow) if r.status.isRunning                   =>
+  //       ObserveStyles.rowWarning
+  //     case (_, r: SessionQueueRow) if r.status.isError                     =>
+  //       ObserveStyles.rowNegative
+  //     case (_, r: SessionQueueRow) if r.active && !r.status.isInProcess    =>
+  //       ObserveStyles.rowActive
+  //     case _                                                               =>
+  //       Css.Empty
+  //   }
 
   private def statusIconRenderer(row: SessionQueueRow): VdomNode =
     // <.div
@@ -30,11 +47,8 @@ object SessionQueue:
       row.status match
         case SequenceState.Completed     => Icons.Checkmark // clazz = selectedIconStyle)
         case SequenceState.Running(_, _) => Icons.CircleNotch.copy(spin = true)
-        // Icon(name = "circle notched",
-        //      fitted = true,
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
-        // )
         case SequenceState.Failed(_)     => EmptyVdom
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
@@ -83,7 +97,7 @@ object SessionQueue:
     // )
 
   private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-    s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").getOrElse("")}"
+    s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").orEmpty}"
 
   private def linked[T, A](
     f: raw.mod.CellContext[T, A] => VdomNode
@@ -129,8 +143,13 @@ object SessionQueue:
       header = "Target",
       cell = linked(_.value.getOrElse(UnknownTargetName))
     ),
-    ColDef("obsName", _.name, header = "Obs. Name", cell = linked(_.value.toString))
-    // ColDef("observer", _.observer.foldMap(_.value), cell = ???),
+    ColDef("obsName", _.name, header = "Obs. Name", cell = linked(_.value.toString)),
+    ColDef(
+      "observer",
+      _.observer.foldMap(_.value),
+      header = "Observer",
+      cell = linked(_.value.toString)
+    )
   )
 
   private val component =

@@ -6,13 +6,15 @@ package observe.model
 import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
+import cats.Eq
+import cats.derived.*
 
 case class SessionQueueRow(
   obsId:         Observation.Id,
   status:        SequenceState,
   instrument:    Instrument,
   targetName:    Option[String],
-  //  observer: Option[Observer],
+  observer:      Option[Observer],
   name:          String,
   obsClass:      ObsClass,
   active:        Boolean,
@@ -20,4 +22,4 @@ case class SessionQueueRow(
   nextStepToRun: Option[Step.Id],
   runningStep:   Option[RunningStep],
   inDayCalQueue: Boolean
-)
+) derives Eq
