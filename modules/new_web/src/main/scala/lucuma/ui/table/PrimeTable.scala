@@ -8,7 +8,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import react.common.*
 import react.common.style.Css
-import reactST.{tanstackTableCore => raw}
+import reactST.{ tanstackTableCore => raw }
 import lucuma.react.table.*
 
 import javax.swing.text.html.HTML
@@ -19,6 +19,7 @@ import japgolly.scalajs.react.vdom.html_<^
 final case class PrimeTable[T](
   table:      raw.mod.Table[T],
   tableClass: Css = Css.Empty,
+  cellClass:  Css = Css.Empty,
   rowClassFn: (Int, T) => Css = (_, _: T) => Css.Empty
 ) extends ReactFnProps(PrimeTable.component)
     with HTMLTableProps[T]
@@ -27,13 +28,16 @@ final case class PrimeVirtualizedTable[T](
   table:          raw.mod.Table[T],
   containerClass: Css = Css.Empty,
   tableClass:     Css = Css.Empty,
+  cellClass:      Css = Css.Empty,
   rowClassFn:     (Int, T) => Css = (_, _: T) => Css.Empty
 ) extends ReactFnProps(PrimeVirtualizedTable.component)
     with HTMLVirtualizedTableProps[T]
 
 private val baseHTMLRenderer: HTMLTableRenderer[Any] =
   new HTMLTableRenderer[Any]:
-    override protected val TableClass: Css = Css("react-table p-datatable p-component p-datatable-hoverable-rows") // TODO Hoverable as prop?
+    override protected val TableClass: Css = Css(
+      "react-table p-datatable p-component p-datatable-hoverable-rows"
+    ) // TODO Hoverable as prop?
     override protected val TheadClass: Css   = Css("p-datatable-thead")
     override protected val TheadTrClass: Css = Css.Empty
     override protected val TheadThClass: Css = Css.Empty

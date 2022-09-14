@@ -95,55 +95,69 @@ object SessionQueue:
   private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
     s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").orEmpty}"
 
+  private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
+    <.div(ObserveStyles.QueueText |+| css)(node)
+
+  private def renderCendered(node: VdomNode, css: Css = Css.Empty): VdomNode =
+    <.div(ObserveStyles.Centered |+| css)(node)
+
   private def linked[T, A](
     f: raw.mod.CellContext[T, A] => VdomNode
   ): raw.mod.CellContext[T, A] => VdomNode =
-    f
+    f.andThen(node => renderCell(node))
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
 
   private val columns = List(
     ColDef(
       "icon",
-      cell =
-        cell =>
-          <.div(ObserveStyles.Centered)(statusIconRenderer(cell.row.original)), // Tooltip: Control
+      cell = cell => renderCendered(statusIconRenderer(cell.row.original)), // Tooltip: Control
       size = 25,
       enableResizing = false
     ),
     ColDef(
       "addQueue",
-      header = _ => <.div(ObserveStyles.Centered)(Icons.CalendarDays),          // Tooltip: Add all to queue
-      cell = cell => <.div(ObserveStyles.Centered)(addToQueueRenderer(cell.row.original)),
+      header = _ => renderCendered(Icons.CalendarDays),                     // Tooltip: Add all to queue
+      cell = cell => renderCendered(addToQueueRenderer(cell.row.original)),
       size = 30,
       enableResizing = false
     ),
     ColDef(
       "class",
-      header = _ => <.div(ObserveStyles.Centered)(Icons.Clock),                 // Tooltip: "Obs. class"
-      cell = cell => <.div(ObserveStyles.Centered)(classIconRenderer(cell.row.original)),
+      header = _ => renderCendered(Icons.Clock),                            // Tooltip: "Obs. class"
+      cell = cell => renderCendered(classIconRenderer(cell.row.original)),
       size = 26,
       enableResizing = false
     ),
-    ColDef("obsId", _.obsId, header = "Obs. ID", cell = linked(_.value.shortName)),
+    ColDef("obsId", _.obsId, header = _ => renderCell("Obs. ID"), cell = linked(_.value.shortName)),
     ColDef(
       "state",
       row => (row.status, row.runningStep),
-      header = "State",
+      header = _ => renderCell("State"),
       cell = linked(cell => statusText(cell.value._1, cell.value._2))
     ),
-    ColDef("instrument", _.instrument, header = "Instrument", cell = linked(_.value.shortName)),
+    ColDef(
+      "instrument",
+      _.instrument,
+      header = _ => renderCell("Instrument"),
+      cell = linked(_.value.shortName)
+    ),
     ColDef(
       "target",
       _.targetName,
-      header = "Target",
+      header = _ => renderCell("Target"),
       cell = linked(_.value.getOrElse(UnknownTargetName))
     ),
-    ColDef("obsName", _.name, header = "Obs. Name", cell = linked(_.value.toString)),
+    ColDef(
+      "obsName",
+      _.name,
+      header = _ => renderCell("Obs. Name"),
+      cell = linked(_.value.toString)
+    ),
     ColDef(
       "observer",
       _.observer.foldMap(_.value),
-      header = "Observer",
+      header = _ => renderCell("Observer"),
       cell = linked(_.value.toString)
     )
   )

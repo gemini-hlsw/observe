@@ -88,6 +88,18 @@ body .p-component {
   justify-content: center;
 }
 
+.ObserveStyles-queueText {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+
+  @at-root {
+    td #{&} {
+      padding-left: 0.45em;
+    }
+  }
+}
+
 // .ObserveStyles-rowPositive {
 //   background-color: @positiveBackgroundColor;
 //   color: @positiveTextColor;
