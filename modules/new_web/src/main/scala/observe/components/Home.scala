@@ -29,9 +29,7 @@ object Home {
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useEffectBy(usingContext(_ => Logger[IO].debug("Rendering Home component")))
-      .useState(0)
-      .render { (props, _, clicks) =>
+      .render { (props, _) =>
         <.div(ObserveStyles.MainUI)(
           Divider(ObserveStyles.Divider, "Observe GS")
             .align(DividerAlignType.center),
@@ -74,9 +72,7 @@ object Home {
                           .severity(TagSeverityType.warning)
                       )
                     )(
-                      s"You clicked ${clicks.value} time(s).",
-                      Button("Click me!")
-                        .onClick(_ => clicks.modState(_ + 1))
+                      StepsTable()
                     )
                 )
               )

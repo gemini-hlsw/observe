@@ -181,6 +181,7 @@ body .p-component {
 
     .p-card-content {
       height: 100%;
+      padding: 0 !important;
     }
   }
 }
@@ -193,13 +194,19 @@ body .p-component {
     "operator operator"
     "imageQuality cloudCover"
     "waterVapor skyBackground";
+  column-gap: 15px;
 
   label {
     font-weight: bold;
     font-size: small;
+    white-space: nowrap;
   }
 
   input {
+    width: 100%;
+  }
+
+  .p-dropdown {
     width: 100%;
   }
 }

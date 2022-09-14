@@ -5,6 +5,7 @@ package observe.model
 
 import lucuma.core.util.NewType
 import java.util.UUID
+import observe.model.enums.SystemName
 
 object ClientId extends NewType[UUID]
 type ClientId = ClientId.Type
@@ -14,3 +15,18 @@ type Observer = Observer.Type
 
 object Operator extends NewType[String]
 type Operator = Operator.Type
+
+object ParamName extends NewType[String]
+type ParamName = ParamName.Type
+
+object ParamValue extends NewType[String]
+type ParamValue = ParamValue.Type
+
+object Parameters extends NewType[Map[ParamName, ParamValue]]
+type Parameters = Parameters.Type
+
+object StepConfig extends NewType[Map[SystemName, Parameters]]
+type StepConfig = StepConfig.Type
+
+object ImageFileId extends NewType[String]
+type ImageFileId = ImageFileId.Type
