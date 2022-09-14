@@ -33,22 +33,27 @@ extension [A](pot: Pot[A])
     pendingRender: => VdomNode = DefaultPendingRender,
     errorRender:   Throwable => VdomNode = DefaultErrorRender
   ): VdomNode = potRender(valueRender, pendingRender, errorRender)(pot)
+// TODO End move to lucuma-ui
 
 case class ThemeSelector() extends ReactFnProps(ThemeSelector.component)
 
-object ThemeSelector:
+private object ThemeSelector:
   private type Props = ThemeSelector
 
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useState(false) // just to force rerenders
-    .useEffectResultWithDepsBy( (_, toggle) => toggle.value)( (_, _) => _ => Theme.current)
-    .render( (props, toggle, themePot) => 
-      themePot.render(theme =>
-        ToggleButton()
-          .onLabel("Light")
-          .offLabel("Dark")
-          .checked(theme === Theme.Dark)
-          .onChange( e => (if(e.value) Theme.Dark.setup[CallbackTo] else Theme.Light.setup[CallbackTo]) >> toggle.setState(!toggle.value))
+  private val component =
+    ScalaFnComponent
+      .withHooks[Props]
+      .useState(false) // just to force rerenders
+      .useEffectResultWithDepsBy((_, toggle) => toggle.value)((_, _) => _ => Theme.current)
+      .render((props, toggle, themePot) =>
+        themePot.render(theme =>
+          ToggleButton()
+            .onLabel("Light")
+            .offLabel("Dark")
+            .checked(theme === Theme.Dark)
+            .onChange(e =>
+              (if (e.value) Theme.Dark.setup[CallbackTo]
+               else Theme.Light.setup[CallbackTo]) >> toggle.setState(!toggle.value)
+            )
+        )
       )
-    )

@@ -3,25 +3,27 @@
 
 package observe
 
-import japgolly.scalajs.react.extra.router._
-import observe.Page._
+import japgolly.scalajs.react.extra.router.*
+import observe.Page.*
 import observe.components.Home
-import react.common._
+import react.common.*
+import observe.model.RootModel
+import crystal.react.View
 
 object Routing {
 
-  def config: RouterConfig[Page] =
-    RouterConfigDsl[Page].buildConfig { dsl =>
+  def config: RouterWithPropsConfig[Page, View[RootModel]] =
+    RouterWithPropsConfigDsl[Page, View[RootModel]].buildConfig { dsl =>
       import dsl._
 
       val rules =
         (emptyRule
-          | staticRoute(root, HomePage) ~> renderP(_ => Home()))
+          | staticRoute(root, HomePage) ~> renderP(rootModel => Home(rootModel)))
 
       val configuration =
         rules
           .notFound(redirectToPage(HomePage)(SetRouteVia.HistoryPush))
-          .renderWith(Layout.apply)
+          .renderWithP(Layout.apply)
 
       configuration
     }

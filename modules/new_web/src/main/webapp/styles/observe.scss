@@ -18,6 +18,8 @@ body,
 body .p-component {
   margin: 0;
   font-family: 'Lato' !important;
+  background-color: var(--surface-f);
+  color: var(--text-color);
 }
 
 .p-tag {

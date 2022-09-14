@@ -15,9 +15,13 @@ import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
 import typings.loglevel.mod.LogLevelDesc
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
+import crystal.react.hooks.*
 
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
+import observe.model.RootModel
 
 @JSExportTopLevel("Main")
 object Main {
@@ -40,19 +44,24 @@ object Main {
   )
 
   val (router, routerCtl) =
-    Router.componentAndCtl(BaseUrl.fromWindowOrigin, Routing.config)
+    RouterWithProps.componentAndCtl(BaseUrl.fromWindowOrigin, Routing.config)
+
+  val mainApp =
+    ScalaFnComponent
+      .withHooks[Unit]
+      .useStateView(RootModel.Initial)
+      .render((_, state) => router(state))
 
   def buildPage(implicit logger: Logger[IO]): IO[Unit] =
     (for {
       ctx  <- IO(AppContext[IO]())
       node <- setupDOM[IO]
-    } yield AppContext.ctx.provide(ctx)(router()).renderIntoDOM(node)).void
+    } yield AppContext.ctx.provide(ctx)(mainApp()).renderIntoDOM(node)).void
 
   def run: IO[Unit] =
     for {
       logger <- setupLogger[IO](LogLevelDesc.DEBUG)
-      // _      <- Theme.init[IO]
-      _      <- Theme.Light.setup[IO]
+      _      <- Theme.Light.setup[IO] // Theme.init[IO]
       _      <- buildPage(logger)
     } yield ()
 }

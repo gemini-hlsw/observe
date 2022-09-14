@@ -8,6 +8,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import cats.Eq
 import cats.derived.*
+import observe.model.enums.*
 
 case class SessionQueueRow(
   obsId:         Observation.Id,

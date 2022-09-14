@@ -17,8 +17,10 @@ import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
 import observe.Icons
+import observe.model.RootModel
+import crystal.react.View
 
-case class Home() extends ReactFnProps(Home.component)
+case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
 object Home {
   private type Props = Home
@@ -29,7 +31,7 @@ object Home {
       .useContext(AppContext.ctx)
       .useEffectBy(usingContext(_ => Logger[IO].debug("Rendering Home component")))
       .useState(0)
-      .render { (_, _, clicks) =>
+      .render { (props, _, clicks) =>
         <.div(ObserveStyles.MainUI)(
           Divider(ObserveStyles.Divider, "Observe GS")
             .align(DividerAlignType.center),
@@ -45,7 +47,11 @@ object Home {
                       SessionQueue(observe.demo.demoSessionQueue)
                     ),
                     SplitterPanel(
-                      "CONDITIONS"
+                      HeadersSideBar(
+                        props.rootModel.get.status,
+                        props.rootModel.get.operator,
+                        props.rootModel.zoom(RootModel.conditions)
+                      )
                     )
                   )
               ),

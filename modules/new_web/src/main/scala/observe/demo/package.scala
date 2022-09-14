@@ -5,6 +5,7 @@ package observe.demo
 
 import cats.syntax.all.*
 import observe.model.*
+import observe.model.enums.*
 import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
 

@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.table.*
 import lucuma.ui.table.*
 import observe.model.*
+import observe.model.enums.*
 import reactST.{ tanstackTableCore => raw }
 import lucuma.core.syntax.display.*
 import observe.ObserveStyles
@@ -18,7 +19,7 @@ import cats.syntax.all.*
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 
-object SessionQueue:
+private object SessionQueue:
   private type Props = SessionQueue
 
   private val ColDef = ColumnDef[SessionQueueRow]
@@ -129,7 +130,13 @@ object SessionQueue:
       size = 26,
       enableResizing = false
     ),
-    ColDef("obsId", _.obsId, header = _ => renderCell("Obs. ID"), cell = linked(_.value.shortName)),
+    ColDef(
+      "obsId",
+      _.obsId,
+      header = _ => renderCell("Obs. ID"),
+      cell = linked(_.value.shortName),
+      size = 70
+    ),
     ColDef(
       "state",
       row => (row.status, row.runningStep),

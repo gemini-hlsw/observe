@@ -7,14 +7,16 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common.ReactFnProps
+import crystal.react.View
+import observe.model.RootModel
 
-case class Layout(c: RouterCtl[Page], r: Resolution[Page])
-    extends ReactFnProps[Layout](Layout.component)
+case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
+  val rootModel:     View[RootModel]
+) extends ReactFnProps[Layout](Layout.component)
 
-object Layout {
+object Layout:
   protected type Props = Layout
 
   protected val component = ScalaFnComponent[Props] { props =>
-    props.r.render()
+    props.resolution.renderP(props.rootModel)
   }
-}
