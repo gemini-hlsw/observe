@@ -40,7 +40,7 @@ import react.semanticui.sizes._
 import react.semanticui.textalignment._
 import react.virtualized._
 import observe.common.FixedLengthBuffer
-import observe.model.enum.ServerLogLevel
+import observe.model.enums.ServerLogLevel
 import observe.model.events._
 import observe.web.client.actions.ToggleLogArea
 import observe.web.client.circuit.ObserveCircuit

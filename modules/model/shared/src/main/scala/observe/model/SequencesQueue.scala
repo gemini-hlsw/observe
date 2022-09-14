@@ -11,7 +11,7 @@ import monocle.Traversal
 import monocle.function.Each._
 import monocle.macros.Lenses
 import observe.model.Observation
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 
 /**
  * Represents a queue with different levels of details. E.g. it could be a list of Ids Or a list of

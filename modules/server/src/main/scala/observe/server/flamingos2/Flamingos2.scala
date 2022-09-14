@@ -22,8 +22,8 @@ import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.ConfigUtilOps._
 import observe.server._
 import observe.server.flamingos2.Flamingos2Controller._

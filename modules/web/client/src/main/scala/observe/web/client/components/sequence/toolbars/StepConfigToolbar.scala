@@ -17,8 +17,8 @@ import react.semanticui.elements.button.ButtonGroup
 import react.semanticui.elements.button.LabelPosition
 import react.semanticui.elements.label.Label
 import react.semanticui.sizes._
-import observe.model.{Observation, RunningStep, StepId}
-import observe.model.enum.Instrument
+import observe.model.{ Observation, RunningStep, StepId }
+import observe.model.enums.Instrument
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.circuit.SequenceInfoFocus
 import observe.web.client.components.ObserveStyles

@@ -31,9 +31,9 @@ import observe.model.SequenceState
 import observe.model.Step
 import observe.model.StepId
 import observe.model.StepState
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.StepType
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.StepType
 import observe.web.client.actions.ClearAllResourceOperations
 import observe.web.client.actions.FlipBreakpointStep
 import observe.web.client.actions.UpdateSelectedStep

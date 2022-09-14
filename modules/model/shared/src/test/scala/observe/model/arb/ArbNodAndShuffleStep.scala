@@ -10,8 +10,8 @@ import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import observe.model._
 import observe.model.GmosParameters._
-import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
-import observe.model.enum._
+import observe.model.NodAndShuffleStep.{ PauseGracefully, PendingObserveCmd, StopGracefully }
+import observe.model.enums._
 import observe.model.arb.ArbStepConfig._
 import observe.model.arb.ArbStepState._
 import observe.model.arb.ArbDhsTypes._

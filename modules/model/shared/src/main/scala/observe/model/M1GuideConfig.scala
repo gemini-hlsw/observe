@@ -5,7 +5,7 @@ package observe.model
 
 import cats._
 import cats.syntax.all._
-import observe.model.enum.M1Source
+import observe.model.enums.M1Source
 
 /** Data type for M1 guide config. */
 sealed trait M1GuideConfig extends Product with Serializable {

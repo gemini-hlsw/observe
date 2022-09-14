@@ -7,8 +7,8 @@ import cats.ApplicativeError
 import cats.effect.Sync
 import edu.gemini.spModel.gemini.altair.AltairConstants.GUIDESTAR_TYPE_PROP
 import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
-import observe.model.`enum`.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.server.CleanConfig
 import observe.server.ConfigUtilOps._
 import observe.server.altair.AltairController._

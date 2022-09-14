@@ -13,7 +13,7 @@ import lucuma.core.util.arb.ArbUid._
 import lucuma.core.math.Axis
 import monocle.law.discipline._
 import org.scalacheck.Arbitrary._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.ObserveModelArbitraries._
 import observe.model.SequenceEventsArbitraries._
 import observe.model.arb.all._

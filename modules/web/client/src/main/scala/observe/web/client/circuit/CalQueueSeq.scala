@@ -13,7 +13,7 @@ import observe.model.SequenceMetadata
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 
 @Lenses
 final case class CalQueueSeq(idName: Observation.IdName, i: Instrument, status: SequenceState)

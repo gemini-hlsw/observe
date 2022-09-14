@@ -6,7 +6,7 @@ package observe.web.client.model
 import cats.tests.CatsSuite
 import observe.model.Observation
 import scala.collection.immutable.SortedMap
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.model.SequenceMetadata
 import observe.model.SequenceView
 import observe.model.SequencesQueue

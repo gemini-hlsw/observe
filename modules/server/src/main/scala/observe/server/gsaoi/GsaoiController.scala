@@ -8,7 +8,7 @@ import cats.Eq
 import cats.Show
 import cats.syntax.all._
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig

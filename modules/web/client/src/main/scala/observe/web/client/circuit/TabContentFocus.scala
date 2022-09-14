@@ -7,8 +7,8 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all._
 import monocle.Getter
-import observe.model.{Observation, StepId}
-import observe.model.enum._
+import observe.model.{ Observation, StepId }
+import observe.model.enums._
 import observe.web.client.model._
 
 sealed trait TabContentFocus extends Product with Serializable {

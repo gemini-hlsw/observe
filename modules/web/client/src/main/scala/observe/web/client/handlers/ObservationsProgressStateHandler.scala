@@ -15,7 +15,7 @@ import observe.model.ObservationProgress
 import observe.model.ObserveStage
 import observe.model.Progress
 import observe.model.Step
-import observe.model.enum.ActionStatus
+import observe.model.enums.ActionStatus
 import observe.model.events.ObservationProgressEvent
 import observe.model.events.ObserveModelUpdate
 import observe.model.events.SequenceAborted

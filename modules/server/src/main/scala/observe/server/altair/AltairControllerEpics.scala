@@ -17,8 +17,8 @@ import edu.gemini.observe.server.altair.LgsSfoControl
 import org.typelevel.log4cats.Logger
 import monocle.macros.Lenses
 import mouse.boolean._
-import observe.model.`enum`.Instrument
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ApplyCommandResult
 import observe.server.ObserveFailure
 import observe.server.altair.AltairController._
 import observe.server.tcs.FOCAL_PLANE_SCALE

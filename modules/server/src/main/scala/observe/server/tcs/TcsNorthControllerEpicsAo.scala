@@ -14,10 +14,10 @@ import mouse.boolean._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.M1Source
-import observe.model.enum.MountGuideOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.altair.Altair

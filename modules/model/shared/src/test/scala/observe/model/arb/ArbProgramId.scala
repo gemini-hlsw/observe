@@ -14,7 +14,7 @@ import lucuma.core.model.Semester
 import lucuma.core.enums.ProgramType
 import lucuma.core.math.Index
 import lucuma.core.enums.Site
-import observe.model.enum.DailyProgramType
+import observe.model.enums.DailyProgramType
 import observe.model.ProgramId
 
 trait ArbProgramId {

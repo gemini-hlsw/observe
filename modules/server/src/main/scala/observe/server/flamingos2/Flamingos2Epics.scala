@@ -10,7 +10,7 @@ import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all._
 import edu.gemini.epics.acm._
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem

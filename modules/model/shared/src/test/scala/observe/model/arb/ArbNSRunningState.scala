@@ -8,7 +8,7 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import lucuma.core.util.arb.ArbEnumerated._
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.arb.ArbNSSubexposure._
 
 trait ArbNSRunningState {

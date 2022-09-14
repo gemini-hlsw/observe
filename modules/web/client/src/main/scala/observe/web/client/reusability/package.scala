@@ -15,8 +15,8 @@ import react.semanticui.SemanticSize
 import observe.model.Observation
 import observe.model._
 import observe.model.dhs._
-import observe.model.enum.Resource
-import observe.model.enum.ServerLogLevel
+import observe.model.enums.Resource
+import observe.model.enums.ServerLogLevel
 import observe.web.client.circuit._
 import observe.web.client.model.AvailableTab
 import observe.web.client.model.ClientStatus

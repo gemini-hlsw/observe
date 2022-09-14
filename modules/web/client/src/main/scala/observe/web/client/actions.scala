@@ -12,7 +12,7 @@ import pprint.PPrinter
 import observe.model.Notification.RequestFailed
 import observe.model.Observation
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.events._
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.components.queue.CalQueueTable

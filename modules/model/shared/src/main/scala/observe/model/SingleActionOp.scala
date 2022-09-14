@@ -5,7 +5,7 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all._
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 
 sealed trait SingleActionOp extends Product with Serializable {
   val sidName: Observation.IdName

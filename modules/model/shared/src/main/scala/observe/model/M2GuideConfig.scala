@@ -5,8 +5,8 @@ package observe.model
 
 import cats._
 import cats.syntax.all._
-import observe.model.enum.ComaOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.TipTiltSource
 
 /** Data type for M2 guide config. */
 sealed trait M2GuideConfig extends Product with Serializable {

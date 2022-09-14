@@ -16,7 +16,7 @@ import monocle.macros.GenLens
 import monocle.macros.GenPrism
 import monocle.std.option.some
 import monocle.std.string._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.events._
 
 trait ModelLenses {

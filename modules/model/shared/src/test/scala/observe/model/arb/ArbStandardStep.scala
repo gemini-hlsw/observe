@@ -10,7 +10,7 @@ import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.arb.ArbStepConfig._
 import observe.model.arb.ArbStepState._
 import observe.model.arb.ArbDhsTypes._

@@ -7,17 +7,16 @@ import cats.data.NonEmptySet
 import cats.effect.Sync
 import cats.syntax.all._
 import lucuma.core.math.Wavelength
-import edu.gemini.spModel.gemini.gems.CanopusWfs
-import edu.gemini.spModel.gemini.gsaoi.GsaoiOdgw
-import edu.gemini.spModel.guide.StandardGuideOptions
-import edu.gemini.spModel.target.obsComp.TargetObsCompConstants._
+//import edu.gemini.spModel.gemini.gems.CanopusWfs
+//import edu.gemini.spModel.gemini.gsaoi.GsaoiOdgw
+//import edu.gemini.spModel.guide.StandardGuideOptions
 import org.typelevel.log4cats.Logger
 import monocle.macros.Lenses
 import mouse.all._
-import observe.model.enum.M1Source
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.Resource
-import observe.model.enum.TipTiltSource
+import observe.model.enums.M1Source
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.Resource
+import observe.model.enums.TipTiltSource
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigResult
@@ -54,8 +53,6 @@ import observe.server.tcs.TcsSouthController.ODGW3Config
 import observe.server.tcs.TcsSouthController.ODGW4Config
 import observe.server.tcs.TcsSouthController.TcsSouthConfig
 import shapeless.tag
-import squants.Angle
-import squants.space.Arcseconds
 
 case class TcsSouth[F[_]: Sync: Logger] private (
   tcsController: TcsSouthController[F],

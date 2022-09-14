@@ -25,12 +25,12 @@ import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserLoginRequest
 import observe.model.boopickle._
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
 import observe.web.client.actions.RunOptions
 import scala.annotation.nowarn
 

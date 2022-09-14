@@ -4,7 +4,7 @@
 package observe.model
 
 import lucuma.core.math.Axis
-import observe.model.enum.SystemName
+import observe.model.enums.SystemName
 
 object OffsetType {
   type Telescope

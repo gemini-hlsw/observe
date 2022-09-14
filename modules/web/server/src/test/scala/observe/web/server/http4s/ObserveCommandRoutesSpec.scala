@@ -19,7 +19,7 @@ import org.scalamock.scalatest.MockFactory
 
 import observe.server._
 import observe.web.server.http4s.encoder._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.arb.ArbClientId._
 
 class ObserveCommandRoutesSpec

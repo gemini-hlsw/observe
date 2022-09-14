@@ -7,7 +7,7 @@ import cats.Order
 import cats.data.NonEmptySet
 import cats.syntax.all._
 import mouse.boolean._
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem
 import squants.Ratio

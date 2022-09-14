@@ -12,10 +12,10 @@ import japgolly.scalajs.react.ReactMonocle._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import lucuma.core.util.{Gid, Uid}
+import lucuma.core.util.{ Gid, Uid }
 import monocle.Prism
-import observe.model.{Observation, StepId}
-import observe.model.enum.Instrument
+import observe.model.{ Observation, StepId }
+import observe.model.enums.Instrument
 import observe.web.client.actions.NavigateSilentTo
 import observe.web.client.actions.RequestSoundEcho
 import observe.web.client.actions.WSConnect

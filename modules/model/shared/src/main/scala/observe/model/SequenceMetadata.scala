@@ -5,7 +5,7 @@ package observe.model
 
 import cats.Eq
 import monocle.macros.Lenses
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 
 /** Metadata about the sequence required on the exit point */
 @Lenses

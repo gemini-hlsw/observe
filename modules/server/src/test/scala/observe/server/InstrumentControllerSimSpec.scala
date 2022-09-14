@@ -7,7 +7,7 @@ import cats.effect.{IO, Ref}
 import org.typelevel.log4cats.noop.NoOpLogger
 
 import scala.concurrent.duration._
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.model.dhs._
 import squants.time.TimeConversions._
 import munit.CatsEffectSuite

@@ -15,8 +15,8 @@ import observe.model.GmosParameters.NsCyclesI
 import observe.model.NSSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.NodAndShuffleStage._
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObsProgress
@@ -187,13 +187,13 @@ object GmosControllerSim {
       override def nsCount: F[Int] = nsConfig.get.map(_.current.foldMap(_.exposureCount))
     }
 
-  def south[F[_]: Async: Logger]: F[GmosController[F, SouthTypes]] =
+  def south[F[_]: Async: Logger]: F[GmosController[F, GmosSite.South]] =
     (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS South")).mapN { (nsConfig, sim) =>
-      GmosControllerSim[F, SouthTypes](sim, nsConfig)
+      GmosControllerSim[F, GmosSite.South](sim, nsConfig)
     }
 
-  def north[F[_]: Async: Logger]: F[GmosController[F, NorthTypes]] =
+  def north[F[_]: Async: Logger]: F[GmosController[F, GmosSite.North]] =
     (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS North")).mapN { (nsConfig, sim) =>
-      GmosControllerSim[F, NorthTypes](sim, nsConfig)
+      GmosControllerSim[F, GmosSite.North](sim, nsConfig)
     }
 }

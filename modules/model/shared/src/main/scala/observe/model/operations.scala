@@ -3,8 +3,8 @@
 
 package observe.model
 
-import observe.model.enum.Instrument
-import observe.model.enum.Instrument._
+import observe.model.enums.Instrument
+import observe.model.enums.Instrument._
 
 object operations {
   sealed trait OperationLevel

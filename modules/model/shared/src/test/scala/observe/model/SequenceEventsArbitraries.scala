@@ -13,7 +13,7 @@ import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import lucuma.core.arb.ArbTime._
 import java.time.Instant
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.dhs._
 import observe.model.QueueManipulationOp._
 import observe.model.ObserveModelArbitraries._

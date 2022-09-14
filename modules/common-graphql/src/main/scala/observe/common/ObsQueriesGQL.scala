@@ -244,6 +244,10 @@ object ObsQueriesGQL {
             ...offset
           }
         }
+        ... on Bias {
+        }
+        ... on Dark {
+        }
       }
 
     """
@@ -266,10 +270,12 @@ object ObsQueriesGQL {
       } yield math.Offset(p, q)
     )
 
-    implicit val seqStepConfigDecoder: Decoder[SeqStepConfig] = List[Decoder[SeqStepConfig]](
-      Decoder[SeqStepConfig.SeqScienceStep].widen,
-      Decoder[SeqStepConfig.Gcal].widen
-    ).reduceLeft(_ or _)
+//    implicit val seqStepConfigDecoder: Decoder[SeqStepConfig] = List[Decoder[SeqStepConfig]](
+//      Decoder[SeqStepConfig.SeqScienceStep].widen,
+//      Decoder[SeqStepConfig.Gcal].widen,
+//      Decoder[SeqStepConfig.Bias].widen,
+//      Decoder[SeqStepConfig.Dark].widen
+//    ).reduceLeft(_ or _)
 
     implicit val seqSiteDecoder: Decoder[GmosSite] = List[Decoder[GmosSite]](
       Decoder[GmosSite.North].widen,
@@ -350,6 +356,8 @@ object ObsQueriesGQL {
         diffuser: enums.GcalDiffuser,
         shutter:  enums.GcalShutter
       ) extends SeqStepConfig
+      case object Dark extends SeqStepConfig
+      case object Bias extends SeqStepConfig
     }
     trait InsConfig                              {
       type StaticConfig

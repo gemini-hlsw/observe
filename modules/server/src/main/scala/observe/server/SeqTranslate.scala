@@ -9,24 +9,19 @@ import cats.data.EitherT
 import cats.data.NonEmptySet
 import cats.effect.{Async, Ref, Sync, Temporal}
 import cats.syntax.all._
-import edu.gemini.seqexec.odb.SeqexecSequence
 import lucuma.core.math.Wavelength
-import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
-import edu.gemini.spModel.obscomp.InstConstants.DATA_LABEL_PROP
-import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
-import edu.gemini.spModel.obscomp.InstConstants.SCIENCE_OBSERVE_TYPE
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.Site
+import lucuma.core.enums.{ObsActiveStatus, ObsStatus, Site}
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import mouse.all._
 import observe.engine.Action.ActionState
 import observe.engine._
 import observe.model.Observation
 import observe.model.dhs._
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.model.{Progress => _, _}
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps._
@@ -77,13 +72,15 @@ import observe.server.tcs._
 import observe.server.transition.{SEQUENCE_TYPE_NAME, STEP_ID_NAME}
 import squants.Time
 import squants.time.TimeConversions._
-import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
+import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.Config.GmosNorthExecutionConfig
+import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 
 trait SeqTranslate[F[_]] extends ObserveActions {
 
-  def sequence(obsId: Observation.Id, sequence: SeqexecSequence)(implicit
+  def sequence(sequence: OdbObservation)(implicit
     tio:              Temporal[F]
-  ): F[(List[Throwable], Option[SequenceGen[F]])]
+  ): Option[Either[List[Throwable], SequenceGen[F]]]
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(implicit
     tio:                 Temporal[F]
@@ -104,41 +101,52 @@ trait SeqTranslate[F[_]] extends ObserveActions {
 }
 
 object SeqTranslate {
-  private class SeqTranslateImpl[F[_]: Async: Logger](
+
+  trait InstrumentStepBuilder[F[_], S, I] {
+    def instStep(systems: Systems[F], staticCfg: S, insConfig: I): InstrumentSystem[F]
+  }
+
+  class SeqTranslateImpl[F[_]: Async: Logger, S, I <: InsConfig](
     site:      Site,
     systemss:  Systems[F],
-    gmosNsCmd: Ref[F, Option[NSObserveCommand]]
+    gmosNsCmd: Ref[F, Option[NSObserveCommand]],
+    instStepBuilder: InstrumentStepBuilder[F, S, I]
   ) extends SeqTranslate[F] {
 
     private val overriddenSystems = new OverriddenSystems[F](systemss)
 
-    private def step(
-      obsIdName:   Observation.IdName,
-      dataIdx:     PosInt,
-      config:      CleanConfig,
-      imageFileId: Option[ImageFileId],
-      isNightSeq:  Boolean
-    ): F[StepGen[F]] = {
-      def buildStep(
+//    private def step(
+//      obsIdName:   Observation.IdName,
+//      dataIdx:     PosInt,
+////      config:      CleanConfig,
+//      imageFileId: Option[ImageFileId],
+//      isNightSeq:  Boolean
+//    ): F[StepGen[F]] = {
+
+      protected def buildStep(
+        obsIdName: Observation.IdName,
         stepId:       StepId,
         dataId:       DataId,
+        index:        PosInt,
         sequenceType: SequenceType,
         instRes:      Resource,
         insSpec:      InstrumentSpecifics,
         instf:        SystemOverrides => InstrumentSystem[F],
         otherSysf:    Map[Resource, SystemOverrides => System[F]],
         headers:      SystemOverrides => HeaderExtraData => List[Header[F]],
-        stepType:     StepType
+        stepType:     StepType,
+        staticCfg: S,
+        step: SeqStep[I]
       ): SequenceGen.StepGen[F] = {
 
         val configs: Map[Resource, SystemOverrides => Action[F]] = otherSysf.map { case (r, sf) =>
           val kind = ActionType.Configure(r)
           r -> { ov: SystemOverrides =>
-            sf(ov).configure(config).as(Response.Configured(r)).toAction(kind)
+            sf(ov).configure.as(Response.Configured(r)).toAction(kind)
           }
         } + (instRes -> { ov: SystemOverrides =>
           instf(ov)
-            .configure(config)
+            .configure
             .as(Response.Configured(instRes))
             .toAction(ActionType.Configure(instRes))
         })
@@ -148,11 +156,10 @@ object SeqTranslate {
           val env  = ObserveEnvironment(
             systemss.odb,
             overriddenSystems.dhs(ov),
-            config,
             stepType,
             obsIdName,
             stepId,
-            dataIdx,
+            index,
             sequenceType,
             instf(ov),
             insSpec,
@@ -162,113 +169,135 @@ object SeqTranslate {
           )
           // Request the instrument to build the observe actions and merge them with the progress
           // Also catches any errors in the process of running an observation
-          inst.instrumentActions(config).observeActions(env)
-        }
-
-        extractStatus(config) match {
-          case StepState.Pending =>
-            SequenceGen.PendingStepGen(
-              stepId,
-              dataId,
-              config,
-              otherSysf.keys.toSet + instRes,
-              { ov: SystemOverrides => instf(ov).observeControl(config) },
-              StepActionsGen(configs, rest)
-            )
-          case StepState.Skipped =>
-            SequenceGen.SkippedStepGen(
-              stepId,
-              dataId,
-              config
-            )
-          // TODO: This case should be for completed Steps only. Fail when step status is unknown.
-          case _                 =>
-            SequenceGen.CompletedStepGen(
-              stepId,
-              dataId,
-              config,
-              imageFileId
-            )
+          inst.instrumentActions.observeActions(env)
         }
       }
 
-      for {
-        inst     <- MonadError[F, Throwable].fromEither(extractInstrument(config))
-        insSpecs  = instrumentSpecs(inst)
-        stepType <-
-          insSpecs.calcStepType(config, isNightSeq).fold(_.raiseError[F, StepType], _.pure[F])
-        stepId   <- config.extractAs[StepId](OCS_KEY / STEP_ID_NAME).toF
-        seqType  <- config.extractAs[SequenceType](OCS_KEY / SEQUENCE_TYPE_NAME).toF
-        dataId   <- dataIdFromConfig[F](config)
-        is        = toInstrumentSys(inst)
-        systems  <- calcSystems(config, stepType, insSpecs)
-        headers  <- calcHeaders(config, stepType, inst)
-      } yield buildStep(
-        stepId,
-        dataId,
-        seqType,
-        inst,
-        insSpecs,
-        is,
-        systems,
-        (ov: SystemOverrides) => headers(is(ov).keywordsClient),
-        stepType
-      )
-    }
+//        extractStatus(config) match {
+//          case StepState.Pending =>
+//            SequenceGen.PendingStepGen(
+//              stepId,
+//              dataId,
+//              Map.empty,
+//              otherSysf.keys.toSet + instRes,
+//              { ov: SystemOverrides => instf(ov).observeControl },
+//              StepActionsGen(configs, rest)
+//            )
+//          case StepState.Skipped =>
+//            SequenceGen.SkippedStepGen(
+//              stepId,
+//              dataId,
+//              config
+//            )
+//          // TODO: This case should be for completed Steps only. Fail when step status is unknown.
+//          case _                 =>
+//            SequenceGen.CompletedStepGen(
+//              stepId,
+//              dataId,
+//              config,
+//              imageFileId
+//            )
+//        }
+//      }
+//
+//      for {
+//        inst     <- MonadError[F, Throwable].fromEither(extractInstrument(config))
+//        insSpecs  = instrumentSpecs(inst)
+//        stepType <-
+//          insSpecs.calcStepType(config, isNightSeq).fold(_.raiseError[F, StepType], _.pure[F])
+//        stepId   <- config.extractAs[StepId](OCS_KEY / STEP_ID_NAME).toF
+//        seqType  <- config.extractAs[SequenceType](OCS_KEY / SEQUENCE_TYPE_NAME).toF
+//        dataId   <- dataIdFromConfig[F](config)
+//        is        = toInstrumentSys(inst)
+//        systems  <- calcSystems(config, stepType, insSpecs)
+//        headers  <- calcHeaders(config, stepType, inst)
+//      } yield buildStep(
+//        stepId,
+//        dataId,
+//        seqType,
+//        inst,
+//        insSpecs,
+//        is,
+//        systems,
+//        (ov: SystemOverrides) => headers(is(ov).keywordsClient),
+//        stepType
+//      )
+//    }
 
-    override def sequence(obsId: Observation.Id, sequence: SeqexecSequence)(implicit
+    override def sequence[C](sequence: OdbObservation)(implicit
       tio:                       Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 
-      // TODO: Retrive sequence name from ODB sequence
-      val obsName = "Dummy"
+      val obsId = sequence.id
+      val obsName = sequence.title
 
-      // Step Configs are wrapped in a CleanConfig to fix some known inconsistencies that can appear in the sequence
-      val configs = sequence.config.getAllSteps.toList.map(CleanConfig(_))
-
-      val isNightSeq: Boolean = configs.exists(
-        _.extractObsAs[String](OBSERVE_TYPE_PROP).exists(_ === SCIENCE_OBSERVE_TYPE)
-      )
-
-      // TODO: Retrieve step ids from the config
-      val steps = configs.zipWithIndex
-        .map { case (c, i) =>
-          step(
-            Observation.IdName(obsId, obsName),
-            PosInt.unsafeFrom(i + 1),
-            c,
-            sequence.datasets.get(i).map(x => toImageFileId(x.filename)),
-            isNightSeq
-          ).attempt
-        }
-        .sequence
-        .map(_.separate)
-
-      val instName = configs.headOption
-        .map(extractInstrument)
-        .getOrElse(Either.left(ObserveFailure.UnrecognizedInstrument("UNKNOWN")))
-
-      steps.map { sts =>
-        instName.fold(e => (List(e), none),
-                      i =>
-                        sts match {
-                          case (errs, ss) =>
-                            (
-                              errs,
-                              ss.headOption.map { _ =>
-                                SequenceGen(
-                                  obsId,
-                                  obsName,
-                                  sequence.title,
-                                  i,
-                                  ss
-                                )
-                              }
-                            )
-                        }
-        )
+      sequence.execution.config match {
+        case c: GmosNorthExecutionConfig => (List.empty[Throwable], buildSequence(
+          sequence.id,
+          sequence.title,
+          sequence.status,
+          sequence.activeStatus,
+          sequence.plannedTime,
+          sequence.targetEnvironment,
+          sequence.constraintSet,
+          c
+        ).some).pure[F]
+        case c => (List(ObserveFailure.UnrecognizedInstrument(c.instrument.longName)), none).pure[F]
       }
     }
+
+    protected def buildSequence(sequence: Data.Observation, inst: Instrument, staticCfg: S, acquisition: OdbSequence[I], science: OdbSequence[I]): Either[List[Throwable], SequenceGen[F]] = {
+
+      val steps = (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture).flatMap(_.steps).map(x => buildStep(staticCfg, x))
+
+      SequenceGen(sequence.id, sequence.id.toString(), sequence.title, inst, steps).asRight
+    }
+
+//      val configss = sequence.config.getAllSteps.toList.map(CleanConfig(_))
+//
+//      val isNightSeq: Boolean = configs.exists(
+//        _.extractObsAs[String](OBSERVE_TYPE_PROP).exists(_ === SCIENCE_OBSERVE_TYPE)
+//      )
+//
+//      // TODO: Retrieve step ids from the config
+//      val steps = configs.zipWithIndex
+//        .map { case (c, i) =>
+//          step(
+//            Observation.IdName(obsId, obsName),
+//            PosInt.unsafeFrom(i + 1),
+//            c,
+//            sequence.datasets.get(i).map(x => toImageFileId(x.filename)),
+//            isNightSeq
+//          ).attempt
+//        }
+//        .sequence
+//        .map(_.separate)
+//
+//      val instName = configs.headOption
+//        .map(extractInstrument)
+//        .getOrElse(Either.left(ObserveFailure.UnrecognizedInstrument("UNKNOWN")))
+//
+//      steps.map { sts =>
+//        instName.fold(e => (List(e), none),
+//                      i =>
+//                        sts match {
+//                          case (errs, ss) =>
+//                            (
+//                              errs,
+//                              ss.headOption.map { _ =>
+//                                SequenceGen(
+//                                  obsId,
+//                                  obsName,
+//                                  sequence.title,
+//                                  i,
+//                                  ss
+//                                )
+//                              }
+//                            )
+//                        }
+//        )
+//      }
+//    }
 
     private def deliverObserveCmd(seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
       st:                                EngineState[F]
@@ -781,6 +810,13 @@ object SeqTranslate {
 
   }
 
+  def calcStepType(a: SeqStepConfig, i: Instrument): StepType = a match {
+
+    case SeqStepConfig.SeqScienceStep(_) => StepType.CelestialObject(i)
+    case SeqStepConfig.Gcal(_, _, _) => StepType.FlatOrArc(i)
+    case SeqStepConfig.Bias || SeqStepConfig.Dark => StepType.DarkOrBias(i)
+  }
+
   def apply[F[_]: Async: Logger](site: Site, systems: Systems[F]): F[SeqTranslate[F]] =
     Ref.of[F, Option[NSObserveCommand]](none).map(new SeqTranslateImpl(site, systems, _))
 
@@ -804,9 +840,9 @@ object SeqTranslate {
     private val gcalDisabled: GcalController[F]             = new GcalControllerDisabled[F]
     private val flamingos2Disabled: Flamingos2Controller[F] = new Flamingos2ControllerDisabled[F]
     private val gmosSouthDisabled: GmosSouthController[F]   =
-      new GmosControllerDisabled[F, GmosController.SouthTypes]("GMOS-S")
+      new GmosControllerDisabled[F, GmosSite.South]("GMOS-S")
     private val gmosNorthDisabled: GmosNorthController[F]   =
-      new GmosControllerDisabled[F, GmosController.NorthTypes]("GMOS-N")
+      new GmosControllerDisabled[F, GmosSite.North]("GMOS-N")
     private val gsaoiDisabled: GsaoiController[F]           = new GsaoiControllerDisabled[F]
     private val gpiDisabled: GpiController[F]               = new GpiControllerDisabled[F](systems.gpi.statusDb)
     private val ghostDisabled: GhostController[F]           = new GhostControllerDisabled[F]

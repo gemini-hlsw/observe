@@ -8,8 +8,8 @@ import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import lucuma.core.util.arb.ArbEnumerated._
 import observe.model._
-import observe.model.enum.NodAndShuffleStage._
-import observe.model.enum._
+import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums._
 import observe.model.GmosParameters._
 import shapeless.tag
 

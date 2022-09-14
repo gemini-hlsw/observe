@@ -35,7 +35,7 @@ import observe.model.{
   UnknownTargetName,
   UserDetails
 }
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.web.client.actions._
 import observe.web.client.circuit._
 import observe.web.client.icons._

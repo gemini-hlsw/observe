@@ -17,8 +17,8 @@ import observe.model.SystemOverrides
 import observe.model.StepId
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.
@@ -59,7 +59,7 @@ object SequenceGen {
   sealed trait StepGen[+F[_]] {
     val id: StepId
     val dataId: DataId
-    val config: CleanConfig
+    val config: Map[String, String]
   }
 
   object StepGen {
@@ -100,28 +100,28 @@ object SequenceGen {
   final case class PendingStepGen[F[_]](
     override val id:     StepId,
     override val dataId: DataId,
-    override val config: CleanConfig,
+    override val config: Map[String, String],
     resources:           Set[Resource],
     obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:           StepActionsGen[F]
   ) extends StepGen[F]
 
-  final case class SkippedStepGen(
+  final case class SkippedStepGen[D](
     override val id:     StepId,
     override val dataId: DataId,
-    override val config: CleanConfig
+    override val config: Map[String, String]
   ) extends StepGen[Nothing]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
-  final case class CompletedStepGen(
+  final case class CompletedStepGen[D](
     override val id:     StepId,
     override val dataId: DataId,
-    override val config: CleanConfig,
+    override val config: Map[String, String],
     fileId:              Option[ImageFileId]
   ) extends StepGen[Nothing]
 
-  def stepIndex[F[_]](steps: List[SequenceGen.StepGen[F]], stepId: StepId): Option[Int] =
+  def stepIndex[F[_], D](steps: List[SequenceGen.StepGen[F]], stepId: StepId): Option[Int] =
     steps.zipWithIndex.find(_._1.id === stepId).map(_._2)
 
 }

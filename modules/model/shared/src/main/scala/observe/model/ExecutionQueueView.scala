@@ -7,7 +7,7 @@ import cats.Eq
 import cats.syntax.all._
 import monocle.macros.Lenses
 import observe.model.Observation
-import observe.model.enum.BatchExecState
+import observe.model.enums.BatchExecState
 
 @Lenses
 final case class ExecutionQueueView(

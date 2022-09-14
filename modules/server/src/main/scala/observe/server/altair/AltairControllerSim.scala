@@ -6,7 +6,7 @@ package observe.server.altair
 import cats.Applicative
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
-import observe.model.`enum`.Instrument
+import observe.model.enums.Instrument
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.tcs.Gaos.{GuideCapabilities, PauseConditionSet, ResumeConditionSet}
 import observe.server.tcs.TcsController

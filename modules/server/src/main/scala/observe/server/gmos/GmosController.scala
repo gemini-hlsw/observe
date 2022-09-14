@@ -6,30 +6,27 @@ package observe.server.gmos
 import scala.concurrent.duration.Duration
 import cats.Show
 import cats.syntax.all._
-import lucuma.core.enums.{ GmosRoi, GmosXBinning, GmosYBinning }
-import lucuma.core.math.Offset
+import lucuma.core.enums.{GmosEOffsetting, GmosRoi, GmosXBinning, GmosYBinning}
+import lucuma.core.math.{Offset, Wavelength}
 import lucuma.core.util.Enumerated
+import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import observe.model.GmosParameters
 import observe.model.GmosParameters._
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Guiding
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Guiding
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.ObserveFailure.Unexpected
 import observe.server._
-import observe.server.gmos.GmosController.Config.DCConfig
-import observe.server.gmos.GmosController.Config.NSConfig
+import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NSConfig}
 import shapeless.tag
-import squants.Length
-import squants.Time
 
-trait GmosController[F[_], T <: GmosController.SiteDependentTypes] {
+trait GmosController[F[_], T <: GmosSite] {
   import GmosController._
 
   def applyConfig(config: GmosConfig[T]): F[Unit]
 
-  def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult]
+  def observe(fileId: ImageFileId, expTime: Duration): F[ObserveCommandResult]
 
   // endObserve is to notify the completion of the observation, not to cause its end.
   def endObserve: F[Unit]
@@ -40,42 +37,41 @@ trait GmosController[F[_], T <: GmosController.SiteDependentTypes] {
 
   def pauseObserve: F[Unit]
 
-  def resumePaused(expTime: Time): F[ObserveCommandResult]
+  def resumePaused(expTime: Duration): F[ObserveCommandResult]
 
   def stopPaused: F[ObserveCommandResult]
 
   def abortPaused: F[ObserveCommandResult]
 
-  def observeProgress(total: Time, elapsed: ElapsedTime): fs2.Stream[F, Progress]
+  def observeProgress(total: Duration, elapsed: ElapsedTime): fs2.Stream[F, Progress]
 
   def nsCount: F[Int]
 
 }
 
 object GmosController {
-  sealed abstract class Config[T <: SiteDependentTypes] {
+  sealed abstract class Config[T <: GmosSite] {
     import Config._
 
-    case class BuiltInFPU(fpu: T#FPU) extends GmosFPU
+    case class BuiltInFPU(fpu: T#BuiltInFpu) extends GmosFPU
 
     sealed trait GmosDisperser extends Product with Serializable
     object GmosDisperser {
       case object Mirror                      extends GmosDisperser
       case class Order0(disperser: T#Grating) extends GmosDisperser
-      case class OrderN(disperser: T#Grating, order: DisperserOrder, lambda: Length)
+      case class OrderN(disperser: T#Grating, order: DisperserOrder, lambda: Wavelength)
           extends GmosDisperser
     }
 
-    case class CCConfig(
+    final case class StandardCCConfig(
       filter:              Option[T#Filter],
       disperser:           GmosDisperser,
       fpu:                 Option[GmosFPU],
-      stage:               T#GmosStageMode,
+      stage:               T#StageMode,
       dtaX:                DTAX,
       adc:                 ADC,
-      useElectronicOffset: ElectronicOffset,
-      isDarkOrBias:        Boolean
-    )
+      useElectronicOffset: ElectronicOffset
+    ) extends CCConfig
 
   }
 
@@ -126,18 +122,12 @@ object GmosController {
         Enumerated.of(InBeam, OutOfBeam)
     }
 
-    sealed trait ElectronicOffset extends Product with Serializable
+    type ElectronicOffset = GmosEOffsetting
 
     object ElectronicOffset {
-      case object On  extends ElectronicOffset
-      case object Off extends ElectronicOffset
 
       def fromBoolean(v: Boolean): ElectronicOffset =
-        if (v) On else Off
-
-      /** @group Typeclass Instances */
-      implicit val ElectronicOffsetEnumerated: Enumerated[ElectronicOffset] =
-        Enumerated.of(On, Off)
+        if (v) GmosEOffsetting.On else GmosEOffsetting.Off
     }
 
     sealed trait GmosFPU extends Product with Serializable
@@ -180,7 +170,7 @@ object GmosController {
         cycles:       NsCycles,
         rows:         NsRows,
         positions:    Vector[NSPosition],
-        exposureTime: Time
+        exposureTime: Duration
       ) extends NSConfig {
         val nsPairs: GmosParameters.NsPairs                   =
           tag[NsPairsI][Int](cycles * NodAndShuffleStage.NsSequence.length / 2)
@@ -188,9 +178,9 @@ object GmosController {
           tag[NsRowsI][Int](Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
         val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](2)
         val nsState: NodAndShuffleState                       = NodAndShuffleState.NodShuffle
-        val totalExposureTime: Time                           =
+        val totalExposureTime: Duration                           =
           cycles * exposureTime / exposureDivider.toDouble
-        val nodExposureTime: Time                             =
+        val nodExposureTime: Duration                             =
           exposureTime / exposureDivider.toDouble
       }
     }
@@ -199,12 +189,12 @@ object GmosController {
       def fromOCS(
         builtIn: BuiltinROI,
         custom:  List[ROI]
-      ): Either[ObserveFailure, RegionsOfInterest] =
+      ): RegionsOfInterest =
         (builtIn, custom) match {
           case (b, r) if b =!= GmosRoi.Custom && r.isEmpty =>
-            new RegionsOfInterest(b.asLeft) {}.asRight
-          case (GmosRoi.Custom, r) if r.nonEmpty           => new RegionsOfInterest(r.asRight) {}.asRight
-          case _                                           => Unexpected("Inconsistent values for GMOS regions of interest").asLeft
+            new RegionsOfInterest(b.asLeft) {}
+          case (GmosRoi.Custom, r) if r.nonEmpty           => new RegionsOfInterest(r.asRight) {}
+          case _                                           => new RegionsOfInterest((GmosRoi.FullFrame:GmosRoi).asLeft) {}
         }
 
       def unapply(r: RegionsOfInterest): Option[Either[BuiltinROI, List[ROI]]] = r.rois.some
@@ -218,53 +208,35 @@ object GmosController {
       roi: RegionsOfInterest
     )
 
+    sealed trait CCConfig
+
+    case object DarkOrBias extends CCConfig
+
   }
 
-  sealed trait SiteDependentTypes {
-    type Filter
-    type FPU
-    type GmosStageMode
-    type Grating
-  }
-
-  final class SouthTypes extends SiteDependentTypes {
-    override type Filter        = lucuma.core.enums.GmosSouthFilter
-    override type FPU           = lucuma.core.enums.GmosSouthFpu
-    override type GmosStageMode = lucuma.core.enums.GmosSouthStageMode
-    override type Grating       = lucuma.core.enums.GmosSouthGrating
-  }
-
-  final class SouthConfigTypes extends Config[SouthTypes]
+  final class SouthConfigTypes extends Config[GmosSite.South]
   val southConfigTypes: SouthConfigTypes = new SouthConfigTypes
 
-  final class NorthTypes extends SiteDependentTypes {
-    override type Filter        = lucuma.core.enums.GmosNorthFilter
-    override type FPU           = lucuma.core.enums.GmosNorthFpu
-    override type GmosStageMode = lucuma.core.enums.GmosNorthStageMode
-    override type Grating       = lucuma.core.enums.GmosNorthGrating
-  }
-
-  final class NorthConfigTypes extends Config[NorthTypes]
+  final class NorthConfigTypes extends Config[GmosSite.North]
 
   val northConfigTypes: NorthConfigTypes = new NorthConfigTypes
 
   // This is a trick to allow using a type from a class parameter to define the type of another class parameter
-  final case class GmosConfig[T <: SiteDependentTypes] private (
-    cc: Config[T]#CCConfig,
+  final case class GmosConfig[T <: GmosSite] private (
+    cc: Config.CCConfig,
     dc: DCConfig,
     c:  Config[T],
     ns: NSConfig
   ) {
-    def this(c: Config[T])(cc: c.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)
+    def this(c: Config[T])(cc: Config.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)
   }
 
-  implicit def configShow[T <: SiteDependentTypes]: Show[GmosConfig[T]] =
+  implicit def configShow[T <: GmosSite]: Show[GmosConfig[T]] =
     Show.show { config =>
-      val ccShow =
-        if (config.cc.isDarkOrBias) "DarkOrBias"
-        else
-          s"${config.cc.filter}, ${config.cc.disperser}, ${config.cc.fpu}, ${config.cc.stage}, ${config.cc.stage}, ${config.cc.dtaX}, ${config.cc.adc}, ${config.cc.useElectronicOffset}"
-
+      val ccShow = config.cc match {
+        case DarkOrBias => "DarkOrBias"
+        case cc: Config[T]#StandardCCConfig => s"${cc.filter}, ${cc.disperser}, ${cc.fpu}, ${cc.stage}, ${cc.stage}, ${cc.dtaX}, ${cc.adc}, ${cc.useElectronicOffset}"
+      }
       s"($ccShow, ${config.dc.t}, ${config.dc.s}, ${config.dc.bi}, ${config.dc.roi.rois} ${config.ns})"
     }
 

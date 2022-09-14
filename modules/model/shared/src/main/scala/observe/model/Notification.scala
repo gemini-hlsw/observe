@@ -6,8 +6,8 @@ package observe.model
 import cats.Eq
 import cats.syntax.all._
 import observe.model.Observation
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 
 sealed trait Notification extends Product with Serializable
 

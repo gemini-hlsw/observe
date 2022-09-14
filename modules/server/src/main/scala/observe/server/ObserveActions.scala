@@ -12,7 +12,7 @@ import org.typelevel.log4cats.Logger
 import observe.engine._
 import observe.model.{Observation, StepId}
 import observe.model.dhs._
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import InstrumentSystem._
 import squants.time.Time
 import squants.time.TimeConversions._
@@ -89,11 +89,7 @@ trait ObserveActions {
    */
   def observationProgressStream[F[_]](
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
-    for {
-      ot <- Stream.eval(env.inst.calcObserveTime(env.config))
-      pr <- env.inst.observeProgress(ot, ElapsedTime(0.0.seconds))
-    } yield Result.Partial(pr)
+  ): Stream[F, Result[F]] = env.inst.observeProgress(env.inst.calcObserveTime, ElapsedTime(0.0.seconds)).map(Result.Partial(_))
 
   /**
    * Tell each subsystem that an observe will start
@@ -134,7 +130,7 @@ trait ObserveActions {
         info(
           s"Start ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
         )
-      r <- env.inst.observe(env.config)(fileId)
+      r <- env.inst.observe(fileId)
       _ <-
         info(
           s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
@@ -164,7 +160,7 @@ trait ObserveActions {
   /**
    * Method to process observe results and act accordingly to the response
    */
-  private def observeTail[F[_]: Temporal](
+  private def observeTail[F[_]: Temporal, S, D](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
   )(r:      ObserveCommandResult): Stream[F, Result[F]] =
@@ -176,13 +172,11 @@ trait ObserveActions {
       case ObserveCommandResult.Aborted =>
         abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
-        env.inst
-          .calcObserveTime(env.config)
-          .flatMap(totalTime =>
-            env.inst.observeControl(env.config) match {
+        val totalTime = env.inst.calcObserveTime
+            env.inst.observeControl match {
               case c: CompleteControl[F] =>
-                val resumePaused: Time => Stream[F, Result[F]]    =
-                  (remaining: Time) =>
+                val resumePaused: Duration => Stream[F, Result[F]]    =
+                  (remaining: Duration) =>
                     Stream
                       .eval {
                         c.continue
@@ -225,7 +219,6 @@ trait ObserveActions {
                   .Execution("Observation paused for an instrument that does not support pause")
                   .raiseError[F, Result[F]]
             }
-          )
     })
 
   /**

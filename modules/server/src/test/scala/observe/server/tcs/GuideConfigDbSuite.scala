@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import io.circe.parser._
 import cats.effect.IO
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig

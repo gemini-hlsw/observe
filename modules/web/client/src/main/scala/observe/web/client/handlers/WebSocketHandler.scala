@@ -27,7 +27,7 @@ import diode.util.RunAfterJS
 import mouse.all._
 import org.scalajs.dom._
 import observe.model.boopickle.ModelBooPicklers
-import observe.model.enum.ServerLogLevel
+import observe.model.enums.ServerLogLevel
 import observe.model.events._
 import observe.web.client.actions._
 import observe.web.client.circuit._

@@ -5,7 +5,7 @@ package observe.model
 
 import cats.{Eq, Show}
 import monocle.macros.Lenses
-import observe.model.enum.MountGuideOption
+import observe.model.enums.MountGuideOption
 
 /** Data type for guide config. */
 @Lenses

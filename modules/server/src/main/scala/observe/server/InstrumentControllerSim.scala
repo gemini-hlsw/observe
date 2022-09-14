@@ -13,7 +13,7 @@ import org.typelevel.log4cats.Logger
 import monocle.macros.Lenses
 import mouse.all._
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import InstrumentSystem.ElapsedTime
 import ObserveFailure.ObserveException
 import cats.effect.kernel.Async

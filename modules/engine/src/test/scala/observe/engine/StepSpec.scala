@@ -16,10 +16,10 @@ import org.scalatest.Inside._
 import observe.engine.TestUtil.TestState
 import observe.engine.EventResult._
 import observe.engine.SystemEvent._
-import observe.model.enum.Instrument.GmosS
-import observe.model.{ClientId, SequenceState, StepState}
-import observe.model.enum.Resource
-import observe.model.{ActionType, UserDetails}
+import observe.model.enums.Instrument.GmosS
+import observe.model.{ ClientId, SequenceState, StepState }
+import observe.model.enums.Resource
+import observe.model.{ ActionType, UserDetails }
 import observe.common.test._
 import scala.Function.const
 import scala.concurrent.duration._

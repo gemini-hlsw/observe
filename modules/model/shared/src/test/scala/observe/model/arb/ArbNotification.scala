@@ -14,8 +14,8 @@ import observe.model.StepId
 import observe.model.Notification
 import observe.model.Notification._
 import observe.model.Observation
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 
 trait ArbNotification {
   import ArbObservationIdName._

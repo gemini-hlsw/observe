@@ -21,7 +21,7 @@ import observe.model.Observation
 import observe.model.ObserveStage
 import observe.model.StepId
 import observe.model.dhs.ImageFileId
-import observe.model.enum.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage
 import observe.model.operations._
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.DividedProgress

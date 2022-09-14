@@ -15,8 +15,8 @@ import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import observe.engine._
 import observe.model._
-import observe.model.enum._
-import observe.model.enum.Resource.TCS
+import observe.model.enums._
+import observe.model.enums.Resource.TCS
 import observe.server.TestCommon._
 import monocle.function.Index.mapIndex
 import observe.common.test.stepId

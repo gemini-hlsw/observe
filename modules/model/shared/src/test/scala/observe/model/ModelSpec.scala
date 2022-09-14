@@ -6,7 +6,7 @@ package observe.model
 import cats.tests.CatsSuite
 import cats.kernel.laws.discipline._
 import lucuma.core.util.arb.ArbEnumerated._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.GmosParameters._
 import observe.model.dhs._
 import observe.model.ObserveModelArbitraries._

@@ -8,7 +8,7 @@ import monocle.Lens
 import monocle.macros.Lenses
 import Result.{Error, PartialVal, PauseContext, RetVal}
 import observe.model.ActionType
-import observe.model.enum.ActionStatus
+import observe.model.enums.ActionStatus
 
 @Lenses
 final case class Action[F[_]](

@@ -6,7 +6,7 @@ package observe.model
 import cats._
 import monocle.macros.Lenses
 import observe.model.GmosParameters._
-import observe.model.enum._
+import observe.model.enums._
 import squants.Time
 
 final case class NSRunningState(action: NSAction, sub: NSSubexposure)

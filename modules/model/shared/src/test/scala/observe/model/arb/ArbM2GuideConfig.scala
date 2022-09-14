@@ -8,8 +8,8 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import lucuma.core.util.arb.ArbEnumerated._
-import observe.model.enum.ComaOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.TipTiltSource
 import observe.model.M2GuideConfig
 
 trait ArbM2GuideConfig {

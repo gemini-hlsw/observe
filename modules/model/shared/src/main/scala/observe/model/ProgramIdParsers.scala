@@ -11,7 +11,7 @@ import lucuma.core.enums.Site
 import lucuma.core.model.Semester
 import lucuma.core.parser.MiscParsers
 import lucuma.core.parser.TimeParsers
-import observe.model.enum.DailyProgramType
+import observe.model.enums.DailyProgramType
 
 import Atto._
 

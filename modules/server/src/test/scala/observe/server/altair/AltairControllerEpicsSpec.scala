@@ -8,7 +8,7 @@ import cats.effect.IO
 import edu.gemini.observe.server.altair.LgsSfoControl
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import observe.model.`enum`.Instrument
+import observe.model.enums.Instrument
 import observe.server.tcs.TcsController.{
   FocalPlaneOffset,
   InstrumentOffset,

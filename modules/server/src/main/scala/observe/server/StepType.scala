@@ -5,9 +5,9 @@ package observe.server
 
 import cats._
 import cats.syntax.all._
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 
-sealed trait StepType {
+sealed trait StepType extends Product with Serializable {
   def instrument: Instrument
 }
 

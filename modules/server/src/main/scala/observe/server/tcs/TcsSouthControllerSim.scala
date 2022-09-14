@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.data.NonEmptySet
 import cats.implicits._
 import org.typelevel.log4cats.Logger
-import observe.model.enum.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem

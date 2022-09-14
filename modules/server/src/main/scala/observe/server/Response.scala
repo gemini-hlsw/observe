@@ -5,7 +5,7 @@ package observe.server
 
 import observe.engine.Result.RetVal
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 
 sealed trait Response extends RetVal with Product with Serializable
 

@@ -11,8 +11,14 @@ import monocle.Traversal
 import monocle.function.At.atSortedMap
 import monocle.macros.Lenses
 import monocle.std
-import observe.model.{BatchCommandState, ExecutionQueueView, QueueId, SequenceView, SequencesQueue}
-import observe.model.enum.BatchExecState
+import observe.model.{
+  BatchCommandState,
+  ExecutionQueueView,
+  QueueId,
+  SequenceView,
+  SequencesQueue
+}
+import observe.model.enums.BatchExecState
 import observe.web.client.model._
 
 import scala.collection.immutable.SortedMap

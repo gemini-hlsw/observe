@@ -10,7 +10,7 @@ import edu.gemini.spModel.gemini.altair.AltairConstants
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{Wavelength => GNIRSWavelength}
 import edu.gemini.spModel.obscomp.InstConstants._
 import observe.model.StepState
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import CleanConfig.extractItem
 import ConfigUtilOps._
 import ObserveFailure.Unexpected

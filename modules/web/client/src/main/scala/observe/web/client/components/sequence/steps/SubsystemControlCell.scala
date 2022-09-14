@@ -20,7 +20,7 @@ import react.semanticui.modules.popup.Popup
 import react.semanticui.sizes._
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.enum._
+import observe.model.enums._
 import observe.web.client.actions.RequestResourceRun
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles

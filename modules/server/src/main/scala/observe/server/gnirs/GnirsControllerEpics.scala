@@ -15,7 +15,7 @@ import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex._
 import observe.server.EpicsUtil._
 import observe.server._

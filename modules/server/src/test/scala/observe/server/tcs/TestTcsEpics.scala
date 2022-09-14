@@ -9,7 +9,7 @@ import cats.syntax.all._
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import monocle.{Getter, Lens}
 import monocle.macros.Lenses
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.ApplyCommandResult
 import observe.server.TestEpicsCommand._
 import observe.server.EpicsCommand
 import observe.server.tcs.TcsEpics._

@@ -8,7 +8,7 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import lucuma.core.util.arb.ArbEnumerated._
 import observe.model.TelescopeGuideConfig
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.arb.ArbM1GuideConfig._

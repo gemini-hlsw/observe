@@ -6,8 +6,8 @@ package observe.model
 import cats.Eq
 import cats.syntax.all._
 import observe.model.GmosParameters._
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.NodAndShuffleStage._
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage._
 import shapeless.tag
 
 final case class NSSubexposure private (

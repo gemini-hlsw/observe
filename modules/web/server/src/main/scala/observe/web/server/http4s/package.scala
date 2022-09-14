@@ -11,9 +11,9 @@ import observe.model.Observation
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.QueueId
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.RunOverride
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.RunOverride
 
 trait Var {
   object ObsIdVar {

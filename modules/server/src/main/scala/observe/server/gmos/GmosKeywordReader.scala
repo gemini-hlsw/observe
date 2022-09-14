@@ -14,9 +14,9 @@ import edu.gemini.spModel.gemini.gmos.InstGmosCommon.USE_NS_PROP
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import monocle.Getter
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.NodAndShuffleStage.StageA
-import observe.model.enum.NodAndShuffleStage.StageB
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage.StageA
+import observe.model.enums.NodAndShuffleStage.StageB
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps

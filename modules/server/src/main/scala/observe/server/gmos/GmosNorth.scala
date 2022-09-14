@@ -4,68 +4,50 @@
 package observe.server.gmos
 
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.gmos.InstGmosCommon.FPU_PROP_NAME
-import edu.gemini.spModel.gemini.gmos.InstGmosCommon.STAGE_MODE_PROP
-import edu.gemini.spModel.gemini.gmos.InstGmosNorth.{ DISPERSER_PROP, FILTER_PROP }
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
-import observe.model.enum.Instrument
-import observe.server.CleanConfig
-import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps
-import observe.server.ConfigUtilOps._
+import observe.model.enums.Instrument
 import observe.server.InstrumentSpecifics
 import observe.server.ObserveFailure
 import observe.server.StepType
 import observe.server.gmos.Gmos.SiteSpecifics
-import observe.server.gmos.GmosController.NorthTypes
 import observe.server.gmos.GmosController.northConfigTypes
 import observe.server.keywords.DhsClient
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import squants.Length
 import squants.space.Arcseconds
 import cats.effect.{Ref, Temporal}
+import edu.gemini.spModel.gemini.ghost.Ghost.INSTRUMENT_NAME_PROP
+import observe.common.ObsQueriesGQL.ObsQuery.{GmosInstrumentConfig, GmosSite, GmosStatic}
 
 final case class GmosNorth[F[_]: Temporal: Logger] private (
   c:         GmosNorthController[F],
   dhsClient: DhsClient[F],
-  nsCmdR:    Ref[F, Option[NSObserveCommand]]
-) extends Gmos[F, NorthTypes](
+  nsCmdR:    Ref[F, Option[NSObserveCommand]],
+    obsType: StepType,
+    staticCfg: GmosStatic[GmosSite.North],
+    dynamicCfg: GmosInstrumentConfig[GmosSite.North]
+) extends Gmos[F, GmosSite.North](
       c,
-      new SiteSpecifics[NorthTypes] {
+      new SiteSpecifics[GmosSite.North] {
         def extractFilter(
-          config: CleanConfig
-        ): Either[ExtractFailure, Option[NorthTypes#Filter]] =
-          config.extractInstAs[NorthTypes#Filter](FILTER_PROP) match {
-            case Left(KeyNotFound(_)) => none.asRight
-            case Right(value)         => value.some.asRight
-            case Left(e)              => e.asLeft
-          }
+          d: GmosInstrumentConfig[GmosSite.North]
+        ): Option[GmosSite.North#Filter] = d.filter
 
         def extractDisperser(
-          config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, Option[NorthTypes#Grating]] =
-          config.extractInstAs[NorthTypes#Grating](DISPERSER_PROP) match {
-            case Left(KeyNotFound(_)) => none.asRight
-            case Right(value)         => value.some.asRight
-            case Left(e)              => e.asLeft
-          }
+                              d: GmosInstrumentConfig[GmosSite.North]
+        ): Option[GmosSite.North#Grating] = d.gratingConfig.map(_.grating)
 
         def extractFPU(
-          config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, Option[NorthTypes#FPU]] =
-          config.extractInstAs[NorthTypes#FPU](FPU_PROP_NAME) match {
-            case Left(KeyNotFound(_)) => none.asRight
-            case Right(value)         => value.some.asRight
-            case Left(e)              => e.asLeft
-          }
+                        d: GmosInstrumentConfig[GmosSite.North]
+        ): Option[GmosSite.North#BuiltInFpu] = d.fpu.flatMap(_.builtin)
 
         def extractStageMode(
-          config: CleanConfig
-        ): Either[ConfigUtilOps.ExtractFailure, NorthTypes#GmosStageMode] =
-          config.extractInstAs[NorthTypes#GmosStageMode](STAGE_MODE_PROP)
+                              s: GmosStatic[GmosSite.North]
+        ): GmosSite.North#StageMode = s.stageMode
       },
-      nsCmdR
+      nsCmdR,
+  obsType, staticCfg, dynamicCfg
     )(
       northConfigTypes
     ) {
@@ -78,19 +60,16 @@ object GmosNorth {
   val name: String = INSTRUMENT_NAME_PROP
 
   def apply[F[_]: Temporal: Logger](
-    c:         GmosController[F, NorthTypes],
+    c:         GmosController[F, GmosSite.North],
     dhsClient: DhsClient[F],
-    nsCmdR:    Ref[F, Option[NSObserveCommand]]
-  ): GmosNorth[F] = new GmosNorth[F](c, dhsClient, nsCmdR)
+    nsCmdR:    Ref[F, Option[NSObserveCommand]],
+        obsType: StepType,
+        staticCfg: GmosStatic[GmosSite.North],
+        dynamicCfg: GmosInstrumentConfig[GmosSite.North]
+  ): GmosNorth[F] = new GmosNorth[F](c, dhsClient, nsCmdR, obsType, staticCfg, dynamicCfg)
 
   object specifics extends InstrumentSpecifics {
     override val instrument: Instrument = Instrument.GmosN
-
-    override def calcStepType(
-      config:     CleanConfig,
-      isNightSeq: Boolean
-    ): Either[ObserveFailure, StepType] =
-      Gmos.calcStepType(instrument, config, isNightSeq)
 
     override def sfName(config: CleanConfig): LightSinkName = LightSinkName.Gmos
 

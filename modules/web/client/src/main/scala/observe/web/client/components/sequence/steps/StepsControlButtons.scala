@@ -16,7 +16,7 @@ import react.semanticui.modules.popup.Popup
 import react.semanticui.modules.popup.PopupPosition
 import observe.model.Observation
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.operations.Operations._
 import observe.model.operations._
 import observe.web.client.actions._

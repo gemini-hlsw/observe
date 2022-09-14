@@ -9,7 +9,7 @@ import cats.Show
 import cats.Eq
 import fs2.Stream
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import squants.Time
 

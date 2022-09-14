@@ -5,7 +5,7 @@ package observe.model
 
 import cats._
 import monocle.macros.Lenses
-import observe.model.enum._
+import observe.model.enums._
 
 @Lenses
 final case class Conditions(

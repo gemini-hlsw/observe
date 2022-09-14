@@ -322,6 +322,16 @@ lazy val observe_server = project
              ocs2_api.jvm,
              observe_model.jvm % "compile->compile;test->test"
   )
+  .settings(
+    unmanagedSources / excludeFilter := (unmanagedSources / excludeFilter).value
+      || (Compile / sourceDirectory).value + "/scala/observe/server/flamingos2/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/ghost/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gnirs/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gpi/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gsaoi/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/nifs/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/niri/*"
+  )
 
 // Unfortunately crossProject doesn't seem to work properly at the module/build.sbt level
 // We have to define the project properties at this level

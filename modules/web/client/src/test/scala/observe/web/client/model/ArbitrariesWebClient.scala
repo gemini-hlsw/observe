@@ -14,9 +14,9 @@ import lucuma.core.data.arb.ArbZipper._
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import scala.collection.immutable.SortedMap
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.BatchExecState
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.BatchExecState
 import observe.model._
 import observe.model.events.ServerLogMessage
 import observe.model.arb.all._

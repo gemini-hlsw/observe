@@ -17,9 +17,9 @@ import observe.model.OffsetConfigResolver
 import observe.model.SequenceState
 import observe.model.Step
 import observe.model.StepId
-import observe.model.enum.Guiding
-import observe.model.enum.Instrument
-import observe.model.enum.StepType
+import observe.model.enums.Guiding
+import observe.model.enums.Instrument
+import observe.model.enums.StepType
 import observe.model.enumerations
 import observe.web.client.model.Formatting._
 import observe.web.client.model.lenses._

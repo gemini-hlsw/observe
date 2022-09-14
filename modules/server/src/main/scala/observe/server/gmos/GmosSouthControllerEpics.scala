@@ -4,24 +4,16 @@
 package observe.server.gmos
 
 import cats.effect._
-import lucuma.core.enums.{
-  GmosAmpGain,
-  GmosAmpReadMode,
-  GmosRoi,
-  GmosSouthFilter,
-  GmosSouthFpu,
-  GmosSouthGrating,
-  GmosSouthStageMode
-}
+import lucuma.core.enums.{GmosAmpGain, GmosAmpReadMode, GmosRoi, GmosSouthFilter, GmosSouthFpu, GmosSouthGrating, GmosSouthStageMode}
+import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.gmos.GmosController.Config.BuiltinROI
-import observe.server.gmos.GmosController.SouthTypes
 import observe.server.gmos.GmosController.southConfigTypes
 import observe.server.gmos.GmosControllerEpics.ROIValues
 
-object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
-  override val disperser: EncodeEpicsValue[SouthTypes#Grating, String] = EncodeEpicsValue {
+object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
+  override val disperser: EncodeEpicsValue[GmosSite.South#Grating, String] = EncodeEpicsValue {
     case GmosSouthGrating.B1200_G5321 => "B1200+_G5321"
     case GmosSouthGrating.R831_G5322  => "R831+_G5322"
     case GmosSouthGrating.B600_G5323  => "B600+_G5323"
@@ -31,7 +23,7 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
     case GmosSouthGrating.B480_G5327  => "B480+_G5327"
   }
 
-  override val fpu: EncodeEpicsValue[SouthTypes#FPU, String] =
+  override val fpu: EncodeEpicsValue[GmosSite.South#BuiltInFpu, String] =
     EncodeEpicsValue {
       case GmosSouthFpu.LongSlit_0_25 => "0.25arcsec"
       case GmosSouthFpu.LongSlit_0_50 => "0.5arcsec"
@@ -54,7 +46,7 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
       case GmosSouthFpu.Ns5           => "NS2.0arcsec"
     }
 
-  override val filter: EncodeEpicsValue[Option[SouthTypes#Filter], (String, String)] =
+  override val filter: EncodeEpicsValue[Option[GmosSite.South#Filter], (String, String)] =
     EncodeEpicsValue {
       _.map {
         case GmosSouthFilter.Z                => ("Z_G0343", "open2-8")
@@ -89,7 +81,7 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
         .getOrElse(("open1-6", "open2-8"))
     }
 
-  override val stageMode: EncodeEpicsValue[SouthTypes#GmosStageMode, String] = EncodeEpicsValue {
+  override val stageMode: EncodeEpicsValue[GmosSite.South#StageMode, String] = EncodeEpicsValue {
     case GmosSouthStageMode.NoFollow  => "MOVE"
     case GmosSouthStageMode.FollowXyz => "FOLLOW"
     case GmosSouthStageMode.FollowXy  => "FOLLOW-XY"
@@ -117,8 +109,8 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[SouthTypes] {
 }
 
 object GmosSouthControllerEpics {
-  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, SouthTypes] = {
+  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.South] = {
     implicit val encoders = GmosSouthEncoders
-    GmosControllerEpics[F, SouthTypes](sys, southConfigTypes)
+    GmosControllerEpics[F, GmosSite.South](sys, southConfigTypes)
   }
 }

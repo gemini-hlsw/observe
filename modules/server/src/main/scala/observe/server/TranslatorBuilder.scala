@@ -3,10 +3,6 @@
 
 package observe.server
 
-import observe.model.enums.Instrument
-import squants.space.Length
-
-trait InstrumentGuide {
-  def instrument: Instrument
-  def oiOffsetGuideThreshold: Option[Length]
+trait TranslatorBuilder[F[_]] {
+  def build: SeqTranslate[F]
 }

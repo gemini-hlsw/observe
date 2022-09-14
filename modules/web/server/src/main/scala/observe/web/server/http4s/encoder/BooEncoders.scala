@@ -12,10 +12,10 @@ import observe.model.Observation
 import observe.model.Operator
 import observe.model._
 import observe.model.boopickle.ModelBooPicklers
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
 
 /**
  * Contains http4s implicit encoders of model objects

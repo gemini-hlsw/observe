@@ -15,7 +15,7 @@ import react.common._
 import react.semanticui.colors._
 import react.semanticui.elements.label.Label
 import observe.model.CalibrationQueueId
-import observe.model.enum.BatchExecState
+import observe.model.enums.BatchExecState
 import observe.web.client.actions.RequestAddSeqCal
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles

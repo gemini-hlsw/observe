@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats.data.NonEmptySet
 import org.typelevel.log4cats.Logger
-import observe.model.`enum`.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage
 import observe.server.overrideLogMessage
 import observe.server.altair.Altair
 import observe.server.tcs.TcsNorthController.TcsNorthConfig

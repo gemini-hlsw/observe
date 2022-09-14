@@ -26,7 +26,7 @@ import observe.model.QueueId
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.MountGuideOption._
+import observe.model.enums.MountGuideOption._
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable

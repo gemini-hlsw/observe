@@ -18,7 +18,7 @@ import edu.gemini.epics.acm._
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase._

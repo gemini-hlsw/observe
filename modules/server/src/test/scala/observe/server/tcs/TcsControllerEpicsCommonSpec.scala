@@ -13,8 +13,8 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.scalatest.PrivateMethodTester
 import org.scalatest.matchers.should.Matchers._
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
-import observe.model.enum.{ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource}
+import observe.model.{ M1GuideConfig, M2GuideConfig, TelescopeGuideConfig }
+import observe.model.enums.{ ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource }
 import observe.server.InstrumentGuide
 import observe.server.tcs.TcsController.LightSource.Sky
 import observe.server.tcs.TcsController.{
@@ -43,7 +43,7 @@ import shapeless.tag
 import squants.space.{ Arcseconds, Length, Millimeters }
 import org.scalatest.flatspec.AnyFlatSpec
 import observe.server.keywords.USLocale
-import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
+import observe.server.tcs.TestTcsEpics.{ ProbeGuideConfigVals, TestTcsEvent }
 import squants.space.AngleConversions._
 import squants.space.LengthConversions._
 

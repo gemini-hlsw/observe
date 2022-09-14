@@ -7,7 +7,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.enum.M1Source
+import observe.model.enums.M1Source
 import observe.model.M1GuideConfig
 import lucuma.core.util.arb.ArbEnumerated._
 

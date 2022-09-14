@@ -24,8 +24,8 @@ import fs2.Stream
 import org.typelevel.log4cats.Logger
 import mouse.boolean._
 import observe.model.ObserveStage
-import observe.model.enum.ApplyCommandResult
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ApplyCommandResult
+import observe.model.enums.ObserveCommandResult
 import ObserveFailure.NullEpicsError
 import ObserveFailure.ObserveException
 import squants.Time

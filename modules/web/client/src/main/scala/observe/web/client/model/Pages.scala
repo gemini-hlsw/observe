@@ -11,7 +11,7 @@ import japgolly.scalajs.react.extra.router._
 import monocle.Prism
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.enum._
+import observe.model.enums._
 import observe.web.client.actions._
 import observe.web.client.circuit.ObserveCircuit
 

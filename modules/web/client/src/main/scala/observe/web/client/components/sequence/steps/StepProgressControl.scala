@@ -19,9 +19,9 @@ import observe.model.Step
 import observe.model.StepId
 import observe.model.StepState
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ActionStatus
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.ActionStatus
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
 import observe.web.client.model.{ClientStatus, ResourceRunOperation, StopOperation, TabOperations}

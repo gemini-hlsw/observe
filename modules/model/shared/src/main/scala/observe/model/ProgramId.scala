@@ -16,7 +16,7 @@ import lucuma.core.math.Index
 import lucuma.core.model.Semester
 import lucuma.core.syntax.parser._
 import monocle.Prism
-import observe.model.enum.DailyProgramType
+import observe.model.enums.DailyProgramType
 import observe.model.parser.ProgramIdParsers
 
 /**

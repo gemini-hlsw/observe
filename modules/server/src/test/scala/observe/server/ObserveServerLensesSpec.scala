@@ -9,7 +9,7 @@ import edu.gemini.spModel.config2.{Config, ItemKey}
 import monocle.law.discipline.LensTests
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.model.SystemOverrides
 import observe.engine
 import observe.engine.{Action, ParallelActions}

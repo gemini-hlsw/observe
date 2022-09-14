@@ -32,7 +32,7 @@ import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.SeqCheck
 import observe.model._
 import observe.model.dhs._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.events._
 import shapeless.tag
 import shapeless.tag.@@

@@ -9,7 +9,7 @@ import monocle.Getter
 import observe.web.client.model.{ClientStatus, ObserveAppRootModel}
 import observe.model.Observation
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.model.ModelOps._
 import observe.web.client.model._

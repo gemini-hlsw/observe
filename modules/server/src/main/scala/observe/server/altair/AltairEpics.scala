@@ -13,8 +13,8 @@ import cats.syntax.all._
 import edu.gemini.epics.acm._
 import edu.gemini.observe.server.altair.LgsSfoControl
 import mouse.boolean._
-import observe.model.`enum`.ApplyCommandResult
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
+import observe.model.enums.ApplyCommandResult
+import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil._
 

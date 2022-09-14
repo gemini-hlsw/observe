@@ -12,7 +12,7 @@ import monocle.Lens
 import monocle.macros.Lenses
 import observe.model.Observation
 import observe.model._
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 import observe.web.client.model.AlignAndCalibStep
 import observe.web.client.model.Pages
 import observe.web.client.model.ResourceRunOperation

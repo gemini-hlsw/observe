@@ -3,14 +3,15 @@
 
 package observe.server
 
+import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import observe.engine.Result.PartialVal
 import observe.model.NSSubexposure
-import observe.model.enum.NSAction
+import observe.model.enums.NSAction
 
 package object gmos {
-  type GmosSouthController[F[_]] = GmosController[F, GmosController.SouthTypes]
+  type GmosSouthController[F[_]] = GmosController[F, GmosSite.South]
 
-  type GmosNorthController[F[_]] = GmosController[F, GmosController.NorthTypes]
+  type GmosNorthController[F[_]] = GmosController[F, GmosSite.North]
 }
 
 package gmos {

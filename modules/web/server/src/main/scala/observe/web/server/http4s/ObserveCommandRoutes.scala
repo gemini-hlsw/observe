@@ -11,7 +11,7 @@ import org.http4s.dsl._
 import org.http4s.server.middleware.GZip
 import observe.model.Observation
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.server
 import observe.server.ObserveEngine
 import observe.web.server.http4s.OptionalRunOverride

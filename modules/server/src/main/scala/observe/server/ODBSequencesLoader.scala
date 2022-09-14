@@ -18,10 +18,11 @@ import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
 import lucuma.core.model.Program
 import observe.server.transition.OcsOdbTranslator
+import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:            OdbProxy[F],
-  translator:          SeqTranslate[F]
+  translators:          List[SeqTranslate[F]]
 )(implicit execEngine: ExecEngineType[F]) {
 
   private def unloadEvent(seqId: Observation.Id): EventType[F] =
@@ -39,21 +40,17 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(UnloadSequence(seqId)).toHandle
     )
 
+  private def tryTranslate(sequence: OdbObservation): Option[Either[List[Throwable], SequenceGen[F]]] = {
+    translators.foldLeft(none[Either[List[Throwable], SequenceGen[F]]])( (a, b) => a match {
+      case Some(_) => a
+      case None => b.sequence(sequence)
+    } )
+  }
+
   def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
     // Three ways of handling errors are mixed here: java exceptions, Either and MonadError
-    val t: F[(List[Throwable], Option[SequenceGen[F]])] =
-      odbProxy.read(seqId).map(OcsOdbTranslator.translate).flatMap { odbSeq =>
-        val programId: F[String] =
-          odbSeq.config
-            .extractAs[String](OCS_KEY / InstConstants.PROGRAMID_PROP)
-            .toF[F]
-
-        // Verify that the program id is valid
-        programId
-          .adaptErr { e => ObserveFailure.Unexpected(s"Error while extracting Program Id: ${e.getMessage}") }
-          .flatMap(s => Program.Id.parse(s).map(_.pure[F]).getOrElse(Async[F].raiseError(ObserveFailure.Unexpected("Unable to parse Program Id: $s"))))
-          .flatMap(_ => translator.sequence(seqId, odbSeq))
-      }
+    val t: F[Option[Either[List[Throwable], SequenceGen[F]]]] =
+      odbProxy.read(seqId).map(tryTranslate)
 
     def loadSequenceEvent(seqg: SequenceGen[F]): EventType[F] =
       Event.modifyState[F, EngineState[F], SeqEvent]({ st: EngineState[F] =>
@@ -65,15 +62,12 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(LoadSequence(seqId)).toHandle)
 
     t.map {
-      case (UnrecognizedInstrument(_) :: _, None) =>
+      case None =>
         Nil
-      case (err :: _, None)                       =>
+      case Some(Left(err :: _))                      =>
         val explanation = explain(err)
         List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explanation))
-      case (errs, Some(seq))                      =>
-        loadSequenceEvent(seq).pure[F] :: errs.map(e =>
-          Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))
-        )
+      case Some(Right(seq))                      => loadSequenceEvent(seq).pure[F]
       case _                                      => Nil
     }.recover { case e => List(Event.logDebugMsgF(explain(e))) }
       .map(_.sequence)

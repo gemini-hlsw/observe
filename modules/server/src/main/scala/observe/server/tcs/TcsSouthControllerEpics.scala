@@ -7,7 +7,7 @@ import cats.data._
 import cats.effect._
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
-import observe.model.enum.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig

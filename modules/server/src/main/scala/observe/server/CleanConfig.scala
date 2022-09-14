@@ -18,7 +18,7 @@ import edu.gemini.spModel.seqcomp.SeqConfigNames.INSTRUMENT_KEY
 import edu.gemini.spModel.seqcomp.SeqConfigNames.TELESCOPE_KEY
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS_PROP
 import observe.model.StepConfig
-import observe.model.enum.SystemName
+import observe.model.enums.SystemName
 import ConfigUtilOps._
 
 /*

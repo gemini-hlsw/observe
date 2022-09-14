@@ -34,7 +34,7 @@ import observe.engine.Handle
 import observe.engine.Result.Partial
 import observe.engine.SystemEvent
 import observe.engine.UserEvent
-import observe.engine.{Step => _, _}
+import observe.engine.{ Step => _, _ }
 import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
@@ -48,13 +48,13 @@ import observe.model.UserPrompt.SeqCheck
 import observe.model.UserPrompt.TargetCheckOverride
 import observe.model._
 import observe.model.config._
-import observe.model.enum._
-import observe.model.events.{SequenceStart => ClientSequenceStart, _}
+import observe.model.enums._
+import observe.model.events.{ SequenceStart => ClientSequenceStart, _ }
 import ConfigUtilOps._
 import EngineState.atSequence
 import SeqEvent._
 import cats.effect.kernel.Sync
-import cats.effect.{Ref, Temporal}
+import cats.effect.{ Ref, Temporal }
 
 trait ObserveEngine[F[_]] {
 

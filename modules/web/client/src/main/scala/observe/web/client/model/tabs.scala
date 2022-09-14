@@ -21,7 +21,7 @@ import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.StepId
 import observe.model.SystemOverrides
-import observe.model.enum._
+import observe.model.enums._
 import observe.web.client.model.ModelOps._
 import shapeless.tag.@@
 

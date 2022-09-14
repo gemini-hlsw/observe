@@ -14,7 +14,7 @@ import observe.model.OffsetFormat
 import observe.model.OffsetType
 import observe.model.StandardStep
 import observe.model.Step
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.web.client.model.StepItems._
 import web.client.utils._
 

@@ -23,10 +23,10 @@ import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.Inside.inside
 import observe.engine.Sequence
-import observe.model.enum.Instrument
-import observe.model.enum.Resource.TCS
+import observe.model.enums.Instrument
+import observe.model.enums.Resource.TCS
 import observe.server.TestCommon._
-import observe.model.enum.RunOverride
+import observe.model.enums.RunOverride
 
 class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssertions {
 

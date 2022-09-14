@@ -18,7 +18,7 @@ import react.common._
 import react.common.implicits._
 import react.virtualized._
 import observe.model.Step
-import observe.model.enum.SystemName
+import observe.model.enums.SystemName
 import observe.web.client.actions.UpdateStepsConfigTableState
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles

@@ -12,7 +12,7 @@ import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import observe.model.Notification.RequestFailed
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 import observe.web.client.actions._
 import observe.web.client.model.AbortOperation
 import observe.web.client.model.CancelPauseOperation

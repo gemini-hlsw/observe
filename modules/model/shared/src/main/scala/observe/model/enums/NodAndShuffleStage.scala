@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model.enum
+package observe.model.enums
 
 import cats.data.NonEmptyList
 import lucuma.core.util.Enumerated
@@ -18,25 +18,10 @@ object NodAndShuffleStage {
   case object StageB extends NodAndShuffleStage {
     val symbol: Symbol = Symbol("B")
   }
-  case object StageC extends NodAndShuffleStage {
-    val symbol: Symbol = Symbol("C")
-  }
-  case object StageD extends NodAndShuffleStage {
-    val symbol: Symbol = Symbol("D")
-  }
-  case object StageE extends NodAndShuffleStage {
-    val symbol: Symbol = Symbol("E")
-  }
-  case object StageF extends NodAndShuffleStage {
-    val symbol: Symbol = Symbol("F")
-  }
-  case object StageG extends NodAndShuffleStage {
-    val symbol: Symbol = Symbol("G")
-  }
 
   /** @group Typeclass Instances */
   implicit val NSStageEnumerated: Enumerated[NodAndShuffleStage] =
-    Enumerated.of(StageA, StageB, StageC, StageD, StageE, StageF, StageG)
+    Enumerated.of(StageA, StageB)
 
   // The sequence of nod and shuffle is always BAAB,
   // In principle we'd expect the OT to send the sequence but instead the

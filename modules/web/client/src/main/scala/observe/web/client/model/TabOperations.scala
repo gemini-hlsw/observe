@@ -14,8 +14,8 @@ import monocle.function.At.at
 import monocle.function.At.atSortedMap
 import monocle.macros.Lenses
 import observe.model.StepId
-import observe.model.enum.ActionStatus
-import observe.model.enum.Resource
+import observe.model.enums.ActionStatus
+import observe.model.enums.Resource
 
 sealed trait RunOperation extends Product with Serializable
 object RunOperation {

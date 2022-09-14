@@ -8,7 +8,7 @@ import mouse.all._
 import observe.engine
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.server.StepsView._
 import observe.server._
 import observe.server.gmos.GmosController.Config._

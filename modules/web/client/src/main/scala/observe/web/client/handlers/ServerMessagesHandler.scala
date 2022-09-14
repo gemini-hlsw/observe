@@ -19,7 +19,7 @@ import observe.model.SequencesQueue
 import observe.model.SingleActionOp
 import observe.model.Step
 import observe.model.StepState
-import observe.model.enum.ActionStatus
+import observe.model.enums.ActionStatus
 import observe.model.events._
 import observe.web.client.actions._
 import observe.web.client.circuit._

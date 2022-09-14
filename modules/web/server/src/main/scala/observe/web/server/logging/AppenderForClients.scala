@@ -11,7 +11,7 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
 import fs2.concurrent.Topic
-import observe.model.enum.ServerLogLevel
+import observe.model.enums.ServerLogLevel
 import observe.model.events._
 
 /**

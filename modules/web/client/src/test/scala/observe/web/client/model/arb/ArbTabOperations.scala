@@ -12,7 +12,7 @@ import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import observe.model.StepId
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 import observe.web.client.model._
 import observe.web.client.model.RunOperation
 

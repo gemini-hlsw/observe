@@ -13,7 +13,7 @@ import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.math.arb.ArbOffset._
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 
 trait ArbStepConfig {
   val asciiStr: Gen[String] =

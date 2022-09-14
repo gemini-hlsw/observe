@@ -19,7 +19,7 @@ import edu.gemini.spModel.gemini.flamingos2.Flamingos2._
 import org.typelevel.log4cats.Logger
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex._
 import observe.server.ObsProgress
 import observe.server.Progress

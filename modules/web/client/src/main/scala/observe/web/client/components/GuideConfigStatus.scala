@@ -15,8 +15,8 @@ import react.semanticui.sizes._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.MountGuideOption
+import observe.model.enums.ComaOption
+import observe.model.enums.MountGuideOption
 import observe.web.client.reusability._
 
 final case class GuideConfigStatus(config: TelescopeGuideConfig)

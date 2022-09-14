@@ -12,7 +12,7 @@ import monocle.Prism
 import monocle.macros.GenPrism
 import monocle.macros.Lenses
 import observe.model.dhs._
-import observe.model.enum._
+import observe.model.enums._
 
 sealed trait Step extends Product with Serializable {
   def id: StepId

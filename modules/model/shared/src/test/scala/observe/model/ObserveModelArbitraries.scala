@@ -14,7 +14,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Arbitrary._
 import scala.collection.immutable.SortedMap
 import squants.time._
-import observe.model.enum._
+import observe.model.enums._
 import observe.model.events.SingleActionEvent
 import observe.model.arb.all._
 

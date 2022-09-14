@@ -33,7 +33,7 @@ import observe.model.Observation
 import observe.model.QueueId
 import observe.model.QueueManipulationOp
 import observe.model.SequenceState
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.web.client.actions.ClearLastQueueOp
 import observe.web.client.actions.RequestMoveCal
 import observe.web.client.actions.RequestRemoveSeqCal

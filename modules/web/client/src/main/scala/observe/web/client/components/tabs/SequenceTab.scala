@@ -23,8 +23,8 @@ import observe.model.Observer
 import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.model.SystemOverrides
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.web.client.actions.LoadSequence
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles

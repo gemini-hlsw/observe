@@ -18,7 +18,7 @@ import org.typelevel.log4cats.Logger
 import mouse.boolean._
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex._
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.applyParam

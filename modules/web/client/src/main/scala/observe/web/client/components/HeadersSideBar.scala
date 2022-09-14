@@ -22,10 +22,10 @@ import react.semanticui.collections.form._
 import react.semanticui.elements.segment.Segment
 import react.semanticui.widths._
 import observe.model.Operator
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
 import observe.web.client.actions._
 import observe.web.client.circuit._
 import observe.web.client.components.forms.FormLabel

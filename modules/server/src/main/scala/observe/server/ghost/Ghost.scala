@@ -20,8 +20,8 @@ import lucuma.core.math.Declination
 import lucuma.core.math.RightAscension
 import lucuma.core.optics.Format
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps._
 import observe.server._

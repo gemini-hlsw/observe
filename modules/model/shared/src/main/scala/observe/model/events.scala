@@ -8,7 +8,7 @@ import java.time.Instant
 import cats._
 import cats.syntax.all._
 import observe.model.dhs.ImageFileId
-import observe.model.enum._
+import observe.model.enums._
 
 object events {
   implicit val instantEq: Eq[Instant] = Eq.fromUniversalEquals

@@ -12,7 +12,7 @@ import monocle.Lens
 import monocle.macros.Lenses
 import observe.model.Observation
 import observe.model._
-import observe.model.enum._
+import observe.model.enums._
 import observe.web.client.model.ModelOps._
 import observe.web.client.model._
 import observe.web.client.model.lenses.firstScienceStepTargetNameT

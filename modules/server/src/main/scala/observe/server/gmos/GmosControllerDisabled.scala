@@ -6,21 +6,22 @@ package observe.server.gmos
 import cats.Applicative
 import cats.syntax.all._
 import fs2.Stream
+import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.`enum`.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem
 import observe.server.Progress
 import observe.server.overrideLogMessage
-import observe.server.gmos.GmosController.SiteDependentTypes
-import squants.Time
 
-class GmosControllerDisabled[F[_]: Logger: Applicative, T <: SiteDependentTypes](name: String)
+import scala.concurrent.duration.Duration
+
+class GmosControllerDisabled[F[_]: Logger: Applicative, T <: GmosSite](name: String)
     extends GmosController[F, T] {
   override def applyConfig(config: GmosController.GmosConfig[T]): F[Unit] =
     overrideLogMessage(name, "applyConfig")
 
-  override def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] =
+  override def observe(fileId: ImageFileId, expTime: Duration): F[ObserveCommandResult] =
     overrideLogMessage(name, s"observe $fileId").as(ObserveCommandResult.Success)
 
   override def endObserve: F[Unit] = overrideLogMessage(name, "endObserve")
@@ -31,7 +32,7 @@ class GmosControllerDisabled[F[_]: Logger: Applicative, T <: SiteDependentTypes]
 
   override def pauseObserve: F[Unit] = overrideLogMessage(name, "pauseObserve")
 
-  override def resumePaused(expTime: Time): F[ObserveCommandResult] =
+  override def resumePaused(expTime: Duration): F[ObserveCommandResult] =
     overrideLogMessage(name, "resumePaused").as(ObserveCommandResult.Success)
 
   override def stopPaused: F[ObserveCommandResult] =
@@ -41,7 +42,7 @@ class GmosControllerDisabled[F[_]: Logger: Applicative, T <: SiteDependentTypes]
     overrideLogMessage(name, "abortPaused").as(ObserveCommandResult.Aborted)
 
   override def observeProgress(
-    total:   Time,
+    total:   Duration,
     elapsed: InstrumentSystem.ElapsedTime
   ): Stream[F, Progress] = Stream.empty
 

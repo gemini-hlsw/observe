@@ -13,7 +13,7 @@ import observe.model.QueueId
 import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserPrompt
-import observe.model.enum._
+import observe.model.enums._
 
 sealed trait SeqEvent extends Product with Serializable
 

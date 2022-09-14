@@ -12,15 +12,16 @@ import cats.effect.Async
 import cats.syntax.all._
 import edu.gemini.epics.acm.CarStateGeneric
 import fs2.Stream
-import lucuma.core.enums.{ GmosAmpCount, GmosAmpReadMode, GmosGratingOrder }
+import lucuma.core.enums.{GmosAmpCount, GmosAmpReadMode, GmosGratingOrder}
 import org.typelevel.log4cats.Logger
 import mouse.all._
+import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import observe.model.GmosParameters._
 import observe.model.NSSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.NodAndShuffleStage._
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.EpicsCodex._
 import observe.server.EpicsCommandBase
@@ -158,7 +159,7 @@ object GmosControllerEpics extends GmosEncoders {
 
   val DhsConnected: String = "CONNECTED"
 
-  def apply[F[_]: Async, T <: GmosController.SiteDependentTypes](
+  def apply[F[_]: Async, T <: GmosSite](
     sys: => GmosEpics[F],
     cfg: GmosController.Config[T]
   )(implicit
@@ -355,7 +356,7 @@ object GmosControllerEpics extends GmosEncoders {
         cfg:   GmosController.Config[T],
         cc:    Option[GmosFPU]
       ): List[Option[F[Unit]]] = {
-        def builtInFPU(fpu: T#FPU): String = Encoders[T].fpu.encode(fpu)
+        def builtInFPU(fpu: T#BuiltInFpu): String = Encoders[T].fpu.encode(fpu)
 
         def setFPUParams(p: Option[String]): List[Option[F[Unit]]] = p
           .map(g =>
@@ -388,7 +389,7 @@ object GmosControllerEpics extends GmosEncoders {
         )
       }
 
-      private def setStage(state: GmosCCEpicsState, v: T#GmosStageMode): Option[F[Unit]] = {
+      private def setStage(state: GmosCCEpicsState, v: T#StageMode): Option[F[Unit]] = {
         val stage = Encoders[T].stageMode.encode(v)
 
         applyParam(state.stageMode, stage, CC.setStageMode)
@@ -621,10 +622,10 @@ object GmosControllerEpics extends GmosEncoders {
 
   }
 
-  trait Encoders[T <: GmosController.SiteDependentTypes] {
+  trait Encoders[T <: GmosSite] {
     val filter: EncodeEpicsValue[Option[T#Filter], (String, String)]
-    val fpu: EncodeEpicsValue[T#FPU, String]
-    val stageMode: EncodeEpicsValue[T#GmosStageMode, String]
+    val fpu: EncodeEpicsValue[T#BuiltInFpu, String]
+    val stageMode: EncodeEpicsValue[T#StageMode, String]
     val disperser: EncodeEpicsValue[T#Grating, String]
     val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]]
     val autoGain: EncodeEpicsValue[(AmpReadMode, AmpGain), Int]
@@ -632,7 +633,7 @@ object GmosControllerEpics extends GmosEncoders {
 
   object Encoders {
     @inline
-    def apply[A <: GmosController.SiteDependentTypes](implicit ev: Encoders[A]): Encoders[A] = ev
+    def apply[A <: GmosSite](implicit ev: Encoders[A]): Encoders[A] = ev
   }
 
   val DefaultTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
