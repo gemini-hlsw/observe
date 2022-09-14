@@ -11,8 +11,8 @@ object ObserveStyles {
   val Centered: Css = Css("ObserveStyles-centered")
 
   // Prime components restyling
-  val Divider: Css  = Css("ObserveStyles-divider")
-  val TabPanel: Css = Css("ObserveStyles-tab-panel")
+  val Divider: Css          = Css("ObserveStyles-divider")
+  val SequenceTabPanel: Css = Css("ObserveStyles-sequenceTabPanel")
 
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
@@ -20,15 +20,26 @@ object ObserveStyles {
   val LogArea: Css = Css("ObserveStyles-logArea")
   val Footer: Css  = Css("ObserveStyles-footer")
 
+  val QueueTabView: Css = Css("ObserveStyles-queueTabView")
+
   val SessionQueueTable: Css = Css("ObserveStyles-sessionQueueTable")
   val QueueText: Css         = Css("ObserveStyles-queueText")
 
-  val rowPositive: Css = Css("ObserveStyles-rowPositive")
-  val rowWarning: Css  = Css("ObserveStyles-rowWarning")
-  val rowActive: Css   = Css("ObserveStyles-rowActive")
-  val rowNegative: Css = Css("ObserveStyles-rowNegative")
-  val rowError: Css    = Css("ObserveStyles-rowError")
-  val rowDisabled: Css = Css("ObserveStyles-rowDisabled")
-  val rowDone: Css     = Css("ObserveStyles-rowDone")
-  val rowNone: Css     = Css.Empty
+  val RowPositive: Css = Css("ObserveStyles-rowPositive")
+  val RowWarning: Css  = Css("ObserveStyles-rowWarning")
+  val RowActive: Css   = Css("ObserveStyles-rowActive")
+  val RowNegative: Css = Css("ObserveStyles-rowNegative")
+  val RowError: Css    = Css("ObserveStyles-rowError")
+  val RowDisabled: Css = Css("ObserveStyles-rowDisabled")
+  val RowDone: Css     = Css("ObserveStyles-rowDone")
+  val RowNone: Css     = Css.Empty
+
+  val HeaderSideBarCard: Css = Css("ObserveStyles-HeaderSideBarCard")
+  val HeaderSideBar: Css     = Css("ObserveStyles-HeaderSideBar")
+  val ObserverArea: Css      = Css("ObserveStyles-ObserverArea")
+  val OperatorArea: Css      = Css("ObserveStyles-OperatorArea")
+  val ImageQualityArea: Css  = Css("ObserveStyles-ImageQualityArea")
+  val CloudCoverArea: Css    = Css("ObserveStyles-CloudCoverArea")
+  val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
+  val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
 }

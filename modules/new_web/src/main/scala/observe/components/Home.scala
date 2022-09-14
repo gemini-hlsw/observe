@@ -44,7 +44,14 @@ object Home {
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
-                      SessionQueue(observe.demo.demoSessionQueue)
+                      TabView(ObserveStyles.QueueTabView)(
+                        TabPanel.header(React.Fragment(Icons.Sun, "Daytime"))(
+                          SessionQueue(List.empty)
+                        ),
+                        TabPanel.header(React.Fragment(Icons.Moon, "Nighttime"))(
+                          SessionQueue(observe.demo.demoSessionQueue)
+                        )
+                      )
                     ),
                     SplitterPanel(
                       HeadersSideBar(
@@ -57,7 +64,7 @@ object Home {
               ),
               SplitterPanel(
                 TabView(
-                  TabPanel(ObserveStyles.TabPanel)
+                  TabPanel(ObserveStyles.SequenceTabPanel)
                     .header(
                       React.Fragment(
                         <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),

@@ -26,13 +26,13 @@ private object SessionQueue:
 
   private def rowClass(index: Int, row: SessionQueueRow): Css =
     if (row.status === SequenceState.Completed)
-      ObserveStyles.rowPositive
+      ObserveStyles.RowPositive
     else if (row.status.isRunning)
-      ObserveStyles.rowWarning
+      ObserveStyles.RowWarning
     else if (row.status.isError)
-      ObserveStyles.rowNegative
+      ObserveStyles.RowNegative
     else if (row.active && !row.status.isInProcess)
-      ObserveStyles.rowActive
+      ObserveStyles.RowActive
     else
       Css.Empty
 

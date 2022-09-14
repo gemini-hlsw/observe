@@ -41,7 +41,26 @@ body .p-component {
   font-size: 1.1rem !important;
 }
 
-.ObserveStyles-tab-panel {
+.ObserveStyles-queueTabView {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100%;
+
+  .p-tabview-nav-link {
+    border-top-right-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-right-radius: 3px !important;
+    border-bottom-left-radius: 3px !important;
+    margin: -1px 0 0 0 !important;
+  }
+
+  .p-tabview-panels {
+    height: 100%;
+    padding: 0 !important;
+  }
+}
+
+.ObserveStyles-sequenceTabPanel {
   min-width: 20%;
 
   & .p-tabview-nav-link {
@@ -153,3 +172,58 @@ body .p-component {
 // .ObserveStyles-rowNone {
 //   background: @background;
 // }
+
+.ObserveStyles-HeaderSideBarCard {
+  height: 100%;
+
+  .p-card-body {
+    height: 100%;
+
+    .p-card-content {
+      height: 100%;
+    }
+  }
+}
+
+.ObserveStyles-HeaderSideBar {
+  height: 100%;
+  display: grid;
+  grid-template-areas:
+    "observer observer"
+    "operator operator"
+    "imageQuality cloudCover"
+    "waterVapor skyBackground";
+
+  label {
+    font-weight: bold;
+    font-size: small;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+.ObserveStyles-ObserverArea {
+  grid-area: observer;
+}
+
+.ObserveStyles-OperatorArea {
+  grid-area: operator;
+}
+
+.ObserveStyles-ImageQualityArea {
+  grid-area: imageQuality;
+}
+
+.ObserveStyles-CloudCoverArea {
+  grid-area: cloudCover;
+}
+
+.ObserveStyles-WaterVaporArea {
+  grid-area: waterVapor;
+}
+
+.ObserveStyles-SkyBackgroundArea {
+  grid-area: skyBackground;
+}
