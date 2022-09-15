@@ -103,13 +103,11 @@ object ExecutionStep:
       s match
         case st: StandardStep      => StandardStep.breakpoint.negate(st)
         case st: NodAndShuffleStep => NodAndShuffleStep.breakpoint.negate(st)
-        case st                    => st
 
     def flipSkip: ExecutionStep =
       s match
         case st: StandardStep      => StandardStep.skip.negate(st)
         case st: NodAndShuffleStep => NodAndShuffleStep.skip.negate(st)
-        case st                    => st
 
     def file: Option[String] = None
 
@@ -131,19 +129,16 @@ object ExecutionStep:
       s match
         case x: StandardStep      => x.observeStatus === ActionStatus.Running
         case x: NodAndShuffleStep => x.nsStatus.observing === ActionStatus.Running
-        case _                    => false
 
     def isObservePaused: Boolean =
       s match
         case x: StandardStep      => x.observeStatus === ActionStatus.Paused
         case x: NodAndShuffleStep => x.nsStatus.observing === ActionStatus.Paused
-        case _                    => false
 
     def isConfiguring: Boolean =
       s match
         case x: StandardStep      => x.configStatus.count(_._2 === ActionStatus.Running) > 0
         case x: NodAndShuffleStep => x.configStatus.count(_._2 === ActionStatus.Running) > 0
-        case _                    => false
 
     def isFinished: Boolean = s.status.isFinished
 

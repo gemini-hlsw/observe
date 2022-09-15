@@ -10,6 +10,7 @@ import observe.model.enums.ActionStatus
 import java.time.Duration
 import monocle.Lens
 import monocle.Focus
+import org.typelevel.cats.time.given
 
 case class NsRunningState(action: NsAction, sub: NsSubexposure) derives Eq
 
