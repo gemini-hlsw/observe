@@ -6,10 +6,5 @@ package observe.model.enums
 import cats.Eq
 import cats.derived.*
 
-enum ObsClass derives Eq:
-  case All, Daytime, Nighttime
-
-object ObsClass:
-  def fromString(s: String): ObsClass = s match
-    case "dayCal" => ObsClass.Daytime
-    case _        => ObsClass.Nighttime
+enum NsAction derives Eq:
+  case Start, NodStart, NodComplete, StageObserveStart, StageObserveComplete, Done

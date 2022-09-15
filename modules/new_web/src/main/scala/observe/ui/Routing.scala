@@ -1,13 +1,13 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe
+package observe.ui
 
 import japgolly.scalajs.react.extra.router.*
-import observe.Page.*
-import observe.components.Home
+import observe.ui.Page.*
+import observe.ui.components.Home
 import react.common.*
-import observe.model.RootModel
+import observe.ui.model.RootModel
 import crystal.react.View
 
 object Routing {

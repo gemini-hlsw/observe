@@ -5,11 +5,13 @@ package observe.demo
 
 import cats.syntax.all.*
 import observe.model.*
-import observe.model.enums.*
+import observe.ui.model.SessionQueueRow
+import observe.model.enums.SequenceState
+import observe.ui.model.enums.ObsClass
 import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
 
-val demoSessionQueue: List[SessionQueueRow] =
+val DemoSessionQueue: List[SessionQueueRow] =
   List(
     SessionQueueRow(
       Observation.Id.fromLong(27).get,
@@ -26,3 +28,5 @@ val demoSessionQueue: List[SessionQueueRow] =
       false
     )
   )
+
+val DemoExecutionSteps: List[ExecutionStep] = List.empty

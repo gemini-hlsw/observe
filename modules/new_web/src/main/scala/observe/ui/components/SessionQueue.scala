@@ -1,19 +1,21 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.components
+package observe.ui.components
 
 import react.common.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.table.*
 import lucuma.ui.table.*
-import observe.model.*
-import observe.model.enums.*
+import observe.ui.model.SessionQueueRow
+import observe.ui.model.enums.ObsClass
+import observe.model.enums.SequenceState
+import observe.model.RunningStep
 import reactST.{ tanstackTableCore => raw }
 import lucuma.core.syntax.display.*
-import observe.ObserveStyles
-import observe.Icons
+import observe.ui.ObserveStyles
+import observe.ui.Icons
 import react.fa.IconSize
 import cats.syntax.all.*
 

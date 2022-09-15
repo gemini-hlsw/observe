@@ -9,10 +9,8 @@ import lucuma.core.util.Enumerated
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism
+import monocle.Focus
 import monocle.macros.GenPrism
-// import monocle.macros.Lenses
-// import observe.model.dhs._
-// import observe.model.enum._
 import lucuma.core.model.sequence.Step
 import observe.model.enums.*
 import cats.derived.*
@@ -29,10 +27,10 @@ object ExecutionStep:
   extension [A](l: Lens[A, Boolean]) def negate: A => A = l.modify(!_)
 
   val standardStepP: Prism[ExecutionStep, StandardStep] =
-    GenPrism[Step, StandardStep]
+    GenPrism[ExecutionStep, StandardStep]
 
   val nsStepP: Prism[ExecutionStep, NodAndShuffleStep] =
-    GenPrism[Step, NodAndShuffleStep]
+    GenPrism[ExecutionStep, NodAndShuffleStep]
 
   val status: Lens[ExecutionStep, StepState] =
     Lens[ExecutionStep, StepState] {
@@ -52,8 +50,8 @@ object ExecutionStep:
         case s: NodAndShuffleStep => NodAndShuffleStep.config.replace(n)(s)
     }
 
-  val id: Lens[ExecutionStep, StepId] =
-    Lens[ExecutionStep, StepId] {
+  val id: Lens[ExecutionStep, Step.Id] =
+    Lens[ExecutionStep, Step.Id] {
       _.id
     } { n => a =>
       a match
@@ -100,24 +98,14 @@ object ExecutionStep:
         case s: NodAndShuffleStep => NodAndShuffleStep.configStatus.replace(n)(s)
     }
 
-  // implicit val equal: Eq[Step] =
-  //   Eq.instance {
-  //     case (x: StandardStep, y: StandardStep)           =>
-  //       x === y
-  //     case (x: NodAndShuffleStep, y: NodAndShuffleStep) =>
-  //       x === y
-  //     case _                                            =>
-  //       false
-  //   }
-
   extension (s: ExecutionStep)
-    def flipBreakpoint: Step =
+    def flipBreakpoint: ExecutionStep =
       s match
         case st: StandardStep      => StandardStep.breakpoint.negate(st)
         case st: NodAndShuffleStep => NodAndShuffleStep.breakpoint.negate(st)
         case st                    => st
 
-    def flipSkip: Step =
+    def flipSkip: ExecutionStep =
       s match
         case st: StandardStep      => StandardStep.skip.negate(st)
         case st: NodAndShuffleStep => NodAndShuffleStep.skip.negate(st)
@@ -125,7 +113,7 @@ object ExecutionStep:
 
     def file: Option[String] = None
 
-    def canSetBreakpoint(steps: List[Step]): Boolean =
+    def canSetBreakpoint(steps: List[ExecutionStep]): Boolean =
       s.status.canSetBreakpoint && steps
         .dropWhile(_.status.isFinished)
         .drop(1)
@@ -168,9 +156,8 @@ object ExecutionStep:
         case _: NodAndShuffleStep => true
         case _                    => false
 
-// @Lenses
 final case class StandardStep(
-  override val id:         Step.gmosSouth,
+  override val id:         Step.Id,
   override val config:     StepConfig,
   override val status:     StepState,
   override val breakpoint: Boolean,
@@ -180,14 +167,18 @@ final case class StandardStep(
   observeStatus:           ActionStatus
 ) extends ExecutionStep
 
-object StandardStep {
-  implicit val equalStandardStep: Eq[StandardStep] = Eq.by(x =>
-    (x.id, x.config, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.observeStatus)
-  )
-}
+object StandardStep:
+  val id: Lens[StandardStep, Step.Id]                                  = Focus[StandardStep](_.id)
+  val config: Lens[StandardStep, StepConfig]                           = Focus[StandardStep](_.config)
+  val status: Lens[StandardStep, StepState]                            = Focus[StandardStep](_.status)
+  val breakpoint: Lens[StandardStep, Boolean]                          = Focus[StandardStep](_.breakpoint)
+  val skip: Lens[StandardStep, Boolean]                                = Focus[StandardStep](_.skip)
+  val fileId: Lens[StandardStep, Option[ImageFileId]]                  = Focus[StandardStep](_.fileId)
+  val configStatus: Lens[StandardStep, List[(Resource, ActionStatus)]] =
+    Focus[StandardStep](_.configStatus)
+  val observeStatus: Lens[StandardStep, ActionStatus]                  = Focus[StandardStep](_.observeStatus)
 
 // Other kinds of Steps to be defined.
-// @Lenses
 final case class NodAndShuffleStep(
   override val id:         Step.Id,
   override val config:     StepConfig,
@@ -200,16 +191,19 @@ final case class NodAndShuffleStep(
   pendingObserveCmd:       Option[NodAndShuffleStep.PendingObserveCmd]
 ) extends ExecutionStep
 
-object NodAndShuffleStep {
-  implicit val equalNodAndShuffleStop: Eq[NodAndShuffleStep] = Eq.by(x =>
-    (x.id, x.config, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.nsStatus)
-  )
+object NodAndShuffleStep:
+  val id: Lens[NodAndShuffleStep, Step.Id]                                                    = Focus[NodAndShuffleStep](_.id)
+  val config: Lens[NodAndShuffleStep, StepConfig]                                             = Focus[NodAndShuffleStep](_.config)
+  val status: Lens[NodAndShuffleStep, StepState]                                              = Focus[NodAndShuffleStep](_.status)
+  val breakpoint: Lens[NodAndShuffleStep, Boolean]                                            = Focus[NodAndShuffleStep](_.breakpoint)
+  val skip: Lens[NodAndShuffleStep, Boolean]                                                  = Focus[NodAndShuffleStep](_.skip)
+  val fileId: Lens[NodAndShuffleStep, Option[ImageFileId]]                                    = Focus[NodAndShuffleStep](_.fileId)
+  val configStatus: Lens[NodAndShuffleStep, List[(Resource, ActionStatus)]]                   =
+    Focus[NodAndShuffleStep](_.configStatus)
+  val nsStatus: Lens[NodAndShuffleStep, NodAndShuffleStatus]                                  =
+    Focus[NodAndShuffleStep](_.nsStatus)
+  val pendingObserveCmd: Lens[NodAndShuffleStep, Option[NodAndShuffleStep.PendingObserveCmd]] =
+    Focus[NodAndShuffleStep](_.pendingObserveCmd)
 
-  sealed trait PendingObserveCmd extends Product with Serializable
-  case object PauseGracefully    extends PendingObserveCmd
-  case object StopGracefully     extends PendingObserveCmd
-
-  implicit val enumPendingObserveCmd: Enumerated[PendingObserveCmd] =
-    Enumerated.of(PauseGracefully, StopGracefully)
-
-}
+  enum PendingObserveCmd derives Eq:
+    case PauseGracefully, StopGracefully

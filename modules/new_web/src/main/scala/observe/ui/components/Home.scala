@@ -1,14 +1,14 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.components
+package observe.ui.components
 
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.AppContext
+import observe.ui.AppContext
 import react.common.ReactFnProps
 import reactST.primereact.components.*
-import observe.ObserveStyles
+import observe.ui.ObserveStyles
 import react.common.given
 import cats.effect.IO
 import org.typelevel.log4cats.Logger
@@ -16,8 +16,8 @@ import reactST.primereact.dividerMod.DividerAlignType
 import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
-import observe.Icons
-import observe.model.RootModel
+import observe.ui.Icons
+import observe.ui.model.RootModel
 import crystal.react.View
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
@@ -47,7 +47,7 @@ object Home {
                           SessionQueue(List.empty)
                         ),
                         TabPanel.header(React.Fragment(Icons.Moon, "Nighttime"))(
-                          SessionQueue(observe.demo.demoSessionQueue)
+                          SessionQueue(observe.demo.DemoSessionQueue)
                         )
                       )
                     ),
@@ -72,7 +72,7 @@ object Home {
                           .severity(TagSeverityType.warning)
                       )
                     )(
-                      StepsTable()
+                      StepsTable(observe.demo.DemoExecutionSteps)
                     )
                 )
               )

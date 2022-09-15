@@ -1,0 +1,20 @@
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
+us// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
+package observe.model.enums
+
+import cats.Eq
+import cats.derived.*
+import lucuma.core.enums.{ Instrument => InstrumentEnum }
+
+enum Resource(val label: String) derives Eq:
+  case P1                                     extends Resource("P1")
+  case OI                                     extends Resource("OI")
+  case TCS                                    extends Resource("TCS")
+  case Gcal                                   extends Resource("Gcal")
+  case Gems                                   extends Resource("Gems")
+  case Altair                                 extends Resource("Altair")
+  case Instrument(instrument: InstrumentEnum) extends Resource(instrument.shortName)

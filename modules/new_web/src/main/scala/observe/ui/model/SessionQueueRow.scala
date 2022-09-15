@@ -1,14 +1,17 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model
+package observe.ui.model
 
 import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import cats.Eq
 import cats.derived.*
-import observe.model.enums.*
+import observe.model.Observer
+import observe.model.RunningStep
+import observe.model.enums.SequenceState
+import observe.ui.model.enums.ObsClass
 
 case class SessionQueueRow(
   obsId:         Observation.Id,

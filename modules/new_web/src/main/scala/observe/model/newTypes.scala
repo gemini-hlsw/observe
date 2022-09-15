@@ -30,3 +30,18 @@ type StepConfig = StepConfig.Type
 
 object ImageFileId extends NewType[String]
 type ImageFileId = ImageFileId.Type
+
+object NsPairs extends NewType[Int]
+type NsPairs = NsPairs.Type
+
+object NsStageIndex extends NewType[Int]
+type NsStageIndex = NsStageIndex.Type
+
+object NsRows extends NewType[Int]
+type NsRows = NsRows.Type
+
+object NsCycles extends NewType[Int]
+type NsCycles = NsCycles.Type
+
+object NsExposureDivider extends NewType[Int]
+type NsExposureDivider = NsExposureDivider.Type

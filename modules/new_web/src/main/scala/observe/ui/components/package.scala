@@ -1,11 +1,11 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.components
+package observe.ui.components
 
 import org.typelevel.log4cats.Logger
 import cats.effect.IO
-import observe.AppContext
+import observe.ui.AppContext
 
 val UnknownTargetName: String = "None"
 

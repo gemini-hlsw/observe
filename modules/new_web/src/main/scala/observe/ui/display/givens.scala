@@ -1,10 +1,11 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model.enums
+package observe.ui.display
 
 import cats.syntax.eq.*
 import lucuma.core.util.Display
+import observe.model.enums.*
 
 private def conditionIntToString(v: Int): String = if (v === 100) "Any" else v.toString
 
