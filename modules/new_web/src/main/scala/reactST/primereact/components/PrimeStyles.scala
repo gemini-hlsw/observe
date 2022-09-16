@@ -7,4 +7,7 @@ import react.common.style.Css
 
 object PrimeStyles:
   object Tag:
-    val Icon: Css = Css("p-tag-icon")
+    val Icon: Css = Css("pl-tag-icon")
+
+  object TabView:
+    val BottomTabs: Css = Css("pl-bottom-tabs")

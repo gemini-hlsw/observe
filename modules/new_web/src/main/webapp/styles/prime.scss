@@ -1,0 +1,44 @@
+// Customizations and additions to prime-react
+// .pl- prefix = "Prime Lucuma": Our additions to prime-react
+
+.light-theme {
+  @import "primereact/resources/themes/nova/theme";
+
+  --active-row: var(--orange-50);
+}
+
+.dark-theme {
+  @import "primereact/resources/themes/luna-blue/theme";
+
+  --active-row: var(--orange-900);
+}
+
+body,
+body .p-component {
+  margin: 0;
+  font-family: 'Lato' !important;
+  background-color: var(--surface-f);
+  color: var(--text-color);
+}
+
+.p-tag {
+  font-size: 0.85rem !important;
+
+  .pl-tag-icon {
+    margin-right: 0.75em !important;
+  }
+}
+
+.p-tabview.pl-bottom-tabs {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100%;
+
+  .p-tabview-nav-link {
+    border-top-right-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-right-radius: 3px !important;
+    border-bottom-left-radius: 3px !important;
+    margin: -1px 0 0 0 !important;
+  }
+}

@@ -20,10 +20,7 @@ object ObserveStyles {
   val LogArea: Css = Css("ObserveStyles-logArea")
   val Footer: Css  = Css("ObserveStyles-footer")
 
-  val QueueTabView: Css = Css("ObserveStyles-queueTabView")
-
-  val SessionQueueTable: Css = Css("ObserveStyles-sessionQueueTable")
-  val QueueText: Css         = Css("ObserveStyles-queueText")
+  val QueueText: Css = Css("ObserveStyles-queueText")
 
   val RowPositive: Css = Css("ObserveStyles-rowPositive")
   val RowWarning: Css  = Css("ObserveStyles-rowWarning")

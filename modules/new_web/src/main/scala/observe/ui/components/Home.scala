@@ -42,7 +42,7 @@ object Home {
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
-                      TabView(ObserveStyles.QueueTabView)(
+                      TabView(PrimeStyles.TabView.BottomTabs)(
                         TabPanel.header(React.Fragment(Icons.Sun, "Daytime"))(
                           SessionQueue(List.empty)
                         ),

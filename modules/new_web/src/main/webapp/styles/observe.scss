@@ -1,29 +1,5 @@
-.light-theme {
-  @import "primereact/resources/themes/nova/theme";
-
-  --active-row: var(--orange-50);
-}
-
-.dark-theme {
-  @import "primereact/resources/themes/luna-blue/theme";
-
-  --active-row: var(--orange-900);
-}
-
 html {
   font-size: 14px !important;
-}
-
-body,
-body .p-component {
-  margin: 0;
-  font-family: 'Lato' !important;
-  background-color: var(--surface-f);
-  color: var(--text-color);
-}
-
-.p-tag {
-  font-size: 0.85rem !important;
 }
 
 .ObserveStyles-mainUI {
@@ -41,23 +17,10 @@ body .p-component {
   font-size: 1.1rem !important;
 }
 
-.ObserveStyles-queueTabView {
-  display: flex;
-  flex-direction: column-reverse;
+
+.p-tabview-panels {
   height: 100%;
-
-  .p-tabview-nav-link {
-    border-top-right-radius: 0 !important;
-    border-top-left-radius: 0 !important;
-    border-bottom-right-radius: 3px !important;
-    border-bottom-left-radius: 3px !important;
-    margin: -1px 0 0 0 !important;
-  }
-
-  .p-tabview-panels {
-    height: 100%;
-    padding: 0 !important;
-  }
+  padding: 0 !important;
 }
 
 .ObserveStyles-sequenceTabPanel {
@@ -80,10 +43,6 @@ body .p-component {
 
 .ObserveStyles-labelPointer {
   margin-top: 0.2em;
-
-  .p-tag-icon {
-    margin-right: 0.75em !important;
-  }
 }
 
 .ObserveStyles-logArea {
@@ -98,10 +57,6 @@ body .p-component {
   height: 46px;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
-}
-
-.ObserveStyles-sessionQueueTable {
-  width: 100%;
 }
 
 .ObserveStyles-centered {

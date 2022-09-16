@@ -184,6 +184,4 @@ private object SessionQueue:
           columnResizeMode = raw.mod.ColumnResizeMode.onChange
         )
       )
-      .render((props, _, _, table) =>
-        PrimeTable(table, tableClass = ObserveStyles.SessionQueueTable, rowClassFn = rowClass)
-      )
+      .render((props, _, _, table) => PrimeTable(table, rowClassFn = rowClass))
