@@ -25,8 +25,9 @@ type ParamValue = ParamValue.Type
 object Parameters extends NewType[Map[ParamName, ParamValue]]
 type Parameters = Parameters.Type
 
-object StepConfig extends NewType[Map[SystemName, Parameters]]
-type StepConfig = StepConfig.Type
+// TODO Can we unify with lucuma.core.model.sequence.StepConfig?
+object ExecutionStepConfig extends NewType[Map[SystemName, Parameters]]
+type ExecutionStepConfig = ExecutionStepConfig.Type
 
 object ImageFileId extends NewType[String]
 type ImageFileId = ImageFileId.Type

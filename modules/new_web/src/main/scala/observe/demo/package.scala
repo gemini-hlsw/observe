@@ -36,7 +36,7 @@ val DemoSessionQueue: List[SessionQueueRow] =
 val DemoExecutionSteps: List[ExecutionStep] = List(
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = StepConfig(Map.empty),
+    config = ExecutionStepConfig(Map.empty),
     status = StepState.Running,
     breakpoint = false,
     skip = false,

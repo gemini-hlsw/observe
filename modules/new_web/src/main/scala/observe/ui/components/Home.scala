@@ -24,6 +24,7 @@ import lucuma.core.enums.Instrument
 import observe.model.enums.SequenceState
 import cats.syntax.all.*
 import observe.ui.model.TabOperations
+import observe.ui.components.sequence.StepsTable
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 

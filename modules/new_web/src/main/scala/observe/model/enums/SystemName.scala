@@ -6,13 +6,7 @@ package observe.model.enums
 import cats.syntax.eq.*
 import cats.Eq
 import cats.derived.*
-
-// sealed abstract class SystemName(val system: String) extends Product with Serializable {
-
-//   def withParam(p: String): String =
-//     s"$system:$p"
-
-// }
+import observe.model.ParamName
 
 enum SystemName(val system: String) derives Eq:
   case Ocs            extends SystemName("ocs")
@@ -24,8 +18,8 @@ enum SystemName(val system: String) derives Eq:
   case Meta           extends SystemName("meta")
   case AdaptiveOptics extends SystemName("adaptive optics")
 
-  def withParam(p: String): String =
-    s"$system:$p"
+  def withParam(p: String): ParamName =
+    ParamName(s"$system:$p")
 
 object SystemName:
   def fromString(system: String): Option[SystemName] =

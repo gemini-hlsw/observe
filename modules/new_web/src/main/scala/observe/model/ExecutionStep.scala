@@ -15,9 +15,10 @@ import lucuma.core.model.sequence.Step
 import observe.model.enums.*
 import cats.derived.*
 
+// TODO Can we unify with lucuma.core.model.sequence.Step?
 sealed trait ExecutionStep derives Eq:
   def id: Step.Id
-  def config: StepConfig
+  def config: ExecutionStepConfig
   def status: StepState
   def breakpoint: Boolean
   def skip: Boolean
@@ -41,8 +42,8 @@ object ExecutionStep:
         case s: NodAndShuffleStep => NodAndShuffleStep.status.replace(n)(s)
     }
 
-  val config: Lens[ExecutionStep, StepConfig] =
-    Lens[ExecutionStep, StepConfig] {
+  val config: Lens[ExecutionStep, ExecutionStepConfig] =
+    Lens[ExecutionStep, ExecutionStepConfig] {
       _.config
     } { n => a =>
       a match
@@ -153,7 +154,7 @@ object ExecutionStep:
 
 final case class StandardStep(
   override val id:         Step.Id,
-  override val config:     StepConfig,
+  override val config:     ExecutionStepConfig,
   override val status:     StepState,
   override val breakpoint: Boolean,
   override val skip:       Boolean,
@@ -164,7 +165,7 @@ final case class StandardStep(
 
 object StandardStep:
   val id: Lens[StandardStep, Step.Id]                                  = Focus[StandardStep](_.id)
-  val config: Lens[StandardStep, StepConfig]                           = Focus[StandardStep](_.config)
+  val config: Lens[StandardStep, ExecutionStepConfig]                  = Focus[StandardStep](_.config)
   val status: Lens[StandardStep, StepState]                            = Focus[StandardStep](_.status)
   val breakpoint: Lens[StandardStep, Boolean]                          = Focus[StandardStep](_.breakpoint)
   val skip: Lens[StandardStep, Boolean]                                = Focus[StandardStep](_.skip)
@@ -176,7 +177,7 @@ object StandardStep:
 // Other kinds of Steps to be defined.
 final case class NodAndShuffleStep(
   override val id:         Step.Id,
-  override val config:     StepConfig,
+  override val config:     ExecutionStepConfig,
   override val status:     StepState,
   override val breakpoint: Boolean,
   override val skip:       Boolean,
@@ -188,7 +189,7 @@ final case class NodAndShuffleStep(
 
 object NodAndShuffleStep:
   val id: Lens[NodAndShuffleStep, Step.Id]                                                    = Focus[NodAndShuffleStep](_.id)
-  val config: Lens[NodAndShuffleStep, StepConfig]                                             = Focus[NodAndShuffleStep](_.config)
+  val config: Lens[NodAndShuffleStep, ExecutionStepConfig]                                    = Focus[NodAndShuffleStep](_.config)
   val status: Lens[NodAndShuffleStep, StepState]                                              = Focus[NodAndShuffleStep](_.status)
   val breakpoint: Lens[NodAndShuffleStep, Boolean]                                            = Focus[NodAndShuffleStep](_.breakpoint)
   val skip: Lens[NodAndShuffleStep, Boolean]                                                  = Focus[NodAndShuffleStep](_.skip)

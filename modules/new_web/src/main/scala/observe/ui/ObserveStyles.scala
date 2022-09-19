@@ -39,4 +39,6 @@ object ObserveStyles {
   val CloudCoverArea: Css    = Css("ObserveStyles-CloudCoverArea")
   val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
+
+  val ConfiguringRow: Css = Css("ObserveStyles-configuringRow")
 }
