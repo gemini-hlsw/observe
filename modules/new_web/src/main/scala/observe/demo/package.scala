@@ -10,6 +10,10 @@ import observe.model.enums.SequenceState
 import observe.ui.model.enums.ObsClass
 import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
+import java.util.UUID
+import observe.model.enums.StepState
+import observe.model.enums.ActionStatus
 
 val DemoSessionQueue: List[SessionQueueRow] =
   List(
@@ -29,4 +33,15 @@ val DemoSessionQueue: List[SessionQueueRow] =
     )
   )
 
-val DemoExecutionSteps: List[ExecutionStep] = List.empty
+val DemoExecutionSteps: List[ExecutionStep] = List(
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = StepConfig(Map.empty),
+    status = StepState.Running,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Running
+  )
+)

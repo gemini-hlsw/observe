@@ -28,6 +28,7 @@ object StepsTable:
     ColDef(
       "index",
       header = "Step",
+      cell = _.row.index.toInt + 1,
       size = 60,
       enableResizing = false
     ),

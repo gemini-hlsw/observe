@@ -56,8 +56,7 @@ lazy val esModule = Seq(
   Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
   Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
   Compile / fastLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
-    // If the browser is too slow for the SmallModulesFor switch to ModuleSplitStyle.FewestModules
-    ModuleSplitStyle.SmallModulesFor(List("explore"))
+    ModuleSplitStyle.FewestModules
   )),
   Compile / fullLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
     ModuleSplitStyle.FewestModules
