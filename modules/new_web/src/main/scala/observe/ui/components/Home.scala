@@ -19,6 +19,11 @@ import reactST.primereact.tagMod.TagSeverityType
 import observe.ui.Icons
 import observe.ui.model.RootModel
 import crystal.react.View
+import lucuma.core.model.Observation
+import lucuma.core.enums.Instrument
+import observe.model.enums.SequenceState
+import cats.syntax.all.*
+import observe.ui.model.TabOperations
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -72,7 +77,19 @@ object Home {
                           .severity(TagSeverityType.warning)
                       )
                     )(
-                      StepsTable(observe.demo.DemoExecutionSteps)
+                      StepsTable(
+                        clientStatus = null,
+                        obsId = Observation.Id.fromLong(1).get,
+                        obsName = "Test Observation",
+                        instrument = Instrument.GmosSouth,
+                        sequenceState = SequenceState.Running(false, false),
+                        steps = observe.demo.DemoExecutionSteps,
+                        stepConfigDisplayed = none,
+                        nextStepToRun = none,
+                        runningStep = none,
+                        isPreview = false,
+                        tabOperations = TabOperations.Default
+                      )
                     )
                 )
               )
