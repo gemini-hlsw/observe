@@ -190,8 +190,36 @@ html {
   grid-area: skyBackground;
 }
 
+.ObserveStyles-sequenceTabView {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .p-tabview-panels {
+    overflow-x: scroll;
+  }
+}
+
 .ObserveStyles-configuringRow {
   display: flex;
   flex-grow: 1;
   width: 100%;
+}
+
+.ObserveStyles-observationProgressRow {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  width: 100%;
+  padding-right: 7px;
+  margin-bottom: 1em;
+
+  // & .bar {
+  //   height: 100% !important;
+  // }
+
+  // & .label {
+  //   text-align: center;
+  //   width: 100%;
+  // }
 }

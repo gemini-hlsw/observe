@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui.components.sequence
+package observe.ui.components.sequence.steps
 
 import react.common.*
 import japgolly.scalajs.react.*
@@ -22,6 +22,7 @@ import observe.ui.model.extensions.*
 import observe.model.enums.ExecutionStepType
 import observe.model.NodAndShuffleStatus
 import observe.model.NodAndShuffleStep
+import observe.ui.model.StopOperation
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,
@@ -79,15 +80,16 @@ case class StepProgressCell(
   //   else
   //     DetailRows.NoDetailRows
 
-  val nsStatus: Option[NodAndShuffleStatus] = step match {
+  val nsStatus: Option[NodAndShuffleStatus] = step match
     case x: NodAndShuffleStep => Some(x.nsStatus)
     case _                    => None
-  }
 
-  val nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = step match {
+  val nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = step match
     case x: NodAndShuffleStep => x.pendingObserveCmd
     case _                    => None
-  }
+
+  def isStopping: Boolean =
+    tabOperations.stopRequested === StopOperation.StopInFlight
 
 object StepProgressCell:
   private type Props = StepProgressCell
@@ -140,13 +142,13 @@ object StepProgressCell:
         EmptyVdom
       else
         props.nsStatus.fold[VdomNode] {
-          // ObservationProgressBar(props.obsIdName,
-          //                        props.step.id,
-          //                        fileId,
-          //                        stopping = !paused && props.isStopping,
-          //                        paused
-          // )
-          EmptyVdom
+          ObservationProgressBar(
+            props.obsId,
+            props.step.id,
+            fileId,
+            stopping = !paused && props.isStopping,
+            paused
+          )
         } { nsStatus =>
           // NodAndShuffleProgressMessage(props.obsIdName,
           //                              props.step.id,
@@ -176,8 +178,7 @@ object StepProgressCell:
         EmptyVdom
       case (_, s) if s.status === StepState.Running && s.fileId.isDefined                      =>
         // Case for a exposure onging, progress bar and control buttons
-        // stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = false)
-        EmptyVdom
+        stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = false)
       case (_, s) if s.wasSkipped                                                              =>
         <.p("Skipped")
       case (_, _) if props.step.skip                                                           =>

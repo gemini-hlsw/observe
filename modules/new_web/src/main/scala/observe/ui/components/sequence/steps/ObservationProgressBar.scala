@@ -17,8 +17,10 @@ import observe.model.ObservationProgress
 import java.time.Duration
 import crystal.implicits.*
 import crystal.Pot
+import reactST.primereact.components.*
+import observe.ui.ObserveStyles
 
-trait ProgressLabel {
+trait ProgressLabel:
   def label(
     fileId:          String,
     remainingMillis: Option[Int],
@@ -49,7 +51,6 @@ trait ProgressLabel {
           }
       }
   }
-}
 
 /**
  * Component to wrap the progress bar
@@ -84,19 +85,32 @@ object ObservationProgressBar:
     )
     .render((props, progress) =>
       <.div(
-        // ObserveStyles.observationProgressRow,
-        progress match
+        ObserveStyles.ObservationProgressRow,
+        progress.value.toOption match
           case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
-            // SmoothObservationProgressBar(
-            //   p.fileId,
-            //   total.toMilliseconds.toInt,
-            //   total.toMilliseconds.toInt - max(0, remaining.toMilliseconds.toInt),
-            //   p.stopping,
-            //   p.paused,
-            //   stage
-            // )
-            EmptyVdom
-          case _                                                                   =>
+            // TODO Smooth Progress Bar
+            // val remainingMillis = p.maxValue - s.value
+
+            val progress = ((total.getSeconds - remaining.getSeconds) * 100) / total.getSeconds
+
+            ProgressBar.value(progress.toInt).showValue(false)
+
+          // Progress(
+          //   total = p.total,
+          //   value = s.value,
+          //   color = Blue,
+          //   clazz = ObserveStyles.observationProgressBar
+          // )(label(p.fileId, remainingMillis.some, p.stopping, p.paused, p.stage))
+
+          // SmoothObservationProgressBar(
+          //   p.fileId,
+          //   total.toMilliseconds.toInt,
+          //   total.toMilliseconds.toInt - max(0, remaining.toMilliseconds.toInt),
+          //   p.stopping,
+          //   p.paused,
+          //   stage
+          // )
+          case _ =>
             val msg = if (props.paused) s"${props.fileId} - Paused" else props.fileId
 
             // React.Fragment(

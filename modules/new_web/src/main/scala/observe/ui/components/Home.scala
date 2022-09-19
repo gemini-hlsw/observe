@@ -25,6 +25,7 @@ import observe.model.enums.SequenceState
 import cats.syntax.all.*
 import observe.ui.model.TabOperations
 import observe.ui.components.sequence.StepsTable
+import observe.model.ClientStatus
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -67,7 +68,7 @@ object Home {
                   )
               ),
               SplitterPanel(
-                TabView(
+                TabView(ObserveStyles.SequenceTabView)(
                   TabPanel(ObserveStyles.SequenceTabPanel)
                     .header(
                       React.Fragment(
@@ -79,7 +80,7 @@ object Home {
                       )
                     )(
                       StepsTable(
-                        clientStatus = null,
+                        clientStatus = ClientStatus.Default,
                         obsId = Observation.Id.fromLong(1).get,
                         obsName = "Test Observation",
                         instrument = Instrument.GmosSouth,

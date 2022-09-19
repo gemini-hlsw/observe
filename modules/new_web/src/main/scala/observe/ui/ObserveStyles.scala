@@ -40,5 +40,7 @@ object ObserveStyles {
   val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
 
-  val ConfiguringRow: Css = Css("ObserveStyles-configuringRow")
+  val SequenceTabView: Css   = Css("ObserveStyles-sequenceTabView")
+  val ConfiguringRow: Css    = Css("ObserveStyles-configuringRow")
+  val ObservationProgressRow = Css("ObserveStyles-observationProgressRow")
 }

@@ -19,6 +19,7 @@ import lucuma.core.model.sequence.Step
 import observe.ui.model.TabOperations
 import observe.ui.model.reusability.given
 import lucuma.ui.reusability.given
+import observe.ui.components.sequence.steps.*
 
 case class StepsTable(
   clientStatus:        ClientStatus,

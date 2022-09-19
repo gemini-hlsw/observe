@@ -40,7 +40,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
     status = StepState.Running,
     breakpoint = false,
     skip = false,
-    fileId = none,
+    fileId = ImageFileId("S20220916S0001").some,
     configStatus = List.empty,
     observeStatus = ActionStatus.Running
   )
