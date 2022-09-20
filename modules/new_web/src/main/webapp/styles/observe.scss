@@ -254,15 +254,13 @@ html {
   }
 
   td {
-    @include borderLeft();
+    @include borderLeft;
+    @include borderBottom;
     min-width: 20px;
-    // display: flex;
-    // align-items: center;
     font-size: small;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    // height: 100%;
     padding-left: 0.75em !important;
     padding-right: 0.75em !important;
 

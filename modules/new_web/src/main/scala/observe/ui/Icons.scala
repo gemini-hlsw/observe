@@ -46,6 +46,18 @@ object Icons {
   private val faMoon: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faPause")
+  private val faPause: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faPlay")
+  private val faPlay: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faStop")
+  private val faStop: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faSun")
   private val faSun: FAIcon = js.native
 
@@ -59,6 +71,9 @@ object Icons {
     faCircleNotch,
     faClock,
     faMoon,
+    faPause,
+    faPlay,
+    faStop,
     faSun
   )
 
@@ -70,5 +85,8 @@ object Icons {
   inline def CircleNotch  = FontAwesomeIcon(faCircleNotch)
   inline def Clock        = FontAwesomeIcon(faClock)
   inline def Moon         = FontAwesomeIcon(faMoon)
+  inline def Pause        = FontAwesomeIcon(faPause)
+  inline def Play         = FontAwesomeIcon(faPlay)
+  inline def Stop         = FontAwesomeIcon(faStop)
   inline def Sun          = FontAwesomeIcon(faSun)
 }

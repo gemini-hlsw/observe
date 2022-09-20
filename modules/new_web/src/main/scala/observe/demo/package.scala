@@ -37,11 +37,41 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
     config = ExecutionStepConfig(Map.empty),
+    status = StepState.Skipped,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Completed,
+    breakpoint = false,
+    skip = false,
+    fileId = ImageFileId("S20220916S0001").some,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Completed
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
     status = StepState.Running,
     breakpoint = false,
     skip = false,
     fileId = ImageFileId("S20220916S0001").some,
     configStatus = List.empty,
     observeStatus = ActionStatus.Running
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
   )
 )

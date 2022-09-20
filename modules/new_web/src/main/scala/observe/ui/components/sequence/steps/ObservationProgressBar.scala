@@ -30,7 +30,7 @@ case class ObservationProgressBar(
   stopping: Boolean,
   paused:   Boolean
 ) extends ReactFnProps(ObservationProgressBar.component)
-// TODO Substitute for a stream hook
+// TODO Substitute for a stream hook - Progress should be a Topic somewhere
 // protected[steps] val connect: ReactConnectProxy[Option[ObservationProgress]] =
 //   ObserveCircuit.connect(ObserveCircuit.obsProgressReader[ObservationProgress](obsId, stepId))
 
@@ -73,13 +73,6 @@ object ObservationProgressBar extends ProgressLabel:
               )
             )
 
-          // Progress(
-          //   total = p.total,
-          //   value = s.value,
-          //   color = Blue,
-          //   clazz = ObserveStyles.observationProgressBar
-          // )(label(p.fileId, remainingMillis.some, p.stopping, p.paused, p.stage))
-
           // SmoothObservationProgressBar(
           //   p.fileId,
           //   total.toMilliseconds.toInt,
@@ -89,17 +82,15 @@ object ObservationProgressBar extends ProgressLabel:
           //   stage
           // )
           case _ =>
-            val msg = if (props.paused) s"${props.fileId} - Paused" else props.fileId
+            val msg = if (props.paused) s"${props.fileId.value} - Paused" else props.fileId.value
 
-            // React.Fragment(
-            //   Progress(
-            //     indicating = true,
-            //     total = 100,
-            //     value = 0,
-            //     color = Blue,
-            //     clazz = ObserveStyles.observationProgressBar
-            //   )(msg)
-            // )
-            EmptyVdom
+            <.div(ObserveStyles.ObservationProgressBarAndLabel)(
+              ProgressBar(ObserveStyles.ObservationProgressBar)
+                .value(100)
+                .showValue(false),
+              <.div(ObserveStyles.ObservationProgressLabel)(
+                msg
+              )
+            )
       )
     )
