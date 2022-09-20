@@ -98,8 +98,9 @@ private object SessionQueue:
   private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
     s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").orEmpty}"
 
-  private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
-    <.div(ObserveStyles.QueueText |+| css)(node)
+  // private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
+  //   // <.div(ObserveStyles.QueueText |+| css)(node)
+  //   <.div(css)(node)
 
   private def renderCendered(node: VdomNode, css: Css = Css.Empty): VdomNode =
     <.div(ObserveStyles.Centered |+| css)(node)
@@ -107,7 +108,7 @@ private object SessionQueue:
   private def linked[T, A](
     f: raw.mod.CellContext[T, A] => VdomNode
   ): raw.mod.CellContext[T, A] => VdomNode =
-    f.andThen(node => renderCell(node))
+    f // .andThen(node => renderCell(node))
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
 
@@ -135,38 +136,38 @@ private object SessionQueue:
     ColDef(
       "obsId",
       _.obsId,
-      header = _ => renderCell("Obs. ID"),
+      header = "Obs. ID",
       cell = linked(_.value.shortName),
       size = 70
     ),
     ColDef(
       "state",
       row => (row.status, row.runningStep),
-      header = _ => renderCell("State"),
+      header = "State",
       cell = linked(cell => statusText(cell.value._1, cell.value._2))
     ),
     ColDef(
       "instrument",
       _.instrument,
-      header = _ => renderCell("Instrument"),
+      header = "Instrument",
       cell = linked(_.value.shortName)
     ),
     ColDef(
       "target",
       _.targetName,
-      header = _ => renderCell("Target"),
+      header = "Target",
       cell = linked(_.value.getOrElse(UnknownTargetName))
     ),
     ColDef(
       "obsName",
       _.name,
-      header = _ => renderCell("Obs. Name"),
+      header = "Obs. Name",
       cell = linked(_.value.toString)
     ),
     ColDef(
       "observer",
       _.observer.foldMap(_.value),
-      header = _ => renderCell("Observer"),
+      header = "Observer",
       cell = linked(_.value.toString)
     )
   )
@@ -184,4 +185,10 @@ private object SessionQueue:
           columnResizeMode = raw.mod.ColumnResizeMode.onChange
         )
       )
-      .render((props, _, _, table) => PrimeTable(table, rowClassFn = rowClass))
+      .render((props, _, _, table) =>
+        PrimeTable(
+          table,
+          tableClass = ObserveStyles.ObserveTable |+| ObserveStyles.QueueTable,
+          rowClassFn = rowClass
+        )
+      )

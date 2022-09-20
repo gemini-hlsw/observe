@@ -161,4 +161,4 @@ object StepsTable:
           columnResizeMode = raw.mod.ColumnResizeMode.onChange
         )
       )
-      .render((props, _, _, _, table) => PrimeTable(table))
+      .render((props, _, _, _, table) => PrimeTable(table, tableClass = ObserveStyles.ObserveTable))

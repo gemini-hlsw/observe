@@ -64,17 +64,8 @@ html {
   justify-content: center;
 }
 
-.ObserveStyles-queueText {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-
-  @at-root {
-    td #{&} {
-      padding-left: 0.45em;
-      font-size: small;
-    }
-  }
+.ObserveStyles-queueTable {
+  width: 100%;
 }
 
 // .ObserveStyles-rowPositive {
@@ -223,3 +214,101 @@ html {
   //   width: 100%;
   // }
 }
+
+@mixin borderRight {
+  border-right-style: solid;
+  border-right-color: var(--surface-border);
+  border-right-width: 1px;
+}
+
+@mixin borderLeft {
+  border-left-style: solid;
+  border-left-color: var(--surface-border);
+  border-left-width: 1px;
+}
+
+@mixin borderTop {
+  border-top-style: solid;
+  border-top-color: var(--surface-border);
+  border-top-width: 1px;
+}
+
+@mixin borderBottom {
+  border-bottom-style: solid;
+  border-bottom-color: var(--surface-border);
+  border-bottom-width: 1px;
+}
+
+@mixin borderAll {
+  @include borderRight();
+  @include borderLeft();
+  @include borderTop();
+  @include borderBottom();
+}
+
+.ObserveStyles-observeTable {
+  // width: 100%;
+
+  th {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding-left: 0.75em !important;
+    padding-right: 0.75em !important;
+  }
+
+  td {
+    @include borderLeft();
+    min-width: 20px;
+    // display: flex;
+    // align-items: center;
+    font-size: small;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    // height: 100%;
+    padding-left: 0.75em !important;
+    padding-right: 0.75em !important;
+
+    &:first-of-type {
+      border-left: none;
+    }
+  }
+}
+
+// .ReactVirtualized__Table__headerRow {
+//   font-weight: 700;
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+//   .borderRight();
+//   .borderLeft();
+//   .borderTop();
+// }
+// .ReactVirtualized__Table__headerColumn {
+//   display: flex;
+//   flex-direction: row;
+//   justify-content: center;
+//   padding: 0;
+//   &:first-of-type {
+//     border-left: none;
+//   }
+// }
+
+// .ReactVirtualized__Table__headerTruncatedText {
+//   padding-left: @table_row_left_padding;
+// }
+
+// .ReactVirtualized__Table__rowColumn {
+//   .borderLeft();
+//   min-width: 20px;
+//   display: flex;
+//   align-items: center;
+//   font-size: small;
+//   text-overflow: ellipsis;
+//   white-space: nowrap;
+//   height: 100%;
+//   &:first-of-type {
+//     border-left: none;
+//   }
+// }
