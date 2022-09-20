@@ -29,11 +29,13 @@ body .p-component {
   }
 }
 
+// By displaying a TabView as a flex, we can place the tab selectors on any edge.
 .p-tabview.pl-bottom-tabs {
   display: flex;
   flex-direction: column-reverse;
   height: 100%;
 
+  // Invert button rounding
   .p-tabview-nav-link {
     border-top-right-radius: 0 !important;
     border-top-left-radius: 0 !important;

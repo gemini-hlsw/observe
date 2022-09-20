@@ -174,8 +174,7 @@ object StepProgressCell:
         EmptyVdom
       case (_, s) if s.isObservePaused && s.fileId.isDefined                                   =>
         // Case for exposure paused, label and control buttons
-        // stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = true)
-        EmptyVdom
+        stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = true)
       case (_, s) if s.status === StepState.Running && s.fileId.isDefined                      =>
         // Case for a exposure onging, progress bar and control buttons
         stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = false)

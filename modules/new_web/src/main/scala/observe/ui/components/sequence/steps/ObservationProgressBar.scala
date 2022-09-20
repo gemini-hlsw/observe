@@ -20,38 +20,6 @@ import crystal.Pot
 import reactST.primereact.components.*
 import observe.ui.ObserveStyles
 
-trait ProgressLabel:
-  def label(
-    fileId:          String,
-    remainingMillis: Option[Int],
-    stopping:        Boolean,
-    paused:          Boolean,
-    stage:           ObservationStage
-  ): String = {
-    val durationStr = remainingMillis.foldMap { millis =>
-      val remainingSecs = millis / 1000
-      val remainingStr  = if (remainingSecs > 1) s"$remainingSecs seconds" else "1 second"
-      s" - $remainingStr left"
-    }
-    val stageStr    =
-      stage match {
-        case ObservationStage.Preparing  => "Preparing".some
-        case ObservationStage.ReadingOut => "Reading out...".some
-        case _                           => None
-      }
-
-    if (paused) s"$fileId - Paused$durationStr"
-    else if (stopping) s"$fileId - Stopping - Reading out..."
-    else
-      stageStr match {
-        case Some(stage) => s"$fileId - $stage"
-        case _           =>
-          remainingMillis.fold(fileId) { millis =>
-            if (millis > 0) s"$fileId$durationStr" else s"$fileId - Reading out..."
-          }
-      }
-  }
-
 /**
  * Component to wrap the progress bar
  */
@@ -66,7 +34,7 @@ case class ObservationProgressBar(
 // protected[steps] val connect: ReactConnectProxy[Option[ObservationProgress]] =
 //   ObserveCircuit.connect(ObserveCircuit.obsProgressReader[ObservationProgress](obsId, stepId))
 
-object ObservationProgressBar:
+object ObservationProgressBar extends ProgressLabel:
   private type Props = ObservationProgressBar
 
   private val component = ScalaFnComponent
@@ -91,9 +59,19 @@ object ObservationProgressBar:
             // TODO Smooth Progress Bar
             // val remainingMillis = p.maxValue - s.value
 
-            val progress = ((total.getSeconds - remaining.getSeconds) * 100) / total.getSeconds
+            val totalMillis     = total.toMillis.toInt
+            val remainingMillis = remaining.toMillis.toInt
 
-            ProgressBar.value(progress.toInt).showValue(false)
+            val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
+
+            <.div(ObserveStyles.ObservationProgressBarAndLabel)(
+              ProgressBar(ObserveStyles.ObservationProgressBar)
+                .value(progress.toInt)
+                .showValue(false),
+              <.div(ObserveStyles.ObservationProgressLabel)(
+                renderLabel(props.fileId, remainingMillis.some, props.stopping, props.paused, stage)
+              )
+            )
 
           // Progress(
           //   total = p.total,

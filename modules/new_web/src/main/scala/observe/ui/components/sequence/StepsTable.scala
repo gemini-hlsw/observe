@@ -20,6 +20,7 @@ import observe.ui.model.TabOperations
 import observe.ui.model.reusability.given
 import lucuma.ui.reusability.given
 import observe.ui.components.sequence.steps.*
+import org.scalablytyped.runtime.StringDictionary
 
 case class StepsTable(
   clientStatus:        ClientStatus,
@@ -158,7 +159,18 @@ object StepsTable:
           cols,
           rows,
           enableColumnResizing = true,
-          columnResizeMode = raw.mod.ColumnResizeMode.onChange
+          columnResizeMode = raw.mod.ColumnResizeMode.onChange,
+          initialState = raw.mod
+            .InitialTableState()
+            .setColumnVisibility(
+              StringDictionary(
+                "obsMode"       -> false,
+                "camera"        -> false,
+                "decker"        -> false,
+                "readMode"      -> false,
+                "imagingMirror" -> false
+              )
+            )
         )
       )
       .render((props, _, _, _, table) => PrimeTable(table, tableClass = ObserveStyles.ObserveTable))

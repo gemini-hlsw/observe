@@ -188,7 +188,7 @@ private object SessionQueue:
       .render((props, _, _, table) =>
         PrimeTable(
           table,
-          tableClass = ObserveStyles.ObserveTable |+| ObserveStyles.QueueTable,
+          tableClass = ObserveStyles.ObserveTable,
           rowClassFn = rowClass
         )
       )

@@ -21,7 +21,6 @@ object ObserveStyles {
   val Footer: Css  = Css("ObserveStyles-footer")
 
   val ObserveTable: Css = Css("ObserveStyles-observeTable")
-  val QueueTable: Css   = Css("ObserveStyles-queueTable")
 
   val RowPositive: Css = Css("ObserveStyles-rowPositive")
   val RowWarning: Css  = Css("ObserveStyles-rowWarning")
@@ -41,7 +40,10 @@ object ObserveStyles {
   val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
 
-  val SequenceTabView: Css   = Css("ObserveStyles-sequenceTabView")
-  val ConfiguringRow: Css    = Css("ObserveStyles-configuringRow")
-  val ObservationProgressRow = Css("ObserveStyles-observationProgressRow")
+  val SequenceTabView: Css                = Css("ObserveStyles-sequenceTabView")
+  val ConfiguringRow: Css                 = Css("ObserveStyles-configuringRow")
+  val ObservationProgressRow: Css         = Css("ObserveStyles-observationProgressRow")
+  val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
+  val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
+  val ObservationProgressLabel: Css       = Css("ObserveStyles-observationProgressLabel")
 }

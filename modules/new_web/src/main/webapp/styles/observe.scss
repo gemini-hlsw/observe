@@ -64,10 +64,6 @@ html {
   justify-content: center;
 }
 
-.ObserveStyles-queueTable {
-  width: 100%;
-}
-
 // .ObserveStyles-rowPositive {
 //   background-color: @positiveBackgroundColor;
 //   color: @positiveTextColor;
@@ -247,7 +243,7 @@ html {
 }
 
 .ObserveStyles-observeTable {
-  // width: 100%;
+  width: 100%;
 
   th {
     text-overflow: ellipsis;
@@ -274,6 +270,22 @@ html {
       border-left: none;
     }
   }
+}
+
+.ObserveStyles-observationProgressBarAndLabel {
+  display: flex;
+  flex-direction: column;
+}
+
+.ObserveStyles-observationProgressBar {
+  margin: 0 !important;
+  height: 1em !important;
+}
+
+.ObserveStyles-observationProgressLabel {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
 }
 
 // .ReactVirtualized__Table__headerRow {
