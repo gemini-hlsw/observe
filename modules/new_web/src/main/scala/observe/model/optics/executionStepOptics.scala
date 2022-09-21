@@ -18,12 +18,32 @@ import monocle.function.At.atMap
 import monocle.std.option.some
 import monocle.std.string.*
 import observe.model.enums.ExecutionStepType
+import observe.model.OffsetConfigResolver
+import lucuma.core.math.Offset
+import monocle.Fold
+import monocle.Getter
+import lucuma.core.optics.Format
+import lucuma.core.math.Angle
+import lucuma.core.syntax.all.*
+import monocle.Traversal
+import observe.model.enums.Guiding
+import monocle.function.FilterIndex
 
 // Focus on a param value
 def paramValueL(param: ParamName): Lens[Parameters, Option[ParamValue]] =
   Parameters.value.andThen( // map of parameterss
     atMap[ParamName, ParamValue].at(param)
   )                         // parameter containing the name
+
+// Focus on params with a prefix
+def paramValuesWithPrefixT(param: ParamName): Traversal[Parameters, ParamValue] =
+  Parameters.value.andThen(
+    FilterIndex
+      .mapFilterIndex[ParamName, ParamValue]
+      .filterIndex(
+        _.value.startsWith(param.value)
+      ) // parameter containing the name
+  )
 
 // Possible set of observe parameters
 def systemConfigL(system: SystemName): Lens[ExecutionStepConfig, Option[Parameters]] =
@@ -50,6 +70,13 @@ def configParamValueO(
 val stringToStepTypeP: Prism[String, ExecutionStepType] =
   Prism(ExecutionStepType.fromLabel.get)(_.label)
 
+val signedArcsecFormat: Format[String, Angle] =
+  Format[String, BigDecimal](_.parseBigDecimalOption, _.toString)
+    .andThen(Angle.signedDecimalArcseconds.reverse.asFormat)
+
+def signedComponentFormat[A]: Format[String, Offset.Component[A]] =
+  signedArcsecFormat.andThen(Offset.Component.angle[A].reverse)
+
 def stepObserveOptional[A](
   systemName: SystemName,
   param:      String,
@@ -75,3 +102,36 @@ val isNodAndShuffleO: Optional[ExecutionStep, Boolean] =
 // Composite lens to find the sequence obs class
 val stepClassO: Optional[ExecutionStep, ParamValue] =
   stepObserveOptional(SystemName.Observe, "class", Iso.id)
+
+// Lens to find offsets
+def offsetO[T, A](implicit
+  resolver: OffsetConfigResolver[T, A]
+): Optional[ExecutionStep, ParamValue] =
+  stepObserveOptional(resolver.systemName, resolver.configItem, Iso.id)
+
+def offsetF[T, A](implicit
+  resolver: OffsetConfigResolver[T, A]
+): Fold[ExecutionStep, Option[Offset.Component[A]]] =
+  offsetO[T, A].andThen(ParamValue.value).andThen(Getter(signedComponentFormat[A].getOption))
+
+val stringToGuidingP: Prism[String, Guiding] =
+  Prism(Guiding.fromString)(_.configValue)
+
+// Lens to find guidingWith configurations
+val telescopeGuidingWithT: Traversal[ExecutionStep, Guiding] =
+  ExecutionStep.config
+    .andThen(          // configuration of the step
+      systemConfigL(SystemName.Telescope)
+    )
+    .andThen(          // Observe config
+      some[Parameters]
+    )
+    .andThen(          // some
+      paramValuesWithPrefixT(
+        SystemName.Telescope.withParam("guideWith")
+      )
+    )
+    .andThen(ParamValue.value)
+    .andThen(          // find the guiding with params
+      stringToGuidingP // to guiding
+    )

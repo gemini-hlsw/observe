@@ -21,6 +21,8 @@ import observe.ui.model.reusability.given
 import lucuma.ui.reusability.given
 import observe.ui.components.sequence.steps.*
 import org.scalablytyped.runtime.StringDictionary
+import observe.ui.model.enums.OffsetsDisplay
+import observe.ui.model.extensions.*
 
 case class StepsTable(
   clientStatus:        ClientStatus,
@@ -38,7 +40,9 @@ case class StepsTable(
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
 
-) extends ReactFnProps(StepsTable.component)
+) extends ReactFnProps(StepsTable.component):
+  // Find out if offsets should be displayed
+  val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
 
 object StepsTable:
   private type Props = StepsTable
@@ -56,10 +60,20 @@ object StepsTable:
          props.sequenceState,
          props.tabOperations,
          props.isPreview,
+         props.offsetsDisplay,
          selectedStep.value
         )
       )((_, _) => // cols
-        (clientStatus, obsId, instrument, sequenceState, tabOperations, isPreview, selectedStep) =>
+        (
+          clientStatus,
+          obsId,
+          instrument,
+          sequenceState,
+          tabOperations,
+          isPreview,
+          offsetsDisplay,
+          selectedStep
+        ) =>
           List(
             ColDef(
               "control",
@@ -93,6 +107,7 @@ object StepsTable:
             ColDef(
               "offsets",
               header = "Offsets",
+              cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original),
               size = 75,
               enableResizing = false
             ),

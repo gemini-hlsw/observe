@@ -9,12 +9,14 @@ import japgolly.scalajs.react.ReactCats.*
 import observe.model.enums.SequenceState
 import lucuma.core.util.NewType
 import observe.ui.model.enums.ObsClass
+import observe.ui.model.enums.OffsetsDisplay
 
 object reusability:
-  given Reusability[ClientStatus]  = Reusability.byEq
-  given Reusability[SequenceState] = Reusability.byEq
-  given Reusability[TabOperations] = Reusability.byEq
-  given Reusability[ObsClass]      = Reusability.byEq
+  given Reusability[ClientStatus]   = Reusability.byEq
+  given Reusability[SequenceState]  = Reusability.byEq
+  given Reusability[TabOperations]  = Reusability.byEq
+  given Reusability[ObsClass]       = Reusability.byEq
+  given Reusability[OffsetsDisplay] = Reusability.byEq
 
   // TODO Move to lucuma-ui (and unify with explore)
   given reusabilityNewType[W, T <: NewType[W]#Type](using

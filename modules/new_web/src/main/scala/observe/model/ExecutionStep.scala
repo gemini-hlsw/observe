@@ -168,7 +168,7 @@ object ExecutionStep:
         case _: NodAndShuffleStep => true
         case _                    => false
 
-final case class StandardStep(
+case class StandardStep(
   override val id:         Step.Id,
   override val config:     ExecutionStepConfig,
   override val status:     StepState,
@@ -191,7 +191,7 @@ object StandardStep:
   val observeStatus: Lens[StandardStep, ActionStatus]                  = Focus[StandardStep](_.observeStatus)
 
 // Other kinds of Steps to be defined.
-final case class NodAndShuffleStep(
+case class NodAndShuffleStep(
   override val id:         Step.Id,
   override val config:     ExecutionStepConfig,
   override val status:     StepState,

@@ -14,6 +14,10 @@ import scala.scalajs.js.annotation._
 @nowarn
 object Icons {
   @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faBan")
+  private val faBan: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faCalendarDays")
   private val faCalendarDays: FAIcon = js.native
 
@@ -42,6 +46,10 @@ object Icons {
   private val faClock: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faCrosshairs")
+  private val faCrosshairs: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faMoon")
   private val faMoon: FAIcon = js.native
 
@@ -67,6 +75,7 @@ object Icons {
 
   // This is tedious but lets us do proper tree-shaking
   IconLibrary.add(
+    faBan,
     faCalendarDays,
     faCheck,
     faCircle,
@@ -74,6 +83,7 @@ object Icons {
     faCircleDot,
     faCircleNotch,
     faClock,
+    faCrosshairs,
     faMoon,
     faPause,
     faPlay,
@@ -82,6 +92,7 @@ object Icons {
     faTrash
   )
 
+  inline def Ban          = FontAwesomeIcon(faBan)
   inline def CalendarDays = FontAwesomeIcon(faCalendarDays)
   inline def Checkmark    = FontAwesomeIcon(faCheck)
   inline def Circle       = FontAwesomeIcon(faCircle)
@@ -89,6 +100,7 @@ object Icons {
   inline def CircleDot    = FontAwesomeIcon(faCircleDot)
   inline def CircleNotch  = FontAwesomeIcon(faCircleNotch)
   inline def Clock        = FontAwesomeIcon(faClock)
+  inline def Crosshairs   = FontAwesomeIcon(faCrosshairs)
   inline def Moon         = FontAwesomeIcon(faMoon)
   inline def Pause        = FontAwesomeIcon(faPause)
   inline def Play         = FontAwesomeIcon(faPlay)

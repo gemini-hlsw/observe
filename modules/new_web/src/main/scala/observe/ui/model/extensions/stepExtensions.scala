@@ -8,6 +8,10 @@ import lucuma.core.enums.Instrument
 import cats.syntax.all.*
 import observe.model.enums.ExecutionStepType
 import observe.model.optics.*
+import observe.model.OffsetConfigResolver
+import lucuma.core.math.Offset
+import cats.Monoid
+import observe.model.enums.Guiding
 
 extension (s: ExecutionStep)
   //  def fpuNameMapper(i: Instrument): String => Option[String] =
@@ -135,13 +139,14 @@ extension (s: ExecutionStep)
 //    }
 //  }
 
-//  def offset[T, A](implicit
-//    resolver: OffsetConfigResolver[T, A],
-//    m:        Monoid[Offset.Component[A]]
-//  ): Offset.Component[A] =
-//    offsetF[T, A].fold(s).orEmpty
+  def offset[T, A](using
+    resolver: OffsetConfigResolver[T, A],
+    m:        Monoid[Offset.Component[A]]
+  ): Offset.Component[A] =
+    offsetF[T, A].fold(s).orEmpty
 
-//  def guiding: Boolean         = telescopeGuidingWithT.exist(_ === Guiding.Guide)(s)
+  def guiding: Boolean = telescopeGuidingWithT.exist(_ === Guiding.Guide)(s)
+
 //  def readMode: Option[String] = instrumentReadModeO.getOption(s)
 
 //  def observingMode: Option[String] =
