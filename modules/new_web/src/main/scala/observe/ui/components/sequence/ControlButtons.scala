@@ -20,6 +20,7 @@ import observe.ui.Icons
 import reactST.primereact.components.*
 import reactST.primereact.tooltipoptionsMod.TooltipOptions
 import reactST.primereact.tooltipoptionsMod.TooltipPositionType
+import react.fa.IconSize
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -71,14 +72,14 @@ object ControlButtons:
           case PauseObservation =>
             // Tooltip(
             Button(ObserveStyles.PauseButton)
-              .iconFA(Icons.Pause)
+              .iconFA(Icons.Pause.copy(size = IconSize.LG))
               .disabled(props.requestInFlight || props.isObservePaused || isReadingOut)
               .tooltip("Pause the current exposure")
               .tooltipOptions(TooltipOptions().setPosition(TooltipPositionType.top))
           // onClick = requestObsPause(p.obsId, p.stepId),
           case StopObservation  =>
             Button(ObserveStyles.StopButton)
-              .iconFA(Icons.Stop)
+              .iconFA(Icons.Stop.copy(size = IconSize.LG))
               .disabled(props.requestInFlight || isReadingOut)
               .tooltip("Stop the current exposure early")
               .tooltipOptions(TooltipOptions().setPosition(TooltipPositionType.top))
