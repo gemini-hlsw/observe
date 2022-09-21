@@ -175,4 +175,5 @@ object StepsTable:
       )
       .render((props, _, _, _, table) =>
         PrimeVirtualizedTable(table, tableClass = ObserveStyles.ObserveTable)
+        // PrimeTable(table, tableClass = ObserveStyles.ObserveTable)
       )

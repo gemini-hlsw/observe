@@ -23,6 +23,7 @@ import observe.model.enums.ExecutionStepType
 import observe.model.NodAndShuffleStatus
 import observe.model.NodAndShuffleStep
 import observe.ui.model.StopOperation
+import lucuma.core.syntax.display.*
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,
@@ -185,12 +186,10 @@ object StepProgressCell:
       case (_, _) if props.step.skip                                                           =>
         <.p("Skip")
       case (_, s) if s.status === StepState.Completed && s.fileId.isDefined                    =>
-        // <.p(ObserveStyles.componentLabel, s.fileId.orEmpty)
-        EmptyVdom
+        <.p(ObserveStyles.ComponentLabel, s.fileId.map(_.value).orEmpty)
       case (_, s) if props.stepSelected(s.id) && s.canConfigure                                =>
         // stepSubsystemControl(props)
         EmptyVdom
       case _                                                                                   =>
-        // <.p(ObserveStyles.componentLabel, props.step.show)
-        EmptyVdom
+        <.p(ObserveStyles.ComponentLabel, props.step.shortName)
   )

@@ -14,6 +14,7 @@ import monocle.macros.GenPrism
 import lucuma.core.model.sequence.Step
 import observe.model.enums.*
 import cats.derived.*
+import lucuma.core.util.Display
 
 // TODO Can we unify with lucuma.core.model.sequence.Step?
 sealed trait ExecutionStep derives Eq:
@@ -26,6 +27,21 @@ sealed trait ExecutionStep derives Eq:
 
 object ExecutionStep:
   extension [A](l: Lens[A, Boolean]) def negate: A => A = l.modify(!_)
+
+  given Display[ExecutionStep] = Display.byShortName(s =>
+    s.status match {
+      case StepState.Pending                      => "Pending"
+      case StepState.Completed                    => "Done"
+      case StepState.Skipped                      => "Skipped"
+      case StepState.Failed(msg)                  => msg
+      case StepState.Running if s.isObserving     => "Observing..."
+      case StepState.Running if s.isObservePaused => "Exposure paused"
+      case StepState.Running if s.isConfiguring   => "Configuring..."
+      case StepState.Running                      => "Running..."
+      case StepState.Paused                       => "Paused"
+      case StepState.Aborted                      => "Aborted"
+    }
+  )
 
   val standardStepP: Prism[ExecutionStep, StandardStep] =
     GenPrism[ExecutionStep, StandardStep]

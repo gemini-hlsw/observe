@@ -76,6 +76,13 @@ html {
   justify-content: center;
 }
 
+.ObserveStyles-componentLabel {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-wrap: break-word;
+  white-space: nowrap;
+}
+
 .ObserveStyles-sessionQueue {
   display: flex;
   flex-direction: column;
