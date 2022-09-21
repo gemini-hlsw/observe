@@ -94,17 +94,19 @@ case class StepProgressCell(
 object StepProgressCell:
   private type Props = StepProgressCell
 
+  private given ControlButtonResolver[Props] =
+    ControlButtonResolver.build(p => (p.clientStatus, p.sequenceState, p.step))
+
   private def stepControlButtons(props: Props): TagMod =
-    // StepsControlButtons(
-    //   props.obsIdName,
-    //   props.instrument,
-    //   props.state,
-    //   props.step.id,
-    //   props.step.isObservePaused,
-    //   props.step.isMultiLevel,
-    //   props.tabOperations
-    // ).when(props.controlButtonsActive)
-    EmptyVdom
+    StepControlButtons(
+      props.obsId,
+      props.instrument,
+      props.sequenceState,
+      props.step.id,
+      props.step.isObservePaused,
+      props.step.isMultiLevel,
+      props.tabOperations
+    ).when(props.controlButtonsActive)
 
   // private def stepSystemsStatus(step: Step): VdomElement =
   //   <.div(

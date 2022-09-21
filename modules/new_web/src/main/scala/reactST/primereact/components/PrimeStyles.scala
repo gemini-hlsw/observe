@@ -6,6 +6,9 @@ package reactST.primereact.components
 import react.common.style.Css
 
 object PrimeStyles:
+  object Button:
+    val Icon: Css = Css("pl-button-icon")
+
   object Tag:
     val Icon: Css = Css("pl-tag-icon")
 

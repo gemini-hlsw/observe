@@ -193,23 +193,23 @@ html {
   width: 100%;
 }
 
-.ObserveStyles-observationProgressRow {
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  width: 100%;
-  padding-right: 7px;
-  margin-bottom: 1em;
+// .ObserveStyles-observationProgressRow {
+//   display: flex;
+//   flex-grow: 1;
+//   flex-direction: column;
+//   width: 100%;
+//   padding-right: 7px;
+//   margin-bottom: 1em;
 
-  // & .bar {
-  //   height: 100% !important;
-  // }
+//   // & .bar {
+//   //   height: 100% !important;
+//   // }
 
-  // & .label {
-  //   text-align: center;
-  //   width: 100%;
-  // }
-}
+//   // & .label {
+//   //   text-align: center;
+//   //   width: 100%;
+//   // }
+// }
 
 @mixin borderRight {
   border-right-style: solid;
@@ -273,6 +273,8 @@ html {
 .ObserveStyles-observationProgressBarAndLabel {
   display: flex;
   flex-direction: column;
+  flex-grow: 2;
+  margin-right: 0.4em;
 }
 
 .ObserveStyles-observationProgressBar {
@@ -284,6 +286,30 @@ html {
   text-align: center;
   font-size: 14px;
   font-weight: bold;
+}
+
+.ObserveStyles-controlButtonStrip {
+  width: unset !important; // Unset p-inputgroup's width: 100%
+}
+
+.ObserveStyles-pauseButton {
+  background-color: var(--teal-500) !important;
+  color: var(--primary-50) !important;
+}
+
+.ObserveStyles-stopButton {
+  background-color: var(--orange-500) !important;
+  color: var(--primary-50) !important;
+}
+
+.ObserveStyles-playButton {
+  background-color: var(--blue-500) !important;
+  color: var(--primary-50) !important;
+}
+
+.ObserveStyles-abortButton {
+  background-color: var(--red-500) !important;
+  color: var(--primary-50) !important;
 }
 
 // .ReactVirtualized__Table__headerRow {

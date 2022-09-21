@@ -9,6 +9,12 @@ import scala.annotation.targetName
 
 // TODO Move all these to prime-react facade
 
+extension (button: Button.Builder)
+  @targetName("buttonIconFA")
+  inline def iconFA(v: FontAwesomeIcon): Button.Builder =
+    button.icon(v.clazz(PrimeStyles.Button.Icon).raw)
+
 extension (tag: Tag.Builder)
+  @targetName("tagIconFA")
   inline def iconFA(v: FontAwesomeIcon): Tag.Builder =
     tag.icon(v.clazz(PrimeStyles.Tag.Icon).raw)

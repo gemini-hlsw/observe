@@ -26,6 +26,7 @@ import cats.syntax.all.*
 import observe.ui.model.TabOperations
 import observe.ui.components.sequence.StepsTable
 import observe.model.ClientStatus
+import observe.model.UserDetails
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -80,7 +81,8 @@ object Home {
                       )
                     )(
                       StepsTable(
-                        clientStatus = ClientStatus.Default,
+                        clientStatus =
+                          ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some),
                         obsId = Observation.Id.fromLong(1).get,
                         obsName = "Test Observation",
                         instrument = Instrument.GmosSouth,

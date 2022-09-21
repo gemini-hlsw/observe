@@ -10,14 +10,14 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "2.3.0"
-    val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
     val crystal                 = "0.30.0"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.4-e2558ea-20220911T233004Z-SNAPSHOT"
+    val lucumaReact             = "0.5.0"
+    val scalaDom                = "2.3.0"
+    val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -208,6 +208,7 @@ object Settings {
         "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-font-awesome"   % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-floatingui"     % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact // Must be last, lest we hit a compiler snag
       )
     )

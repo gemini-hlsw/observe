@@ -42,8 +42,13 @@ object ObserveStyles {
 
   val SequenceTabView: Css                = Css("ObserveStyles-sequenceTabView")
   val ConfiguringRow: Css                 = Css("ObserveStyles-configuringRow")
-  val ObservationProgressRow: Css         = Css("ObserveStyles-observationProgressRow")
+  // val ObservationProgressRow: Css         = Css("ObserveStyles-observationProgressRow")
   val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
   val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
   val ObservationProgressLabel: Css       = Css("ObserveStyles-observationProgressLabel")
+  val ControlButtonStrip: Css             = Css("ObserveStyles-controlButtonStrip")
+  val PauseButton: Css                    = Css("ObserveStyles-pauseButton")
+  val StopButton: Css                     = Css("ObserveStyles-stopButton")
+  val PlayButton: Css                     = Css("ObserveStyles-playButton")
+  val AbortButton: Css                    = Css("ObserveStyles-abortButton")
 }

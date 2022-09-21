@@ -1,0 +1,46 @@
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
+package observe.ui.components.sequence.steps
+
+import lucuma.core.model.Observation
+import lucuma.core.enums.Instrument
+import observe.model.enums.SequenceState
+import lucuma.core.model.sequence.Step
+import observe.ui.model.TabOperations
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
+import react.common.*
+import observe.model.operations.*
+import observe.ui.components.sequence.ControlButtons
+
+/**
+ * Contains the control buttons like stop/abort at the row level
+ */
+final case class StepControlButtons(
+  obsId:           Observation.Id,
+  instrument:      Instrument,
+  sequenceState:   SequenceState,
+  stepId:          Step.Id,
+  isObservePaused: Boolean,
+  isMultiLevel:    Boolean,
+  tabOperations:   TabOperations
+) extends ReactFnProps(StepControlButtons.component)
+
+object StepControlButtons:
+  private type Props = StepControlButtons
+
+  protected val component = ScalaFnComponent[Props](props =>
+    ControlButtons(
+      props.obsId,
+      props.instrument.operations(
+        OperationLevel.Observation,
+        props.isObservePaused,
+        props.isMultiLevel
+      ),
+      props.sequenceState,
+      props.stepId,
+      props.isObservePaused,
+      props.tabOperations
+    )
+  )

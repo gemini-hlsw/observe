@@ -52,8 +52,8 @@ object ObservationProgressBar extends ProgressLabel:
         .ready
     )
     .render((props, progress) =>
-      <.div(
-        ObserveStyles.ObservationProgressRow,
+      <.div(ObserveStyles.ObservationProgressBarAndLabel)(
+        // ObserveStyles.ObservationProgressRow,
         progress.value.toOption match
           case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
             // TODO Smooth Progress Bar
@@ -64,7 +64,7 @@ object ObservationProgressBar extends ProgressLabel:
 
             val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 
-            <.div(ObserveStyles.ObservationProgressBarAndLabel)(
+            React.Fragment(
               ProgressBar(ObserveStyles.ObservationProgressBar)
                 .value(progress.toInt)
                 .showValue(false),
@@ -84,7 +84,7 @@ object ObservationProgressBar extends ProgressLabel:
           case _ =>
             val msg = if (props.paused) s"${props.fileId.value} - Paused" else props.fileId.value
 
-            <.div(ObserveStyles.ObservationProgressBarAndLabel)(
+            React.Fragment(
               ProgressBar(ObserveStyles.ObservationProgressBar)
                 .value(100)
                 .showValue(false),

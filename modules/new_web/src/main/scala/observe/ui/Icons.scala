@@ -61,6 +61,10 @@ object Icons {
   @JSImport("@fortawesome/pro-solid-svg-icons", "faSun")
   private val faSun: FAIcon = js.native
 
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faTrash")
+  private val faTrash: FAIcon = js.native
+
   // This is tedious but lets us do proper tree-shaking
   IconLibrary.add(
     faCalendarDays,
@@ -74,7 +78,8 @@ object Icons {
     faPause,
     faPlay,
     faStop,
-    faSun
+    faSun,
+    faTrash
   )
 
   inline def CalendarDays = FontAwesomeIcon(faCalendarDays)
@@ -89,4 +94,5 @@ object Icons {
   inline def Play         = FontAwesomeIcon(faPlay)
   inline def Stop         = FontAwesomeIcon(faStop)
   inline def Sun          = FontAwesomeIcon(faSun)
+  inline def Trash        = FontAwesomeIcon(faTrash)
 }
