@@ -21,6 +21,12 @@ body .p-component {
   color: var(--text-color);
 }
 
+.p-button {
+  &:focus {
+    box-shadow: none !important;
+  }
+}
+
 .p-tag {
   font-size: 0.85rem !important;
 

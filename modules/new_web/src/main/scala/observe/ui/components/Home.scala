@@ -50,14 +50,7 @@ object Home {
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
-                      TabView(PrimeStyles.TabView.BottomTabs)(
-                        TabPanel.header(React.Fragment(Icons.Sun, "Daytime"))(
-                          SessionQueue(List.empty)
-                        ),
-                        TabPanel.header(React.Fragment(Icons.Moon, "Nighttime"))(
-                          SessionQueue(observe.demo.DemoSessionQueue)
-                        )
-                      )
+                      SessionQueue(observe.demo.DemoSessionQueue)
                     ),
                     SplitterPanel(
                       HeadersSideBar(

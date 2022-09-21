@@ -64,6 +64,13 @@ html {
   justify-content: center;
 }
 
+.ObserveStyles-sessionQueue {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
 // .ObserveStyles-rowPositive {
 //   background-color: @positiveBackgroundColor;
 //   color: @positiveTextColor;
@@ -296,10 +303,6 @@ html {
   color: var(--primary-50) !important;
   border: 0 !important;
   padding: 9px 19px !important;
-
-  &:focus {
-    box-shadow: none !important;
-  }
 }
 
 .ObserveStyles-pauseButton {

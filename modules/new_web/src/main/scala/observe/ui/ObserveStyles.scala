@@ -31,6 +31,8 @@ object ObserveStyles {
   val RowDone: Css     = Css("ObserveStyles-rowDone")
   val RowNone: Css     = Css.Empty
 
+  val SessionQueue: Css = Css("ObserveStyles-sessionQueue")
+
   val HeaderSideBarCard: Css = Css("ObserveStyles-HeaderSideBarCard")
   val HeaderSideBar: Css     = Css("ObserveStyles-HeaderSideBar")
   val ObserverArea: Css      = Css("ObserveStyles-ObserverArea")

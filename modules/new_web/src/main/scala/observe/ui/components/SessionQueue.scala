@@ -18,6 +18,12 @@ import observe.ui.ObserveStyles
 import observe.ui.Icons
 import react.fa.IconSize
 import cats.syntax.all.*
+import observe.ui.model.SessionQueueFilter
+import reactST.primereact.components.*
+import reactST.primereact.selectitemMod.SelectItem
+import scalajs.js.JSConverters.*
+import observe.ui.model.reusability.given
+import react.fa.FontAwesomeIcon
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 
@@ -88,7 +94,6 @@ private object SessionQueue:
       row.obsClass match
         case ObsClass.Daytime   => Icons.Sun
         case ObsClass.Nighttime => Icons.Moon
-        case _                  => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,
@@ -175,9 +180,12 @@ private object SessionQueue:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
+      .useState(SessionQueueFilter.All)
       .useMemo(())(_ => columns)
-      .useMemoBy((_, _) => ())((props, _) => _ => props.queue)
-      .useReactTableBy((_, cols, rows) =>
+      .useMemoBy((_, filter, _) => filter)((props, _, _) =>
+        filter => filter.value.filter(props.queue)
+      )
+      .useReactTableBy((_, _, cols, rows) =>
         TableOptions(
           cols,
           rows,
@@ -185,10 +193,23 @@ private object SessionQueue:
           columnResizeMode = raw.mod.ColumnResizeMode.onChange
         )
       )
-      .render((props, _, _, table) =>
-        PrimeTable(
-          table,
-          tableClass = ObserveStyles.ObserveTable,
-          rowClassFn = rowClass
+      .render((props, filter, _, _, table) =>
+        <.div(ObserveStyles.SessionQueue)(
+          PrimeTable(
+            table,
+            tableClass = ObserveStyles.ObserveTable,
+            rowClassFn = rowClass
+          ),
+          SelectButton
+            .value(filter.value.value.orUndefined)
+            .options(ObsClass.values.toJSArray)
+            .itemTemplate(_.asInstanceOf[ObsClass] match
+              case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
+              case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
+            )
+            .onChange(e =>
+              filter.setState(SessionQueueFilter(Option(e.value.asInstanceOf[ObsClass])))
+            )
+            .unselectable(true)
         )
       )

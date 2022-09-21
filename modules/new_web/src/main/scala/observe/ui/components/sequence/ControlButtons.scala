@@ -65,6 +65,8 @@ object ControlButtons:
         // p.connect { proxy =>
     val isReadingOut                 = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
+    val tooltipOptions = TooltipOptions().setPosition(TooltipPositionType.top).setShowDelay(100)
+
     <.div(ObserveStyles.ControlButtonStrip, ^.cls := "p-inputgroup")(
       // ObserveStyles.notInMobile,
       props.operations
@@ -75,21 +77,21 @@ object ControlButtons:
               .iconFA(Icons.Pause.copy(size = IconSize.LG))
               .disabled(props.requestInFlight || props.isObservePaused || isReadingOut)
               .tooltip("Pause the current exposure")
-              .tooltipOptions(TooltipOptions().setPosition(TooltipPositionType.top))
+              .tooltipOptions(tooltipOptions)
           // onClick = requestObsPause(p.obsId, p.stepId),
           case StopObservation  =>
             Button(ObserveStyles.StopButton)
               .iconFA(Icons.Stop.copy(size = IconSize.LG))
               .disabled(props.requestInFlight || isReadingOut)
               .tooltip("Stop the current exposure early")
-              .tooltipOptions(TooltipOptions().setPosition(TooltipPositionType.top))
+              .tooltipOptions(tooltipOptions)
           // onClick = requestStop(p.obsId, p.stepId),
           case AbortObservation =>
             Button(ObserveStyles.AbortButton)
               .iconFA(Icons.Trash)
               .disabled(props.requestInFlight || isReadingOut)
               .tooltip("Abort the current exposure")
-              .tooltipOptions(TooltipOptions().setPosition(TooltipPositionType.top))
+              .tooltipOptions(tooltipOptions)
           // onClick = requestAbort(p.obsId, p.stepId),
           // case ResumeObservation           =>
           //   Popup(

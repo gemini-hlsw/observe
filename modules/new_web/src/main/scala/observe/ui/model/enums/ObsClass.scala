@@ -7,7 +7,7 @@ import cats.Eq
 import cats.derived.*
 
 enum ObsClass derives Eq:
-  case All, Daytime, Nighttime
+  case Daytime, Nighttime
 
 object ObsClass:
   def fromString(s: String): ObsClass = s match
