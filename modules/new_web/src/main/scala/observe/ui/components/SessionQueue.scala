@@ -200,7 +200,7 @@ private object SessionQueue:
             tableClass = ObserveStyles.ObserveTable,
             rowClassFn = rowClass
           ),
-          SelectButton
+          SelectButton(ObserveStyles.ObsClassSelect)
             .value(filter.value.value.orUndefined)
             .options(ObsClass.values.toJSArray)
             .itemTemplate(_.asInstanceOf[ObsClass] match

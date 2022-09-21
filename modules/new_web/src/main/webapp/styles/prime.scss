@@ -50,3 +50,18 @@ body .p-component {
     margin: -1px 0 0 0 !important;
   }
 }
+
+.p-card {
+  background: var(--surface-50) !important;
+}
+
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  background: var(--surface-50) !important;
+  border-color: var(--surface-50) !important;
+  color: var(--text-color) !important;
+}
+
+.pl-inverted {
+  background: var(--text-color) !important;
+  color: var(--surface-ground) !important;
+}

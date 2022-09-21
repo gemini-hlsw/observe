@@ -67,10 +67,9 @@ object Home {
                     .header(
                       React.Fragment(
                         <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                        Tag(ObserveStyles.LabelPointer)
+                        Tag(ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag)
                           .iconFA(Icons.CircleDot)
                           .value("Idle")
-                          .severity(TagSeverityType.warning)
                       )
                     )(
                       StepsTable(

@@ -16,6 +16,7 @@ object ObserveStyles {
 
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
+  val IdleTag: Css               = Css("ObserveStyles-idleTag")
 
   val LogArea: Css = Css("ObserveStyles-logArea")
   val Footer: Css  = Css("ObserveStyles-footer")
@@ -31,7 +32,8 @@ object ObserveStyles {
   val RowDone: Css     = Css("ObserveStyles-rowDone")
   val RowNone: Css     = Css.Empty
 
-  val SessionQueue: Css = Css("ObserveStyles-sessionQueue")
+  val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
+  val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")
 
   val HeaderSideBarCard: Css = Css("ObserveStyles-HeaderSideBarCard")
   val HeaderSideBar: Css     = Css("ObserveStyles-HeaderSideBar")
