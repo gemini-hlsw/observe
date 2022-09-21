@@ -113,5 +113,65 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
     fileId = none,
     configStatus = List.empty,
     observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  ),
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = ExecutionStepConfig(Map.empty),
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
   )
 )

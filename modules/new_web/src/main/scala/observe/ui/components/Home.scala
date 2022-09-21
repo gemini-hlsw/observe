@@ -41,7 +41,7 @@ object Home {
         <.div(ObserveStyles.MainUI)(
           Divider(ObserveStyles.Divider, "Observe GS")
             .align(DividerAlignType.center),
-          Splitter(^.height := "100%")
+          Splitter(ObserveStyles.Shrinkable)
             .layout(SplitterLayoutType.vertical)
             .stateKey("main-splitter")
             .stateStorage(SplitterStateStorageType.local)(

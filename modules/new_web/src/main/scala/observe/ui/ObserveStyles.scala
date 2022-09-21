@@ -8,8 +8,9 @@ import react.common.style.Css
 object ObserveStyles {
   val MainUI: Css = Css("ObserveStyles-mainUI")
 
-  val Centered: Css  = Css("ObserveStyles-centered")
-  val ComponentLabel = Css("ObserveStyles-componentLabel")
+  val Centered: Css       = Css("ObserveStyles-centered")
+  val ComponentLabel: Css = Css("ObserveStyles-componentLabel")
+  val Shrinkable: Css     = Css("ObserveStyles-shrinkable")
 
   // Prime components restyling
   val Divider: Css          = Css("ObserveStyles-divider")

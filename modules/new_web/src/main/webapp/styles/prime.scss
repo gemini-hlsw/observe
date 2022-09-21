@@ -65,3 +65,10 @@ body .p-component {
   background: var(--text-color) !important;
   color: var(--surface-ground) !important;
 }
+
+// Experimental
+.p-splitter-panel {
+  min-width: 0px !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}

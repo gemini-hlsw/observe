@@ -23,11 +23,18 @@ html {
   padding: 0 !important;
 }
 
+.ObserveStyles-shrinkable {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
 .ObserveStyles-sequenceTabPanel {
   min-width: 20%;
 
   & .p-tabview-nav-link {
     justify-content: center;
+    padding: 0.5em 0.5em !important;
   }
 
   & .p-tabview-title {
