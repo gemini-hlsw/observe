@@ -18,8 +18,8 @@ enum SystemName(val system: String) derives Eq:
   case Meta           extends SystemName("meta")
   case AdaptiveOptics extends SystemName("adaptive optics")
 
-  def withParam(p: String): ParamName =
-    ParamName(s"$system:$p")
+  def withParam(p: ParamName): ParamName =
+    ParamName(s"$system:${p.value}")
 
 object SystemName:
   def fromString(system: String): Option[SystemName] =

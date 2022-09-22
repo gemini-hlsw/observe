@@ -29,7 +29,7 @@ object OffsetFormat:
 
 sealed trait OffsetConfigResolver[T, A]:
   val systemName: SystemName
-  val configItem: String
+  val configItem: ParamName
 
 object OffsetConfigResolver:
   sealed trait TelescopeOffsetConfigResolver[A]
@@ -38,11 +38,11 @@ object OffsetConfigResolver:
 
   given OffsetConfigResolver[OffsetType.Telescope, Axis.P] =
     new TelescopeOffsetConfigResolver[Axis.P]:
-      val configItem = "p"
+      val configItem = ParamName("p")
 
   given OffsetConfigResolver[OffsetType.Telescope, Axis.Q] =
     new TelescopeOffsetConfigResolver[Axis.Q]:
-      val configItem = "q"
+      val configItem = ParamName("q")
 
   sealed trait NSOffsetConfigResolver[T, A] extends OffsetConfigResolver[T, A]:
     val systemName = SystemName.Instrument
@@ -50,15 +50,15 @@ object OffsetConfigResolver:
   sealed trait NSOffsetConfigResolverA[A] extends NSOffsetConfigResolver[OffsetType.NSNodA, A]
 
   given OffsetConfigResolver[OffsetType.NSNodA, Axis.P] = new NSOffsetConfigResolverA[Axis.P]:
-    val configItem = "nsBeamA-p"
+    val configItem = ParamName("nsBeamA-p")
 
   given OffsetConfigResolver[OffsetType.NSNodA, Axis.Q] = new NSOffsetConfigResolverA[Axis.Q]:
-    val configItem = "nsBeamA-q"
+    val configItem = ParamName("nsBeamA-q")
 
   sealed trait NSOffsetConfigResolverB[A] extends NSOffsetConfigResolver[OffsetType.NSNodB, A]
 
   given OffsetConfigResolver[OffsetType.NSNodB, Axis.P] = new NSOffsetConfigResolverB[Axis.P]:
-    val configItem = "nsBeamB-p"
+    val configItem = ParamName("nsBeamB-p")
 
   given OffsetConfigResolver[OffsetType.NSNodB, Axis.Q] = new NSOffsetConfigResolverB[Axis.Q]:
-    val configItem = "nsBeamB-q"
+    val configItem = ParamName("nsBeamB-q")

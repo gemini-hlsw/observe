@@ -14,6 +14,7 @@ import lucuma.core.model.sequence.Step
 import java.util.UUID
 import observe.model.enums.StepState
 import observe.model.enums.ActionStatus
+import observe.model.enums.SystemName
 
 val DemoSessionQueue: List[SessionQueueRow] =
   List(
@@ -33,10 +34,21 @@ val DemoSessionQueue: List[SessionQueueRow] =
     )
   )
 
+private val stepConfig = ExecutionStepConfig(
+  Map(
+    SystemName.Observe ->
+      Parameters(
+        Map(
+          ParamName("observe:exposureTime") -> ParamValue("300")
+        )
+      )
+  )
+)
+
 val DemoExecutionSteps: List[ExecutionStep] = List(
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Skipped,
     breakpoint = false,
     skip = false,
@@ -46,7 +58,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Completed,
     breakpoint = false,
     skip = false,
@@ -56,7 +68,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Running,
     breakpoint = false,
     skip = false,
@@ -66,7 +78,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -76,7 +88,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -86,7 +98,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -96,7 +108,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -106,7 +118,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -116,7 +128,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -126,7 +138,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -136,7 +148,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -146,7 +158,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -156,7 +168,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,
@@ -166,7 +178,7 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   ),
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
-    config = ExecutionStepConfig(Map.empty),
+    config = stepConfig,
     status = StepState.Pending,
     breakpoint = false,
     skip = false,

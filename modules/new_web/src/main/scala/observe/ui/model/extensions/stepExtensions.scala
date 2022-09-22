@@ -12,6 +12,7 @@ import observe.model.OffsetConfigResolver
 import lucuma.core.math.Offset
 import cats.Monoid
 import observe.model.enums.Guiding
+import observe.ui.model.formatting.*
 
 extension (s: ExecutionStep)
   //  def fpuNameMapper(i: Instrument): String => Option[String] =
@@ -20,32 +21,37 @@ extension (s: ExecutionStep)
   //      case Instrument.GmosNorth => enumerations.fpu.GmosNFPU.get
   //      case _                => _ => none
   //    }
-  //  def exposureTime: Option[Double] = observeExposureTimeO.getOption(s)
-  //  def exposureTimeS(i: Instrument): Option[String] =
-  //    exposureTime.map(formatExposureTime(i))
-  //  def exposureAndCoaddsS(i: Instrument): Option[String] =
-  //    (coAdds, exposureTime) match {
-  //      case (c, Some(e)) if c.exists(_ > 1) =>
-  //        s"${c.foldMap(_.show)}x${formatExposureTime(i)(e)} s".some
-  //      case (_, Some(e))                    =>
-  //        s"${formatExposureTime(i)(e)} s".some
-  //      case _                               => none
-  //    }
-  //  def coAdds: Option[Int]                               = observeCoaddsO.getOption(s)
-  //  def fpu(i: Instrument): Option[String] =
-  //    (i, instrumentFPUO.getOption(s), instrumentFPUCustomMaskO.getOption(s)) match {
-  //      case (Instrument.GmosS | Instrument.GmosN | Instrument.F2, Some("CUSTOM_MASK"), c) => c
-  //      case (Instrument.GmosS | Instrument.GmosN | Instrument.F2, None, c @ Some(_))      => c
-  //      case (Instrument.F2, Some("Custom Mask"), c)                                       => c
-  //      case (Instrument.F2, a @ Some(_), _)                                               => a
-  //      case (_, Some(b), _)                                                               =>
-  //        fpuNameMapper(i)(b)
-  //      case _                                                                             => none
-  //    }
-  //  def fpuOrMask(i: Instrument): Option[String] =
-  //    fpu(i)
-  //      .orElse(instrumentSlitWidthO.getOption(s))
-  //      .orElse(instrumentMaskO.getOption(s))
+
+  def exposureTime: Option[Double] = observeExposureTimeO.getOption(s)
+
+  def exposureTimeS(i: Instrument): Option[String] =
+    exposureTime.map(formatExposureTime(i))
+
+  def exposureAndCoaddsS(i: Instrument): Option[String] =
+    (coAdds, exposureTime) match {
+      case (c, Some(e)) if c.exists(_ > 1) =>
+        s"${c.foldMap(_.show)}x${formatExposureTime(i)(e)} s".some
+      case (_, Some(e))                    =>
+        s"${formatExposureTime(i)(e)} s".some
+      case _                               => none
+    }
+
+  def coAdds: Option[Int] = observeCoaddsO.getOption(s)
+
+//  def fpu(i: Instrument): Option[String] =
+//    (i, instrumentFPUO.getOption(s), instrumentFPUCustomMaskO.getOption(s)) match {
+//      case (Instrument.GmosS | Instrument.GmosN | Instrument.F2, Some("CUSTOM_MASK"), c) => c
+//      case (Instrument.GmosS | Instrument.GmosN | Instrument.F2, None, c @ Some(_))      => c
+//      case (Instrument.F2, Some("Custom Mask"), c)                                       => c
+//      case (Instrument.F2, a @ Some(_), _)                                               => a
+//      case (_, Some(b), _)                                                               =>
+//        fpuNameMapper(i)(b)
+//      case _                                                                             => none
+//    }
+//  def fpuOrMask(i: Instrument): Option[String] =
+//    fpu(i)
+//      .orElse(instrumentSlitWidthO.getOption(s))
+//      .orElse(instrumentMaskO.getOption(s))
 
   def alignAndCalib(i: Instrument): Option[ExecutionStepType.AlignAndCalib.type] =
     i match {

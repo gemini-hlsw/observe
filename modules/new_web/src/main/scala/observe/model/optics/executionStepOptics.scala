@@ -54,7 +54,7 @@ def systemConfigL(system: SystemName): Lens[ExecutionStepConfig, Option[Paramete
 // Param name of a StepConfig
 def configParamValueO(
   system: SystemName,
-  param:  String
+  param:  ParamName
 ): Optional[ExecutionStepConfig, ParamValue] =
   systemConfigL(system)
     .andThen(          // observe parameters
@@ -77,9 +77,12 @@ val signedArcsecFormat: Format[String, Angle] =
 def signedComponentFormat[A]: Format[String, Offset.Component[A]] =
   signedArcsecFormat.andThen(Offset.Component.angle[A].reverse)
 
+val stringToDoubleP: Prism[String, Double] =
+  Prism((x: String) => x.parseDoubleOption)(_.toString)
+
 def stepObserveOptional[A](
   systemName: SystemName,
-  param:      String,
+  param:      ParamName,
   prism:      Prism[ParamValue, A]
 ): Optional[ExecutionStep, A] =
   ExecutionStep.config
@@ -91,17 +94,34 @@ def stepObserveOptional[A](
 val stepTypeO: Optional[ExecutionStep, ExecutionStepType] =
   stepObserveOptional(
     SystemName.Observe,
-    "observeType",
+    ParamName("observeType"),
     ParamValue.value.andThen(stringToStepTypeP)
+  )
+
+// Composite lens to find the observe exposure time
+val observeExposureTimeO: Optional[ExecutionStep, Double] =
+  stepObserveOptional(SystemName.Observe,
+                      ParamName("exposureTime"),
+                      ParamValue.value.andThen(stringToDoubleP)
+  )
+
+// Composite lens to find the observe coadds
+val observeCoaddsO: Optional[ExecutionStep, Int] =
+  stepObserveOptional(SystemName.Observe,
+                      ParamName("coadds"),
+                      ParamValue.value.andThen(stringToInt)
   )
 
 // Composite lens to find if the step is N&S
 val isNodAndShuffleO: Optional[ExecutionStep, Boolean] =
-  stepObserveOptional(SystemName.Instrument, "useNS", ParamValue.value.andThen(stringToBoolean))
+  stepObserveOptional(SystemName.Instrument,
+                      ParamName("useNS"),
+                      ParamValue.value.andThen(stringToBoolean)
+  )
 
 // Composite lens to find the sequence obs class
 val stepClassO: Optional[ExecutionStep, ParamValue] =
-  stepObserveOptional(SystemName.Observe, "class", Iso.id)
+  stepObserveOptional(SystemName.Observe, ParamName("class"), Iso.id)
 
 // Lens to find offsets
 def offsetO[T, A](implicit
@@ -128,7 +148,7 @@ val telescopeGuidingWithT: Traversal[ExecutionStep, Guiding] =
     )
     .andThen(          // some
       paramValuesWithPrefixT(
-        SystemName.Telescope.withParam("guideWith")
+        SystemName.Telescope.withParam(ParamName("guideWith"))
       )
     )
     .andThen(ParamValue.value)

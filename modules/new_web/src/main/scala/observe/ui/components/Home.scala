@@ -28,11 +28,14 @@ import observe.ui.components.sequence.StepsTable
 import observe.model.ClientStatus
 import observe.model.UserDetails
 import lucuma.core.syntax.display.*
+import observe.ui.model.Execution
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
 object Home {
   private type Props = Home
+
+  private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
 
   private val component =
     ScalaFnComponent
@@ -74,18 +77,8 @@ object Home {
                       )
                     )(
                       StepsTable(
-                        clientStatus =
-                          ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some),
-                        obsId = Observation.Id.fromLong(133742).get,
-                        obsName = "Test Observation",
-                        instrument = Instrument.GmosSouth,
-                        sequenceState = SequenceState.Idle,
-                        steps = List.empty,
-                        stepConfigDisplayed = none,
-                        nextStepToRun = none,
-                        runningStep = none,
-                        isPreview = false,
-                        tabOperations = TabOperations.Default
+                        clientStatus = clientStatus,
+                        execution = none
                       )
                     ),
                   TabPanel(ObserveStyles.SequenceTabPanel)
@@ -98,18 +91,19 @@ object Home {
                       )
                     )(
                       StepsTable(
-                        clientStatus =
-                          ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some),
-                        obsId = Observation.Id.fromLong(133742).get,
-                        obsName = "Test Observation",
-                        instrument = Instrument.GmosSouth,
-                        sequenceState = SequenceState.Running(false, false),
-                        steps = observe.demo.DemoExecutionSteps,
-                        stepConfigDisplayed = none,
-                        nextStepToRun = none,
-                        runningStep = none,
-                        isPreview = false,
-                        tabOperations = TabOperations.Default
+                        clientStatus = clientStatus,
+                        execution = Execution(
+                          obsId = Observation.Id.fromLong(133742).get,
+                          obsName = "Test Observation",
+                          instrument = Instrument.GmosSouth,
+                          sequenceState = SequenceState.Running(false, false),
+                          steps = observe.demo.DemoExecutionSteps,
+                          stepConfigDisplayed = none,
+                          nextStepToRun = none,
+                          runningStep = none,
+                          isPreview = false,
+                          tabOperations = TabOperations.Default
+                        ).some
                       )
                     )
                 )

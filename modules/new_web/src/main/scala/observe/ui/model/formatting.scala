@@ -6,6 +6,7 @@ package observe.ui.model
 import lucuma.core.math.Angle
 import observe.model.OffsetFormat
 import observe.ui.utils.*
+import lucuma.core.enums.Instrument
 
 object formatting:
   def offsetAxis[A](using show: OffsetFormat[A]): String =
@@ -22,3 +23,8 @@ object formatting:
 
   def nsNodLabelWidth[A](implicit show: OffsetFormat[A]): Double =
     tableTextWidth(offsetNSNod[A])
+
+  def formatExposureTime(i: Instrument)(e: Double): String = i match {
+    case Instrument.GmosNorth | Instrument.GmosSouth => f"$e%.0f"
+    case _                                           => f"$e%.2f"
+  }

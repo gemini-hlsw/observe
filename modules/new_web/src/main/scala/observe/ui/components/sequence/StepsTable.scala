@@ -97,6 +97,7 @@ object StepsTable:
               "exposure",
               // s => execution.map(_.instrument).flatMap(s.exposureAndCoaddsS),
               header = "Exposure",
+              cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument)),
               size = 84
             ),
             ColDef(
