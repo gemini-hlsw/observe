@@ -18,7 +18,7 @@ import observe.model.enums.ActionStatus
 val DemoSessionQueue: List[SessionQueueRow] =
   List(
     SessionQueueRow(
-      Observation.Id.fromLong(27).get,
+      Observation.Id.fromLong(133742).get,
       SequenceState.Running(false, false),
       Instrument.GmosSouth,
       "Untitled".some,

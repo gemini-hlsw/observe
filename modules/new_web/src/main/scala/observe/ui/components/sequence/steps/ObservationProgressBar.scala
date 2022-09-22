@@ -42,7 +42,7 @@ object ObservationProgressBar extends ProgressLabel:
     .useMemo[Unit, Pot[ObservationProgress]](())(_ =>
       ObservationProgress
         .Regular(
-          obsId = Observation.Id.fromLong(1).get,
+          obsId = Observation.Id.fromLong(133742).get,
           obsName = "Test observation",
           stepId = Step.Id.fromUuid(UUID.randomUUID),
           total = Duration.ofSeconds(300),

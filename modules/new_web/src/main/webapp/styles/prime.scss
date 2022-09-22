@@ -55,10 +55,29 @@ body .p-component {
   background: var(--surface-50) !important;
 }
 
-.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+.p-tabview {
+  background-color: var(--surface-0) !important;
+}
+
+.p-tabview li .p-tabview-nav-link {
+  background: var(--surface-0) !important;
+  border-color: var(--surface-0) !important;
+  color: var(--text-color) !important;
+  font-weight: normal !important;
+  border-right-color: var(--surface-100) !important;
+  border-top-color: var(--surface-100) !important;
+  border-left-color: var(--surface-100) !important;
+}
+
+.p-tabview li.p-tabview-selected .p-tabview-nav-link {
   background: var(--surface-50) !important;
   border-color: var(--surface-50) !important;
-  color: var(--text-color) !important;
+  box-shadow: none !important;
+  font-weight: bold !important;
+
+  border-right-color: var(--surface-200) !important;
+  border-top-color: var(--surface-200) !important;
+  border-left-color: var(--surface-200) !important;
 }
 
 .pl-inverted {

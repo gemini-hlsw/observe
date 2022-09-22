@@ -24,6 +24,7 @@ html {
 }
 
 .ObserveStyles-shrinkable {
+  flex-grow: 2;
   min-width: 0 !important;
   min-height: 0 !important;
   overflow: auto !important;
@@ -57,6 +58,10 @@ html {
   background-color: var(--gray-400) !important;
 }
 
+.ObserveStyles-runningTag {
+  background-color: var(--orange-500) !important;
+}
+
 .ObserveStyles-logArea {
   .p-accordion-header-link {
     padding: 0.6em 0.8em !important;
@@ -66,7 +71,8 @@ html {
 
 .ObserveStyles-footer {
   border-radius: unset !important;
-  height: 46px;
+  min-height: 3em;
+  max-height: 3em;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 

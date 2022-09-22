@@ -156,7 +156,7 @@ object OffsetsDisplayCell {
             // ObserveStyles.guidingCell,
             GuidingIcon.when(guiding),
             NoGuidingIcon.unless(guiding),
-            props.step match // TODO CHANGE MATCHERS
+            props.step match
               case s @ StandardStep(_, _, _, _, _, _, _, _)         =>
                 standardOffsetsRender(s, offsetWidth, axisLabelWidth)
               case s @ NodAndShuffleStep(_, _, _, _, _, _, _, _, _) =>

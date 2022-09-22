@@ -27,6 +27,7 @@ import observe.ui.model.TabOperations
 import observe.ui.components.sequence.StepsTable
 import observe.model.ClientStatus
 import observe.model.UserDetails
+import lucuma.core.syntax.display.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -75,7 +76,31 @@ object Home {
                       StepsTable(
                         clientStatus =
                           ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some),
-                        obsId = Observation.Id.fromLong(1).get,
+                        obsId = Observation.Id.fromLong(133742).get,
+                        obsName = "Test Observation",
+                        instrument = Instrument.GmosSouth,
+                        sequenceState = SequenceState.Idle,
+                        steps = List.empty,
+                        stepConfigDisplayed = none,
+                        nextStepToRun = none,
+                        runningStep = none,
+                        isPreview = false,
+                        tabOperations = TabOperations.Default
+                      )
+                    ),
+                  TabPanel(ObserveStyles.SequenceTabPanel)
+                    .header(
+                      React.Fragment(
+                        <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
+                        Tag(ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag)
+                          .iconFA(Icons.CircleNotch.copy(spin = true))
+                          .value(Observation.Id.fromLong(133742).get.shortName)
+                      )
+                    )(
+                      StepsTable(
+                        clientStatus =
+                          ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some),
+                        obsId = Observation.Id.fromLong(133742).get,
                         obsName = "Test Observation",
                         instrument = Instrument.GmosSouth,
                         sequenceState = SequenceState.Running(false, false),
