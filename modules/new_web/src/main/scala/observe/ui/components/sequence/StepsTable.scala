@@ -42,6 +42,9 @@ object StepsTable:
 
   private val ColDef = ColumnDef[ExecutionStep]
 
+  private def renderStringCell(value: Option[String]): VdomNode =
+    <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
+
   private val component =
     ScalaFnComponent
       .withHooks[Props]
@@ -96,7 +99,6 @@ object StepsTable:
             ),
             ColDef(
               "exposure",
-              // s => execution.map(_.instrument).flatMap(s.exposureAndCoaddsS),
               header = "Exposure",
               cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument)),
               size = 84
@@ -104,16 +106,30 @@ object StepsTable:
             ColDef(
               "disperser",
               header = "Disperser",
+              cell = cell =>
+                execution.map(e => renderStringCell(cell.row.original.disperser(e.instrument))),
               size = 100
             ),
             ColDef(
               "filter",
               header = "Filter",
+              cell = cell =>
+                execution.map(e => renderStringCell(cell.row.original.filter(e.instrument))),
               size = 100
             ),
             ColDef(
               "fpu",
               header = "FPU",
+              cell = cell =>
+                val step = cell.row.original
+                execution.map(e =>
+                  renderStringCell(
+                    step
+                      .fpu(e.instrument)
+                      .orElse(step.fpuOrMask(e.instrument).map(_.toLowerCase.capitalize))
+                  )
+                )
+              ,
               size = 47
             ),
             ColDef(

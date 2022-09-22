@@ -88,7 +88,9 @@ object Home {
                         <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
                         Tag(ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag)
                           .iconFA(Icons.CircleNotch.copy(spin = true))
-                          .value(Observation.Id.fromLong(133742).get.shortName)
+                          .value(
+                            s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
+                          )
                       )
                     )(
                       StepsTable(

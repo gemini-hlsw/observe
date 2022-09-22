@@ -82,57 +82,77 @@ val stringToDoubleP: Prism[String, Double] =
 
 def stepObserveOptional[A](
   systemName: SystemName,
-  param:      ParamName,
-  prism:      Prism[ParamValue, A]
+  param:      String,
+  prism:      Prism[String, A]
 ): Optional[ExecutionStep, A] =
   ExecutionStep.config
     .andThen(       // configuration of the step
-      configParamValueO(systemName, param)
+      configParamValueO(systemName, ParamName(param))
     )
+    .andThen(ParamValue.value)
     .andThen(prism) // step type
 
 val stepTypeO: Optional[ExecutionStep, ExecutionStepType] =
-  stepObserveOptional(
-    SystemName.Observe,
-    ParamName("observeType"),
-    ParamValue.value.andThen(stringToStepTypeP)
-  )
+  stepObserveOptional(SystemName.Observe, "observeType", stringToStepTypeP)
 
 // Composite lens to find the observe exposure time
 val observeExposureTimeO: Optional[ExecutionStep, Double] =
-  stepObserveOptional(SystemName.Observe,
-                      ParamName("exposureTime"),
-                      ParamValue.value.andThen(stringToDoubleP)
-  )
+  stepObserveOptional(SystemName.Observe, "exposureTime", stringToDoubleP)
 
 // Composite lens to find the observe coadds
 val observeCoaddsO: Optional[ExecutionStep, Int] =
-  stepObserveOptional(SystemName.Observe,
-                      ParamName("coadds"),
-                      ParamValue.value.andThen(stringToInt)
-  )
+  stepObserveOptional(SystemName.Observe, "coadds", stringToInt)
 
 // Composite lens to find if the step is N&S
 val isNodAndShuffleO: Optional[ExecutionStep, Boolean] =
-  stepObserveOptional(SystemName.Instrument,
-                      ParamName("useNS"),
-                      ParamValue.value.andThen(stringToBoolean)
-  )
+  stepObserveOptional(SystemName.Instrument, "useNS", stringToBoolean)
+
+// Composite lens to find the instrument fpu
+val instrumentFPUO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "fpu", Iso.id)
+
+// Composite lens to find the instrument slit width
+val instrumentSlitWidthO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "slitWidth", Iso.id)
+
+// Composite lens to find the instrument fpu custom mask
+val instrumentFPUCustomMaskO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "fpuCustomMask", Iso.id)
+
+// Composite lens to find the instrument filter
+val instrumentFilterO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "filter", Iso.id)
+
+// Composite lens to find the instrument disperser for GMOS
+val instrumentDisperserO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "disperser", Iso.id)
+
+// Composite lens to find the central wavelength for a disperser
+val instrumentDisperserLambdaO: Optional[ExecutionStep, Double] =
+  stepObserveOptional(SystemName.Instrument, "disperserLambda", stringToDoubleP)
+
+// Instrument's mask
+val instrumentMaskO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "mask", Iso.id)
+
+// Composite lens to find the instrument observing mode on GPI
+val instrumentObservingModeO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Instrument, "observingMode", Iso.id)
 
 // Composite lens to find the sequence obs class
-val stepClassO: Optional[ExecutionStep, ParamValue] =
-  stepObserveOptional(SystemName.Observe, ParamName("class"), Iso.id)
+val stepClassO: Optional[ExecutionStep, String] =
+  stepObserveOptional(SystemName.Observe, "class", Iso.id)
 
 // Lens to find offsets
 def offsetO[T, A](implicit
   resolver: OffsetConfigResolver[T, A]
-): Optional[ExecutionStep, ParamValue] =
-  stepObserveOptional(resolver.systemName, resolver.configItem, Iso.id)
+): Optional[ExecutionStep, String] =
+  stepObserveOptional(resolver.systemName, resolver.configItem.value, Iso.id)
 
 def offsetF[T, A](implicit
   resolver: OffsetConfigResolver[T, A]
 ): Fold[ExecutionStep, Option[Offset.Component[A]]] =
-  offsetO[T, A].andThen(ParamValue.value).andThen(Getter(signedComponentFormat[A].getOption))
+  offsetO[T, A].andThen(Getter(signedComponentFormat[A].getOption))
 
 val stringToGuidingP: Prism[String, Guiding] =
   Prism(Guiding.fromString)(_.configValue)

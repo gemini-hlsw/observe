@@ -17,30 +17,21 @@ import observe.ui.model.enums.ObsClass
 
 import java.util.UUID
 
-val DemoSessionQueue: List[SessionQueueRow] =
-  List(
-    SessionQueueRow(
-      Observation.Id.fromLong(133742).get,
-      SequenceState.Running(false, false),
-      Instrument.GmosSouth,
-      "Untitled".some,
-      Observer("Telops").some,
-      "GMOS-S Observation",
-      ObsClass.Nighttime,
-      true,
-      true,
-      none,
-      RunningStep.fromInt(none, 0, 20),
-      false
-    )
-  )
-
 private val stepConfig = ExecutionStepConfig(
   Map(
-    SystemName.Observe ->
+    SystemName.Observe    ->
       Parameters(
         Map(
           ParamName("observe:exposureTime") -> ParamValue("300")
+        )
+      ),
+    SystemName.Instrument ->
+      Parameters(
+        Map(
+          ParamName("instrument:disperser")       -> ParamValue("Mirror"),
+          ParamName("instrument:disperserLambda") -> ParamValue("550"),
+          ParamName("instrument:filter")          -> ParamValue("NONE"),
+          ParamName("instrument:fpu")             -> ParamValue("FPU_NONE")
         )
       )
   )
@@ -188,3 +179,21 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
     observeStatus = ActionStatus.Pending
   )
 )
+
+val DemoSessionQueue: List[SessionQueueRow] =
+  List(
+    SessionQueueRow(
+      Observation.Id.fromLong(133742).get,
+      SequenceState.Running(false, false),
+      Instrument.GmosSouth,
+      "Untitled".some,
+      Observer("Telops").some,
+      "GMOS-S Observation",
+      ObsClass.Nighttime,
+      true,
+      true,
+      none,
+      RunningStep.fromInt(none, 2, DemoExecutionSteps.length),
+      false
+    )
+  )
