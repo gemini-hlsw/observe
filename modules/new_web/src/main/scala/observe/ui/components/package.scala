@@ -7,8 +7,6 @@ import org.typelevel.log4cats.Logger
 import cats.effect.IO
 import observe.ui.AppContext
 
-val UnknownTargetName: String = "None"
-
 // TODO See if this can be generalized to any number of hooks
 def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T =
   (props, ctx) =>

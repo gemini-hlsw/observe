@@ -29,6 +29,7 @@ import observe.model.ClientStatus
 import observe.model.UserDetails
 import lucuma.core.syntax.display.*
 import observe.ui.model.Execution
+import observe.ui.components.queue.SessionQueue
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui.components
+package observe.ui.components.queue
 
 import react.common.*
 import japgolly.scalajs.react.*
@@ -27,7 +27,7 @@ import react.fa.FontAwesomeIcon
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 
-private object SessionQueue:
+object SessionQueue:
   private type Props = SessionQueue
 
   private val ColDef = ColumnDef[SessionQueueRow]
