@@ -108,7 +108,7 @@ object StepsTable:
               "offsets",
               header = "Offsets",
               cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original),
-              size = 75,
+              size = 90,
               enableResizing = false
             ),
             ColDef(

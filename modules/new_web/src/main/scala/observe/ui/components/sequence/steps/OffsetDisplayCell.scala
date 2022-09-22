@@ -32,22 +32,20 @@ case class OffsetsDisplayCell(
 object OffsetsDisplayCell {
   private type Props = OffsetsDisplayCell
 
-  private val GuidingIcon   = Icons.Crosshairs.copy(color = "green", size = IconSize.LG)
-  private val NoGuidingIcon = Icons.Ban.size(IconSize.LG)
+  private val GuidingIcon   = Icons.Crosshairs.copy(color = "green", size = IconSize.XL)
+  private val NoGuidingIcon = Icons.Ban.size(IconSize.XL)
 
   private def standardOffsetsRender(
     step:           StandardStep,
     offsetWidth:    Double,
     axisLabelWidth: Double
-  ): VdomElement = {
+  ): VdomElement =
     val offsetP = step.offset[OffsetType.Telescope, Axis.P]
     val offsetQ = step.offset[OffsetType.Telescope, Axis.Q]
 
-    <.div(
-      // ObserveStyles.offsetsBlock,
+    <.div(ObserveStyles.OffsetsBlock)(
       <.div(
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.P]
@@ -57,8 +55,7 @@ object OffsetsDisplayCell {
             offsetAngle(offsetP.toAngle)
           )
         ),
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.Q]
@@ -70,29 +67,24 @@ object OffsetsDisplayCell {
         )
       )
     )
-  }
 
   private def nodAndShuffleOffsetsRender(
     step:            NodAndShuffleStep,
     width:           Double,
     axisLabelWidth:  Double,
     nsNodLabelWidth: Double
-  ): VdomElement = {
+  ): VdomElement =
     val offsetBP = step.offset[OffsetType.NSNodB, Axis.P]
     val offsetBQ = step.offset[OffsetType.NSNodB, Axis.Q]
     val offsetAP = step.offset[OffsetType.NSNodA, Axis.P]
     val offsetAQ = step.offset[OffsetType.NSNodA, Axis.Q]
 
-    <.div(
-      // ObserveStyles.offsetsBlock,
-      <.div(
-        ^.width := nsNodLabelWidth.px,
-        // ObserveStyles.offsetsNodLabel,
+    <.div(ObserveStyles.OffsetsBlock)(
+      <.div(ObserveStyles.OffsetsNodLabel, ^.width := nsNodLabelWidth.px)(
         offsetNSNod[OffsetType.NSNodB]
       ),
       <.div(
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.P]
@@ -102,8 +94,7 @@ object OffsetsDisplayCell {
             offsetAngle(offsetBP.toAngle)
           )
         ),
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.Q]
@@ -114,14 +105,11 @@ object OffsetsDisplayCell {
           )
         )
       ),
-      <.div(
-        ^.width := nsNodLabelWidth.px,
-        // ObserveStyles.offsetsNodLabel,
+      <.div(ObserveStyles.OffsetsNodLabel, ^.width := nsNodLabelWidth.px)(
         offsetNSNod[OffsetType.NSNodA]
       ),
       <.div(
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.P]
@@ -131,8 +119,7 @@ object OffsetsDisplayCell {
             offsetAngle(offsetAP.toAngle)
           )
         ),
-        <.div(
-          // ObserveStyles.offsetComponent,
+        <.div(ObserveStyles.OffsetComponent)(
           <.div(
             ^.width := axisLabelWidth.px,
             offsetAxis[Axis.Q]
@@ -144,7 +131,6 @@ object OffsetsDisplayCell {
         )
       )
     )
-  }
 
   protected val component =
     ScalaFnComponent[Props](props =>
@@ -152,8 +138,7 @@ object OffsetsDisplayCell {
         case OffsetsDisplay.DisplayOffsets(offsetWidth, axisLabelWidth, nsNodLabelWidth) =>
           val guiding = props.step.guiding
 
-          <.div(
-            // ObserveStyles.guidingCell,
+          <.div(ObserveStyles.GuidingCell)(
             GuidingIcon.when(guiding),
             NoGuidingIcon.unless(guiding),
             props.step match

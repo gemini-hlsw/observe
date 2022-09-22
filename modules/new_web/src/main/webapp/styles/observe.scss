@@ -420,3 +420,28 @@ html {
 //     border-left: none;
 //   }
 // }
+
+.ObserveStyles-guidingCell {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  // padding-left: @table_row_left_padding;
+  // padding-right: @table_row_left_padding;
+}
+
+.ObserveStyles-offsetsBlock {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  text-align: right;
+}
+
+.ObserveStyles-offsetsNodLabel {
+  font-weight: bold;
+  margin-left: 10px;
+  margin-right: 3px;
+}
+
+.ObserveStyles-offsetComponent {
+  display: flex;
+}

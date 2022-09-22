@@ -47,9 +47,9 @@ object ObserveStyles {
   val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
 
-  val SequenceTabView: Css                = Css("ObserveStyles-sequenceTabView")
-  val ConfiguringRow: Css                 = Css("ObserveStyles-configuringRow")
-  // val ObservationProgressRow: Css         = Css("ObserveStyles-observationProgressRow")
+  val SequenceTabView: Css = Css("ObserveStyles-sequenceTabView")
+  val ConfiguringRow: Css  = Css("ObserveStyles-configuringRow")
+
   val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
   val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
   val ObservationProgressLabel: Css       = Css("ObserveStyles-observationProgressLabel")
@@ -58,4 +58,9 @@ object ObserveStyles {
   val StopButton: Css                     = Css("ObserveStyles-stopButton")
   val PlayButton: Css                     = Css("ObserveStyles-playButton")
   val AbortButton: Css                    = Css("ObserveStyles-abortButton")
+
+  val GuidingCell: Css     = Css("ObserveStyles-guidingCell")
+  val OffsetsBlock: Css    = Css("ObserveStyles-offsetsBlock")
+  val OffsetsNodLabel: Css = Css("ObserveStyles-offsetsNodLabel")
+  val OffsetComponent: Css = Css("ObserveStyles-offsetComponent")
 }

@@ -14,7 +14,7 @@ import scala.scalajs.js.annotation._
 @nowarn
 object Icons {
   @js.native
-  @JSImport("@fortawesome/pro-regular-svg-icons", "faBan")
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faBan")
   private val faBan: FAIcon = js.native
 
   @js.native
