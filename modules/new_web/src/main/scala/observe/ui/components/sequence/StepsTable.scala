@@ -24,6 +24,7 @@ import org.scalablytyped.runtime.StringDictionary
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
 import observe.ui.model.Execution
+import observe.model.enums.StepState
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -168,6 +169,16 @@ object StepsTable:
         )
       )
       .render((props, _, _, table) =>
-        PrimeVirtualizedTable(table, tableClass = ObserveStyles.ObserveTable)
+
+        def rowClass(index: Int, step: ExecutionStep): Css =
+          step.status match
+            case StepState.Running => ObserveStyles.RunningStepRow
+            case _                 => Css.Empty
+
+        PrimeVirtualizedTable(
+          table,
+          tableClass = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
+          rowClassFn = rowClass
+        )
         // PrimeTable(table, tableClass = ObserveStyles.ObserveTable)
       )

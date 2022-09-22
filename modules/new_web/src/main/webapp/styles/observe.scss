@@ -295,6 +295,10 @@ html {
 .ObserveStyles-observeTable {
   width: 100%;
 
+  thead {
+    z-index: 1;
+  }
+
   th {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -318,6 +322,18 @@ html {
       border-left: none;
     }
   }
+}
+
+.ObserveStyles-stepTable {
+  td {
+    // max-height: 40px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+.ObserveStyles-runningStepRow {
+  height: 60px;
 }
 
 .ObserveStyles-observationProgressBarAndLabel {

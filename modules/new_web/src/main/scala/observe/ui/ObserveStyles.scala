@@ -49,6 +49,8 @@ object ObserveStyles {
 
   val SequenceTabView: Css = Css("ObserveStyles-sequenceTabView")
   val ConfiguringRow: Css  = Css("ObserveStyles-configuringRow")
+  val StepTable: Css       = Css("ObserveStyles-stepTable")
+  val RunningStepRow: Css  = Css("ObserveStyles-runningStepRow")
 
   val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
   val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
