@@ -23,26 +23,18 @@ import observe.ui.components.sequence.steps.*
 import org.scalablytyped.runtime.StringDictionary
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
+import observe.ui.model.Execution
 
 case class StepsTable(
-  clientStatus:        ClientStatus,
-  obsId:               Observation.Id,
-  obsName:             String,
-  instrument:          Instrument,
-  sequenceState:       SequenceState,
-  steps:               List[ExecutionStep],
-  stepConfigDisplayed: Option[Step.Id],
-  nextStepToRun:       Option[Step.Id],
-  // selectedStep:        Option[Step.Id], // moved to state
-  runningStep:         Option[RunningStep],
-  isPreview:           Boolean,
-  tabOperations:       TabOperations
+  clientStatus: ClientStatus,
+  execution:    Option[Execution]
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
-
 ) extends ReactFnProps(StepsTable.component):
+  val stepList: List[ExecutionStep] = execution.foldMap(_.steps)
+
   // Find out if offsets should be displayed
-  val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
+  val offsetsDisplay: OffsetsDisplay = stepList.offsetsDisplay
 
 object StepsTable:
   private type Props = StepsTable
@@ -54,26 +46,9 @@ object StepsTable:
       .withHooks[Props]
       .useState(none[Step.Id]) // selectedStep
       .useMemoBy((props, selectedStep) =>
-        (props.clientStatus,
-         props.obsId,
-         props.instrument,
-         props.sequenceState,
-         props.tabOperations,
-         props.isPreview,
-         props.offsetsDisplay,
-         selectedStep.value
-        )
+        (props.clientStatus, props.execution, props.offsetsDisplay, selectedStep.value)
       )((_, _) => // cols
-        (
-          clientStatus,
-          obsId,
-          instrument,
-          sequenceState,
-          tabOperations,
-          isPreview,
-          offsetsDisplay,
-          selectedStep
-        ) =>
+        (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
             ColDef(
               "control",
@@ -91,16 +66,18 @@ object StepsTable:
               "state",
               header = "Execution Progress",
               cell = cell =>
-                StepProgressCell(
-                  clientStatus = clientStatus,
-                  step = cell.row.original,
-                  stepIndex = cell.row.index.toInt,
-                  obsId = obsId,
-                  instrument = instrument,
-                  tabOperations = tabOperations,
-                  sequenceState = sequenceState,
-                  selectedStep = selectedStep,
-                  isPreview = isPreview
+                execution.map(e =>
+                  StepProgressCell(
+                    clientStatus = clientStatus,
+                    step = cell.row.original,
+                    stepIndex = cell.row.index.toInt,
+                    obsId = e.obsId,
+                    instrument = e.instrument,
+                    tabOperations = e.tabOperations,
+                    sequenceState = e.sequenceState,
+                    selectedStep = selectedStep,
+                    isPreview = e.isPreview
+                  )
                 ),
               size = 350 // TODO this is min-width, investigate how to set it
             ),
@@ -118,6 +95,7 @@ object StepsTable:
             ),
             ColDef(
               "exposure",
+              // s => execution.map(_.instrument).flatMap(s.exposureAndCoaddsS),
               header = "Exposure",
               size = 84
             ),
@@ -168,13 +146,13 @@ object StepsTable:
             )
           )
       )
-      .useMemoBy((_, _, _) => ())((props, _, _) => _ => props.steps)
-      .useReactTableBy((_, _, cols, rows) =>
+      // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
+      .useReactTableBy((props, _, cols) =>
         TableOptions(
           cols,
-          rows,
+          Reusable.never(props.stepList),
           enableColumnResizing = true,
-          columnResizeMode = raw.mod.ColumnResizeMode.onChange,
+          columnResizeMode = raw.mod.ColumnResizeMode.onChange, // Maybe we should use onEnd here?
           initialState = raw.mod
             .InitialTableState()
             .setColumnVisibility(
@@ -188,7 +166,7 @@ object StepsTable:
             )
         )
       )
-      .render((props, _, _, _, table) =>
+      .render((props, _, _, table) =>
         PrimeVirtualizedTable(table, tableClass = ObserveStyles.ObserveTable)
         // PrimeTable(table, tableClass = ObserveStyles.ObserveTable)
       )

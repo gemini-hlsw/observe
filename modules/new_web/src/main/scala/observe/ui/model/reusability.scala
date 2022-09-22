@@ -17,6 +17,7 @@ object reusability:
   given Reusability[TabOperations]  = Reusability.byEq
   given Reusability[ObsClass]       = Reusability.byEq
   given Reusability[OffsetsDisplay] = Reusability.byEq
+  given Reusability[Execution]      = Reusability.byEq
 
   // TODO Move to lucuma-ui (and unify with explore)
   given reusabilityNewType[W, T <: NewType[W]#Type](using
