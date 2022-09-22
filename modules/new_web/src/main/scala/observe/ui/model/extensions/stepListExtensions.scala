@@ -3,19 +3,19 @@
 
 package observe.ui.model.extensions
 
+import cats.syntax.all.*
 import lucuma.core.math.Angle
+import lucuma.core.math.Axis
 import observe.model.ExecutionStep
-import observe.model.StandardStep
 import observe.model.NodAndShuffleStep
 import observe.model.OffsetType
-import lucuma.core.math.Axis
+import observe.model.StandardStep
+import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
-import observe.ui.utils.*
 import observe.ui.model.formatting.*
-import cats.syntax.all.*
+import observe.ui.utils.*
 
 import scala.math.max
-import observe.ui.model.enums.OffsetsDisplay
 
 private def maxWidth(angles: List[Angle]): Double =
   angles.map(angle => tableTextWidth(offsetAngle(angle))).maximumOption.orEmpty

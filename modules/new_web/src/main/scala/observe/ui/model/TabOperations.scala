@@ -3,22 +3,20 @@
 
 package observe.ui.model
 
-import scala.collection.immutable.SortedMap
-
 import cats.Eq
-import cats.syntax.all.*
-import cats.derived.*
 import cats.Order.*
+import cats.derived.*
+import cats.syntax.all.*
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
-import monocle.Lens
 import monocle.Focus
+import monocle.Lens
 import monocle.function.At.at
 import monocle.function.At.atSortedMap
-import lucuma.core.model.sequence.Step
-// import monocle.macros.Lenses
-// import observe.model.StepId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
+
+import scala.collection.immutable.SortedMap
 
 enum RunOperation derives Eq:
   case RunIdle, RunInFlight

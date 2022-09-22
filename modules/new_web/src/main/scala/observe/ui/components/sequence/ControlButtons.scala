@@ -6,21 +6,21 @@ package observe.ui.components.sequence
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import react.common.*
 import lucuma.core.model.Observation
-import observe.model.enums.SequenceState
-import observe.ui.model.TabOperations
 import lucuma.core.model.sequence.Step
 import observe.model.NodAndShuffleStep
-import observe.model.operations.*
-import react.fa.FontAwesomeIcon
-import observe.ui.ObserveStyles
+import observe.model.enums.SequenceState
 import observe.model.operations.Operations.*
+import observe.model.operations.*
 import observe.ui.Icons
+import observe.ui.ObserveStyles
+import observe.ui.model.TabOperations
+import react.common.*
+import react.fa.FontAwesomeIcon
+import react.fa.IconSize
 import reactST.primereact.components.*
 import reactST.primereact.tooltipoptionsMod.TooltipOptions
 import reactST.primereact.tooltipoptionsMod.TooltipPositionType
-import react.fa.IconSize
 
 /**
  * Contains a set of control buttons like stop/abort

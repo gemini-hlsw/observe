@@ -4,27 +4,27 @@
 package observe.ui.components.sequence
 
 import cats.syntax.all.*
-import react.common.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.model.*
-import lucuma.react.table.*
-import reactST.{ tanstackTableCore => raw }
-import lucuma.ui.table.*
-import observe.ui.ObserveStyles
-import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
-import observe.model.enums.SequenceState
+import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import observe.ui.model.TabOperations
-import observe.ui.model.reusability.given
+import lucuma.react.table.*
 import lucuma.ui.reusability.given
+import lucuma.ui.table.*
+import observe.model.*
+import observe.model.enums.SequenceState
+import observe.model.enums.StepState
+import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
-import org.scalablytyped.runtime.StringDictionary
+import observe.ui.model.Execution
+import observe.ui.model.TabOperations
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
-import observe.ui.model.Execution
-import observe.model.enums.StepState
+import observe.ui.model.reusability.given
+import org.scalablytyped.runtime.StringDictionary
+import react.common.*
+import reactST.{ tanstackTableCore => raw }
 
 case class StepsTable(
   clientStatus: ClientStatus,

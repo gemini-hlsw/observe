@@ -4,9 +4,9 @@
 package observe.model.enums
 
 import cats._
+import cats.derived.*
 import cats.syntax.all._
 import lucuma.core.util.Enumerated
-import cats.derived.*
 
 enum ExecutionStepType(val label: String) derives Eq:
   case Object            extends ExecutionStepType("OBJECT")

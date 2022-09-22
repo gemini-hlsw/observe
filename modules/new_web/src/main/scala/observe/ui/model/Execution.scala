@@ -5,10 +5,10 @@ package observe.ui.model
 
 import cats.Eq
 import cats.derived.*
-import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
-import observe.model.ExecutionStep
+import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import observe.model.ExecutionStep
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
 

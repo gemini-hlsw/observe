@@ -4,8 +4,8 @@
 package observe.ui.model
 
 import cats.syntax.option.*
-import monocle.Lens
 import monocle.Focus
+import monocle.Lens
 import observe.model.*
 
 case class RootModel(

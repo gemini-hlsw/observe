@@ -3,12 +3,12 @@
 
 package observe.ui
 
+import crystal.react.View
 import japgolly.scalajs.react.extra.router.*
 import observe.ui.Page.*
 import observe.ui.components.Home
-import react.common.*
 import observe.ui.model.RootModel
-import crystal.react.View
+import react.common.*
 
 object Routing {
 

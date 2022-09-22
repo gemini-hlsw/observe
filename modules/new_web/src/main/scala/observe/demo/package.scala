@@ -4,17 +4,18 @@
 package observe.demo
 
 import cats.syntax.all.*
-import observe.model.*
-import observe.ui.model.SessionQueueRow
-import observe.model.enums.SequenceState
-import observe.ui.model.enums.ObsClass
-import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import java.util.UUID
-import observe.model.enums.StepState
+import observe.model.*
 import observe.model.enums.ActionStatus
+import observe.model.enums.SequenceState
+import observe.model.enums.StepState
 import observe.model.enums.SystemName
+import observe.ui.model.SessionQueueRow
+import observe.ui.model.enums.ObsClass
+
+import java.util.UUID
 
 val DemoSessionQueue: List[SessionQueueRow] =
   List(

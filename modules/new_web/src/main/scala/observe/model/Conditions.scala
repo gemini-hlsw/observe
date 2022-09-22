@@ -4,8 +4,8 @@
 package observe.model
 
 import cats.Eq
-import observe.model.enums.*
 import cats.derived.*
+import observe.model.enums.*
 
 final case class Conditions(
   cc: CloudCover,

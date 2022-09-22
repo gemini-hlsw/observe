@@ -7,21 +7,21 @@ import cats.effect.IO
 import cats.effect.IOApp
 import cats.effect.Sync
 import cats.effect.unsafe.implicits._
+import crystal.react.hooks.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.html_<^.*
 import log4cats.loglevel.LogLevelLogger
 import lucuma.ui.enums.Theme
+import observe.ui.model.RootModel
 import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
 import typings.loglevel.mod.LogLevelDesc
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
-import crystal.react.hooks.*
 
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
-import observe.ui.model.RootModel
 
 @JSExportTopLevel("Main")
 object Main {

@@ -4,17 +4,17 @@
 package observe.model
 
 import cats._
+import cats.derived.*
 import cats.syntax.all._
+import lucuma.core.model.sequence.Step
+import lucuma.core.util.Display
 import lucuma.core.util.Enumerated
+import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism
-import monocle.Focus
 import monocle.macros.GenPrism
-import lucuma.core.model.sequence.Step
 import observe.model.enums.*
-import cats.derived.*
-import lucuma.core.util.Display
 
 // TODO Can we unify with lucuma.core.model.sequence.Step?
 sealed trait ExecutionStep derives Eq:

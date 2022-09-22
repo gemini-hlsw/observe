@@ -3,27 +3,27 @@
 
 package observe.ui.components.sequence.steps
 
-import react.common.*
+import alleycats.Empty
+import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.model.ExecutionStep
-import observe.model.ClientStatus
-import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
-import observe.model.enums.SequenceState
+import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import observe.ui.model.TabOperations
-import cats.syntax.all.*
-import observe.model.enums.StepState
-import alleycats.Empty
+import lucuma.core.syntax.display.*
+import observe.model.ClientStatus
+import observe.model.ExecutionStep
 import observe.model.ImageFileId
-import observe.ui.ObserveStyles
-import observe.ui.model.extensions.*
-import observe.model.enums.ExecutionStepType
 import observe.model.NodAndShuffleStatus
 import observe.model.NodAndShuffleStep
+import observe.model.enums.ExecutionStepType
+import observe.model.enums.SequenceState
+import observe.model.enums.StepState
+import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
-import lucuma.core.syntax.display.*
+import observe.ui.model.TabOperations
+import observe.ui.model.extensions.*
+import react.common.*
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,

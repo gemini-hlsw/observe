@@ -5,12 +5,13 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
-import observe.model.enums.NsAction
-import observe.model.enums.ActionStatus
-import java.time.Duration
-import monocle.Lens
 import monocle.Focus
+import monocle.Lens
+import observe.model.enums.ActionStatus
+import observe.model.enums.NsAction
 import org.typelevel.cats.time.given
+
+import java.time.Duration
 
 case class NsRunningState(action: NsAction, sub: NsSubexposure) derives Eq
 

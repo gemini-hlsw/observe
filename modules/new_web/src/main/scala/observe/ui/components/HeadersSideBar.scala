@@ -3,14 +3,14 @@
 
 package observe.ui.components
 
-import react.common.*
+import cats.syntax.all.*
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import cats.syntax.all.*
 import observe.model.*
-import crystal.react.*
-import reactST.primereact.components.*
 import observe.ui.ObserveStyles
+import react.common.*
+import reactST.primereact.components.*
 
 case class HeadersSideBar(
   status:     ClientStatus,

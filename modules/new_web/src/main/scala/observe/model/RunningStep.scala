@@ -4,9 +4,9 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.option.*
 import lucuma.core.model.sequence.Step
-import cats.derived.*
 import lucuma.core.util.Display
 
 sealed trait RunningStep derives Eq:

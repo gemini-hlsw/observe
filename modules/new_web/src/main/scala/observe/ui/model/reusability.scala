@@ -3,11 +3,11 @@
 
 package observe.ui.model
 
-import japgolly.scalajs.react.Reusability
-import observe.model.ClientStatus
 import japgolly.scalajs.react.ReactCats.*
-import observe.model.enums.SequenceState
+import japgolly.scalajs.react.Reusability
 import lucuma.core.util.NewType
+import observe.model.ClientStatus
+import observe.model.enums.SequenceState
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
 

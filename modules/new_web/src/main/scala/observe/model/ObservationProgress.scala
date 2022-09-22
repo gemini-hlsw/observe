@@ -4,17 +4,18 @@
 package observe.model
 
 import cats.Eq
-import cats.syntax.all.*
 import cats.derived.*
+import cats.syntax.all.*
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
-import lucuma.core.model.Observation
-import java.time.Duration
-import lucuma.core.model.sequence.Step
 import observe.model.enums.ObservationStage
 import org.typelevel.cats.time.given
+
+import java.time.Duration
 
 enum ObservationProgress(
   val obsId:     Observation.Id,

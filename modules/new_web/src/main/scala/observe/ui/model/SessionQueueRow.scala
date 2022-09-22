@@ -3,11 +3,11 @@
 
 package observe.ui.model
 
-import lucuma.core.model.Observation
-import lucuma.core.enums.Instrument
-import lucuma.core.model.sequence.Step
 import cats.Eq
 import cats.derived.*
+import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
 import observe.model.Observer
 import observe.model.RunningStep
 import observe.model.enums.SequenceState

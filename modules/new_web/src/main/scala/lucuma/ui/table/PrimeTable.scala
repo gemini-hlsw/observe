@@ -5,16 +5,16 @@ package lucuma.ui.table
 
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.react.table.*
 import react.common.*
 import react.common.style.Css
 import reactST.{ tanstackTableCore => raw }
-import lucuma.react.table.*
 
 import javax.swing.text.html.HTML
 
 import scalajs.js
-import japgolly.scalajs.react.vdom.html_<^
 
 final case class PrimeTable[T](
   table:      raw.mod.Table[T],

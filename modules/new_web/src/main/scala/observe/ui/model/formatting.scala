@@ -3,10 +3,10 @@
 
 package observe.ui.model
 
+import lucuma.core.enums.Instrument
 import lucuma.core.math.Angle
 import observe.model.OffsetFormat
 import observe.ui.utils.*
-import lucuma.core.enums.Instrument
 
 object formatting:
   def offsetAxis[A](using show: OffsetFormat[A]): String =

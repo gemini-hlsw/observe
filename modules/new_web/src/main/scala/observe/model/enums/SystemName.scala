@@ -3,9 +3,9 @@
 
 package observe.model.enums
 
-import cats.syntax.eq.*
 import cats.Eq
 import cats.derived.*
+import cats.syntax.eq.*
 import observe.model.ParamName
 
 enum SystemName(val system: String) derives Eq:

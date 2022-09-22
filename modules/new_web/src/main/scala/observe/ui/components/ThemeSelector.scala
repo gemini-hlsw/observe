@@ -3,16 +3,16 @@
 
 package observe.ui.components
 
-import react.common.ReactFnProps
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
-import reactST.primereact.components.*
-import crystal.react.hooks.*
-import lucuma.ui.enums.Theme
-import crystal.Pot
-import reactST.primereact.messageMod.MessageSeverityType
 import cats.syntax.all.given
+import crystal.Pot
+import crystal.react.hooks.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.callback.CallbackCatsEffect.given
+import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.ui.enums.Theme
+import react.common.ReactFnProps
+import reactST.primereact.components.*
+import reactST.primereact.messageMod.MessageSeverityType
 
 // TODO All the "potRender" methods should go in lucuma-ui, but let's unify once we settle on a component library everywhere
 val DefaultPendingRender: VdomNode = ProgressSpinner()

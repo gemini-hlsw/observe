@@ -3,33 +3,33 @@
 
 package observe.ui.components
 
+import cats.effect.IO
+import cats.syntax.all.*
+import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
+import lucuma.core.syntax.display.*
+import observe.model.ClientStatus
+import observe.model.UserDetails
+import observe.model.enums.SequenceState
 import observe.ui.AppContext
-import react.common.ReactFnProps
-import reactST.primereact.components.*
+import observe.ui.Icons
 import observe.ui.ObserveStyles
-import react.common.given
-import cats.effect.IO
+import observe.ui.components.queue.SessionQueue
+import observe.ui.components.sequence.StepsTable
+import observe.ui.model.Execution
+import observe.ui.model.RootModel
+import observe.ui.model.TabOperations
 import org.typelevel.log4cats.Logger
+import react.common.ReactFnProps
+import react.common.given
+import reactST.primereact.components.*
 import reactST.primereact.dividerMod.DividerAlignType
 import reactST.primereact.splitterMod.SplitterLayoutType
 import reactST.primereact.splitterMod.SplitterStateStorageType
 import reactST.primereact.tagMod.TagSeverityType
-import observe.ui.Icons
-import observe.ui.model.RootModel
-import crystal.react.View
-import lucuma.core.model.Observation
-import lucuma.core.enums.Instrument
-import observe.model.enums.SequenceState
-import cats.syntax.all.*
-import observe.ui.model.TabOperations
-import observe.ui.components.sequence.StepsTable
-import observe.model.ClientStatus
-import observe.model.UserDetails
-import lucuma.core.syntax.display.*
-import observe.ui.model.Execution
-import observe.ui.components.queue.SessionQueue
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 

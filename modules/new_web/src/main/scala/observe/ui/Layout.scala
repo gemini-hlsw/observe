@@ -3,12 +3,12 @@
 
 package observe.ui
 
+import crystal.react.View
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.ReactFnProps
-import crystal.react.View
 import observe.ui.model.RootModel
+import react.common.ReactFnProps
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
   val rootModel:     View[RootModel]

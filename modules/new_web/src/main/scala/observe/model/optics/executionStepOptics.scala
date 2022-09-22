@@ -3,31 +3,31 @@
 
 package observe.model.optics
 
-import monocle.Optional
-import observe.model.ExecutionStep
-import observe.model.enums.SystemName
-import monocle.Prism
-import lucuma.core.model.sequence.StepConfig
-import monocle.Lens
-import observe.model.Parameters
-import observe.model.ExecutionStepConfig
-import observe.model.ParamName
-import observe.model.ParamValue
-import monocle.Iso
-import monocle.function.At.atMap
-import monocle.std.option.some
-import monocle.std.string.*
-import observe.model.enums.ExecutionStepType
-import observe.model.OffsetConfigResolver
+import lucuma.core.math.Angle
 import lucuma.core.math.Offset
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.optics.Format
+import lucuma.core.syntax.all.*
 import monocle.Fold
 import monocle.Getter
-import lucuma.core.optics.Format
-import lucuma.core.math.Angle
-import lucuma.core.syntax.all.*
+import monocle.Iso
+import monocle.Lens
+import monocle.Optional
+import monocle.Prism
 import monocle.Traversal
-import observe.model.enums.Guiding
+import monocle.function.At.atMap
 import monocle.function.FilterIndex
+import monocle.std.option.some
+import monocle.std.string.*
+import observe.model.ExecutionStep
+import observe.model.ExecutionStepConfig
+import observe.model.OffsetConfigResolver
+import observe.model.ParamName
+import observe.model.ParamValue
+import observe.model.Parameters
+import observe.model.enums.ExecutionStepType
+import observe.model.enums.Guiding
+import observe.model.enums.SystemName
 
 // Focus on a param value
 def paramValueL(param: ParamName): Lens[Parameters, Option[ParamValue]] =

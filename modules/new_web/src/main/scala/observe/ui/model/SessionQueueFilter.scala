@@ -3,9 +3,9 @@
 
 package observe.ui.model
 
-import observe.ui.model.enums.ObsClass
-import lucuma.core.util.NewType
 import cats.syntax.all.*
+import lucuma.core.util.NewType
+import observe.ui.model.enums.ObsClass
 
 // opaque type SessionQueueFilter = Option[ObsClass]
 

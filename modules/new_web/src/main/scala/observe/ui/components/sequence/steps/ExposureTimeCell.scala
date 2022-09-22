@@ -3,14 +3,14 @@
 
 package observe.ui.components.sequence.steps
 
-import observe.model.ExecutionStep
-import lucuma.core.enums.Instrument
-import react.common.*
+import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.ui.model.extensions.*
-import cats.syntax.all.*
+import lucuma.core.enums.Instrument
+import observe.model.ExecutionStep
 import observe.ui.ObserveStyles
+import observe.ui.model.extensions.*
+import react.common.*
 
 case class ExposureTimeCell(step: ExecutionStep, instrument: Instrument)
     extends ReactFnProps(ExposureTimeCell.component)

@@ -3,15 +3,15 @@
 
 package observe.ui.model.extensions
 
-import observe.model.ExecutionStep
-import lucuma.core.enums.Instrument
-import cats.syntax.all.*
-import observe.model.enums.ExecutionStepType
-import observe.model.optics.*
-import observe.model.OffsetConfigResolver
-import lucuma.core.math.Offset
 import cats.Monoid
+import cats.syntax.all.*
+import lucuma.core.enums.Instrument
+import lucuma.core.math.Offset
+import observe.model.ExecutionStep
+import observe.model.OffsetConfigResolver
+import observe.model.enums.ExecutionStepType
 import observe.model.enums.Guiding
+import observe.model.optics.*
 import observe.ui.model.formatting.*
 
 extension (s: ExecutionStep)

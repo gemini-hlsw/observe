@@ -4,8 +4,8 @@
 package observe.ui.components.sequence.steps
 
 import cats.syntax.all.*
-import observe.model.enums.ObservationStage
 import observe.model.ImageFileId
+import observe.model.enums.ObservationStage
 
 trait ProgressLabel:
   protected def renderLabel(

@@ -5,8 +5,8 @@ package observe.model.enums
 
 import cats.Eq
 import cats.derived.*
-import lucuma.core.enums.{ Instrument => InstrumentEnum }
 import cats.kernel.Order
+import lucuma.core.enums.{ Instrument => InstrumentEnum }
 
 enum Resource(val label: String) derives Eq:
   case P1                                     extends Resource("P1")

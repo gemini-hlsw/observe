@@ -3,8 +3,9 @@
 
 package reactST.primereact.components
 
-import react.fa.FontAwesomeIcon
 import react.common.*
+import react.fa.FontAwesomeIcon
+
 import scala.annotation.targetName
 
 // TODO Move all these to prime-react facade

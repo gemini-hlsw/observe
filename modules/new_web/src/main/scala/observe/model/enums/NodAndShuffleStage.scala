@@ -3,10 +3,10 @@
 
 package observe.model.enums
 
-import cats.data.NonEmptyList
-import lucuma.core.util.Enumerated
 import cats.Eq
+import cats.data.NonEmptyList
 import cats.derived.*
+import lucuma.core.util.Enumerated
 
 enum NodAndShuffleStage(val symbol: Symbol) derives Eq:
   // The OT lets beams up to G but in practice it is always A/B

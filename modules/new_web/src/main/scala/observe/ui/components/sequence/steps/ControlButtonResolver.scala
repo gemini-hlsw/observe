@@ -3,8 +3,8 @@
 
 package observe.ui.components.sequence.steps
 
-import observe.model.ExecutionStep
 import observe.model.ClientStatus
+import observe.model.ExecutionStep
 import observe.model.enums.SequenceState
 
 sealed trait ControlButtonResolver[A]:

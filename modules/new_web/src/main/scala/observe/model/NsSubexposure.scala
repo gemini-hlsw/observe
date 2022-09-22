@@ -4,9 +4,9 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
 import observe.model.enums.NodAndShuffleStage
-import cats.derived.*
 
 case class NsSubexposure private (
   totalCycles: NsCycles,          // Total amount of cycles for a N&S step

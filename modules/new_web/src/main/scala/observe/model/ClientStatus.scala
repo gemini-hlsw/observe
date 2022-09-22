@@ -4,9 +4,9 @@
 package observe.model
 
 import cats.Eq
-import observe.model.enums.*
 import cats.derived.*
 import cats.syntax.option.*
+import observe.model.enums.*
 
 case class ClientStatus(
   user:         Option[UserDetails],

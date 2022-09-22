@@ -3,27 +3,28 @@
 
 package observe.ui.components.queue
 
-import react.common.*
+import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.syntax.display.*
 import lucuma.react.table.*
 import lucuma.ui.table.*
+import observe.model.RunningStep
+import observe.model.enums.SequenceState
+import observe.ui.Icons
+import observe.ui.ObserveStyles
+import observe.ui.model.SessionQueueFilter
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
-import observe.model.enums.SequenceState
-import observe.model.RunningStep
-import reactST.{ tanstackTableCore => raw }
-import lucuma.core.syntax.display.*
-import observe.ui.ObserveStyles
-import observe.ui.Icons
+import observe.ui.model.reusability.given
+import react.common.*
+import react.fa.FontAwesomeIcon
 import react.fa.IconSize
-import cats.syntax.all.*
-import observe.ui.model.SessionQueueFilter
 import reactST.primereact.components.*
 import reactST.primereact.selectitemMod.SelectItem
+import reactST.{ tanstackTableCore => raw }
+
 import scalajs.js.JSConverters.*
-import observe.ui.model.reusability.given
-import react.fa.FontAwesomeIcon
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 

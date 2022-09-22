@@ -4,8 +4,8 @@
 package observe.model.enums
 
 import cats.Eq
-import cats.syntax.all.*
 import cats.derived.*
+import cats.syntax.all.*
 
 enum StepState derives Eq:
   case Pending             extends StepState

@@ -7,19 +7,19 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.math.Axis
+import observe.model.ExecutionStep
+import observe.model.NodAndShuffleStep
+import observe.model.OffsetType
+import observe.model.StandardStep
+import observe.ui.Icons
+import observe.ui.ObserveStyles
+import observe.ui.model.enums.OffsetsDisplay
+import observe.ui.model.extensions.*
+import observe.ui.model.formatting.*
 import react.common._
+import react.fa.IconSize
 import react.semanticui.colors._
 import react.semanticui.sizes._
-import observe.model.NodAndShuffleStep
-import observe.model.ExecutionStep
-import observe.ui.model.enums.OffsetsDisplay
-import observe.model.StandardStep
-import observe.model.OffsetType
-import observe.ui.model.extensions.*
-import observe.ui.ObserveStyles
-import observe.ui.Icons
-import react.fa.IconSize
-import observe.ui.model.formatting.*
 
 /**
  * Component to display the offsets

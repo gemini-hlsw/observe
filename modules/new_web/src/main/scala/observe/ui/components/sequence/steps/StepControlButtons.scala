@@ -3,16 +3,16 @@
 
 package observe.ui.components.sequence.steps
 
-import lucuma.core.model.Observation
-import lucuma.core.enums.Instrument
-import observe.model.enums.SequenceState
-import lucuma.core.model.sequence.Step
-import observe.ui.model.TabOperations
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import react.common.*
+import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
+import observe.model.enums.SequenceState
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
+import observe.ui.model.TabOperations
+import react.common.*
 
 /**
  * Contains the control buttons like stop/abort at the row level
