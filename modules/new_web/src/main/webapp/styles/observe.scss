@@ -1,5 +1,6 @@
 html {
   font-size: 14px !important;
+  overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
 .ObserveStyles-mainUI {
@@ -44,6 +45,10 @@ html {
     flex-direction: column;
     align-items: center;
   }
+}
+
+.ObserveStyles-topPanel {
+  width: 100%;
 }
 
 .ObserveStyles-activeInstrumentLabel {

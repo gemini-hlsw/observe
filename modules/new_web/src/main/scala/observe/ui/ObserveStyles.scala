@@ -16,6 +16,7 @@ object ObserveStyles {
   val Divider: Css          = Css("ObserveStyles-divider")
   val SequenceTabPanel: Css = Css("ObserveStyles-sequenceTabPanel")
 
+  val TopPanel: Css              = Css("ObserveStyles-topPanel")
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
   val IdleTag: Css               = Css("ObserveStyles-idleTag")

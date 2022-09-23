@@ -16,6 +16,7 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 
 import java.util.UUID
+import scala.util.Random
 
 private val stepConfig = ExecutionStepConfig(
   Map(
@@ -87,6 +88,22 @@ val DemoSessionQueue: List[SessionQueueRow] =
     SessionQueueRow(
       Observation.Id.fromLong(133742).get,
       SequenceState.Running(false, false),
+      Instrument.GmosSouth,
+      "Untitled".some,
+      Observer("Telops").some,
+      "GMOS-S Observation",
+      ObsClass.Nighttime,
+      true,
+      true,
+      none,
+      RunningStep.fromInt(none, 2, DemoExecutionSteps.length),
+      false
+    )
+  ) ++ (1 to 80).map(_ =>
+    SessionQueueRow(
+      // Observation.Id.fromLong(Random.nextLong).get,
+      Observation.Id.fromLong(133742).get,
+      SequenceState.Idle,
       Instrument.GmosSouth,
       "Untitled".some,
       Observer("Telops").some,

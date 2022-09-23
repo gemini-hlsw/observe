@@ -51,7 +51,7 @@ object Home {
             .stateKey("main-splitter")
             .stateStorage(SplitterStateStorageType.local)(
               SplitterPanel(
-                Splitter
+                Splitter(ObserveStyles.TopPanel)
                   .stateKey("top-splitter")
                   .stateStorage(SplitterStateStorageType.local)(
                     SplitterPanel(
