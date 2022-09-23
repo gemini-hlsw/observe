@@ -144,7 +144,7 @@ object SessionQueue:
       _.obsId,
       header = "Obs. ID",
       cell = linked(_.value.shortName),
-      size = 70
+      size = 100
     ),
     ColDef(
       "state",
@@ -196,10 +196,12 @@ object SessionQueue:
       )
       .render((props, filter, _, _, table) =>
         <.div(ObserveStyles.SessionQueue)(
-          PrimeTable(
+          AutoHeightPrimeVirtualizedTable(
             table,
+            estimateRowHeightPx = _ => 30,
             tableClass = ObserveStyles.ObserveTable,
-            rowClassFn = rowClass
+            rowClassFn = rowClass,
+            overscan = 5
           ),
           SelectButton(ObserveStyles.ObsClassSelect)
             .value(filter.value.value.orUndefined)

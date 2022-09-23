@@ -101,8 +101,7 @@ val DemoSessionQueue: List[SessionQueueRow] =
     )
   ) ++ (1 to 80).map(_ =>
     SessionQueueRow(
-      // Observation.Id.fromLong(Random.nextLong).get,
-      Observation.Id.fromLong(133742).get,
+      Observation.Id.fromLong(math.abs(Random.nextInt)).get,
       SequenceState.Idle,
       Instrument.GmosSouth,
       "Untitled".some,
@@ -112,7 +111,7 @@ val DemoSessionQueue: List[SessionQueueRow] =
       true,
       true,
       none,
-      RunningStep.fromInt(none, 2, DemoExecutionSteps.length),
+      none,
       false
     )
   )
