@@ -80,3 +80,15 @@
     }
   }
 }
+
+.react-table-virtualized-outer-container {
+  position: relative;
+  height: 100%;
+}
+
+.react-table-virtualized-inner-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
+}

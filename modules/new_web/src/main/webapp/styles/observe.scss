@@ -31,6 +31,7 @@ html {
 }
 
 .ObserveStyles-sequenceTabPanel {
+  height: 100%; // Required for virtualized table within.
   min-width: 20%;
 
   & .p-tabview-nav-link {
@@ -233,7 +234,7 @@ html {
   height: 100%;
 
   .p-tabview-panels {
-    overflow-x: scroll;
+    overflow-x: auto;
   }
 }
 

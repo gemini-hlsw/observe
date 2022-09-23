@@ -37,6 +37,18 @@ private val stepConfig = ExecutionStepConfig(
   )
 )
 
+private def buildPendingStep: ExecutionStep =
+  StandardStep(
+    id = Step.Id.fromUuid(UUID.randomUUID),
+    config = stepConfig,
+    status = StepState.Pending,
+    breakpoint = false,
+    skip = false,
+    fileId = none,
+    configStatus = List.empty,
+    observeStatus = ActionStatus.Pending
+  )
+
 val DemoExecutionSteps: List[ExecutionStep] = List(
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
@@ -67,118 +79,8 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
     fileId = ImageFileId("S20220916S0001").some,
     configStatus = List.empty,
     observeStatus = ActionStatus.Running
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
-  ),
-  StandardStep(
-    id = Step.Id.fromUuid(UUID.randomUUID),
-    config = stepConfig,
-    status = StepState.Pending,
-    breakpoint = false,
-    skip = false,
-    fileId = none,
-    configStatus = List.empty,
-    observeStatus = ActionStatus.Pending
   )
-)
+) ++ (1 to 197).map(_ => buildPendingStep)
 
 val DemoSessionQueue: List[SessionQueueRow] =
   List(
