@@ -187,9 +187,16 @@ object StepsTable:
       .render((props, _, _, table) =>
 
         def rowClass(index: Int, step: ExecutionStep): Css =
-          step.status match
-            case StepState.Running => ObserveStyles.RunningStepRow
-            case _                 => Css.Empty
+          step match
+            // case s if s.hasError                       => ObserveStyles.RowError
+            case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
+            case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
+            case s if s.status === StepState.Completed => ObserveStyles.StepRowDone
+            // case s if s.status === StepState.Skipped   => ObserveStyles.RowActive
+            // case s if s.status === StepState.Aborted   => ObserveStyles.RowError
+            // case s if s.isFinished                     => ObserveStyles.RowDone
+            // case _                                     => ObserveStyles.StepRow
+            case _                                     => Css.Empty
 
         AutoHeightPrimeVirtualizedTable(
           table,

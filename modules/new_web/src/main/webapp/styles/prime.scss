@@ -4,13 +4,17 @@
 .light-theme {
   @import "primereact/resources/themes/nova/theme";
 
-  --active-row: var(--orange-50);
+  --active-row-background: var(--orange-50);
+  --disabled-row-background: var(--bluegray-50);
+  --disabled-row-color: var(--bluegray-400);
 }
 
 .dark-theme {
   @import "primereact/resources/themes/luna-blue/theme";
 
-  --active-row: var(--orange-900);
+  --active-row-background: var(--orange-900);
+  --disabled-row-background: var(--bluegray-800);
+  --disabled-row-color: var(--bluegray-300);
 }
 
 body,

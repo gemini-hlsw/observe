@@ -127,7 +127,7 @@ html {
 // }
 
 .ObserveStyles-rowWarning {
-  background-color: var(--active-row);
+  background-color: var(--active-row-background);
   // color: @warningTextColor;
   // box-shadow: @warningBoxShadow;
 }
@@ -338,8 +338,20 @@ html {
   }
 }
 
-.ObserveStyles-runningStepRow {
+// This will go away once we have more dynamic row heights with breakpoints, etc.
+.ObserveStyles-stepRowRunning {
   height: 60px;
+  background-color: var(--active-row-background);
+}
+
+.ObserveStyles-stepRowWarning {
+  background-color: var(--active-row-background);
+}
+
+.ObserveStyles-stepRowDone {
+  pointer-events: none;
+  color: var(--disabled-row-color);
+  background: var(--disabled-row-background);
 }
 
 .ObserveStyles-observationProgressBarAndLabel {
