@@ -18,7 +18,7 @@ import InstrumentSystem.ElapsedTime
 import ObserveFailure.ObserveException
 import cats.effect.kernel.Async
 import squants.time.Time
-import cats.effect.{ Ref, Temporal }
+import cats.effect.{Ref, Temporal}
 
 sealed trait InstrumentControllerSim[F[_]] {
   def log(msg: => String): F[Unit]

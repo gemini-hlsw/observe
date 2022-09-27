@@ -3,7 +3,7 @@
 
 package observe.model
 
-import cats.{ Eq, Show }
+import cats.{Eq, Show}
 import monocle.macros.Lenses
 import observe.model.enum.MountGuideOption
 

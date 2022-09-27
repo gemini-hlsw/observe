@@ -13,7 +13,7 @@ import react.common._
 import react.semanticui.SemanticSize
 import react.semanticui.colors._
 import react.semanticui.elements.label.Label
-import observe.model.{ Observation, Step, StepId, StepState }
+import observe.model.{Observation, Step, StepId, StepState}
 import observe.model.enum.Instrument
 import observe.model.enum.StepType
 import observe.web.client.components.ObserveStyles

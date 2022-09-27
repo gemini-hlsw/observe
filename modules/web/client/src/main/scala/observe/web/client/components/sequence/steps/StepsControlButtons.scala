@@ -5,7 +5,7 @@ package observe.web.client.components.sequence.steps
 
 import cats.syntax.all._
 import diode.react.ReactConnectProxy
-import japgolly.scalajs.react.{ Callback, CtorType, Reusability, ScalaComponent }
+import japgolly.scalajs.react.{Callback, CtorType, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._

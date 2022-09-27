@@ -10,7 +10,7 @@ import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.engine._
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.model.dhs._
 import observe.model.enum.ObserveCommandResult
 import InstrumentSystem._

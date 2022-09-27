@@ -30,7 +30,7 @@ import observe.model.dhs._
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
 import observe.server.keywords.DhsClient.ImageParameters
-import cats.effect.{ Ref, Temporal }
+import cats.effect.{Ref, Temporal}
 
 /**
  * Implementation of DhsClient that interfaces with the real DHS over the http interface

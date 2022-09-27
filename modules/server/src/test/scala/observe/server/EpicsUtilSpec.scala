@@ -4,7 +4,7 @@
 package observe.server
 
 import java.time.Duration
-import java.util.concurrent.{ ScheduledExecutorService, ScheduledThreadPoolExecutor }
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor}
 
 import cats.effect.IO
 import edu.gemini.epics.acm.CaWindowStabilizer

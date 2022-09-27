@@ -10,7 +10,7 @@ import cats.effect.Sync
 import cats.instances.string._
 import cats.syntax.eq._
 import org.http4s.CacheDirective._
-import org.http4s.{ HttpRoutes, Request, Response, StaticFile }
+import org.http4s.{HttpRoutes, Request, Response, StaticFile}
 import org.http4s.headers.`Cache-Control`
 import org.http4s.server.middleware.GZip
 

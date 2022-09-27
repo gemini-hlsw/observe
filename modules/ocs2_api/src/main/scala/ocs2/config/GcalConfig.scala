@@ -22,7 +22,7 @@ import monocle.std.either.stdLeft
 import monocle.std.either.stdRight
 import ocs2.CoAdds
 
-import GcalConfig.{ GcalArcs, GcalLamp }
+import GcalConfig.{GcalArcs, GcalLamp}
 
 /**
  * Additional configuration information for Gcal steps.
