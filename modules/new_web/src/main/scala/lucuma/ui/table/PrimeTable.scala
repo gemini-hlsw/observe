@@ -13,8 +13,6 @@ import react.common.style.Css
 import reactST.{ tanstackTableCore => raw }
 import reactST.{ tanstackVirtualCore => rawVirtual }
 
-import javax.swing.text.html.HTML
-
 import scalajs.js
 
 case class PrimeTable[T](
@@ -40,19 +38,26 @@ case class PrimeVirtualizedTable[T](
 private val baseHTMLRenderer: HTMLTableRenderer[Any] =
   new HTMLTableRenderer[Any]:
     override protected val TableClass: Css = Css(
-      "react-table p-datatable p-component p-datatable-hoverable-rows"
-    ) // TODO Hoverable as prop?
+      "pl-react-table p-component p-datatable p-datatable-table p-datatable-hoverable-rows p-datatable-responsive-scroll"
+    ) // TODO Props for hoverable/scroll/etc?
     override protected val TheadClass: Css   = Css("p-datatable-thead")
     override protected val TheadTrClass: Css = Css.Empty
-    override protected val TheadThClass: Css = Css.Empty
-    override protected val TbodyClass: Css   = Css("p-datatable-table")
+    override protected val TheadThClass: Css = Css("p-column-title")
+    override protected val TbodyClass: Css   = Css("p-datatable-tbody")
     override protected val TbodyTrClass: Css = Css.Empty
     override protected val TbodyTdClass: Css = Css.Empty
     override protected val TfootClass: Css   = Css("p-datatable-tfoot")
     override protected val TfootTrClass: Css = Css.Empty
     override protected val TfootThClass: Css = Css.Empty
 
-    override protected val ResizerContent: VdomNode = "⋮"
+    override protected val ResizerClass: Css         = Css("pl-resizer")
+    override protected val IsResizingTHeadClass: Css = Css("pl-head-resizing")
+    override protected val IsResizingColClass: Css   = Css("pl-col-resizing")
+    override protected val ResizerContent: VdomNode  = "⋮"
+
+    override protected val SortableColClass: Css       = Css("pl-sortable-col")
+    override protected val SortAscIndicator: VdomNode  = TableIcons.SortUp
+    override protected val SortDescIndicator: VdomNode = TableIcons.SortDown
 
 object PrimeTable:
   private val component = HTMLTableRenderer.componentBuilder[Any, HTMLTable](baseHTMLRenderer)
@@ -79,16 +84,19 @@ object AutoHeightPrimeVirtualizedTable:
 
   import react.common.*
 
+  private val VirtualizedOuterContainer: Css = Css("pl-react-table-virtualized-outer-container")
+  private val VirtualizedInnerContainer: Css = Css("pl-react-table-virtualized-inner-container")
+
   private def componentBuilder[T] = ScalaFnComponent[Props[T]](props =>
     // We use this trick to get a component whose height adjusts to the container.
     // See https://stackoverflow.com/a/1230666
     // We create 2 more containers: an outer one, with position: relative and height: 100%,
     // and an inner one, with position: absolute, and top: 0, bottom: 0.
-    <.div(TableStyles.VirtualizedOuterContainer |+| props.outerContainerClass)(
+    <.div(VirtualizedOuterContainer |+| props.outerContainerClass)(
       PrimeVirtualizedTable(
         table = props.table,
         estimateRowHeightPx = props.estimateRowHeightPx,
-        containerClass = TableStyles.VirtualizedInnerContainer |+| props.innerContainerClass,
+        containerClass = VirtualizedInnerContainer |+| props.innerContainerClass,
         tableClass = props.tableClass,
         rowClassFn = props.rowClassFn,
         overscan = props.overscan,

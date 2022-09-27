@@ -7,12 +7,10 @@ import react.fa.FAIcon
 import react.fa.FontAwesomeIcon
 import react.fa.IconLibrary
 
-import scala.annotation.nowarn
 import scala.scalajs.js
-import scala.scalajs.js.annotation._
+import scala.scalajs.js.annotation.*
 
-@nowarn
-object Icons {
+object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faBan")
   private val faBan: FAIcon = js.native
@@ -107,4 +105,3 @@ object Icons {
   inline def Stop         = FontAwesomeIcon(faStop)
   inline def Sun          = FontAwesomeIcon(faSun)
   inline def Trash        = FontAwesomeIcon(faTrash)
-}

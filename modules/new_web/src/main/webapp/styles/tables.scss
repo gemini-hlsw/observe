@@ -1,28 +1,22 @@
-.react-table {
+.pl-react-table {
   @at-root {
     table#{&} {
       border-collapse: collapse;
       border-spacing: 0;
-      font-family: arial, sans-serif;
       table-layout: fixed;
     }
   }
 
   thead {
-    background: lightgray;
     margin: 0;
     position: sticky;
     top: 0;
-  }
 
-  th {
-    border-bottom: 1px solid lightgray;
-    border-right: 1px solid rgb(243, 243, 243);
-    padding: 2px 4px;
-    text-align: left;
-    position: relative;
-    height: 30px;
-    white-space: nowrap;
+    tr {
+      th {
+        position: relative;
+      }
+    }
   }
 
   td {
@@ -30,27 +24,21 @@
     white-space: nowrap;
   }
 
-  tr {
-    &.odd {
-      background-color: antiquewhite;
-    }
-  }
-
-  .sortableCol {
+  .pl-sortable-col {
     user-select: none;
   }
 
-  thead:not(.isResizing) {
-    .sortableCol {
+  thead:not(.pl-head-resizing) {
+    .pl-sortable-col {
       cursor: pointer;
     }
   }
 
-  thead.isResizing {
+  thead.pl-head-resizing {
     cursor: col-resize;
   }
 
-  .resizer {
+  .pl-resizer {
     position: absolute;
     right: 0;
     top: 0;
@@ -64,29 +52,29 @@
     justify-content: center;
   }
 
-  .resizer.isResizingCol {
-    background: rgba(0, 0, 0, 0.2); // TODO Adapt to current prime style
+  .pl-resizer.pl-col-resizing {
+    background: var(--surface-100);
     opacity: 1;
     z-index: 10000;
   }
 
   @media (hover: hover) {
-    .resizer {
+    .pl-resizer {
       opacity: 0;
     }
 
-    thead:not(.isResizing) *:hover>.resizer {
+    thead:not(.pl-head-resizing) *:hover>.pl-resizer {
       opacity: 1;
     }
   }
 }
 
-.react-table-virtualized-outer-container {
+.pl-react-table-virtualized-outer-container {
   position: relative;
   height: 100%;
 }
 
-.react-table-virtualized-inner-container {
+.pl-react-table-virtualized-inner-container {
   position: absolute;
   top: 0;
   bottom: 0;
