@@ -3,7 +3,7 @@
 
 package giapi.client
 
-import cats.effect.{ IO, Resource }
+import cats.effect.{IO, Resource}
 import munit.CatsEffectSuite
 import edu.gemini.aspen.giapi.status.impl.BasicStatus
 import edu.gemini.aspen.giapi.util.jms.JmsKeys

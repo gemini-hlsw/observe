@@ -6,9 +6,9 @@ package giapi.client
 import scala.jdk.CollectionConverters._
 import cats.Applicative
 import cats.ApplicativeError
-import cats.effect.{ Async, Resource, Sync }
+import cats.effect.{Async, Resource, Sync}
 import cats.effect.implicits._
-import cats.effect.std.{ Dispatcher, Queue }
+import cats.effect.std.{Dispatcher, Queue}
 import cats.syntax.all._
 import edu.gemini.aspen.giapi.status.StatusHandler
 import edu.gemini.aspen.giapi.status.StatusItem

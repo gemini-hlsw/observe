@@ -4,7 +4,7 @@
 package observe.common
 
 import cats.kernel.laws.discipline.EqTests
-import cats.laws.discipline.{ FoldableTests, FunctorTests, TraverseTests }
+import cats.laws.discipline.{FoldableTests, FunctorTests, TraverseTests}
 import cats.tests.CatsSuite
 import observe.common.ArbitrariesCommon.arbFixedLengthBuffer
 import observe.common.ArbitrariesCommon.fixedLengthBufferCogen

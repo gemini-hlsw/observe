@@ -12,13 +12,13 @@ import cats.data.OptionT
 import cats.effect.Async
 import cats.syntax.all._
 import edu.gemini.observe.server.nifs.DhsConnected
-import edu.gemini.observe.server.nifs.{ ReadMode => EReadMode }
-import edu.gemini.observe.server.nifs.{ TimeMode => ETimeMode }
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ Disperser => LegacyDisperser }
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ EngReadMode => LegacyEngReadMode }
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ Filter => LegacyFilter }
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ Mask => LegacyMask }
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ ReadMode => LegacyReadMode }
+import edu.gemini.observe.server.nifs.{ReadMode => EReadMode}
+import edu.gemini.observe.server.nifs.{TimeMode => ETimeMode}
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{Disperser => LegacyDisperser}
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{EngReadMode => LegacyEngReadMode}
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{Filter => LegacyFilter}
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{Mask => LegacyMask}
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{ReadMode => LegacyReadMode}
 import org.typelevel.log4cats.Logger
 import mouse.boolean._
 import observe.model.ObserveStage

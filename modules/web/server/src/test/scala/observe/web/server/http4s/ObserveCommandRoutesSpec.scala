@@ -6,7 +6,7 @@ package observe.web.server.http4s
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.tests.CatsSuite
-import observe.model.{ ClientId, Observation, StepId }
+import observe.model.{ClientId, Observation, StepId}
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._

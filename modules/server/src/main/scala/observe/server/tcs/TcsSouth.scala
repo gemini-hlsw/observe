@@ -25,7 +25,7 @@ import observe.server.ConfigUtilOps._
 import observe.server.InstrumentGuide
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
-import observe.server.gems.GemsController.{ GemsConfig, GemsOff }
+import observe.server.gems.GemsController.{GemsConfig, GemsOff}
 import observe.server.tcs.TcsController.AGConfig
 import observe.server.tcs.TcsController.AoGuidersConfig
 import observe.server.tcs.TcsController.AoTcsConfig
@@ -64,7 +64,7 @@ case class TcsSouth[F[_]: Sync: Logger] private (
   guideDb:       GuideConfigDb[F]
 )(config:        TcsSouth.TcsSeqConfig[F])
     extends Tcs[F] {
-  import Tcs.{ GuideWithOps, calcGuiderInUse }
+  import Tcs.{GuideWithOps, calcGuiderInUse}
 
   val Log: Logger[F] = Logger[F]
 

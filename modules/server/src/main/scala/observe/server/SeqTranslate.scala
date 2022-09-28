@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 import cats._
 import cats.data.EitherT
 import cats.data.NonEmptySet
-import cats.effect.{ Async, Ref, Sync, Temporal }
+import cats.effect.{Async, Ref, Sync, Temporal}
 import cats.syntax.all._
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.spModel.core.Wavelength
@@ -27,7 +27,7 @@ import observe.model.Observation
 import observe.model.dhs._
 import observe.model.enum.Instrument
 import observe.model.enum.Resource
-import observe.model.{ Progress => _, _ }
+import observe.model.{Progress => _, _}
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps._
 import observe.server.InstrumentSystem._
@@ -74,7 +74,7 @@ import observe.server.niri._
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs._
-import observe.server.transition.{ SEQUENCE_TYPE_NAME, STEP_ID_NAME }
+import observe.server.transition.{SEQUENCE_TYPE_NAME, STEP_ID_NAME}
 import squants.Time
 import squants.time.TimeConversions._
 import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY

@@ -27,7 +27,7 @@ import observe.server.gems.GemsController.Odgw2Usage
 import observe.server.gems.GemsController.Odgw3Usage
 import observe.server.gems.GemsController.Odgw4Usage
 import observe.server.gems.GemsController.P1Usage
-import observe.server.tcs.{ Gaos, GuideConfig, GuideConfigDb, Tcs }
+import observe.server.tcs.{Gaos, GuideConfig, GuideConfigDb, Tcs}
 import observe.server.tcs.Gaos.{
   PauseCondition,
   PauseConditionSet,

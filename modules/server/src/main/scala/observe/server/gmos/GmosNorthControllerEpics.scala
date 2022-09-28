@@ -9,10 +9,10 @@ import edu.gemini.spModel.gemini.gmos.GmosCommonType
 import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpGain
 import edu.gemini.spModel.gemini.gmos.GmosCommonType.AmpReadMode
 import edu.gemini.spModel.gemini.gmos.GmosCommonType.BuiltinROI
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{ DisperserNorth => Disperser }
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{ FPUnitNorth => FPU }
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{ FilterNorth => Filter }
-import edu.gemini.spModel.gemini.gmos.GmosNorthType.{ StageModeNorth => StageMode }
+import edu.gemini.spModel.gemini.gmos.GmosNorthType.{DisperserNorth => Disperser}
+import edu.gemini.spModel.gemini.gmos.GmosNorthType.{FPUnitNorth => FPU}
+import edu.gemini.spModel.gemini.gmos.GmosNorthType.{FilterNorth => Filter}
+import edu.gemini.spModel.gemini.gmos.GmosNorthType.{StageModeNorth => StageMode}
 import org.typelevel.log4cats.Logger
 import observe.server.EpicsCodex
 import observe.server.EpicsCodex.EncodeEpicsValue

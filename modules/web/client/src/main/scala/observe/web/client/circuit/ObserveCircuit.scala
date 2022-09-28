@@ -25,7 +25,7 @@ import observe.web.client.actions._
 import observe.web.client.actions.show
 import observe.web.client.handlers._
 import observe.web.client.model._
-import typings.loglevel.mod.{ ^ => logger }
+import typings.loglevel.mod.{^ => logger}
 
 /**
  * Diode processor to log some of the action to aid in debugging

@@ -4,7 +4,7 @@
 package observe.server
 
 import java.beans.PropertyDescriptor
-import java.lang.{ Integer => JInt }
+import java.lang.{Integer => JInt}
 
 import scala.reflect.ClassTag
 

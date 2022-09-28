@@ -3,7 +3,7 @@
 
 package observe.server.gsaoi
 
-import java.lang.{ Double => JDouble }
+import java.lang.{Double => JDouble}
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
@@ -19,7 +19,7 @@ import edu.gemini.epics.acm.CaStatusAcceptor
 import edu.gemini.epics.acm.CaWindowStabilizer
 import edu.gemini.epics.acm.CarState
 import edu.gemini.observe.server.gsaoi.DhsConnected
-import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase }
+import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil.safeAttributeF
 import observe.server.EpicsUtil.safeAttributeSDoubleF

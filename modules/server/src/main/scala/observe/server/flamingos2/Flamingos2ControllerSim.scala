@@ -4,7 +4,7 @@
 package observe.server.flamingos2
 
 import cats.MonadError
-import cats.effect.{ Async, Ref }
+import cats.effect.{Async, Ref}
 import cats.syntax.all._
 import fs2.Stream
 import org.typelevel.log4cats.Logger

@@ -18,21 +18,21 @@ import observe.server.EpicsCodex.decode
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.gems.Gems.Cwfs1DetectorState
-import observe.server.gems.Gems.Cwfs1DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Cwfs1DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.Cwfs2DetectorState
-import observe.server.gems.Gems.Cwfs2DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Cwfs2DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.Cwfs3DetectorState
-import observe.server.gems.Gems.Cwfs3DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Cwfs3DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.DetectorStateOps
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.gems.Gems.Odgw1DetectorState
-import observe.server.gems.Gems.Odgw1DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Odgw1DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.Odgw2DetectorState
-import observe.server.gems.Gems.Odgw2DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Odgw2DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.Odgw3DetectorState
-import observe.server.gems.Gems.Odgw3DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Odgw3DetectorState.{Off => _, On => _, _}
 import observe.server.gems.Gems.Odgw4DetectorState
-import observe.server.gems.Gems.Odgw4DetectorState.{ Off => _, On => _, _ }
+import observe.server.gems.Gems.Odgw4DetectorState.{Off => _, On => _, _}
 import observe.server.tcs.GemsSource.Cwfs1
 import observe.server.tcs.GemsSource.Cwfs2
 import observe.server.tcs.GemsSource.Cwfs3

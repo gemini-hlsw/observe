@@ -17,17 +17,17 @@ import org.typelevel.log4cats.Logger
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import observe.engine.Sequence.State.Final
-import observe.model.{ ClientId, SequenceState, StepState }
+import observe.model.{ClientId, SequenceState, StepState}
 import observe.model.enum.Instrument.GmosS
 import observe.model.enum.Resource.TCS
-import observe.model.{ ActionType, UserDetails }
+import observe.model.{ActionType, UserDetails}
 import observe.engine.TestUtil.TestState
 
 import scala.concurrent.duration._
 import org.scalatest.flatspec.AnyFlatSpec
 import cats.effect.std.Semaphore
 import eu.timepit.refined.types.numeric.PosLong
-import observe.common.test.{ observationId, stepId }
+import observe.common.test.{observationId, stepId}
 
 class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
 
