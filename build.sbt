@@ -268,7 +268,7 @@ lazy val new_web = project
   .in(file("modules/new_web"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
-  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
     scalaVersion    := "3.2.1-RC1",
     Test / test     := {},

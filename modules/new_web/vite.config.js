@@ -44,6 +44,7 @@ module.exports = ({ command, mode }) => {
   const publicDirProd = path.resolve(common, 'src/main/public');
   const publicDirDev = path.resolve(common, 'src/main/publicdev');
   const resourceDir = path.resolve(scalaClassesDir, 'classes');
+  const lucumaCss = path.resolve(__dirname, 'target/lucuma-css');
 
   const publicDir = mode == 'production' ? publicDirProd : publicDirDev;
   return {
@@ -73,6 +74,10 @@ module.exports = ({ command, mode }) => {
         {
           find: '@resources',
           replacement: resourceDir
+        },
+        {
+          find: '/lucuma-css',
+          replacement: lucumaCss,
         },
       ],
     },
