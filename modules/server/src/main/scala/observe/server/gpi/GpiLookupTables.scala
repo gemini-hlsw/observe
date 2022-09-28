@@ -3,10 +3,10 @@
 
 package observe.server.gpi
 
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Apodizer => LegacyApodizer }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ FPM => LegacyFPM }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Lyot => LegacyLyot }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ObservingMode => LegacyObservingMode }
+import edu.gemini.spModel.gemini.gpi.Gpi.{Apodizer => LegacyApodizer}
+import edu.gemini.spModel.gemini.gpi.Gpi.{FPM => LegacyFPM}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Lyot => LegacyLyot}
+import edu.gemini.spModel.gemini.gpi.Gpi.{ObservingMode => LegacyObservingMode}
 
 trait GpiLookupTables {
   val UNKNOWN_SETTING = "UNKNOWN"

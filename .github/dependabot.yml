@@ -1,7 +1,11 @@
 version: 2
 updates:
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: "npm"
+    directory: "/modules/web/client/"
     schedule:
-      interval: "monthly" 
+      interval: "weekly"
+      # Check for npm updates on Sundays
+      day: "sunday"
+    # Labels on pull requests for security and version updates
+    labels:
+      - "npm dependencies"

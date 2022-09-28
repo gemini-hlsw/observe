@@ -10,12 +10,12 @@ import clue.TransactionalClient
 import clue.data.Assign
 import edu.gemini.seqexec.odb.SeqexecSequence
 import eu.timepit.refined.types.numeric.PosInt
-import lucuma.core.enums.{ DatasetStage, SequenceCommand, StepStage }
+import lucuma.core.enums.{DatasetStage, SequenceCommand, StepStage}
 import lucuma.core.model.Visit
 import observe.common.ObsQueriesGQL
 import observe.common.ObsQueriesGQL._
 import org.typelevel.log4cats.Logger
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.model.dhs._
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType

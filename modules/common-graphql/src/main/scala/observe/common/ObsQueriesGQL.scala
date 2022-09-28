@@ -6,16 +6,16 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import io.circe.{ Decoder, Encoder }
+import io.circe.{Decoder, Encoder}
 import io.circe.generic.auto._
 import lucuma.core.math
 import lucuma.core.enums
 import lucuma.core.model
 import cats.syntax.functor._
-import lucuma.core.model.sequence.{ Atom, Step }
+import lucuma.core.model.sequence.{Atom, Step}
 
 import java.time
-import lucuma.core.model.{ ExecutionEvent, Observation, Target }
+import lucuma.core.model.{ExecutionEvent, Observation, Target}
 
 // gql: import lucuma.schemas.decoders._
 // gql: import io.circe.refined._

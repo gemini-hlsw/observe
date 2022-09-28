@@ -13,7 +13,7 @@ import edu.gemini.epics.acm.CaService
 import edu.gemini.epics.acm.CaStatusAcceptor
 import edu.gemini.observe.server.gems.LoopState
 import edu.gemini.observe.server.gems.ReadyState
-import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
+import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil._
 

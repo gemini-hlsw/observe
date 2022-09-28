@@ -5,7 +5,7 @@ package observe.server.nifs
 
 import cats.Show
 import cats.syntax.all._
-import edu.gemini.spModel.gemini.nifs.NIFSParams.{ ReadMode => LegacyReadMode }
+import edu.gemini.spModel.gemini.nifs.NIFSParams.{ReadMode => LegacyReadMode}
 import observe.model.dhs.ImageFileId
 import observe.model.enum.ObserveCommandResult
 import observe.server.Progress

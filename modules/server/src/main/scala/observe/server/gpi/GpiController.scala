@@ -9,16 +9,16 @@ import cats._
 import cats.effect.Sync
 import cats.syntax.all._
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Adc => LegacyAdc }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Apodizer => LegacyApodizer }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ArtificialSource => LegacyArtificialSource }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Disperser => LegacyDisperser }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ FPM => LegacyFPM }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Filter => LegacyFilter }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Lyot => LegacyLyot }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ObservingMode => LegacyObservingMode }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ PupilCamera => LegacyPupilCamera }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Shutter => LegacyShutter }
+import edu.gemini.spModel.gemini.gpi.Gpi.{Adc => LegacyAdc}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Apodizer => LegacyApodizer}
+import edu.gemini.spModel.gemini.gpi.Gpi.{ArtificialSource => LegacyArtificialSource}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Disperser => LegacyDisperser}
+import edu.gemini.spModel.gemini.gpi.Gpi.{FPM => LegacyFPM}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Filter => LegacyFilter}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Lyot => LegacyLyot}
+import edu.gemini.spModel.gemini.gpi.Gpi.{ObservingMode => LegacyObservingMode}
+import edu.gemini.spModel.gemini.gpi.Gpi.{PupilCamera => LegacyPupilCamera}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Shutter => LegacyShutter}
 import giapi.client.GiapiStatusDb
 import giapi.client.commands.CommandResultException
 import giapi.client.commands.Configuration

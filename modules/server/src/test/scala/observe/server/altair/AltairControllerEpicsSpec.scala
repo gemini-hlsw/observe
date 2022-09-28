@@ -18,7 +18,7 @@ import observe.server.tcs.TcsController.{
   OffsetY
 }
 import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoCorrectCmd
-import observe.server.tcs.{ Gaos, TestTcsEpics }
+import observe.server.tcs.{Gaos, TestTcsEpics}
 import shapeless.tag
 import squants.space.LengthConversions._
 import squants.space.AngleConversions._

@@ -16,8 +16,8 @@ import edu.gemini.aspen.giapi.commands.DefaultConfiguration
 import edu.gemini.aspen.giapi.commands.HandlerResponse
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
 import edu.gemini.aspen.giapi.commands.SequenceCommand
-import edu.gemini.aspen.giapi.commands.{ Command => GiapiCommand }
-import edu.gemini.aspen.giapi.commands.{ Configuration => GiapiConfiguration }
+import edu.gemini.aspen.giapi.commands.{Command => GiapiCommand}
+import edu.gemini.aspen.giapi.commands.{Configuration => GiapiConfiguration}
 import edu.gemini.aspen.gmp.commands.jms.client.CommandSenderClient
 import giapi.client.syntax.giapiconfig._
 
