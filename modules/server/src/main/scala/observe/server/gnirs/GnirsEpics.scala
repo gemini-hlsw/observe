@@ -3,14 +3,14 @@
 
 package observe.server.gnirs
 
-import java.lang.{ Double => JDouble }
+import java.lang.{Double => JDouble}
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all._
 import edu.gemini.epics.acm._
 import edu.gemini.observe.server.gnirs.DetectorState
-import observe.server.{ EpicsCommandBase, EpicsSystem, ObserveCommandBase }
+import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil.safeAttributeF
 import observe.server.EpicsUtil.safeAttributeSDoubleF

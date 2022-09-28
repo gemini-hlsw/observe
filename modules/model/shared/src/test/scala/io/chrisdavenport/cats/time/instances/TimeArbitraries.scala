@@ -5,7 +5,7 @@ package io.chrisdavenport.cats.time.instances
 
 import java.time._
 
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 
 object TimeArbitraries {

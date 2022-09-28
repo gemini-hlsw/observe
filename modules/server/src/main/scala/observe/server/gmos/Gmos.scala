@@ -3,8 +3,8 @@
 
 package observe.server.gmos
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 
 import scala.concurrent.duration._
 
@@ -48,7 +48,7 @@ import squants.Seconds
 import squants.Time
 import squants.space.Length
 import squants.space.LengthConversions._
-import cats.effect.{ Ref, Temporal }
+import cats.effect.{Ref, Temporal}
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosController.SiteDependentTypes](
   val controller: GmosController[F, T],

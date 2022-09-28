@@ -3,12 +3,12 @@
 
 package observe.server.gsaoi
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.{ Async, Sync }
+import cats.effect.{Async, Sync}
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi._
 import edu.gemini.spModel.obscomp.InstConstants.DARK_OBSERVE_TYPE

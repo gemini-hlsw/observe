@@ -11,7 +11,7 @@ import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.macros.Lenses
-import react.common.{ Size => _, _ }
+import react.common.{Size => _, _}
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.icon._

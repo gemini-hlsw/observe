@@ -3,10 +3,10 @@
 
 package observe.server.altair
 
-import cats.{ Eq, Show }
+import cats.{Eq, Show}
 import cats.syntax.all._
 import observe.model.`enum`.Instrument
-import observe.server.tcs.Gaos.{ GuideCapabilities, PauseConditionSet, ResumeConditionSet }
+import observe.server.tcs.Gaos.{GuideCapabilities, PauseConditionSet, ResumeConditionSet}
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 import squants.space.Length

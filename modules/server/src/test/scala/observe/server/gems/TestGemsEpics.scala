@@ -4,7 +4,7 @@
 package observe.server.gems
 
 import cats.Applicative
-import cats.effect.{ Async, Ref }
+import cats.effect.{Async, Ref}
 import cats.syntax.all._
 import mouse.boolean._
 import edu.gemini.observe.server.gems.LoopState

@@ -24,7 +24,7 @@ import observe.model.enum.Instrument
 import observe.model.enum.Resource
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
-import observe.web.client.model.{ ClientStatus, ResourceRunOperation, StopOperation, TabOperations }
+import observe.web.client.model.{ClientStatus, ResourceRunOperation, StopOperation, TabOperations}
 import observe.web.client.model.ModelOps._
 import observe.web.client.model.StepItems._
 import observe.web.client.reusability._

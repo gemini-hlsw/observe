@@ -11,7 +11,7 @@ import observe.model.enum.NodAndShuffleStage
 import observe.server.altair.Altair
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem
-import observe.server.tcs.TcsNorthController.{ TcsNorthConfig, tcsNorthConfigShow }
+import observe.server.tcs.TcsNorthController.{TcsNorthConfig, tcsNorthConfigShow}
 
 class TcsNorthControllerSim[F[_]: Applicative: Logger] private extends TcsNorthController[F] {
   val sim = new TcsControllerSim[F]

@@ -3,7 +3,7 @@
 
 package observe.server.gcal
 
-import java.util.{ Set => JSet }
+import java.util.{Set => JSet}
 
 import scala.Function.const
 import scala.jdk.CollectionConverters._

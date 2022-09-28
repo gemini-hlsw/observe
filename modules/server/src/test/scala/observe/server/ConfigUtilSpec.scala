@@ -3,9 +3,9 @@
 
 package observe.server
 
-import edu.gemini.spModel.config2.{ Config, DefaultConfig, ItemEntry, ItemKey }
+import edu.gemini.spModel.config2.{Config, DefaultConfig, ItemEntry, ItemKey}
 import edu.gemini.spModel.seqcomp.SeqConfigNames
-import org.scalacheck.{ Arbitrary, _ }
+import org.scalacheck.{Arbitrary, _}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
 import munit.DisciplineSuite

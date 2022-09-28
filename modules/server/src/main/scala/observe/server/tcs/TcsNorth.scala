@@ -39,7 +39,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   guideDb:       GuideConfigDb[F]
 )(config:        TcsNorth.TcsSeqConfig[F])
     extends Tcs[F] {
-  import Tcs.{ GuideWithOps, calcGuiderInUse }
+  import Tcs.{GuideWithOps, calcGuiderInUse}
 
   val Log: Logger[F] = Logger[F]
 

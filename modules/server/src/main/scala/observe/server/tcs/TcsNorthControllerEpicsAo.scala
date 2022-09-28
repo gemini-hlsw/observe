@@ -31,7 +31,7 @@ import squants.space.Area
 import squants.time.TimeConversions._
 import TcsNorthController._
 import observe.server.altair.AltairController.AltairPauseResume
-import observe.server.tcs.TcsControllerEpicsCommon.{ calcMoveDistanceSquared, offsetNear }
+import observe.server.tcs.TcsControllerEpicsCommon.{calcMoveDistanceSquared, offsetNear}
 
 trait TcsNorthControllerEpicsAo[F[_]] {
   def applyAoConfig(
