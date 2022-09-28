@@ -14,7 +14,7 @@ import observe.server.ConfigUtilOps._
 import observe.server.altair.AltairController._
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos
-import observe.server.tcs.Gaos.{ PauseConditionSet, ResumeConditionSet }
+import observe.server.tcs.Gaos.{PauseConditionSet, ResumeConditionSet}
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 

@@ -9,11 +9,11 @@ import scala.concurrent.duration.FiniteDuration
 import cats.Applicative
 import cats.effect.Async
 import cats.syntax.all._
-import edu.gemini.observe.server.niri.{ BeamSplitter => JBeamSplitter }
-import edu.gemini.observe.server.niri.{ BuiltInROI => JBuiltInROI }
-import edu.gemini.observe.server.niri.{ Camera => JCamera }
-import edu.gemini.observe.server.niri.{ Disperser => JDisperser }
-import edu.gemini.observe.server.niri.{ Mask => JMask }
+import edu.gemini.observe.server.niri.{BeamSplitter => JBeamSplitter}
+import edu.gemini.observe.server.niri.{BuiltInROI => JBuiltInROI}
+import edu.gemini.observe.server.niri.{Camera => JCamera}
+import edu.gemini.observe.server.niri.{Disperser => JDisperser}
+import edu.gemini.observe.server.niri.{Mask => JMask}
 import edu.gemini.spModel.gemini.niri.Niri.BeamSplitter
 import edu.gemini.spModel.gemini.niri.Niri.BuiltinROI
 import edu.gemini.spModel.gemini.niri.Niri.Camera

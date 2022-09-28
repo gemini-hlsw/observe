@@ -14,7 +14,7 @@ import cats.syntax.all._
 import edu.gemini.spModel.core.Wavelength
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
-import monocle.{ Iso, Lens }
+import monocle.{Iso, Lens}
 import mouse.boolean._
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig

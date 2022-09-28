@@ -10,7 +10,7 @@ import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Step.{ Id => StepId }
+import lucuma.core.model.sequence.Step.{Id => StepId}
 
 /**
  * A list of `Step`s grouped by target and instrument.

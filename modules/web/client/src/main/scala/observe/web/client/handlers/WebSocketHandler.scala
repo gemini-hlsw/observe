@@ -32,7 +32,7 @@ import observe.model.events._
 import observe.web.client.actions._
 import observe.web.client.circuit._
 import observe.web.client.model._
-import typings.loglevel.mod.{ ^ => logger }
+import typings.loglevel.mod.{^ => logger}
 
 /**
  * Handles the WebSocket connection and performs reconnection if needed

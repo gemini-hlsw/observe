@@ -10,7 +10,7 @@ import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams
-import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{ Camera, Decker, Disperser, ReadMode }
+import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{Camera, Decker, Disperser, ReadMode}
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.ObserveStage

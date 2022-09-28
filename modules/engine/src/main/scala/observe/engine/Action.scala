@@ -6,7 +6,7 @@ package observe.engine
 import fs2.Stream
 import monocle.Lens
 import monocle.macros.Lenses
-import Result.{ Error, PartialVal, PauseContext, RetVal }
+import Result.{Error, PartialVal, PauseContext, RetVal}
 import observe.model.ActionType
 import observe.model.enum.ActionStatus
 
