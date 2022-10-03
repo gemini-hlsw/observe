@@ -22,14 +22,14 @@ import observe.model.enum.ApplyCommandResult
 import observe.server.ObserveFailure
 import observe.server.altair.AltairController._
 import observe.server.tcs.FOCAL_PLANE_SCALE
-import observe.server.tcs.Gaos.PauseCondition.{ GaosGuideOff, OiOff, P1Off }
-import observe.server.tcs.Gaos.ResumeCondition.{ GaosGuideOn, OiOn, P1On }
+import observe.server.tcs.Gaos.PauseCondition.{GaosGuideOff, OiOff, P1Off}
+import observe.server.tcs.Gaos.ResumeCondition.{GaosGuideOn, OiOn, P1On}
 import observe.server.tcs.Gaos._
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import observe.server.tcs.TcsEpics
 import squants.Length
 import squants.Time
-import squants.space.{ Arcseconds, Millimeters }
+import squants.space.{Arcseconds, Millimeters}
 import squants.time.TimeConversions._
 
 object AltairControllerEpics {

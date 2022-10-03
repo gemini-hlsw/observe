@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats.{ Applicative, Monad }
+import cats.{Applicative, Monad}
 import cats.syntax.all._
 import monocle.Lens
 import monocle.macros.Lenses

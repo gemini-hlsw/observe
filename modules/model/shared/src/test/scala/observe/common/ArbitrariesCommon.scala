@@ -4,7 +4,7 @@
 package observe.common
 
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{ Arbitrary, Cogen, Gen }
+import org.scalacheck.{Arbitrary, Cogen, Gen}
 
 trait ArbitrariesCommon {
 

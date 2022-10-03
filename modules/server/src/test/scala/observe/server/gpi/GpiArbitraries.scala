@@ -3,16 +3,16 @@
 
 package observe.server.gpi
 
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Apodizer => LegacyApodizer }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Adc => LegacyAdc }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ArtificialSource => LegacyArtificialSource }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Disperser => LegacyDisperser }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ FPM => LegacyFPM }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Filter => LegacyFilter }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Lyot => LegacyLyot }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ ObservingMode => LegacyObservingMode }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ PupilCamera => LegacyPupilCamera }
-import edu.gemini.spModel.gemini.gpi.Gpi.{ Shutter => LegacyShutter }
+import edu.gemini.spModel.gemini.gpi.Gpi.{Apodizer => LegacyApodizer}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Adc => LegacyAdc}
+import edu.gemini.spModel.gemini.gpi.Gpi.{ArtificialSource => LegacyArtificialSource}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Disperser => LegacyDisperser}
+import edu.gemini.spModel.gemini.gpi.Gpi.{FPM => LegacyFPM}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Filter => LegacyFilter}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Lyot => LegacyLyot}
+import edu.gemini.spModel.gemini.gpi.Gpi.{ObservingMode => LegacyObservingMode}
+import edu.gemini.spModel.gemini.gpi.Gpi.{PupilCamera => LegacyPupilCamera}
+import edu.gemini.spModel.gemini.gpi.Gpi.{Shutter => LegacyShutter}
 import lucuma.core.enums.GpiReadMode
 import lucuma.core.util.arb.ArbEnumerated._
 import lucuma.core.arb.ArbTime

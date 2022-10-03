@@ -4,7 +4,7 @@
 package observe.model.arb
 
 import observe.model.Observation
-import org.scalacheck.{ Arbitrary, Cogen }
+import org.scalacheck.{Arbitrary, Cogen}
 import org.scalacheck.Arbitrary._
 import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._

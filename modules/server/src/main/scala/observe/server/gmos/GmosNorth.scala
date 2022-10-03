@@ -26,7 +26,7 @@ import observe.server.keywords.DhsClient
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import squants.Length
 import squants.space.Arcseconds
-import cats.effect.{ Ref, Temporal }
+import cats.effect.{Ref, Temporal}
 
 final case class GmosNorth[F[_]: Temporal: Logger] private (
   c:         GmosNorthController[F],

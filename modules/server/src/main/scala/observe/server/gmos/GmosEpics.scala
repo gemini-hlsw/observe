@@ -3,7 +3,7 @@
 
 package observe.server.gmos
 
-import java.lang.{ Double => JDouble }
+import java.lang.{Double => JDouble}
 import scala.concurrent.duration._
 import cats.effect.Async
 import cats.effect.IO
@@ -12,7 +12,7 @@ import cats.syntax.all._
 import edu.gemini.epics.acm._
 import mouse.all._
 import observe.model.enum.ApplyCommandResult
-import observe.server.{ EpicsCommandBase, EpicsSystem, ObserveCommandBase }
+import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil._
 import observe.server.ObserveFailure._

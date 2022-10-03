@@ -3,7 +3,6 @@
 
 package observe.web.client
 
-import scala.concurrent.ExecutionContext
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
 import cats.effect.Sync
@@ -16,9 +15,7 @@ import observe.web.client.actions.WSClose
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveUI
 import observe.web.client.services.ObserveWebClient
-import typings.loglevel.mod.{ ^ => logger }
-
-import scala.annotation.nowarn
+import typings.loglevel.mod.{^ => logger}
 
 /**
  * Observe WebApp entry point
@@ -26,11 +23,10 @@ import scala.annotation.nowarn
 final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
   japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
-  @nowarn("cat=other")
   def serverSite: F[Site] =
     L.liftIO(IO.fromFuture {
       IO {
-        import ExecutionContext.Implicits.global
+        import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 
         // Read the site from the webserver
         ObserveWebClient.site().map(Site.fromTag(_).getOrElse(Site.GS))

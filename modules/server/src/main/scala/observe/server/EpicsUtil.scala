@@ -3,14 +3,14 @@
 
 package observe.server
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Float => JFloat }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Float => JFloat}
+import java.lang.{Integer => JInt}
 import java.util
 import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{ Timer => JTimer }
+import java.util.{Timer => JTimer}
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters._
 import scala.math.abs
