@@ -19,6 +19,6 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
 // Used to find dependencies
 addDependencyTreePlugin
 
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.3")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
 
 Global / onLoad := { s => "dependencyUpdates" :: s }
