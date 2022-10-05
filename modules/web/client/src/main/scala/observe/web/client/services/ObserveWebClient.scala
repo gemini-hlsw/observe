@@ -3,7 +3,7 @@
 
 package observe.web.client.services
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 import scala.concurrent.Future
 import scala.scalajs.js.URIUtils._
 import scala.scalajs.js.typedarray.ArrayBuffer

@@ -5,7 +5,7 @@ package observe.common
 
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.model.sequence.Step
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 
 import java.util.UUID
 

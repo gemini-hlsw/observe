@@ -16,7 +16,7 @@ import edu.gemini.spModel.obscomp.InstConstants.{
   OBS_CLASS_PROP,
   SCIENCE_OBSERVE_TYPE
 }
-import edu.gemini.spModel.seqcomp.SeqConfigNames.{ OBSERVE_KEY, OCS_KEY, TELESCOPE_KEY }
+import edu.gemini.spModel.seqcomp.SeqConfigNames.{OBSERVE_KEY, OCS_KEY, TELESCOPE_KEY}
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.CLOUD_COVER_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.IMAGE_QUALITY_PROP
 import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.SKY_BACKGROUND_PROP
@@ -45,13 +45,9 @@ import observe.model.enum._
 import observe.model.enum.Resource.TCS
 import monocle.function.Index.mapIndex
 import observe.common.test.stepId
-import observe.engine.EventResult.{ Outcome, UserCommandResponse }
+import observe.engine.EventResult.{Outcome, UserCommandResponse}
 import observe.model.dhs.DataId
-import observe.server.tcs.{
-  DummyTargetKeywordsReader,
-  DummyTcsKeywordsReader,
-  TargetKeywordsReader
-}
+import observe.server.tcs.{DummyTargetKeywordsReader, DummyTcsKeywordsReader, TargetKeywordsReader}
 import observe.server.ConfigUtilOps._
 import observe.server.SeqEvent.RequestConfirmation
 

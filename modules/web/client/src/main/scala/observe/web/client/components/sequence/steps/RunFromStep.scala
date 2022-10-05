@@ -13,7 +13,7 @@ import react.common._
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.web.client.actions.RequestRunFrom
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit.ObserveCircuit

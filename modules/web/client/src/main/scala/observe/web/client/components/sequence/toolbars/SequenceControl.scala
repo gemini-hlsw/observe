@@ -3,7 +3,7 @@
 
 package observe.web.client.components.sequence.toolbars
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 import scala.concurrent.Future
 import cats.syntax.all._
 import japgolly.scalajs.react.AsyncCallback
@@ -18,7 +18,7 @@ import react.semanticui.collections.form.FormCheckbox
 import react.semanticui.colors._
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
-import observe.model.{ Observation, SystemOverrides }
+import observe.model.{Observation, SystemOverrides}
 import observe.web.client.actions._
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit._
@@ -32,8 +32,6 @@ import observe.web.client.model.SyncOperation
 import observe.web.client.reusability._
 import observe.web.client.semanticui.controlButton
 import observe.web.client.services.ObserveWebClient
-
-import scala.annotation.nowarn
 
 final case class SequenceControl(p: SequenceControlFocus)
     extends ReactProps[SequenceControl](SequenceControl.component) {
@@ -139,7 +137,6 @@ object SequenceControl {
 
   private def subsystemsButton($ : RenderScope[Props, Unit, Unit], overrides: SystemOverrides) = {
 
-    @nowarn("cat=other")
     def subsystemCheck(
       label:   String,
       checked: => Boolean,

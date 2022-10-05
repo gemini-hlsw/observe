@@ -10,7 +10,7 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.implicits._
 import japgolly.scalajs.react.ReactMonocle._
-import japgolly.scalajs.react.{ CtorType, Reusability, _ }
+import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.component.builder.Lifecycle._
 import japgolly.scalajs.react.extra.router.RouterCtl
@@ -23,7 +23,7 @@ import org.scalajs.dom.HTMLElement
 import react.common._
 import react.common.implicits._
 import react.semanticui.sizes._
-import react.semanticui.{ SemanticSize => SSize }
+import react.semanticui.{SemanticSize => SSize}
 import react.virtualized._
 import observe.model.Observation
 import observe.model.RunningStep

@@ -1,5 +1,5 @@
 import sbt._
-import java.lang.{ Runtime => JRuntime }
+import java.lang.{Runtime => JRuntime}
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 /**
@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "2.2.0"
+    val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
     val diode                   = "1.2.0-RC4"
@@ -27,12 +27,12 @@ object Settings {
     val catsVersion         = "2.8.0"
     val mouseVersion        = "1.1.0"
     val fs2Version          = "3.2.12"
-    val shapelessVersion    = "2.3.9"
+    val shapelessVersion    = "2.3.10"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.15"
+    val http4sVersion                  = "0.23.16"
     val http4sBlazeVersion             = "0.23.12"
     val http4sJdkHttpClientVersion     = "0.7.0"
     val http4sBoopickleVersion         = "0.23.11"
@@ -43,16 +43,16 @@ object Settings {
     val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
-    val slf4j          = "2.0.0"
+    val slf4j          = "2.0.3"
     val log4s          = "1.10.0"
-    val log4cats       = "2.4.0"
+    val log4cats       = "2.5.0"
     val log4catsLevel  = "0.3.1"
-    val logback        = "1.2.11"
-    val janino         = "3.1.7"
+    val logback        = "1.4.3"
+    val janino         = "3.1.8"
     val logstash       = "7.0"
     val pureConfig     = "0.17.1"
     val monocleVersion = "3.1.0"
-    val circeVersion   = "0.14.2"
+    val circeVersion   = "0.14.3"
     val doobieVersion  = "0.6.0"
     val flywayVersion  = "6.0.4"
 
@@ -84,7 +84,7 @@ object Settings {
     val guava               = "31.0.1-jre"
     val prometheusClient    = "0.16.0"
     val geminiLocales       = "0.7.0"
-    val pprint              = "0.7.3"
+    val pprint              = "0.8.0"
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
@@ -95,7 +95,7 @@ object Settings {
     // Clue
     val clue = "0.23.1"
 
-    val sttp = "3.7.6"
+    val sttp = "3.8.2"
   }
 
   /**
@@ -306,19 +306,6 @@ object Settings {
         "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
       )
     )
-  }
-
-  object PluginVersions {
-    // Compiler plugins
-    val kpVersion        = "0.13.2"
-    val betterMonadicFor = "0.3.1"
-  }
-
-  object Plugins {
-    val kindProjectorPlugin =
-      ("org.typelevel" % "kind-projector" % PluginVersions.kpVersion).cross(CrossVersion.full)
-    val betterMonadicForPlugin =
-      "com.olegpy" %% "better-monadic-for" % PluginVersions.betterMonadicFor
   }
 
 }

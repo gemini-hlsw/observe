@@ -3,7 +3,7 @@
 
 package observe.server.flamingos2
 
-import java.lang.{ Double => JDouble }
+import java.lang.{Double => JDouble}
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.SECONDS

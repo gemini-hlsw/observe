@@ -7,7 +7,7 @@ import cats.Eq
 import cats.effect.IO
 import observe.model.Observation
 import monocle.law.discipline.OptionalTests
-import org.scalacheck.{ Arbitrary, Cogen }
+import org.scalacheck.{Arbitrary, Cogen}
 import org.scalacheck.Arbitrary._
 import observe.engine.TestUtil.TestState
 import observe.model.ObserveModelArbitraries._

@@ -3,12 +3,12 @@
 
 package observe.server.gnirs
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.{ Async, Sync }
+import cats.effect.{Async, Sync}
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.INSTRUMENT_NAME_PROP
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.WOLLASTON_PRISM_PROP
@@ -26,7 +26,7 @@ import observe.model.enum.ObserveCommandResult
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps._
 import observe.server._
-import observe.server.gnirs.GnirsController.{ CCConfig, DCConfig, Filter1, Other, ReadMode }
+import observe.server.gnirs.GnirsController.{CCConfig, DCConfig, Filter1, Other, ReadMode}
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient

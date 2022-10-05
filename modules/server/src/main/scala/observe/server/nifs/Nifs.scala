@@ -3,11 +3,11 @@
 
 package observe.server.nifs
 
-import java.lang.{ Double => JDouble }
-import java.lang.{ Integer => JInt }
+import java.lang.{Double => JDouble}
+import java.lang.{Integer => JInt}
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.effect.{ Async, Sync }
+import cats.effect.{Async, Sync}
 import cats.syntax.all._
 import edu.gemini.spModel.gemini.nifs.InstEngNifs._
 import edu.gemini.spModel.gemini.nifs.InstNIFS._

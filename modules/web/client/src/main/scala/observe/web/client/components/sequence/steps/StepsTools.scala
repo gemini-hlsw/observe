@@ -9,7 +9,7 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common._
 import react.semanticui.elements.icon.IconRotated
-import observe.model.{ Observation, Step, StepId, StepState }
+import observe.model.{Observation, Step, StepId, StepState}
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons._
 import observe.web.client.model.ClientStatus

@@ -3,7 +3,7 @@
 
 package giapi.client
 
-import cats.effect.{ IO, Resource }
+import cats.effect.{IO, Resource}
 import munit.CatsEffectSuite
 import giapi.client.commands._
 import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider

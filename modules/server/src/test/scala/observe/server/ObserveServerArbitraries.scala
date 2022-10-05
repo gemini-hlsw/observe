@@ -9,10 +9,10 @@ import lucuma.core.util.arb.ArbGid._
 import lucuma.core.util.arb.ArbUid._
 import observe.model.Observation
 import org.scalacheck.Arbitrary._
-import org.scalacheck.{ Arbitrary, Cogen }
+import org.scalacheck.{Arbitrary, Cogen}
 import observe.model.BatchCommandState
 import observe.model.enum.Instrument
-import observe.model.{ Conditions, Operator }
+import observe.model.{Conditions, Operator}
 import observe.model.ObserveModelArbitraries._
 
 trait ObserveServerArbitraries {
