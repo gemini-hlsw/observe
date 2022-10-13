@@ -16,7 +16,7 @@ case class ClientStatus(
   def isLogged: Boolean           = user.isDefined
   def canOperate: Boolean         = isLogged // && isConnected
   def displayName: Option[String] = user.flatMap(u => displayNames.get(u.username))
-  def observer: Option[Observer]  = displayName.map(Observer.apply)
+  def observer: Option[Observer]  = displayName.map(Observer(_))
 
 object ClientStatus:
   val Default: ClientStatus = ClientStatus(none, none, Map.empty)

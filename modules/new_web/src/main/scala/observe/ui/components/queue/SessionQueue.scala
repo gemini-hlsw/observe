@@ -196,11 +196,11 @@ object SessionQueue:
       )
       .render((props, filter, _, _, table) =>
         <.div(ObserveStyles.SessionQueue)(
-          AutoHeightPrimeVirtualizedTable(
+          PrimeAutoHeightVirtualizedTable(
             table,
             estimateRowHeightPx = _ => 30,
-            tableClass = ObserveStyles.ObserveTable,
-            rowClassFn = rowClass,
+            tableMod = ObserveStyles.ObserveTable,
+            rowMod = row => rowClass(row.index.toInt, row.original),
             overscan = 5
           ),
           SelectButton(ObserveStyles.ObsClassSelect)

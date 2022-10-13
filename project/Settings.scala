@@ -15,7 +15,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.7.0-7-b973786-SNAPSHOT"
+    val lucumaReact             = "0.11.0"
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
@@ -92,9 +92,9 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.45.0"
-    val lucumaCore3   = "0.55.3"
+    val lucumaCore3   = "0.57.0"
     val lucumaUI      = "0.39.0"
-    val lucumaUI3     = "0.44.3-12-192f52a-20220927T221130Z-SNAPSHOT"
+    val lucumaUI3     = "0.47.0"
     val lucumaSchemas = "0.33.0"
 
     // Clue

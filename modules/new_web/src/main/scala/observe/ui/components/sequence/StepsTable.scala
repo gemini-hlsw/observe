@@ -198,11 +198,11 @@ object StepsTable:
             // case _                                     => ObserveStyles.StepRow
             case _                                     => Css.Empty
 
-        AutoHeightPrimeVirtualizedTable(
+        PrimeAutoHeightVirtualizedTable(
           table,
           estimateRowHeightPx = _ => 40, // TODO Is it necessary to correct height of Running row?
-          tableClass = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
-          rowClassFn = rowClass,
+          tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
+          rowMod = row => rowClass(row.index.toInt, row.original),
           overscan = 5
         )
       )
