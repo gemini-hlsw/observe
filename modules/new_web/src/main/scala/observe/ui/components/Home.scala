@@ -25,11 +25,7 @@ import observe.ui.model.TabOperations
 import org.typelevel.log4cats.Logger
 import react.common.ReactFnProps
 import react.common.given
-import reactST.primereact.components.*
-import reactST.primereact.dividerMod.DividerAlignType
-import reactST.primereact.splitterMod.SplitterLayoutType
-import reactST.primereact.splitterMod.SplitterStateStorageType
-import reactST.primereact.tagMod.TagSeverityType
+import react.primereact.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -44,83 +40,93 @@ object Home {
       .useContext(AppContext.ctx)
       .render { (props, _) =>
         <.div(ObserveStyles.MainUI)(
-          Divider(ObserveStyles.Divider, "Observe GS")
-            .align(DividerAlignType.center),
-          Splitter(ObserveStyles.Shrinkable)
-            .layout(SplitterLayoutType.vertical)
-            .stateKey("main-splitter")
-            .stateStorage(SplitterStateStorageType.local)(
-              SplitterPanel(
-                Splitter(ObserveStyles.TopPanel)
-                  .stateKey("top-splitter")
-                  .stateStorage(SplitterStateStorageType.local)(
-                    SplitterPanel(
-                      SessionQueue(observe.demo.DemoSessionQueue)
-                    ),
-                    SplitterPanel(
-                      HeadersSideBar(
-                        props.rootModel.get.status,
-                        props.rootModel.get.operator,
-                        props.rootModel.zoom(RootModel.conditions)
-                      )
-                    )
+          Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
+            "Observe GS"
+          ),
+          Splitter(
+            layout = Layout.Vertical,
+            stateKey = "main-splitter",
+            stateStorage = StateStorage.Local,
+            clazz = ObserveStyles.Shrinkable
+          )(
+            SplitterPanel()(
+              Splitter(stateKey = "top-splitter",
+                       stateStorage = StateStorage.Local,
+                       clazz = ObserveStyles.TopPanel
+              )(
+                SplitterPanel()(
+                  SessionQueue(observe.demo.DemoSessionQueue)
+                ),
+                SplitterPanel()(
+                  HeadersSideBar(
+                    props.rootModel.get.status,
+                    props.rootModel.get.operator,
+                    props.rootModel.zoom(RootModel.conditions)
                   )
-              ),
-              SplitterPanel(
-                TabView(ObserveStyles.SequenceTabView)(
-                  TabPanel(ObserveStyles.SequenceTabPanel)
-                    .header(
-                      React.Fragment(
-                        <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                        Tag(ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag)
-                          .iconFA(Icons.CircleDot)
-                          .value("Idle")
-                      )
-                    )(
-                      StepsTable(
-                        clientStatus = clientStatus,
-                        execution = none
-                      )
-                    ),
-                  TabPanel(ObserveStyles.SequenceTabPanel)
-                    .header(
-                      React.Fragment(
-                        <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
-                        Tag(ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag)
-                          .iconFA(Icons.CircleNotch.copy(spin = true))
-                          .value(
-                            s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
-                          )
-                      )
-                    )(
-                      StepsTable(
-                        clientStatus = clientStatus,
-                        execution = Execution(
-                          obsId = Observation.Id.fromLong(133742).get,
-                          obsName = "Test Observation",
-                          instrument = Instrument.GmosSouth,
-                          sequenceState = SequenceState.Running(false, false),
-                          steps = observe.demo.DemoExecutionSteps,
-                          stepConfigDisplayed = none,
-                          nextStepToRun = none,
-                          runningStep = none,
-                          isPreview = false,
-                          tabOperations = TabOperations.Default
-                        ).some
-                      )
-                    )
                 )
               )
             ),
-          Accordion(
-            AccordionTab(ObserveStyles.LogArea)
-              .header("Show Log")(
+            SplitterPanel()(
+              TabView(clazz = ObserveStyles.SequenceTabView)(
+                TabPanel(
+                  clazz = ObserveStyles.SequenceTabPanel,
+                  header = React.Fragment(
+                    <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
+                    Tag(
+                      clazz = ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag,
+                      icon = Icons.CircleDot,
+                      value = "Idle"
+                    )
+                  )
+                )(
+                  StepsTable(
+                    clientStatus = clientStatus,
+                    execution = none
+                  )
+                ),
+                TabPanel(
+                  clazz = ObserveStyles.SequenceTabPanel,
+                  header = React.Fragment(
+                    <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
+                    Tag(
+                      clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
+                      icon = Icons.CircleNotch.copy(spin = true),
+                      value =
+                        s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
+                    )
+                  )
+                )(
+                  StepsTable(
+                    clientStatus = clientStatus,
+                    execution = Execution(
+                      obsId = Observation.Id.fromLong(133742).get,
+                      obsName = "Test Observation",
+                      instrument = Instrument.GmosSouth,
+                      sequenceState = SequenceState.Running(false, false),
+                      steps = observe.demo.DemoExecutionSteps,
+                      stepConfigDisplayed = none,
+                      nextStepToRun = none,
+                      runningStep = none,
+                      isPreview = false,
+                      tabOperations = TabOperations.Default
+                    ).some
+                  )
+                )
+              )
+            )
+          ),
+          Accordion(tabs =
+            List(
+              AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
                 <.div(^.height := "200px")
               )
+            )
           ),
-          Toolbar(ObserveStyles.Footer)
-            .left("Observe - GS")
-            .right(React.Fragment(ThemeSelector()).rawElement)
+          Toolbar(
+            clazz = ObserveStyles.Footer,
+            left = "Observe - GS",
+            right = React.Fragment(ThemeSelector()).rawElement
+          )
         )
       }
 }

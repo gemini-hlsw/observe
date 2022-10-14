@@ -20,8 +20,9 @@ import observe.ui.model.reusability.given
 import react.common.*
 import react.fa.FontAwesomeIcon
 import react.fa.IconSize
-import reactST.primereact.components.*
-import reactST.primereact.selectitemMod.SelectItem
+import react.primereact.*
+// import reactST.primereact.components.*
+// import reactST.primereact.selectitemMod.SelectItem
 import reactST.{ tanstackTableCore => raw }
 
 import scalajs.js.JSConverters.*
@@ -203,16 +204,18 @@ object SessionQueue:
             rowMod = row => rowClass(row.index.toInt, row.original),
             overscan = 5
           ),
-          SelectButton(ObserveStyles.ObsClassSelect)
-            .value(filter.value.value.orUndefined)
-            .options(ObsClass.values.toJSArray)
-            .itemTemplate(_.asInstanceOf[ObsClass] match
-              case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
-              case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
-            )
-            .onChange(e =>
-              filter.setState(SessionQueueFilter(Option(e.value.asInstanceOf[ObsClass])))
-            )
-            .unselectable(true)
+          SelectButtonOptional(
+            clazz = ObserveStyles.ObsClassSelect,
+            value = filter.value.value,
+            options = ObsClass.values.toList.map(v => SelectItem(v)),
+            itemTemplate = // _.asInstanceOf[ObsClass] match
+              // (_: SelectItem[ObsClass]).value match
+              _.value match
+                case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
+                case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
+            // onChange =
+            //   e => filter.setState(SessionQueueFilter(Option(e.value.asInstanceOf[ObsClass]))),
+            // unselectable = true
+          )
         )
       )

@@ -35,7 +35,7 @@ private object HeadersSideBar:
         ),
         <.div(ObserveStyles.ImageQualityArea)(
           <.label(^.htmlFor := "imageQuality")("Image Quality"),
-          Dropdown.id("operator")
+          Dropdown.id("operator")("fefefe")
         ),
         <.div(ObserveStyles.CloudCoverArea)(
           <.label(^.htmlFor := "cloudCover")("Cloud Cover"),

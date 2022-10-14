@@ -10,16 +10,15 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.callback.CallbackCatsEffect.given
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.ui.enums.Theme
-import react.common.ReactFnProps
-import reactST.primereact.components.*
-import reactST.primereact.messageMod.MessageSeverityType
+import react.common.*
+import react.primereact.*
 
-// TODO All the "potRender" methods should go in lucuma-ui, but let's unify once we settle on a component library everywhere
 val DefaultPendingRender: VdomNode = ProgressSpinner()
 
-val DefaultErrorRender: Throwable => VdomNode =
-  t => Message().text(t.getMessage).severity(MessageSeverityType.error)
+val DefaultErrorRender: Throwable => VdomNode = t =>
+  Message(text = t.getMessage, severity = Message.Severity.Error)
 
+  // TODO All the "potRender" methods should go in lucuma-ui, but let's unify once we settle on a component library everywhere
 def potRender[A](
   valueRender:   A => VdomNode,
   pendingRender: => VdomNode = DefaultPendingRender,
@@ -47,13 +46,13 @@ private object ThemeSelector:
       .useEffectResultWithDepsBy((_, toggle) => toggle.value)((_, _) => _ => Theme.current)
       .render((props, toggle, themePot) =>
         themePot.render(theme =>
-          ToggleButton()
-            .onLabel("Light")
-            .offLabel("Dark")
-            .checked(theme === Theme.Dark)
-            .onChange(e =>
-              (if (e.value) Theme.Dark.setup[CallbackTo]
+          ToggleButton(
+            onLabel = "Light",
+            offLabel = "Dark",
+            checked = theme === Theme.Dark,
+            onChange = value =>
+              (if (value) Theme.Dark.setup[CallbackTo]
                else Theme.Light.setup[CallbackTo]) >> toggle.setState(!toggle.value)
-            )
+          )
         )
       )

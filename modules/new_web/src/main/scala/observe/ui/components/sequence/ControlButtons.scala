@@ -18,9 +18,7 @@ import observe.ui.model.TabOperations
 import react.common.*
 import react.fa.FontAwesomeIcon
 import react.fa.IconSize
-import reactST.primereact.components.*
-import reactST.primereact.tooltipoptionsMod.TooltipOptions
-import reactST.primereact.tooltipoptionsMod.TooltipPositionType
+import react.primereact.*
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -65,7 +63,7 @@ object ControlButtons:
         // p.connect { proxy =>
     val isReadingOut                 = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
-    val tooltipOptions = TooltipOptions().setPosition(TooltipPositionType.top).setShowDelay(100)
+    val tooltipOptions = TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100)
 
     <.div(ObserveStyles.ControlButtonStrip, ^.cls := "p-inputgroup")(
       // ObserveStyles.notInMobile,
@@ -73,26 +71,32 @@ object ControlButtons:
         .map[VdomNode] {
           case PauseObservation =>
             // Tooltip(
-            Button(ObserveStyles.PauseButton)
-              .iconFA(Icons.Pause.copy(size = IconSize.LG))
-              .disabled(props.requestInFlight || props.isObservePaused || isReadingOut)
-              .tooltip("Pause the current exposure")
-              .tooltipOptions(tooltipOptions)
-          // onClick = requestObsPause(p.obsId, p.stepId),
+            Button(
+              clazz = ObserveStyles.PauseButton,
+              icon = Icons.Pause.copy(size = IconSize.LG),
+              // disabled = props.requestInFlight || props.isObservePaused || isReadingOut,
+              tooltip = "Pause the current exposure",
+              tooltipOptions = tooltipOptions
+              // onClick = requestObsPause(p.obsId, p.stepId),
+            )
           case StopObservation  =>
-            Button(ObserveStyles.StopButton)
-              .iconFA(Icons.Stop.copy(size = IconSize.LG))
-              .disabled(props.requestInFlight || isReadingOut)
-              .tooltip("Stop the current exposure early")
-              .tooltipOptions(tooltipOptions)
-          // onClick = requestStop(p.obsId, p.stepId),
+            Button(
+              clazz = ObserveStyles.StopButton,
+              icon = Icons.Stop.copy(size = IconSize.LG),
+              // disabled = props.requestInFlight || isReadingOut,
+              tooltip = "Stop the current exposure early",
+              tooltipOptions = tooltipOptions
+              // onClick = requestStop(p.obsId, p.stepId),ß
+            )
           case AbortObservation =>
-            Button(ObserveStyles.AbortButton)
-              .iconFA(Icons.Trash)
-              .disabled(props.requestInFlight || isReadingOut)
-              .tooltip("Abort the current exposure")
-              .tooltipOptions(tooltipOptions)
-          // onClick = requestAbort(p.obsId, p.stepId),
+            Button(
+              clazz = ObserveStyles.AbortButton,
+              icon = Icons.Trash,
+              // disabled = props.requestInFlight || isReadingOut,
+              tooltip = "Abort the current exposure",
+              tooltipOptions = tooltipOptions
+              // onClick = requestAbort(p.obsId, p.stepId),
+            )
           // case ResumeObservation           =>
           //   Popup(
           //     position = PopupPosition.TopRight,

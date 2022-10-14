@@ -281,6 +281,7 @@ lazy val new_web = project
       Fs2,
       LucumaUI3.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore3.value ++ Log4CatsLogLevel.value,
+    // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
