@@ -15,8 +15,6 @@ if (import.meta.env.DEV) {
   process.env = { CATS_EFFECT_TRACING_MODE: "none" };
 }
 
-console.log("efefefe");
-
 Main.runIOApp();
 
 if (import.meta.hot) {

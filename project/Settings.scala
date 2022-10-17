@@ -15,7 +15,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.11.0-9-be4e9b8-SNAPSHOT"
+    val lucumaReact             = "0.11.0-9-be4e9b8-20221017T131421Z-SNAPSHOT"
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"

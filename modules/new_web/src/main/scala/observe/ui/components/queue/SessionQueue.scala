@@ -208,14 +208,11 @@ object SessionQueue:
             clazz = ObserveStyles.ObsClassSelect,
             value = filter.value.value,
             options = ObsClass.values.toList.map(v => SelectItem(v)),
-            itemTemplate = // _.asInstanceOf[ObsClass] match
-              // (_: SelectItem[ObsClass]).value match
-              _.value match
-                case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
-                case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
-            // onChange =
-            //   e => filter.setState(SessionQueueFilter(Option(e.value.asInstanceOf[ObsClass]))),
-            // unselectable = true
+            itemTemplate = _.value match
+              case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
+              case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
+            ,
+            onChange = value => filter.setState(SessionQueueFilter(value))
           )
         )
       )
