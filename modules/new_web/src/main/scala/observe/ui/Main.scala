@@ -61,7 +61,7 @@ object Main {
   def run: IO[Unit] =
     for {
       logger <- setupLogger[IO](LogLevelDesc.DEBUG)
-      _      <- Theme.Light.setup[IO] // Theme.init[IO]
+      _      <- Theme.Light.setup[IO] // Theme.init[IO] (starts in Dark mode)
       _      <- buildPage(logger)
     } yield ()
 }

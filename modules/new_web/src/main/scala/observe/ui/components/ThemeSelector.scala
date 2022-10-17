@@ -51,8 +51,9 @@ private object ThemeSelector:
             offLabel = "Dark",
             checked = theme === Theme.Dark,
             onChange = value =>
-              (if (value) Theme.Dark.setup[CallbackTo]
-               else Theme.Light.setup[CallbackTo]) >> toggle.setState(!toggle.value)
+              Callback.log("f") >>
+                (if (value) Theme.Dark.setup[CallbackTo]
+                 else Theme.Light.setup[CallbackTo]) >> toggle.setState(!toggle.value)
           )
         )
       )

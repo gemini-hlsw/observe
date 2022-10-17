@@ -33,7 +33,7 @@ const fontImport = ViteFonts.Plugin({
 
 // https://vitejs.dev/config/
 module.exports = ({ command, mode }) => {
-  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.2.1-RC1');
+  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.2.1-RC2');
   const isProduction = mode == 'production';
   const sjs = isProduction
     ? path.resolve(scalaClassesDir, 'new_web-opt')
