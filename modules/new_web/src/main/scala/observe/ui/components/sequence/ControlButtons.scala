@@ -70,33 +70,29 @@ object ControlButtons:
       props.operations
         .map[VdomNode] {
           case PauseObservation =>
-            // Tooltip(
             Button(
               clazz = ObserveStyles.PauseButton,
               icon = Icons.Pause.copy(size = IconSize.LG),
-              // disabled = props.requestInFlight || props.isObservePaused || isReadingOut,
               tooltip = "Pause the current exposure",
               tooltipOptions = tooltipOptions
-              // onClick = requestObsPause(p.obsId, p.stepId),
-            )
+              // onClick = requestObsPause(p.obsId, p.stepId)
+            ).withMods(^.disabled := props.requestInFlight || props.isObservePaused || isReadingOut)
           case StopObservation  =>
             Button(
               clazz = ObserveStyles.StopButton,
               icon = Icons.Stop.copy(size = IconSize.LG),
-              // disabled = props.requestInFlight || isReadingOut,
               tooltip = "Stop the current exposure early",
               tooltipOptions = tooltipOptions
-              // onClick = requestStop(p.obsId, p.stepId),ß
-            )
+              // onClick = requestStop(p.obsId, p.stepId)
+            ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           case AbortObservation =>
             Button(
               clazz = ObserveStyles.AbortButton,
               icon = Icons.Trash,
-              // disabled = props.requestInFlight || isReadingOut,
               tooltip = "Abort the current exposure",
               tooltipOptions = tooltipOptions
               // onClick = requestAbort(p.obsId, p.stepId),
-            )
+            ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           // case ResumeObservation           =>
           //   Popup(
           //     position = PopupPosition.TopRight,
