@@ -9,14 +9,8 @@ import cats.derived.*
 import lucuma.core.util.Enumerated
 
 enum NodAndShuffleStage(val symbol: Symbol) derives Eq:
-  // The OT lets beams up to G but in practice it is always A/B
   case StageA extends NodAndShuffleStage(Symbol("A"))
   case StageB extends NodAndShuffleStage(Symbol("B"))
-  case StageC extends NodAndShuffleStage(Symbol("C"))
-  case StageD extends NodAndShuffleStage(Symbol("D"))
-  case StageE extends NodAndShuffleStage(Symbol("E"))
-  case StageF extends NodAndShuffleStage(Symbol("F"))
-  case StageG extends NodAndShuffleStage(Symbol("G"))
 
 object NodAndShuffleStage:
   // The sequence of nod and shuffle is always BAAB,
