@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
@@ -25,7 +26,7 @@ import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
 import reactST.{ tanstackTableCore => raw }
-
+import reactST.tanstackReactTable.tanstackReactTableStrings.columnVisibility
 case class StepsTable(
   clientStatus: ClientStatus,
   execution:    Option[Execution]
@@ -45,6 +46,22 @@ object StepsTable:
   private def renderStringCell(value: Option[String]): VdomNode =
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
 
+  private val ControlColumnId: ColumnId       = ColumnId("control")
+  private val IndexColumnId: ColumnId         = ColumnId("index")
+  private val StateColumnId: ColumnId         = ColumnId("state")
+  private val OffsetsColumnId: ColumnId       = ColumnId("offsets")
+  private val ObsModeColumnId: ColumnId       = ColumnId("obsMode")
+  private val ExposureColumnId: ColumnId      = ColumnId("exposure")
+  private val DisperserColumnId: ColumnId     = ColumnId("disperser")
+  private val FilterColumnId: ColumnId        = ColumnId("filter")
+  private val FPUColumnId: ColumnId           = ColumnId("fpu")
+  private val CameraColumnId: ColumnId        = ColumnId("camera")
+  private val DeckerColumnId: ColumnId        = ColumnId("decker")
+  private val ReadModeColumnId: ColumnId      = ColumnId("readMode")
+  private val ImagingMirrorColumnId: ColumnId = ColumnId("imagingMirror")
+  private val TypeColumnId: ColumnId          = ColumnId("type")
+  private val SettingsColumnId: ColumnId      = ColumnId("settings")
+
   private val component =
     ScalaFnComponent
       .withHooks[Props]
@@ -55,19 +72,19 @@ object StepsTable:
         (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
             ColDef(
-              "control",
-              size = 40,
+              ControlColumnId,
+              size = 40.toPx,
               enableResizing = false
             ),
             ColDef(
-              "index",
+              IndexColumnId,
               header = "Step",
               cell = _.row.index.toInt + 1,
-              size = 60,
+              size = 60.toPx,
               enableResizing = false
             ),
             ColDef(
-              "state",
+              StateColumnId,
               header = "Execution Progress",
               cell = cell =>
                 execution.map(e =>
@@ -83,42 +100,43 @@ object StepsTable:
                     isPreview = e.isPreview
                   )
                 ),
-              size = 350 // TODO this is min-width, investigate how to set it
+              size = 350.toPx,
+              minSize = 350.toPx
             ),
             ColDef(
-              "offsets",
+              OffsetsColumnId,
               header = "Offsets",
               cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original),
-              size = 90,
+              size = 90.toPx,
               enableResizing = false
             ),
             ColDef(
-              "obsMode",
+              ObsModeColumnId,
               header = "Observing Mode",
-              size = 130
+              size = 130.toPx
             ),
             ColDef(
-              "exposure",
+              ExposureColumnId,
               header = "Exposure",
               cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument)),
-              size = 84
+              size = 84.toPx
             ),
             ColDef(
-              "disperser",
+              DisperserColumnId,
               header = "Disperser",
               cell = cell =>
                 execution.map(e => renderStringCell(cell.row.original.disperser(e.instrument))),
-              size = 100
+              size = 100.toPx
             ),
             ColDef(
-              "filter",
+              FilterColumnId,
               header = "Filter",
               cell = cell =>
                 execution.map(e => renderStringCell(cell.row.original.filter(e.instrument))),
-              size = 100
+              size = 100.toPx
             ),
             ColDef(
-              "fpu",
+              FPUColumnId,
               header = "FPU",
               cell = cell =>
                 val step = cell.row.original
@@ -130,36 +148,36 @@ object StepsTable:
                   )
                 )
               ,
-              size = 47
+              size = 47.toPx
             ),
             ColDef(
-              "camera",
+              CameraColumnId,
               header = "Camera",
-              size = 10
+              size = 10.toPx
             ),
             ColDef(
-              "decker",
+              DeckerColumnId,
               header = "Decker",
-              size = 10
+              size = 10.toPx
             ),
             ColDef(
-              "readMode",
+              ReadModeColumnId,
               header = "ReadMode",
-              size = 180
+              size = 180.toPx
             ),
             ColDef(
-              "imagingMirror",
+              ImagingMirrorColumnId,
               header = "ImagingMirror",
-              size = 10
+              size = 10.toPx
             ),
             ColDef(
-              "type",
+              TypeColumnId,
               header = "Type",
-              size = 75
+              size = 75.toPx
             ),
             ColDef(
-              "settings",
-              size = 34,
+              SettingsColumnId,
+              size = 34.toPx,
               enableResizing = false
             )
           )
@@ -171,17 +189,15 @@ object StepsTable:
           Reusable.never(props.stepList),
           enableColumnResizing = true,
           columnResizeMode = raw.mod.ColumnResizeMode.onChange, // Maybe we should use onEnd here?
-          initialState = raw.mod
-            .InitialTableState()
-            .setColumnVisibility(
-              StringDictionary(
-                "obsMode"       -> false,
-                "camera"        -> false,
-                "decker"        -> false,
-                "readMode"      -> false,
-                "imagingMirror" -> false
-              )
+          initialState = TableState(
+            columnVisibility = ColumnVisibility(
+              ObsModeColumnId       -> Visibility.Hidden,
+              CameraColumnId        -> Visibility.Hidden,
+              DeckerColumnId        -> Visibility.Hidden,
+              ReadModeColumnId      -> Visibility.Hidden,
+              ImagingMirrorColumnId -> Visibility.Hidden
             )
+          )
         )
       )
       .render((props, _, _, table) =>
@@ -200,7 +216,8 @@ object StepsTable:
 
         PrimeAutoHeightVirtualizedTable(
           table,
-          estimateRowHeightPx = _ => 40, // TODO Is it necessary to correct height of Running row?
+          // TODO Is it necessary to explicitly specify increased height of Running row?
+          estimateRowHeight = _ => 40.toPx,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row => rowClass(row.index.toInt, row.original),
           overscan = 5

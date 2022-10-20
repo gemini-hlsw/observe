@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.syntax.display.*
+import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.ui.table.*
 import observe.model.RunningStep
@@ -119,60 +120,70 @@ object SessionQueue:
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
 
+  private val IconColumnId: ColumnId       = ColumnId("icon")
+  private val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
+  private val ClassColumnId: ColumnId      = ColumnId("class")
+  private val ObsIdColumnId: ColumnId      = ColumnId("obsId")
+  private val StateColumnId: ColumnId      = ColumnId("state")
+  private val InstrumentColumnId: ColumnId = ColumnId("instrument")
+  private val TargetColumnId: ColumnId     = ColumnId("target")
+  private val ObsNameColumnId: ColumnId    = ColumnId("obsName")
+  private val ObserverColumnId: ColumnId   = ColumnId("observer")
+
   private val columns = List(
     ColDef(
-      "icon",
+      IconColumnId,
       cell = cell => renderCendered(statusIconRenderer(cell.row.original)), // Tooltip: Control
-      size = 25,
+      size = 25.toPx,
       enableResizing = false
     ),
     ColDef(
-      "addQueue",
+      AddQueueColumnId,
       header = _ => renderCendered(Icons.CalendarDays),                     // Tooltip: Add all to queue
       cell = cell => renderCendered(addToQueueRenderer(cell.row.original)),
-      size = 30,
+      size = 30.toPx,
       enableResizing = false
     ),
     ColDef(
-      "class",
+      ClassColumnId,
       header = _ => renderCendered(Icons.Clock),                            // Tooltip: "Obs. class"
       cell = cell => renderCendered(classIconRenderer(cell.row.original)),
-      size = 26,
+      size = 26.toPx,
       enableResizing = false
     ),
     ColDef(
-      "obsId",
+      ObsIdColumnId,
       _.obsId,
       header = "Obs. ID",
       cell = linked(_.value.shortName),
-      size = 100
+      size = 100.toPx
     ),
     ColDef(
-      "state",
+      StateColumnId,
       row => (row.status, row.runningStep),
       header = "State",
       cell = linked(cell => statusText(cell.value._1, cell.value._2))
     ),
     ColDef(
-      "instrument",
+      InstrumentColumnId,
       _.instrument,
       header = "Instrument",
       cell = linked(_.value.shortName)
     ),
     ColDef(
-      "target",
+      TargetColumnId,
       _.targetName,
       header = "Target",
       cell = linked(_.value.getOrElse(UnknownTargetName))
     ),
     ColDef(
-      "obsName",
+      ObsNameColumnId,
       _.name,
       header = "Obs. Name",
       cell = linked(_.value.toString)
     ),
     ColDef(
-      "observer",
+      ObserverColumnId,
       _.observer.foldMap(_.value),
       header = "Observer",
       cell = linked(_.value.toString)
@@ -199,7 +210,7 @@ object SessionQueue:
         <.div(ObserveStyles.SessionQueue)(
           PrimeAutoHeightVirtualizedTable(
             table,
-            estimateRowHeightPx = _ => 30,
+            estimateRowHeight = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable,
             rowMod = row => rowClass(row.index.toInt, row.original),
             overscan = 5
