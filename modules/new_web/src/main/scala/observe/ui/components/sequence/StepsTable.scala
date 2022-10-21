@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.SizePx
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.ui.reusability.given
@@ -26,7 +27,9 @@ import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
 import reactST.{ tanstackTableCore => raw }
-import reactST.tanstackReactTable.tanstackReactTableStrings.columnVisibility
+import observe.ui.components.ColumnWidth
+import scalajs.js
+
 case class StepsTable(
   clientStatus: ClientStatus,
   execution:    Option[Execution]
@@ -62,6 +65,32 @@ object StepsTable:
   private val TypeColumnId: ColumnId          = ColumnId("type")
   private val SettingsColumnId: ColumnId      = ColumnId("settings")
 
+  import ColumnWidth.*
+  private val ColumnSizes: Map[ColumnId, ColumnWidth] = Map(
+    ControlColumnId       -> Fixed(40.toPx),
+    IndexColumnId         -> Fixed(60.toPx),
+    StateColumnId         -> Resizeable(350.toPx, min = 350.toPx.some),
+    OffsetsColumnId       -> Fixed(90.toPx),
+    ObsModeColumnId       -> Resizeable(130.toPx),
+    ExposureColumnId      -> Resizeable(84.toPx),
+    DisperserColumnId     -> Resizeable(100.toPx),
+    FilterColumnId        -> Resizeable(100.toPx),
+    FPUColumnId           -> Resizeable(47.toPx),
+    CameraColumnId        -> Resizeable(10.toPx),
+    DeckerColumnId        -> Resizeable(10.toPx),
+    ReadModeColumnId      -> Resizeable(180.toPx),
+    ImagingMirrorColumnId -> Resizeable(10.toPx),
+    TypeColumnId          -> Resizeable(75.toPx),
+    SettingsColumnId      -> Fixed(34.toPx)
+  )
+
+  private def column[V](
+    id:     ColumnId,
+    header: js.UndefOr[String] = js.undefined,
+    cell:   js.UndefOr[raw.mod.CellContext[ExecutionStep, V] => VdomNode] = js.undefined
+  ): ColumnDef[ExecutionStep, V] =
+    ColDef(id, header = header, cell = cell).withWidth(ColumnSizes(id))
+
   private val component =
     ScalaFnComponent
       .withHooks[Props]
@@ -71,19 +100,9 @@ object StepsTable:
       )((_, _) => // cols
         (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
-            ColDef(
-              ControlColumnId,
-              size = 40.toPx,
-              enableResizing = false
-            ),
-            ColDef(
-              IndexColumnId,
-              header = "Step",
-              cell = _.row.index.toInt + 1,
-              size = 60.toPx,
-              enableResizing = false
-            ),
-            ColDef(
+            column(ControlColumnId),
+            column(IndexColumnId, header = "Step", cell = _.row.index.toInt + 1),
+            column(
               StateColumnId,
               header = "Execution Progress",
               cell = cell =>
@@ -99,43 +118,32 @@ object StepsTable:
                     selectedStep = selectedStep,
                     isPreview = e.isPreview
                   )
-                ),
-              size = 350.toPx,
-              minSize = 350.toPx
+                )
             ),
-            ColDef(
+            column(
               OffsetsColumnId,
               header = "Offsets",
-              cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original),
-              size = 90.toPx,
-              enableResizing = false
+              cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original)
             ),
-            ColDef(
-              ObsModeColumnId,
-              header = "Observing Mode",
-              size = 130.toPx
-            ),
-            ColDef(
+            column(ObsModeColumnId, header = "Observing Mode"),
+            column(
               ExposureColumnId,
               header = "Exposure",
-              cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument)),
-              size = 84.toPx
+              cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument))
             ),
-            ColDef(
+            column(
               DisperserColumnId,
               header = "Disperser",
               cell = cell =>
                 execution.map(e => renderStringCell(cell.row.original.disperser(e.instrument))),
-              size = 100.toPx
             ),
-            ColDef(
+            column(
               FilterColumnId,
               header = "Filter",
               cell = cell =>
                 execution.map(e => renderStringCell(cell.row.original.filter(e.instrument))),
-              size = 100.toPx
             ),
-            ColDef(
+            column(
               FPUColumnId,
               header = "FPU",
               cell = cell =>
@@ -147,39 +155,13 @@ object StepsTable:
                       .orElse(step.fpuOrMask(e.instrument).map(_.toLowerCase.capitalize))
                   )
                 )
-              ,
-              size = 47.toPx
             ),
-            ColDef(
-              CameraColumnId,
-              header = "Camera",
-              size = 10.toPx
-            ),
-            ColDef(
-              DeckerColumnId,
-              header = "Decker",
-              size = 10.toPx
-            ),
-            ColDef(
-              ReadModeColumnId,
-              header = "ReadMode",
-              size = 180.toPx
-            ),
-            ColDef(
-              ImagingMirrorColumnId,
-              header = "ImagingMirror",
-              size = 10.toPx
-            ),
-            ColDef(
-              TypeColumnId,
-              header = "Type",
-              size = 75.toPx
-            ),
-            ColDef(
-              SettingsColumnId,
-              size = 34.toPx,
-              enableResizing = false
-            )
+            column(CameraColumnId, header = "Camera"),
+            column(DeckerColumnId, header = "Decker"),
+            column(ReadModeColumnId, header = "ReadMode"),
+            column(ImagingMirrorColumnId, header = "ImagingMirror"),
+            column(TypeColumnId, header = "Type"),
+            column(SettingsColumnId)
           )
       )
       // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
