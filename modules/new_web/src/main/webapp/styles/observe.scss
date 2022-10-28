@@ -85,19 +85,21 @@ html {
   }
 }
 
-.ObserveStyles-footer {
-  border-radius: unset !important;
-  min-height: 3em;
-  max-height: 3em;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+.p-toolbar {
+  &.ObserveStyles-footer {
+    border-radius: unset;
+    min-height: 3em;
+    max-height: 3em;
+    padding-top: 0;
+    padding-bottom: 0;
 
-  // @at-root {
-  //   .light-theme #{&} {
-  //     background: var(--text-color) !important;
-  //     color: var(--surface-ground) !important;
-  //   }
-  // }
+    @at-root {
+      .light-theme #{&} {
+        background: var(--text-color);
+        color: var(--surface-ground);
+      }
+    }
+  }
 }
 
 .ObserveStyles-centered {
@@ -119,13 +121,20 @@ html {
   height: 100%;
 }
 
-.ObserveStyles-obsClassSelect {
-  .p-button {
-    font-size: small !important;
+.p-selectbutton {
+  &.ObserveStyles-obsClassSelect {
+    .p-button {
+      font-size: small;
 
-    &.p-highlight {
-      background: var(--green-800) !important;
-      border-color: var(--green-800) !important;
+      &.p-highlight {
+        background: var(--green-800);
+        border-color: var(--green-800);
+
+        &:hover {
+          background: var(--green-800);
+          border-color: var(--green-800);
+        }
+      }
     }
   }
 }
@@ -136,11 +145,13 @@ html {
 //   box-shadow: @positiveBoxShadow;
 // }
 
-.ObserveStyles-rowWarning {
-  background-color: var(--active-row-background) !important;
-  // color: @warningTextColor;
-  // box-shadow: @warningBoxShadow;
-}
+// .pl-react-table.p-datatable .p-datatable-tbody>tr {
+//   &.ObserveStyles-rowWarning {
+//     background-color: var(--active-row-background);
+//     // color: @warningTextColor;
+//     // box-shadow: @warningBoxShadow;
+//   }
+// }
 
 // .ObserveStyles-rowActive {
 //   background-color: @background;
@@ -189,7 +200,7 @@ html {
 
     .p-card-content {
       height: 100%;
-      padding: 0 !important;
+      padding: 0;
     }
   }
 }
@@ -308,67 +319,66 @@ html {
   @include borderBottom();
 }
 
-.ObserveStyles-observeTable {
-  width: 100%;
+.pl-react-table.p-datatable {
+  &.ObserveStyles-observeTable {
+    width: 100%;
 
-  thead {
-    z-index: 1;
-  }
+    thead {
+      z-index: 1;
 
-  th {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    padding-left: 0.75em !important;
-    padding-right: 0.75em !important;
-  }
+      tr>th {
+        padding-left: 0.75em;
+        padding-right: 0.75em;
+      }
+    }
 
-  td {
-    @include borderLeft;
-    @include borderBottom;
-    min-width: 20px;
-    font-size: small;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    padding-left: 0.75em !important;
-    padding-right: 0.75em !important;
+    tr>td {
+      @include borderLeft;
+      @include borderBottom;
+      min-width: 20px;
+      font-size: small;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      padding-left: 0.75em;
+      padding-right: 0.75em;
 
-    &:first-of-type {
-      border-left: none;
+      &:first-of-type {
+        border-left: none;
+      }
     }
   }
-}
 
-.ObserveStyles-stepTable {
-  td {
-    // max-height: 40px !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+  &.ObserveStyles-stepTable {
+    tr>td {
+      // max-height: 40px !important;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    // This will go away once we have more dynamic row heights with breakpoints, etc.
+    tr.ObserveStyles-stepRowRunning {
+      height: 60px;
+      background-color: var(--active-row-background);
+    }
+
+    tr.ObserveStyles-stepRowWarning {
+      background-color: var(--active-row-background);
+    }
+
+    tr.ObserveStyles-stepRowError {
+      background-color: var(--negative-row-background);
+      color: var(--negative-row-color);
+      box-shadow: var(--negative-row-boxshadow);
+    }
+
+
+    tr.ObserveStyles-stepRowDone {
+      pointer-events: none;
+      color: var(--disabled-row-color);
+      background: var(--disabled-row-background);
+    }
   }
-}
-
-// This will go away once we have more dynamic row heights with breakpoints, etc.
-.ObserveStyles-stepRowRunning {
-  height: 60px;
-  background-color: var(--active-row-background) !important;
-}
-
-.ObserveStyles-stepRowWarning {
-  background-color: var(--active-row-background) !important;
-}
-
-.ObserveStyles-stepRowError {
-  background-color: var(--negative-row-background) !important;
-  color: var(--negative-row-color) !important;
-  box-shadow: var(--negative-row-boxshadow) !important;
-}
-
-
-.ObserveStyles-stepRowDone {
-  pointer-events: none;
-  color: var(--disabled-row-color) !important;
-  background: var(--disabled-row-background) !important;
 }
 
 .ObserveStyles-observationProgressBarAndLabel {
@@ -378,9 +388,11 @@ html {
   margin-right: 0.5em;
 }
 
-.ObserveStyles-observationProgressBar {
-  margin: 0 !important;
-  height: 1em !important;
+.p-progressbar {
+  &.ObserveStyles-observationProgressBar {
+    margin: 0;
+    height: 1em;
+  }
 }
 
 .ObserveStyles-observationProgressLabel {
@@ -389,49 +401,55 @@ html {
   font-weight: bold;
 }
 
-.ObserveStyles-controlButtonStrip {
-  width: unset !important; // Unset p-inputgroup's width: 100%
+.p-inputgroup {
+  &.ObserveStyles-controlButtonStrip {
+    width: unset; // Unset p-inputgroup's width: 100%
+  }
 }
 
 @mixin controlButton {
-  color: var(--primary-50) !important;
-  border: 0 !important;
-  padding: 9px 19px !important;
+  color: var(--primary-50);
+  border: 0;
+  padding: 10px;
 }
 
-.ObserveStyles-pauseButton {
-  @include controlButton();
-  background-color: var(--teal-500) !important;
+.p-button {
+  &.ObserveStyles-pauseButton {
+    @include controlButton();
+    background-color: var(--teal-500);
 
-  &:hover {
-    background-color: var(--teal-600) !important;
+    &:enabled:hover {
+      background-color: var(--teal-600);
+    }
   }
-}
 
-.ObserveStyles-stopButton {
-  @include controlButton();
-  background-color: var(--orange-500) !important;
+  &.ObserveStyles-stopButton {
+    @include controlButton();
+    background-color: var(--orange-500);
 
-  &:hover {
-    background-color: var(--orange-600) !important;
+    &:enabled:hover {
+      background-color: var(--orange-600);
+    }
   }
-}
 
-.ObserveStyles-playButton {
-  @include controlButton();
-  background-color: var(--blue-500) !important;
+  &.ObserveStyles-playButton {
+    @include controlButton();
+    background-color: var(--blue-500);
 
-  &:hover {
-    background-color: var(--blue-600) !important;
+    &:enabled:hover {
+      background-color: var(--blue-600);
+    }
   }
-}
 
-.ObserveStyles-abortButton {
-  @include controlButton();
-  background-color: var(--red-500) !important;
+  &.ObserveStyles-abortButton {
+    @include controlButton();
+    padding-left: 12.4px; // We don't use a large icon here, so we need more padding.
+    padding-right: 12.4px; // We don't use a large icon here, so we need more padding.
+    background-color: var(--red-500);
 
-  &:hover {
-    background-color: var(--red-600) !important;
+    &:enabled:hover {
+      background-color: var(--red-600);
+    }
   }
 }
 

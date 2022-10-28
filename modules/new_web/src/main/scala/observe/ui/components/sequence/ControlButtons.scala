@@ -72,7 +72,7 @@ object ControlButtons:
           case PauseObservation =>
             Button(
               clazz = ObserveStyles.PauseButton,
-              icon = Icons.Pause.copy(size = IconSize.LG),
+              icon = Icons.Pause.withSize(IconSize.LG).withFixedWidth(),
               tooltip = "Pause the current exposure",
               tooltipOptions = tooltipOptions
               // onClick = requestObsPause(p.obsId, p.stepId)
@@ -80,7 +80,7 @@ object ControlButtons:
           case StopObservation  =>
             Button(
               clazz = ObserveStyles.StopButton,
-              icon = Icons.Stop.copy(size = IconSize.LG),
+              icon = Icons.Stop.withSize(IconSize.LG).withFixedWidth(),
               tooltip = "Stop the current exposure early",
               tooltipOptions = tooltipOptions
               // onClick = requestStop(p.obsId, p.stepId)
@@ -88,7 +88,7 @@ object ControlButtons:
           case AbortObservation =>
             Button(
               clazz = ObserveStyles.AbortButton,
-              icon = Icons.Trash,
+              icon = Icons.Trash.withFixedWidth(),
               tooltip = "Abort the current exposure",
               tooltipOptions = tooltipOptions
               // onClick = requestAbort(p.obsId, p.stepId),
