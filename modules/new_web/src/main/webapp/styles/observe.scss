@@ -1,5 +1,5 @@
 html {
-  font-size: 14px !important;
+  font-size: 14px;
   overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
@@ -12,32 +12,38 @@ html {
   flex-direction: column;
 }
 
-.p-divider.ObserveStyles-divider {
-  margin: 0 !important;
-  font-weight: bold;
-  font-size: 1.1rem !important;
+.p-divider.p-divider-horizontal {
+  &.ObserveStyles-divider {
+    margin: 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
 }
 
-
-.p-tabview-panels {
+.p-tabview.ObserveStyles-sequenceTabView .p-tabview-panels {
   height: 100%;
-  padding: 0 !important;
+  padding: 0;
 }
 
-.ObserveStyles-shrinkable {
-  flex-grow: 2;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  overflow: auto !important;
+.p-splitter {
+  &.ObserveStyles-shrinkable {
+    flex-grow: 2;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+  }
 }
 
-.ObserveStyles-sequenceTabPanel {
+.p-tabview .p-tabview-panels .ObserveStyles-sequenceTabPanel {
   height: 100%; // Required for virtualized table within.
+}
+
+.p-tabview .p-tabview-nav li.ObserveStyles-sequenceTabPanel {
   min-width: 20%;
 
   & .p-tabview-nav-link {
     justify-content: center;
-    padding: 0.5em 0.5em !important;
+    padding: 0.5em 0.5em;
   }
 
   & .p-tabview-title {
@@ -55,9 +61,10 @@ html {
   padding-bottom: 0.5em;
 }
 
-.ObserveStyles-labelPointer {
-  margin-top: 0.2em;
-  padding: 5px 10px !important;
+.p-tag {
+  &.ObserveStyles-labelPointer {
+    padding: 5px 10px;
+  }
 }
 
 .ObserveStyles-idleTag {
@@ -347,6 +354,13 @@ html {
 .ObserveStyles-stepRowWarning {
   background-color: var(--active-row-background) !important;
 }
+
+.ObserveStyles-stepRowError {
+  background-color: var(--negative-row-background) !important;
+  color: var(--negative-row-color) !important;
+  box-shadow: var(--negative-row-boxshadow) !important;
+}
+
 
 .ObserveStyles-stepRowDone {
   pointer-events: none;

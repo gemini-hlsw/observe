@@ -54,6 +54,7 @@ object ObserveStyles {
 
   val StepRowRunning: Css = Css("ObserveStyles-stepRowRunning")
   val StepRowWarning: Css = Css("ObserveStyles-stepRowWarning")
+  val StepRowError: Css   = Css("ObserveStyles-stepRowError")
   val StepRowDone: Css    = Css("ObserveStyles-stepRowDone")
 
   val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")

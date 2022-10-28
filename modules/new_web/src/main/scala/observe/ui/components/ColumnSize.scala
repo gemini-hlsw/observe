@@ -8,16 +8,16 @@ import lucuma.react.table.ColumnDef
 
 import scalajs.js.JSConverters.*
 
-enum ColumnWidth:
-  case Fixed(width: SizePx) extends ColumnWidth
+enum ColumnSize:
+  case FixedSize(size: SizePx) extends ColumnSize
   case Resizeable(initial: SizePx, min: Option[SizePx] = None, max: Option[SizePx] = None)
-      extends ColumnWidth
+      extends ColumnSize
 
-object ColumnWidth:
+object ColumnSize:
   extension [T, V](col: ColumnDef.Single[T, V])
-    def withWidth(width: ColumnWidth): ColumnDef.Single[T, V] = width match
-      case Fixed(width)                  =>
-        col.copy(size = width, enableResizing = false)
+    def withSize(size: ColumnSize): ColumnDef.Single[T, V] = size match
+      case FixedSize(size)               =>
+        col.copy(size = size, enableResizing = false)
       case Resizeable(initial, min, max) =>
         col.copy(
           size = initial,
@@ -27,9 +27,9 @@ object ColumnWidth:
         )
 
   extension [T, V](col: ColumnDef.Group[T])
-    def withWidth(width: ColumnWidth): ColumnDef.Group[T] = width match
-      case Fixed(width)                  =>
-        col.copy(size = width, enableResizing = false)
+    def withSize(size: ColumnSize): ColumnDef.Group[T] = size match
+      case FixedSize(size)               =>
+        col.copy(size = size, enableResizing = false)
       case Resizeable(initial, min, max) =>
         col.copy(
           size = initial,

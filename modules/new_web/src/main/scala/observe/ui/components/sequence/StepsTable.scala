@@ -27,7 +27,7 @@ import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
 import reactST.{ tanstackTableCore => raw }
-import observe.ui.components.ColumnWidth
+import observe.ui.components.ColumnSize
 import scalajs.js
 
 case class StepsTable(
@@ -65,15 +65,15 @@ object StepsTable:
   private val TypeColumnId: ColumnId          = ColumnId("type")
   private val SettingsColumnId: ColumnId      = ColumnId("settings")
 
-  import ColumnWidth.*
-  private val ColumnSizes: Map[ColumnId, ColumnWidth] = Map(
-    ControlColumnId       -> Fixed(40.toPx),
-    IndexColumnId         -> Fixed(60.toPx),
+  import ColumnSize.*
+  private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
+    ControlColumnId       -> FixedSize(40.toPx),
+    IndexColumnId         -> FixedSize(60.toPx),
     StateColumnId         -> Resizeable(350.toPx, min = 350.toPx.some),
-    OffsetsColumnId       -> Fixed(90.toPx),
+    OffsetsColumnId       -> FixedSize(90.toPx),
     ObsModeColumnId       -> Resizeable(130.toPx),
     ExposureColumnId      -> Resizeable(84.toPx),
-    DisperserColumnId     -> Resizeable(100.toPx),
+    DisperserColumnId     -> Resizeable(120.toPx),
     FilterColumnId        -> Resizeable(100.toPx),
     FPUColumnId           -> Resizeable(47.toPx),
     CameraColumnId        -> Resizeable(10.toPx),
@@ -81,7 +81,7 @@ object StepsTable:
     ReadModeColumnId      -> Resizeable(180.toPx),
     ImagingMirrorColumnId -> Resizeable(10.toPx),
     TypeColumnId          -> Resizeable(75.toPx),
-    SettingsColumnId      -> Fixed(34.toPx)
+    SettingsColumnId      -> FixedSize(34.toPx)
   )
 
   private def column[V](
@@ -89,7 +89,7 @@ object StepsTable:
     header: js.UndefOr[String] = js.undefined,
     cell:   js.UndefOr[raw.mod.CellContext[ExecutionStep, V] => VdomNode] = js.undefined
   ): ColumnDef[ExecutionStep, V] =
-    ColDef(id, header = header, cell = cell).withWidth(ColumnSizes(id))
+    ColDef(id, header = header, cell = cell).withSize(ColumnSizes(id))
 
   private val component =
     ScalaFnComponent
@@ -101,11 +101,11 @@ object StepsTable:
         (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
             column(ControlColumnId),
-            column(IndexColumnId, header = "Step", cell = _.row.index.toInt + 1),
+            column(IndexColumnId, "Step", _.row.index.toInt + 1),
             column(
               StateColumnId,
-              header = "Execution Progress",
-              cell = cell =>
+              "Execution Progress",
+              cell =>
                 execution.map(e =>
                   StepProgressCell(
                     clientStatus = clientStatus,
@@ -122,31 +122,30 @@ object StepsTable:
             ),
             column(
               OffsetsColumnId,
-              header = "Offsets",
-              cell = cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original)
+              "Offsets",
+              cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original)
             ),
-            column(ObsModeColumnId, header = "Observing Mode"),
+            column(ObsModeColumnId, "Observing Mode"),
             column(
               ExposureColumnId,
-              header = "Exposure",
-              cell = cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument))
+              "Exposure",
+              cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument))
             ),
             column(
               DisperserColumnId,
-              header = "Disperser",
-              cell = cell =>
+              "Disperser",
+              cell =>
                 execution.map(e => renderStringCell(cell.row.original.disperser(e.instrument))),
             ),
             column(
               FilterColumnId,
-              header = "Filter",
-              cell = cell =>
-                execution.map(e => renderStringCell(cell.row.original.filter(e.instrument))),
+              "Filter",
+              cell => execution.map(e => renderStringCell(cell.row.original.filter(e.instrument)))
             ),
             column(
               FPUColumnId,
-              header = "FPU",
-              cell = cell =>
+              "FPU",
+              cell =>
                 val step = cell.row.original
                 execution.map(e =>
                   renderStringCell(
@@ -156,11 +155,11 @@ object StepsTable:
                   )
                 )
             ),
-            column(CameraColumnId, header = "Camera"),
-            column(DeckerColumnId, header = "Decker"),
-            column(ReadModeColumnId, header = "ReadMode"),
-            column(ImagingMirrorColumnId, header = "ImagingMirror"),
-            column(TypeColumnId, header = "Type"),
+            column(CameraColumnId, "Camera"),
+            column(DeckerColumnId, "Decker"),
+            column(ReadModeColumnId, "ReadMode"),
+            column(ImagingMirrorColumnId, "ImagingMirror"),
+            column(TypeColumnId, "Type"),
             column(SettingsColumnId)
           )
       )
@@ -186,7 +185,7 @@ object StepsTable:
 
         def rowClass(index: Int, step: ExecutionStep): Css =
           step match
-            // case s if s.hasError                       => ObserveStyles.RowError
+            case s if s.hasError                       => ObserveStyles.StepRowError
             case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
             case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
             case s if s.status === StepState.Completed => ObserveStyles.StepRowDone

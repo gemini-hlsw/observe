@@ -7,6 +7,9 @@
   --active-row-background: var(--orange-50);
   --disabled-row-background: var(--bluegray-50);
   --disabled-row-color: var(--bluegray-400);
+  --negative-row-background: var(--red-50); // fixme
+  --negative-row-color: var(--red-400); // fixme
+  --negative-row-boxshadow: var(--red-800); // fixme
 }
 
 .dark-theme {
@@ -15,6 +18,9 @@
   --active-row-background: var(--orange-900);
   --disabled-row-background: var(--bluegray-800);
   --disabled-row-color: var(--bluegray-300);
+  --negative-row-background: var(--red-50); // fixme
+  --negative-row-color: var(--red-400); // fixme
+  --negative-row-boxshadow: var(--red-800); // fixme
 }
 
 body,

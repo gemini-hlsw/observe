@@ -270,7 +270,7 @@ lazy val new_web = project
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
-    scalaVersion    := "3.2.1-RC2",
+    scalaVersion    := "3.2.1-RC4",
     scalacOptions += "-language:implicitConversions",
     Test / test     := {},
     coverageEnabled := false,
