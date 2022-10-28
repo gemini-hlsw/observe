@@ -33,7 +33,7 @@ object OffsetsDisplayCell {
   private type Props = OffsetsDisplayCell
 
   private val GuidingIcon   = Icons.Crosshairs.copy(color = "green", size = IconSize.XL)
-  private val NoGuidingIcon = Icons.Ban.size(IconSize.XL)
+  private val NoGuidingIcon = Icons.Ban.withSize(IconSize.XL)
 
   private def standardOffsetsRender(
     step:           StandardStep,

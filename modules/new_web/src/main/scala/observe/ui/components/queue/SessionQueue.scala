@@ -203,7 +203,7 @@ object SessionQueue:
           cols,
           rows,
           enableColumnResizing = true,
-          columnResizeMode = raw.mod.ColumnResizeMode.onChange
+          columnResizeMode = ColumnResizeMode.OnChange
         )
       )
       .render((props, filter, _, _, table) =>

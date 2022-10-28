@@ -11,6 +11,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.syntax.display.*
+import lucuma.ui.primereact.LucumaStyles
 import observe.model.ClientStatus
 import observe.model.UserDetails
 import observe.model.enums.SequenceState
@@ -123,7 +124,7 @@ object Home {
             )
           ),
           Toolbar(
-            clazz = ObserveStyles.Footer,
+            clazz = ObserveStyles.Footer |+| LucumaStyles.Inverted,
             left = "Observe - GS",
             right = React.Fragment(ThemeSelector()).rawElement
           )

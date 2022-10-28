@@ -2,7 +2,7 @@
 // .pl- prefix = "Prime Lucuma": Our additions to prime-react
 
 .light-theme {
-  @import "primereact/resources/themes/nova/theme";
+  @import "/lucuma-css/light-theme";
 
   --active-row-background: var(--orange-50);
   --disabled-row-background: var(--bluegray-50);
@@ -13,7 +13,7 @@
 }
 
 .dark-theme {
-  @import "primereact/resources/themes/luna-blue/theme";
+  @import "/lucuma-css/dark-theme";
 
   --active-row-background: var(--orange-900);
   --disabled-row-background: var(--bluegray-800);
@@ -22,6 +22,9 @@
   --negative-row-color: var(--red-400); // fixme
   --negative-row-boxshadow: var(--red-800); // fixme
 }
+
+@import "/lucuma-css/lucuma-ui";
+@import "/lucuma-css/lucuma-ui-table.scss";
 
 body,
 body .p-component {
@@ -88,11 +91,6 @@ body .p-component {
   border-right-color: var(--surface-200) !important;
   border-top-color: var(--surface-200) !important;
   border-left-color: var(--surface-200) !important;
-}
-
-.pl-inverted {
-  background: var(--text-color) !important;
-  color: var(--surface-ground) !important;
 }
 
 // Experimental

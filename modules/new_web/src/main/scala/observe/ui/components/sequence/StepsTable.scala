@@ -27,7 +27,7 @@ import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
 import reactST.{ tanstackTableCore => raw }
-import observe.ui.components.ColumnSize
+import lucuma.ui.table.ColumnSize.*
 import scalajs.js
 
 case class StepsTable(
@@ -65,22 +65,21 @@ object StepsTable:
   private val TypeColumnId: ColumnId          = ColumnId("type")
   private val SettingsColumnId: ColumnId      = ColumnId("settings")
 
-  import ColumnSize.*
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
     ControlColumnId       -> FixedSize(40.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
-    StateColumnId         -> Resizeable(350.toPx, min = 350.toPx.some),
+    StateColumnId         -> Resizable(350.toPx, min = 350.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
-    ObsModeColumnId       -> Resizeable(130.toPx),
-    ExposureColumnId      -> Resizeable(84.toPx),
-    DisperserColumnId     -> Resizeable(120.toPx),
-    FilterColumnId        -> Resizeable(100.toPx),
-    FPUColumnId           -> Resizeable(47.toPx),
-    CameraColumnId        -> Resizeable(10.toPx),
-    DeckerColumnId        -> Resizeable(10.toPx),
-    ReadModeColumnId      -> Resizeable(180.toPx),
-    ImagingMirrorColumnId -> Resizeable(10.toPx),
-    TypeColumnId          -> Resizeable(75.toPx),
+    ObsModeColumnId       -> Resizable(130.toPx),
+    ExposureColumnId      -> Resizable(84.toPx),
+    DisperserColumnId     -> Resizable(120.toPx),
+    FilterColumnId        -> Resizable(100.toPx),
+    FPUColumnId           -> Resizable(47.toPx),
+    CameraColumnId        -> Resizable(10.toPx),
+    DeckerColumnId        -> Resizable(10.toPx),
+    ReadModeColumnId      -> Resizable(180.toPx),
+    ImagingMirrorColumnId -> Resizable(10.toPx),
+    TypeColumnId          -> Resizable(75.toPx),
     SettingsColumnId      -> FixedSize(34.toPx)
   )
 
@@ -89,7 +88,7 @@ object StepsTable:
     header: js.UndefOr[String] = js.undefined,
     cell:   js.UndefOr[raw.mod.CellContext[ExecutionStep, V] => VdomNode] = js.undefined
   ): ColumnDef[ExecutionStep, V] =
-    ColDef(id, header = header, cell = cell).withSize(ColumnSizes(id))
+    ColDef(id, header = header, cell = cell).setColumnSize(ColumnSizes(id))
 
   private val component =
     ScalaFnComponent
@@ -169,7 +168,7 @@ object StepsTable:
           cols,
           Reusable.never(props.stepList),
           enableColumnResizing = true,
-          columnResizeMode = raw.mod.ColumnResizeMode.onChange, // Maybe we should use onEnd here?
+          columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
           initialState = TableState(
             columnVisibility = ColumnVisibility(
               ObsModeColumnId       -> Visibility.Hidden,
