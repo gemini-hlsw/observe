@@ -264,6 +264,31 @@ lazy val observe_web_server = project
   )
   .dependsOn(observe_model.js % "compile->compile;test->test")*/
 
+lazy val new_model = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/new_model"))
+  .enablePlugins(GitBranchPrompt)
+  .settings(
+    scalaVersion := "3.2.1-RC4",
+    libraryDependencies ++= Seq(
+      Cats.value,
+      Kittens.value,
+      // Mouse.value,
+      // BooPickle.value,
+      CatsTime.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore3.value ++ Circe.value
+  )
+  .jvmSettings(
+    commonSettings,
+    libraryDependencies += Http4sCore
+  )
+//  .jsSettings(lucumaScalaJsSettings)
+  .jsSettings(
+    // And add a custom one
+    libraryDependencies += JavaTimeJS.value,
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
+
 lazy val new_web = project
   .in(file("modules/new_web"))
   .settings(lucumaGlobalSettings: _*)
@@ -276,6 +301,7 @@ lazy val new_web = project
     coverageEnabled := false,
     libraryDependencies ++= Seq(
       Cats.value,
+      Kittens.value,
       CatsEffect.value,
       Crystal.value,
       Fs2,
@@ -286,6 +312,7 @@ lazy val new_web = project
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
+  .dependsOn(new_model.js)
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project

@@ -409,7 +409,7 @@ html {
   padding: 10px;
 }
 
-.p-button {
+.p-button.p-button-icon-only {
   &.ObserveStyles-pauseButton {
     @include controlButton();
     background-color: var(--teal-500);
@@ -439,8 +439,8 @@ html {
 
   &.ObserveStyles-abortButton {
     @include controlButton();
-    padding-left: 12.4px; // We don't use a large icon here, so we need more padding.
-    padding-right: 12.4px; // We don't use a large icon here, so we need more padding.
+    padding-left: 12.45px; // We don't use a large icon here, so we need more padding.
+    padding-right: 12.45px; // We don't use a large icon here, so we need more padding.
     background-color: var(--red-500);
 
     &:enabled:hover {

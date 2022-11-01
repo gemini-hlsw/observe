@@ -28,6 +28,7 @@ object Settings {
     // Scala libraries
     val catsEffectVersion   = "3.4.10"
     val catsVersion         = "2.9.0"
+    val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.7.0"
     val shapelessVersion    = "2.3.10"
@@ -124,6 +125,7 @@ object Settings {
     val ScalaMock   = "org.scalamock"     %% "scalamock"          % LibraryVersions.scalaMock  % "test"
     // Server side libraries
     val Cats        = Def.setting("org.typelevel" %%% "cats-core" % LibraryVersions.catsVersion)
+    val Kittens     = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
     val CatsEffect  =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
     val Fs2         = "co.fs2"            %% "fs2-core"           % LibraryVersions.fs2Version
