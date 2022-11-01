@@ -124,7 +124,7 @@ object Home {
             )
           ),
           Toolbar(
-            clazz = ObserveStyles.Footer, // |+| LucumaStyles.Inverted,
+            clazz = ObserveStyles.Footer,
             left = "Observe - GS",
             right = React.Fragment(ThemeSelector()).rawElement
           )

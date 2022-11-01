@@ -93,12 +93,8 @@ html {
     padding-top: 0;
     padding-bottom: 0;
 
-    @at-root {
-      .light-theme #{&} {
-        background: var(--text-color);
-        color: var(--surface-ground);
-      }
-    }
+    background: var(--gray-900);
+    color: var(--gray-50);
   }
 }
 
