@@ -16,10 +16,8 @@ import observe.ui.ObserveStyles
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
 import observe.ui.model.formatting.*
-import react.common._
+import react.common.*
 import react.fa.IconSize
-import react.semanticui.colors._
-import react.semanticui.sizes._
 
 /**
  * Component to display the offsets

@@ -23,7 +23,8 @@ private val stepConfig = ExecutionStepConfig(
     SystemName.Observe    ->
       Parameters(
         Map(
-          ParamName("observe:exposureTime") -> ParamValue("300")
+          ParamName("observe:exposureTime") -> ParamValue("300"),
+          ParamName("observe:observeType")  -> ParamValue("OBJECT")
         )
       ),
     SystemName.Instrument ->

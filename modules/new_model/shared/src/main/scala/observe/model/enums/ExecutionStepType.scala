@@ -3,9 +3,10 @@
 
 package observe.model.enums
 
-import cats._
+import cats.*
 import cats.derived.*
-import cats.syntax.all._
+import cats.syntax.all.*
+import lucuma.core.util.Display
 import lucuma.core.util.Enumerated
 
 enum ExecutionStepType(val label: String) derives Eq:
@@ -22,3 +23,5 @@ enum ExecutionStepType(val label: String) derives Eq:
 object ExecutionStepType:
   val fromLabel: Map[String, ExecutionStepType] =
     values.map(v => v.label -> v).toMap
+
+  given Display[ExecutionStepType] = Display.byShortName(_.label)

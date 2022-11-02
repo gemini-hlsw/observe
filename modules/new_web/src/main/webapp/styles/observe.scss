@@ -510,3 +510,15 @@ html {
 .ObserveStyles-offsetComponent {
   display: flex;
 }
+
+.p-tag.ObserveStyles-objectType {
+  font-size: 0.78571429rem;
+
+  &.ObserveStyles-typeCompleted {
+    background-color: var(--gray-600);
+  }
+
+  &.ObserveStyles-typeObject {
+    background-color: var(--green-500);
+  }
+}

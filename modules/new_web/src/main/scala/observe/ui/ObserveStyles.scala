@@ -70,4 +70,8 @@ object ObserveStyles {
   val OffsetsBlock: Css    = Css("ObserveStyles-offsetsBlock")
   val OffsetsNodLabel: Css = Css("ObserveStyles-offsetsNodLabel")
   val OffsetComponent: Css = Css("ObserveStyles-offsetComponent")
+
+  val ObjectType: Css    = Css("ObserveStyles-objectType")
+  val TypeCompleted: Css = Css("ObserveStyles-typeCompleted")
+  val TypeObject: Css    = Css("ObserveStyles-typeObject")
 }

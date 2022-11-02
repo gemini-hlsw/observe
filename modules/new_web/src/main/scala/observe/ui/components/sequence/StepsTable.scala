@@ -158,7 +158,11 @@ object StepsTable:
             column(DeckerColumnId, "Decker"),
             column(ReadModeColumnId, "ReadMode"),
             column(ImagingMirrorColumnId, "ImagingMirror"),
-            column(TypeColumnId, "Type"),
+            column(
+              TypeColumnId,
+              "Type",
+              cell => execution.map(e => ObjectTypeCell(e.instrument, cell.row.original))
+            ),
             column(SettingsColumnId)
           )
       )
