@@ -19,7 +19,7 @@ object RunningStep:
 
   private case class RunningStepImpl(id: Option[Step.Id], last: Int, total: Int) extends RunningStep
 
-  def fromInt(id: Option[Step.Id], last: Int, total: Int): Option[RunningStep] =
+  def fromStepId(id: Option[Step.Id], last: Int, total: Int): Option[RunningStep] =
     if (total >= last) RunningStepImpl(id, last, total).some else none
 
   def unapply(r: RunningStep): Option[(Option[Step.Id], Int, Int)] =

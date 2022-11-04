@@ -29,6 +29,7 @@ import react.common.*
 import reactST.{ tanstackTableCore => raw }
 import lucuma.ui.table.ColumnSize.*
 import scalajs.js
+import observe.ui.Icons
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -66,7 +67,7 @@ object StepsTable:
   private val SettingsColumnId: ColumnId      = ColumnId("settings")
 
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
-    ControlColumnId       -> FixedSize(40.toPx),
+    ControlColumnId       -> FixedSize(43.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
     StateColumnId         -> Resizable(350.toPx, min = 350.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
@@ -80,15 +81,15 @@ object StepsTable:
     ReadModeColumnId      -> Resizable(180.toPx),
     ImagingMirrorColumnId -> Resizable(10.toPx),
     TypeColumnId          -> Resizable(75.toPx),
-    SettingsColumnId      -> FixedSize(34.toPx)
+    SettingsColumnId      -> FixedSize(36.toPx)
   )
 
   private def column[V](
     id:     ColumnId,
-    header: js.UndefOr[String] = js.undefined,
+    header: VdomNode,
     cell:   js.UndefOr[raw.mod.CellContext[ExecutionStep, V] => VdomNode] = js.undefined
   ): ColumnDef[ExecutionStep, V] =
-    ColDef(id, header = header, cell = cell).setColumnSize(ColumnSizes(id))
+    ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
   private val component =
     ScalaFnComponent
@@ -99,7 +100,35 @@ object StepsTable:
       )((_, _) => // cols
         (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
-            column(ControlColumnId),
+            column(
+              ControlColumnId,
+              Icons.Gears,
+              cell =>
+                execution.map(e =>
+                  StepToolsCell(
+                    clientStatus,
+                    cell.row.original,
+                    30,    // rowHeight($)(cell.row.original.id),
+                    30,    // $.props.rowDetailsHeight(row.step, $.state.selected),
+                    e.isPreview,
+                    e.nextStepToRun,
+                    e.obsId,
+                    e.obsName,
+                    false, // canSetBreakpoint(row.step, f.steps),
+                    null,  // rowBreakpointHoverOnCB,
+                    null,  // rowBreakpointHoverOffCB,
+                    null   // recomputeHeightsCB
+                  )
+                )
+
+// stepControlRenderer(_,
+//                              $,
+//                              rowBreakpointHoverOnCB($),
+//                              rowBreakpointHoverOffCB($),
+//                              recomputeRowHeightsCB($.props)
+//          )
+
+            ),
             column(IndexColumnId, "Step", _.row.index.toInt + 1),
             column(
               StateColumnId,
@@ -163,7 +192,14 @@ object StepsTable:
               "Type",
               cell => execution.map(e => ObjectTypeCell(e.instrument, cell.row.original))
             ),
-            column(SettingsColumnId)
+            column(
+              SettingsColumnId,
+              Icons.RectangleList,
+              cell =>
+                execution.map(e =>
+                  SettingsCell(e.instrument, e.obsId, cell.row.original.id, e.isPreview)
+                )
+            )
           )
       )
       // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
@@ -204,6 +240,10 @@ object StepsTable:
           estimateRowHeight = _ => 40.toPx,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row => rowClass(row.index.toInt, row.original),
+          cellMod = _.column.id match
+            case id if id == ControlColumnId.value => ObserveStyles.ControlTableCell
+            case _                                 => TagMod.empty
+          ,
           overscan = 5
         )
       )

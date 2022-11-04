@@ -91,7 +91,7 @@ object Home {
                     <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
                     Tag(
                       clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
-                      icon = Icons.CircleNotch.copy(spin = true),
+                      icon = Icons.CircleNotch.withSpin(true),
                       value =
                         s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
                     )
@@ -106,8 +106,8 @@ object Home {
                       sequenceState = SequenceState.Running(false, false),
                       steps = observe.demo.DemoExecutionSteps,
                       stepConfigDisplayed = none,
-                      nextStepToRun = none,
-                      runningStep = none,
+                      nextStepToRun = observe.demo.DemoExecutionSteps.get(2).map(_.id),
+                      runningStep = none, // observe.demo.DemoExecutionSteps.get(2).map(_.id),
                       isPreview = false,
                       tabOperations = TabOperations.Default
                     ).some

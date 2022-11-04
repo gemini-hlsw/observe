@@ -48,9 +48,10 @@ object ObserveStyles {
   val WaterVaporArea: Css    = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css = Css("ObserveStyles-SkyBackgroundArea")
 
-  val SequenceTabView: Css = Css("ObserveStyles-sequenceTabView")
-  val ConfiguringRow: Css  = Css("ObserveStyles-configuringRow")
-  val StepTable: Css       = Css("ObserveStyles-stepTable")
+  val SequenceTabView: Css    = Css("ObserveStyles-sequenceTabView")
+  val ConfiguringRow: Css     = Css("ObserveStyles-configuringRow")
+  val StepTable: Css          = Css("ObserveStyles-stepTable")
+  val StepSettingsHeader: Css = Css("ObserveStyles-stepSettingsHeader")
 
   val StepRowRunning: Css = Css("ObserveStyles-stepRowRunning")
   val StepRowWarning: Css = Css("ObserveStyles-stepRowWarning")
@@ -71,7 +72,21 @@ object ObserveStyles {
   val OffsetsNodLabel: Css = Css("ObserveStyles-offsetsNodLabel")
   val OffsetComponent: Css = Css("ObserveStyles-offsetComponent")
 
-  val ObjectType: Css    = Css("ObserveStyles-objectType")
-  val TypeCompleted: Css = Css("ObserveStyles-typeCompleted")
-  val TypeObject: Css    = Css("ObserveStyles-typeObject")
+  val StepTypeTag: Css               = Css("ObserveStyles-stepTypeTag")
+  val StepTypeCompleted: Css         = Css("ObserveStyles-stepTypeCompleted")
+  val StepTypeObject: Css            = Css("ObserveStyles-stepTypeObject")
+  val StepTypeArc: Css               = Css("ObserveStyles-stepTypeArc")
+  val StepTypeFlat: Css              = Css("ObserveStyles-stepTypeFlat")
+  val StepTypeBias: Css              = Css("ObserveStyles-stepTypeBias")
+  val StepTypeDark: Css              = Css("ObserveStyles-stepTypeDark")
+  val StepTypeCalibration: Css       = Css("ObserveStyles-stepTypeCalibration")
+  val StepTypeAlignAndCalib: Css     = Css("ObserveStyles-stepTypeAlignAndCalib")
+  val StepTypeNodAndShuffle: Css     = Css("ObserveStyles-stepTypeNodAndShuffle")
+  val StepTypeNodAndShuffleDark: Css = Css("ObserveStyles-stepTypeNodAndShuffleDark")
+
+  val ControlTableCell: Css = Css("ObserveStyles-controlTableCell")
+  val ControlCell: Css      = Css("ObserveStyles-controlCell")
+  val GutterCell: Css       = Css("ObserveStyles-gutterCell")
+  val SkippedIconCell: Css  = Css("ObserveStyles-skippedIconCell")
+  val IconCell: Css         = Css("ObserveStyles-iconCell")
 }

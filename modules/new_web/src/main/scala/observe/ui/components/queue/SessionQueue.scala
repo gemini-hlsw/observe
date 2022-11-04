@@ -53,8 +53,8 @@ object SessionQueue:
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
-        case SequenceState.Completed     => Icons.Checkmark // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _) => Icons.CircleNotch.copy(spin = true)
+        case SequenceState.Completed     => Icons.Check // clazz = selectedIconStyle)
+        case SequenceState.Running(_, _) => Icons.CircleNotch.withSpin(true)
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
         case SequenceState.Failed(_)     => EmptyVdom

@@ -20,8 +20,16 @@ object Icons:
   private val faCalendarDays: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCaretRight")
+  private val faCaretRight: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCheck")
   private val faCheck: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faChevronRight")
+  private val faChevronRight: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faCircle")
@@ -36,6 +44,10 @@ object Icons:
   private val faCircleDot: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleExclamation")
+  private val faCircleExclamation: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleNotch")
   private val faCircleNotch: FAIcon = js.native
 
@@ -48,6 +60,10 @@ object Icons:
   private val faCrosshairs: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faGears")
+  private val faGears: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faMoon")
   private val faMoon: FAIcon = js.native
 
@@ -58,6 +74,14 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faPlay")
   private val faPlay: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faRectangleList")
+  private val faRectangleList: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faReply")
+  private val faReply: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faStop")
@@ -75,33 +99,45 @@ object Icons:
   IconLibrary.add(
     faBan,
     faCalendarDays,
+    faCaretRight,
     faCheck,
+    faChevronRight,
     faCircle,
     faCircleCheck,
     faCircleDot,
+    faCircleExclamation,
     faCircleNotch,
     faClock,
     faCrosshairs,
+    faGears,
     faMoon,
     faPause,
     faPlay,
+    faRectangleList,
+    faReply,
     faStop,
     faSun,
     faTrash
   )
 
-  inline def Ban          = FontAwesomeIcon(faBan)
-  inline def CalendarDays = FontAwesomeIcon(faCalendarDays)
-  inline def Checkmark    = FontAwesomeIcon(faCheck)
-  inline def Circle       = FontAwesomeIcon(faCircle)
-  inline def CircleCheck  = FontAwesomeIcon(faCircleCheck)
-  inline def CircleDot    = FontAwesomeIcon(faCircleDot)
-  inline def CircleNotch  = FontAwesomeIcon(faCircleNotch)
-  inline def Clock        = FontAwesomeIcon(faClock)
-  inline def Crosshairs   = FontAwesomeIcon(faCrosshairs)
-  inline def Moon         = FontAwesomeIcon(faMoon)
-  inline def Pause        = FontAwesomeIcon(faPause)
-  inline def Play         = FontAwesomeIcon(faPlay)
-  inline def Stop         = FontAwesomeIcon(faStop)
-  inline def Sun          = FontAwesomeIcon(faSun)
-  inline def Trash        = FontAwesomeIcon(faTrash)
+  inline def Ban               = FontAwesomeIcon(faBan)
+  inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
+  inline def CaretRight        = FontAwesomeIcon(faCaretRight)
+  inline def Check             = FontAwesomeIcon(faCheck)
+  inline def ChevronRight      = FontAwesomeIcon(faChevronRight)
+  inline def Circle            = FontAwesomeIcon(faCircle)
+  inline def CircleCheck       = FontAwesomeIcon(faCircleCheck)
+  inline def CircleDot         = FontAwesomeIcon(faCircleDot)
+  inline def CircleExclamation = FontAwesomeIcon(faCircleExclamation)
+  inline def CircleNotch       = FontAwesomeIcon(faCircleNotch)
+  inline def Clock             = FontAwesomeIcon(faClock)
+  inline def Crosshairs        = FontAwesomeIcon(faCrosshairs)
+  inline def Gears             = FontAwesomeIcon(faGears)
+  inline def Moon              = FontAwesomeIcon(faMoon)
+  inline def Pause             = FontAwesomeIcon(faPause)
+  inline def Play              = FontAwesomeIcon(faPlay)
+  inline def RectangleList     = FontAwesomeIcon(faRectangleList)
+  inline def Reply             = FontAwesomeIcon(faReply)
+  inline def Stop              = FontAwesomeIcon(faStop)
+  inline def Sun               = FontAwesomeIcon(faSun)
+  inline def Trash             = FontAwesomeIcon(faTrash)

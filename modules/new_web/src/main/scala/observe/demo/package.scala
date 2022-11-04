@@ -97,7 +97,7 @@ val DemoSessionQueue: List[SessionQueueRow] =
       true,
       true,
       none,
-      RunningStep.fromInt(none, 2, DemoExecutionSteps.length),
+      RunningStep.fromStepId(none, 2, DemoExecutionSteps.length),
       false
     )
   ) ++ (1 to 80).map(_ =>

@@ -32,28 +32,18 @@ object ObjectTypeCell:
         .stepType(props.instrument)
         .map { st =>
           val stepTypeColor = st match
-            case _ if props.step.status === StepState.Completed => ObserveStyles.TypeCompleted
-            case ExecutionStepType.Object                       => ObserveStyles.TypeObject
-            // case ExecutionStepType.Arc                          => Violet
-            // case ExecutionStepType.Flat                         => Grey
-            // case ExecutionStepType.Bias                         => Teal
-            // case ExecutionStepType.Dark                         => Black
-            // case ExecutionStepType.Calibration                  => Blue
-            // case ExecutionStepType.AlignAndCalib                => Brown
-            // case ExecutionStepType.NodAndShuffle                => Olive
-            // case ExecutionStepType.NodAndShuffleDark            => Black
-            case _                                              => Css.Empty
+            case _ if props.step.status === StepState.Completed => ObserveStyles.StepTypeCompleted
+            case ExecutionStepType.Object                       => ObserveStyles.StepTypeObject
+            case ExecutionStepType.Arc                          => ObserveStyles.StepTypeArc
+            case ExecutionStepType.Flat                         => ObserveStyles.StepTypeFlat
+            case ExecutionStepType.Bias                         => ObserveStyles.StepTypeBias
+            case ExecutionStepType.Dark                         => ObserveStyles.StepTypeDark
+            case ExecutionStepType.Calibration                  => ObserveStyles.StepTypeCalibration
+            case ExecutionStepType.AlignAndCalib                => ObserveStyles.StepTypeAlignAndCalib
+            case ExecutionStepType.NodAndShuffle                => ObserveStyles.StepTypeNodAndShuffle
+            case ExecutionStepType.NodAndShuffleDark            => ObserveStyles.StepTypeNodAndShuffleDark
 
-          // val component =
-          Tag(value = st.shortName).withMods(ObserveStyles.ObjectType |+| stepTypeColor)
-          //     .withMods(^.fontSize := "0.78571429rem", ^.background := stepTypeColor)
-
-          // println(
-          //   component.modifiers.toTagMod.asInstanceOf[TagMod.Composite].mods.toList.map(_.toJs)
-          // )
-
-          // component
-          // Tag(color = stepTypeColor)(st.show)
+          Tag(value = st.shortName).withMods(ObserveStyles.StepTypeTag |+| stepTypeColor)
         }
         .whenDefined
     )
