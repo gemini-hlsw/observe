@@ -6,13 +6,10 @@ package observe.server
 import cats.Endo
 import cats.effect.Async
 import cats.syntax.all._
-import edu.gemini.spModel.obscomp.InstConstants
-import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
 import observe.engine.Event
 import observe.engine.Sequence
 import observe.model.Observation
 import observe.model.SystemOverrides
-import ConfigUtilOps._
 import SeqEvent._
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
@@ -63,16 +60,14 @@ final class ODBSequencesLoader[F[_]: Async](
 
     t.map {
       case None =>
-        Nil
+        List.empty[EventType[F]].pure[F]
       case Some(Left(err :: _))                      =>
         val explanation = explain(err)
         List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explanation))
-      case Some(Right(seq))                      => loadSequenceEvent(seq).pure[F]
-      case _                                      => Nil
-    }.recover { case e => List(Event.logDebugMsgF(explain(e))) }
-      .map(_.sequence)
-      .flatten
-  }
+      case Some(Right(seq))                      => List(loadSequenceEvent(seq)).pure[F]
+      case _                                      => List.empty[EventType[F]].pure[F]
+    }.recover { case e => List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))) }
+  }.map(_.sequence).flatten
 
   private def explain(err: Throwable): String =
     err match {
