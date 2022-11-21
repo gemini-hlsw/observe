@@ -165,7 +165,7 @@ package client {
 
         // A trivial resource that binds and unbinds a status handler.
         def bind(q: Queue[F, A]): Resource[F, StatusHandler] =
-          Dispatcher[F].flatMap { dispatcher =>
+          Dispatcher.sequential[F].flatMap { dispatcher =>
             Resource.make(
               Async[F].delay {
                 val sh = statusHandler(q)(dispatcher)
