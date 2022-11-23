@@ -350,6 +350,8 @@ html {
   }
 
   &.ObserveStyles-stepTable {
+    // table-layout: auto;
+
     tr>td {
       // max-height: 40px !important;
       padding-top: 0;
@@ -524,8 +526,14 @@ html {
   color: var(--text-color);
 }
 
+.ObserveStyles-stepTypeCell {
+  text-align: center;
+}
+
 .p-tag.ObserveStyles-stepTypeTag {
-  font-size: 0.78571429rem;
+  .p-tag-value {
+    font-size: 0.78571429rem;
+  }
 
   &.ObserveStyles-stepTypeCompleted {
     background-color: var(--gray-500);
@@ -573,6 +581,8 @@ html {
   justify-content: space-around;
   align-items: center;
   min-width: 42.3px;
+  // max-width: 42.3px;
+  // width: 42.3px;
   align-self: flex-start;
   position: absolute;
   top: 0;
@@ -590,7 +600,7 @@ html {
   min-width: 21px;
   border-right-style: solid;
   border-right-color: var(--surface-border);
-  border-right-width: 2px;
+  border-right-width: 1.5px;
   position: relative;
   z-index: 0;
   height: 100%;
@@ -606,4 +616,60 @@ html {
   &.ObserveStyles-skippedIconCell {
     padding-right: 10px;
   }
+}
+
+@mixin breakPointHandle {
+  // position: relative;
+  // z-index: 200;
+  // left: 3.82px;
+  // top: -4px;
+  // height: 13px;
+  // width: 13px;
+  position: absolute;
+  transform: translateY(-28px);
+
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    transform: translateX(-0.5px) scale(2);
+  }
+}
+
+.ObserveStyles-breakPointHandleOff {
+  @include breakPointHandle;
+
+  &:hover {
+    left: 4.9px;
+  }
+}
+
+.ObserveStyles-breakPointHandleOn {
+  @include breakPointHandle;
+
+  &:hover {
+    transform: translateX(-0.5px) scale(2) translateY(1px);
+  }
+}
+
+@mixin breakPointIcon {
+  position: relative;
+  color: var(--gray-500);
+  top: -3px; // FIXME I can't get cell contents to overlap with previous row
+  left: -2px;
+
+  &:hover {
+    color: var(--gray-700);
+  }
+}
+
+.ObserveStyles-breakPointOnIcon {
+  @include breakPointIcon;
+}
+
+.ObserveStyles-breakPointOffIcon {
+  @include breakPointIcon;
+
+  top: 3px; // FIXME I can't get cell contents to overlap with previous row
 }

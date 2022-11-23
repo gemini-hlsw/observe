@@ -210,7 +210,7 @@ object SessionQueue:
         <.div(ObserveStyles.SessionQueue)(
           PrimeAutoHeightVirtualizedTable(
             table,
-            estimateRowHeight = _ => 30.toPx,
+            estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable,
             rowMod = row => rowClass(row.index.toInt, row.original),
             overscan = 5

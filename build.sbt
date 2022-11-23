@@ -269,7 +269,7 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/new_model"))
   .enablePlugins(GitBranchPrompt)
   .settings(
-    scalaVersion := "3.2.1-RC4",
+    scalaVersion := "3.2.1",
     libraryDependencies ++= Seq(
       Cats.value,
       Kittens.value,
@@ -295,7 +295,7 @@ lazy val new_web = project
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
-    scalaVersion    := "3.2.1-RC4",
+    scalaVersion    := "3.2.1",
     scalacOptions += "-language:implicitConversions",
     Test / test     := {},
     coverageEnabled := false,

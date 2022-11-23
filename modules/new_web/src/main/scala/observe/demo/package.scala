@@ -39,12 +39,12 @@ private val stepConfig = ExecutionStepConfig(
   )
 )
 
-private def buildPendingStep: ExecutionStep =
+private def buildPendingStep(breakpoint: Boolean): ExecutionStep =
   StandardStep(
     id = Step.Id.fromUuid(UUID.randomUUID),
     config = stepConfig,
     status = StepState.Pending,
-    breakpoint = false,
+    breakpoint = breakpoint,
     skip = false,
     fileId = none,
     configStatus = List.empty,
@@ -81,8 +81,9 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
     fileId = ImageFileId("S20220916S0001").some,
     configStatus = List.empty,
     observeStatus = ActionStatus.Running
-  )
-) ++ (1 to 197).map(_ => buildPendingStep)
+  ),
+  buildPendingStep(true)
+) ++ (1 to 196).map(_ => buildPendingStep(false))
 
 val DemoSessionQueue: List[SessionQueueRow] =
   List(

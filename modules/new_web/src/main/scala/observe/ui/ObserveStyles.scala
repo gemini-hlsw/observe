@@ -72,6 +72,7 @@ object ObserveStyles {
   val OffsetsNodLabel: Css = Css("ObserveStyles-offsetsNodLabel")
   val OffsetComponent: Css = Css("ObserveStyles-offsetComponent")
 
+  val StepTypeCell: Css              = Css("ObserveStyles-stepTypeCell")
   val StepTypeTag: Css               = Css("ObserveStyles-stepTypeTag")
   val StepTypeCompleted: Css         = Css("ObserveStyles-stepTypeCompleted")
   val StepTypeObject: Css            = Css("ObserveStyles-stepTypeObject")
@@ -89,4 +90,9 @@ object ObserveStyles {
   val GutterCell: Css       = Css("ObserveStyles-gutterCell")
   val SkippedIconCell: Css  = Css("ObserveStyles-skippedIconCell")
   val IconCell: Css         = Css("ObserveStyles-iconCell")
+
+  val BreakpointHandleOn: Css  = Css("ObserveStyles-breakPointHandleOn")
+  val BreakpointHandleOff: Css = Css("ObserveStyles-breakPointHandleOff")
+  val BreakpointOnIcon: Css    = Css("ObserveStyles-breakPointOnIcon")
+  val BreakpointOffIcon: Css   = Css("ObserveStyles-breakPointOffIcon")
 }

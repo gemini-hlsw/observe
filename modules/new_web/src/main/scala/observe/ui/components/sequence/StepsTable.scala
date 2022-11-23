@@ -50,6 +50,7 @@ object StepsTable:
   private def renderStringCell(value: Option[String]): VdomNode =
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
 
+  private val BreakpointColumnId: ColumnId    = ColumnId("breakpoint")
   private val ControlColumnId: ColumnId       = ColumnId("control")
   private val IndexColumnId: ColumnId         = ColumnId("index")
   private val StateColumnId: ColumnId         = ColumnId("state")
@@ -66,23 +67,36 @@ object StepsTable:
   private val TypeColumnId: ColumnId          = ColumnId("type")
   private val SettingsColumnId: ColumnId      = ColumnId("settings")
 
+  private val __WIDTH = 1375
+
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
+    BreakpointColumnId    -> FixedSize(0.toPx),
     ControlColumnId       -> FixedSize(43.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
     StateColumnId         -> Resizable(350.toPx, min = 350.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
     ObsModeColumnId       -> Resizable(130.toPx),
-    ExposureColumnId      -> Resizable(84.toPx),
-    DisperserColumnId     -> Resizable(120.toPx),
-    FilterColumnId        -> Resizable(100.toPx),
-    FPUColumnId           -> Resizable(47.toPx),
+    ExposureColumnId      -> Resizable(84.toPx, min = 75.toPx.some),
+    DisperserColumnId     -> Resizable(120.toPx, min = 120.toPx.some),
+    FilterColumnId        -> Resizable(100.toPx, min = 90.toPx.some),
+    FPUColumnId           -> Resizable(47.toPx, min = 75.toPx.some),
     CameraColumnId        -> Resizable(10.toPx),
     DeckerColumnId        -> Resizable(10.toPx),
     ReadModeColumnId      -> Resizable(180.toPx),
     ImagingMirrorColumnId -> Resizable(10.toPx),
-    TypeColumnId          -> Resizable(75.toPx),
+    TypeColumnId          -> FixedSize(85.toPx),
     SettingsColumnId      -> FixedSize(36.toPx)
   )
+
+  // private val ColumnSizes: Map[ColumnId, ColumnSize] = ColumnSizesBase +
+  //   (StateColumnId -> Resizable(
+  //     // (__WIDTH - ColumnSizesBase.values.foldLeft(0)((w, colSize) => w + colSize.size.value)).toPx,
+  //     __WIDTH.toPx,
+  //     min_ = (__WIDTH - ColumnSizesBase.values.foldLeft(0)((w, colSize) =>
+  //       w + colSize.size.value
+  //     )).toPx.some
+  //     // min = 350.toPx.some
+  //   ))
 
   private def column[V](
     id:     ColumnId,
@@ -100,6 +114,33 @@ object StepsTable:
       )((_, _) => // cols
         (clientStatus, execution, offsetsDisplay, selectedStep) =>
           List(
+            column(
+              BreakpointColumnId,
+              "",
+              cell =>
+                val step = cell.row.original
+
+                <.div(
+                  ObserveStyles.BreakpointHandleOff.when(step.breakpoint),
+                  ObserveStyles.BreakpointHandleOn.unless(step.breakpoint)
+                  // ^.onClick ==> flipBreakpoint(props)
+                )(
+                  Icons.XMark
+                    .withFixedWidth()
+                    .withClass(ObserveStyles.BreakpointOffIcon)
+                    //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
+                    //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
+                    // )
+                    .when(step.breakpoint),
+                  Icons.CaretDown
+                    .withFixedWidth()
+                    .withClass(ObserveStyles.BreakpointOnIcon)
+                    //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
+                    //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
+                    // )
+                    .unless(step.breakpoint)
+                ) // .when(canSetBreakpoint),
+            ),
             column(
               ControlColumnId,
               Icons.Gears,
@@ -220,7 +261,9 @@ object StepsTable:
           )
         )
       )
-      .render((props, _, _, table) =>
+      // .useState(true)          // initialRender
+      // .useEffectOnMountBy((_, _, _, _, initialRender) => initialRender.setState(false))
+      .render((props, _, _, table) => // , initialRender) =>
 
         def rowClass(index: Int, step: ExecutionStep): Css =
           step match
@@ -235,11 +278,58 @@ object StepsTable:
             case _                                     => Css.Empty
 
         PrimeAutoHeightVirtualizedTable(
+          // PrimeVirtualizedTable(
           table,
           // TODO Is it necessary to explicitly specify increased height of Running row?
-          estimateRowHeight = _ => 40.toPx,
+          estimateSize = _ => 40.toPx,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row => rowClass(row.index.toInt, row.original),
+          innerContainerMod = ^.width := "100%",
+          // containerMod = ^.height := "300px",
+          headerCellMod = { headerCell =>
+
+            val ratio = __WIDTH.toDouble / headerCell
+              .getContext()
+              .table
+              .getTotalSize()
+
+            TagMod(
+              ^.width := (headerCell.id match
+                  // case colId if ColumnId(colId) == StateColumnId =>
+                  //   val minStateColWidth =
+                  //     __WIDTH - headerCell
+                  //       .getContext()
+                  //       .table
+                  //       .getAllLeafColumns()
+                  //       .filterNot(_.id == StateColumnId.value)
+                  //       .filter(_.getIsVisible())
+                  //       .foldLeft(0.0)((w, col) => w + col.getSize())
+
+                  //   println(minStateColWidth)
+                  //   println(headerCell.getSize())
+
+                  //   s"${math.max(minStateColWidth, headerCell.getSize())}px"
+                  case colId =>
+                    ColumnSizes.get(ColumnId(colId)) match
+                      //     case _ => s"${headerCell.getSize()}px"
+                      case Some(FixedSize(width))   => s"${width}px"
+                      // case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * 100 / __WIDTH}%"
+                      case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
+                      // multiply minSize and maxSize by ratio too!!!!
+                      case _                        => "0"
+                // case _ => s"${headerCell.getSize() * 100 / __WIDTH}%"
+              )
+              // TagMod.when(ColumnId(headerCell.id) == StateColumnId)(
+              //   ^.minWidth := s"${(__WIDTH - headerCell
+              //       .getContext()
+              //       .table
+              //       .getAllLeafColumns()
+              //       .filterNot(_.id == StateColumnId.value)
+              //       .filter(_.getIsVisible())
+              //       .foldLeft(0.0)((w, col) => w + col.getSize()))}px"
+              // )
+            )
+          },
           cellMod = _.column.id match
             case id if id == ControlColumnId.value => ObserveStyles.ControlTableCell
             case _                                 => TagMod.empty

@@ -37,18 +37,17 @@ object StepToolsCell:
 
   private val component = ScalaFnComponent[Props](props =>
     <.div(ObserveStyles.ControlCell)(
-      <.div(ObserveStyles.GutterCell),
-      // StepBreakStopCell(
-      //   p.clientStatus,
-      //   p.step,
-      //   p.rowHeight,
-      //   p.obsIdName,
-      //   p.canSetBreakpoint,
-      //   p.breakPointEnterCB,
-      //   p.breakPointLeaveCB,
-      //   p.heightChangeCB
-      // ).when(p.clientStatus.isLogged)
-      //   .unless(p.isPreview),
+      StepBreakStopCell(
+        props.clientStatus,
+        props.step,
+        props.obsId,
+        props.obsName,
+        props.canSetBreakpoint,
+        props.breakPointEnterCB,
+        props.breakPointLeaveCB,
+        props.heightChangeCB
+      ).when(props.clientStatus.isLogged)
+        .unless(props.isPreview),
       StepIconCell(
         props.step.status,
         props.step.skip,
@@ -57,6 +56,78 @@ object StepToolsCell:
       )
     )
   )
+
+  /**
+   * Component to display an icon for the state
+   */
+  case class StepBreakStopCell(
+    clientStatus:      ClientStatus,
+    step:              ExecutionStep,
+    obsId:             Observation.Id,
+    obsName:           String,
+    canSetBreakpoint:  Boolean,
+    breakPointEnterCB: Step.Id => Callback,
+    breakPointLeaveCB: Step.Id => Callback,
+    heightChangeCB:    Step.Id => Callback
+  ) extends ReactFnProps(StepBreakStopCell.component)
+
+  object StepBreakStopCell:
+    private type Props = StepBreakStopCell
+
+    // Request a to flip the breakpoint
+    private def flipBreakpoint(p: Props)(e: ReactEvent): Callback =
+      e.preventDefaultCB >>
+        e.stopPropagationCB // >>
+      // Callback.when(p.clientStatus.canOperate)(
+      //   ObserveCircuit.dispatchCB(FlipBreakpointStep(p.obsIdName, p.step)) *>
+      //     p.heightChangeCB(p.step.id)
+      // )
+
+    // Request a to flip the skip
+    private def flipSkipped(p: Props)(e: ReactEvent): Callback =
+      e.preventDefaultCB >>
+        e.stopPropagationCB // >>
+      // Callback.when(p.clientStatus.canOperate)(
+      //   ObserveCircuit.dispatchCB(FlipSkipStep(p.obsIdName, p.step))
+      // )
+
+    private val component = ScalaFnComponent[Props](props =>
+      val canSetBreakpoint = props.clientStatus.canOperate && props.canSetBreakpoint
+      val canSetSkipMark   = props.clientStatus.canOperate && props.step.canSetSkipmark
+
+      <.div(ObserveStyles.GutterCell)(
+        // <.div(
+        //   ObserveStyles.BreakpointHandleOff.when(props.step.breakpoint),
+        //   ObserveStyles.BreakpointHandleOn.unless(props.step.breakpoint),
+        //   ^.onClick ==> flipBreakpoint(props)
+        // )(
+        //   Icons.XMark
+        //     .withFixedWidth()
+        //     .withClass(ObserveStyles.BreakpointOffIcon)
+        //     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
+        //     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
+        //     // )
+        //     .when(props.step.breakpoint),
+        //   Icons.CaretDown
+        //     .withFixedWidth()
+        //     .withClass(ObserveStyles.BreakpointOnIcon)
+        //     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
+        //     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
+        //     // )
+        //     .unless(props.step.breakpoint)
+        // ), // .when(canSetBreakpoint),
+        <.div(
+          // ObserveStyles.skipHandle,
+          // ^.top := (props.rowHeight / 2 - ObserveStyles.skipHandleHeight + 2).px,
+          // Icons.PlusSquareOutline
+          //   .copy(link = true)(^.onClick ==> flipSkipped(props))
+          //   .when(p.step.skip),
+          // Icons.MinusCircle
+          //   .copy(link = true, color = Orange)(^.onClick ==> flipSkipped(props))
+          //   .unless(p.step.skip)
+        ).when(canSetSkipMark)
+      )
+    )
 
   /**
    * Component to display an icon for the state

@@ -68,7 +68,7 @@ object Home {
               )
             ),
             SplitterPanel()(
-              TabView(clazz = ObserveStyles.SequenceTabView)(
+              TabView(clazz = ObserveStyles.SequenceTabView, activeIndex = 1)(
                 TabPanel(
                   clazz = ObserveStyles.SequenceTabPanel,
                   header = React.Fragment(

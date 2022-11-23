@@ -23,11 +23,7 @@ object ObjectTypeCell:
   private type Props = ObjectTypeCell
 
   private val component = ScalaFnComponent[Props](props =>
-    println(
-      props.step
-        .stepType(props.instrument)
-    )
-    <.div(
+    <.div(ObserveStyles.StepTypeCell)(
       props.step
         .stepType(props.instrument)
         .map { st =>

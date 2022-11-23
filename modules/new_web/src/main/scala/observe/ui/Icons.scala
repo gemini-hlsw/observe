@@ -24,6 +24,10 @@ object Icons:
   private val faCaretRight: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCaretDown")
+  private val faCaretDown: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCheck")
   private val faCheck: FAIcon = js.native
 
@@ -95,12 +99,18 @@ object Icons:
   @JSImport("@fortawesome/pro-solid-svg-icons", "faTrash")
   private val faTrash: FAIcon = js.native
 
+  @js.native
+  // @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark") // FIXME Can't get sharp to work
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faXmark")
+  private val faXMark: FAIcon = js.native
+
   // This is tedious but lets us do proper tree-shaking
   IconLibrary.add(
     faBan,
     faCalendarDays,
     faCaretRight,
     faCheck,
+    faCaretDown,
     faChevronRight,
     faCircle,
     faCircleCheck,
@@ -117,11 +127,13 @@ object Icons:
     faReply,
     faStop,
     faSun,
-    faTrash
+    faTrash,
+    faXMark
   )
 
   inline def Ban               = FontAwesomeIcon(faBan)
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
+  inline def CaretDown         = FontAwesomeIcon(faCaretDown)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
   inline def ChevronRight      = FontAwesomeIcon(faChevronRight)
@@ -141,3 +153,4 @@ object Icons:
   inline def Stop              = FontAwesomeIcon(faStop)
   inline def Sun               = FontAwesomeIcon(faSun)
   inline def Trash             = FontAwesomeIcon(faTrash)
+  inline def XMark             = FontAwesomeIcon(faXMark)
