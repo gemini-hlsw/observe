@@ -359,7 +359,7 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        clt                                        <- JdkWSClient.simple[IO]
+        clt                                        <- Resource.eval(JdkWSClient.simple[IO])
         webSocketBackend                            = clue.http4s.Http4sWSBackend[IO](clt)
         odbProxy                                   <-
           Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))

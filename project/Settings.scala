@@ -23,7 +23,7 @@ object Settings {
     val scalaJSReactSortable    = "0.5.2"
 
     // Scala libraries
-    val catsEffectVersion   = "3.3.14"
+    val catsEffectVersion   = "3.4.1"
     val catsVersion         = "2.9.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.3.0"
@@ -34,7 +34,7 @@ object Settings {
 
     val http4sVersion                  = "0.23.16"
     val http4sBlazeVersion             = "0.23.12"
-    val http4sJdkHttpClientVersion     = "0.7.0"
+    val http4sJdkHttpClientVersion     = "0.8.0"
     val http4sBoopickleVersion         = "0.23.11"
     val http4sPrometheusMetricsVersion = "0.23.12"
     val http4sScalaXmlVersion          = "0.23.12"
