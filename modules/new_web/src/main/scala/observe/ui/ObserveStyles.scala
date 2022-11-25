@@ -53,10 +53,11 @@ object ObserveStyles {
   val StepTable: Css          = Css("ObserveStyles-stepTable")
   val StepSettingsHeader: Css = Css("ObserveStyles-stepSettingsHeader")
 
-  val StepRowRunning: Css = Css("ObserveStyles-stepRowRunning")
-  val StepRowWarning: Css = Css("ObserveStyles-stepRowWarning")
-  val StepRowError: Css   = Css("ObserveStyles-stepRowError")
-  val StepRowDone: Css    = Css("ObserveStyles-stepRowDone")
+  val StepRowRunning: Css        = Css("ObserveStyles-stepRowRunning")
+  val StepRowWarning: Css        = Css("ObserveStyles-stepRowWarning")
+  val StepRowError: Css          = Css("ObserveStyles-stepRowError")
+  val StepRowDone: Css           = Css("ObserveStyles-stepRowDone")
+  val StepRowWithBreakpoint: Css = Css("ObserveStyles-stepRowWithBreakpoint")
 
   val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
   val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
@@ -93,8 +94,6 @@ object ObserveStyles {
   val SkippedIconCell: Css       = Css("ObserveStyles-skippedIconCell")
   val IconCell: Css              = Css("ObserveStyles-iconCell")
 
-  val BreakpointHandleOn: Css  = Css("ObserveStyles-breakPointHandleOn")
-  val BreakpointHandleOff: Css = Css("ObserveStyles-breakPointHandleOff")
-  val BreakpointOnIcon: Css    = Css("ObserveStyles-breakPointOnIcon")
-  val BreakpointOffIcon: Css   = Css("ObserveStyles-breakPointOffIcon")
+  val BreakpointHandle: Css = Css("ObserveStyles-breakPointHandle")
+  val BreakpointIcon: Css   = Css("ObserveStyles-breakPointIcon")
 }

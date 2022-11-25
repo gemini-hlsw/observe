@@ -127,20 +127,19 @@ object StepsTable:
                 val step = cell.row.original
 
                 <.div(
-                  ObserveStyles.BreakpointHandleOff.when(step.breakpoint),
-                  ObserveStyles.BreakpointHandleOn.unless(step.breakpoint)
-                  // ^.onClick ==> flipBreakpoint(props)
+                  ObserveStyles.BreakpointHandle
+                    // ^.onClick ==> flipBreakpoint(props)
                 )(
                   Icons.XMark
                     .withFixedWidth()
-                    .withClass(ObserveStyles.BreakpointOffIcon)
+                    .withClass(ObserveStyles.BreakpointIcon)
                     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
                     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
                     // )
                     .when(step.breakpoint),
                   Icons.CaretDown
                     .withFixedWidth()
-                    .withClass(ObserveStyles.BreakpointOnIcon)
+                    .withClass(ObserveStyles.BreakpointIcon)
                     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
                     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
                     // )
@@ -361,7 +360,9 @@ object StepsTable:
           estimateSize = _ => 40.toPx,
           containerRef = resize.ref.asInstanceOf[Ref.Simple[HTMLDivElement]],
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
-          rowMod = row => rowClass(row.index.toInt, row.original),
+          rowMod = row =>
+            rowClass(row.index.toInt, row.original) |+|
+              ObserveStyles.StepRowWithBreakpoint.when_(row.original.breakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
           // containerMod = ^.height := "300px",
           // headerCellMod = { headerCell =>

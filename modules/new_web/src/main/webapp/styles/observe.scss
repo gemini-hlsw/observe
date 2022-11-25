@@ -381,6 +381,89 @@ html {
       background: var(--disabled-row-background);
     }
 
+    @mixin stepRowWithBreakpointCell {
+      border-top-color: #a5673f;
+      border-top-width: 4px;
+    }
+
+    tr.ObserveStyles-stepRowWithBreakpoint {
+      td:not(.ObserveStyles-controlTableCell) {
+        @include stepRowWithBreakpointCell;
+      }
+
+      td .ObserveStyles-iconCell {
+        @include stepRowWithBreakpointCell;
+      }
+
+
+
+      // padding-top: 4px;
+      // background-image: linear-gradient(to right, #a5673f 0px, #a5673f);
+      // background-size: 100% 4px;
+      // background-repeat: no-repeat;
+      // }
+
+      // .ObserveStyles-breakpointTableCell {
+      // transform: translateY(-7px);
+      // }
+    }
+
+    // .stepWithBreakpoint(@line_color) {
+    //   background-image: linear-gradient(to right, @line_color 0px, @line_color);
+    //   font-size: smaller !important;
+    //   text-overflow: ellipsis;
+    //   word-wrap: break-word;
+    //   white-space: nowrap;
+    //   .borderRight();
+    //   .borderTop();
+    //   background-size: 100% 4px;
+    //   background-repeat: no-repeat;
+    //   padding-top: 4px;
+    //   overflow: visible !important;
+    //   outline: none;
+    // }
+
+    // .ObserveStyles-stepRowWithBreakpoint {
+    //   .stepWithBreakpoint(@breakpoint_line_color);
+    // }
+
+    // .ObserveStyles-stepDoneWithBreakpoint {
+    //   .stepWithBreakpoint(@breakpoint_done_line_color);
+    // }
+
+    // .ObserveStyles-stepRowWithBreakpointHover {
+    //   .stepWithBreakpoint(@breakpoint_line_color);
+    //   background-color: @background;
+    //   background-image: linear-gradient(
+    //     to right,
+    //     @borderColor 0px,
+    //     @gutter_end_color 19px,
+    //     lighten(@breakpoint_line_color, 30%) 0px,
+    //     lighten(@breakpoint_line_color, 30%)
+    //   );
+    //   padding-top: 0px;
+    // }
+
+    // .stepWithBreakpointAndControl(@line_color) {
+    //   .stepWithBreakpoint(@line_color);
+    //   background-image: linear-gradient(
+    //     to right,
+    //     @borderColor 0px,
+    //     @gutter_end_color 19px,
+    //     @line_color 19px,
+    //     @line_color
+    //   );
+    //   padding-top: 4px;
+    // }
+
+    // .ObserveStyles-stepRowWithBreakpointAndControl {
+    //   .stepWithBreakpointAndControl(@breakpoint_line_color);
+    // }
+
+    // .ObserveStyles-stepDoneWithBreakpointAndControl {
+    //   .stepWithBreakpointAndControl(@breakpoint_done_line_color);
+    // }
+
     th.ObserveStyles-breakpointTableHeader {
       padding: 0;
     }
@@ -631,47 +714,16 @@ html {
   }
 }
 
-@mixin breakPointHandle {
+.ObserveStyles-breakPointHandle {
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
-
-  &:hover {
-    transform: translateX(-7px) scale(2);
-  }
 }
 
-.ObserveStyles-breakPointHandleOff {
-  @include breakPointHandle;
-
-  // &:hover {
-  //   left: 4.9px;
-  // }
-}
-
-.ObserveStyles-breakPointHandleOn {
-  @include breakPointHandle;
-
-  // &:hover {
-  //   transform: scale(2) translateX(-0.5px) translateY(1px);
-  // }
-}
-
-@mixin breakPointIcon {
-  // position: relative;
+.ObserveStyles-breakPointIcon {
   color: var(--gray-500);
-  // top: -3px; // FIXME I can't get cell contents to overlap with previous row
-  // left: -2px;
 
   &:hover {
     color: var(--gray-700);
   }
-}
-
-.ObserveStyles-breakPointOnIcon {
-  @include breakPointIcon;
-}
-
-.ObserveStyles-breakPointOffIcon {
-  @include breakPointIcon;
 }

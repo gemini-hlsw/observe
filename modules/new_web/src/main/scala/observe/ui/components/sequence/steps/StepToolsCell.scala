@@ -96,26 +96,6 @@ object StepToolsCell:
       val canSetSkipMark   = props.clientStatus.canOperate && props.step.canSetSkipmark
 
       <.div(ObserveStyles.GutterCell)(
-        // <.div(
-        //   ObserveStyles.BreakpointHandleOff.when(props.step.breakpoint),
-        //   ObserveStyles.BreakpointHandleOn.unless(props.step.breakpoint),
-        //   ^.onClick ==> flipBreakpoint(props)
-        // )(
-        //   Icons.XMark
-        //     .withFixedWidth()
-        //     .withClass(ObserveStyles.BreakpointOffIcon)
-        //     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
-        //     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
-        //     // )
-        //     .when(props.step.breakpoint),
-        //   Icons.CaretDown
-        //     .withFixedWidth()
-        //     .withClass(ObserveStyles.BreakpointOnIcon)
-        //     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
-        //     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
-        //     // )
-        //     .unless(props.step.breakpoint)
-        // ), // .when(canSetBreakpoint),
         <.div(
           // ObserveStyles.skipHandle,
           // ^.top := (props.rowHeight / 2 - ObserveStyles.skipHandleHeight + 2).px,
