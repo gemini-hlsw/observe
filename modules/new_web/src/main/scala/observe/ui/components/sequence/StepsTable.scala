@@ -33,14 +33,15 @@ import observe.ui.Icons
 import react.resizeDetector.hooks.*
 import org.scalajs.dom.HTMLDivElement
 import observe.ui.components.sequence.steps.StepBreakStopCell
+import crystal.react.View
 
 case class StepsTable(
   clientStatus: ClientStatus,
-  execution:    Option[Execution]
+  execution:    View[Option[Execution]]
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
 ) extends ReactFnProps(StepsTable.component):
-  val stepList: List[ExecutionStep] = execution.foldMap(_.steps)
+  val stepList: List[ExecutionStep] = execution.get.foldMap(_.steps)
 
   // Find out if offsets should be displayed
   val offsetsDisplay: OffsetsDisplay = stepList.offsetsDisplay
@@ -117,7 +118,7 @@ object StepsTable:
       .useResizeDetector()
       .useMemoBy((props, selectedStep, resize) =>
         (props.clientStatus,
-         props.execution,
+         props.execution.get,
          props.offsetsDisplay,
          selectedStep.value,
          resize.width

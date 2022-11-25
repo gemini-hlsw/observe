@@ -27,6 +27,8 @@ import org.typelevel.log4cats.Logger
 import react.common.ReactFnProps
 import react.common.given
 import react.primereact.*
+import crystal.ViewF
+import crystal.react.hooks.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -39,7 +41,21 @@ object Home {
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .render { (props, _) =>
+      .useStateView(
+        Execution(
+          obsId = Observation.Id.fromLong(133742).get,
+          obsName = "Test Observation",
+          instrument = Instrument.GmosSouth,
+          sequenceState = SequenceState.Running(false, false),
+          steps = observe.demo.DemoExecutionSteps,
+          stepConfigDisplayed = none,
+          nextStepToRun = observe.demo.DemoExecutionSteps.get(2).map(_.id),
+          runningStep = none, // observe.demo.DemoExecutionSteps.get(2).map(_.id),
+          isPreview = false,
+          tabOperations = TabOperations.Default
+        ).some
+      )
+      .render { (props, _, demo) =>
         <.div(ObserveStyles.MainUI)(
           Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
             "Observe GS"
@@ -80,10 +96,10 @@ object Home {
                     )
                   )
                 )(
-                  StepsTable(
-                    clientStatus = clientStatus,
-                    execution = none
-                  )
+                  // StepsTable(
+                  //   clientStatus = clientStatus,
+                  //   execution = ViewF(none, ???)
+                  // )
                 ),
                 TabPanel(
                   clazz = ObserveStyles.SequenceTabPanel,
@@ -99,18 +115,7 @@ object Home {
                 )(
                   StepsTable(
                     clientStatus = clientStatus,
-                    execution = Execution(
-                      obsId = Observation.Id.fromLong(133742).get,
-                      obsName = "Test Observation",
-                      instrument = Instrument.GmosSouth,
-                      sequenceState = SequenceState.Running(false, false),
-                      steps = observe.demo.DemoExecutionSteps,
-                      stepConfigDisplayed = none,
-                      nextStepToRun = observe.demo.DemoExecutionSteps.get(2).map(_.id),
-                      runningStep = none, // observe.demo.DemoExecutionSteps.get(2).map(_.id),
-                      isPreview = false,
-                      tabOperations = TabOperations.Default
-                    ).some
+                    execution = demo
                   )
                 )
               )
