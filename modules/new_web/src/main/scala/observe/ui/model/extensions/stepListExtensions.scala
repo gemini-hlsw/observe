@@ -22,7 +22,7 @@ private def maxWidth(angles: List[Angle]): Double =
 
 extension (steps: List[ExecutionStep])
   // Calculate the widest offset step, widest axis label and widest NS nod label
-  def sequenceOffsetMaxWidth: (Double, Double, Double) =
+  private def sequenceOffsetMaxWidth: (Double, Double, Double) =
     steps
       .collect {
         case s @ StandardStep(_, _, _, _, _, _, _, _)         =>

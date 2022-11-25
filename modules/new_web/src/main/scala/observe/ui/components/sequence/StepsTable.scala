@@ -32,8 +32,10 @@ import scalajs.js
 import observe.ui.Icons
 import react.resizeDetector.hooks.*
 import org.scalajs.dom.HTMLDivElement
-import observe.ui.components.sequence.steps.StepBreakStopCell
+import observe.ui.components.sequence.steps.StepSkipCell
 import crystal.react.View
+import lucuma.ui.utils.*
+import monocle.std.option.some
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -41,15 +43,18 @@ case class StepsTable(
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
 ) extends ReactFnProps(StepsTable.component):
-  val stepList: List[ExecutionStep] = execution.get.foldMap(_.steps)
+  val stepList: List[View[ExecutionStep]] =
+    execution
+      .mapValue((e: View[Execution]) => e.zoom(Execution.steps).toListOfViews)
+      .orEmpty
 
   // Find out if offsets should be displayed
-  val offsetsDisplay: OffsetsDisplay = stepList.offsetsDisplay
+  val offsetsDisplay: OffsetsDisplay = stepList.map(_.get).offsetsDisplay
 
 object StepsTable:
   private type Props = StepsTable
 
-  private val ColDef = ColumnDef[ExecutionStep]
+  private val ColDef = ColumnDef[View[ExecutionStep]]
 
   private def renderStringCell(value: Option[String]): VdomNode =
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
@@ -107,9 +112,13 @@ object StepsTable:
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[raw.mod.CellContext[ExecutionStep, V] => VdomNode] = js.undefined
-  ): ColumnDef[ExecutionStep, V] =
+    cell:   js.UndefOr[raw.mod.CellContext[View[ExecutionStep], V] => VdomNode] = js.undefined
+  ): ColumnDef[View[ExecutionStep], V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
+
+  extension (step: View[ExecutionStep])
+    def flipBreakpoint: Callback =
+      step.zoom(ExecutionStep.breakpoint).mod(!_)
 
   private val component =
     ScalaFnComponent
@@ -133,8 +142,8 @@ object StepsTable:
                 val step = cell.row.original
 
                 <.div(
-                  ObserveStyles.BreakpointHandle
-                    // ^.onClick ==> flipBreakpoint(props)
+                  ObserveStyles.BreakpointHandle,
+                  ^.onClick --> step.flipBreakpoint
                 )(
                   Icons.XMark
                     .withFixedWidth()
@@ -142,14 +151,14 @@ object StepsTable:
                     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
                     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
                     // )
-                    .when(step.breakpoint),
+                    .when(step.get.breakpoint),
                   Icons.CaretDown
                     .withFixedWidth()
                     .withClass(ObserveStyles.BreakpointIcon)
                     //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
                     //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
                     // )
-                    .unless(step.breakpoint)
+                    .unless(step.get.breakpoint)
                 ) // .when(canSetBreakpoint),
             ),
             column(
@@ -157,15 +166,15 @@ object StepsTable:
               Icons.Gears,
               cell =>
                 execution.map(e =>
-                  StepBreakStopCell(
+                  StepSkipCell(
                     clientStatus,
                     cell.row.original,
                     e.obsId,
-                    e.obsName,
-                    false, // canSetBreakpoint(row.step, f.steps),
-                    null,  // rowBreakpointHoverOnCB,
-                    null,  // rowBreakpointHoverOffCB,
-                    null   // recomputeHeightsCB
+                    e.obsName
+                    // false, // canSetBreakpoint(row.step, f.steps),
+                    // null,  // rowBreakpointHoverOnCB,
+                    // null,  // rowBreakpointHoverOffCB,
+                    // null   // recomputeHeightsCB
                   )
                 )
               // ).when(clientStatus.isLogged)
@@ -192,7 +201,8 @@ object StepsTable:
               "",
               cell =>
                 execution.map(e =>
-                  val step = cell.row.original
+                  val step = cell.row.original.get
+
                   StepIconCell(
                     step.status,
                     step.skip,
@@ -223,30 +233,32 @@ object StepsTable:
             column(
               OffsetsColumnId,
               "Offsets",
-              cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original)
+              cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original.get)
             ),
             column(ObsModeColumnId, "Observing Mode"),
             column(
               ExposureColumnId,
               "Exposure",
-              cell => execution.map(e => ExposureTimeCell(cell.row.original, e.instrument))
+              cell => execution.map(e => ExposureTimeCell(cell.row.original.get, e.instrument))
             ),
             column(
               DisperserColumnId,
               "Disperser",
               cell =>
-                execution.map(e => renderStringCell(cell.row.original.disperser(e.instrument))),
+                execution.map(e => renderStringCell(cell.row.original.get.disperser(e.instrument))),
             ),
             column(
               FilterColumnId,
               "Filter",
-              cell => execution.map(e => renderStringCell(cell.row.original.filter(e.instrument)))
+              cell =>
+                execution.map(e => renderStringCell(cell.row.original.get.filter(e.instrument)))
             ),
             column(
               FPUColumnId,
               "FPU",
               cell =>
-                val step = cell.row.original
+                val step = cell.row.original.get
+
                 execution.map(e =>
                   renderStringCell(
                     step
@@ -262,14 +274,14 @@ object StepsTable:
             column(
               TypeColumnId,
               "Type",
-              cell => execution.map(e => ObjectTypeCell(e.instrument, cell.row.original))
+              cell => execution.map(e => ObjectTypeCell(e.instrument, cell.row.original.get))
             ),
             column(
               SettingsColumnId,
               Icons.RectangleList,
               cell =>
                 execution.map(e =>
-                  SettingsCell(e.instrument, e.obsId, cell.row.original.id, e.isPreview)
+                  SettingsCell(e.instrument, e.obsId, cell.row.original.get.id, e.isPreview)
                 )
             )
           )
@@ -387,8 +399,8 @@ object StepsTable:
           containerRef = resize.ref.asInstanceOf[Ref.Simple[HTMLDivElement]],
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row =>
-            rowClass(row.index.toInt, row.original) |+|
-              ObserveStyles.StepRowWithBreakpoint.when_(row.original.breakpoint),
+            rowClass(row.index.toInt, row.original.get) |+|
+              ObserveStyles.StepRowWithBreakpoint.when_(row.original.get.breakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
           // containerMod = ^.height := "300px",
           // headerCellMod = { headerCell =>

@@ -95,7 +95,7 @@ object Settings {
     val lucumaCore    = "0.45.0"
     val lucumaCore3   = "0.57.0"
     val lucumaUI      = "0.39.0"
-    val lucumaUI3     = "0.56-d50c12e-20221125T162104Z-SNAPSHOT"
+    val lucumaUI3     = "0.56-d50c12e-20221125T205806Z-SNAPSHOT"
     val lucumaSchemas = "0.33.0"
 
     // Clue

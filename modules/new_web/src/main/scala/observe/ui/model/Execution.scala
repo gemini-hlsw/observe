@@ -11,6 +11,8 @@ import lucuma.core.model.sequence.Step
 import observe.model.ExecutionStep
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
+import monocle.Focus
+import monocle.Lens
 
 // Formerly StepsTableFocus
 case class Execution(
@@ -26,3 +28,6 @@ case class Execution(
   isPreview:           Boolean,
   tabOperations:       TabOperations
 ) derives Eq
+
+object Execution:
+  val steps: Lens[Execution, List[ExecutionStep]] = Focus[Execution](_.steps)

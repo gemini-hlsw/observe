@@ -16,6 +16,7 @@ import observe.model.ExecutionStep
 import lucuma.core.model.Observation
 import react.fa.FontAwesomeIcon
 import react.fa.Rotation
+import crystal.react.View
 
 // case class StepToolsCell(
 //   clientStatus:      ClientStatus,
@@ -60,28 +61,28 @@ import react.fa.Rotation
 /**
  * Component to display an icon for the state
  */
-case class StepBreakStopCell(
-  clientStatus:      ClientStatus,
-  step:              ExecutionStep,
-  obsId:             Observation.Id,
-  obsName:           String,
-  canSetBreakpoint:  Boolean,
-  breakPointEnterCB: Step.Id => Callback,
-  breakPointLeaveCB: Step.Id => Callback,
-  heightChangeCB:    Step.Id => Callback
-) extends ReactFnProps(StepBreakStopCell.component)
+case class StepSkipCell(
+  clientStatus: ClientStatus,
+  step:         View[ExecutionStep],
+  obsId:        Observation.Id,
+  obsName:      String
+  // canSetBreakpoint:  Boolean,
+  // breakPointEnterCB: Step.Id => Callback,
+  // breakPointLeaveCB: Step.Id => Callback,
+  // heightChangeCB:    Step.Id => Callback
+) extends ReactFnProps(StepSkipCell.component)
 
-object StepBreakStopCell:
-  private type Props = StepBreakStopCell
+object StepSkipCell:
+  private type Props = StepSkipCell
 
   // Request a to flip the breakpoint
-  private def flipBreakpoint(p: Props)(e: ReactEvent): Callback =
-    e.preventDefaultCB >>
-      e.stopPropagationCB // >>
-    // Callback.when(p.clientStatus.canOperate)(
-    //   ObserveCircuit.dispatchCB(FlipBreakpointStep(p.obsIdName, p.step)) *>
-    //     p.heightChangeCB(p.step.id)
-    // )
+  // private def flipBreakpoint(p: Props)(e: ReactEvent): Callback =
+  // e.preventDefaultCB >>
+  // e.stopPropagationCB // >>
+  // Callback.when(p.clientStatus.canOperate)(
+  //   ObserveCircuit.dispatchCB(FlipBreakpointStep(p.obsIdName, p.step)) *>
+  //     p.heightChangeCB(p.step.id)
+  // )
 
   // Request a to flip the skip
   private def flipSkipped(p: Props)(e: ReactEvent): Callback =
@@ -92,8 +93,8 @@ object StepBreakStopCell:
     // )
 
   private val component = ScalaFnComponent[Props](props =>
-    val canSetBreakpoint = props.clientStatus.canOperate && props.canSetBreakpoint
-    val canSetSkipMark   = props.clientStatus.canOperate && props.step.canSetSkipmark
+    // val canSetBreakpoint = props.clientStatus.canOperate && props.canSetBreakpoint
+    val canSetSkipMark = props.clientStatus.canOperate && props.step.get.canSetSkipmark
 
     <.div(
       // ObserveStyles.skipHandle,

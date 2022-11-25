@@ -24,10 +24,11 @@ import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
 import observe.ui.model.extensions.*
 import react.common.*
+import crystal.react.View
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,
-  step:          ExecutionStep,
+  step:          View[ExecutionStep],
   stepIndex:     Int,
   obsId:         Observation.Id,
   instrument:    Instrument,
@@ -41,13 +42,13 @@ case class StepProgressCell(
       (clientStatus.isLogged || tabOperations.resourceRunNotIdle(i))
 
   val isAC: Boolean =
-    step.alignAndCalib(instrument).isDefined
+    step.get.alignAndCalib(instrument).isDefined
 
   val isNS: Boolean =
-    step.nodAndShuffle(instrument).isDefined
+    step.get.nodAndShuffle(instrument).isDefined
 
   private val isRunning =
-    tabOperations.resourceInFlight(step.id) || step.isRunning
+    tabOperations.resourceInFlight(step.get.id) || step.get.isRunning
 
   val isACRunning: Boolean =
     isAC && isRunning
@@ -56,10 +57,10 @@ case class StepProgressCell(
     isNS && isRunning
 
   val isNSObserving: Boolean =
-    isNS && step.isRunning
+    isNS && step.get.isRunning
 
   val anyError: Boolean =
-    tabOperations.resourceInError(step.id) || step.hasError
+    tabOperations.resourceInError(step.get.id) || step.get.hasError
 
   val isACInError: Boolean =
     isAC && anyError
@@ -68,10 +69,10 @@ case class StepProgressCell(
     isNS && anyError
 
   val isBias: Boolean =
-    step.stepType(instrument).exists(_ === ExecutionStepType.Bias)
+    step.get.stepType(instrument).exists(_ === ExecutionStepType.Bias)
 
   def canControlThisStep(selected: Option[Step.Id], hasControls: Boolean): Boolean =
-    hasControls && selected.exists(_ === step.id)
+    hasControls && selected.exists(_ === step.get.id)
 
   // def detailRows(selected: Option[StepId], hasControls: Boolean): DetailRows =
   //   if (((isNS || isNSInError) && canControlThisStep(selected, hasControls)) || isNSObserving)
@@ -81,11 +82,11 @@ case class StepProgressCell(
   //   else
   //     DetailRows.NoDetailRows
 
-  val nsStatus: Option[NodAndShuffleStatus] = step match
+  val nsStatus: Option[NodAndShuffleStatus] = step.get match
     case x: NodAndShuffleStep => Some(x.nsStatus)
     case _                    => None
 
-  val nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = step match
+  val nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = step.get match
     case x: NodAndShuffleStep => x.pendingObserveCmd
     case _                    => None
 
@@ -96,20 +97,20 @@ object StepProgressCell:
   private type Props = StepProgressCell
 
   private given ControlButtonResolver[Props] =
-    ControlButtonResolver.build(p => (p.clientStatus, p.sequenceState, p.step))
+    ControlButtonResolver.build(p => (p.clientStatus, p.sequenceState, p.step.get))
 
   private def stepControlButtons(props: Props): TagMod =
     StepControlButtons(
       props.obsId,
       props.instrument,
       props.sequenceState,
-      props.step.id,
-      props.step.isObservePaused,
-      props.step.isMultiLevel,
+      props.step.get.id,
+      props.step.get.isObservePaused,
+      props.step.get.isMultiLevel,
       props.tabOperations
     ).when(props.controlButtonsActive)
 
-  // private def stepSystemsStatus(step: Step): VdomElement =
+  // private def step.getSystemsStatus(step.get: Step): VdomElement =
   //   <.div(
   //     ObserveStyles.configuringRow,
   //     <.div(
@@ -119,7 +120,7 @@ object StepProgressCell:
   //     <.div(
   //       ObserveStyles.subsystems,
   //       Step.configStatus
-  //         .getOption(step)
+  //         .getOption(step.get)
   //         .orEmpty
   //         .sortBy(_._1)
   //         .map(Function.tupled(statusLabel))
@@ -137,7 +138,7 @@ object StepProgressCell:
       if (props.isBias)
         // BiasStatus(
         //   props.obsIdName,
-        //   props.step.id,
+        //   props.step.get.id,
         //   fileId,
         //   stopping = !paused && props.isStopping,
         //   paused
@@ -147,14 +148,14 @@ object StepProgressCell:
         props.nsStatus.fold[VdomNode] {
           ObservationProgressBar(
             props.obsId,
-            props.step.id,
+            props.step.get.id,
             fileId,
             stopping = !paused && props.isStopping,
             paused
           )
         } { nsStatus =>
           // NodAndShuffleProgressMessage(props.obsIdName,
-          //                              props.step.id,
+          //                              props.step.get.id,
           //                              fileId,
           //                              props.isStopping,
           //                              paused,
@@ -166,14 +167,14 @@ object StepProgressCell:
     )
 
   private val component = ScalaFnComponent[Props](props =>
-    (props.sequenceState, props.step) match
+    (props.sequenceState, props.step.get) match
       case (f, s) if s.status === StepState.Running && s.fileId.isEmpty && f.userStopRequested =>
         // Case pause at the sequence level
-        // stepObservationPausing(props)
+        // step.getObservationPausing(props)
         EmptyVdom
       case (_, s) if s.status === StepState.Running && s.fileId.isEmpty                        =>
         // Case configuring, label and status icons
-        // stepSystemsStatus(s)
+        // step.getSystemsStatus(s)
         EmptyVdom
       case (_, s) if s.isObservePaused && s.fileId.isDefined                                   =>
         // Case for exposure paused, label and control buttons
@@ -183,13 +184,13 @@ object StepProgressCell:
         stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = false)
       case (_, s) if s.wasSkipped                                                              =>
         <.p("Skipped")
-      case (_, _) if props.step.skip                                                           =>
+      case (_, _) if props.step.get.skip                                                       =>
         <.p("Skip")
       case (_, s) if s.status === StepState.Completed && s.fileId.isDefined                    =>
         <.p(ObserveStyles.ComponentLabel, s.fileId.map(_.value).orEmpty)
       case (_, s) if props.stepSelected(s.id) && s.canConfigure                                =>
-        // stepSubsystemControl(props)
+        // step.getSubsystemControl(props)
         EmptyVdom
       case _                                                                                   =>
-        <.p(ObserveStyles.ComponentLabel, props.step.shortName)
+        <.p(ObserveStyles.ComponentLabel, props.step.get.shortName)
   )
