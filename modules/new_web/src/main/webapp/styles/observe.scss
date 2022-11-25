@@ -381,6 +381,19 @@ html {
       background: var(--disabled-row-background);
     }
 
+    th.ObserveStyles-breakpointTableHeader {
+      padding: 0;
+    }
+
+
+    // The actual cell is translated.
+    td.ObserveStyles-breakpointTableCell {
+      vertical-align: top;
+      transform: translateY(-9px);
+      overflow: visible; // This shows the breakpoint markers, even with width 0.
+      padding: 0;
+    }
+
     td.ObserveStyles-controlTableCell {
       padding: 0;
       position: relative;
@@ -619,45 +632,36 @@ html {
 }
 
 @mixin breakPointHandle {
-  // position: relative;
-  // z-index: 200;
-  // left: 3.82px;
-  // top: -4px;
-  // height: 13px;
-  // width: 13px;
-  position: absolute;
-  transform: translateY(-28px);
-
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
 
   &:hover {
-    transform: translateX(-0.5px) scale(2);
+    transform: translateX(-7px) scale(2);
   }
 }
 
 .ObserveStyles-breakPointHandleOff {
   @include breakPointHandle;
 
-  &:hover {
-    left: 4.9px;
-  }
+  // &:hover {
+  //   left: 4.9px;
+  // }
 }
 
 .ObserveStyles-breakPointHandleOn {
   @include breakPointHandle;
 
-  &:hover {
-    transform: translateX(-0.5px) scale(2) translateY(1px);
-  }
+  // &:hover {
+  //   transform: scale(2) translateX(-0.5px) translateY(1px);
+  // }
 }
 
 @mixin breakPointIcon {
-  position: relative;
+  // position: relative;
   color: var(--gray-500);
-  top: -3px; // FIXME I can't get cell contents to overlap with previous row
-  left: -2px;
+  // top: -3px; // FIXME I can't get cell contents to overlap with previous row
+  // left: -2px;
 
   &:hover {
     color: var(--gray-700);
@@ -670,6 +674,4 @@ html {
 
 .ObserveStyles-breakPointOffIcon {
   @include breakPointIcon;
-
-  top: 3px; // FIXME I can't get cell contents to overlap with previous row
 }
