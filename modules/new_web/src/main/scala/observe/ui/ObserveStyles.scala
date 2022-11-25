@@ -88,9 +88,9 @@ object ObserveStyles {
 
   val BreakpointTableHeader: Css = Css("ObserveStyles-breakpointTableHeader")
   val BreakpointTableCell: Css   = Css("ObserveStyles-breakpointTableCell")
-  val ControlTableCell: Css      = Css("ObserveStyles-controlTableCell")
-  val ControlCell: Css           = Css("ObserveStyles-controlCell")
-  val GutterCell: Css            = Css("ObserveStyles-gutterCell")
+  // val ControlTableCell: Css      = Css("ObserveStyles-controlTableCell")
+  // val ControlCell: Css           = Css("ObserveStyles-controlCell")
+  val SkipTableCell: Css         = Css("ObserveStyles-skipTableCell")
   val SkippedIconCell: Css       = Css("ObserveStyles-skippedIconCell")
   val IconCell: Css              = Css("ObserveStyles-iconCell")
 

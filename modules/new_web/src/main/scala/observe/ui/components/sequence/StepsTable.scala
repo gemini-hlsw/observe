@@ -32,6 +32,7 @@ import scalajs.js
 import observe.ui.Icons
 import react.resizeDetector.hooks.*
 import org.scalajs.dom.HTMLDivElement
+import observe.ui.components.sequence.steps.StepBreakStopCell
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -53,7 +54,9 @@ object StepsTable:
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
 
   private val BreakpointColumnId: ColumnId    = ColumnId("breakpoint")
-  private val ControlColumnId: ColumnId       = ColumnId("control")
+  // private val ControlColumnId: ColumnId       = ColumnId("control")
+  private val SkipColumnId: ColumnId          = ColumnId("skip")
+  private val IconColumnId: ColumnId          = ColumnId("icon")
   private val IndexColumnId: ColumnId         = ColumnId("index")
   private val StateColumnId: ColumnId         = ColumnId("state")
   private val OffsetsColumnId: ColumnId       = ColumnId("offsets")
@@ -71,7 +74,9 @@ object StepsTable:
 
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
     BreakpointColumnId    -> FixedSize(0.toPx),
-    ControlColumnId       -> FixedSize(43.toPx),
+    // ControlColumnId       -> FixedSize(43.toPx),
+    SkipColumnId          -> FixedSize(43.toPx),
+    IconColumnId          -> FixedSize(0.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
     StateColumnId         -> Resizable(350.toPx, min = 350.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
@@ -147,17 +152,13 @@ object StepsTable:
                 ) // .when(canSetBreakpoint),
             ),
             column(
-              ControlColumnId,
+              SkipColumnId,
               Icons.Gears,
               cell =>
                 execution.map(e =>
-                  StepToolsCell(
+                  StepBreakStopCell(
                     clientStatus,
                     cell.row.original,
-                    30,    // rowHeight($)(cell.row.original.id),
-                    30,    // $.props.rowDetailsHeight(row.step, $.state.selected),
-                    e.isPreview,
-                    e.nextStepToRun,
                     e.obsId,
                     e.obsName,
                     false, // canSetBreakpoint(row.step, f.steps),
@@ -166,14 +167,38 @@ object StepsTable:
                     null   // recomputeHeightsCB
                   )
                 )
+              // ).when(clientStatus.isLogged)
+              //   .unless(e.isPreview)
 
-// stepControlRenderer(_,
-//                              $,
-//                              rowBreakpointHoverOnCB($),
-//                              rowBreakpointHoverOffCB($),
-//                              recomputeRowHeightsCB($.props)
-//          )
-
+              // StepToolsCell(
+              //   clientStatus,
+              //   cell.row.original,
+              //   30,    // rowHeight($)(cell.row.original.id),
+              //   30,    // $.props.rowDetailsHeight(row.step, $.state.selected),
+              //   e.isPreview,
+              //   e.nextStepToRun,
+              //   e.obsId,
+              //   e.obsName,
+              //   false, // canSetBreakpoint(row.step, f.steps),
+              //   null,  // rowBreakpointHoverOnCB,
+              //   null,  // rowBreakpointHoverOffCB,
+              //   null   // recomputeHeightsCB
+              // )
+              // )
+            ),
+            column(
+              IconColumnId,
+              "",
+              cell =>
+                execution.map(e =>
+                  val step = cell.row.original
+                  StepIconCell(
+                    step.status,
+                    step.skip,
+                    e.nextStepToRun.forall(_ === step.id),
+                    0 // props.rowHeight - props.secondRowHeight
+                  )
+                )
             ),
             column(IndexColumnId, "Step", _.row.index.toInt + 1),
             column(
@@ -405,11 +430,14 @@ object StepsTable:
           // },
           headerCellMod = _.column.id match
             case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
+            case id if id == SkipColumnId.value       => ^.colSpan := 2
+            case id if id == IconColumnId.value       =>            ^.display.none
             case _                                    => TagMod.empty
           ,
           cellMod = _.column.id match
             case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableCell
-            case id if id == ControlColumnId.value    => ObserveStyles.ControlTableCell
+            case id if id == SkipColumnId.value       => ObserveStyles.SkipTableCell
+            // case id if id == ControlColumnId.value    => ObserveStyles.ControlTableCell
             case _                                    => TagMod.empty
           ,
           overscan = 5

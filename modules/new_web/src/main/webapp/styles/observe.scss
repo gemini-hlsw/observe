@@ -387,13 +387,13 @@ html {
     }
 
     tr.ObserveStyles-stepRowWithBreakpoint {
-      td:not(.ObserveStyles-controlTableCell) {
+      td:not(.ObserveStyles-skipTableCell):not(.ObserveStyles-breakpointTableCell) {
         @include stepRowWithBreakpointCell;
       }
 
-      td .ObserveStyles-iconCell {
-        @include stepRowWithBreakpointCell;
-      }
+      // td .ObserveStyles-iconCell {
+      //   @include stepRowWithBreakpointCell;
+      // }
 
 
 
@@ -472,7 +472,7 @@ html {
     // The actual cell is translated.
     td.ObserveStyles-breakpointTableCell {
       vertical-align: top;
-      transform: translateY(-9px);
+      transform: translate(2px, -9px);
       overflow: visible; // This shows the breakpoint markers, even with width 0.
       padding: 0;
     }
@@ -685,22 +685,22 @@ html {
   height: 100%;
 }
 
-.ObserveStyles-gutterCell {
-  // background-image: linear-gradient(to bottom,
-  //     rgba(249, 0, 1, 0) 0%,
-  //     rgba(249, 0, 1, 0) 0%),
-  //   linear-gradient(to right, @borderColor 0px, @gutter_end_color 19px) !important;
-  background-clip: padding-box;
-  // background-color: @white;
-  width: 21px;
-  min-width: 21px;
-  border-right-style: solid;
-  border-right-color: var(--surface-border);
-  border-right-width: 1.5px;
-  position: relative;
-  z-index: 0;
-  height: 100%;
-}
+// .ObserveStyles-skipCell {
+//   // background-image: linear-gradient(to bottom,
+//   //     rgba(249, 0, 1, 0) 0%,
+//   //     rgba(249, 0, 1, 0) 0%),
+//   //   linear-gradient(to right, @borderColor 0px, @gutter_end_color 19px) !important;
+//   background-clip: padding-box;
+//   // background-color: @white;
+//   width: 21px;
+//   min-width: 21px;
+//   border-right-style: solid;
+//   border-right-color: var(--surface-border);
+//   border-right-width: 1.5px;
+//   position: relative;
+//   z-index: 0;
+//   height: 100%;
+// }
 
 .ObserveStyles-iconCell {
   justify-content: center;
@@ -718,12 +718,16 @@ html {
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
+
+  &:hover {
+    transform: scale(2) translateX(-4px); // translateY(1px);
+  }
 }
 
 .ObserveStyles-breakPointIcon {
-  color: var(--gray-500);
+  color: var(--gray-600);
 
   &:hover {
-    color: var(--gray-700);
+    color: var(--gray-800);
   }
 }
