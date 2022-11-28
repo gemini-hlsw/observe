@@ -180,22 +180,6 @@ object StepsTable:
                 )
               // ).when(clientStatus.isLogged)
               //   .unless(e.isPreview)
-
-              // StepToolsCell(
-              //   clientStatus,
-              //   cell.row.original,
-              //   30,    // rowHeight($)(cell.row.original.id),
-              //   30,    // $.props.rowDetailsHeight(row.step, $.state.selected),
-              //   e.isPreview,
-              //   e.nextStepToRun,
-              //   e.obsId,
-              //   e.obsName,
-              //   false, // canSetBreakpoint(row.step, f.steps),
-              //   null,  // rowBreakpointHoverOnCB,
-              //   null,  // rowBreakpointHoverOffCB,
-              //   null   // recomputeHeightsCB
-              // )
-              // )
             ),
             column(
               IconColumnId,
@@ -313,70 +297,6 @@ object StepsTable:
             case Updater.Mod(fn) => colSizes.modState(fn)
         )
       )
-      // .useState(true)          // initialRender
-      // .useEffectOnMountBy((_, _, _, _, initialRender) => initialRender.setState(false))
-      .useEffectWithDepsBy((_, _, resize, _, _, _, _) => resize.width.filterNot(_.isEmpty))(
-        // .useEffectBy(
-        (_, _, resize, _, _, _, table) =>
-          //   resize.width
-          _.map(width =>
-            val fixedColsWidth =
-              table
-                .getVisibleFlatColumns()
-                .map(col => ColumnSizes(col.id))
-                .collect { case FixedSize(size) => size.value }
-                .sum
-
-            val currentResizableColumnsWidth = table.getTotalSize().value - fixedColsWidth
-            val ratio                        = (width - fixedColsWidth).toDouble / currentResizableColumnsWidth
-
-            Callback.log(s"RESIZING! Ratio: $ratio") >>
-              table.modColumnSizing(
-                _.modify(resizedCols =>
-                  // val initialResizableSizes: Map[ColumnId, SizePx] =
-
-                  println(s"BEFORE: $resizedCols")
-
-                  val newCols =
-                    table
-                      .getVisibleFlatColumns()
-                      .map(col => (col.id, ColumnSizes(col.id)))
-                      .collect { case (colId, Resizable(initial, _, _)) =>
-                        colId -> resizedCols
-                          .getOrElse(colId, initial)
-                          .modify(s => (s * ratio).toInt)
-                      }
-                      .toMap
-
-                  // println(cols)
-                  // val newCols = cols.map((colId, size) =>
-                  //   colId ->
-                  //     // (ColumnSizes.get(colId) match
-                  //     //   case Some(Resizable(_, _, _)) => size.modify(s => (s * ratio).toInt)
-                  //     //   case _                        => size
-                  //     // )
-                  // )
-
-                  println(s"AFTER: $newCols")
-
-                  newCols
-                )
-              )
-          )
-            .getOrElse(Callback.log(resize))
-        // .orEmpty
-
-        // table
-        //   .getAllColumns()
-        //   .filter(_.getIsVisible())
-        //   .map(col => (col, ColumnSizes(col.id))) // columnSizes of id + col)
-        //   .collect { case (col, Resizable(_, _, _)) =>
-        //     table.modColumnSizing(colSizing => colSizing)
-        //   // Callback.empty // col.setnewidth
-        //   }
-        //   .sequence
-        //   .void
-      )
       .useEffectWithDepsBy((_, _, resize, _, _, _, table) =>
         (resize.width.filterNot(_.isEmpty).orEmpty, table.getTotalSize().value)
       )((_, _, _, ratio, _, _, table) =>
@@ -423,10 +343,7 @@ object StepsTable:
             .map(width => width.toDouble / allColumnsWidth)
             .orEmpty
 
-        // <.div.withRef(resize.ref)(^.width := "100%", ^.height := "100%")(
-        // resize.width.map(width =>
         PrimeAutoHeightVirtualizedTable(
-          // PrimeVirtualizedTable(
           table,
           // TODO Is it necessary to explicitly specify increased height of Running row?
           estimateSize = _ => 40.toPx,
@@ -437,46 +354,16 @@ object StepsTable:
               ObserveStyles.StepRowWithBreakpoint.when_(row.original.get.breakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
           // containerMod = ^.height := "300px",
-          // headerCellMod = { (headerCell: raw.mod.Header[View[ExecutionStep], Any]) =>
           headerCellMod = { headerCell =>
             TagMod(
               ^.width := (headerCell.id match
-                  // case colId if ColumnId(colId) == StateColumnId =>
-                  //   val minStateColWidth =
-                  //     __WIDTH - headerCell
-                  //       .getContext()
-                  //       .table
-                  //       .getAllLeafColumns()
-                  //       .filterNot(_.id == StateColumnId.value)
-                  //       .filter(_.getIsVisible())
-                  //       .foldLeft(0.0)((w, col) => w + col.getSize())
-
-                  //   println(minStateColWidth)
-                  //   println(headerCell.getSize())
-
-                  //   s"${math.max(minStateColWidth, headerCell.getSize())}px"
-                  case colId =>
-                    ColumnSizes.get(ColumnId(colId)) match
-                      //     case _ => s"${headerCell.getSize()}px"
-                      case Some(FixedSize(width))   => s"${width}px"
-                      // case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * 100 / __WIDTH}%"
-                      case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
-                      // multiply minSize and maxSize by ratio too!!!!
-                      case _                        => "0"
-                // case _ => s"${headerCell.getSize() * 100 / __WIDTH}%"
+                case colId =>
+                  ColumnSizes.get(ColumnId(colId)) match
+                    case Some(FixedSize(width))   => s"${width}px"
+                    case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
+                    // multiply minSize and maxSize by ratio too!!!!
+                    case _                        => "0"
               ),
-              // TagMod.when(ColumnId(headerCell.id) == StateColumnId)(
-              //   ^.minWidth := s"${(__WIDTH - headerCell
-              //       .getContext()
-              //       .table
-              //       .getAllLeafColumns()
-              //       .filterNot(_.id == StateColumnId.value)
-              //       .filter(_.getIsVisible())
-              //       .foldLeft(0.0)((w, col) => w + col.getSize()))}px"
-              // )
-              //   )
-              // },
-              // headerCellMod = _.column.id match
               headerCell.column.id match
                 case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
                 case id if id == SkipColumnId.value       => ^.colSpan := 2
@@ -487,11 +374,8 @@ object StepsTable:
           cellMod = _.column.id match
             case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableCell
             case id if id == SkipColumnId.value       => ObserveStyles.SkipTableCell
-            // case id if id == ControlColumnId.value    => ObserveStyles.ControlTableCell
             case _                                    => TagMod.empty
           ,
           overscan = 5
         )
       )
-    // )
-    // )
