@@ -13,6 +13,8 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 Global / semanticdbEnabled := true
 
+ThisBuild / resolvers := List(Resolver.mavenLocal)
+
 ThisBuild / Compile / packageDoc / publishArtifact := false
 ThisBuild / Test / bspEnabled                      := false
 
@@ -111,7 +113,7 @@ lazy val giapi = project
                                 Mouse.value,
                                 Shapeless.value,
                                 CatsEffect.value,
-                                Fs2,
+                                Fs2.value,
                                 GiapiJmsUtil,
                                 GiapiJmsProvider,
                                 GiapiStatusService,
@@ -304,7 +306,7 @@ lazy val new_web = project
       Kittens.value,
       CatsEffect.value,
       Crystal.value,
-      Fs2,
+      Fs2.value,
       LucumaUI3.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore3.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
@@ -391,7 +393,7 @@ lazy val observe_engine = project
   .settings(commonSettings: _*)
   .settings(
     scalacOptions += "-Ymacro-annotations",
-    libraryDependencies ++= Seq(Fs2,
+    libraryDependencies ++= Seq(Fs2.value,
                                 CatsEffect.value,
                                 Log4s.value,
                                 Log4Cats.value

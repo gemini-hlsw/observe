@@ -123,16 +123,17 @@ object StepsTable:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState(none[Step.Id]) // selectedStep
+      .useState(none[Step.Id])  // selectedStep
       .useResizeDetector()
-      .useMemoBy((props, selectedStep, resize) =>
+      .useState(0.0)            // ratio, set after table is defined
+      .useMemoBy((props, selectedStep, resize, _) =>
         (props.clientStatus,
          props.execution.get,
          props.offsetsDisplay,
          selectedStep.value,
          resize.width
         )
-      )((_, _, _) => // cols
+      )((_, _, _, _) => // cols
         (clientStatus, execution, offsetsDisplay, selectedStep, width) =>
           List(
             column(
@@ -287,7 +288,11 @@ object StepsTable:
           )
       )
       // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
-      .useReactTableBy((props, _, resize, cols) =>
+      .useState(ColumnSizing()) // colSizes
+      .useReactTableBy((props, _, resize, _, cols, colSizes) =>
+
+        println(colSizes.value)
+
         TableOptions(
           cols,
           Reusable.never(props.stepList),
@@ -301,14 +306,18 @@ object StepsTable:
               ReadModeColumnId      -> Visibility.Hidden,
               ImagingMirrorColumnId -> Visibility.Hidden
             )
-          )
+          ),
+          state = PartialTableState(columnSizing = colSizes.value),
+          onColumnSizingChange = _ match
+            case Updater.Set(v)  => colSizes.setState(v)
+            case Updater.Mod(fn) => colSizes.modState(fn)
         )
       )
       // .useState(true)          // initialRender
       // .useEffectOnMountBy((_, _, _, _, initialRender) => initialRender.setState(false))
-      .useEffectWithDepsBy((_, _, resize, _, _) => resize.width.filterNot(_.isEmpty))(
+      .useEffectWithDepsBy((_, _, resize, _, _, _, _) => resize.width.filterNot(_.isEmpty))(
         // .useEffectBy(
-        (_, _, resize, _, table) =>
+        (_, _, resize, _, _, _, table) =>
           //   resize.width
           _.map(width =>
             val fixedColsWidth =
@@ -368,7 +377,26 @@ object StepsTable:
         //   .sequence
         //   .void
       )
-      .render((props, _, resize, _, table) => // , initialRender) =>
+      .useEffectWithDepsBy((_, _, resize, _, _, _, table) =>
+        (resize.width.filterNot(_.isEmpty).orEmpty, table.getTotalSize().value)
+      )((_, _, _, ratio, _, _, table) =>
+        (viewportWidth, tableWidth) =>
+          val fixedColsWidth =
+            table
+              .getVisibleFlatColumns()
+              .map(col => ColumnSizes(col.id))
+              .collect { case FixedSize(size) => size.value }
+              .sum
+
+          val currentResizableColumnsWidth = tableWidth - fixedColsWidth
+          // val ratio                        =
+
+          Callback.log(viewportWidth.toDouble / tableWidth) >> ratio.setState(
+            // viewportWidth.toDouble / tableWidth
+            (viewportWidth - fixedColsWidth).toDouble / currentResizableColumnsWidth
+          )
+      )
+      .render((props, _, resize, _, _, colSizes, table) => // , initialRender) =>
 
         def rowClass(index: Int, step: ExecutionStep): Css =
           step match
@@ -382,12 +410,18 @@ object StepsTable:
             // case _                                     => ObserveStyles.StepRow
             case _                                     => Css.Empty
 
-        // println(resize)
-        // val allColumnsWidth = table.getTotalSize().value
-        // val ratio           =
-        //   resize.width
-        //     .map(width => width.toDouble / allColumnsWidth)
-        //     .orEmpty
+        org.scalajs.dom.console.log(
+          table
+            .getHeaderGroups()
+            .map(headerGroup => headerGroup.headers.map(header => header.getSize()))
+        )
+        // println(colSizes.value)
+
+        val allColumnsWidth = table.getTotalSize().value
+        val ratio           =
+          resize.width
+            .map(width => width.toDouble / allColumnsWidth)
+            .orEmpty
 
         // <.div.withRef(resize.ref)(^.width := "100%", ^.height := "100%")(
         // resize.width.map(width =>
@@ -403,50 +437,53 @@ object StepsTable:
               ObserveStyles.StepRowWithBreakpoint.when_(row.original.get.breakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
           // containerMod = ^.height := "300px",
-          // headerCellMod = { headerCell =>
-          //   TagMod(
-          //     ^.width := (headerCell.id match
-          //         // case colId if ColumnId(colId) == StateColumnId =>
-          //         //   val minStateColWidth =
-          //         //     __WIDTH - headerCell
-          //         //       .getContext()
-          //         //       .table
-          //         //       .getAllLeafColumns()
-          //         //       .filterNot(_.id == StateColumnId.value)
-          //         //       .filter(_.getIsVisible())
-          //         //       .foldLeft(0.0)((w, col) => w + col.getSize())
+          // headerCellMod = { (headerCell: raw.mod.Header[View[ExecutionStep], Any]) =>
+          headerCellMod = { headerCell =>
+            TagMod(
+              ^.width := (headerCell.id match
+                  // case colId if ColumnId(colId) == StateColumnId =>
+                  //   val minStateColWidth =
+                  //     __WIDTH - headerCell
+                  //       .getContext()
+                  //       .table
+                  //       .getAllLeafColumns()
+                  //       .filterNot(_.id == StateColumnId.value)
+                  //       .filter(_.getIsVisible())
+                  //       .foldLeft(0.0)((w, col) => w + col.getSize())
 
-          //         //   println(minStateColWidth)
-          //         //   println(headerCell.getSize())
+                  //   println(minStateColWidth)
+                  //   println(headerCell.getSize())
 
-          //         //   s"${math.max(minStateColWidth, headerCell.getSize())}px"
-          //         case colId =>
-          //           ColumnSizes.get(ColumnId(colId)) match
-          //             //     case _ => s"${headerCell.getSize()}px"
-          //             case Some(FixedSize(width))   => s"${width}px"
-          //             // case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * 100 / __WIDTH}%"
-          //             case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
-          //             // multiply minSize and maxSize by ratio too!!!!
-          //             case _                        => "0"
-          //       // case _ => s"${headerCell.getSize() * 100 / __WIDTH}%"
-          //     )
-          //     // TagMod.when(ColumnId(headerCell.id) == StateColumnId)(
-          //     //   ^.minWidth := s"${(__WIDTH - headerCell
-          //     //       .getContext()
-          //     //       .table
-          //     //       .getAllLeafColumns()
-          //     //       .filterNot(_.id == StateColumnId.value)
-          //     //       .filter(_.getIsVisible())
-          //     //       .foldLeft(0.0)((w, col) => w + col.getSize()))}px"
-          //     // )
-          //   )
-          // },
-          headerCellMod = _.column.id match
-            case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
-            case id if id == SkipColumnId.value       => ^.colSpan := 2
-            case id if id == IconColumnId.value       =>            ^.display.none
-            case _                                    => TagMod.empty
-          ,
+                  //   s"${math.max(minStateColWidth, headerCell.getSize())}px"
+                  case colId =>
+                    ColumnSizes.get(ColumnId(colId)) match
+                      //     case _ => s"${headerCell.getSize()}px"
+                      case Some(FixedSize(width))   => s"${width}px"
+                      // case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * 100 / __WIDTH}%"
+                      case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
+                      // multiply minSize and maxSize by ratio too!!!!
+                      case _                        => "0"
+                // case _ => s"${headerCell.getSize() * 100 / __WIDTH}%"
+              ),
+              // TagMod.when(ColumnId(headerCell.id) == StateColumnId)(
+              //   ^.minWidth := s"${(__WIDTH - headerCell
+              //       .getContext()
+              //       .table
+              //       .getAllLeafColumns()
+              //       .filterNot(_.id == StateColumnId.value)
+              //       .filter(_.getIsVisible())
+              //       .foldLeft(0.0)((w, col) => w + col.getSize()))}px"
+              // )
+              //   )
+              // },
+              // headerCellMod = _.column.id match
+              headerCell.column.id match
+                case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
+                case id if id == SkipColumnId.value       => ^.colSpan := 2
+                case id if id == IconColumnId.value       =>            ^.display.none
+                case _                                    => TagMod.empty
+            )
+          },
           cellMod = _.column.id match
             case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableCell
             case id if id == SkipColumnId.value       => ObserveStyles.SkipTableCell

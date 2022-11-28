@@ -15,7 +15,7 @@ object Settings {
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val javaTimeJS              = "2.4.0"
-    val lucumaReact             = "0.21-f7ca097-20221123T203035Z-SNAPSHOT"
+    val lucumaReact             = "0.22.0-11-877fedf-20221128T224716Z-SNAPSHOT"
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
@@ -128,7 +128,7 @@ object Settings {
     val Kittens     = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
     val CatsEffect  =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
-    val Fs2         = "co.fs2"            %% "fs2-core"           % LibraryVersions.fs2Version
+    val Fs2         = Def.setting("co.fs2" %%% "fs2-core" % LibraryVersions.fs2Version)
     val Fs2IO       = "co.fs2"            %% "fs2-io"             % LibraryVersions.fs2Version % "test"
     val Mouse       = Def.setting("org.typelevel" %%% "mouse" % LibraryVersions.mouseVersion)
     val Shapeless   = Def.setting("com.chuusai" %%% "shapeless" % LibraryVersions.shapelessVersion)
