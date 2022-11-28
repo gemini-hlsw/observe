@@ -273,7 +273,7 @@ object StepsTable:
       )
       // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
       .useState(ColumnSizing()) // colSizes
-      .useReactTableBy((props, _, resize, _, cols, colSizes) =>
+      .useReactTableBy((props, _, resize, ratio, cols, colSizes) =>
 
         println(colSizes.value)
 
@@ -294,7 +294,10 @@ object StepsTable:
           state = PartialTableState(columnSizing = colSizes.value),
           onColumnSizingChange = _ match
             case Updater.Set(v)  => colSizes.setState(v)
-            case Updater.Mod(fn) => colSizes.modState(fn)
+            case Updater.Mod(fn) =>
+              colSizes.modState(fn) >> colSizes.modState(
+                _.modify(_.view.mapValues(_.modify(px => (px * ratio.value).toInt)).toMap)
+              )
         )
       )
       .useEffectWithDepsBy((_, _, resize, _, _, _, table) =>
@@ -356,14 +359,14 @@ object StepsTable:
           // containerMod = ^.height := "300px",
           headerCellMod = { headerCell =>
             TagMod(
-              ^.width := (headerCell.id match
-                case colId =>
-                  ColumnSizes.get(ColumnId(colId)) match
-                    case Some(FixedSize(width))   => s"${width}px"
-                    case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
-                    // multiply minSize and maxSize by ratio too!!!!
-                    case _                        => "0"
-              ),
+              // ^.width := (headerCell.id match
+              //   case colId =>
+              //     ColumnSizes.get(ColumnId(colId)) match
+              //       case Some(FixedSize(width))   => s"${width}px"
+              //       case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
+              //       // multiply minSize and maxSize by ratio too!!!!
+              //       case _                        => "0"
+              // ),
               headerCell.column.id match
                 case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
                 case id if id == SkipColumnId.value       => ^.colSpan := 2
