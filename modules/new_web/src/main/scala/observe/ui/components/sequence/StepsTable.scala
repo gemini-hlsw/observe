@@ -37,6 +37,8 @@ import crystal.react.View
 import lucuma.ui.utils.*
 import monocle.std.option.some
 
+import scala.annotation.tailrec
+
 case class StepsTable(
   clientStatus: ClientStatus,
   execution:    View[Option[Execution]]
@@ -110,46 +112,58 @@ object StepsTable:
     def flipBreakpoint: Callback =
       step.zoom(ExecutionStep.breakpoint).mod(!_)
 
-  private def adjustColSizes(
-    visibleCols:   List[Column[View[ExecutionStep], Any]],
+  private def adjustColSizes[T](
+    visibleCols:   List[ColumnId],
+    resizedCols:   Map[ColumnId, SizePx],
     viewportWidth: Int
-  ): ColumnSizing =
+  ): Map[ColumnId, SizePx] =
     // Columns that reach or go beyond their bounds are treated as fixed.
 
-    // This is wrong
+    @tailrec
+    def go(
+      remainingCols:  Map[ColumnId, SizePx],
+      fixedAccum:     Map[ColumnId, SizePx] = Map.empty,
+      fixedSizeAccum: Int = 0
+    ): Map[ColumnId, SizePx] =
+      val (boundedCols, unboundedCols)
+        : (Iterable[(Option[ColumnId], SizePx)], Iterable[(ColumnId, SizePx)]) =
+        remainingCols.partitionMap((colId, colSize) =>
+          ColumnSizes(colId) match
+            case FixedSize(size)                                         =>
+              (none -> size).asLeft
+            case Resizable(_, Some(min), _) if colSize.value < min.value =>
+              (colId.some -> min).asLeft
+            case Resizable(_, _, Some(max)) if colSize.value > max.value =>
+              (colId.some -> max).asLeft
+            case _                                                       =>
+              (colId -> colSize).asRight
+        )
 
-    // We actually need a recursive algorithm.
-    // Adjust all Resizable cols by ratio.
-    // Then, if any of them break any bounds, convert them to fixed with the bound as size
-    // and repeat the procedure (compute new ratio with remaining space and remaining resizable cols).
-    // Iterate until no new columns are places as "fixed".
+      val boundedColsWidth: Int = boundedCols.map(_._2.value).sum
+      val totalBounded: Int     = fixedSizeAccum + boundedColsWidth
 
-    val (fixedAndBoundedColsWidths, resizableCols) =
-      visibleCols.partitionMap(col =>
-        val colSize = col.getSize()
-        ColumnSizes(col.id) match
-          case FixedSize(size)                                          =>
-            (none -> size).asLeft
-          case Resizable(_, Some(min), _) if colSize.value <= min.value =>
-            (col.id.some -> min).asLeft
-          case Resizable(_, _, Some(max)) if colSize.value >= max.value =>
-            (col.id.some -> max).asLeft
-          case _                                                        =>
-            (col.id -> colSize).asRight
-      )
+      val remainingSpace: Int = viewportWidth - totalBounded
 
-    val fixedColsWidth: Int = fixedAndBoundedColsWidths.map(_._2.value).sum
+      val totalNewUnbounded: Int = unboundedCols.map(_._2.value).sum
 
-    val totalResizableColsWidth: Int = resizableCols.map(_._2.value).sum
+      val ratio: Double = remainingSpace.toDouble / totalNewUnbounded
 
-    val ratio = (viewportWidth - fixedColsWidth).toDouble / totalResizableColsWidth
+      val newFixedAccum: Map[ColumnId, SizePx] = fixedAccum ++ boundedCols.collect {
+        case (Some(colId), size) => colId -> size
+      }
 
-    ColumnSizing(
-      fixedAndBoundedColsWidths
-        .collect { case (Some(colId), width) => colId -> width } ++
-        resizableCols.map { case (colId, width) =>
-          colId -> width.modify(x => (x * ratio).toInt)
-        }: _*
+      val unboundedColsAdjusted: Map[ColumnId, SizePx] =
+        unboundedCols.map((colId, width) => colId -> width.modify(x => (x * ratio).toInt)).toMap
+
+      boundedCols match
+        case Nil        => newFixedAccum ++ unboundedColsAdjusted
+        case newBounded =>
+          go(unboundedColsAdjusted, newFixedAccum, totalBounded)
+
+    go(
+      visibleCols
+        .map(colId => colId -> resizedCols.getOrElse(colId, ColumnSizes(colId).initial))
+        .toMap
     )
 
   private val component =
@@ -328,8 +342,27 @@ object StepsTable:
             case Updater.Set(v)  => colSizes.setState(v)
             case Updater.Mod(fn) =>
               colSizes.modState(v =>
-                fn(v).modify(x => x
-                // _.view.mapValues(_.modify(px => (px * ratio.value).toInt)).toMap
+                fn(v).modify( // x => x
+                  resizedCols =>
+                    adjustColSizes(
+                      // table.getVisibleLeafColumns().map(_.id),
+                      List(
+                        BreakpointColumnId,
+                        SkipColumnId,
+                        IconColumnId,
+                        IndexColumnId,
+                        StateColumnId,
+                        OffsetsColumnId,
+                        ExposureColumnId,
+                        DisperserColumnId,
+                        FilterColumnId,
+                        FPUColumnId,
+                        TypeColumnId,
+                        SettingsColumnId
+                      ),
+                      resizedCols,
+                      resize.width.filterNot(_.isEmpty).orEmpty
+                    )
                 )
               )
         )
@@ -338,7 +371,11 @@ object StepsTable:
         resize.width.filterNot(_.isEmpty).orEmpty
       )((_, _, _, _, colSizes, table) =>
         viewportWidth =>
-          colSizes.setState(adjustColSizes(table.getVisibleLeafColumns(), viewportWidth))
+          colSizes.modState(
+            _.modify(resizedCols =>
+              adjustColSizes(table.getVisibleLeafColumns().map(_.id), resizedCols, viewportWidth)
+            )
+          )
       )
       .render((props, _, resize, _, _, table) => // , initialRender) =>
 
