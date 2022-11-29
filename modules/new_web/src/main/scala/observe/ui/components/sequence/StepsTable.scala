@@ -99,16 +99,6 @@ object StepsTable:
     SettingsColumnId      -> FixedSize(37.toPx)
   )
 
-  // private val ColumnSizes: Map[ColumnId, ColumnSize] = ColumnSizesBase +
-  //   (StateColumnId -> Resizable(
-  //     // (__WIDTH - ColumnSizesBase.values.foldLeft(0)((w, colSize) => w + colSize.size.value)).toPx,
-  //     __WIDTH.toPx,
-  //     min_ = (__WIDTH - ColumnSizesBase.values.foldLeft(0)((w, colSize) =>
-  //       w + colSize.size.value
-  //     )).toPx.some
-  //     // min = 350.toPx.some
-  //   ))
-
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
@@ -120,20 +110,62 @@ object StepsTable:
     def flipBreakpoint: Callback =
       step.zoom(ExecutionStep.breakpoint).mod(!_)
 
+  private def adjustColSizes(
+    visibleCols:   List[Column[View[ExecutionStep], Any]],
+    viewportWidth: Int
+  ): ColumnSizing =
+    // Columns that reach or go beyond their bounds are treated as fixed.
+
+    // This is wrong
+
+    // We actually need a recursive algorithm.
+    // Adjust all Resizable cols by ratio.
+    // Then, if any of them break any bounds, convert them to fixed with the bound as size
+    // and repeat the procedure (compute new ratio with remaining space and remaining resizable cols).
+    // Iterate until no new columns are places as "fixed".
+
+    val (fixedAndBoundedColsWidths, resizableCols) =
+      visibleCols.partitionMap(col =>
+        val colSize = col.getSize()
+        ColumnSizes(col.id) match
+          case FixedSize(size)                                          =>
+            (none -> size).asLeft
+          case Resizable(_, Some(min), _) if colSize.value <= min.value =>
+            (col.id.some -> min).asLeft
+          case Resizable(_, _, Some(max)) if colSize.value >= max.value =>
+            (col.id.some -> max).asLeft
+          case _                                                        =>
+            (col.id -> colSize).asRight
+      )
+
+    val fixedColsWidth: Int = fixedAndBoundedColsWidths.map(_._2.value).sum
+
+    val totalResizableColsWidth: Int = resizableCols.map(_._2.value).sum
+
+    val ratio = (viewportWidth - fixedColsWidth).toDouble / totalResizableColsWidth
+
+    ColumnSizing(
+      fixedAndBoundedColsWidths
+        .collect { case (Some(colId), width) => colId -> width } ++
+        resizableCols.map { case (colId, width) =>
+          colId -> width.modify(x => (x * ratio).toInt)
+        }: _*
+    )
+
   private val component =
     ScalaFnComponent
       .withHooks[Props]
       .useState(none[Step.Id])  // selectedStep
       .useResizeDetector()
-      .useState(0.0)            // ratio, set after table is defined
-      .useMemoBy((props, selectedStep, resize, _) =>
+      // .useRef(0.0)            // tableWidth, set after table is defined
+      .useMemoBy((props, selectedStep, resize) =>
         (props.clientStatus,
          props.execution.get,
          props.offsetsDisplay,
          selectedStep.value,
          resize.width
         )
-      )((_, _, _, _) => // cols
+      )((_, _, _) => // cols
         (clientStatus, execution, offsetsDisplay, selectedStep, width) =>
           List(
             column(
@@ -273,7 +305,7 @@ object StepsTable:
       )
       // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
       .useState(ColumnSizing()) // colSizes
-      .useReactTableBy((props, _, resize, ratio, cols, colSizes) =>
+      .useReactTableBy((props, _, resize, cols, colSizes) =>
 
         println(colSizes.value)
 
@@ -295,31 +327,20 @@ object StepsTable:
           onColumnSizingChange = _ match
             case Updater.Set(v)  => colSizes.setState(v)
             case Updater.Mod(fn) =>
-              colSizes.modState(fn) >> colSizes.modState(
-                _.modify(_.view.mapValues(_.modify(px => (px * ratio.value).toInt)).toMap)
+              colSizes.modState(v =>
+                fn(v).modify(x => x
+                // _.view.mapValues(_.modify(px => (px * ratio.value).toInt)).toMap
+                )
               )
         )
       )
-      .useEffectWithDepsBy((_, _, resize, _, _, _, table) =>
-        (resize.width.filterNot(_.isEmpty).orEmpty, table.getTotalSize().value)
-      )((_, _, _, ratio, _, _, table) =>
-        (viewportWidth, tableWidth) =>
-          val fixedColsWidth =
-            table
-              .getVisibleFlatColumns()
-              .map(col => ColumnSizes(col.id))
-              .collect { case FixedSize(size) => size.value }
-              .sum
-
-          val currentResizableColumnsWidth = tableWidth - fixedColsWidth
-          // val ratio                        =
-
-          Callback.log(viewportWidth.toDouble / tableWidth) >> ratio.setState(
-            // viewportWidth.toDouble / tableWidth
-            (viewportWidth - fixedColsWidth).toDouble / currentResizableColumnsWidth
-          )
+      .useEffectWithDepsBy((_, _, resize, _, _, table) =>
+        resize.width.filterNot(_.isEmpty).orEmpty
+      )((_, _, _, _, colSizes, table) =>
+        viewportWidth =>
+          colSizes.setState(adjustColSizes(table.getVisibleLeafColumns(), viewportWidth))
       )
-      .render((props, _, resize, _, _, colSizes, table) => // , initialRender) =>
+      .render((props, _, resize, _, _, table) => // , initialRender) =>
 
         def rowClass(index: Int, step: ExecutionStep): Css =
           step match
@@ -333,11 +354,11 @@ object StepsTable:
             // case _                                     => ObserveStyles.StepRow
             case _                                     => Css.Empty
 
-        org.scalajs.dom.console.log(
-          table
-            .getHeaderGroups()
-            .map(headerGroup => headerGroup.headers.map(header => header.getSize()))
-        )
+        // org.scalajs.dom.console.log(
+        //   table
+        //     .getHeaderGroups()
+        //     .map(headerGroup => headerGroup.headers.map(header => header.getSize()))
+        // )
         // println(colSizes.value)
 
         val allColumnsWidth = table.getTotalSize().value
