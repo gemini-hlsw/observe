@@ -38,6 +38,8 @@ import lucuma.ui.utils.*
 import monocle.std.option.some
 
 import scala.annotation.tailrec
+import monocle.Lens
+import monocle.Focus
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -62,7 +64,6 @@ object StepsTable:
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
 
   private val BreakpointColumnId: ColumnId    = ColumnId("breakpoint")
-  // private val ControlColumnId: ColumnId       = ColumnId("control")
   private val SkipColumnId: ColumnId          = ColumnId("skip")
   private val IconColumnId: ColumnId          = ColumnId("icon")
   private val IndexColumnId: ColumnId         = ColumnId("index")
@@ -82,7 +83,6 @@ object StepsTable:
 
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
     BreakpointColumnId    -> FixedSize(0.toPx),
-    // ControlColumnId       -> FixedSize(43.toPx),
     SkipColumnId          -> FixedSize(43.toPx),
     IconColumnId          -> FixedSize(0.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
@@ -112,25 +112,41 @@ object StepsTable:
     def flipBreakpoint: Callback =
       step.zoom(ExecutionStep.breakpoint).mod(!_)
 
-  private def adjustColSizes[T](
-    visibleCols:   List[ColumnId],
-    resizedCols:   Map[ColumnId, SizePx],
-    viewportWidth: Int
-  ): Map[ColumnId, SizePx] =
-    // Columns that reach or go beyond their bounds are treated as fixed.
+  case class ColState(
+    resized:    ColumnSizing,
+    visibility: ColumnVisibility,
+    overflow:   List[ColumnId]
+  ):
+    def visible: Set[ColumnId] =
+      ColumnSizes.keySet.filterNot(colId => visibility.value.get(colId).contains(Visibility.Hidden))
 
+    def visibleSizes: Map[ColumnId, SizePx] =
+      visible
+        .map(colId => colId -> resized.value.getOrElse(colId, ColumnSizes(colId).initial))
+        .toMap
+
+    def computedVisibility: ColumnVisibility =
+      visibility.modify(_ ++ overflow.map(_ -> Visibility.Hidden))
+
+  object ColState:
+    val resized: Lens[ColState, ColumnSizing]        = Focus[ColState](_.resized)
+    val visibility: Lens[ColState, ColumnVisibility] = Focus[ColState](_.visibility)
+    val overflow: Lens[ColState, List[ColumnId]]     = Focus[ColState](_.overflow)
+
+  private def adjustColSizes[T](viewportWidth: Int)(colState: ColState): ColState =
     @tailrec
     def go(
       remainingCols:  Map[ColumnId, SizePx],
       fixedAccum:     Map[ColumnId, SizePx] = Map.empty,
       fixedSizeAccum: Int = 0
-    ): Map[ColumnId, SizePx] =
+    ): ColState =
       val (boundedCols, unboundedCols)
         : (Iterable[(Option[ColumnId], SizePx)], Iterable[(ColumnId, SizePx)]) =
         remainingCols.partitionMap((colId, colSize) =>
           ColumnSizes(colId) match
             case FixedSize(size)                                         =>
               (none -> size).asLeft
+            // Columns that reach or go beyond their bounds are treated as fixed.
             case Resizable(_, Some(min), _) if colSize.value < min.value =>
               (colId.some -> min).asLeft
             case Resizable(_, _, Some(max)) if colSize.value > max.value =>
@@ -156,20 +172,19 @@ object StepsTable:
         unboundedCols.map((colId, width) => colId -> width.modify(x => (x * ratio).toInt)).toMap
 
       boundedCols match
-        case Nil        => newFixedAccum ++ unboundedColsAdjusted
+        case Nil        =>
+          println(s"COMPUTED! ${newFixedAccum ++ unboundedColsAdjusted}")
+
+          ColState.resized.replace(ColumnSizing(newFixedAccum ++ unboundedColsAdjusted))(colState)
         case newBounded =>
           go(unboundedColsAdjusted, newFixedAccum, totalBounded)
 
-    go(
-      visibleCols
-        .map(colId => colId -> resizedCols.getOrElse(colId, ColumnSizes(colId).initial))
-        .toMap
-    )
+    go(colState.visibleSizes)
 
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState(none[Step.Id])  // selectedStep
+      .useState(none[Step.Id]) // selectedStep
       .useResizeDetector()
       // .useRef(0.0)            // tableWidth, set after table is defined
       .useMemoBy((props, selectedStep, resize) =>
@@ -317,67 +332,56 @@ object StepsTable:
             )
           )
       )
-      // .useMemoBy((props, _, _) => props.stepList)((_, _, _) => identity)
-      .useState(ColumnSizing()) // colSizes
-      .useReactTableBy((props, _, resize, cols, colSizes) =>
+      .useState(
+        ColState(
+          resized = ColumnSizing(),
+          visibility = ColumnVisibility(
+            ObsModeColumnId       -> Visibility.Hidden,
+            CameraColumnId        -> Visibility.Hidden,
+            DeckerColumnId        -> Visibility.Hidden,
+            ReadModeColumnId      -> Visibility.Hidden,
+            ImagingMirrorColumnId -> Visibility.Hidden
+          ),
+          overflow = List.empty
+        )
+      )
+      .useReactTableBy((props, _, resize, cols, colState) =>
 
-        println(colSizes.value)
+        println(colState.value)
+
+        val viewportWidth = resize.width.filterNot(_.isEmpty).orEmpty
 
         TableOptions(
           cols,
           Reusable.never(props.stepList),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
-          initialState = TableState(
-            columnVisibility = ColumnVisibility(
-              ObsModeColumnId       -> Visibility.Hidden,
-              CameraColumnId        -> Visibility.Hidden,
-              DeckerColumnId        -> Visibility.Hidden,
-              ReadModeColumnId      -> Visibility.Hidden,
-              ImagingMirrorColumnId -> Visibility.Hidden
-            )
+          // initialState = TableState(
+          //   columnVisibility =
+          // ),
+          state = PartialTableState(
+            columnSizing = colState.value.resized,
+            columnVisibility = colState.value.computedVisibility
           ),
-          state = PartialTableState(columnSizing = colSizes.value),
           onColumnSizingChange = _ match
-            case Updater.Set(v)  => colSizes.setState(v)
+            case Updater.Set(v)  =>
+              colState.modState(s => adjustColSizes(viewportWidth)(ColState.resized.replace(v)(s)))
             case Updater.Mod(fn) =>
-              colSizes.modState(v =>
-                fn(v).modify( // x => x
-                  resizedCols =>
-                    adjustColSizes(
-                      // table.getVisibleLeafColumns().map(_.id),
-                      List(
-                        BreakpointColumnId,
-                        SkipColumnId,
-                        IconColumnId,
-                        IndexColumnId,
-                        StateColumnId,
-                        OffsetsColumnId,
-                        ExposureColumnId,
-                        DisperserColumnId,
-                        FilterColumnId,
-                        FPUColumnId,
-                        TypeColumnId,
-                        SettingsColumnId
-                      ),
-                      resizedCols,
-                      resize.width.filterNot(_.isEmpty).orEmpty
-                    )
-                )
-              )
+              colState.modState(s => adjustColSizes(viewportWidth)(ColState.resized.modify(fn)(s)))
         )
       )
       .useEffectWithDepsBy((_, _, resize, _, _, table) =>
         resize.width.filterNot(_.isEmpty).orEmpty
-      )((_, _, _, _, colSizes, table) =>
+      )((_, _, _, _, colState, table) =>
         viewportWidth =>
-          colSizes.modState(
-            _.modify(resizedCols =>
-              adjustColSizes(table.getVisibleLeafColumns().map(_.id), resizedCols, viewportWidth)
-            )
-          )
+          colState.modState(s => adjustColSizes(viewportWidth)(s))
+          // colState.modState(
+          // _.modify(resizedCols =>
+          //   adjustColSizes(table.getVisibleLeafColumns().map(_.id), resizedCols, viewportWidth)
+          // )
+          // )
       )
-      .render((props, _, resize, _, _, table) => // , initialRender) =>
+      .render((props, _, resize, _, _, table) =>
 
         def rowClass(index: Int, step: ExecutionStep): Css =
           step match
@@ -390,13 +394,6 @@ object StepsTable:
             // case s if s.isFinished                     => ObserveStyles.RowDone
             // case _                                     => ObserveStyles.StepRow
             case _                                     => Css.Empty
-
-        // org.scalajs.dom.console.log(
-        //   table
-        //     .getHeaderGroups()
-        //     .map(headerGroup => headerGroup.headers.map(header => header.getSize()))
-        // )
-        // println(colSizes.value)
 
         val allColumnsWidth = table.getTotalSize().value
         val ratio           =
@@ -414,17 +411,8 @@ object StepsTable:
             rowClass(row.index.toInt, row.original.get) |+|
               ObserveStyles.StepRowWithBreakpoint.when_(row.original.get.breakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
-          // containerMod = ^.height := "300px",
           headerCellMod = { headerCell =>
             TagMod(
-              // ^.width := (headerCell.id match
-              //   case colId =>
-              //     ColumnSizes.get(ColumnId(colId)) match
-              //       case Some(FixedSize(width))   => s"${width}px"
-              //       case Some(Resizable(_, _, _)) => s"${headerCell.getSize() * ratio}%"
-              //       // multiply minSize and maxSize by ratio too!!!!
-              //       case _                        => "0"
-              // ),
               headerCell.column.id match
                 case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
                 case id if id == SkipColumnId.value       => ^.colSpan := 2
