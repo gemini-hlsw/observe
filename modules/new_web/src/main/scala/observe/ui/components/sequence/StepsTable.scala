@@ -47,13 +47,15 @@ case class StepsTable(
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
 ) extends ReactFnProps(StepsTable.component):
-  val stepList: List[View[ExecutionStep]] =
+  val stepViewList: List[View[ExecutionStep]] =
     execution
       .mapValue((e: View[Execution]) => e.zoom(Execution.steps).toListOfViews)
       .orEmpty
 
+  val steps: List[ExecutionStep] = stepViewList.map(_.get)
+
   // Find out if offsets should be displayed
-  val offsetsDisplay: OffsetsDisplay = stepList.map(_.get).offsetsDisplay
+  val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
 
 object StepsTable:
   private type Props = StepsTable
@@ -98,15 +100,12 @@ object StepsTable:
     ReadModeColumnId      -> Resizable(180.toPx),
     ImagingMirrorColumnId -> Resizable(10.toPx),
     TypeColumnId          -> FixedSize(85.toPx),
-    SettingsColumnId      -> FixedSize(37.toPx)
+    SettingsColumnId      -> FixedSize(39.toPx)
   )
 
+  // The order in which they are removed by overflow. The ones at the beginning go first.
+  // Missing columns are not removed by overflow.
   private val ColumnPriorities: List[ColumnId] = List(
-    // BreakpointColumnId,
-    // SkipColumnId,
-    // IconColumnId,
-    // IndexColumnId,
-    // StateColumnId,
     OffsetsColumnId,
     ObsModeColumnId,
     ExposureColumnId,
@@ -130,8 +129,9 @@ object StepsTable:
 
   extension (step: View[ExecutionStep])
     def flipBreakpoint: Callback =
-      step.zoom(ExecutionStep.breakpoint).mod(!_)
+      step.zoom(ExecutionStep.breakpoint).mod(!_) >> Callback.log("TODO: Flip breakpoint")
 
+  // START: Column computations - We could abstract this away
   case class ColState(
     resized:    ColumnSizing,
     visibility: ColumnVisibility,
@@ -234,6 +234,7 @@ object StepsTable:
 
     go1(colState.resetOverflow)
   }
+  // END: Column computations
 
   private val component =
     ScalaFnComponent
@@ -255,46 +256,41 @@ object StepsTable:
               BreakpointColumnId,
               "",
               cell =>
-                val step = cell.row.original
+                val step             = cell.row.original
+                val canSetBreakpoint =
+                  clientStatus.canOperate && step.get.canSetBreakpoint(
+                    execution.map(_.steps).orEmpty
+                  )
 
                 <.div(
-                  ObserveStyles.BreakpointHandle,
-                  ^.onClick --> step.flipBreakpoint
-                )(
-                  Icons.XMark
-                    .withFixedWidth()
-                    .withClass(ObserveStyles.BreakpointIcon)
-                    //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
-                    //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
-                    // )
-                    .when(step.get.breakpoint),
-                  Icons.CaretDown
-                    .withFixedWidth()
-                    .withClass(ObserveStyles.BreakpointIcon)
-                    //     ^.onMouseEnter --> props.breakPointEnterCB(p.step.id),
-                    //     ^.onMouseLeave --> props.breakPointLeaveCB(p.step.id)
-                    // )
-                    .unless(step.get.breakpoint)
-                ) // .when(canSetBreakpoint),
+                  <.div(
+                    ObserveStyles.BreakpointHandle,
+                    ^.onClick --> step.flipBreakpoint
+                  )(
+                    Icons.XMark
+                      .withFixedWidth()
+                      .withClass(ObserveStyles.BreakpointIcon)
+                      .when(step.get.breakpoint),
+                    Icons.CaretDown
+                      .withFixedWidth()
+                      .withClass(ObserveStyles.BreakpointIcon)
+                      .unless(step.get.breakpoint)
+                  ).when(canSetBreakpoint)
+                )
             ),
             column(
               SkipColumnId,
               Icons.Gears,
               cell =>
-                execution.map(e =>
-                  StepSkipCell(
-                    clientStatus,
-                    cell.row.original,
-                    e.obsId,
-                    e.obsName
-                    // false, // canSetBreakpoint(row.step, f.steps),
-                    // null,  // rowBreakpointHoverOnCB,
-                    // null,  // rowBreakpointHoverOffCB,
-                    // null   // recomputeHeightsCB
-                  )
+                <.div(
+                  execution
+                    .map(e =>
+                      StepSkipCell(clientStatus, cell.row.original)
+                        .when(clientStatus.isLogged)
+                        .unless(e.isPreview)
+                    )
+                    .whenDefined
                 )
-              // ).when(clientStatus.isLogged)
-              //   .unless(e.isPreview)
             ),
             column(
               IconColumnId,
@@ -302,13 +298,7 @@ object StepsTable:
               cell =>
                 execution.map(e =>
                   val step = cell.row.original.get
-
-                  StepIconCell(
-                    step.status,
-                    step.skip,
-                    e.nextStepToRun.forall(_ === step.id),
-                    0 // props.rowHeight - props.secondRowHeight
-                  )
+                  StepIconCell(step.status, step.skip, e.nextStepToRun.forall(_ === step.id))
                 )
             ),
             column(IndexColumnId, "Step", _.row.index.toInt + 1),
@@ -399,14 +389,11 @@ object StepsTable:
         )
       )
       .useReactTableBy((props, _, resize, cols, colState) =>
-
-        // println(colState.value)
-
         val viewportWidth = resize.width.filterNot(_.isEmpty).orEmpty
 
         TableOptions(
           cols,
-          Reusable.never(props.stepList),
+          Reusable.never(props.stepViewList),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
           state = PartialTableState(

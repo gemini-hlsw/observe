@@ -96,10 +96,6 @@ object Home {
                     )
                   )
                 )(
-                  // StepsTable(
-                  //   clientStatus = clientStatus,
-                  //   execution = ViewF(none, ???)
-                  // )
                 ),
                 TabPanel(
                   clazz = ObserveStyles.SequenceTabPanel,

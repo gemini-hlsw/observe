@@ -322,13 +322,14 @@ html {
 .pl-react-table.p-datatable {
   &.ObserveStyles-observeTable {
     width: 100%;
+    border-collapse: separate;
 
     thead {
       z-index: 1;
 
       tr>th {
-        padding-left: 0.75em;
-        padding-right: 0.75em;
+        padding: 0.5em 0.75em;
+        border: 1px solid var(--surface-border);
       }
     }
 
@@ -346,6 +347,13 @@ html {
       &:first-of-type {
         border-left: none;
       }
+    }
+  }
+
+  &.ObserveStyles-sessionTable {
+    tr>td {
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
     }
   }
 
@@ -466,6 +474,7 @@ html {
 
     th.ObserveStyles-breakpointTableHeader {
       padding: 0;
+      border: 0;
     }
 
 
@@ -477,9 +486,9 @@ html {
       padding: 0;
     }
 
-    td.ObserveStyles-controlTableCell {
+    td.ObserveStyles-skipTableCell {
       padding: 0;
-      position: relative;
+      text-align: center;
     }
   }
 }
@@ -714,7 +723,7 @@ html {
   }
 }
 
-.ObserveStyles-breakPointHandle {
+.ObserveStyles-breakpointHandle {
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
@@ -724,10 +733,24 @@ html {
   }
 }
 
-.ObserveStyles-breakPointIcon {
+.ObserveStyles-breakpointIcon {
   color: var(--gray-600);
 
   &:hover {
     color: var(--gray-800);
+  }
+}
+
+.ObserveStyles-skipHandle {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    transform: scale(1.2); // translateX(-4px);
+  }
+
+  .ObserveStyles-skipIconSet {
+    color: var(--orange-500);
   }
 }

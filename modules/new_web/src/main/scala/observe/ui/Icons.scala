@@ -52,6 +52,10 @@ object Icons:
   private val faCircleExclamation: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleMinus")
+  private val faCircleMinus: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleNotch")
   private val faCircleNotch: FAIcon = js.native
 
@@ -88,6 +92,10 @@ object Icons:
   private val faReply: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faSquarePlus")
+  private val faSquarePlus: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faStop")
   private val faStop: FAIcon = js.native
 
@@ -116,6 +124,7 @@ object Icons:
     faCircleCheck,
     faCircleDot,
     faCircleExclamation,
+    faCircleMinus,
     faCircleNotch,
     faClock,
     faCrosshairs,
@@ -125,6 +134,7 @@ object Icons:
     faPlay,
     faRectangleList,
     faReply,
+    faSquarePlus,
     faStop,
     faSun,
     faTrash,
@@ -141,6 +151,7 @@ object Icons:
   inline def CircleCheck       = FontAwesomeIcon(faCircleCheck)
   inline def CircleDot         = FontAwesomeIcon(faCircleDot)
   inline def CircleExclamation = FontAwesomeIcon(faCircleExclamation)
+  inline def CircleMinus       = FontAwesomeIcon(faCircleMinus)
   inline def CircleNotch       = FontAwesomeIcon(faCircleNotch)
   inline def Clock             = FontAwesomeIcon(faClock)
   inline def Crosshairs        = FontAwesomeIcon(faCrosshairs)
@@ -150,6 +161,7 @@ object Icons:
   inline def Play              = FontAwesomeIcon(faPlay)
   inline def RectangleList     = FontAwesomeIcon(faRectangleList)
   inline def Reply             = FontAwesomeIcon(faReply)
+  inline def SquarePlus        = FontAwesomeIcon(faSquarePlus)
   inline def Stop              = FontAwesomeIcon(faStop)
   inline def Sun               = FontAwesomeIcon(faSun)
   inline def Trash             = FontAwesomeIcon(faTrash)

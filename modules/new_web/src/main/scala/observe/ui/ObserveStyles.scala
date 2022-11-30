@@ -37,6 +37,7 @@ object ObserveStyles {
   val RowNone: Css     = Css.Empty
 
   val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
+  val SessionTable: Css   = Css("ObserveStyles-sessionTable")
   val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")
 
   val HeaderSideBarCard: Css = Css("ObserveStyles-HeaderSideBarCard")
@@ -88,12 +89,12 @@ object ObserveStyles {
 
   val BreakpointTableHeader: Css = Css("ObserveStyles-breakpointTableHeader")
   val BreakpointTableCell: Css   = Css("ObserveStyles-breakpointTableCell")
-  // val ControlTableCell: Css      = Css("ObserveStyles-controlTableCell")
-  // val ControlCell: Css           = Css("ObserveStyles-controlCell")
   val SkipTableCell: Css         = Css("ObserveStyles-skipTableCell")
   val SkippedIconCell: Css       = Css("ObserveStyles-skippedIconCell")
   val IconCell: Css              = Css("ObserveStyles-iconCell")
 
-  val BreakpointHandle: Css = Css("ObserveStyles-breakPointHandle")
-  val BreakpointIcon: Css   = Css("ObserveStyles-breakPointIcon")
+  val BreakpointHandle: Css = Css("ObserveStyles-breakpointHandle")
+  val BreakpointIcon: Css   = Css("ObserveStyles-breakpointIcon")
+  val SkipHandle: Css       = Css("ObserveStyles-skipHandle")
+  val SkipIconSet: Css      = Css("ObserveStyles-skipIconSet")
 }

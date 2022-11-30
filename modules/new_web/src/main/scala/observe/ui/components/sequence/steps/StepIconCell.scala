@@ -24,8 +24,7 @@ import crystal.react.View
 case class StepIconCell(
   status:    StepState,
   skip:      Boolean,
-  nextToRun: Boolean,
-  height:    Int
+  nextToRun: Boolean
 ) extends ReactFnProps(StepIconCell.component)
 
 object StepIconCell:
@@ -47,9 +46,5 @@ object StepIconCell:
       case _                 => Css.Empty
 
   private val component = ScalaFnComponent[Props](props =>
-    <.div(
-      // ^.height := props.height.px,
-      ObserveStyles.IconCell |+| stepStyle(props),
-      stepIcon(props)
-    )
+    <.div(ObserveStyles.IconCell |+| stepStyle(props), stepIcon(props))
   )
