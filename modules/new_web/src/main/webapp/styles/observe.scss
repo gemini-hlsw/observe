@@ -123,8 +123,23 @@ html {
 
 .p-selectbutton {
   &.ObserveStyles-obsClassSelect {
+    border: 1px solid var(--surface-border);
+
     .p-button {
-      font-size: small;
+      font-size: 0.85em;
+      border: 0;
+      padding-top: 0.85em;
+      padding-bottom: 0.85em;
+
+      &:not(:first-child) {
+        border-left: 1px solid var(--surface-border);
+      }
+
+      svg {
+        margin-right: 2px;
+      }
+
+      // display: flex;
 
       &.p-highlight {
         background: var(--green-800);
