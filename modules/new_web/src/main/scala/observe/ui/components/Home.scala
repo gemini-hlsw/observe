@@ -71,7 +71,7 @@ object Home {
                        stateStorage = StateStorage.Local,
                        clazz = ObserveStyles.TopPanel
               )(
-                SplitterPanel()(
+                SplitterPanel(size = 80)(
                   SessionQueue(observe.demo.DemoSessionQueue)
                 ),
                 SplitterPanel()(

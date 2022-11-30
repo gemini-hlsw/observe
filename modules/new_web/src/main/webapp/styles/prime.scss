@@ -10,6 +10,7 @@
   --negative-row-background: var(--red-50); // fixme
   --negative-row-color: var(--red-400); // fixme
   --negative-row-boxshadow: var(--red-800); // fixme
+  --muted-color: var(--gray-600);
 }
 
 .dark-theme {
@@ -21,6 +22,7 @@
   --negative-row-background: var(--red-50); // fixme
   --negative-row-color: var(--red-400); // fixme
   --negative-row-boxshadow: var(--red-800); // fixme
+  --muted-color: var(--gray-300);
 }
 
 @import "/lucuma-css/lucuma-ui";

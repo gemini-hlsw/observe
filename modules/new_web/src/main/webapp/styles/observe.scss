@@ -139,8 +139,6 @@ html {
         margin-right: 2px;
       }
 
-      // display: flex;
-
       &.p-highlight {
         background: var(--green-800);
         border-color: var(--green-800);
@@ -744,15 +742,15 @@ html {
   transition: all 0.1s ease-in-out;
 
   &:hover {
-    transform: scale(2) translateX(-4px); // translateY(1px);
+    transform: scale(2) translateX(-4px);
   }
 }
 
 .ObserveStyles-breakpointIcon {
-  color: var(--gray-600);
+  color: var(--muted-color);
 
   &:hover {
-    color: var(--gray-800);
+    color: var(--text-color);
   }
 }
 
@@ -762,7 +760,7 @@ html {
   transition: all 0.1s ease-in-out;
 
   &:hover {
-    transform: scale(1.2); // translateX(-4px);
+    transform: scale(1.2);
   }
 
   .ObserveStyles-skipIconSet {
