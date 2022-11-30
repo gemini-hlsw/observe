@@ -86,7 +86,7 @@ object StepsTable:
     SkipColumnId          -> FixedSize(43.toPx),
     IconColumnId          -> FixedSize(0.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
-    StateColumnId         -> Resizable(350.toPx, min = 350.toPx.some),
+    StateColumnId         -> Resizable(380.toPx, min = 380.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
     ObsModeColumnId       -> Resizable(130.toPx),
     ExposureColumnId      -> Resizable(84.toPx, min = 75.toPx.some),
@@ -100,6 +100,26 @@ object StepsTable:
     TypeColumnId          -> FixedSize(85.toPx),
     SettingsColumnId      -> FixedSize(37.toPx)
   )
+
+  private val ColumnPriorities: List[ColumnId] = List(
+    // BreakpointColumnId,
+    // SkipColumnId,
+    // IconColumnId,
+    // IndexColumnId,
+    // StateColumnId,
+    OffsetsColumnId,
+    ObsModeColumnId,
+    ExposureColumnId,
+    DisperserColumnId,
+    FilterColumnId,
+    FPUColumnId,
+    CameraColumnId,
+    DeckerColumnId,
+    ReadModeColumnId,
+    ImagingMirrorColumnId,
+    TypeColumnId,
+    SettingsColumnId
+  ).reverse
 
   private def column[V](
     id:     ColumnId,
@@ -115,12 +135,14 @@ object StepsTable:
   case class ColState(
     resized:    ColumnSizing,
     visibility: ColumnVisibility,
-    overflow:   List[ColumnId]
+    overflow:   Set[ColumnId] = Set.empty
   ):
-    def visible: Set[ColumnId] =
-      ColumnSizes.keySet.filterNot(colId => visibility.value.get(colId).contains(Visibility.Hidden))
+    lazy val visible: Set[ColumnId] =
+      ColumnSizes.keySet.filterNot(colId =>
+        visibility.value.get(colId).contains(Visibility.Hidden)
+      ) -- overflow
 
-    def visibleSizes: Map[ColumnId, SizePx] =
+    lazy val visibleSizes: Map[ColumnId, SizePx] =
       visible
         .map(colId => colId -> resized.value.getOrElse(colId, ColumnSizes(colId).initial))
         .toMap
@@ -128,58 +150,90 @@ object StepsTable:
     def computedVisibility: ColumnVisibility =
       visibility.modify(_ ++ overflow.map(_ -> Visibility.Hidden))
 
+    lazy val prioritizedRemainingCols: List[ColumnId] =
+      ColumnPriorities.filter(visible.contains)
+
+    def overflowColumn: ColState =
+      ColState.overflow.modify(_ ++ prioritizedRemainingCols.headOption)(this)
+
+    def resetOverflow: ColState =
+      ColState.overflow.replace(Set.empty)(this)
+
   object ColState:
     val resized: Lens[ColState, ColumnSizing]        = Focus[ColState](_.resized)
     val visibility: Lens[ColState, ColumnVisibility] = Focus[ColState](_.visibility)
-    val overflow: Lens[ColState, List[ColumnId]]     = Focus[ColState](_.overflow)
+    val overflow: Lens[ColState, Set[ColumnId]]      = Focus[ColState](_.overflow)
 
-  private def adjustColSizes[T](viewportWidth: Int)(colState: ColState): ColState =
+  // This method:
+  // - Adjusts resizable columns proportionally to available space (taking into account space taken by fixed columns).
+  // - If all visible columns are at their minimum width and overflow the viewport,
+  //     then starts dropping columns (as long as there are reamining droppable ones).
+  private def adjustColSizes(viewportWidth: Int)(colState: ColState): ColState = {
+    // Recurse at go1 when a column is dropped.
+    // This level just to avoid clearing overflow on co-recursion
     @tailrec
-    def go(
-      remainingCols:  Map[ColumnId, SizePx],
-      fixedAccum:     Map[ColumnId, SizePx] = Map.empty,
-      fixedSizeAccum: Int = 0
-    ): ColState =
-      val (boundedCols, unboundedCols)
-        : (Iterable[(Option[ColumnId], SizePx)], Iterable[(ColumnId, SizePx)]) =
-        remainingCols.partitionMap((colId, colSize) =>
-          ColumnSizes(colId) match
-            case FixedSize(size)                                         =>
-              (none -> size).asLeft
-            // Columns that reach or go beyond their bounds are treated as fixed.
-            case Resizable(_, Some(min), _) if colSize.value < min.value =>
-              (colId.some -> min).asLeft
-            case Resizable(_, _, Some(max)) if colSize.value > max.value =>
-              (colId.some -> max).asLeft
-            case _                                                       =>
-              (colId -> colSize).asRight
-        )
+    def go1(colState: ColState): ColState =
+      if (viewportWidth === 0) colState
+      else {
+        // Recurse at go2 when a column was shrunk/expanded beyond its bounds.
+        @tailrec
+        def go2(
+          remainingCols:  Map[ColumnId, SizePx],
+          fixedAccum:     Map[ColumnId, SizePx] = Map.empty,
+          fixedSizeAccum: Int = 0
+        ): ColState = {
+          val (boundedCols, unboundedCols)
+            : (Iterable[(Option[ColumnId], SizePx)], Iterable[(ColumnId, SizePx)]) =
+            remainingCols.partitionMap((colId, colSize) =>
+              ColumnSizes(colId) match
+                case FixedSize(size)                                         =>
+                  (none -> size).asLeft
+                // Columns that reach or go beyond their bounds are treated as fixed.
+                case Resizable(_, Some(min), _) if colSize.value < min.value =>
+                  (colId.some -> min).asLeft
+                case Resizable(_, _, Some(max)) if colSize.value > max.value =>
+                  (colId.some -> max).asLeft
+                case _                                                       =>
+                  (colId -> colSize).asRight
+            )
 
-      val boundedColsWidth: Int = boundedCols.map(_._2.value).sum
-      val totalBounded: Int     = fixedSizeAccum + boundedColsWidth
+          val boundedColsWidth: Int = boundedCols.map(_._2.value).sum
+          val totalBounded: Int     = fixedSizeAccum + boundedColsWidth
 
-      val remainingSpace: Int = viewportWidth - totalBounded
+          // If bounded columns are more than the viewport width, drop the lowest priority column and start again.
+          if (totalBounded > viewportWidth && colState.prioritizedRemainingCols.nonEmpty)
+            // We must remove columns one by one, since removing one causes the resto to recompute.
+            go1(colState.overflowColumn)
+          else
+            val remainingSpace: Int = viewportWidth - totalBounded
 
-      val totalNewUnbounded: Int = unboundedCols.map(_._2.value).sum
+            val totalNewUnbounded: Int = unboundedCols.map(_._2.value).sum
 
-      val ratio: Double = remainingSpace.toDouble / totalNewUnbounded
+            val ratio: Double = remainingSpace.toDouble / totalNewUnbounded
 
-      val newFixedAccum: Map[ColumnId, SizePx] = fixedAccum ++ boundedCols.collect {
-        case (Some(colId), size) => colId -> size
+            val newFixedAccum: Map[ColumnId, SizePx] = fixedAccum ++ boundedCols.collect {
+              case (Some(colId), size) => colId -> size
+            }
+
+            val unboundedColsAdjusted: Map[ColumnId, SizePx] =
+              unboundedCols
+                .map((colId, width) => colId -> width.modify(x => (x * ratio).toInt))
+                .toMap
+
+            boundedCols match
+              case Nil        =>
+                ColState.resized.replace(ColumnSizing(newFixedAccum ++ unboundedColsAdjusted))(
+                  colState
+                )
+              case newBounded =>
+                go2(unboundedColsAdjusted, newFixedAccum, totalBounded)
+        }
+
+        go2(colState.visibleSizes)
       }
 
-      val unboundedColsAdjusted: Map[ColumnId, SizePx] =
-        unboundedCols.map((colId, width) => colId -> width.modify(x => (x * ratio).toInt)).toMap
-
-      boundedCols match
-        case Nil        =>
-          println(s"COMPUTED! ${newFixedAccum ++ unboundedColsAdjusted}")
-
-          ColState.resized.replace(ColumnSizing(newFixedAccum ++ unboundedColsAdjusted))(colState)
-        case newBounded =>
-          go(unboundedColsAdjusted, newFixedAccum, totalBounded)
-
-    go(colState.visibleSizes)
+    go1(colState.resetOverflow)
+  }
 
   private val component =
     ScalaFnComponent
@@ -341,13 +395,12 @@ object StepsTable:
             DeckerColumnId        -> Visibility.Hidden,
             ReadModeColumnId      -> Visibility.Hidden,
             ImagingMirrorColumnId -> Visibility.Hidden
-          ),
-          overflow = List.empty
+          )
         )
       )
       .useReactTableBy((props, _, resize, cols, colState) =>
 
-        println(colState.value)
+        // println(colState.value)
 
         val viewportWidth = resize.width.filterNot(_.isEmpty).orEmpty
 
@@ -356,9 +409,6 @@ object StepsTable:
           Reusable.never(props.stepList),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
-          // initialState = TableState(
-          //   columnVisibility =
-          // ),
           state = PartialTableState(
             columnSizing = colState.value.resized,
             columnVisibility = colState.value.computedVisibility
@@ -370,16 +420,10 @@ object StepsTable:
               colState.modState(s => adjustColSizes(viewportWidth)(ColState.resized.modify(fn)(s)))
         )
       )
-      .useEffectWithDepsBy((_, _, resize, _, _, table) =>
+      .useEffectWithDepsBy((_, _, resize, _, _, table) => // Recompute columns upon viewport resize
         resize.width.filterNot(_.isEmpty).orEmpty
       )((_, _, _, _, colState, table) =>
-        viewportWidth =>
-          colState.modState(s => adjustColSizes(viewportWidth)(s))
-          // colState.modState(
-          // _.modify(resizedCols =>
-          //   adjustColSizes(table.getVisibleLeafColumns().map(_.id), resizedCols, viewportWidth)
-          // )
-          // )
+        viewportWidth => colState.modState(s => adjustColSizes(viewportWidth)(s))
       )
       .render((props, _, resize, _, _, table) =>
 
