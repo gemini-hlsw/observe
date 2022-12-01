@@ -335,7 +335,7 @@ html {
 .pl-react-table.p-datatable {
   &.ObserveStyles-observeTable {
     width: 100%;
-    border-collapse: separate;
+    border-collapse: separate; // Needed for header borders to behave correctly with sticky.
 
     thead {
       z-index: 1;
