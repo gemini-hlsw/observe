@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enum
@@ -41,7 +41,7 @@ object DailyProgramType {
   /** @group Typeclass Instances */
   implicit val ProgramTypeEnumerated: Enumerated[DailyProgramType] =
     new Enumerated[DailyProgramType] {
-      def all                      = DailyProgramType.all
+      def all = DailyProgramType.all
       def tag(a: DailyProgramType) = a.tag
     }
 
