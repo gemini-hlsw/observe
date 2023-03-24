@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.model
@@ -34,8 +34,8 @@ object AllObservationsProgressState {
     Eq.by(_.obsProgress)
 
   def progressStateO[P <: Progress](
-    obsId:                  Observation.Id,
-    stepId:                 StepId
+    obsId:  Observation.Id,
+    stepId: StepId
   )(implicit progressPrism: Prism[Progress, P]): Optional[ObserveAppRootModel, P] =
     ObserveAppRootModel.uiModel
       .andThen(ObserveUIModel.obsProgress)
@@ -48,8 +48,8 @@ object AllObservationsProgressState {
     AllObservationsProgressState.obsProgress.andThen(at((obsId, stepId)))
 
   def progressByIdO[P <: Progress](
-    obsId:                  Observation.Id,
-    stepId:                 StepId
+    obsId:  Observation.Id,
+    stepId: StepId
   )(implicit progressPrism: Prism[Progress, P]): Optional[AllObservationsProgressState, P] =
     progressByIdL(obsId, stepId).andThen(some[Progress]).andThen(progressPrism)
 

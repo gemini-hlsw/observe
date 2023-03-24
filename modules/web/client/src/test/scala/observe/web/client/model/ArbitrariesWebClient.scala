@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.client.model
@@ -549,10 +549,13 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
     }
 
   implicit val observePageCogen: Cogen[ObservePages] =
-    Cogen[Option[Option[Option[Either[(Instrument, Observation.Id, StepIdDisplayed), Either[
+    Cogen[Option[Option[Option[Either[
       (Instrument, Observation.Id, StepIdDisplayed),
-      Either[(Instrument, Observation.Id, StepId), (Instrument, Observation.Id, StepId)]
-    ]]]]]]
+      Either[
+        (Instrument, Observation.Id, StepIdDisplayed),
+        Either[(Instrument, Observation.Id, StepId), (Instrument, Observation.Id, StepId)]
+      ]
+    ]]]]]
       .contramap {
         case Root                        => None
         case CalibrationQueuePage        => Some(None)
