@@ -7,43 +7,43 @@ import cats.Eq
 import lucuma.core.util.Enumerated
 import monocle.macros.Lenses
 
-sealed trait AddDayCalOperation extends Product with Serializable
+sealed abstract class AddDayCalOperation(val tag: String) extends Product with Serializable
 object AddDayCalOperation {
-  case object AddDayCalIdle     extends AddDayCalOperation
-  case object AddDayCalInFlight extends AddDayCalOperation
+  case object AddDayCalIdle     extends AddDayCalOperation("AddDayCalIdle")
+  case object AddDayCalInFlight extends AddDayCalOperation("AddDayCalInFlight")
 
   implicit val AddDayCalOperationEnumerated: Enumerated[AddDayCalOperation] =
-    Enumerated.of(AddDayCalIdle, AddDayCalInFlight)
+    Enumerated.from(AddDayCalIdle, AddDayCalInFlight).withTag(_.tag)
 
 }
 
-sealed trait ClearAllCalOperation extends Product with Serializable
+sealed abstract class ClearAllCalOperation(val tag: String) extends Product with Serializable
 object ClearAllCalOperation {
-  case object ClearAllCalIdle     extends ClearAllCalOperation
-  case object ClearAllCalInFlight extends ClearAllCalOperation
+  case object ClearAllCalIdle     extends ClearAllCalOperation("ClearAllCalIdle")
+  case object ClearAllCalInFlight extends ClearAllCalOperation("ClearAllCalInFlight")
 
   implicit val ClearAllCalOperationEnumerated: Enumerated[ClearAllCalOperation] =
-    Enumerated.of(ClearAllCalIdle, ClearAllCalInFlight)
+    Enumerated.from(ClearAllCalIdle, ClearAllCalInFlight).withTag(_.tag)
 
 }
 
-sealed trait RunCalOperation extends Product with Serializable
+sealed abstract class RunCalOperation(val tag: String) extends Product with Serializable
 object RunCalOperation {
-  case object RunCalIdle     extends RunCalOperation
-  case object RunCalInFlight extends RunCalOperation
+  case object RunCalIdle     extends RunCalOperation("RunCalIdle")
+  case object RunCalInFlight extends RunCalOperation("RunCalInFlight")
 
   implicit val RunCalOperationEnumerated: Enumerated[RunCalOperation] =
-    Enumerated.of(RunCalIdle, RunCalInFlight)
+    Enumerated.from(RunCalIdle, RunCalInFlight).withTag(_.tag)
 
 }
 
-sealed trait StopCalOperation extends Product with Serializable
+sealed abstract class StopCalOperation(val tag: String) extends Product with Serializable
 object StopCalOperation {
-  case object StopCalIdle     extends StopCalOperation
-  case object StopCalInFlight extends StopCalOperation
+  case object StopCalIdle     extends StopCalOperation("StopCalIdle")
+  case object StopCalInFlight extends StopCalOperation("StopCalInFlight")
 
   implicit val StopCalOperationEnumerated: Enumerated[StopCalOperation] =
-    Enumerated.of(StopCalIdle, StopCalInFlight)
+    Enumerated.from(StopCalIdle, StopCalInFlight).withTag(_.tag)
 
 }
 

@@ -255,15 +255,15 @@ trait ObserveEngine[F[_]] {
 object ObserveEngine {
 
   private class ObserveEngineImpl[F[_]: Async: Logger](
-    override val systems:        Systems[F],
-    @annotation.unused settings: ObserveEngineConfiguration,
-    sm:                          ObserveMetrics,
-    translator:                  SeqTranslate[F]
+                                                        override val systems:        Systems[F],
+                                                        @annotation.unused settings: ObserveEngineConfiguration,
+                                                        sm:                          ObserveMetrics,
+                                                        translators:                 List[SeqTranslate[F]]
   )(implicit
     executeEngine:               observe.server.ExecEngineType[F]
   ) extends ObserveEngine[F] {
 
-    private val odbLoader = new ODBSequencesLoader[F](systems.odb, translator)
+    private val odbLoader = new ODBSequencesLoader[F](systems.odb, translators)
 
     override def sync(q: EventQueue[F], seqId: Observation.Id): F[Unit] =
       odbLoader.loadEvents(seqId).flatMap(_.map(q.offer).sequence.void)
@@ -884,7 +884,7 @@ object ObserveEngine {
           .whenA(graceful) *>
         q.offer(
           Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                        translator.stopObserve(seqId, graceful)
+                                                        translators.stopObserve(seqId, graceful)
           )
         )
 
@@ -896,7 +896,7 @@ object ObserveEngine {
     ): F[Unit] =
       setObserver(q, seqId, user, observer) *>
         q.offer(
-          Event.actionStop[F, EngineState[F], SeqEvent](seqId, translator.abortObserve(seqId))
+          Event.actionStop[F, EngineState[F], SeqEvent](seqId, translators.abortObserve(seqId))
         )
 
     override def pauseObserve(
@@ -912,7 +912,7 @@ object ObserveEngine {
         ).whenA(graceful) *>
         q.offer(
           Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                        translator.pauseObserve(seqId, graceful)
+                                                        translators.pauseObserve(seqId, graceful)
           )
         )
 
@@ -924,7 +924,7 @@ object ObserveEngine {
     ): F[Unit] =
       q.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
         setObserver(q, seqId, user, observer) *>
-        q.offer(Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(seqId)))
+        q.offer(Event.getState[F, EngineState[F], SeqEvent](translators.resumePaused(seqId)))
 
     private def queueO(qid: QueueId): Optional[EngineState[F], ExecutionQueue] =
       EngineState.queues[F].andThen(mapIndex[QueueId, ExecutionQueue].index(qid))

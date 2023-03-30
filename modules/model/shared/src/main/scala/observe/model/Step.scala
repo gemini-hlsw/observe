@@ -219,11 +219,11 @@ object NodAndShuffleStep {
     (x.id, x.config, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.nsStatus)
   )
 
-  sealed trait PendingObserveCmd extends Product with Serializable
-  case object PauseGracefully    extends PendingObserveCmd
-  case object StopGracefully     extends PendingObserveCmd
+  sealed abstract class PendingObserveCmd(val tag: String) extends Product with Serializable
+  case object PauseGracefully extends PendingObserveCmd("PauseGracefully")
+  case object StopGracefully  extends PendingObserveCmd("StopGracefully")
 
   implicit val enumPendingObserveCmd: Enumerated[PendingObserveCmd] =
-    Enumerated.of(PauseGracefully, StopGracefully)
+    Enumerated.from(PauseGracefully, StopGracefully).withTag(_.tag)
 
 }

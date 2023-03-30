@@ -99,27 +99,27 @@ object GmosController {
     }
 
     // Used for the shutterState
-    sealed trait ShutterState extends Product with Serializable
+    sealed abstract class ShutterState(val tag: String) extends Product with Serializable
 
     object ShutterState {
-      case object UnsetShutter extends ShutterState
-      case object OpenShutter  extends ShutterState
-      case object CloseShutter extends ShutterState
+      case object UnsetShutter extends ShutterState("UnsetShutter")
+      case object OpenShutter  extends ShutterState("OpenShutter")
+      case object CloseShutter extends ShutterState("CloseShutter")
 
       /** @group Typeclass Instances */
       implicit val ShutterStateEnumerated: Enumerated[ShutterState] =
-        Enumerated.of(UnsetShutter, OpenShutter, CloseShutter)
+        Enumerated.from(UnsetShutter, OpenShutter, CloseShutter).withTag(_.tag)
     }
 
-    sealed trait Beam extends Product with Serializable
+    sealed abstract class Beam(val tag: String) extends Product with Serializable
 
     object Beam {
-      case object InBeam    extends Beam
-      case object OutOfBeam extends Beam
+      case object InBeam    extends Beam("InBeam")
+      case object OutOfBeam extends Beam("OutOfBeam")
 
       /** @group Typeclass Instances */
       implicit val BeamEnumerated: Enumerated[Beam] =
-        Enumerated.of(InBeam, OutOfBeam)
+        Enumerated.from(InBeam, OutOfBeam).withTag(_.tag)
     }
 
     type ElectronicOffset = GmosEOffsetting

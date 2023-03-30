@@ -8,13 +8,13 @@ import lucuma.core.util.Enumerated
 /**
  * Operating mode of the observe, development or production
  */
-sealed trait Mode extends Product with Serializable
+sealed abstract class Mode(val tag: String) extends Product with Serializable
 
 object Mode {
-  case object Production  extends Mode
-  case object Development extends Mode
+  case object Production  extends Mode("Production")
+  case object Development extends Mode("Development")
 
   implicit val ModeEnumerated: Enumerated[Mode] =
-    Enumerated.of(Production, Development)
+    Enumerated.from(Production, Development).withTag(_.tag)
 
 }

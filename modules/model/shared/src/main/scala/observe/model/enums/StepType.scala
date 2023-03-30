@@ -7,19 +7,19 @@ import cats._
 import cats.syntax.all._
 import lucuma.core.util.Enumerated
 
-sealed abstract class StepType(val label: String) extends Product with Serializable
+sealed abstract class StepType(val tag: String, val label: String) extends Product with Serializable
 
 object StepType {
 
-  case object Object            extends StepType("OBJECT")
-  case object Arc               extends StepType("ARC")
-  case object Flat              extends StepType("FLAT")
-  case object Bias              extends StepType("BIAS")
-  case object Dark              extends StepType("DARK")
-  case object Calibration       extends StepType("CAL")
-  case object AlignAndCalib     extends StepType("A & C")
-  case object NodAndShuffle     extends StepType("N & S")
-  case object NodAndShuffleDark extends StepType("N&S DARK")
+  case object Object            extends StepType("Object", "OBJECT")
+  case object Arc               extends StepType("Arc", "ARC")
+  case object Flat              extends StepType("Flat", "FLAT")
+  case object Bias              extends StepType("Bias", "BIAS")
+  case object Dark              extends StepType("Dark", "DARK")
+  case object Calibration       extends StepType("Calibration", "CAL")
+  case object AlignAndCalib     extends StepType("AlignAndCalib", "A & C")
+  case object NodAndShuffle     extends StepType("NodAndShuffle", "N & S")
+  case object NodAndShuffleDark extends StepType("NodAndShuffleDark", "N&S DARK")
 
   implicit val show: Show[StepType] =
     Show.show(_.label)
@@ -29,7 +29,7 @@ object StepType {
 
   /** @group Typeclass Instances */
   implicit val StepTypeEnumerated: Enumerated[StepType] =
-    Enumerated.of(Object,
+    Enumerated.from(Object,
                   Arc,
                   Flat,
                   Bias,
@@ -38,6 +38,6 @@ object StepType {
                   AlignAndCalib,
                   NodAndShuffle,
                   NodAndShuffleDark
-    )
+    ).withTag(_.tag)
 
 }

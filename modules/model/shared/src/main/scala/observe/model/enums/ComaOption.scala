@@ -6,13 +6,13 @@ package observe.model.enums
 import lucuma.core.util.Enumerated
 
 /** Enumerated type for Coma option. */
-sealed trait ComaOption extends Product with Serializable
+sealed abstract class ComaOption(val tag: String) extends Product with Serializable
 
 object ComaOption {
-  case object ComaOn  extends ComaOption
-  case object ComaOff extends ComaOption
+  case object ComaOn  extends ComaOption("ComaOn")
+  case object ComaOff extends ComaOption("ComaOff")
 
   /** @group Typeclass Instances */
   implicit val CommaOptionEnumerated: Enumerated[ComaOption] =
-    Enumerated.of(ComaOn, ComaOff)
+    Enumerated.from(ComaOn, ComaOff).withTag(_.tag)
 }

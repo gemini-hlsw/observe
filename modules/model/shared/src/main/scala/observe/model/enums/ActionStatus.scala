@@ -5,29 +5,29 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed trait ActionStatus extends Product with Serializable
+sealed abstract class ActionStatus(val tag: String) extends Product with Serializable
 
 object ActionStatus {
 
   /** Action is not yet run. */
-  case object Pending extends ActionStatus
+  case object Pending extends ActionStatus("Pending")
 
   /** Action run and completed. */
-  case object Completed extends ActionStatus
+  case object Completed extends ActionStatus("Completed")
 
   /** Action currently running. */
-  case object Running extends ActionStatus
+  case object Running extends ActionStatus("Running")
 
   /** Action run but paused. */
-  case object Paused extends ActionStatus
+  case object Paused extends ActionStatus("Paused")
 
   /** Action run but failed to complete. */
-  case object Failed extends ActionStatus
+  case object Failed extends ActionStatus("Failed")
 
   /** Action was aborted by the user */
-  case object Aborted extends ActionStatus
+  case object Aborted extends ActionStatus("Aborted")
 
   /** @group Typeclass Instances */
   implicit val ActionStatusEnumerated: Enumerated[ActionStatus] =
-    Enumerated.of(Pending, Completed, Running, Paused, Failed, Aborted)
+    Enumerated.from(Pending, Completed, Running, Paused, Failed, Aborted).withTag(_.tag)
 }

@@ -6,15 +6,15 @@ package observe.model.config
 import cats.syntax.all._
 import lucuma.core.util.Enumerated
 
-sealed trait ControlStrategy extends Product with Serializable
+sealed abstract class ControlStrategy(val tag: String) extends Product with Serializable
 
 object ControlStrategy {
   // System will be fully controlled by Observe
-  case object FullControl extends ControlStrategy
+  case object FullControl extends ControlStrategy("FullControl")
   // Observe connects to system, but only to read values
-  case object ReadOnly    extends ControlStrategy
+  case object ReadOnly    extends ControlStrategy("ReadOnly")
   // All system interactions are internally simulated
-  case object Simulated   extends ControlStrategy
+  case object Simulated   extends ControlStrategy("Simulated")
 
   def fromString(v: String): Option[ControlStrategy] = v match {
     case "full"      => Some(FullControl)
@@ -24,7 +24,7 @@ object ControlStrategy {
   }
 
   implicit val ControlStrategyEnumerated: Enumerated[ControlStrategy] =
-    Enumerated.of(FullControl, ReadOnly, Simulated)
+    Enumerated.from(FullControl, ReadOnly, Simulated).withTag(_.tag)
 
   implicit class ControlStrategyOps(v: ControlStrategy) {
     val connect: Boolean      = v =!= ControlStrategy.Simulated

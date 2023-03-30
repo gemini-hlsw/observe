@@ -6,14 +6,14 @@ package observe.web.client.model
 import lucuma.core.util.Enumerated
 
 // UI model
-sealed trait UserPromptResult extends Product with Serializable
+sealed abstract class UserPromptResult(val tag: String) extends Product with Serializable
 
 object UserPromptResult {
-  case object Cancel extends UserPromptResult
-  case object Ok     extends UserPromptResult
+  case object Cancel extends UserPromptResult("Cancel")
+  case object Ok     extends UserPromptResult("Ok")
 
   /** @group Typeclass Instances */
   implicit val SectionVisibilityStateEnumerated: Enumerated[UserPromptResult] =
-    Enumerated.of(Cancel, Ok)
+    Enumerated.from(Cancel, Ok).withTag(_.tag)
 
 }

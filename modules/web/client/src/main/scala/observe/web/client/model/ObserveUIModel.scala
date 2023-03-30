@@ -13,15 +13,15 @@ import observe.web.client.circuit.UserLoginFocus
 import monocle.Getter
 import monocle.Lens
 
-sealed trait SoundSelection extends Product with Serializable
+sealed abstract class SoundSelection(val tag: String) extends Product with Serializable
 
 object SoundSelection {
-  case object SoundOn  extends SoundSelection
-  case object SoundOff extends SoundSelection
+  case object SoundOn  extends SoundSelection("SoundOn")
+  case object SoundOff extends SoundSelection("SoundOff")
 
   /** @group Typeclass Instances */
   implicit val SoundSelectionEnumerated: Enumerated[SoundSelection] =
-    Enumerated.of(SoundOn, SoundOff)
+    Enumerated.from(SoundOn, SoundOff).withTag(_.tag)
 
   def flip: SoundSelection => SoundSelection =
     _ match {

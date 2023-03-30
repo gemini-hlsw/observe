@@ -5,15 +5,15 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class ServerLogLevel(val label: String) extends Product with Serializable
+sealed abstract class ServerLogLevel(val tag: String, val label: String) extends Product with Serializable
 
 object ServerLogLevel {
 
-  case object INFO  extends ServerLogLevel("INFO")
-  case object WARN  extends ServerLogLevel("WARNING")
-  case object ERROR extends ServerLogLevel("ERROR")
+  case object INFO  extends ServerLogLevel("INFO", "INFO")
+  case object WARN  extends ServerLogLevel("WARNING", "WARNING")
+  case object ERROR extends ServerLogLevel("ERROR", "ERROR")
 
   /** @group Typeclass Instances */
   implicit val ServerLogLevelEnumerated: Enumerated[ServerLogLevel] =
-    Enumerated.of(INFO, WARN, ERROR)
+    Enumerated.from(INFO, WARN, ERROR).withTag(_.tag)
 }

@@ -70,17 +70,17 @@ object NSObservationProgress {
 
 }
 
-sealed trait ObserveStage extends Product with Serializable
+sealed abstract class ObserveStage(val tag: String) extends Product with Serializable
 
 object ObserveStage {
 
-  case object Idle       extends ObserveStage
-  case object Preparing  extends ObserveStage
-  case object Acquiring  extends ObserveStage
-  case object ReadingOut extends ObserveStage
+  case object Idle       extends ObserveStage("Idle")
+  case object Preparing  extends ObserveStage("Preparing")
+  case object Acquiring  extends ObserveStage("Acquiring")
+  case object ReadingOut extends ObserveStage("ReadingOut")
 
   implicit val observeStageEnum: Enumerated[ObserveStage] =
-    Enumerated.of(Idle, Preparing, Acquiring, ReadingOut)
+    Enumerated.from(Idle, Preparing, Acquiring, ReadingOut).withTag(_.tag)
 
   def fromBooleans(prep: Boolean, acq: Boolean, rdout: Boolean): ObserveStage =
     if (prep) Preparing

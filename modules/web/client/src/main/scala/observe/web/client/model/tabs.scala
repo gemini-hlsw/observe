@@ -64,16 +64,16 @@ object CalibrationQueueTabActive {
     Eq.by(x => (x.calibrationTab, x.active))
 }
 
-sealed trait TabSelected extends Product with Serializable
+sealed abstract class TabSelected(val tag: String) extends Product with Serializable
 object TabSelected {
-  case object Selected   extends TabSelected
-  case object Background extends TabSelected
+  case object Selected   extends TabSelected("Selected")
+  case object Background extends TabSelected("Background")
 
   def fromBoolean(b: Boolean): TabSelected = if (b) Selected else Background
 
   /** @group Typeclass Instances */
   implicit val TabSelectedEnumerated: Enumerated[TabSelected] =
-    Enumerated.of(Selected, Background)
+    Enumerated.from(Selected, Background).withTag(_.tag)
 
 }
 

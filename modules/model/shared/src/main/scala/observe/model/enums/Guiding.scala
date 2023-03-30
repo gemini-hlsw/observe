@@ -6,19 +6,19 @@ package observe.model.enums
 import cats.syntax.all._
 import lucuma.core.util.Enumerated
 
-sealed abstract class Guiding(val configValue: String) extends Product with Serializable
+sealed abstract class Guiding(val tag: String, val configValue: String) extends Product with Serializable
 
 object Guiding {
 
-  case object Guide  extends Guiding("guide")
-  case object Park   extends Guiding("park")
-  case object Freeze extends Guiding("freeze")
+  case object Guide  extends Guiding("Guide", "guide")
+  case object Park   extends Guiding("Park", "park")
+  case object Freeze extends Guiding("Freeze", "freeze")
 
   def fromString(s: String): Option[Guiding] =
     GuidingEnumerated.all.find(_.configValue === s)
 
   /** @group Typeclass Instances */
   implicit val GuidingEnumerated: Enumerated[Guiding] =
-    Enumerated.of(Guide, Park, Freeze)
+    Enumerated.from(Guide, Park, Freeze).withTag(_.tag)
 
 }

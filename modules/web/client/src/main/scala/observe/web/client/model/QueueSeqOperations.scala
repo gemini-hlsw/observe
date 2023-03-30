@@ -7,22 +7,22 @@ import cats.Eq
 import lucuma.core.util.Enumerated
 import monocle.macros.Lenses
 
-sealed trait RemoveSeqQueue extends Product with Serializable
+sealed abstract class RemoveSeqQueue(val tag: String) extends Product with Serializable
 object RemoveSeqQueue {
-  case object RemoveSeqQueueIdle     extends RemoveSeqQueue
-  case object RemoveSeqQueueInFlight extends RemoveSeqQueue
+  case object RemoveSeqQueueIdle     extends RemoveSeqQueue("RemoveSeqQueueIdle")
+  case object RemoveSeqQueueInFlight extends RemoveSeqQueue("RemoveSeqQueueInFlight")
 
   implicit val RemoveSeqQueueEnumerated: Enumerated[RemoveSeqQueue] =
-    Enumerated.of(RemoveSeqQueueIdle, RemoveSeqQueueInFlight)
+    Enumerated.from(RemoveSeqQueueIdle, RemoveSeqQueueInFlight).withTag(_.tag)
 }
 
-sealed trait MoveSeqQueue extends Product with Serializable
+sealed abstract class MoveSeqQueue(val tag: String) extends Product with Serializable
 object MoveSeqQueue {
-  case object MoveSeqQueueInFlight extends MoveSeqQueue
-  case object MoveSeqQueueIdle     extends MoveSeqQueue
+  case object MoveSeqQueueInFlight extends MoveSeqQueue("MoveSeqQueueInFlight")
+  case object MoveSeqQueueIdle     extends MoveSeqQueue("MoveSeqQueueIdle")
 
   implicit val MoveSeqQueueEnumerated: Enumerated[MoveSeqQueue] =
-    Enumerated.of(MoveSeqQueueIdle, MoveSeqQueueInFlight)
+    Enumerated.from(MoveSeqQueueIdle, MoveSeqQueueInFlight).withTag(_.tag)
 }
 
 /**

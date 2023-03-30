@@ -27,22 +27,22 @@ package gmos {
       Some((s.ongoingAction, s.sub))
 
     case class NSStart(sub: NSSubexposure)            extends NSPartial {
-      override val ongoingAction = NSAction.Start
+      override val ongoingAction: NSAction = NSAction.Start
     }
     case class NSTCSNodStart(sub: NSSubexposure)      extends NSPartial {
-      override val ongoingAction = NSAction.NodStart
+      override val ongoingAction: NSAction = NSAction.NodStart
     }
     case class NSTCSNodComplete(sub: NSSubexposure)   extends NSPartial {
-      override val ongoingAction = NSAction.NodComplete
+      override val ongoingAction: NSAction = NSAction.NodComplete
     }
     case class NSSubexposureStart(sub: NSSubexposure) extends NSPartial {
-      override val ongoingAction = NSAction.StageObserveStart
+      override val ongoingAction: NSAction = NSAction.StageObserveStart
     }
     case class NSSubexposureEnd(sub: NSSubexposure)   extends NSPartial {
-      override val ongoingAction = NSAction.StageObserveComplete
+      override val ongoingAction: NSAction = NSAction.StageObserveComplete
     }
     case class NSComplete(sub: NSSubexposure)         extends NSPartial {
-      override val ongoingAction = NSAction.Done
+      override val ongoingAction: NSAction = NSAction.Done
     }
 
     case object NSContinue  extends InternalPartialVal
@@ -51,25 +51,25 @@ package gmos {
 
   }
 
-  sealed trait NSObserveCommand extends Product with Serializable
+  sealed abstract class NSObserveCommand(val tag: String) extends Product with Serializable
 
   object NSObserveCommand {
-    case object StopGracefully   extends NSObserveCommand
-    case object StopImmediately  extends NSObserveCommand
-    case object AbortGracefully  extends NSObserveCommand
-    case object AbortImmediately extends NSObserveCommand
-    case object PauseGracefully  extends NSObserveCommand
-    case object PauseImmediately extends NSObserveCommand
+    case object StopGracefully   extends NSObserveCommand("StopGracefully")
+    case object StopImmediately  extends NSObserveCommand("StopImmediately")
+    case object AbortGracefully  extends NSObserveCommand("AbortGracefully")
+    case object AbortImmediately extends NSObserveCommand("AbortImmediately")
+    case object PauseGracefully  extends NSObserveCommand("PauseGracefully")
+    case object PauseImmediately extends NSObserveCommand("PauseImmediately")
 
     implicit val nsObserveCommandEnum: Enumerated[NSObserveCommand] =
-      Enumerated.of(
+      Enumerated.from(
         StopGracefully,
         StopImmediately,
         AbortGracefully,
         AbortImmediately,
         PauseGracefully,
         PauseImmediately
-      )
+      ).withTag(_.tag)
   }
 
 }

@@ -6,7 +6,7 @@ package observe.model.enums
 import cats.syntax.all._
 import lucuma.core.util.Enumerated
 
-sealed abstract class SystemName(val system: String) extends Product with Serializable {
+sealed abstract class SystemName(val tag: String, val system: String) extends Product with Serializable {
 
   def withParam(p: String): String =
     s"$system:$p"
@@ -15,14 +15,14 @@ sealed abstract class SystemName(val system: String) extends Product with Serial
 
 object SystemName {
 
-  case object Ocs            extends SystemName("ocs")
-  case object Observe        extends SystemName("observe")
-  case object Instrument     extends SystemName("instrument")
-  case object Telescope      extends SystemName("telescope")
-  case object Gcal           extends SystemName("gcal")
-  case object Calibration    extends SystemName("calibration")
-  case object Meta           extends SystemName("meta")
-  case object AdaptiveOptics extends SystemName("adaptive optics")
+  case object Ocs            extends SystemName("Ocs", "ocs")
+  case object Observe        extends SystemName("Observe", "observe")
+  case object Instrument     extends SystemName("Instrument", "instrument")
+  case object Telescope      extends SystemName("Telescope", "telescope")
+  case object Gcal           extends SystemName("Gcal", "gcal")
+  case object Calibration    extends SystemName("Calibration", "calibration")
+  case object Meta           extends SystemName("Meta", "meta")
+  case object AdaptiveOptics extends SystemName("AdaptiveOptics", "adaptive optics")
 
   def fromString(system: String): Option[SystemName] =
     SystemNameEnumerated.all.find(_.system === system)
@@ -32,5 +32,5 @@ object SystemName {
 
   /** @group Typeclass Instances */
   implicit val SystemNameEnumerated: Enumerated[SystemName] =
-    Enumerated.of(Ocs, Observe, Instrument, Telescope, Gcal, Calibration, Meta, AdaptiveOptics)
+    Enumerated.from(Ocs, Observe, Instrument, Telescope, Gcal, Calibration, Meta, AdaptiveOptics).withTag(_.tag)
 }

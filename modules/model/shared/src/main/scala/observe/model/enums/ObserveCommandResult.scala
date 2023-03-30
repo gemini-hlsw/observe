@@ -5,15 +5,15 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed trait ObserveCommandResult extends Product with Serializable
+sealed abstract class ObserveCommandResult(val tag: String) extends Product with Serializable
 
 object ObserveCommandResult {
-  case object Success extends ObserveCommandResult
-  case object Paused  extends ObserveCommandResult
-  case object Stopped extends ObserveCommandResult
-  case object Aborted extends ObserveCommandResult
+  case object Success extends ObserveCommandResult("Success")
+  case object Paused  extends ObserveCommandResult("Paused")
+  case object Stopped extends ObserveCommandResult("Stopped")
+  case object Aborted extends ObserveCommandResult("Aborted")
 
   /** @group Typeclass Instances */
   implicit val ObserveCommandResultEnumerated: Enumerated[ObserveCommandResult] =
-    Enumerated.of(Success, Paused, Stopped, Aborted)
+    Enumerated.from(Success, Paused, Stopped, Aborted).withTag(_.tag)
 }

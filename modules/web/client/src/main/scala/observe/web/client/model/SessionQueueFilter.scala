@@ -11,16 +11,16 @@ import observe.model.SequenceView
 import observe.web.client.circuit.SequenceInSessionQueue
 import observe.web.client.model.lenses.obsClassT
 
-sealed trait ObsClass extends Product with Serializable
+sealed abstract class ObsClass(val tag: String) extends Product with Serializable
 
 object ObsClass {
-  case object All       extends ObsClass
-  case object Daytime   extends ObsClass
-  case object Nighttime extends ObsClass
+  case object All       extends ObsClass("All")
+  case object Daytime   extends ObsClass("Daytime")
+  case object Nighttime extends ObsClass("Nighttime")
 
   /** @group Typeclass Instances */
   implicit val ObsClassEnumerated: Enumerated[ObsClass] =
-    Enumerated.of(All, Daytime, Nighttime)
+    Enumerated.from(All, Daytime, Nighttime).withTag(_.tag)
 
   def fromString(s: String): ObsClass = s match {
     case "dayCal" => Daytime

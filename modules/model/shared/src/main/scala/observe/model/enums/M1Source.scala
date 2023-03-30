@@ -6,17 +6,17 @@ package observe.model.enums
 import lucuma.core.util.Enumerated
 
 /** Enumerated type for M1 Source. */
-sealed trait M1Source extends Product with Serializable
+sealed abstract class M1Source(val tag: String) extends Product with Serializable
 
 object M1Source {
-  case object PWFS1 extends M1Source
-  case object PWFS2 extends M1Source
-  case object OIWFS extends M1Source
-  case object GAOS  extends M1Source
-  case object HRWFS extends M1Source
+  case object PWFS1 extends M1Source("PWFS1")
+  case object PWFS2 extends M1Source("PWFS2")
+  case object OIWFS extends M1Source("OIWFS")
+  case object GAOS  extends M1Source("GAOS")
+  case object HRWFS extends M1Source("HRWFS")
 
   /** @group Typeclass Instances */
   implicit val M1SourceEnumerated: Enumerated[M1Source] =
-    Enumerated.of(PWFS1, PWFS2, OIWFS, GAOS, HRWFS)
+    Enumerated.from(PWFS1, PWFS2, OIWFS, GAOS, HRWFS).withTag(_.tag)
 
 }

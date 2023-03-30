@@ -6,13 +6,13 @@ package observe.model.enums
 import lucuma.core.util.Enumerated
 
 /** Enumerated type for offloading of tip/tilt corrections from M2 to mount. */
-sealed trait MountGuideOption extends Product with Serializable
+sealed abstract class MountGuideOption(val tag: String) extends Product with Serializable
 
 object MountGuideOption {
-  case object MountGuideOff extends MountGuideOption
-  case object MountGuideOn  extends MountGuideOption
+  case object MountGuideOff extends MountGuideOption("MountGuideOff")
+  case object MountGuideOn  extends MountGuideOption("MountGuideOn")
 
   /** @group Typeclass Instances */
   implicit val MountGuideOptionEnumerated: Enumerated[MountGuideOption] =
-    Enumerated.of(MountGuideOff, MountGuideOn)
+    Enumerated.from(MountGuideOff, MountGuideOn).withTag(_.tag)
 }

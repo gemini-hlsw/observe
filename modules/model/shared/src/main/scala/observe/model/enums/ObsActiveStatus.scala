@@ -14,7 +14,7 @@ import monocle.Iso
  * prevent or halt execution of "Ready'' or "Ongoing'' observations while retaining their status
  * information".
  */
-sealed abstract class ObsActiveStatus(val label: String, val toBoolean: Boolean)
+sealed abstract class ObsActiveStatus(val tag: String, val label: String, val toBoolean: Boolean)
     extends Product
     with Serializable {
 
@@ -28,15 +28,15 @@ sealed abstract class ObsActiveStatus(val label: String, val toBoolean: Boolean)
 
 object ObsActiveStatus {
 
-  case object Active   extends ObsActiveStatus("Active", true)
-  case object Inactive extends ObsActiveStatus("Inactive", false)
+  case object Active   extends ObsActiveStatus("Active", "Active", true)
+  case object Inactive extends ObsActiveStatus("Inactive", "Inactive", false)
 
   /** @group Typeclass Instances */
   implicit val EnumeratedObsActiveStatus: Enumerated[ObsActiveStatus] =
-    Enumerated.of(
+    Enumerated.from(
       Active,
       Inactive
-    )
+    ).withTag(_.tag)
 
   implicit val DisplayObsActiveStatus: Display[ObsActiveStatus] =
     Display.byShortName(_.label)
