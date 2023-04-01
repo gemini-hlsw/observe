@@ -17,6 +17,14 @@ ThisBuild / Test / bspEnabled                      := false
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
+ThisBuild / githubWorkflowBuildPreamble ++= Seq(
+  WorkflowStep.Use(
+    UseRef.Public("actions", "setup-node", "v3"),
+    name = Some("Setup Node"),
+    params = Map("node-version" -> "16", "cache" -> "npm")
+  )
+)
+
 inThisBuild(
   Seq(
     scalacOptions += "-Ymacro-annotations",
