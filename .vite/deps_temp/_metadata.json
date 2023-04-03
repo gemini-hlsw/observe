@@ -1,11 +1,11 @@
 {
-  "hash": "c72b1d9d",
-  "browserHash": "247282d9",
+  "hash": "4033db6f",
+  "browserHash": "1f73b239",
   "optimized": {
     "process": {
       "src": "../../modules/new_web/node_modules/process/browser.js",
       "file": "process.js",
-      "fileHash": "cc6171d4",
+      "fileHash": "74ea080c",
       "needsInterop": true
     }
   },

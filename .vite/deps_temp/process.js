@@ -164,10 +164,5 @@ var require_browser = __commonJS({
     };
   }
 });
-
-// dep:process
-var process_default = require_browser();
-export {
-  process_default as default
-};
+export default require_browser();
 //# sourceMappingURL=process.js.map
