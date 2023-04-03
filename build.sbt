@@ -17,14 +17,6 @@ ThisBuild / Test / bspEnabled                      := false
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
-ThisBuild / githubWorkflowBuildPreamble ++= Seq(
-  WorkflowStep.Use(
-    UseRef.Public("actions", "setup-node", "v3"),
-    name = Some("Setup Node"),
-    params = Map("node-version" -> "16", "cache" -> "npm")
-  )
-)
-
 inThisBuild(
   Seq(
     scalacOptions += "-Ymacro-annotations",
@@ -92,7 +84,7 @@ lazy val root = tlCrossRootProject.aggregate(
   giapi,
   ocs2_api,
   observe_web_server,
-  observe_web_client,
+//  observe_web_client,
   observe_server,
   observe_model,
   observe_engine
@@ -177,7 +169,7 @@ lazy val observe_web_server = project
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
-lazy val observe_web_client = project
+/*lazy val observe_web_client = project
   .in(file("modules/web/client"))
   .enablePlugins(ScalaJSPlugin)
   .enablePlugins(ScalaJSBundlerPlugin)
@@ -270,7 +262,7 @@ lazy val observe_web_client = project
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.web.client"
   )
-  .dependsOn(observe_model.js % "compile->compile;test->test")
+  .dependsOn(observe_model.js % "compile->compile;test->test")*/
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project
@@ -379,8 +371,8 @@ lazy val observeCommonSettings = Seq(
   // This is important to keep the file generation order correctly
   Universal / parallelExecution   := false,
   // Depend on webpack and add the assets created by webpack
-  Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
-    .map(f => f.data -> f.data.getName()),
+//  Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
+//    .map(f => f.data -> f.data.getName()),
   // Name of the launch script
   executableScriptName            := "observe-server",
   // No javadocs
@@ -443,8 +435,8 @@ lazy val observeLinux = Seq(
 lazy val app_observe_server = project
   .in(file("app/observe-server"))
   .enablePlugins(NoPublishPlugin)
-  .dependsOn(observe_web_server, observe_web_client)
-  .aggregate(observe_web_server, observe_web_client)
+//  .dependsOn(observe_web_server, observe_web_client)
+//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
@@ -484,8 +476,8 @@ lazy val app_observe_server_gs_test =
   project
     .in(file("app/observe-server-gs-test"))
     .enablePlugins(NoPublishPlugin)
-    .dependsOn(observe_web_server, observe_web_client)
-    .aggregate(observe_web_server, observe_web_client)
+//    .dependsOn(observe_web_server, observe_web_client)
+//    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(SystemdPlugin)
@@ -516,8 +508,8 @@ lazy val app_observe_server_gn_test =
   project
     .in(file("app/observe-server-gn-test"))
     .enablePlugins(NoPublishPlugin)
-    .dependsOn(observe_web_server, observe_web_client)
-    .aggregate(observe_web_server, observe_web_client)
+//    .dependsOn(observe_web_server, observe_web_client)
+//    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin, RpmPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(GitBranchPrompt)
@@ -546,8 +538,8 @@ lazy val app_observe_server_gn_test =
 lazy val app_observe_server_gs = project
   .in(file("app/observe-server-gs"))
   .enablePlugins(NoPublishPlugin)
-  .dependsOn(observe_web_server, observe_web_client)
-  .aggregate(observe_web_server, observe_web_client)
+//  .dependsOn(observe_web_server, observe_web_client)
+//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
@@ -576,8 +568,8 @@ lazy val app_observe_server_gs = project
 lazy val app_observe_server_gn = project
   .in(file("app/observe-server-gn"))
   .enablePlugins(NoPublishPlugin)
-  .dependsOn(observe_web_server, observe_web_client)
-  .aggregate(observe_web_server, observe_web_client)
+//  .dependsOn(observe_web_server, observe_web_client)
+//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
