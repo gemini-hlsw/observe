@@ -2,7 +2,7 @@ val sbtLucumaVersion = "0.9.5"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app"         % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-sjs-bundler" % sbtLucumaVersion)
 
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.13.0")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.13.1")
 
 // sbt revolver lets launching applications from the sbt console
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.9.1")
