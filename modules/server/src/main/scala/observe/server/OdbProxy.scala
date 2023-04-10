@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -27,18 +27,18 @@ import java.util.UUID
 
 sealed trait OdbEventCommands[F[_]] {
   def datasetStart(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    datasetIndex:          PosInt,
-    fileId:                ImageFileId
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    datasetIndex: PosInt,
+    fileId:       ImageFileId
   ): F[Boolean]
   def datasetComplete(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    datasetIndex:          PosInt,
-    fileId:                ImageFileId
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    datasetIndex: PosInt,
+    fileId:       ImageFileId
   ): F[Boolean]
   def obsAbort(visitId:    VisitId, obsId: Observation.IdName, reason: String): F[Boolean]
   def sequenceEnd(visitId: VisitId, obsId: Observation.IdName): F[Boolean]
@@ -47,40 +47,40 @@ sealed trait OdbEventCommands[F[_]] {
   def obsPause(visitId:    VisitId, obsId: Observation.IdName, reason: String): F[Boolean]
   def obsStop(visitId:     VisitId, obsId: Observation.IdName, reason: String): F[Boolean]
   def stepStartStep(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
   def stepEndStep(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
   def stepStartConfigure(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
   def stepEndConfigure(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
   def stepStartObserve(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
   def stepEndObserve(
-    visitId:               VisitId,
-    obsIdName:             Observation.IdName,
-    stepId:                StepId,
-    sequenceType:          SequenceType
+    visitId:      VisitId,
+    obsIdName:    Observation.IdName,
+    stepId:       StepId,
+    sequenceType: SequenceType
   ): F[Boolean]
 }
 
@@ -272,8 +272,8 @@ object OdbProxy {
   }
 
   final case class OdbCommandsImpl[F[_]](client: TransactionalClient[F, ObservationDB])(implicit
-    val F:                                       Sync[F],
-    L:                                           Logger[F]
+    val F: Sync[F],
+    L:     Logger[F]
   ) extends OdbEventCommands[F] {
 
     implicit val cl: TransactionalClient[F, ObservationDB] = client
