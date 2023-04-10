@@ -23,7 +23,7 @@ object Settings {
     val scalaJSReactSortable    = "0.5.2"
 
     // Scala libraries
-    val catsEffectVersion   = "3.4.7"
+    val catsEffectVersion   = "3.4.8"
     val catsVersion         = "2.9.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.6.1"
@@ -33,7 +33,7 @@ object Settings {
     val catsTime            = "0.4.0"
 
     val http4sVersion                  = "0.23.18"
-    val http4sBlazeVersion             = "0.23.13"
+    val http4sBlazeVersion             = "0.23.14"
     val http4sJdkHttpClientVersion     = "0.9.0"
     val http4sBoopickleVersion         = "0.23.11"
     val http4sPrometheusMetricsVersion = "0.24.3"
@@ -43,16 +43,16 @@ object Settings {
     val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
     val jwt            = "5.0.0"
-    val slf4j          = "2.0.5"
+    val slf4j          = "2.0.7"
     val log4s          = "1.10.0"
     val log4cats       = "2.5.0"
     val log4catsLevel  = "0.3.1"
-    val logback        = "1.4.5"
+    val logback        = "1.4.6"
     val janino         = "3.1.9"
     val logstash       = "7.0"
     val pureConfig     = "0.17.2"
     val monocleVersion = "3.2.0"
-    val circeVersion   = "0.14.4"
+    val circeVersion   = "0.14.5"
     val doobieVersion  = "0.6.0"
     val flywayVersion  = "6.0.4"
 
@@ -93,9 +93,9 @@ object Settings {
     val lucumaSchemas = "0.33.0"
 
     // Clue
-    val clue = "0.24.0"
+    val clue = "0.24.1"
 
-    val sttp = "3.8.11"
+    val sttp = "3.8.14"
   }
 
   /**
