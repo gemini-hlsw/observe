@@ -13,7 +13,7 @@ import org.typelevel.log4cats.noop.NoOpLogger
 import org.http4s._
 import org.http4s.implicits._
 import observe.server._
-import observe.server.tcs.GuideConfigDb
+//import observe.server.tcs.GuideConfigDb
 import observe.model.events._
 import observe.model.config._
 import observe.web.server.http4s.encoder._
@@ -31,20 +31,19 @@ trait TestRoutes extends ClientBooEncoders with CatsSuite {
     AuthenticationConfig(FiniteDuration(8, HOURS), "token", "abc", useSSL = false, Nil)
   private val authService = AuthenticationService[IO](Mode.Development, config)
 
-  def commandRoutes(engine: ObserveEngine[IO]) =
-    for {
+  def commandRoutes(engine: ObserveEngine[IO]): IO[HttpRoutes[IO]] = for {
       q <- Queue.bounded[IO, executeEngine.EventType](10)
     } yield new ObserveCommandRoutes[IO](authService, q, engine).service
 
-  def uiRoutes(wsb: WebSocketBuilder2[IO]) =
+  def uiRoutes(wsb: WebSocketBuilder2[IO]): IO[HttpRoutes[IO]] =
     for {
       o  <- Topic[IO, ObserveEvent]
       cs <- Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
     } yield new ObserveUIApiRoutes(Site.GS,
                                    Mode.Development,
                                    authService,
-                                   GuideConfigDb.constant[IO],
-                                   statusDb,
+//                                   GuideConfigDb.constant[IO],
+//                                   statusDb,
                                    cs,
                                    o,
                                    wsb

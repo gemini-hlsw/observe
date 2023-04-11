@@ -3,19 +3,19 @@
 
 package observe.web.server.http4s
 
-import cats.effect.Async
-import cats.syntax.all._
-import fs2.compression.Compression
-import org.typelevel.log4cats.Logger
-import org.http4s.EntityDecoder
-import org.http4s.HttpRoutes
-import org.http4s.circe.jsonOf
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.middleware.GZip
-import observe.server.tcs.GuideConfig
-import observe.server.tcs.GuideConfigDb
-import observe.server.tcs.GuideConfigDb._
-
+//import cats.effect.Async
+//import cats.syntax.all._
+//import fs2.compression.Compression
+//import org.typelevel.log4cats.Logger
+//import org.http4s.EntityDecoder
+//import org.http4s.HttpRoutes
+//import org.http4s.circe.jsonOf
+//import org.http4s.dsl.Http4sDsl
+//import org.http4s.server.middleware.GZip
+//import observe.server.tcs.GuideConfig
+//import observe.server.tcs.GuideConfigDb
+//import observe.server.tcs.GuideConfigDb._
+/*
 class GuideConfigDbRoutes[F[_]: Async: Logger: Compression](db: GuideConfigDb[F])
     extends Http4sDsl[F] {
 
@@ -34,3 +34,4 @@ class GuideConfigDbRoutes[F[_]: Async: Logger: Compression](db: GuideConfigDb[F]
   def service: HttpRoutes[F] = publicService
 
 }
+*/

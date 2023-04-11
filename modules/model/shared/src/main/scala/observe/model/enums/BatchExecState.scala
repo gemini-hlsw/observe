@@ -25,13 +25,7 @@ object BatchExecState {
 
   implicit val show: Show[BatchExecState] = Show.show(tag)
 
-  def tag(s: BatchExecState): String = s match {
-    case Idle      => "Idle"
-    case Running   => "Running"
-    case Waiting   => "Waiting"
-    case Stopping  => "Stopping"
-    case Completed => "Completed"
-  }
+  def tag(s: BatchExecState): String = s.tag
 
   /** @group Typeclass Instances */
   implicit val BatchExecStateEnumerated: Enumerated[BatchExecState] =

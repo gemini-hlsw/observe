@@ -266,7 +266,7 @@ lazy val observe_web_server = project
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project
-  .in(file("modules/server"))
+  .in(file("modules/server_new"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
   .settings(commonSettings: _*)

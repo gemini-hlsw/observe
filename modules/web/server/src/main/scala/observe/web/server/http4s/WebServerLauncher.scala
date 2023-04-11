@@ -36,13 +36,13 @@ import pureconfig._
 import observe.model.config._
 import observe.model.events._
 import observe.server
-import observe.server.CaServiceInit
+//import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.ObserveFailure
 import observe.server.ObserveMetrics
 import observe.server.Systems
 import observe.server.executeEngine
-import observe.server.tcs.GuideConfigDb
+//import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
 import observe.web.server.config._
 import observe.web.server.logging.AppenderForClients
@@ -145,13 +145,13 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/api"                  -> new ObserveUIApiRoutes(conf.site,
                                        conf.mode,
                                        as,
-                                       se.systems.guideDb,
-                                       se.systems.gpi.statusDb,
+//                                       se.systems.guideDb,
+//                                       se.systems.gpi.statusDb,
                                        clientsDb,
                                        outputs,
                                        wsb
       ).service,
-      "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
+//      "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
       "/smartgcal"            -> new SmartGcalRoutes[F](cal).service
     )
 
@@ -169,11 +169,11 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   def redirectWebServer[F[_]: Logger: Async: Compression](
-    gcdb: GuideConfigDb[F],
+//    gcdb: GuideConfigDb[F],
     cal:  SmartGcal
   )(conf: WebServerConfiguration): Resource[F, Server] = {
     val router = Router[F](
-      "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,
+//      "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,
       "/smartgcal"         -> new SmartGcalRoutes[F](cal).service,
       "/"                  -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
     )
@@ -252,8 +252,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
     ): Resource[IO, ObserveEngine[IO]] =
       for {
         met  <- Resource.eval(ObserveMetrics.build[IO](conf.site, collector))
-        caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
-        sys  <- Systems.build(conf.site, httpClient, conf.observeEngine, caS)
+//        caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
+        sys  <- Systems.build(conf.site, httpClient, conf.observeEngine/*, caS*/)
         seqE <- Resource.eval(ObserveEngine.build(conf.site, sys, conf.observeEngine, met))
       } yield seqE
 
@@ -268,7 +268,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       for {
         as <- Resource.eval(authService[IO](conf.mode, conf.authentication))
         ca <- Resource.eval(SmartGcalInitializer.init[IO](conf.smartGcal))
-        _  <- redirectWebServer(en.systems.guideDb, ca)(conf.webServer)
+//        _  <- redirectWebServer(en.systems.guideDb, ca)(conf.webServer)
         _  <- webServer[IO](conf, ca, as, in, out, en, cr, cs)
       } yield ()
 

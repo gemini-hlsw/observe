@@ -102,7 +102,7 @@ object SequenceGen {
     override val dataId: DataId,
     override val config: Map[String, String],
     resources:           Set[Resource],
-    obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
+    //obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:           StepActionsGen[F]
   ) extends StepGen[F]
 

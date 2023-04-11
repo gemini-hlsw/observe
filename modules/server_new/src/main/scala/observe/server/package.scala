@@ -3,42 +3,29 @@
 
 package observe
 
-import cats.Applicative
-import cats.ApplicativeError
-import cats.Endo
-import cats.Eq
-import cats.Functor
-import cats.MonadError
 import cats.data._
 import cats.effect.IO
+import cats.effect.std.Queue
 import cats.syntax.all._
+import cats.{Applicative, ApplicativeError, Endo, Eq, Functor, MonadError}
 import clue.ErrorPolicy
 import edu.gemini.spModel.`type`.SequenceableSpType
 import edu.gemini.spModel.guide.StandardGuideOptions
 import fs2.Stream
-import cats.effect.std.Queue
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
-import monocle.Lens
-import monocle.Optional
 import monocle.function.At._
 import monocle.function.Index._
-import monocle.macros.GenLens
-import monocle.macros.Lenses
-import observe.engine.Engine
-import observe.engine.Result
+import monocle.macros.{GenLens, Lenses}
+import monocle.{Lens, Optional}
 import observe.engine.Result.PauseContext
-import observe.engine._
-import observe.model.Observation
-import observe.model._
+import observe.engine.{Engine, Result, _}
 import observe.model.enums._
-import observe.server.SequenceGen.StepGen
-import squants.Time
+import observe.model.{Observation, _}
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 package server {
 
   import lucuma.schemas.ObservationDB.Scalars.VisitId
-  import observe.server.InstrumentSystem.ElapsedTime
 
   import scala.concurrent.duration.Duration
 
@@ -90,13 +77,13 @@ package server {
     val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None)
   }
 
-  final case class ObserveContext[F[_]](
-    resumePaused: Duration => Stream[F, Result[F]],
-    progress:     ElapsedTime => Stream[F, Result[F]],
-    stopPaused:   Stream[F, Result[F]],
-    abortPaused:  Stream[F, Result[F]],
-    expTime:      Duration
-  ) extends PauseContext[F]
+//  final case class ObserveContext[F[_]](
+//    resumePaused: Duration => Stream[F, Result[F]],
+//    progress:     ElapsedTime => Stream[F, Result[F]],
+//    stopPaused:   Stream[F, Result[F]],
+//    abortPaused:  Stream[F, Result[F]],
+//    expTime:      Duration
+//  ) extends PauseContext[F]
 
 }
 
@@ -180,12 +167,12 @@ package object server    {
       StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
   }
 
-  def toStepList[F[_]](
-    seq:       SequenceGen[F],
-    overrides: SystemOverrides,
-    d:         HeaderExtraData
-  ): List[engine.Step[F]] =
-    seq.steps.map(StepGen.generate(_, overrides, d))
+//  def toStepList[F[_]](
+//    seq:       SequenceGen[F],
+//    overrides: SystemOverrides,
+//    d:         HeaderExtraData
+//  ): List[engine.Step[F]] =
+//    seq.steps.map(StepGen.generate(_, overrides, d))
 
   // If f is true continue, otherwise fail
   def failUnlessM[F[_]: MonadError[*[_], Throwable]](f: F[Boolean], err: Exception): F[Unit] =
@@ -221,17 +208,17 @@ package object server    {
         Stream.emit(Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e))))
   }
 
-  implicit class ActionResponseToAction[F[_]: Functor: ApplicativeError[
-    *[_],
-    Throwable
-  ], A <: Response](val x: F[A]) {
-    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
-  }
-
-  implicit class ConfigResultToAction[F[_]: Functor](val x: F[ConfigResult[F]]) {
-    def toAction(kind: ActionType): Action[F] =
-      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
-  }
+//  implicit class ActionResponseToAction[F[_]: Functor: ApplicativeError[
+//    *[_],
+//    Throwable
+//  ], A <: Response](val x: F[A]) {
+//    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
+//  }
+//
+//  implicit class ConfigResultToAction[F[_]: Functor](val x: F[ConfigResult[F]]) {
+//    def toAction(kind: ActionType): Action[F] =
+//      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
+//  }
 
   // Some types defined to avoid repeating long type definitions everywhere
   type EventType[F[_]]      = Event[F, EngineState[F], SeqEvent]

@@ -40,7 +40,7 @@ import observe.model.boopickle._
 import observe.model.config._
 import observe.model.events._
 import observe.server.ObserveEngine
-import observe.server.tcs.GuideConfigDb
+//import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
 import observe.web.server.http4s.encoder._
 import observe.web.server.security.AuthenticationService
@@ -55,8 +55,8 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
   site:             Site,
   mode:             Mode,
   auth:             AuthenticationService[F],
-  guideConfigS:     GuideConfigDb[F],
-  giapiDB:          GiapiStatusDb[F],
+//  guideConfigS:     GuideConfigDb[F],
+//  giapiDB:          GiapiStatusDb[F],
   clientsDb:        ClientsSetDb[F],
   engineOutput:     Topic[F, ObserveEvent],
   webSocketBuilder: WebSocketBuilder2[F]
@@ -73,23 +73,23 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
   private val httpAuthentication = new Http4sAuthentication(auth)
 
   // Stream of updates to the guide config db
-  val guideConfigEvents: Stream[F, Binary] =
-    guideConfigS.discrete
-      .map(g => GuideConfigUpdate(g.tcsGuide))
-      .map(toFrame)
+//  val guideConfigEvents: Stream[F, Binary] =
+//    guideConfigS.discrete
+//      .map(g => GuideConfigUpdate(g.tcsGuide))
+//      .map(toFrame)
 
   // Stream of updates to gpi align an calib process
   // This is fairly custom for one use case and we'd rather have a more
   // generalized mechanism.
   // Also we may want to send this through another websocket but it would
   // complicate the client
-  val giapiDBEvents: Stream[F, Binary] =
-    giapiDB.discrete
-      .map(_.get(GiapiStatus.GpiAlignAndCalibState.statusItem).flatMap(StatusValue.intValue))
-      .collect { case Some(x) =>
-        AlignAndCalibEvent(x)
-      }
-      .map(toFrame)
+//  val giapiDBEvents: Stream[F, Binary] =
+//    giapiDB.discrete
+//      .map(_.get(GiapiStatus.GpiAlignAndCalibState.statusItem).flatMap(StatusValue.intValue))
+//      .collect { case Some(x) =>
+//        AlignAndCalibEvent(x)
+//      }
+//      .map(toFrame)
 
   val pingInterval: FiniteDuration = 10.second
 
@@ -193,8 +193,8 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
           _        <- L.info(s"New client $clientSocket => ${clientId.self}")
           initial   = initialEvent(clientId)
           streams   = Stream(pingStream,
-                             guideConfigEvents,
-                             giapiDBEvents,
+//                             guideConfigEvents,
+//                             giapiDBEvents,
                              engineEvents(clientId)
                       ).parJoinUnbounded
                         .onFinalize[F](clientsDb.removeClient(clientId))

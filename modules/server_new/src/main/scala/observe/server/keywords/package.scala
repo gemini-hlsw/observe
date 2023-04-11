@@ -74,17 +74,17 @@ package keywords {
     }
   }
 
-  abstract class GdsInstrument[F[_]: Monad] extends KeywordsClient[F] {
-    val gdsClient: GdsClient[F]
-
-    def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] =
-      gdsClient.setKeywords(id, keywords)
-
-    def closeImage(id: ImageFileId): F[Unit] =
-      gdsClient.closeObservation(id)
-
-    def keywordsBundler: KeywordsBundler[F] = GdsInstrument.kb[F]
-  }
+//  abstract class GdsInstrument[F[_]: Monad] extends KeywordsClient[F] {
+//    val gdsClient: GdsClient[F]
+//
+//    def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] =
+//      gdsClient.setKeywords(id, keywords)
+//
+//    def closeImage(id: ImageFileId): F[Unit] =
+//      gdsClient.closeObservation(id)
+//
+//    def keywordsBundler: KeywordsBundler[F] = GdsInstrument.kb[F]
+//  }
 
   sealed trait KeywordType extends Product with Serializable
 
