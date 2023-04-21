@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -12,6 +12,6 @@ object ApplyCommandResult {
   case object Completed extends ApplyCommandResult("Completed")
 
   /** @group Typeclass Instances */
-  implicit val ApplyCommandResultEnumerated: Enumerated[ApplyCommandResult] =
+  given Enumerated[ApplyCommandResult] =
     Enumerated.from(Paused, Completed).withTag(_.tag)
 }

@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import cats._
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.Activity
 import edu.gemini.aspen.giapi.commands.ConfigPath
 import edu.gemini.aspen.giapi.commands.DefaultConfiguration
@@ -19,7 +19,7 @@ import edu.gemini.aspen.giapi.commands.SequenceCommand
 import edu.gemini.aspen.giapi.commands.{Command => GiapiCommand}
 import edu.gemini.aspen.giapi.commands.{Configuration => GiapiConfiguration}
 import edu.gemini.aspen.gmp.commands.jms.client.CommandSenderClient
-import giapi.client.syntax.giapiconfig._
+import giapi.client.syntax.giapiconfig.*
 
 package commands {
 
@@ -54,9 +54,9 @@ package commands {
     def single[A: GiapiConfig](key: String, value: A): Configuration =
       Configuration(Map(ConfigPath.configPath(key) -> value.configValue))
 
-    implicit val eq: Eq[Configuration] = Eq.by(_.config)
+    given Eq[Configuration] = Eq.by(_.config)
 
-    implicit val monoid: Monoid[Configuration] = new Monoid[Configuration] {
+    given Monoid[Configuration] = new Monoid[Configuration] {
       def empty: Configuration = Zero
 
       def combine(a: Configuration, b: Configuration): Configuration =
@@ -79,11 +79,11 @@ package commands {
 package object commands {
   val DataLabelCfg = "DATA_LABEL"
 
-  implicit val responseEq: Eq[Response] = Eq.instance { case (a, b) =>
+  given Eq[Response] = Eq.instance { case (a, b) =>
     a.name === b.name
   }
 
-  implicit val scEq: Eq[SequenceCommand] = Eq.fromUniversalEquals
+  given Eq[SequenceCommand] = Eq.fromUniversalEquals
 
   /**
    * Send a command over giapi

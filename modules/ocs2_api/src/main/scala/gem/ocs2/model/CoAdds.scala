@@ -1,12 +1,12 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2
 
 import cats.Order
 import cats.Show
-import cats.instances.short._
-import lucuma.core.optics.syntax.prism._
+import cats.instances.short.*
+import lucuma.core.optics.syntax.prism.*
 import monocle.Prism
 
 sealed abstract case class CoAdds private (toShort: Short) {
@@ -19,11 +19,11 @@ object CoAdds {
   final val One: CoAdds = fromShort.unsafeGet(1)
 
   /** @group Typeclass Instances */
-  implicit val CoAddsShow: Show[CoAdds] =
+  given Show[CoAdds] =
     Show.fromToString
 
   /** @group Typeclass Instances */
-  implicit val CoAddsOrd: Order[CoAdds] =
+  given Order[CoAdds] =
     Order.by(_.toShort)
 
   /**

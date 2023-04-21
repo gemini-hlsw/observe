@@ -5,7 +5,7 @@ package observe.web.client.model
 
 import cats.Show
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.Site
 import mouse.all.booleanSyntaxMouse
 import observe.model.{ SequenceState, SequenceView, Step, StepId, StepState }
@@ -17,7 +17,7 @@ import observe.model.enums.Resource
  */
 object ModelOps {
 
-  implicit val sequenceStateShow: Show[SequenceState] =
+  given Show[SequenceState] =
     Show.show[SequenceState] {
       case SequenceState.Completed        => "Complete"
       case SequenceState.Running(true, _) => "Pausing..."
@@ -27,7 +27,7 @@ object ModelOps {
       case SequenceState.Failed(_)        => s"Error at step "
     }
 
-  implicit val stepShow: Show[Step] = Show.show[Step] { s =>
+  given Show[Step] = Show.show[Step] { s =>
     s.status match {
       case StepState.Pending                      => "Pending"
       case StepState.Completed                    => "Done"
@@ -42,7 +42,7 @@ object ModelOps {
     }
   }
 
-  implicit val resourceShow: Show[Resource] = Show.show[Resource] {
+  given Show[Resource] = Show.show[Resource] {
     case Resource.TCS    => "TCS"
     case Resource.Gcal   => "GCAL"
     case Resource.Gems   => "GeMS"
@@ -52,7 +52,7 @@ object ModelOps {
     case i: Instrument   => i.show
   }
 
-  implicit class SequenceViewOps(val s: SequenceView) extends AnyVal {
+  extension(s: SequenceView) {
 
     def allStepsDone: Boolean = s.steps.forall(_.status === StepState.Completed)
 
@@ -77,7 +77,7 @@ object ModelOps {
 
   }
 
-  implicit class SiteOps(val s: Site) extends AnyVal {
+  extension(s: Site) {
 
     def instruments: NonEmptyList[Instrument] =
       s match {
@@ -101,7 +101,7 @@ object ModelOps {
     case object ReadMode      extends InstrumentProperties
   }
 
-  implicit class InstrumentOps(val i: Instrument) extends AnyVal {
+  extension(i: Instrument) {
 
     def displayItems: Set[InstrumentProperties] =
       i match {

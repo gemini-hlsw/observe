@@ -6,7 +6,7 @@ package observe.server.gsaoi
 import cats.Applicative
 import cats.Eq
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
@@ -14,7 +14,7 @@ import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig
 import shapeless.tag.@@
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait GsaoiController[F[_]] {
 
@@ -30,7 +30,7 @@ trait GsaoiController[F[_]] {
 
   def observeProgress(total: Time): fs2.Stream[F, Progress]
 
-  def calcTotalExposureTime(cfg: DCConfig)(implicit ev: Applicative[F]): F[Time] = {
+  def calcTotalExposureTime(cfg: DCConfig)(using ev: Applicative[F]): F[Time] = {
     val readFactor  = 1.2
     val readOutTime = 15
 
@@ -48,16 +48,18 @@ object WindowCover {
   case object Closed extends WindowCover
   case object Opened extends WindowCover
 
-  implicit val eqWc: Eq[WindowCover] = Eq.fromUniversalEquals
+  given Eq[WindowCover] = Eq.fromUniversalEquals
 }
 
 object GsaoiController {
   // DC
   type ReadMode           = edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
   type Roi                = edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
-  type Coadds             = Int @@ CoaddsI
+  object Coadds extends NewType[Int]
+  type Coadds = Coadds.Type
   type ExposureTime       = Time
-  type NumberOfFowSamples = Int @@ NumberOfFowSamplesI
+  object NumberOfFowSamples extends NewType[Int]
+  type NumberOfFowSamples = NumberOfFowSamples.Type
 
   // CC
   type Filter       = edu.gemini.spModel.gemini.gsaoi.Gsaoi.Filter
@@ -74,7 +76,7 @@ object GsaoiController {
 
   object DCConfig {
     // Universal equals is fine as it is integers and java classes
-    implicit val eqDcConig: Eq[DCConfig] = Eq.fromUniversalEquals
+    given Eq[DCConfig] = Eq.fromUniversalEquals
   }
 
   final case class CCConfig(
@@ -86,11 +88,11 @@ object GsaoiController {
 
   object CCConfig {
     // Universal equals is fine as it is integers and java classes
-    implicit val eqDcConig: Eq[CCConfig] = Eq.fromUniversalEquals
+    given Eq[CCConfig] = Eq.fromUniversalEquals
   }
 
   final case class GsaoiConfig(cc: CCConfig, dc: DCConfig)
 
-  implicit val cfgShow: Show[GsaoiConfig] = Show.fromToString
+  given Show[GsaoiConfig] = Show.fromToString
 
 }

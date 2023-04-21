@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe
@@ -14,7 +14,7 @@ package object engine {
   /**
    * This represents an actual real-world action to be done in the underlying systems.
    */
-  def fromF[F[_]](kind: ActionType, t: F[Result[F]]*): Action[F] =
+  def fromF[F[_]](kind: ActionType, t: F[Result]*): Action[F] =
     Action(kind = kind,
            gen = Stream.emits(t).flatMap(Stream.eval),
            state = Action.State(Action.ActionState.Idle, Nil)
@@ -26,7 +26,7 @@ package object engine {
    */
   type ParallelActions[F[_]] = NonEmptyList[Action[F]]
 
-  implicit class ListParallelActionsOps[F[_]](val v: List[Action[F]]) extends AnyVal {
+  extension [F[_]](v: List[Action[F]]) {
     def prepend(ac: List[ParallelActions[F]]): List[ParallelActions[F]] =
       NonEmptyList.fromList(v).foldRight(ac)(_ :: _)
   }

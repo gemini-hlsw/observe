@@ -16,7 +16,7 @@ final case class FormLabel(
 object FormLabel {
   type Props = FormLabel
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]("FormLabel")

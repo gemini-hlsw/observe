@@ -1,15 +1,13 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
-import cats.syntax.all._
-import monocle.macros.Lenses
+import cats.syntax.all.*
 import observe.model.Observation
 import observe.model.enums.BatchExecState
 
-@Lenses
 final case class ExecutionQueueView(
   id:        QueueId,
   name:      String,
@@ -24,7 +22,7 @@ final case class ExecutionQueueView(
 }
 
 object ExecutionQueueView {
-  implicit val eq: Eq[ExecutionQueueView] =
+  given Eq[ExecutionQueueView] =
     Eq.by(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
 
 }

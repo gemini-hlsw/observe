@@ -3,23 +3,23 @@
 
 package observe.web.client.components
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.CallbackTo
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.common.implicits._
-import react.semanticui.collections.menu._
+import react.common.*
+import react.common.implicits.*
+import react.semanticui.collections.menu.*
 import react.semanticui.elements.button.Button
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.web.client.actions.Logout
 import observe.web.client.actions.OpenLoginBox
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.ClientStatus
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class ControlMenu(status: ClientStatus)
     extends ReactProps[ControlMenu](ControlMenu.component)
@@ -28,7 +28,7 @@ final case class ControlMenu(status: ClientStatus)
  * Menu with options
  */
 object ControlMenu {
-  implicit val cmReuse: Reusability[ControlMenu] = Reusability.derive
+  given Reusability[ControlMenu] = Reusability.derive
 
   private val soundConnect =
     ObserveCircuit.connect(ObserveCircuit.soundSettingReader)

@@ -3,24 +3,24 @@
 
 package observe.web.client.components.sequence.steps
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.SemanticSize
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.label.Label
 import observe.model.{ Observation, Step, StepId, StepState }
 import observe.model.enums.Instrument
 import observe.model.enums.StepType
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.Pages
-import observe.web.client.model.StepItems._
-import observe.web.client.reusability._
+import observe.web.client.model.StepItems.*
+import observe.web.client.reusability.*
 
 /**
  * Component to display an item of a sequence
@@ -31,7 +31,7 @@ final case class StepItemCell(value: Option[String])
 object StepItemCell {
   type Props = StepItemCell
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]("StepItemCell")
@@ -55,7 +55,7 @@ final case class ExposureTimeCell(s: Step, i: Instrument)
 object ExposureTimeCell {
   type Props = ExposureTimeCell
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.by(p => (p.s.config, p.i))
 
   protected val component = ScalaComponent
@@ -124,7 +124,7 @@ final case class SettingsCell(
 object SettingsCell {
   type Props = SettingsCell
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]("SettingsCell")
@@ -157,7 +157,7 @@ final case class ObjectTypeCell(
 object ObjectTypeCell {
   type Props = ObjectTypeCell
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.by(p => (p.instrument, p.step.config, p.step.status, p.size))
 
   protected val component = ScalaComponent

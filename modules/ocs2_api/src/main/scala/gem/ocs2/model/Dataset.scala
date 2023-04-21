@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2
@@ -9,7 +9,7 @@ import cats.Order
 import cats.Show
 import io.chrisdavenport.cats.time.instances.instant.instantInstances
 import lucuma.core.optics.Format
-import lucuma.core.syntax.string._
+import lucuma.core.syntax.string.*
 import observe.model.Observation
 
 /**
@@ -42,11 +42,11 @@ object Dataset {
      * @group Typeclass
      * Instances
      */
-    implicit val LabelOrder: Order[Label] =
+    given Order[Label] =
       Order.by(a => (a.observationId, a.index))
 
     /** @group Typeclass Instances */
-    implicit val LabelShow: Show[Label] =
+    given Show[Label] =
       Show.fromToString
 
   }
@@ -76,11 +76,11 @@ object Dataset {
    * @group Typeclass
    * Instances
    */
-  implicit val DatasetOrder: Order[Dataset] =
+  given Order[Dataset] =
     Order.by(a => (a.label, a.timestamp, a.filename))
 
   /** @group Typeclass Instances */
-  implicit val DatasetShow: Show[Dataset] =
+  given Show[Dataset] =
     Show.fromToString
 
 }

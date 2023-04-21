@@ -4,7 +4,7 @@
 package observe.server
 
 import observe.model.dhs.ImageFileId
-import observe.server.keywords._
+import observe.server.keywords.*
 
 object FileIdProvider {
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -7,32 +7,33 @@ import cats._
 import cats.data.NonEmptyList
 import cats.effect.kernel.Sync
 import cats.effect.{Async, Ref, Temporal}
-import cats.syntax.all._
-import edu.gemini.spModel.gemini.obscomp.SPSiteQuality.{CLOUD_COVER_PROP, IMAGE_QUALITY_PROP, SKY_BACKGROUND_PROP, WATER_VAPOR_PROP}
-import edu.gemini.spModel.obsclass.ObsClass
-import edu.gemini.spModel.obscomp.InstConstants.{OBSERVE_TYPE_PROP, OBS_CLASS_PROP, SCIENCE_OBSERVE_TYPE}
-import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
+import cats.syntax.all.*
 import fs2.{Pipe, Pure, Stream}
 import lucuma.core.enums.Site
 import monocle.Optional
 import monocle.function.Index.mapIndex
-import mouse.all._
-import observe.engine.EventResult._
+import mouse.all.*
+import observe.engine.EventResult.*
 import observe.engine.Result.Partial
-import observe.engine.{Handle, SystemEvent, UserEvent, Step => _, _}
+import observe.engine.{Handle, Step => _, SystemEvent, UserEvent, _}
 import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
-import observe.model.Notification._
-import observe.model.UserPrompt.{Discrepancy, ObsConditionsCheckOverride, SeqCheck, TargetCheckOverride}
+import observe.model.Notification.*
+import observe.model.UserPrompt.{
+  Discrepancy,
+  ObsConditionsCheckOverride,
+  SeqCheck,
+  TargetCheckOverride
+}
 import observe.model.{Observation, StepId, UserDetails, _}
-import observe.model.config._
-import observe.model.enums._
+import observe.model.config.*
+import observe.model.enums.*
 import observe.model.events.{SequenceStart => ClientSequenceStart, _}
 import org.typelevel.log4cats.Logger
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.collection.immutable.SortedMap
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import SeqEvent._
 
 trait ObserveEngine[F[_]] {
@@ -234,11 +235,11 @@ trait ObserveEngine[F[_]] {
 object ObserveEngine {
 
   private class ObserveEngineImpl[F[_]: Async: Logger](
-                                                        override val systems:        Systems[F],
-                                                        @annotation.unused settings: ObserveEngineConfiguration,
-                                                        sm:                          ObserveMetrics,
-                                                        translators:                 List[SeqTranslate[F]]
-  )(implicit
+    override val systems:        Systems[F],
+    @annotation.unused settings: ObserveEngineConfiguration,
+    sm:                          ObserveMetrics,
+    translators:                 List[SeqTranslate[F]]
+  )(using
     executeEngine:               observe.server.ExecEngineType[F]
   ) extends ObserveEngine[F] {
 
@@ -465,7 +466,7 @@ object ObserveEngine {
 //                            Event.modifyState {
 //                              executeEngine
 //                                .modify(
-//                                  EngineState.atSequence(id).modify(SequenceData.visitId.replace(i))
+//                                  EngineState.atSequence(id).modify(Focus[SequenceData](_.visitId).replace(i))
 //                                )
 //                                .as[SeqEvent](SeqEvent.NullSeqEvent)
 //                            }
@@ -628,7 +629,7 @@ object ObserveEngine {
 //      (EngineState
 //         .sequences[F]
 //         .index(id)
-//         .modify(SequenceData.observer.replace(observer.some))(s),
+//         .modify(Focus[SequenceData](_.observer).replace(observer.some))(s),
 //       event
 //      )
 //    }.toHandle
@@ -648,7 +649,7 @@ object ObserveEngine {
 //            (EngineState
 //              .sequences[F]
 //              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
-//              .modify(SequenceData.observer.replace(name.some)) >>>
+//              .modify(Focus[SequenceData](_.observer).replace(name.some)) >>>
 //              refreshSequence(seqId)).withEvent(SetObserver(seqId, user.some, name)).toHandle
 //          )
 //        )
@@ -664,7 +665,7 @@ object ObserveEngine {
 //        EngineState
 //          .sequences[F]
 //          .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
-//          .modify(SequenceData.observer.replace(observer.some)) >>>
+//          .modify(Focus[SequenceData](_.observer).replace(observer.some)) >>>
 //          EngineState.instrumentLoadedL[F](i).replace(sid.some) >>>
 //          refreshSequence(sid)
 //      def testRunning(st: EngineState[F]): Boolean = (for {
@@ -748,7 +749,7 @@ object ObserveEngine {
 //      logDebugEvent(q, s"ObserveEngine: Setting image quality to $iq") *>
 //        q.offer(
 //          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState.conditions[F].andThen(Conditions.iq).replace(iq) >>> refreshSequences)
+//            (Focus[EngineState](_.conditions[F])[F].andThen(Conditions.iq).replace(iq) >>> refreshSequences)
 //              .withEvent(SetImageQuality(iq, user.some))
 //              .toHandle
 //          )
@@ -758,7 +759,7 @@ object ObserveEngine {
 //      logDebugEvent(q, s"ObserveEngine: Setting water vapor to $wv") *>
 //        q.offer(
 //          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState.conditions[F].andThen(Conditions.wv).replace(wv) >>> refreshSequences)
+//            (Focus[EngineState](_.conditions[F])[F].andThen(Conditions.wv).replace(wv) >>> refreshSequences)
 //              .withEvent(SetWaterVapor(wv, user.some))
 //              .toHandle
 //          )
@@ -768,7 +769,7 @@ object ObserveEngine {
 //      logDebugEvent(q, s"ObserveEngine: Setting sky background to $sb") *>
 //        q.offer(
 //          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState.conditions[F].andThen(Conditions.sb).replace(sb) >>> refreshSequences)
+//            (Focus[EngineState](_.conditions[F])[F].andThen(Conditions.sb).replace(sb) >>> refreshSequences)
 //              .withEvent(SetSkyBackground(sb, user.some))
 //              .toHandle
 //          )
@@ -778,7 +779,7 @@ object ObserveEngine {
 //      logDebugEvent(q, s"ObserveEngine: Setting cloud cover to $cc") *>
 //        q.offer(
 //          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState.conditions[F].andThen(Conditions.cc).replace(cc) >>> refreshSequences)
+//            (Focus[EngineState](_.conditions[F])[F].andThen(Conditions.cc).replace(cc) >>> refreshSequences)
 //              .withEvent(SetCloudCover(cc, user.some))
 //              .toHandle
 //          )
@@ -906,7 +907,7 @@ object ObserveEngine {
 //        q.offer(Event.getState[F, EngineState[F], SeqEvent](translators.resumePaused(seqId)))
 //
 //    private def queueO(qid: QueueId): Optional[EngineState[F], ExecutionQueue] =
-//      EngineState.queues[F].andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
+//      Focus[EngineState](_.queues[F])[F].andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
 //
 //    private def cmdStateO(qid: QueueId): Optional[EngineState[F], BatchCommandState] =
 //      queueO(qid).andThen(ExecutionQueue.cmdState)
@@ -1218,7 +1219,7 @@ object ObserveEngine {
 //        )
 //      )
 //
-//    private def iterateQueues: PartialFunction[SystemEvent[F], HandleType[F, Unit]] = {
+//    private def iterateQueues: PartialFunction[SystemEvent, HandleType[F, Unit]] = {
 //      // Responds to events that could trigger the scheduling of the next sequence in the queue:
 //      case SystemEvent.Finished(sid) =>
 //        executeEngine.get.flatMap(st =>
@@ -1488,75 +1489,211 @@ object ObserveEngine {
 
     override def sync(q: EventQueue[F], seqId: Observation.Id): F[Unit] = Async[F].unit
 
-    override def start(q: EventQueue[F], id: Observation.Id, user: UserDetails, observer: Observer, clientId: ClientId, runOverride: RunOverride): F[Unit] = Async[F].unit
+    override def start(
+      q:           EventQueue[F],
+      id:          Observation.Id,
+      user:        UserDetails,
+      observer:    Observer,
+      clientId:    ClientId,
+      runOverride: RunOverride
+    ): F[Unit] = Async[F].unit
 
-    override def startFrom(q: EventQueue[F], id: Observation.Id, observer: Observer, stp: StepId, clientId: ClientId, runOverride: RunOverride): F[Unit] = Async[F].unit
+    override def startFrom(
+      q:           EventQueue[F],
+      id:          Observation.Id,
+      observer:    Observer,
+      stp:         StepId,
+      clientId:    ClientId,
+      runOverride: RunOverride
+    ): F[Unit] = Async[F].unit
 
-    override def requestPause(q: EventQueue[F], id: Observation.Id, observer: Observer, user: UserDetails): F[Unit] = Async[F].unit
+    override def requestPause(
+      q:        EventQueue[F],
+      id:       Observation.Id,
+      observer: Observer,
+      user:     UserDetails
+    ): F[Unit] = Async[F].unit
 
-    override def requestCancelPause(q: EventQueue[F], id: Observation.Id, observer: Observer, user: UserDetails): F[Unit] = Async[F].unit
+    override def requestCancelPause(
+      q:        EventQueue[F],
+      id:       Observation.Id,
+      observer: Observer,
+      user:     UserDetails
+    ): F[Unit] = Async[F].unit
 
-    override def setBreakpoint(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, observer: Observer, stepId: StepId, v: Boolean): F[Unit] = Async[F].unit
+    override def setBreakpoint(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      user:     UserDetails,
+      observer: Observer,
+      stepId:   StepId,
+      v:        Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def setOperator(q: EventQueue[F], user: UserDetails, name: Operator): F[Unit] = Async[F].unit
+    override def setOperator(q: EventQueue[F], user: UserDetails, name: Operator): F[Unit] =
+      Async[F].unit
 
-    override def setObserver(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, name: Observer): F[Unit] = Async[F].unit
+    override def setObserver(
+      q:     EventQueue[F],
+      seqId: Observation.Id,
+      user:  UserDetails,
+      name:  Observer
+    ): F[Unit] = Async[F].unit
 
-    override def setTcsEnabled(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, enabled: Boolean): F[Unit] = Async[F].unit
+    override def setTcsEnabled(
+      q:       EventQueue[F],
+      seqId:   Observation.Id,
+      user:    UserDetails,
+      enabled: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def setGcalEnabled(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, enabled: Boolean): F[Unit] = Async[F].unit
+    override def setGcalEnabled(
+      q:       EventQueue[F],
+      seqId:   Observation.Id,
+      user:    UserDetails,
+      enabled: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def setInstrumentEnabled(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, enabled: Boolean): F[Unit] = Async[F].unit
+    override def setInstrumentEnabled(
+      q:       EventQueue[F],
+      seqId:   Observation.Id,
+      user:    UserDetails,
+      enabled: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def setDhsEnabled(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, enabled: Boolean): F[Unit] = Async[F].unit
+    override def setDhsEnabled(
+      q:       EventQueue[F],
+      seqId:   Observation.Id,
+      user:    UserDetails,
+      enabled: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def selectSequence(q: EventQueue[F], i: Instrument, sid: Observation.Id, observer: Observer, user: UserDetails, clientId: ClientId): F[Unit] = Async[F].unit
+    override def selectSequence(
+      q:        EventQueue[F],
+      i:        Instrument,
+      sid:      Observation.Id,
+      observer: Observer,
+      user:     UserDetails,
+      clientId: ClientId
+    ): F[Unit] = Async[F].unit
 
     override def clearLoadedSequences(q: EventQueue[F], user: UserDetails): F[Unit] = Async[F].unit
 
     override def resetConditions(q: EventQueue[F]): F[Unit] = Async[F].unit
 
-    override def setConditions(q: EventQueue[F], conditions: Conditions, user: UserDetails): F[Unit] = Async[F].unit
+    override def setConditions(
+      q:          EventQueue[F],
+      conditions: Conditions,
+      user:       UserDetails
+    ): F[Unit] = Async[F].unit
 
-    override def setImageQuality(q: EventQueue[F], iq: ImageQuality, user: UserDetails): F[Unit] = Async[F].unit
+    override def setImageQuality(q: EventQueue[F], iq: ImageQuality, user: UserDetails): F[Unit] =
+      Async[F].unit
 
-    override def setWaterVapor(q: EventQueue[F], wv: WaterVapor, user: UserDetails): F[Unit] = Async[F].unit
+    override def setWaterVapor(q: EventQueue[F], wv: WaterVapor, user: UserDetails): F[Unit] =
+      Async[F].unit
 
-    override def setSkyBackground(q: EventQueue[F], sb: SkyBackground, user: UserDetails): F[Unit] = Async[F].unit
+    override def setSkyBackground(q: EventQueue[F], sb: SkyBackground, user: UserDetails): F[Unit] =
+      Async[F].unit
 
-    override def setCloudCover(q: EventQueue[F], cc: CloudCover, user: UserDetails): F[Unit] = Async[F].unit
+    override def setCloudCover(q: EventQueue[F], cc: CloudCover, user: UserDetails): F[Unit] =
+      Async[F].unit
 
-    override def setSkipMark(q: EventQueue[F], seqId: Observation.Id, user: UserDetails, observer: Observer, stepId: StepId, v: Boolean): F[Unit] = Async[F].unit
+    override def setSkipMark(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      user:     UserDetails,
+      observer: Observer,
+      stepId:   StepId,
+      v:        Boolean
+    ): F[Unit] = Async[F].unit
 
     override def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit] = Async[F].unit
 
-    override def stopObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, user: UserDetails, graceful: Boolean): F[Unit] = Async[F].unit
+    override def stopObserve(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails,
+      graceful: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def abortObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, user: UserDetails): F[Unit] = Async[F].unit
+    override def abortObserve(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails
+    ): F[Unit] = Async[F].unit
 
-    override def pauseObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, user: UserDetails, graceful: Boolean): F[Unit] = Async[F].unit
+    override def pauseObserve(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails,
+      graceful: Boolean
+    ): F[Unit] = Async[F].unit
 
-    override def resumeObserve(q: EventQueue[F], seqId: Observation.Id, observer: Observer, user: UserDetails): F[Unit] = Async[F].unit
+    override def resumeObserve(
+      q:        EventQueue[F],
+      seqId:    Observation.Id,
+      observer: Observer,
+      user:     UserDetails
+    ): F[Unit] = Async[F].unit
 
-    override def addSequencesToQueue(q: EventQueue[F], qid: QueueId, seqIds: List[Observation.Id]): F[Unit] = Async[F].unit
+    override def addSequencesToQueue(
+      q:      EventQueue[F],
+      qid:    QueueId,
+      seqIds: List[Observation.Id]
+    ): F[Unit] = Async[F].unit
 
-    override def addSequenceToQueue(q: EventQueue[F], qid: QueueId, seqId: Observation.Id): F[Unit] = Async[F].unit
+    override def addSequenceToQueue(
+      q:     EventQueue[F],
+      qid:   QueueId,
+      seqId: Observation.Id
+    ): F[Unit] = Async[F].unit
 
-    override def removeSequenceFromQueue(q: EventQueue[F], qid: QueueId, seqId: Observation.Id): F[Unit] = Async[F].unit
+    override def removeSequenceFromQueue(
+      q:     EventQueue[F],
+      qid:   QueueId,
+      seqId: Observation.Id
+    ): F[Unit] = Async[F].unit
 
-    override def moveSequenceInQueue(q: EventQueue[F], qid: QueueId, seqId: Observation.Id, delta: Int, cid: ClientId): F[Unit] = Async[F].unit
+    override def moveSequenceInQueue(
+      q:     EventQueue[F],
+      qid:   QueueId,
+      seqId: Observation.Id,
+      delta: Int,
+      cid:   ClientId
+    ): F[Unit] = Async[F].unit
 
     override def clearQueue(q: EventQueue[F], qid: QueueId): F[Unit] = Async[F].unit
 
-    override def startQueue(q: EventQueue[F], qid: QueueId, observer: Observer, user: UserDetails, clientId: ClientId): F[Unit] = Async[F].unit
+    override def startQueue(
+      q:        EventQueue[F],
+      qid:      QueueId,
+      observer: Observer,
+      user:     UserDetails,
+      clientId: ClientId
+    ): F[Unit] = Async[F].unit
 
-    override def stopQueue(q: EventQueue[F], qid: QueueId, clientId: ClientId): F[Unit] = Async[F].unit
+    override def stopQueue(q: EventQueue[F], qid: QueueId, clientId: ClientId): F[Unit] =
+      Async[F].unit
 
-    override def configSystem(q: EventQueue[F], sid: Observation.Id, observer: Observer, user: UserDetails, stepId: StepId, sys: Resource, clientID: ClientId): F[Unit] = Async[F].unit
+    override def configSystem(
+      q:        EventQueue[F],
+      sid:      Observation.Id,
+      observer: Observer,
+      user:     UserDetails,
+      stepId:   StepId,
+      sys:      Resource,
+      clientID: ClientId
+    ): F[Unit] = Async[F].unit
 
     override def eventStream(q: EventQueue[F]): Stream[F, ObserveEvent] = Stream.empty
 
-    override def stream(p: Stream[F, EventType[F]])(s0: EngineState[F]): Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
+    override def stream(p: Stream[F, EventType[F]])(
+      s0:                  EngineState[F]
+    ): Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
   }
 
   def createTranslator[F[_]: Async: Logger](site: Site, systems: Systems[F]): F[SeqTranslate[F]] =
@@ -1736,7 +1873,7 @@ object ObserveEngine {
     systems:       Systems[F],
     conf:          ObserveEngineConfiguration,
     metrics:       ObserveMetrics
-  )(implicit
+  )(using
     executeEngine: ExecEngineType[F]
   ): F[ObserveEngine[F]] =
     createTranslator(site, systems)
@@ -1827,11 +1964,11 @@ object ObserveEngine {
 //        case steps
 //            if Sequence.State.isRunning(st) && steps.forall(_.status =!= StepState.Running) =>
 //          val (xs, y :: ys) = splitWhere(steps)(_.status === StepState.Pending)
-//          xs ++ (Step.status.replace(StepState.Running)(y) :: ys)
+//          xs ++ (Focus[Step[F]](_.status).replace(StepState.Running)(y) :: ys)
 //        case steps
 //            if st.status === SequenceState.Idle && steps.exists(_.status === StepState.Running) =>
 //          val (xs, y :: ys) = splitWhere(steps)(_.status === StepState.Running)
-//          xs ++ (Step.status.replace(StepState.Paused)(y) :: ys)
+//          xs ++ (Focus[Step[F]](_.status).replace(StepState.Paused)(y) :: ys)
 //        case x   => x
 //      }
 //

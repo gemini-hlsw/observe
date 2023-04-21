@@ -1,12 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import edu.gemini.seqexec.odb.SeqFailure
 import org.http4s.Uri
 import observe.model.Observation
-import observe.model.dhs._
+import observe.model.dhs.*
 
 sealed trait ObserveFailure extends Exception with Product with Serializable
 
@@ -41,7 +40,7 @@ object ObserveFailure {
   final case class Timeout(msg: String) extends ObserveFailure
 
   /** Sequence loading errors */
-  final case class OdbSeqError(fail: SeqFailure) extends ObserveFailure
+  final case class OdbSeqError(msg: String) extends ObserveFailure
 
   /** Exception thrown while communicating with the GDS */
   final case class GdsException(ex: Throwable, url: Uri) extends ObserveFailure
@@ -76,7 +75,7 @@ object ObserveFailure {
     case Unexpected(msg)              => s"Unexpected error: $msg"
     case Timeout(msg)                 => s"Timeout while waiting for $msg"
     case EmptySequence(title)         => s"Attempt to enqueue empty sequence $title"
-    case OdbSeqError(fail)            => SeqFailure.explain(fail)
+    case OdbSeqError(fail)            => fail
     case GdsException(ex, url)        =>
       s"Failure connecting with GDS at $url: ${ex.getMessage}"
     case GdsXmlError(msg, url)        => s"XML RPC error with GDS at $url: $msg"

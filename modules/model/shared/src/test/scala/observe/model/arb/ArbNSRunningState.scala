@@ -1,25 +1,25 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbEnumerated._
-import observe.model._
-import observe.model.enums._
-import observe.model.arb.ArbNSSubexposure._
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.*
+import observe.model.enums.*
+import observe.model.arb.ArbNSSubexposure.{*, given}
 
 trait ArbNSRunningState {
-  implicit val nsRunningStateArb = Arbitrary[NSRunningState] {
+  given nsRunningStateArb: Arbitrary[NSRunningState] = Arbitrary[NSRunningState] {
     for {
       a <- arbitrary[NSAction]
       u <- arbitrary[NSSubexposure]
     } yield NSRunningState(a, u)
   }
 
-  implicit val nsRunningStateCogen: Cogen[NSRunningState] =
+  given nsRunningStateCogen: Cogen[NSRunningState] =
     Cogen[(NSAction, NSSubexposure)].contramap { x =>
       (x.action, x.sub)
     }

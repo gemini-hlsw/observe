@@ -3,12 +3,12 @@
 
 package observe.web.client.model
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 // import monocle.law.discipline.PrismTests
-import observe.web.client.model.Pages._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import observe.web.client.model.Pages.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 
 /**
  * Tests Client typeclasses

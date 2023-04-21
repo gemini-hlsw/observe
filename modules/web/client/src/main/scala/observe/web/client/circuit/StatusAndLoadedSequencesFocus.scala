@@ -4,18 +4,18 @@
 package observe.web.client.circuit
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
 import observe.web.client.model.{ClientStatus, ObserveAppRootModel}
 import observe.model.Observation
-import observe.model._
-import observe.model.enums._
+import observe.model.*
+import observe.model.enums.*
 import observe.web.client.components.SessionQueueTable
-import observe.web.client.model.ModelOps._
-import observe.web.client.model._
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.*
 import observe.web.client.model.lenses.firstScienceStepTargetNameT
 import observe.web.client.model.lenses.obsClassT
-import web.client.table._
+import web.client.table.*
 
 final case class SequenceInSessionQueue(
   idName:        Observation.IdName,
@@ -33,7 +33,7 @@ final case class SequenceInSessionQueue(
 )
 
 object SequenceInSessionQueue {
-  implicit val eq: Eq[SequenceInSessionQueue] =
+  given Eq[SequenceInSessionQueue] =
     Eq.by(x =>
       (x.idName,
        x.status,
@@ -89,7 +89,7 @@ final case class StatusAndLoadedSequencesFocus(
 )
 
 object StatusAndLoadedSequencesFocus {
-  implicit val eq: Eq[StatusAndLoadedSequencesFocus] =
+  given Eq[StatusAndLoadedSequencesFocus] =
     Eq.by(x => (x.status, x.sequences, x.tableState, x.queueFilter))
 
   private val sessionQueueG       = ObserveAppRootModel.sessionQueueL.asGetter

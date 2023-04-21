@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.Applicative
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.niri.{BeamSplitter => JBeamSplitter}
 import edu.gemini.observe.server.niri.{BuiltInROI => JBuiltInROI}
 import edu.gemini.observe.server.niri.{Camera => JCamera}
@@ -25,26 +25,26 @@ import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex
-import observe.server.EpicsCodex._
-import observe.server.EpicsUtil._
+import observe.server.EpicsCodex.*
+import observe.server.EpicsUtil.*
 import observe.server.Progress
 import observe.server.ProgressUtil
 import observe.server.ObserveFailure
-import observe.server.niri.NiriController._
+import observe.server.niri.NiriController.*
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait NiriEncoders {
 
-  implicit val focusEncoder: EncodeEpicsValue[Focus, String] = EncodeEpicsValue(_.getStringValue)
+  given EncodeEpicsValue[Focus, String] = EncodeEpicsValue(_.getStringValue)
 
-  implicit val cameraEncoder: EncodeEpicsValue[Camera, JCamera] = EncodeEpicsValue {
+  given EncodeEpicsValue[Camera, JCamera] = EncodeEpicsValue {
     case Camera.F6                  => JCamera.F6
     case Camera.F14                 => JCamera.F14
     case Camera.F32 | Camera.F32_PV => JCamera.F32
   }
 
-  implicit val beamSplitterEncoder: EncodeEpicsValue[BeamSplitter, JBeamSplitter] =
+  given EncodeEpicsValue[BeamSplitter, JBeamSplitter] =
     EncodeEpicsValue {
       case BeamSplitter.same_as_camera => JBeamSplitter.SameAsCamera
       case BeamSplitter.f6             => JBeamSplitter.F6
@@ -52,7 +52,7 @@ trait NiriEncoders {
       case BeamSplitter.f32            => JBeamSplitter.F32
     }
 
-  implicit val filterEncoder: EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
     case Filter.BBF_Y            => "Y"
     case Filter.BBF_J            => "J"
     case Filter.BBF_H            => "H"
@@ -92,7 +92,7 @@ trait NiriEncoders {
     case Filter.NBF_BRA          => "Br(alpha)"
   }
 
-  implicit val maskEncoder: EncodeEpicsValue[Mask, JMask] = EncodeEpicsValue {
+  given EncodeEpicsValue[Mask, JMask] = EncodeEpicsValue {
     case Mask.MASK_IMAGING         => JMask.Imaging
     case Mask.MASK_1               => JMask.F6_2Pix_Center
     case Mask.MASK_2               => JMask.F6_4Pix_Center
@@ -107,7 +107,7 @@ trait NiriEncoders {
     case Mask.PINHOLE_MASK         => JMask.PinHole
   }
 
-  implicit val disperserEncoder: EncodeEpicsValue[Disperser, JDisperser] = EncodeEpicsValue {
+  given EncodeEpicsValue[Disperser, JDisperser] = EncodeEpicsValue {
     case Disperser.NONE      => JDisperser.None
     case Disperser.J         => JDisperser.J
     case Disperser.H         => JDisperser.H
@@ -120,7 +120,7 @@ trait NiriEncoders {
     case Disperser.K_F32     => JDisperser.F32_K
   }
 
-  implicit val builtinRoiEncoder: EncodeEpicsValue[BuiltInROI, JBuiltInROI] = EncodeEpicsValue {
+  given EncodeEpicsValue[BuiltInROI, JBuiltInROI] = EncodeEpicsValue {
     case BuiltinROI.FULL_FRAME    => JBuiltInROI.FullFrame
     case BuiltinROI.CENTRAL_768   => JBuiltInROI.Central768
     case BuiltinROI.CENTRAL_512   => JBuiltInROI.Central512
@@ -141,7 +141,7 @@ object NiriControllerEpics extends NiriEncoders {
 
   def apply[F[_]: Async](
     epicsSys:   => NiriEpics[F]
-  )(implicit L: Logger[F]): NiriController[F] =
+  )(using L: Logger[F]): NiriController[F] =
     new NiriController[F] {
 
       /**

@@ -18,7 +18,7 @@ object SectionVisibilityState {
   case object SectionClosed extends SectionVisibilityState("SectionClosed")
 
   /** @group Typeclass Instances */
-  implicit val SectionVisibilityStateEnumerated: Enumerated[SectionVisibilityState] =
+  given Enumerated[SectionVisibilityState] =
     Enumerated.from(SectionOpen, SectionClosed).withTag(_.tag)
 
 }

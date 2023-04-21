@@ -5,9 +5,9 @@ package observe.server.gcal
 
 import java.util.{Set => JSet}
 import scala.Function.const
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.calunit.CalUnitConstants.{DIFFUSER_PROP, FILTER_PROP, LAMP_PROP, SHUTTER_PROP}
 import edu.gemini.spModel.gemini.calunit.CalUnitParams.Lamp
 import lucuma.core.enums.GcalShutter
@@ -16,10 +16,10 @@ import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigResult
 import observe.server.ConfigUtilOps
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.ObserveFailure
 import observe.server.System
-import observe.server.gcal.GcalController._
+import observe.server.gcal.GcalController.*
 
 /**
  * Created by jluhrs on 3/21/17.
@@ -32,7 +32,7 @@ final case class Gcal[F[_]: Sync] private (controller: GcalController[F], cfg: G
   /**
    * Called to configure a system, returns a F[ConfigResult]
    */
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     controller.applyConfig(cfg).map(const(ConfigResult(this)))
 
   override def notifyObserveStart: F[Unit] = Sync[F].unit

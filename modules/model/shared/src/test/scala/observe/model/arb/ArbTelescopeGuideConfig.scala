@@ -1,22 +1,22 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.TelescopeGuideConfig
-import observe.model.enums._
+import observe.model.enums.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
-import observe.model.arb.ArbM1GuideConfig._
-import observe.model.arb.ArbM2GuideConfig._
+import observe.model.arb.ArbM1GuideConfig.{*, given}
+import observe.model.arb.ArbM2GuideConfig.{*, given}
 
 trait ArbTelescopeGuideConfig {
 
-  implicit val arbTelescopeGuideOn: Arbitrary[TelescopeGuideConfig] =
+  given arbTelescopeGuideOn: Arbitrary[TelescopeGuideConfig] =
     Arbitrary {
       for {
         mo <- arbitrary[MountGuideOption]
@@ -25,7 +25,7 @@ trait ArbTelescopeGuideConfig {
       } yield TelescopeGuideConfig(mo, m1, m2)
     }
 
-  implicit val telescopeConfigCogen: Cogen[TelescopeGuideConfig] =
+  given telescopeConfigCogen: Cogen[TelescopeGuideConfig] =
     Cogen[(MountGuideOption, M1GuideConfig, M2GuideConfig)]
       .contramap(x => (x.mountGuide, x.m1Guide, x.m2Guide))
 }

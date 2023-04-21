@@ -1,31 +1,31 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
-import events._
+import events.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import org.scalacheck.Arbitrary._
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
-import lucuma.core.arb.ArbTime._
+import org.scalacheck.Arbitrary.*
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.arb.ArbTime.*
 import java.time.Instant
-import observe.model.enums._
-import observe.model.dhs._
-import observe.model.QueueManipulationOp._
-import observe.model.ObserveModelArbitraries._
-import observe.model.arb.all._
+import observe.model.enums.*
+import observe.model.dhs.*
+import observe.model.QueueManipulationOp.{*, given}
+import observe.model.ObserveModelArbitraries.{*, given}
+import observe.model.arb.all.{*, given}
 
 trait SequenceEventsArbitraries {
 
-  implicit val gcuArb: Arbitrary[GuideConfigUpdate] = Arbitrary[GuideConfigUpdate] {
+  given Arbitrary[GuideConfigUpdate] = Arbitrary[GuideConfigUpdate] {
     arbitrary[TelescopeGuideConfig].map(GuideConfigUpdate.apply)
   }
 
-  implicit val coeArb: Arbitrary[ConnectionOpenEvent] = Arbitrary[ConnectionOpenEvent] {
+  given Arbitrary[ConnectionOpenEvent] = Arbitrary[ConnectionOpenEvent] {
     for {
       u  <- arbitrary[Option[UserDetails]]
       id <- arbitrary[ClientId]
@@ -33,7 +33,7 @@ trait SequenceEventsArbitraries {
     } yield ConnectionOpenEvent(u, id, v)
   }
 
-  implicit val sseArb: Arbitrary[SequenceStart] = Arbitrary[SequenceStart] {
+  given Arbitrary[SequenceStart] = Arbitrary[SequenceStart] {
     for {
       id <- arbitrary[Observation.Id]
       si <- arbitrary[StepId]
@@ -41,81 +41,81 @@ trait SequenceEventsArbitraries {
     } yield SequenceStart(id, si, sv)
   }
 
-  implicit val seeArb: Arbitrary[StepExecuted]                = Arbitrary[StepExecuted] {
+  given Arbitrary[StepExecuted]                = Arbitrary[StepExecuted] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield StepExecuted(i, s)
   }
-  implicit val sceArb: Arbitrary[SequenceCompleted]           = Arbitrary[SequenceCompleted] {
+  given Arbitrary[SequenceCompleted]           = Arbitrary[SequenceCompleted] {
     arbitrary[SequencesQueue[SequenceView]].map(SequenceCompleted.apply)
   }
-  implicit val sleArb: Arbitrary[SequenceLoaded]              = Arbitrary[SequenceLoaded] {
+  given Arbitrary[SequenceLoaded]              = Arbitrary[SequenceLoaded] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceLoaded(i, s)
   }
-  implicit val sueArb: Arbitrary[SequenceUnloaded]            = Arbitrary[SequenceUnloaded] {
+  given Arbitrary[SequenceUnloaded]            = Arbitrary[SequenceUnloaded] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceUnloaded(i, s)
   }
-  implicit val sstArb: Arbitrary[SequenceStopped]             = Arbitrary[SequenceStopped] {
+  given Arbitrary[SequenceStopped]             = Arbitrary[SequenceStopped] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceStopped(i, s)
   }
-  implicit val ssaArb: Arbitrary[SequenceAborted]             = Arbitrary[SequenceAborted] {
+  given Arbitrary[SequenceAborted]             = Arbitrary[SequenceAborted] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceAborted(i, s)
   }
-  implicit val sbeArb: Arbitrary[StepBreakpointChanged]       = Arbitrary[StepBreakpointChanged] {
+  given Arbitrary[StepBreakpointChanged]       = Arbitrary[StepBreakpointChanged] {
     arbitrary[SequencesQueue[SequenceView]].map(StepBreakpointChanged.apply)
   }
-  implicit val smeArb: Arbitrary[StepSkipMarkChanged]         = Arbitrary[StepSkipMarkChanged] {
+  given Arbitrary[StepSkipMarkChanged]         = Arbitrary[StepSkipMarkChanged] {
     arbitrary[SequencesQueue[SequenceView]].map(StepSkipMarkChanged.apply)
   }
-  implicit val speArb: Arbitrary[SequencePauseRequested]      = Arbitrary[SequencePauseRequested] {
+  given Arbitrary[SequencePauseRequested]      = Arbitrary[SequencePauseRequested] {
     arbitrary[SequencesQueue[SequenceView]].map(SequencePauseRequested.apply)
   }
-  implicit val spcArb: Arbitrary[SequencePauseCanceled]       = Arbitrary[SequencePauseCanceled] {
+  given Arbitrary[SequencePauseCanceled]       = Arbitrary[SequencePauseCanceled] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequencePauseCanceled(i, s)
   }
-  implicit val srfArb: Arbitrary[SequenceRefreshed]           = Arbitrary[SequenceRefreshed] {
+  given Arbitrary[SequenceRefreshed]           = Arbitrary[SequenceRefreshed] {
     for {
       s <- arbitrary[SequencesQueue[SequenceView]]
       c <- arbitrary[ClientId]
     } yield SequenceRefreshed(s, c)
   }
-  implicit val asrArb: Arbitrary[ActionStopRequested]         = Arbitrary[ActionStopRequested] {
+  given Arbitrary[ActionStopRequested]         = Arbitrary[ActionStopRequested] {
     arbitrary[SequencesQueue[SequenceView]].map(ActionStopRequested.apply)
   }
-  implicit val slmArb: Arbitrary[ServerLogMessage]            = Arbitrary[ServerLogMessage] {
+  given Arbitrary[ServerLogMessage]            = Arbitrary[ServerLogMessage] {
     for {
       l <- arbitrary[ServerLogLevel]
       t <- arbitrary[Instant]
       m <- Gen.alphaStr
     } yield ServerLogMessage(l, t, m)
   }
-  implicit val neArb: Arbitrary[events.NullEvent.type]        = Arbitrary[NullEvent.type](NullEvent)
-  implicit val opArb: Arbitrary[OperatorUpdated]              = Arbitrary[OperatorUpdated] {
+  given Arbitrary[events.NullEvent.type]       = Arbitrary[NullEvent.type](NullEvent)
+  given Arbitrary[OperatorUpdated]             = Arbitrary[OperatorUpdated] {
     arbitrary[SequencesQueue[SequenceView]].map(OperatorUpdated.apply)
   }
-  implicit val obArb: Arbitrary[ObserverUpdated]              = Arbitrary[ObserverUpdated] {
+  given Arbitrary[ObserverUpdated]             = Arbitrary[ObserverUpdated] {
     arbitrary[SequencesQueue[SequenceView]].map(ObserverUpdated.apply)
   }
-  implicit val cuArb: Arbitrary[ConditionsUpdated]            = Arbitrary[ConditionsUpdated] {
+  given Arbitrary[ConditionsUpdated]           = Arbitrary[ConditionsUpdated] {
     arbitrary[SequencesQueue[SequenceView]].map(ConditionsUpdated.apply)
   }
-  implicit val qmArb: Arbitrary[QueueManipulationOp]          = Arbitrary[QueueManipulationOp] {
+  given Arbitrary[QueueManipulationOp]         = Arbitrary[QueueManipulationOp] {
     for {
       q <- arbitrary[QueueId]
       i <- arbitrary[List[Observation.Id]]
@@ -132,13 +132,13 @@ trait SequenceEventsArbitraries {
            )
     } yield m
   }
-  implicit val quArb: Arbitrary[QueueUpdated]                 = Arbitrary[QueueUpdated] {
+  given Arbitrary[QueueUpdated]                = Arbitrary[QueueUpdated] {
     for {
       o <- arbitrary[QueueManipulationOp]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield QueueUpdated(o, s)
   }
-  implicit val suArb: Arbitrary[LoadSequenceUpdated]          = Arbitrary[LoadSequenceUpdated] {
+  given Arbitrary[LoadSequenceUpdated]         = Arbitrary[LoadSequenceUpdated] {
     for {
       i <- arbitrary[Instrument]
       o <- arbitrary[Observation.IdName]
@@ -146,64 +146,64 @@ trait SequenceEventsArbitraries {
       c <- arbitrary[ClientId]
     } yield LoadSequenceUpdated(i, o, s, c)
   }
-  implicit val clsArb: Arbitrary[ClearLoadedSequencesUpdated] =
+  given Arbitrary[ClearLoadedSequencesUpdated] =
     Arbitrary[ClearLoadedSequencesUpdated] {
       arbitrary[SequencesQueue[SequenceView]]
         .map(ClearLoadedSequencesUpdated.apply)
     }
-  implicit val serArb: Arbitrary[SequenceError]               = Arbitrary[SequenceError] {
+  given Arbitrary[SequenceError]               = Arbitrary[SequenceError] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceError(i, s)
   }
 
-  implicit val supArb: Arbitrary[SequenceUpdated] = Arbitrary[SequenceUpdated] {
+  given Arbitrary[SequenceUpdated] = Arbitrary[SequenceUpdated] {
     arbitrary[SequencesQueue[SequenceView]].map(SequenceUpdated.apply)
   }
 
-  implicit val sspArb: Arbitrary[SequencePaused] = Arbitrary[SequencePaused] {
+  given Arbitrary[SequencePaused] = Arbitrary[SequencePaused] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequencePaused(i, s)
   }
 
-  implicit val sepArb: Arbitrary[ExposurePaused] = Arbitrary[ExposurePaused] {
+  given Arbitrary[ExposurePaused] = Arbitrary[ExposurePaused] {
     for {
       i <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield ExposurePaused(i, s)
   }
 
-  implicit val fidArb: Arbitrary[FileIdStepExecuted] = Arbitrary[FileIdStepExecuted] {
+  given Arbitrary[FileIdStepExecuted] = Arbitrary[FileIdStepExecuted] {
     for {
       i <- arbitrary[ImageFileId]
       s <- arbitrary[SequencesQueue[SequenceView]]
     } yield FileIdStepExecuted(i, s)
   }
 
-  implicit val unArb: Arbitrary[UserNotification] = Arbitrary[UserNotification] {
+  given Arbitrary[UserNotification] = Arbitrary[UserNotification] {
     for {
       i <- arbitrary[Notification]
       c <- arbitrary[ClientId]
     } yield UserNotification(i, c)
   }
 
-  implicit val unpArb: Arbitrary[UserPromptNotification] = Arbitrary[UserPromptNotification] {
+  given Arbitrary[UserPromptNotification] = Arbitrary[UserPromptNotification] {
     for {
       i <- arbitrary[UserPrompt]
       c <- arbitrary[ClientId]
     } yield UserPromptNotification(i, c)
   }
 
-  implicit val oprArb: Arbitrary[ObservationProgressEvent] = Arbitrary[ObservationProgressEvent] {
+  given Arbitrary[ObservationProgressEvent] = Arbitrary[ObservationProgressEvent] {
     for {
       p <- arbitrary[ObservationProgress]
     } yield ObservationProgressEvent(p)
   }
 
-  implicit val smuArb: Arbitrary[ObserveModelUpdate] = Arbitrary[ObserveModelUpdate] {
+  given Arbitrary[ObserveModelUpdate] = Arbitrary[ObserveModelUpdate] {
     Gen.oneOf[ObserveModelUpdate](
       arbitrary[SequenceStart],
       arbitrary[StepExecuted],
@@ -230,13 +230,13 @@ trait SequenceEventsArbitraries {
     )
   }
 
-  implicit val acpArb: Arbitrary[AlignAndCalibEvent] = Arbitrary[AlignAndCalibEvent] {
+  given Arbitrary[AlignAndCalibEvent] = Arbitrary[AlignAndCalibEvent] {
     for {
       p <- Gen.posNum[Int]
     } yield AlignAndCalibEvent(p)
   }
 
-  implicit val seArb: Arbitrary[ObserveEvent] = Arbitrary[ObserveEvent] {
+  given Arbitrary[ObserveEvent] = Arbitrary[ObserveEvent] {
     Gen.oneOf[ObserveEvent](
       arbitrary[ObserveModelUpdate],
       arbitrary[ConnectionOpenEvent],
@@ -249,100 +249,100 @@ trait SequenceEventsArbitraries {
     )
   }
 
-  implicit val coeCogen: Cogen[ConnectionOpenEvent] =
+  given Cogen[ConnectionOpenEvent] =
     Cogen[(Option[UserDetails], ClientId, String)]
       .contramap(x => (x.userDetails, x.clientId, x.serverVersion))
 
-  implicit val smuCogen: Cogen[ObserveModelUpdate] =
+  given Cogen[ObserveModelUpdate] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val gcuCogen: Cogen[GuideConfigUpdate] =
+  given Cogen[GuideConfigUpdate] =
     Cogen[TelescopeGuideConfig].contramap(_.telescope)
 
-  implicit val sseCogen: Cogen[SequenceStart] =
+  given Cogen[SequenceStart] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val seeCogen: Cogen[StepExecuted] =
+  given Cogen[StepExecuted] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val fidCogen: Cogen[FileIdStepExecuted] =
+  given Cogen[FileIdStepExecuted] =
     Cogen[(dhs.ImageFileId, SequencesQueue[SequenceView])]
       .contramap(x => (x.fileId, x.view))
 
-  implicit val sceCogen: Cogen[SequenceCompleted] =
+  given Cogen[SequenceCompleted] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val sleCogen: Cogen[SequenceLoaded] =
+  given Cogen[SequenceLoaded] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val sueCogen: Cogen[SequenceUnloaded] =
+  given Cogen[SequenceUnloaded] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val smeCogen: Cogen[StepSkipMarkChanged] =
+  given Cogen[StepSkipMarkChanged] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val opCogen: Cogen[OperatorUpdated] =
+  given Cogen[OperatorUpdated] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val obCogen: Cogen[ObserverUpdated] =
+  given Cogen[ObserverUpdated] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val cuCogen: Cogen[ConditionsUpdated] =
+  given Cogen[ConditionsUpdated] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val sbeCogen: Cogen[StepBreakpointChanged] =
+  given Cogen[StepBreakpointChanged] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val speCogen: Cogen[SequencePauseRequested] =
+  given Cogen[SequencePauseRequested] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val spcCogen: Cogen[SequencePauseCanceled] =
+  given Cogen[SequencePauseCanceled] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val srfCogen: Cogen[SequenceRefreshed] =
+  given Cogen[SequenceRefreshed] =
     Cogen[(ClientId, SequencesQueue[SequenceView])]
       .contramap(x => (x.clientId, x.view))
 
-  implicit val asrCogen: Cogen[ActionStopRequested] =
+  given Cogen[ActionStopRequested] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val supCogen: Cogen[SequenceUpdated] =
+  given Cogen[SequenceUpdated] =
     Cogen[SequencesQueue[SequenceView]].contramap(_.view)
 
-  implicit val sspCogen: Cogen[SequencePaused] =
+  given Cogen[SequencePaused] =
     Cogen[(Observation.Id, SequencesQueue[SequenceView])]
       .contramap(x => (x.obsId, x.view))
 
-  implicit val sepCogen: Cogen[ExposurePaused] =
+  given Cogen[ExposurePaused] =
     Cogen[(Observation.Id, SequencesQueue[SequenceView])]
       .contramap(x => (x.obsId, x.view))
 
-  implicit val serCogen: Cogen[SequenceError] =
+  given Cogen[SequenceError] =
     Cogen[(Observation.Id, SequencesQueue[SequenceView])]
       .contramap(x => (x.obsId, x.view))
 
-  implicit val sstCogen: Cogen[SequenceStopped] =
+  given Cogen[SequenceStopped] =
     Cogen[(Observation.Id, SequencesQueue[SequenceView])]
       .contramap(x => (x.obsId, x.view))
 
-  implicit val ssaCogen: Cogen[SequenceAborted] =
+  given Cogen[SequenceAborted] =
     Cogen[(Observation.Id, SequencesQueue[SequenceView])]
       .contramap(x => (x.obsId, x.view))
 
-  implicit val slmCogen: Cogen[ServerLogMessage] =
+  given Cogen[ServerLogMessage] =
     Cogen[(ServerLogLevel, Instant, String)]
       .contramap(x => (x.level, x.timestamp, x.msg))
 
-  implicit val upnCogen: Cogen[UserPromptNotification] =
+  given Cogen[UserPromptNotification] =
     Cogen[(UserPrompt, ClientId)].contramap(x => (x.prompt, x.clientId))
 
-  implicit val unCogen: Cogen[UserNotification] =
+  given Cogen[UserNotification] =
     Cogen[(Notification, ClientId)].contramap(x => (x.memo, x.clientId))
 
-  implicit val oprCogen: Cogen[ObservationProgressEvent] =
+  given Cogen[ObservationProgressEvent] =
     Cogen[Progress].contramap(_.progress)
 
-  implicit val acpCogen: Cogen[AlignAndCalibEvent] =
+  given Cogen[AlignAndCalibEvent] =
     Cogen[Int].contramap(_.step)
 
 }

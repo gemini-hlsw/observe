@@ -10,7 +10,7 @@ import scala.math.abs
 import cats._
 import cats.data.OptionT
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.nifs.DhsConnected
 import edu.gemini.observe.server.nifs.{ReadMode => EReadMode}
 import edu.gemini.observe.server.nifs.{TimeMode => ETimeMode}
@@ -20,19 +20,19 @@ import edu.gemini.spModel.gemini.nifs.NIFSParams.{Filter => LegacyFilter}
 import edu.gemini.spModel.gemini.nifs.NIFSParams.{Mask => LegacyMask}
 import edu.gemini.spModel.gemini.nifs.NIFSParams.{ReadMode => LegacyReadMode}
 import org.typelevel.log4cats.Logger
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
-import observe.server.EpicsCodex._
-import observe.server.EpicsUtil._
+import observe.server.EpicsCodex.*
+import observe.server.EpicsUtil.*
 import observe.server.Progress
 import observe.server.ProgressUtil
 import observe.server.ObserveFailure
 import observe.server.failUnlessM
 import shapeless.tag
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object NifsLookupTables {
 
@@ -49,7 +49,7 @@ object NifsLookupTables {
 }
 
 trait NifsEncoders {
-  implicit val filterEncoder: EncodeEpicsValue[LegacyFilter, String] =
+  given EncodeEpicsValue[LegacyFilter, String] =
     EncodeEpicsValue {
       case LegacyFilter.SAME_AS_DISPERSER => "" // Unused
       case LegacyFilter.ZJ_FILTER         => "ZJ"
@@ -59,13 +59,13 @@ trait NifsEncoders {
       case LegacyFilter.BLOCKED           => "Blocked"
     }
 
-  implicit val windowCoverEncoder: EncodeEpicsValue[WindowCover, String] =
+  given EncodeEpicsValue[WindowCover, String] =
     EncodeEpicsValue {
       case WindowCover.Opened => "Opened"
       case WindowCover.Closed => "Closed"
     }
 
-  implicit val maskEncoder: EncodeEpicsValue[LegacyMask, String] =
+  given EncodeEpicsValue[LegacyMask, String] =
     EncodeEpicsValue {
       case LegacyMask.CLEAR         => "3.0_Mask"
       case LegacyMask.PINHOLE       => "0.1_Hole"
@@ -80,7 +80,7 @@ trait NifsEncoders {
       case LegacyMask.BLOCKED       => "Blocked"
     }
 
-  implicit val disperserEncoder: EncodeEpicsValue[LegacyDisperser, String] =
+  given EncodeEpicsValue[LegacyDisperser, String] =
     EncodeEpicsValue {
       case LegacyDisperser.Z       => "Z"
       case LegacyDisperser.J       => "J"
@@ -116,7 +116,7 @@ object NifsControllerEpics extends NifsEncoders {
 
   def apply[F[_]: Async](
     epicsSys:   => NifsEpics[F]
-  )(implicit L: Logger[F]): NifsController[F] = new NifsController[F] {
+  )(using L: Logger[F]): NifsController[F] = new NifsController[F] {
 
     private val unit = Applicative[F].unit
 

@@ -66,6 +66,6 @@ object NiriController {
 
   final case class NiriConfig(cc: CCConfig, dc: DCConfig)
 
-  implicit val cfgShow: Show[NiriConfig] = Show.fromToString
+  given Show[NiriConfig] = Show.fromToString
 
 }

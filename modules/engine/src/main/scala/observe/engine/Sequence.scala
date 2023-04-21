@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
@@ -198,7 +198,7 @@ object Sequence {
      *
      * If the index doesn't exist, the new `State` is returned unmodified.
      */
-    def mark(i: Int)(r: Result[F]): State[F]
+    def mark(i: Int)(r: Result): State[F]
 
     def start(i: Int): State[F]
 
@@ -224,11 +224,11 @@ object Sequence {
 
     def completeSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F]
 
-    def getSingleState(c: ActionCoordsInSeq): ActionState[F]
+    def getSingleState(c: ActionCoordsInSeq): ActionState
 
     def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]]
 
-    val getSingleActionStates: Map[ActionCoordsInSeq, ActionState[F]]
+    val getSingleActionStates: Map[ActionCoordsInSeq, ActionState]
 
     def clearSingles: State[F]
 
@@ -298,7 +298,7 @@ object Sequence {
     final case class Zipper[F[_]](
       zipper:     Sequence.Zipper[F],
       status:     SequenceState,
-      singleRuns: Map[ActionCoordsInSeq, ActionState[F]]
+      singleRuns: Map[ActionCoordsInSeq, ActionState]
     ) extends State[F] { self =>
 
       override val next: Option[State[F]] = zipper.next match {
@@ -355,7 +355,7 @@ object Sequence {
       private val zipperL: Lens[Zipper[F], Sequence.Zipper[F]] =
         GenLens[Zipper[F]](_.zipper)
 
-      override def mark(i: Int)(r: Result[F]): State[F] = {
+      override def mark(i: Int)(r: Result): State[F] = {
         val currentExecutionL: Lens[Zipper[F], Execution[F]] =
           zipperL.andThen(Sequence.Zipper.current)
 
@@ -407,10 +407,10 @@ object Sequence {
         else
           self
 
-      override def getSingleState(c: ActionCoordsInSeq): ActionState[F] =
+      override def getSingleState(c: ActionCoordsInSeq): ActionState =
         singleRuns.getOrElse(c, ActionState.Idle)
 
-      override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState[F]] = singleRuns
+      override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState] = singleRuns
 
       override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = for {
         step <- toSequence.steps.find(_.id === c.stepId)
@@ -447,7 +447,7 @@ object Sequence {
 
       override val done: List[Step[F]] = seq.steps
 
-      override def mark(i: Int)(r: Result[F]): State[F] = self
+      override def mark(i: Int)(r: Result): State[F] = self
 
       override def start(i: Int): State[F] = self
 
@@ -461,9 +461,9 @@ object Sequence {
 
       override def completeSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F] = self
 
-      override def getSingleState(c: ActionCoordsInSeq): ActionState[F] = ActionState.Idle
+      override def getSingleState(c: ActionCoordsInSeq): ActionState = ActionState.Idle
 
-      override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState[F]] = Map.empty
+      override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState] = Map.empty
 
       override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = None
 

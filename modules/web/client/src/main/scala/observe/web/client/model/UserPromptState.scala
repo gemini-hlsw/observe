@@ -4,18 +4,16 @@
 package observe.web.client.model
 
 import cats.Eq
-import monocle.macros.Lenses
 import observe.model.UserPrompt
 
 /**
  * Utility class to display a generic notification sent by the server
  */
-@Lenses
 final case class UserPromptState(notification: Option[UserPrompt])
 
 object UserPromptState {
   val Empty: UserPromptState = UserPromptState(None)
 
-  implicit val eq: Eq[UserPromptState] =
+  given Eq[UserPromptState] =
     Eq.by(_.notification)
 }

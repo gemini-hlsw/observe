@@ -5,11 +5,11 @@ package observe.web.client.components
 
 import scala.scalajs.js.timers.SetTimeoutHandle
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ModelRO
 import japgolly.scalajs.react.Callback
-import japgolly.scalajs.react.ReactMonocle._
-import japgolly.scalajs.react.extra.router._
+import japgolly.scalajs.react.ReactMonocle.*
+import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
 import lucuma.core.util.{ Gid, Uid }
@@ -20,8 +20,8 @@ import observe.web.client.actions.NavigateSilentTo
 import observe.web.client.actions.RequestSoundEcho
 import observe.web.client.actions.WSConnect
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.model.ModelOps._
-import observe.web.client.model.Pages._
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.Pages.*
 
 /**
  * UI Router
@@ -77,16 +77,16 @@ object ObserveUI {
       (p.instrument.show, p.obsId, p.stepId)
     }
 
-  def router[F[_]](site: Site)(implicit F: Sync[F]): F[Router[ObservePages]] = {
+  def router[F[_]](site: Site)(using F: Sync[F]): F[Router[ObservePages]] = {
     val instrumentNames = site.instruments.map(i => (i.show, i)).toList.toMap
 
     val routerConfig = RouterConfigDsl[ObservePages].buildConfig { dsl =>
       import dsl._
 
-      def id[Id](implicit gid: Gid[Id]): StaticDsl.RouteB[Id] =
+      def id[Id](using gid: Gid[Id]): StaticDsl.RouteB[Id] =
         string(gid.regexPattern).pmapL(gid.fromString)
 
-      def uuid[Id](implicit uid: Uid[Id]): StaticDsl.RouteB[Id] =
+      def uuid[Id](using uid: Uid[Id]): StaticDsl.RouteB[Id] =
         string(uid.regexPattern).pmapL(uid.fromString)
 
       (emptyRule

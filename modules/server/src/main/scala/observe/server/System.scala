@@ -11,7 +11,7 @@ trait System[F[_]] {
   /**
    * Called to configure a system
    */
-  def configure: F[ConfigResult[F]]
+  def configure: F[ConfigResult]
 
   def notifyObserveStart: F[Unit]
 

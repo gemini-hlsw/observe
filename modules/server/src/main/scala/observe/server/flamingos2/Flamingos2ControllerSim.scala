@@ -5,7 +5,7 @@ package observe.server.flamingos2
 
 import cats.MonadError
 import cats.effect.{Async, Ref}
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
@@ -16,7 +16,7 @@ import observe.server.Progress
 import observe.server.ObserveFailure.Execution
 import observe.server.flamingos2.Flamingos2Controller.Flamingos2Config
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 final case class Flamingos2ControllerSim[F[_]] private (sim: InstrumentControllerSim[F])
     extends Flamingos2Controller[F] {
@@ -42,7 +42,7 @@ object Flamingos2ControllerSim {
 /**
  * This controller will run correctly but fail at step `failAt`
  */
-final case class Flamingos2ControllerSimBad[F[_]: MonadError[*[_], Throwable]: Logger] private (
+final case class Flamingos2ControllerSimBad[F[_]: MonadThrow: Logger] private (
   failAt:  Int,
   sim:     InstrumentControllerSim[F],
   counter: Ref[F, Int]

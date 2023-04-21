@@ -5,7 +5,7 @@ package observe.server
 
 import cats.Endo
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.engine.Event
 import observe.engine.Sequence
 import observe.model.Observation
@@ -20,7 +20,7 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:            OdbProxy[F],
   translators:          List[SeqTranslate[F]]
-)(implicit execEngine: ExecEngineType[F]) {
+)(using execEngine: ExecEngineType[F]) {
 
   private def unloadEvent(seqId: Observation.Id): EventType[F] =
     Event.modifyState[F, EngineState[F], SeqEvent](

@@ -1,27 +1,27 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}
-import org.scalacheck.Arbitrary._
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
-import observe.model._
-import observe.model.GmosParameters._
-import observe.model.NodAndShuffleStep.{ PauseGracefully, PendingObserveCmd, StopGracefully }
-import observe.model.enums._
-import observe.model.arb.ArbStepConfig._
-import observe.model.arb.ArbStepState._
-import observe.model.arb.ArbDhsTypes._
-import observe.model.arb.ArbTime._
-import observe.model.arb.ArbGmosParameters._
-import observe.model.arb.ArbNSRunningState._
+import org.scalacheck.Arbitrary.*
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
+import observe.model.*
+import observe.model.GmosParameters.*
+import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
+import observe.model.enums.*
+import observe.model.arb.ArbStepConfig.{*, given}
+import observe.model.arb.ArbStepState.{*, given}
+import observe.model.arb.ArbDhsTypes.{*, given}
+import observe.model.arb.ArbTime.{*, given}
+import observe.model.arb.ArbGmosParameters.{*, given}
+import observe.model.arb.ArbNSRunningState.{*, given}
 import squants._
 
 trait ArbNodAndShuffleStep {
-  implicit val nssArb = Arbitrary[NodAndShuffleStatus] {
+  given nssArb: Arbitrary[NodAndShuffleStatus] = Arbitrary[NodAndShuffleStatus] {
     for {
       as <- arbitrary[ActionStatus]
       t  <- arbitrary[Time]
@@ -31,17 +31,17 @@ trait ArbNodAndShuffleStep {
     } yield NodAndShuffleStatus(as, t, n, c, s)
   }
 
-  implicit val nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
-    Cogen[(ActionStatus, Time, Time, Int)].contramap { x =>
+  given nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
+    Cogen[(ActionStatus, Time, Time, NsCycles)].contramap { x =>
       (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles)
     }
 
-  implicit val nodAndShufflePendingCmdArb: Arbitrary[PendingObserveCmd] =
+  given nodAndShufflePendingCmdArb: Arbitrary[PendingObserveCmd] =
     Arbitrary[PendingObserveCmd](
       Gen.oneOf(List(PauseGracefully, StopGracefully))
     )
 
-  implicit val nodShuffleStepArb = Arbitrary[NodAndShuffleStep] {
+  given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
     for {
       id <- arbitrary[StepId]
       c  <- stepConfigGen
@@ -64,7 +64,7 @@ trait ArbNodAndShuffleStep {
     )
   }
 
-  implicit val nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
+  given nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
     Cogen[
       (
         StepId,

@@ -4,7 +4,7 @@
 package observe.server.flamingos2
 
 import cats.Functor
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId

@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.enums.M1Source
 
 /** Data type for M1 guide config. */
@@ -21,12 +21,12 @@ object M1GuideConfig {
   }
 
   object M1GuideOn {
-    implicit val showM1GuideOn: Show[M1GuideOn] = Show.fromToString
-    implicit val eqM1GuideOn: Eq[M1GuideOn]     = Eq.by(_.source)
+    given Show[M1GuideOn] = Show.fromToString
+    given Eq[M1GuideOn]   = Eq.by(_.source)
   }
 
-  implicit val showM1GuideConfig: Show[M1GuideConfig] = Show.fromToString
-  implicit val eqM1GuideConfig: Eq[M1GuideConfig]     = Eq.instance {
+  given Show[M1GuideConfig] = Show.fromToString
+  given Eq[M1GuideConfig]   = Eq.instance {
     case (M1GuideOff, M1GuideOff)     => true
     case (M1GuideOn(a), M1GuideOn(b)) => a === b
     case _                            => false

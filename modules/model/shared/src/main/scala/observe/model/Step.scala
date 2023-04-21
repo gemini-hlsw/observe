@@ -1,18 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
-import cats._
-import cats.syntax.all._
+import cats.*
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
-import monocle.Lens
-import monocle.Optional
-import monocle.Prism
+import monocle.{Focus, Lens, Optional, Prism}
 import monocle.macros.GenPrism
-import monocle.macros.Lenses
-import observe.model.dhs._
-import observe.model.enums._
+import observe.model.dhs.{*, given}
+import observe.model.enums.*
 
 sealed trait Step extends Product with Serializable {
   def id: StepId
@@ -24,7 +21,7 @@ sealed trait Step extends Product with Serializable {
 }
 
 object Step {
-  implicit class LensBooleanOps[A](l: Lens[A, Boolean]) {
+  extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
   }
   val standardStepP: Prism[Step, StandardStep] =
@@ -38,8 +35,8 @@ object Step {
       _.status
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.status.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.status.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.status).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.status).replace(n)(s)
       }
     }
 
@@ -48,8 +45,8 @@ object Step {
       _.config
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.config.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.config.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.config).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.config).replace(n)(s)
       }
     }
 
@@ -58,8 +55,8 @@ object Step {
       _.id
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.id.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.id.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.id).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.id).replace(n)(s)
       }
     }
 
@@ -68,8 +65,8 @@ object Step {
       _.skip
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.skip.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.skip.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.skip).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.skip).replace(n)(s)
       }
     }
 
@@ -78,8 +75,8 @@ object Step {
       _.breakpoint
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.breakpoint.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.breakpoint.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.breakpoint).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.breakpoint).replace(n)(s)
       }
     }
 
@@ -89,9 +86,11 @@ object Step {
       case s: NodAndShuffleStep => s.nsStatus.observing.some
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.observeStatus.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.observeStatus).replace(n)(s)
         case s: NodAndShuffleStep =>
-          NodAndShuffleStep.nsStatus.andThen(NodAndShuffleStatus.observing).replace(n)(s)
+          Focus[NodAndShuffleStep](_.nsStatus)
+            .andThen(Focus[NodAndShuffleStatus](_.observing))
+            .replace(n)(s)
       }
     }
 
@@ -101,12 +100,12 @@ object Step {
       case s: NodAndShuffleStep => s.configStatus.some
     } { n => a =>
       a match {
-        case s: StandardStep      => StandardStep.configStatus.replace(n)(s)
-        case s: NodAndShuffleStep => NodAndShuffleStep.configStatus.replace(n)(s)
+        case s: StandardStep      => Focus[StandardStep](_.configStatus).replace(n)(s)
+        case s: NodAndShuffleStep => Focus[NodAndShuffleStep](_.configStatus).replace(n)(s)
       }
     }
 
-  implicit val equal: Eq[Step] =
+  given Eq[Step] =
     Eq.instance {
       case (x: StandardStep, y: StandardStep)           =>
         x === y
@@ -116,19 +115,17 @@ object Step {
         false
     }
 
-  implicit class StepOps(val s: Step) extends AnyVal {
+  extension (s: Step) {
     def flipBreakpoint: Step =
       s match {
-        case st: StandardStep      => StandardStep.breakpoint.negate(st)
-        case st: NodAndShuffleStep => NodAndShuffleStep.breakpoint.negate(st)
-        case st                    => st
+        case st: StandardStep      => Focus[StandardStep](_.breakpoint).negate(st)
+        case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.breakpoint).negate(st)
       }
 
     def flipSkip: Step =
       s match {
-        case st: StandardStep      => StandardStep.skip.negate(st)
-        case st: NodAndShuffleStep => NodAndShuffleStep.skip.negate(st)
-        case st                    => st
+        case st: StandardStep      => Focus[StandardStep](_.skip).negate(st)
+        case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.skip).negate(st)
       }
 
     def file: Option[String] = None
@@ -151,21 +148,18 @@ object Step {
       s match {
         case x: StandardStep      => x.observeStatus === ActionStatus.Running
         case x: NodAndShuffleStep => x.nsStatus.observing === ActionStatus.Running
-        case _                    => false
       }
 
     def isObservePaused: Boolean =
       s match {
         case x: StandardStep      => x.observeStatus === ActionStatus.Paused
         case x: NodAndShuffleStep => x.nsStatus.observing === ActionStatus.Paused
-        case _                    => false
       }
 
     def isConfiguring: Boolean =
       s match {
         case x: StandardStep      => x.configStatus.count(_._2 === ActionStatus.Running) > 0
         case x: NodAndShuffleStep => x.configStatus.count(_._2 === ActionStatus.Running) > 0
-        case _                    => false
       }
 
     def isFinished: Boolean = s.status.isFinished
@@ -182,7 +176,6 @@ object Step {
   }
 }
 
-@Lenses
 final case class StandardStep(
   override val id:         StepId,
   override val config:     StepConfig,
@@ -195,13 +188,12 @@ final case class StandardStep(
 ) extends Step
 
 object StandardStep {
-  implicit val equalStandardStep: Eq[StandardStep] = Eq.by(x =>
+  given Eq[StandardStep] = Eq.by(x =>
     (x.id, x.config, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.observeStatus)
   )
 }
 
 // Other kinds of Steps to be defined.
-@Lenses
 final case class NodAndShuffleStep(
   override val id:         StepId,
   override val config:     StepConfig,
@@ -215,15 +207,15 @@ final case class NodAndShuffleStep(
 ) extends Step
 
 object NodAndShuffleStep {
-  implicit val equalNodAndShuffleStop: Eq[NodAndShuffleStep] = Eq.by(x =>
+  given Eq[NodAndShuffleStep] = Eq.by(x =>
     (x.id, x.config, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.nsStatus)
   )
 
   sealed abstract class PendingObserveCmd(val tag: String) extends Product with Serializable
-  case object PauseGracefully extends PendingObserveCmd("PauseGracefully")
-  case object StopGracefully  extends PendingObserveCmd("StopGracefully")
+  case object PauseGracefully                              extends PendingObserveCmd("PauseGracefully")
+  case object StopGracefully                               extends PendingObserveCmd("StopGracefully")
 
-  implicit val enumPendingObserveCmd: Enumerated[PendingObserveCmd] =
+  given Enumerated[PendingObserveCmd] =
     Enumerated.from(PauseGracefully, StopGracefully).withTag(_.tag)
 
 }

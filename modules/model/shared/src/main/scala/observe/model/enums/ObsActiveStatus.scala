@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -32,13 +32,15 @@ object ObsActiveStatus {
   case object Inactive extends ObsActiveStatus("Inactive", "Inactive", false)
 
   /** @group Typeclass Instances */
-  implicit val EnumeratedObsActiveStatus: Enumerated[ObsActiveStatus] =
-    Enumerated.from(
-      Active,
-      Inactive
-    ).withTag(_.tag)
+  given Enumerated[ObsActiveStatus] =
+    Enumerated
+      .from(
+        Active,
+        Inactive
+      )
+      .withTag(_.tag)
 
-  implicit val DisplayObsActiveStatus: Display[ObsActiveStatus] =
+  given Display[ObsActiveStatus] =
     Display.byShortName(_.label)
 
   val FromBoolean: Iso[Boolean, ObsActiveStatus] =

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2.config
@@ -7,7 +7,7 @@ import java.time.Duration
 
 import cats.Eq
 import cats.Order
-import io.chrisdavenport.cats.time.instances.all._
+import io.chrisdavenport.cats.time.instances.all.*
 import lucuma.core.enums.{GmosNorthDetector => GmosDetector, _}
 import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
@@ -57,7 +57,7 @@ object GmosConfig {
       fromRowCount(detector.shuffleOffset.value.value)
         .getOrElse(sys.error(s"Misconfigured GmosDetector $detector"))
 
-    implicit val EqualGmosShuffleOffset: Eq[GmosShuffleOffset] =
+    given Eq[GmosShuffleOffset] =
       Eq.fromUniversalEquals
   }
 
@@ -101,7 +101,7 @@ object GmosConfig {
     def unsafeFromCycleCount(cycles: Int): GmosShuffleCycles =
       fromCycleCount(cycles).getOrElse(sys.error(s"Expecting positive shuffle cycles, not $cycles"))
 
-    implicit val EqualGmosShuffleCycles: Eq[GmosShuffleCycles] =
+    given Eq[GmosShuffleCycles] =
       Eq.fromUniversalEquals
   }
 
@@ -141,7 +141,7 @@ object GmosConfig {
         GmosShuffleCycles.Default
       )
 
-    implicit val EqualGmosNodAndShuffle: Eq[GmosNodAndShuffle] =
+    given Eq[GmosNodAndShuffle] =
       Eq.fromUniversalEquals
   }
 
@@ -247,7 +247,7 @@ object GmosConfig {
           )
         )
 
-    implicit val OrderGmosCustomRoiEntry: Order[GmosCustomRoiEntry] =
+    given Order[GmosCustomRoiEntry] =
       Order.by(c => (c.xMin, c.yMin, c.xRange, c.yRange))
 
   }
@@ -292,7 +292,7 @@ object GmosConfig {
         Set.empty[GmosCustomRoiEntry]
       )
 
-    implicit val EqGmosCommonStaticConfig: Eq[GmosCommonStaticConfig] =
+    given Eq[GmosCommonStaticConfig] =
       Eq.by(c => (c.detector, c.mosPreImaging, c.nodAndShuffle, c.customRois))
 
   }
@@ -343,7 +343,7 @@ object GmosConfig {
         GmosAmpReadMode.Slow
       )
 
-    implicit val EqualGmosCcdReadout: Eq[GmosCcdReadout] =
+    given Eq[GmosCcdReadout] =
       Eq.by(c => (c.xBinning, c.yBinning, c.ampCount, c.ampGain, c.ampReadMode))
 
   }
@@ -392,7 +392,7 @@ object GmosConfig {
         GmosRoi.FullFrame
       )
 
-    implicit val EqualGmosCommonDynamicConfig: Eq[GmosCommonDynamicConfig] =
+    given Eq[GmosCommonDynamicConfig] =
       Eq.by(c => (c.ccdReadout, c.dtaxOffset, c.exposureTime, c.roi))
 
   }
@@ -428,7 +428,7 @@ object GmosConfig {
 
   object GmosCustomMask extends GmosCustomMaskOptics {
 
-    implicit val EqualGmosCustomMask: Eq[GmosCustomMask] =
+    given Eq[GmosCustomMask] =
       Eq.by(c => (c.maskDefinitionFilename, c.slitWidth))
 
   }
@@ -463,7 +463,7 @@ object GmosConfig {
 
   object GmosGrating extends GmosGratingOptics {
 
-    implicit def EqualGmosGrating[D: Eq]: Eq[GmosGrating[D]] =
+    given [D: Eq]: Eq[GmosGrating[D]] =
       Eq.by(g => (g.disperser, g.order, g.wavelength))
 
   }

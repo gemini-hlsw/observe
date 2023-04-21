@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.config
@@ -7,10 +7,10 @@ import cats.effect.IO
 import lucuma.core.enums.Site
 import java.nio.file.Paths
 import org.http4s.Uri
-import org.http4s.implicits._
+import org.http4s.implicits.*
 import pureconfig._
-import scala.concurrent.duration._
-import observe.model.config._
+import scala.concurrent.duration.*
+import observe.model.config.*
 import shapeless.tag
 import munit.CatsEffectSuite
 
@@ -50,10 +50,10 @@ class ConfigurationLoaderSpec extends CatsEffectSuite {
     false,
     2,
     3.seconds,
-    tag[GpiSettings][Uri](uri"vm://gpi?marshal=false&broker.persistent=false"),
-    tag[GpiSettings][Uri](uri"http://localhost:8888/xmlrpc"),
-    tag[GhostSettings][Uri](uri"vm://ghost?marshal=false&broker.persistent=false"),
-    tag[GhostSettings][Uri](uri"http://localhost:8888/xmlrpc"),
+    GpiUriSettings(uri"vm://gpi?marshal=false&broker.persistent=false"),
+    GpiUriSettings(uri"http://localhost:8888/xmlrpc"),
+    GhostUriSettings(uri"vm://ghost?marshal=false&broker.persistent=false"),
+    GhostUriSettings(uri"http://localhost:8888/xmlrpc"),
     "tcs=tcs:, ao=ao:, gm=gm:, gc=gc:, gw=ws:, m2=m2:, oiwfs=oiwfs:, ag=ag:, f2=f2:, gsaoi=gsaoi:, aom=aom:, myst=myst:, rtc=rtc:",
     Some("127.0.0.1"),
     0,
@@ -78,13 +78,14 @@ site = GS
 # Authentication related settings
 authentication {
     # Indicates how long a session is valid in hrs
-    sessionLifeHrs = 2 hours
+    session-life-hrs = 2 hours
     # Name of the cookie to store the session
-    cookieName = "ObserveToken"
+    cookie-name = "ObserveToken"
     # Secret key for JWT tokens
-    secretKey = "somekey"
+    secret-key = "somekey"
+    use-ssl = false
     # List of LDAP servers, the list is used in a failover fashion
-    ldapURLs = ["ldap://sbfdc-wv1.gemini.edu:3268"]
+    ldap-urls = ["ldap://sbfdc-wv1.gemini.edu:3268"]
 }
 
 # Web server related configuration
@@ -94,42 +95,42 @@ web-server {
     # Port to serve https requests
     port = 7070
     # Port for redirects to https
-    insecurePort = 7071
+    insecure-port = 7071
     # External url used for redirects
-    externalBaseUrl = "localhost"
+    external-base-url = "localhost"
     tls {
-        keyStore = "file.jks"
-        keyStorePwd = "key"
-        certPwd = "cert"
+        key-store = "file.jks"
+        key-store-pwd = "key"
+        cert-pwd = "cert"
     }
 }
 
 smart-gcal {
     # We normally always use GS for smartGCalDir
-    smartGCalHost = "gsodbtest.gemini.edu"
+    smart-gcal-host = "gsodbtest.gemini.edu"
     # Tmp file for development
-    smartGCalDir = "/tmp/smartgcal"
+    smart-gcal-dir = "/tmp/smartgcal"
 }
 
 # Configuration of the observe engine
 observe-engine {
     # host for the odb
     odb = localhost
-    dhsServer = "http://cpodhsxx:9090/axis2/services/dhs/images"
+    dhs-server = "http://cpodhsxx:9090/axis2/services/dhs/images"
     # Tells Observe how to interact with a system:
     #   full: connect and command the system
     #   readOnly: connect, but only to read values
     #   simulated: don't connect, simulate internally
-    systemControl {
+    system-control {
         dhs = simulated
-        f2 = simulated
+        f-2 = simulated
         gcal = simulated
         ghost = simulated
-        ghostGds = simulated
+        ghost-gds = simulated
         gmos = simulated
         gnirs = simulated
         gpi = simulated
-        gpiGds = simulated
+        gpi-gds = simulated
         gsaoi = simulated
         gws = simulated
         nifs = simulated
@@ -138,21 +139,21 @@ observe-engine {
         altair = simulated
         gems = simulated
     }
-    odbNotifications = true
+    odb-notifications = true
     # Set to true on development to simulate errors on f2
-    instForceError = false
+    inst-force-error = false
     # if instForceError is true fail at the given iteration
-    failAt = 2
-    odbQueuePollingInterval = 3 seconds
+    fail-at = 2
+    odb-queue-polling-interval = 3 seconds
     tops = "tcs=tcs:, ao=ao:, gm=gm:, gc=gc:, gw=ws:, m2=m2:, oiwfs=oiwfs:, ag=ag:, f2=f2:, gsaoi=gsaoi:, aom=aom:, myst=myst:, rtc=rtc:"
-    epicsCaAddrList = 127.0.0.1
-    readRetries = 0
-    ioTimeout = 5 seconds
-    dhsTimeout = 10 seconds
-    gpiUrl = "vm://gpi?marshal=false&broker.persistent=false"
-    gpiGDS = "http://localhost:8888/xmlrpc"
-    ghostUrl = "vm://ghost?marshal=false&broker.persistent=false"
-    ghostGDS = "http://localhost:8888/xmlrpc"
+    epics-ca-addr-list = 127.0.0.1
+    read-retries = 0
+    io-timeout = 5 seconds
+    dhs-timeout = 10 seconds
+    gpi-url = "vm://gpi?marshal=false&broker.persistent=false"
+    gpi-gds = "http://localhost:8888/xmlrpc"
+    ghost-url = "vm://ghost?marshal=false&broker.persistent=false"
+    ghost-gds = "http://localhost:8888/xmlrpc"
 }
 
 """

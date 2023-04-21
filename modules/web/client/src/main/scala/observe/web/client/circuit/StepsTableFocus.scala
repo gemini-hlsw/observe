@@ -4,18 +4,16 @@
 package observe.web.client.circuit
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
-import monocle.macros.Lenses
 import observe.model.Observation
-import observe.model._
-import observe.model.enums._
+import observe.model.*
+import observe.model.enums.*
 import observe.web.client.components.sequence.steps.StepsTable
-import observe.web.client.model.ModelOps._
-import observe.web.client.model._
-import web.client.table._
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.*
+import web.client.table.*
 
-@Lenses
 final case class StepsTableFocus(
   idName:              Observation.IdName,
   instrument:          Instrument,
@@ -31,7 +29,7 @@ final case class StepsTableFocus(
 )
 
 object StepsTableFocus {
-  implicit val eq: Eq[StepsTableFocus] =
+  given Eq[StepsTableFocus] =
     Eq.by(x =>
       (x.idName,
        x.instrument,
@@ -50,8 +48,7 @@ object StepsTableFocus {
   def stepsTableG(
     id: Observation.Id
   ): Getter[ObserveAppRootModel, Option[StepsTableFocus]] =
-    ObserveAppRootModel.sequencesOnDisplayL
-      .andThen(SequencesOnDisplay.tabG(id))
+    Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
       .zip(ObserveAppRootModel.stepsTableStateL(id).asGetter) >>> {
       case (Some(ObserveTabActive(tab, _)), ts) =>
         val sequence = tab.sequence

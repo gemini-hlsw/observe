@@ -4,9 +4,8 @@
 package observe.server
 
 import cats.{Applicative, Monad}
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Lens
-import monocle.macros.Lenses
 import observe.model.enums.ApplyCommandResult
 
 import scala.concurrent.duration.FiniteDuration
@@ -59,8 +58,7 @@ object TestEpicsCommand {
   }
 
   object TestEpicsCommand1 {
-    @Lenses
-    final case class State[U](mark: Boolean, param1: U)
+        final case class State[U](mark: Boolean, param1: U)
   }
 
   abstract class TestEpicsCommand2[F[_]: Monad, S, A, U, V](
@@ -75,8 +73,7 @@ object TestEpicsCommand {
   }
 
   object TestEpicsCommand2 {
-    @Lenses
-    final case class State[U, V](mark: Boolean, param1: U, param2: V)
+        final case class State[U, V](mark: Boolean, param1: U, param2: V)
   }
 
   abstract class TestEpicsCommand3[F[_]: Monad, S, A, U, V, W](
@@ -93,8 +90,7 @@ object TestEpicsCommand {
   }
 
   object TestEpicsCommand3 {
-    @Lenses
-    final case class State[U, V, W](mark: Boolean, param1: U, param2: V, param3: W)
+        final case class State[U, V, W](mark: Boolean, param1: U, param2: V, param3: W)
   }
 
   abstract class TestEpicsCommand4[F[_]: Monad, S, A, U, V, W, X](
@@ -124,8 +120,7 @@ object TestEpicsCommand {
   }
 
   object TestEpicsCommand4 {
-    @Lenses
-    final case class State[U, V, W, X](mark: Boolean, param1: U, param2: V, param3: W, param4: X)
+        final case class State[U, V, W, X](mark: Boolean, param1: U, param2: V, param3: W, param4: X)
   }
 
   class DummyCmd[F[_]: Applicative] extends EpicsCommand[F] {

@@ -4,20 +4,20 @@
 package observe.server
 
 import cats.Monoid
-import cats.syntax.all._
-import cats.effect._
+import cats.syntax.all.*
+import cats.effect.*
 import cats.effect.unsafe.implicits.global
 import cats.data.NonEmptyList
 import fs2.Stream
 import observe.model.Observation
 import lucuma.core.enums.Site
-import observe.common.test._
+import observe.common.test.*
 import observe.engine.{ Action, Result, Sequence }
 import observe.model.enums.Instrument.GmosS
-import observe.model.dhs._
+import observe.model.dhs.*
 import observe.model.{ ActionType, SequenceState }
 import observe.server.Response.Observed
-import observe.server.TestCommon._
+import observe.server.TestCommon.*
 import squants.time.Seconds
 
 class SeqTranslateSpec extends TestCommon {

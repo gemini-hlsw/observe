@@ -3,25 +3,25 @@
 
 package observe.server.gmos
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats._
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.{GmosAdc, GmosEOffsetting, GmosGratingOrder, GmosRoi, Site}
 import org.typelevel.log4cats.Logger
 import lucuma.core.math.Wavelength
-import observe.model.GmosParameters._
+import observe.model.GmosParameters.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Guiding
 import observe.model.enums.Instrument
 import observe.model.enums.NodAndShuffleStage
-import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.server._
+import observe.server.*
 import observe.server.gmos.Gmos.SiteSpecifics
 import observe.server.gmos.GmosController.Config.NSConfig
-import observe.server.gmos.GmosController.Config._
+import observe.server.gmos.GmosController.Config.*
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
 import shapeless.tag
@@ -34,7 +34,7 @@ import observe.server.SequenceGen.StepGen
 import observe.server.StepType.ExclusiveDarkOrBias
 import observe.server.gmos.GmosController.Config
 
-import scala.jdk.DurationConverters._
+import scala.jdk.DurationConverters.*
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   val controller: GmosController[F, T],
@@ -153,7 +153,7 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
 
   override def notifyObserveStart: F[Unit] = Applicative[F].unit
 
-  override def configure: F[ConfigResult[F]] =
+  override def configure: F[ConfigResult] =
       controller.applyConfig(fromSequenceConfig)
         .as(ConfigResult(this))
 
@@ -244,20 +244,20 @@ object Gmos {
                                            systemss:  Systems[F],
                                            gmosNsCmd: Ref[F, Option[NSObserveCommand]]
                                          ) extends SeqTranslate[F] {
-    override def sequence(sequence: Data.Observation)(implicit tio: Temporal[F]): F[Option[Either[List[Throwable], SequenceGen[F]]]] =
+    override def sequence(sequence: Data.Observation)(using tio: Temporal[F]): F[Option[Either[List[Throwable], SequenceGen[F]]]] =
       sequence.execution.config match {
         case OdbConfig.GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) => buildSequence[F, GmosSite.North](staticN, acquisitionN, scienceN).some.pure[F]
         case OdbConfig.GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) => buildSequence[F, GmosSite.South](staticS, acquisitionS, scienceS).some.pure[F]
         case _ => none[Either[List[Throwable], SequenceGen[F]]].pure[F]
       }
 
-    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(implicit tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def abortObserve(seqId: Observation.Id)(implicit tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def abortObserve(seqId: Observation.Id)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(implicit tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def resumePaused(seqId: Observation.Id)(implicit tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def resumePaused(seqId: Observation.Id)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
     private def buildSequence[F[_], T <: GmosSite](sequence: Data.Observation, inst: Instrument, staticCfg: GmosStatic[T], acquisition: Sequence[InsConfig.Gmos[T]], science: Sequence[InsConfig.Gmos[T]]): Either[List[Throwable], SequenceGen[F]] = {
       val steps = (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture).flatMap(_.steps).map(x => buildStep[F, T](staticCfg, x))

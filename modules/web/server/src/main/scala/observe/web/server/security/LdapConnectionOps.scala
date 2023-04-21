@@ -1,18 +1,18 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.security
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 import com.unboundid.ldap.sdk.SearchRequest
 import com.unboundid.ldap.sdk.SearchScope
-import com.unboundid.ldap.sdk._
-import observe.model.UserDetails._
+import com.unboundid.ldap.sdk.*
+import observe.model.UserDetails.*
 
 object LdapConnectionOps {
   // Extension methods for ldap connection
-  implicit class LdapConnectionOps(val c: LDAPConnection) extends AnyVal {
+  extension (c: LDAPConnection) {
     def authenticate(u: String, p: String): UID = {
       val UidExtractor = s"([\\w\\.]*)(\\@.*)?".r
 

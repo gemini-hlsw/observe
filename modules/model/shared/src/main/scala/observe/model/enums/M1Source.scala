@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -16,7 +16,7 @@ object M1Source {
   case object HRWFS extends M1Source("HRWFS")
 
   /** @group Typeclass Instances */
-  implicit val M1SourceEnumerated: Enumerated[M1Source] =
+  given Enumerated[M1Source] =
     Enumerated.from(PWFS1, PWFS2, OIWFS, GAOS, HRWFS).withTag(_.tag)
 
 }

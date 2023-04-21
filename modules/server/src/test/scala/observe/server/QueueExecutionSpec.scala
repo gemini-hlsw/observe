@@ -4,7 +4,7 @@
 package observe.server
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
 import fs2.Stream
@@ -25,7 +25,7 @@ import org.scalatest.Inside.inside
 import observe.engine.Sequence
 import observe.model.enums.Instrument
 import observe.model.enums.Resource.TCS
-import observe.server.TestCommon._
+import observe.server.TestCommon.*
 import observe.model.enums.RunOverride
 
 class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssertions {
@@ -86,8 +86,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   it should "not add sequence id if already in queue" in {
     val s0 =
       (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine) >>>
-        EngineState.queues
-          .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+        Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
           .andThen(ExecutionQueue.queue)
           .modify(_ :+ seqObsId1))(EngineState.default)
 
@@ -154,8 +153,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
     val s0 =
       (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](seqObsId2, sequence(seqObsId2), executeEngine) >>>
-        EngineState.queues
-          .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+        Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
           .andThen(ExecutionQueue.queue)
           .modify(_ :+ seqObsId1))(EngineState.default)
 
@@ -177,8 +175,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
         (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine) >>>
           ODBSequencesLoader.loadSequenceEndo[IO](seqObsId2, sequence(seqObsId2), executeEngine) >>>
           ODBSequencesLoader.loadSequenceEndo[IO](seqObsId3, sequence(seqObsId3), executeEngine) >>>
-          EngineState.queues
-            .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+          Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
             .andThen(ExecutionQueue.queue)
             .modify(
               _ ++ List(seqObsId1, seqObsId2, seqObsId3)
@@ -197,8 +194,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
       val s0 =
         (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine) >>>
           ODBSequencesLoader.loadSequenceEndo[IO](seqObsId2, sequence(seqObsId2), executeEngine) >>>
-          EngineState.queues
-            .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+          Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
             .andThen(ExecutionQueue.queue)
             .modify(
               _ ++ List(seqObsId1, seqObsId2)
@@ -217,14 +213,12 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
     val s0 =
       (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, sequence(seqObsId1), executeEngine) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](seqObsId2, sequence(seqObsId2), executeEngine) >>>
-        EngineState.queues
-          .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+        Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
           .andThen(ExecutionQueue.queue)
           .modify(
             _ ++ List(seqObsId1, seqObsId2)
           ) >>>
-        EngineState.queues
-          .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+        Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
           .andThen(ExecutionQueue.cmdState)
           .replace(BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId)) >>>
         EngineState
@@ -502,8 +496,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   }
 
   "ObserveEngine start sequence" should "not run sequence not in queue if running queue needs the same resources" in {
-    val s0 = EngineState.queues
-      .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+    val s0 = Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
       .modify(x =>
         x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId),
                queue = List(seqObsId1, seqObsId2)
@@ -529,8 +522,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   }
 
   it should "run sequence if it is in running queue and resources are available" in {
-    val s0 = EngineState.queues
-      .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+    val s0 = Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
       .modify(x =>
         x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId))
       )(alpha)
@@ -664,8 +656,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   it should "allow restarting a queued sequence stopped by the user" in {
     // State has three sequences, 1, 2 and 3. 1 and 3 use the same instrument, different from 2
     // Queue sequences 1 and 3. Queue is running, but sequence 1 is not (i.e. the user stopped 1).
-    val s0 = EngineState.queues
-      .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+    val s0 = Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
       .modify(x =>
         x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId),
                queue = List(seqObsId1, seqObsId3)
@@ -770,8 +761,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   "ObserveEngine addSequenceToQueue" should "start added sequence if queue is running and resources are available" in {
     // State has three sequences, 1, 2 and 3. 1 and 3 use the same instrument, different from 2
     // Queue only has sequence 2. Queue is running, but sequence 2 is not.
-    val s0 = EngineState.queues
-      .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+    val s0 = Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
       .modify(x =>
         x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId),
                queue = List(seqObsId2)
@@ -798,8 +788,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
   it should "not start added sequence if queue is running but resources are unavailable" in {
     // State has three sequences, 1, 2 and 3. 1 and 3 use the same instrument, different from 2
     // Queue only has sequence 3. Queue is running, but sequence 3 is not.
-    val s0 = EngineState.queues
-      .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+    val s0 = Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
       .modify(x =>
         x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId),
                queue = List(seqObsId3)
@@ -847,8 +836,7 @@ class QueueExecutionSpec extends TestCommon with Matchers with NonImplicitAssert
                                                 ),
                                                 executeEngine
         ) >>>
-        EngineState.queues
-          .andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
+        Focus[EngineState](_.queues).andThen(mapIndex[QueueId, ExecutionQueue].index(CalibrationQueueId))
           .modify(x =>
             x.copy(cmdState = BatchCommandState.Run(Observer(""), UserDetails("", ""), clientId),
                    queue = List(seqObsId1, seqObsId2, seqObsId3)

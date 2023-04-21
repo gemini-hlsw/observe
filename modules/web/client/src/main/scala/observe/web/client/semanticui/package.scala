@@ -5,7 +5,7 @@ package observe.web.client
 
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.vdom.html_<^._
-import react.semanticui.elements.button._
+import react.semanticui.elements.button.*
 import react.semanticui.elements.icon.Icon
 
 package object semanticui {

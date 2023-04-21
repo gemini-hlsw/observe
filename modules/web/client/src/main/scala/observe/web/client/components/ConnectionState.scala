@@ -3,16 +3,16 @@
 
 package observe.web.client.components
 
-import diode.react.ReactPot._
+import diode.react.ReactPot.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.header.Header
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.WebSocketConnection
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class ConnectionState(u: WebSocketConnection)
     extends ReactProps[ConnectionState](ConnectionState.component)
@@ -24,7 +24,7 @@ object ConnectionState {
 
   type Props = ConnectionState
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   def formatTime(delay: Int): String =
     if (delay < 1000)

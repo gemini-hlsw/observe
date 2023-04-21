@@ -3,7 +3,7 @@
 
 package observe.server
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.data.Kleisli
 import fs2.Stream

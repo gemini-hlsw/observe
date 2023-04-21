@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
@@ -10,43 +10,45 @@ import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
 import lucuma.core.enums.Site
 import org.typelevel.log4cats.noop.NoOpLogger
-import org.http4s._
-import org.http4s.implicits._
-import observe.server._
+import org.http4s.*
+import org.http4s.implicits.*
+import observe.server.{*, given}
+import org.typelevel.log4cats.Logger
 //import observe.server.tcs.GuideConfigDb
-import observe.model.events._
-import observe.model.config._
-import observe.web.server.http4s.encoder._
+import observe.model.events.*
+import observe.model.config.*
+import observe.web.server.http4s.encoder.*
 import observe.web.server.security.AuthenticationService
 import observe.model.UserLoginRequest
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats.effect.Ref
 import org.http4s.server.websocket.WebSocketBuilder2
 
 trait TestRoutes extends ClientBooEncoders with CatsSuite {
-  private implicit def logger = NoOpLogger.impl[IO]
+  given logger: Logger[IO] = NoOpLogger.impl[IO]
 
   private val statusDb    = GiapiStatusDb.simulatedDb[IO]
   private val config      =
-    AuthenticationConfig(FiniteDuration(8, HOURS), "token", "abc", useSSL = false, Nil)
+    AuthenticationConfig(FiniteDuration(8, HOURS), "token", "abc", useSsl = false, Nil)
   private val authService = AuthenticationService[IO](Mode.Development, config)
 
   def commandRoutes(engine: ObserveEngine[IO]): IO[HttpRoutes[IO]] = for {
-      q <- Queue.bounded[IO, executeEngine.EventType](10)
-    } yield new ObserveCommandRoutes[IO](authService, q, engine).service
+    q <- Queue.bounded[IO, executeEngine.EventType](10)
+  } yield new ObserveCommandRoutes[IO](authService, q, engine).service
 
   def uiRoutes(wsb: WebSocketBuilder2[IO]): IO[HttpRoutes[IO]] =
     for {
       o  <- Topic[IO, ObserveEvent]
       cs <- Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
-    } yield new ObserveUIApiRoutes(Site.GS,
-                                   Mode.Development,
-                                   authService,
+    } yield new ObserveUIApiRoutes(
+      Site.GS,
+      Mode.Development,
+      authService,
 //                                   GuideConfigDb.constant[IO],
 //                                   statusDb,
-                                   cs,
-                                   o,
-                                   wsb
+      cs,
+      o,
+      wsb
     ).service
 
   def newLoginToken(wsb: WebSocketBuilder2[IO]): IO[String] =

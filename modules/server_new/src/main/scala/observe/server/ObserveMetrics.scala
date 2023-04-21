@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
 import cats.effect.Sync
-import cats.syntax.all._
-import io.prometheus.client._
+import cats.syntax.all.*
+import io.prometheus.client.*
 import lucuma.core.enums.Site
 import observe.model.enums.Instrument
 
@@ -37,7 +37,7 @@ object ObserveMetrics {
       )
     )
 
-  implicit class ObserveMetricsOps(val m: ObserveMetrics) extends AnyVal {
+  extension (m: ObserveMetrics) {
 
     def queueSize[F[_]: Sync](i: Int): F[ObserveMetrics] =
       Sync[F].delay {

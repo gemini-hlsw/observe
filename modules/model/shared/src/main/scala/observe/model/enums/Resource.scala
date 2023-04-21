@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -27,17 +27,18 @@ object Resource {
   // For now, I replaced them with TCS
   //  case object Mount extends Resource
   //  case object ScienceFold extends Resource
-  implicit val show: Show[Resource] =
+  given Show[Resource] =
     Show.show(_.label)
 
   val common: List[Resource] = List(TCS, Gcal)
 
   /** @group Typeclass Instances */
-  implicit val ResourceEnumerated: Enumerated[Resource] =
+  given Enumerated[Resource] =
     Enumerated.from(Instrument.allResources.head, Instrument.allResources.tail: _*).withTag(_.tag)
 }
 
-sealed abstract class Instrument(tag: String, ordinal: Int, label: String) extends Resource(tag, ordinal, label) {
+sealed abstract class Instrument(tag: String, ordinal: Int, label: String)
+    extends Resource(tag, ordinal, label) {
   override def isInstrument: Boolean = true
 }
 
@@ -53,7 +54,7 @@ object Instrument {
   case object Niri  extends Instrument("Niri", 18, "NIRI")
   case object Nifs  extends Instrument("Nifs", 19, "NIFS")
 
-  implicit val show: Show[Instrument] =
+  given Show[Instrument] =
     Show.show(_.label)
 
   val gsInstruments: NonEmptyList[Instrument] =
@@ -75,6 +76,6 @@ object Instrument {
     ) ::: Instrument.all
 
   /** @group Typeclass Instances */
-  implicit val InstrumentEnumerated: Enumerated[Instrument] =
+  given Enumerated[Instrument] =
     Enumerated.from(all.head, all.tail: _*).withTag(_.tag)
 }

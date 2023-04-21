@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.logging
@@ -6,13 +6,13 @@ package observe.web.server.logging
 import java.time.Instant
 import cats.effect.IO
 import cats.effect.std.Dispatcher
-import cats.syntax.all._
+import cats.syntax.all.*
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.AppenderBase
 import fs2.concurrent.Topic
 import observe.model.enums.ServerLogLevel
-import observe.model.events._
+import observe.model.events.*
 
 /**
  * Custom appender that can take log events from logback and send them to clients via the common

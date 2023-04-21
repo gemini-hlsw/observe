@@ -4,17 +4,17 @@
 package observe.web.client.components.tabs
 
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.collections.menu.Menu
 import react.semanticui.collections.menu.MenuAttached
 import react.semanticui.collections.menu.MenuTabular
 import observe.model.SequenceState
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.model.AvailableTab
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 
 /**
  * Menu with tabs
@@ -26,7 +26,7 @@ final case class ObserveTabs(
 object ObserveTabs {
   type Props = ObserveTabs
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.router)
+  given Reusability[Props] = Reusability.by(_.router)
   private val tabConnect                      = ObserveCircuit.connect(ObserveCircuit.tabsReader)
 
   val component = ScalaComponent

@@ -7,16 +7,16 @@ import java.lang.{Boolean => JBoolean}
 import java.lang.{Double => JDouble}
 import java.lang.{Integer => JInt}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats._
 import cats.data.EitherT
 import cats.data.Kleisli
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.gpi.Gpi.{ReadoutArea => _, _}
 import edu.gemini.spModel.obsclass.ObsClass
 import edu.gemini.spModel.obscomp.InstConstants
-import edu.gemini.spModel.seqcomp.SeqConfigNames._
+import edu.gemini.spModel.seqcomp.SeqConfigNames.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.GpiReadMode
@@ -25,8 +25,8 @@ import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps._
-import observe.server._
+import observe.server.ConfigUtilOps.*
+import observe.server.*
 import observe.server.keywords.GdsClient
 import observe.server.keywords.GdsInstrument
 import observe.server.keywords.KeywordsClient
@@ -67,7 +67,7 @@ final case class Gpi[F[_]: Temporal: Logger](controller: GpiController[F])
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     if (Gpi.isAlignAndCalib(config)) {
       controller.alignAndCalib.as(ConfigResult(this))
     } else {
@@ -193,7 +193,7 @@ object Gpi {
         ConversionError(OBSERVE_KEY / DETECTOR_STARTX_PROP, "Cannot read readout area")
       )).flatten
 
-  private def regularSequenceConfig[F[_]: MonadError[*[_], Throwable]](
+  private def regularSequenceConfig[F[_]: MonadThrow](
     config: CleanConfig
   ): F[GpiConfig] =
     EitherT(
@@ -237,7 +237,7 @@ object Gpi {
   private def alignAndCalibConfig[F[_]: Applicative]: F[GpiConfig] =
     AlignAndCalibConfig.pure[F].widen[GpiConfig]
 
-  def fromSequenceConfig[F[_]: MonadError[*[_], Throwable]](config: CleanConfig): F[GpiConfig] =
+  def fromSequenceConfig[F[_]: MonadThrow](config: CleanConfig): F[GpiConfig] =
     ApplicativeError[F, Throwable]
       .catchNonFatal(isAlignAndCalib(config))
       .ifM(alignAndCalibConfig[F], regularSequenceConfig[F](config))

@@ -1,22 +1,22 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.tests.CatsSuite
-import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.optics.laws.discipline.FormatTests
-import lucuma.core.math.arb.ArbOffset._
-import lucuma.core.math.arb.ArbAngle._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.math.arb.ArbAngle.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import lucuma.core.math.Axis
-import monocle.law.discipline._
-import org.scalacheck.Arbitrary._
-import observe.model.enums._
-import observe.model.ObserveModelArbitraries._
-import observe.model.SequenceEventsArbitraries._
-import observe.model.arb.all._
+import monocle.law.discipline.*
+import org.scalacheck.Arbitrary.*
+import observe.model.enums.*
+import observe.model.ObserveModelArbitraries.{*, given}
+import observe.model.SequenceEventsArbitraries.{*, given}
+import observe.model.arb.all.{*, given}
 
 final class ModelLensesSpec extends CatsSuite with ModelLenses {
   checkAll("event observer name lens", LensTests(obsNameL))

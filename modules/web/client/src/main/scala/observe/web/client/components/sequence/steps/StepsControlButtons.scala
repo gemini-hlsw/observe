@@ -3,28 +3,28 @@
 
 package observe.web.client.components.sequence.steps
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.{Callback, CtorType, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
-import react.semanticui.elements.icon._
+import react.semanticui.elements.icon.*
 import react.semanticui.modules.popup.Popup
 import react.semanticui.modules.popup.PopupPosition
 import observe.model.Observation
-import observe.model._
-import observe.model.enums._
-import observe.model.operations.Operations._
-import observe.model.operations._
-import observe.web.client.actions._
+import observe.model.*
+import observe.model.enums.*
+import observe.model.operations.Operations.*
+import observe.model.operations.*
+import observe.web.client.actions.*
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.TabOperations
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -48,8 +48,8 @@ final case class ControlButtons(
 object ControlButtons {
   type Props = ControlButtons
 
-  implicit val operationsReuse: Reusability[Operations[_]] = Reusability.derive[Operations[_]]
-  implicit val propsReuse: Reusability[Props]              = Reusability.derive[Props]
+  given Reusability[Operations[_]] = Reusability.derive[Operations[_]]
+  given Reusability[Props]              = Reusability.derive[Props]
 
   private def requestStop(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestStop(obsId, stepId))
@@ -211,7 +211,7 @@ final case class StepsControlButtons(
 object StepsControlButtons {
   type Props = StepsControlButtons
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("StepsControlButtons")

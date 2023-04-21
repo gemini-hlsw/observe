@@ -5,10 +5,9 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.effect.{Async, Ref}
-import cats.syntax.all._
-import mouse.boolean._
+import cats.syntax.all.*
+import mouse.boolean.*
 import edu.gemini.observe.server.gems.LoopState
-import monocle.macros.Lenses
 import observe.server.TestEpicsCommand.TestEpicsCommand2
 import observe.server.gems.GemsControllerEpics.{
   InstrumentCondition,
@@ -193,8 +192,7 @@ object TestGemsEpics {
   case object Dither       extends PauseReason
   case object Filter       extends PauseReason
 
-  @Lenses
-  case class State(
+    case class State(
     aniLoop:              LoopState,
     astrometryReady:      Boolean,
     flexureLoop:          LoopState,

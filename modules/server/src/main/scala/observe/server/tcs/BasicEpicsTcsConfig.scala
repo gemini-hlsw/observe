@@ -4,9 +4,8 @@
 package observe.server.tcs
 
 import lucuma.core.math.Wavelength
-import monocle.macros.Lenses
 import observe.model.TelescopeGuideConfig
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import squants.Angle
 
 final case class InstrumentPorts(
@@ -20,7 +19,6 @@ final case class InstrumentPorts(
   niriPort:       Int
 )
 
-@Lenses
 final case class BaseEpicsTcsConfig(
   iaa:                  Angle,
   offset:               FocalPlaneOffset,

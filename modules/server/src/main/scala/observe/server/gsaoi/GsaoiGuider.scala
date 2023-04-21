@@ -22,7 +22,7 @@ object GsaoiGuider {
     case object Odgw3 extends OdgwId("Odgw3")
     case object Odgw4 extends OdgwId("Odgw4")
 
-    implicit val odgwIdEnumerated: Enumerated[OdgwId] = Enumerated.from(Odgw1, Odgw2, Odgw3, Odgw4).withTag(_.tag)
+    given Enumerated[OdgwId] = Enumerated.from(Odgw1, Odgw2, Odgw3, Odgw4).withTag(_.tag)
 
   }
 

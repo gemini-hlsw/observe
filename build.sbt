@@ -19,12 +19,20 @@ ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
 inThisBuild(
   Seq(
-    scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource                            := ReloadOnSourceChanges,
-    scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
+    ThisBuild / scalafixDependencies ++= Seq(
+      ClueGenerator,
+      "edu.gemini" % "lucuma-schemas_3" % Settings.LibraryVersions.lucumaSchemas
+    ),
     scalafixScalaBinaryVersion                               := "2.13",
     ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
   ) ++ lucumaPublishSettings
+)
+
+ThisBuild / scalaVersion               := "3.2.2"
+ThisBuild / crossScalaVersions         := Seq("3.2.2")
+ThisBuild / scalacOptions ++= Seq(
+  "-language:implicitConversions"
 )
 
 // Gemini repository
@@ -79,6 +87,10 @@ ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 // Projects
 //////////////
 
+ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
+  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+)
+
 lazy val root = tlCrossRootProject.aggregate(
   graphql,
   giapi,
@@ -97,8 +109,7 @@ lazy val graphql = project
   .settings(
     libraryDependencies ++= Seq(
       Clue,
-      LucumaSchemas,
-      ClueGenerator
+      LucumaSchemas
     )
   )
 
@@ -109,7 +120,6 @@ lazy val giapi = project
   .settings(
     libraryDependencies ++= Seq(Cats.value,
                                 Mouse.value,
-                                Shapeless.value,
                                 CatsEffect.value,
                                 Fs2,
                                 GiapiJmsUtil,
@@ -150,7 +160,6 @@ lazy val observe_web_server = project
                                 Http4sServer,
                                 Http4sPrometheus,
                                 CommonsHttp,
-                                ScalaMock,
                                 Log4CatsNoop.value
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
@@ -177,8 +186,6 @@ lazy val observe_web_server = project
   .enablePlugins(GitBranchPrompt)
   .disablePlugins(RevolverPlugin)
   .settings(
-    // Needed for Monocle macros
-    scalacOptions += "-Ymacro-annotations",
     scalacOptions ~= (_.filterNot(
       Set(
         // By necessity facades will have unused params
@@ -271,14 +278,10 @@ lazy val observe_server = project
   .enablePlugins(BuildInfoPlugin)
   .settings(commonSettings: _*)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++=
       Seq(
         Http4sCirce,
         Squants.value,
-        // OCS bundles
-        SpModelCore,
-        POT,
         OpenCSV,
         Http4sXml,
         Http4sBoopickle,
@@ -290,9 +293,9 @@ lazy val observe_server = project
         Clue,
         ClueHttp4s,
         LucumaSchemas,
-        ClueGenerator,
-        ACM
-      ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
+        ACM,
+        Atto
+      ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server"
@@ -340,13 +343,13 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/model"))
   .enablePlugins(GitBranchPrompt)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Seq(
       Squants.value,
       Mouse.value,
       BooPickle.value,
-      CatsTime.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
+      CatsTime.value,
+      Atto
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value,
   )
   .jvmSettings(
     commonSettings,
@@ -364,7 +367,6 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Seq(Fs2,
                                 CatsEffect.value,
                                 Log4s.value,

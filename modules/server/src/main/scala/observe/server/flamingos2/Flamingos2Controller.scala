@@ -43,7 +43,7 @@ object Flamingos2Controller {
     case object Slit6Pix                  extends FocalPlaneUnit
     case object Slit8Pix                  extends FocalPlaneUnit
     final case class Custom(mask: String) extends FocalPlaneUnit
-    implicit val equal: Eq[FocalPlaneUnit] = Eq.fromUniversalEquals
+    given Eq[FocalPlaneUnit] = Eq.fromUniversalEquals
   }
 
   type Filter = edu.gemini.spModel.gemini.flamingos2.Flamingos2.Filter

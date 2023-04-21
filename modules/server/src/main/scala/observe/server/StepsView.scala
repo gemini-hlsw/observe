@@ -4,8 +4,8 @@
 package observe.server
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
-import cats.Order._
+import cats.syntax.all.*
+import cats.Order.*
 import observe.engine
 import observe.engine.Action
 import observe.engine.Action.ActionState
@@ -18,7 +18,7 @@ import observe.model.StepState
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Instrument
-import observe.model.enums.Instrument._
+import observe.model.enums.Instrument.*
 import observe.model.enums.Resource
 import observe.server.gmos.GmosStepsView
 

@@ -4,8 +4,8 @@
 package observe.server.transition
 
 import edu.gemini.spModel.config2.ItemKey
-import edu.gemini.spModel.gemini.gmos.InstGmosCommon._
-import edu.gemini.spModel.gemini.gmos.GmosCommonType._
+import edu.gemini.spModel.gemini.gmos.InstGmosCommon.*
+import edu.gemini.spModel.gemini.gmos.GmosCommonType.*
 import edu.gemini.spModel.seqcomp.SeqConfigNames.{ INSTRUMENT_KEY, OBSERVE_KEY }
 import lucuma.core.enums.{
   GmosAmpCount,
@@ -24,8 +24,8 @@ import observe.common.ObsQueriesGQL.ObsQuery.{
   GmosSite,
   GmosStatic
 }
-import observe.server.ConfigUtilOps._
-import cats.implicits._
+import observe.server.ConfigUtilOps.*
+import cats.implicits.*
 import edu.gemini.spModel.obscomp.InstConstants.{ EXPOSURE_TIME_PROP, INSTRUMENT_NAME_PROP }
 import observe.server.gmos.{ GmosNorth, GmosSouth }
 
@@ -171,7 +171,7 @@ object GmosTranslator {
 //  def instrumentParameters[S <: GmosSite](
 //    staticConfig:         GmosStatic[S],
 //    instConfig:           GmosInstrumentConfig[S]
-//  )(implicit conversions: GmosSiteConversions[S]): Map[ItemKey, AnyRef] = {
+//  )(using conversions: GmosSiteConversions[S]): Map[ItemKey, AnyRef] = {
 //    val baseParams = List(
 //      (INSTRUMENT_KEY / INSTRUMENT_NAME_PROP, conversions.instrumentName)
 //    )

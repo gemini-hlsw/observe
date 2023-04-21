@@ -3,7 +3,7 @@
 
 package observe.server.gems
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.effect.IO
 import edu.gemini.observe.server.gems.LoopState
 import munit.CatsEffectSuite
@@ -27,7 +27,7 @@ import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.{PauseCondition, ResumeCondition}
 import observe.server.tcs.TcsController.{FocalPlaneOffset, OffsetX, OffsetY}
 import shapeless.tag
-import squants.space.LengthConversions._
+import squants.space.LengthConversions.*
 
 class GemsControllerEpicsSpec extends CatsEffectSuite {
 

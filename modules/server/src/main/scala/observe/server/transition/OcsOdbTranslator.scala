@@ -37,15 +37,15 @@ import observe.common.ObsQueriesGQL.ObsQuery.{
   SeqStepConfig
 }
 import observe.server.tcs.Tcs
-import observe.server.ConfigUtilOps._
-import observe.server.transition.GmosTranslator._
-import cats.implicits._
+import observe.server.ConfigUtilOps.*
+import observe.server.transition.GmosTranslator.*
+import cats.implicits.*
 import edu.gemini.spModel.obscomp.InstConstants
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 
 import java.util
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object OcsOdbTranslator {
 

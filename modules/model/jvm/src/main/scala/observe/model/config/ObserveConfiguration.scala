@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
@@ -31,6 +31,6 @@ final case class ObserveConfiguration(
 )
 
 object ObserveConfiguration {
-  implicit val eqObserveConfiguration: Eq[ObserveConfiguration] =
+  given Eq[ObserveConfiguration] =
     Eq.by(x => (x.site, x.mode, x.observeEngine, x.webServer, x.smartGcal, x.authentication))
 }

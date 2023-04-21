@@ -4,7 +4,7 @@
 package observe.server
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName
 import observe.model.Observation
@@ -89,7 +89,7 @@ package keywords {
   sealed trait KeywordType extends Product with Serializable
 
   object KeywordType {
-    implicit val eq: Eq[KeywordType] = Eq.fromUniversalEquals
+    given Eq[KeywordType] = Eq.fromUniversalEquals
 
     def dhsKeywordType(k: KeywordType): String = k match {
       case TypeInt8    => "INT8"
@@ -159,7 +159,7 @@ package keywords {
   )
 
   object InternalKeyword {
-    implicit val eq: Eq[InternalKeyword] =
+    given Eq[InternalKeyword] =
       Eq.by(x => (x.name, x.keywordType, x.value))
   }
 
@@ -175,14 +175,14 @@ package keywords {
   object KeywordBag {
     def empty: KeywordBag = KeywordBag(List())
 
-    implicit val eq: Eq[KeywordBag]         = Eq.by(_.keywords)
-    implicit val monoid: Monoid[KeywordBag] = new Monoid[KeywordBag] {
+    given Eq[KeywordBag]     = Eq.by(_.keywords)
+    given Monoid[KeywordBag] = new Monoid[KeywordBag] {
       override def empty: KeywordBag                     = KeywordBag.empty
       override def combine(a: KeywordBag, b: KeywordBag) =
         KeywordBag(a.keywords |+| b.keywords)
     }
 
-    def apply(ks: Keyword[_]*): KeywordBag =
+    def apply(ks: Keyword[?]*): KeywordBag =
       KeywordBag(ks.toList.map(internalKeywordConvert))
 
   }
@@ -194,19 +194,19 @@ package keywords {
 
   object DefaultHeaderValue {
     @inline
-    def apply[A](implicit instance: DefaultHeaderValue[A]): DefaultHeaderValue[A] = instance
+    def apply[A](using instance: DefaultHeaderValue[A]): DefaultHeaderValue[A] = instance
 
-    implicit val IntDefaultValue: DefaultHeaderValue[Int] =
+    given DefaultHeaderValue[Int] =
       new DefaultHeaderValue[Int] {
         val default: Int = IntDefault
       }
 
-    implicit val DoubleDefaultValue: DefaultHeaderValue[Double] =
+    given DefaultHeaderValue[Double] =
       new DefaultHeaderValue[Double] {
         val default: Double = DoubleDefault
       }
 
-    implicit val StrDefaultValue: DefaultHeaderValue[String] =
+    given DefaultHeaderValue[String] =
       new DefaultHeaderValue[String] {
         val default: String = StrDefault
       }
@@ -225,7 +225,7 @@ package keywords {
      * @typeclass
      *   Functor
      */
-    implicit val dhvFunctor: Functor[DefaultHeaderValue] =
+    given Functor[DefaultHeaderValue] =
       new Functor[DefaultHeaderValue] {
         def map[A, B](fa: DefaultHeaderValue[A])(f: A => B): DefaultHeaderValue[B] =
           new DefaultHeaderValue[B] {
@@ -252,15 +252,15 @@ package object keywords {
   def boolDefault[F[_]: Applicative]: F[Boolean]    = BooleanDefault.pure[F]
   def listDefault[F[_]: Applicative, A]: F[List[A]] = List.empty[A].pure[F]
 
-  def internalKeywordConvert(k: Keyword[_]): InternalKeyword =
+  def internalKeywordConvert(k: Keyword[?]): InternalKeyword =
     InternalKeyword(k.n, k.t, k.stringValue)
 
-  implicit class DefaultValueOps[A](a: Option[A])(implicit d: DefaultHeaderValue[A]) {
+  extension [A](a: Option[A])(using d: DefaultHeaderValue[A]) {
     def orDefault: A = a.getOrElse(d.default)
   }
 
-  implicit class DefaultValueFOps[F[_]: Functor, A: DefaultHeaderValue](val v: F[Option[A]]) {
-    private val D: DefaultHeaderValue[A] = DefaultHeaderValue[A]
+  extension [F[_]: Functor, A: DefaultHeaderValue](v: F[Option[A]]) {
+    private def D: DefaultHeaderValue[A] = DefaultHeaderValue[A]
 
     def orDefault: F[A] = v.map(_.getOrElse(D.default))
   }
@@ -269,7 +269,7 @@ package object keywords {
   // This Operation will preserve the value if defined or use the default
   // In case it either fails or is empty
   implicit class KeywordValueSafeOps[
-    F[_]: ApplicativeError[*[_], Throwable],
+    F[_]: ApplicativeThrow,
     A: DefaultHeaderValue
   ](v: F[Option[A]]) {
     private def safeVal: F[Option[A]] = v.attempt.map {
@@ -280,7 +280,7 @@ package object keywords {
     def safeValOrDefault: F[A] = safeVal.orDefault
   }
 
-  implicit class SafeDefaultOps[F[_]: ApplicativeError[*[_], Throwable], A: DefaultHeaderValue](
+  implicit class SafeDefaultOps[F[_]: ApplicativeThrow, A: DefaultHeaderValue](
     v: F[A]
   ) {
     // Check if there is an error reading a value and if there is a failure
@@ -289,40 +289,40 @@ package object keywords {
       v.handleError(_ => DefaultHeaderValue[A].default)
   }
 
-  def buildKeyword[F[_]: MonadError[*[_], Throwable], A: DefaultHeaderValue](
+  def buildKeyword[F[_]: MonadThrow, A: DefaultHeaderValue](
     get:  F[A],
     name: KeywordName,
     f:    (KeywordName, A) => Keyword[A]
   ): KeywordBag => F[KeywordBag] =
     k => get.safeValOrDefault.map(x => k.add(f(name, x)))
-  def buildInt32[F[_]: MonadError[*[_], Throwable]](
+  def buildInt32[F[_]: MonadThrow](
     get:  F[Int],
     name: KeywordName
-  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, Int32Keyword)
-  def buildDouble[F[_]: MonadError[*[_], Throwable]](
+  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, Int32Keyword.apply(_, _))
+  def buildDouble[F[_]: MonadThrow](
     get:  F[Double],
     name: KeywordName
-  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, DoubleKeyword)
-  def buildDoublePrecision[F[_]: MonadError[*[_], Throwable]](
+  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, DoubleKeyword.apply(_, _))
+  def buildDoublePrecision[F[_]: MonadThrow](
     get:       F[Double],
     precision: Int,
     name:      KeywordName
   ): KeywordBag => F[KeywordBag] = k =>
     get.safeValOrDefault.map(x => k.add(DoublePrecisionKeyword(name, precision, x)))
-  def buildBoolean[F[_]: MonadError[*[_], Throwable]](
+  def buildBoolean[F[_]: MonadThrow](
     get:  F[Boolean],
     name: KeywordName,
     ev:   DefaultHeaderValue[Boolean]
   ): KeywordBag => F[KeywordBag] = {
     implicit val defaultV = ev
-    buildKeyword(get, name, BooleanKeyword)
+    buildKeyword(get, name, BooleanKeyword.apply(_, _))
   }
-  def buildString[F[_]: MonadError[*[_], Throwable]](
+  def buildString[F[_]: MonadThrow](
     get:  F[String],
     name: KeywordName
-  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, StringKeyword)
+  ): KeywordBag => F[KeywordBag] = buildKeyword(get, name, StringKeyword.apply(_, _))
 
-  def sendKeywords[F[_]: MonadError[*[_], Throwable]: Logger](
+  def sendKeywords[F[_]: MonadThrow: Logger](
     id:         ImageFileId,
     keywClient: KeywordsClient[F],
     b:          List[KeywordBag => F[KeywordBag]]

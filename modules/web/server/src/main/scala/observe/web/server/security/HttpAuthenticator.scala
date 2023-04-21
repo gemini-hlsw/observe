@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.security
@@ -9,9 +9,9 @@ import cats._
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.Sync
-import cats.syntax.all._
-import org.http4s._
-import org.http4s.dsl._
+import cats.syntax.all.*
+import org.http4s.*
+import org.http4s.dsl.*
 import org.http4s.server.AuthMiddleware
 import observe.model.UserDetails
 import AuthenticationService.AuthResult
@@ -21,7 +21,7 @@ import AuthenticationService.AuthResult
  */
 class Http4sAuthentication[F[_]: Sync](auth: AuthenticationService[F]) extends Http4sDsl[F] {
   private val cookieService =
-    CookiesService(auth.config.cookieName, auth.config.useSSL, auth.sessionTimeout)
+    CookiesService(auth.config.cookieName, auth.config.useSsl, auth.sessionTimeout)
 
   def loginCookie(user: UserDetails): F[ResponseCookie] =
     cookieService.loginCookie(auth, user)

@@ -3,26 +3,26 @@
 
 package observe.web.client.components.tabs
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.As
 import react.semanticui.elements.segment.Segment
 import react.semanticui.elements.segment.SegmentAttached
 import react.semanticui.modules.tab.TabPane
-import observe.web.client.circuit._
+import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable
 import observe.web.client.components.sequence.toolbars.SequenceDefaultToolbar
 import observe.web.client.components.sequence.toolbars.StepConfigToolbar
 import observe.web.client.model.Pages.ObservePages
-import observe.web.client.reusability._
-import observe.web.client.semanticui._
+import observe.web.client.reusability.*
+import observe.web.client.semanticui.*
 
 /**
  * Content of a single tab with a sequence
@@ -39,9 +39,9 @@ final case class SequenceTabContent(
 object SequenceTabContent {
   type Props = SequenceTabContent
 
-  implicit val stcfReuse: Reusability[SequenceTabContentFocus] =
+  given Reusability[SequenceTabContentFocus] =
     Reusability.derive[SequenceTabContentFocus]
-  implicit val propsReuse: Reusability[Props]                  = Reusability.by(_.content)
+  given Reusability[Props]                  = Reusability.by(_.content)
 
   private def toolbar(p: Props) =
     p.content.tableType match {

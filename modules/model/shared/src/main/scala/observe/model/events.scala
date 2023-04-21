@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -6,12 +6,12 @@ package observe.model
 import java.time.Instant
 
 import cats._
-import cats.syntax.all._
-import observe.model.dhs.ImageFileId
-import observe.model.enums._
+import cats.syntax.all.*
+import observe.model.dhs.{ImageFileId, given}
+import observe.model.enums.*
 
 object events {
-  implicit val instantEq: Eq[Instant] = Eq.fromUniversalEquals
+  given Eq[Instant] = Eq.fromUniversalEquals
 
   sealed trait ObserveEvent       extends Product with Serializable
   sealed trait ObserveModelUpdate extends ObserveEvent {
@@ -28,23 +28,19 @@ object events {
   final case class ObservationProgressEvent(progress: Progress) extends ObserveEvent
 
   object ObservationProgressEvent {
-    implicit lazy val equal: Eq[ObservationProgressEvent] = Eq.by(_.progress)
+    given Eq[ObservationProgressEvent] = Eq.by(_.progress)
   }
 
   final case class ServerLogMessage(level: ServerLogLevel, timestamp: Instant, msg: String)
       extends ObserveEvent
   object ServerLogMessage {
-    private implicit val instantOrder: Order[Instant]           =
+    private implicit val instantOrder: Order[Instant] =
       Order.by(_.getNano)
-    implicit val serverLogMessageOrder: Order[ServerLogMessage] =
+    given Order[ServerLogMessage]                     =
       Order.by(x => (x.level, x.timestamp, x.msg))
   }
 
   case object NullEvent extends ObserveEvent
-  implicit lazy val neEqual: Eq[NullEvent.type] = Eq.instance {
-    case (NullEvent, NullEvent) => true
-    case _                      => false
-  }
 
   final case class ConnectionOpenEvent(
     userDetails:   Option[UserDetails],
@@ -53,12 +49,12 @@ object events {
   ) extends ObserveEvent
 
   object ConnectionOpenEvent {
-    implicit lazy val equal: Eq[ConnectionOpenEvent] =
+    given Eq[ConnectionOpenEvent] =
       Eq.by(x => (x.userDetails, x.clientId, x.serverVersion))
   }
 
   object ObserveModelUpdate {
-    implicit lazy val equalSE: Eq[ObserveModelUpdate] =
+    given Eq[ObserveModelUpdate] =
       Eq.instance {
         case (a: SequenceStart, b: SequenceStart)                             => a === b
         case (a: StepExecuted, b: StepExecuted)                               => a === b
@@ -98,7 +94,7 @@ object events {
   ) extends ObserveModelUpdate
 
   object SequenceStart {
-    implicit lazy val equal: Eq[SequenceStart] =
+    given Eq[SequenceStart] =
       Eq.by(x => (x.obsId, x.stepId, x.view))
   }
 
@@ -106,7 +102,7 @@ object events {
       extends ObserveModelUpdate
 
   object StepExecuted {
-    implicit lazy val equal: Eq[StepExecuted] =
+    given Eq[StepExecuted] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -114,14 +110,14 @@ object events {
       extends ObserveModelUpdate
 
   object FileIdStepExecuted {
-    implicit lazy val equal: Eq[FileIdStepExecuted] =
+    given Eq[FileIdStepExecuted] =
       Eq.by(x => (x.fileId, x.view))
   }
 
   final case class SequenceCompleted(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object SequenceCompleted {
-    implicit lazy val equal: Eq[SequenceCompleted] =
+    given Eq[SequenceCompleted] =
       Eq.by(_.view)
   }
 
@@ -129,7 +125,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequenceLoaded {
-    implicit lazy val equal: Eq[SequenceLoaded] =
+    given Eq[SequenceLoaded] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -137,7 +133,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequenceUnloaded {
-    implicit lazy val equal: Eq[SequenceUnloaded] =
+    given Eq[SequenceUnloaded] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -145,14 +141,14 @@ object events {
       extends ObserveModelUpdate
 
   object StepBreakpointChanged {
-    implicit lazy val equal: Eq[StepBreakpointChanged] =
+    given Eq[StepBreakpointChanged] =
       Eq.by(_.view)
   }
 
   final case class OperatorUpdated(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object OperatorUpdated {
-    implicit lazy val equal: Eq[OperatorUpdated] =
+    given Eq[OperatorUpdated] =
       Eq.by(_.view)
   }
 
@@ -160,14 +156,14 @@ object events {
       extends ObserveModelUpdate
 
   object QueueUpdated {
-    implicit lazy val equal: Eq[QueueUpdated] =
+    given Eq[QueueUpdated] =
       Eq.by(x => (x.op, x.view))
   }
 
   final case class SingleActionEvent(op: SingleActionOp) extends ObserveEvent
 
   object SingleActionEvent {
-    implicit lazy val equal: Eq[SingleActionEvent] =
+    given Eq[SingleActionEvent] =
       Eq.by(_.op)
   }
 
@@ -179,7 +175,7 @@ object events {
   ) extends ObserveModelUpdate
 
   object LoadSequenceUpdated {
-    implicit lazy val equal: Eq[LoadSequenceUpdated] =
+    given Eq[LoadSequenceUpdated] =
       Eq.by(x => (x.i, x.sidName, x.view, x.clientId))
   }
 
@@ -187,28 +183,28 @@ object events {
       extends ObserveModelUpdate
 
   object ClearLoadedSequencesUpdated {
-    implicit lazy val clsEqual: Eq[ClearLoadedSequencesUpdated] =
+    given Eq[ClearLoadedSequencesUpdated] =
       Eq.by(_.view)
   }
 
   final case class ObserverUpdated(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object ObserverUpdated {
-    implicit lazy val equal: Eq[ObserverUpdated] =
+    given Eq[ObserverUpdated] =
       Eq.by(_.view)
   }
 
   final case class OverridesUpdated(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object OverridesUpdated {
-    implicit lazy val equal: Eq[OverridesUpdated] =
+    given Eq[OverridesUpdated] =
       Eq.by(_.view)
   }
 
   final case class ConditionsUpdated(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object ConditionsUpdated {
-    implicit lazy val equal: Eq[ConditionsUpdated] =
+    given Eq[ConditionsUpdated] =
       Eq.by(_.view)
   }
 
@@ -216,7 +212,7 @@ object events {
       extends ObserveModelUpdate
 
   object StepSkipMarkChanged {
-    implicit lazy val equal: Eq[StepSkipMarkChanged] =
+    given Eq[StepSkipMarkChanged] =
       Eq.by(_.view)
   }
 
@@ -224,7 +220,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequencePauseRequested {
-    implicit lazy val equal: Eq[SequencePauseRequested] =
+    given Eq[SequencePauseRequested] =
       Eq.by(_.view)
   }
 
@@ -232,7 +228,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequencePauseCanceled {
-    implicit lazy val equal: Eq[SequencePauseCanceled] =
+    given Eq[SequencePauseCanceled] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -241,7 +237,7 @@ object events {
       with ForClient
 
   object SequenceRefreshed {
-    implicit lazy val equal: Eq[SequenceRefreshed] =
+    given Eq[SequenceRefreshed] =
       Eq.by(x => (x.view, x.clientId))
   }
 
@@ -249,7 +245,7 @@ object events {
       extends ObserveModelUpdate
 
   object ActionStopRequested {
-    implicit lazy val equal: Eq[ActionStopRequested] =
+    given Eq[ActionStopRequested] =
       Eq.by(_.view)
   }
 
@@ -257,7 +253,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequenceStopped {
-    implicit lazy val equal: Eq[SequenceStopped] =
+    given Eq[SequenceStopped] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -265,14 +261,14 @@ object events {
       extends ObserveModelUpdate
 
   object SequenceAborted {
-    implicit lazy val equal: Eq[SequenceAborted] =
+    given Eq[SequenceAborted] =
       Eq.by(x => (x.obsId, x.view))
   }
 
   final case class SequenceUpdated(view: SequencesQueue[SequenceView]) extends ObserveModelUpdate
 
   object SequenceUpdated {
-    implicit lazy val equal: Eq[SequenceUpdated] =
+    given Eq[SequenceUpdated] =
       Eq.by(_.view)
   }
 
@@ -280,7 +276,7 @@ object events {
       extends ObserveModelUpdate
 
   object SequencePaused {
-    implicit lazy val equal: Eq[SequencePaused] =
+    given Eq[SequencePaused] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -288,7 +284,7 @@ object events {
       extends ObserveModelUpdate
 
   object ExposurePaused {
-    implicit lazy val equal: Eq[ExposurePaused] =
+    given Eq[ExposurePaused] =
       Eq.by(x => (x.obsId, x.view))
   }
 
@@ -296,39 +292,39 @@ object events {
       extends ObserveModelUpdate
 
   object SequenceError {
-    implicit lazy val equal: Eq[SequenceError] =
+    given Eq[SequenceError] =
       Eq.by(x => (x.obsId, x.view))
   }
 
   final case class UserNotification(memo: Notification, clientId: ClientId) extends ForClient
 
   object UserNotification {
-    implicit lazy val equal: Eq[UserNotification] =
+    given Eq[UserNotification] =
       Eq.by(x => (x.memo, x.clientId))
   }
 
   final case class UserPromptNotification(prompt: UserPrompt, clientId: ClientId) extends ForClient
 
   object UserPromptNotification {
-    implicit lazy val equal: Eq[UserPromptNotification] =
+    given Eq[UserPromptNotification] =
       Eq.by(x => (x.prompt, x.clientId))
   }
 
   final case class GuideConfigUpdate(telescope: TelescopeGuideConfig) extends ObserveEvent
 
   object GuideConfigUpdate {
-    implicit lazy val equal: Eq[GuideConfigUpdate] =
+    given Eq[GuideConfigUpdate] =
       Eq.by(_.telescope)
   }
 
   final case class AlignAndCalibEvent(step: Int) extends ObserveEvent
 
   object AlignAndCalibEvent {
-    implicit lazy val equal: Eq[AlignAndCalibEvent] =
+    given Eq[AlignAndCalibEvent] =
       Eq.by(_.step)
   }
 
-  implicit val equal: Eq[ObserveEvent] =
+  given Eq[ObserveEvent] =
     Eq.instance {
       case (a: ConnectionOpenEvent, b: ConnectionOpenEvent)           => a === b
       case (a: ObserveModelUpdate, b: ObserveModelUpdate)             => a === b

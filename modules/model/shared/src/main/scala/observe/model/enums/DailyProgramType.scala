@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
 
-import cats.instances.string._
-import cats.syntax.eq._
+import cats.instances.string.*
+import cats.syntax.eq.*
 import lucuma.core.enums.ProgramType
 import lucuma.core.util.Enumerated
 
@@ -39,7 +39,7 @@ object DailyProgramType {
     fromTag(s).getOrElse(throw new NoSuchElementException(s))
 
   /** @group Typeclass Instances */
-  implicit val ProgramTypeEnumerated: Enumerated[DailyProgramType] =
+  given Enumerated[DailyProgramType] =
     new Enumerated[DailyProgramType] {
       def all                      = DailyProgramType.all
       def tag(a: DailyProgramType) = a.tag

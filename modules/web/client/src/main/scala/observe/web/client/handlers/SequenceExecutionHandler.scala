@@ -5,15 +5,15 @@ package observe.web.client.handlers
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import observe.model.Observer
-import observe.web.client.actions._
-import observe.web.client.model.ModelOps._
+import observe.web.client.actions.*
+import observe.web.client.model.ModelOps.*
 import observe.web.client.services.ObserveWebClient
 import observe.web.client.circuit.SequencesQueueFocus
 

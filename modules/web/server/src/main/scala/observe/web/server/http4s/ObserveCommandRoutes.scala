@@ -1,21 +1,21 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
 
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.compression.Compression
-import org.http4s._
-import org.http4s.dsl._
+import org.http4s.*
+import org.http4s.dsl.*
 import org.http4s.server.middleware.GZip
 import observe.model.Observation
-import observe.model._
-import observe.model.enums._
+import observe.model.*
+import observe.model.enums.*
 import observe.server
 import observe.server.ObserveEngine
 import observe.web.server.http4s.OptionalRunOverride
-import observe.web.server.http4s.encoder._
+import observe.web.server.http4s.encoder.*
 import observe.web.server.security.AuthenticationService
 import observe.web.server.security.Http4sAuthentication
 import observe.web.server.security.TokenRefresher

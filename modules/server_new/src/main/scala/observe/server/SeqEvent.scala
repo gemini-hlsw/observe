@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -13,7 +13,7 @@ import observe.model.QueueId
 import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserPrompt
-import observe.model.enums._
+import observe.model.enums.*
 
 sealed trait SeqEvent extends Product with Serializable
 

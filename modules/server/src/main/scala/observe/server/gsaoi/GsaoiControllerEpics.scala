@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CarStateGeneric
 import edu.gemini.observe.server.gsaoi.DhsConnected
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi.Filter
@@ -15,11 +15,11 @@ import edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi.UtilityWheel
 import org.typelevel.log4cats.Logger
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
-import observe.server.EpicsCodex._
+import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.applyParam
 import observe.server.Progress
@@ -28,14 +28,14 @@ import observe.server.failUnlessM
 import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object GsaoiControllerEpics {
 
   private val ConfigTimeout: FiniteDuration  = FiniteDuration(400, SECONDS)
   private val DefaultTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
 
-  implicit val filterEncoder: EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
     case Filter.BLOCKED      => "Blocked"
     case Filter.BR_GAMMA     => "HI-Brgamm"
     case Filter.CH4_LONG     => "CH4(long)"
@@ -63,21 +63,21 @@ object GsaoiControllerEpics {
     case Filter.Z            => "Z"
   }
 
-  implicit val windowCoverEncoder: EncodeEpicsValue[WindowCover, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[WindowCover, String] = EncodeEpicsValue {
     case WindowCover.Opened => "Opened"
     case WindowCover.Closed => "Closed"
   }
 
-  implicit val utilityWheelEncoder: EncodeEpicsValue[UtilityWheel, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[UtilityWheel, String] = EncodeEpicsValue {
     case UtilityWheel.CLEAR             => "Clear"
     case UtilityWheel.EXTRAFOCAL_LENS_1 => "FocusExtender"
     case UtilityWheel.EXTRAFOCAL_LENS_2 => "FocusRetractor"
     case UtilityWheel.PUPIL_IMAGER      => "PupilViewer"
   }
 
-  implicit val exposureTimeEncoder: EncodeEpicsValue[Time, Double] = EncodeEpicsValue(_.toSeconds)
+  given EncodeEpicsValue[Time, Double] = EncodeEpicsValue(_.toSeconds)
 
-  implicit val roiEncoder: EncodeEpicsValue[Roi, String] = EncodeEpicsValue(_.sequenceValue)
+  given EncodeEpicsValue[Roi, String] = EncodeEpicsValue(_.sequenceValue)
 
   private def fowlerSamplesFromMode(rm: ReadMode): Int = rm match {
     case ReadMode.BRIGHT     => 1

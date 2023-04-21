@@ -3,28 +3,28 @@
 
 package observe.server.gmos
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.engine.ParallelActions
 import observe.engine.Result
 import observe.model.NSSubexposure
-import observe.model.dhs._
+import observe.model.dhs.*
 import observe.model.enums.Guiding
-import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.server.InstrumentActions._
+import observe.server.InstrumentActions.*
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.ObserveActions._
-import observe.server._
-import observe.server.gmos.GmosController.Config._
-import observe.server.gmos.NSObserveCommand._
-import observe.server.gmos.NSPartial._
+import observe.server.ObserveActions.*
+import observe.server.*
+import observe.server.gmos.GmosController.Config.*
+import observe.server.gmos.NSObserveCommand.*
+import observe.server.gmos.NSPartial.*
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.OffsetP
 import observe.server.tcs.TcsController.OffsetQ
 import shapeless.tag
-import squants.space.AngleConversions._
+import squants.space.AngleConversions.*
 import cats.effect.{Ref, Temporal}
 import observe.common.ObsQueriesGQL.ObsQuery.{GmosInstrumentConfig, GmosSite, GmosStatic}
 
@@ -38,7 +38,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
 ) extends InstrumentActions[F] {
   override def observationProgressStream(
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
+  ): Stream[F, Result] =
     ObserveActions.observationProgressStream(env)
 
   // This tail is based on ObserveActions.observeTail
@@ -48,7 +48,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F],
     nsCfg:  NSConfig.NodAndShuffle
-  )(r:      ObserveCommandResult): F[Result[F]] =
+  )(r:      ObserveCommandResult): F[Result] =
     r match {
       case ObserveCommandResult.Success =>
         okTail(fileId, stopped = false, env)
@@ -77,7 +77,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     nsCfg:    NSConfig.NodAndShuffle,
     subExp:   NSSubexposure,
     nsObsCmd: Ref[F, Option[NSObserveCommand]]
-  ): F[Result[F]] =
+  ): F[Result] =
     // Essentially the same as default observation but with a custom tail
     (for {
       result <- observePreamble(fileId, env)
@@ -89,7 +89,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F],
     nsCfg:  NSConfig.NodAndShuffle
-  ): F[Result[F]] =
+  ): F[Result] =
     // the last step completes the observations doing an observeTail
     (for {
       ret <- inst.controller.resumePaused(inst.calcObserveTime)
@@ -102,7 +102,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     nsCfg:     NSConfig.NodAndShuffle,
     subExp:    NSSubexposure,
     nsObsCmd:  Option[NSObserveCommand]
-  )(obsResult: ObserveCommandResult): F[Result[F]] =
+  )(obsResult: ObserveCommandResult): F[Result] =
     (nsObsCmd, obsResult) match {
       case (Some(PauseImmediately), ObserveCommandResult.Paused) |
           (_, ObserveCommandResult.Success) | (_, ObserveCommandResult.Aborted) |
@@ -135,7 +135,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
           .flatMap(observeTail(fileId, env, nsCfg))
 
       // We reach here only if the result was Paused and no command made it stop/pause/abort
-      case _                                                     => Result.Partial(NSContinue).pure[F].widen[Result[F]]
+      case _                                                     => Result.Partial(NSContinue).pure[F].widen[Result]
 
     }
 
@@ -145,7 +145,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     nsCfg:       NSConfig.NodAndShuffle,
     subExp:      NSSubexposure,
     nsObsCmdRef: Ref[F, Option[NSObserveCommand]]
-  ): F[Result[F]] = (
+  ): F[Result] = (
     for {
       r     <- inst.controller.resumePaused(inst.calcObserveTime)
       nsCmd <- nsObsCmdRef.get
@@ -163,7 +163,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     env:       ObserveEnvironment[F],
     nsCfg:     NSConfig.NodAndShuffle,
     nsCmd:     Ref[F, Option[NSObserveCommand]]
-  ): Stream[F, Result[F]] = {
+  ): Stream[F, Result] = {
     val nsPositionO = positions.find(_.stage === sub.stage)
     // TCS Nod
     (env.getTcs, nsPositionO).mapN { case (tcs, nsPos) =>
@@ -179,7 +179,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
               nsPos.guide === Guiding.Guide
             )
             .as(Result.Partial(NSTCSNodComplete(sub)))
-            .widen[Result[F]]
+            .widen[Result]
             .safeResult
         )
     }.orEmpty ++
@@ -202,7 +202,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
   private def doObserve(
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
+  ): Stream[F, Result] =
     inst.nsConfig match {
       case NSConfig.NoNodAndShuffle                            =>
         Stream.empty
@@ -238,7 +238,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId:   ImageFileId,
     env:      ObserveEnvironment[F],
     nsConfig: NSConfig.NodAndShuffle
-  ): Stream[F, Result[F]] = {
+  ): Stream[F, Result] = {
 
     val nsLast =
       NSSubexposure
@@ -265,7 +265,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F],
     nsCfg:  NSConfig.NodAndShuffle
-  ): Stream[F, Result[F]] = Stream.eval(
+  ): Stream[F, Result] = Stream.eval(
     inst.controller.stopPaused.flatMap(observeTail(fileId, env, nsCfg))
   )
 
@@ -273,13 +273,13 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F],
     nsCfg:  NSConfig.NodAndShuffle
-  ): Stream[F, Result[F]] = Stream.eval(
+  ): Stream[F, Result] = Stream.eval(
     inst.controller.abortPaused.flatMap(observeTail(fileId, env, nsCfg))
   )
 
   def launchObserve(
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
+  ): Stream[F, Result] =
     Stream
       .eval(FileIdProvider.fileId(env))
       .flatMap { fileId =>

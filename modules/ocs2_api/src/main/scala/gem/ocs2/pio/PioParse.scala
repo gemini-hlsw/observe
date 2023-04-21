@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package gem.ocs2.pio
 
 import java.time.Duration
 import java.time.Instant
-
 import cats.Functor
-import cats.syntax.all._
-import lucuma.core.syntax.string._
+import cats.syntax.all.*
+import lucuma.core.syntax.string.*
 import lucuma.core.util.Enumerated
+import monocle.Focus
 
 final case class PioParse[A](run: String => Option[A]) {
   def apply(s: String): Option[A] = run(s)
@@ -17,7 +17,7 @@ final case class PioParse[A](run: String => Option[A]) {
 
 object PioParse {
 
-  implicit val FunctorPioParse: Functor[PioParse] =
+  given Functor[PioParse] =
     new Functor[PioParse] {
       def map[A, B](pa: PioParse[A])(f: A => B): PioParse[B] =
         PioParse(pa.run.andThen(_.map(f)))
@@ -31,7 +31,7 @@ object PioParse {
    * lookup keys. In other words, this is an option for enumerations whose OCS2 export happen to
    * match the new model enum tags.
    */
-  def enumeratedFromTag[A](as: List[A])(implicit ev: Enumerated[A]): PioParse[A] =
+  def enumeratedFromTag[A](as: List[A])(using ev: Enumerated[A]): PioParse[A] =
     PioParse(as.map(a => ev.tag(a) -> a).toMap.lift)
 
   // ********  Primitives

@@ -4,14 +4,12 @@
 package observe.web.client.model
 
 import cats.Eq
-import monocle.macros.Lenses
 import observe.model.Notification
 import observe.web.client.model.SectionVisibilityState.SectionClosed
 
 /**
  * Utility class to display a generic notification sent by the server
  */
-@Lenses
 final case class UserNotificationState(
   visibility:   SectionVisibilityState,
   notification: Option[Notification]
@@ -20,6 +18,6 @@ final case class UserNotificationState(
 object UserNotificationState {
   val Empty: UserNotificationState = UserNotificationState(SectionClosed, None)
 
-  implicit val eq: Eq[UserNotificationState] =
+  given Eq[UserNotificationState] =
     Eq.by(x => (x.visibility, x.notification))
 }

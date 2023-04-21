@@ -4,7 +4,7 @@
 package observe.server.keywords
 
 import cats.tests.CatsSuite
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import lucuma.core.enums.KeywordName
 
 final class KeywordsSpec extends CatsSuite with KeywordArbitraries {

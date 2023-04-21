@@ -3,28 +3,27 @@
 
 package observe.web.client.components.tabs
 
-import cats.syntax.all._
-import japgolly.scalajs.react.ReactMonocle._
+import cats.syntax.all.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import monocle.macros.Lenses
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.label.Label
 import observe.model.CalibrationQueueId
 import observe.model.enums.BatchExecState
 import observe.web.client.actions.RequestAddSeqCal
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.CalibrationQueueTabActive
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 import observe.web.client.model.TabSelected
-import observe.web.client.reusability._
-import observe.web.client.semanticui._
+import observe.web.client.reusability.*
+import observe.web.client.semanticui.*
 
 final case class CalibrationQueueTab(
   router: RouterCtl[ObservePages],
@@ -36,14 +35,13 @@ object CalibrationQueueTab {
 
   type Backend = RenderScope[Props, State, Unit]
 
-  @Lenses
-  final case class State(draggingOver: Option[String]) {
+    final case class State(draggingOver: Option[String]) {
     val onDrag: Boolean = draggingOver.isDefined
   }
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.by(x => (x.tab.active, x.tab.calibrationTab.state))
-  implicit val stateReuse: Reusability[State] = Reusability.derive[State]
+  given Reusability[State] = Reusability.derive[State]
 
   def showCalibrationQueue(p: Props, page: ObservePages)(e: ReactEvent): Callback =
     // prevent default to avoid the link jumping

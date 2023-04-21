@@ -4,13 +4,13 @@
 package observe.web.client.components.sequence.steps
 
 import cats.data.Nested
-import cats.syntax.all._
-import cats.Order._
+import cats.syntax.all.*
+import cats.Order.*
 import japgolly.scalajs.react.vdom.html_<^._
-import japgolly.scalajs.react._
-import react.common._
+import japgolly.scalajs.react.*
+import react.common.*
 import react.semanticui.SemanticColor
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.label.Label
 import react.semanticui.modules.popup.Popup
 import observe.model.Observation
@@ -23,11 +23,11 @@ import observe.model.enums.ActionStatus
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.{ClientStatus, ResourceRunOperation, StopOperation, TabOperations}
-import observe.web.client.model.ModelOps._
-import observe.web.client.model.StepItems._
-import observe.web.client.reusability._
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.StepItems.*
+import observe.web.client.reusability.*
 import observe.web.client.services.HtmlConstants.iconEmpty
 
 import scala.collection.immutable.SortedMap
@@ -63,9 +63,9 @@ final case class StepProgressCell(
 object StepProgressCell {
   type Props = StepProgressCell
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
-  implicit val propsControlButtonResolver: ControlButtonResolver[Props] =
+  given ControlButtonResolver[Props] =
     ControlButtonResolver.build(p => (p.clientStatus, p.state, p.step))
 
   def labelColor(status: ActionStatus): SemanticColor = status match {

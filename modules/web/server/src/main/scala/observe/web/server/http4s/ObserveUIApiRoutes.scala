@@ -1,17 +1,17 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
 
 import java.util.UUID
 
-import scala.concurrent.duration._
-import scala.math._
+import scala.concurrent.duration.*
+import scala.math.*
 
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import com.comcast.ip4s.Dns
 import fs2.Pipe
 import fs2.Stream
@@ -22,8 +22,8 @@ import giapi.client.StatusValue
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.GiapiStatus
 import lucuma.core.enums.Site
-import org.http4s._
-import org.http4s.dsl._
+import org.http4s.*
+import org.http4s.dsl.*
 import org.http4s.headers.`User-Agent`
 import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.server.middleware.GZip
@@ -35,14 +35,14 @@ import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Pong
 import scodec.bits.ByteVector
 import observe.model.ClientId
-import observe.model._
-import observe.model.boopickle._
-import observe.model.config._
-import observe.model.events._
+import observe.model.{*, given}
+import observe.model.boopickle.*
+import observe.model.config.*
+import observe.model.events.*
 import observe.server.ObserveEngine
 //import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
-import observe.web.server.http4s.encoder._
+import observe.web.server.http4s.encoder.*
 import observe.web.server.security.AuthenticationService
 import observe.web.server.security.AuthenticationService.AuthResult
 import observe.web.server.security.Http4sAuthentication
@@ -60,7 +60,7 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
   clientsDb:        ClientsSetDb[F],
   engineOutput:     Topic[F, ObserveEvent],
   webSocketBuilder: WebSocketBuilder2[F]
-)(implicit
+)(using
   L:                Logger[F]
 ) extends BooEncoders
     with ModelLenses
@@ -126,7 +126,7 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
         val cookie = ResponseCookie(auth.config.cookieName,
                                     "",
                                     path = "/".some,
-                                    secure = auth.config.useSSL,
+                                    secure = auth.config.useSsl,
                                     maxAge = Some(-1),
                                     httpOnly = true
         )
@@ -230,7 +230,7 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
         case _         => true
       }
 
-  // Messages with a clientId are only sent to the matching cliend
+  // Messages with a clientId are only sent to the matching client
   private def filterOutOnClientId(clientId: ClientId) =
     (e: ObserveEvent) =>
       e match {

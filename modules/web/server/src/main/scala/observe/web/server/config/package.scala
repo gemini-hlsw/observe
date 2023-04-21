@@ -1,21 +1,21 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server
 
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.Site
 import org.http4s.Uri
-import pureconfig._
-import pureconfig.error._
-import pureconfig.generic.ProductHint
-import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
-import pureconfig.module.http4s._
-import observe.model.config._
-import shapeless.tag
-import shapeless.tag.@@
+import pureconfig.*
+import pureconfig.error.*
+import pureconfig.module.catseffect.syntax.*
+import pureconfig.module.http4s.*
+import pureconfig.generic.derivation.default.*
+import observe.model.config.*
+
+import java.nio.file.Path
+import scala.concurrent.duration.FiniteDuration
 
 package config {
   final case class SiteValueUnknown(site: String)         extends FailureReason {
@@ -34,7 +34,7 @@ package config {
  */
 package object config {
 
-  implicit val siteReader: ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
+  given ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
     cf.asString.flatMap {
       case "GS" => Site.GS.asRight
       case "GN" => Site.GN.asRight
@@ -42,7 +42,7 @@ package object config {
     }
   }
 
-  implicit val modeReader: ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
+  given ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
     cf.asString.flatMap {
       case "production" => Mode.Production.asRight
       case "dev"        => Mode.Development.asRight
@@ -50,7 +50,7 @@ package object config {
     }
   }
 
-  implicit val controlStrategyReader: ConfigReader[ControlStrategy] =
+  given ConfigReader[ControlStrategy] =
     ConfigReader.fromCursor[ControlStrategy] { cf =>
       cf.asString.flatMap { c =>
         ControlStrategy.fromString(c) match {
@@ -60,20 +60,23 @@ package object config {
       }
     }
 
-  implicit def uriSettings[A]: ConfigReader[Uri @@ A] = ConfigReader[Uri].map(tag[A][Uri])
+  given ConfigReader[SystemsControlConfiguration] = ConfigReader.derived
 
-  implicit val tlsInfoHint: ProductHint[TLSConfig]                             =
-    ProductHint[TLSConfig](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val webServerConfigurationHint: ProductHint[WebServerConfiguration] =
-    ProductHint[WebServerConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val smartGcalConfigurationHint: ProductHint[SmartGcalConfiguration] =
-    ProductHint[SmartGcalConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val authenticationConfigHint: ProductHint[AuthenticationConfig]     =
-    ProductHint[AuthenticationConfig](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val observeServerHint: ProductHint[ObserveEngineConfiguration]      =
-    ProductHint[ObserveEngineConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
-  implicit val systemsControlHint: ProductHint[SystemsControlConfiguration]    =
-    ProductHint[SystemsControlConfiguration](ConfigFieldMapping(KebabCase, KebabCase))
+  given ConfigReader[GpiUriSettings] = ConfigReader[Uri].map(GpiUriSettings.apply(_))
+
+  given ConfigReader[GhostUriSettings] = ConfigReader[Uri].map(GhostUriSettings.apply(_))
+
+  given ConfigReader[ObserveEngineConfiguration] = ConfigReader.derived
+
+  given ConfigReader[TLSConfig] = ConfigReader.derived
+
+  given ConfigReader[WebServerConfiguration] = ConfigReader.derived
+
+  given ConfigReader[SmartGcalConfiguration] = ConfigReader.derived
+
+  given ConfigReader[AuthenticationConfig] = ConfigReader.derived
+
+  given ConfigReader[ObserveConfiguration] = ConfigReader.derived
 
   def loadConfiguration[F[_]: Sync](config: ConfigObjectSource): F[ObserveConfiguration] =
     config.loadF[F, ObserveConfiguration]()

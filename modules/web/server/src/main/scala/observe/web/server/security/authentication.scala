@@ -1,23 +1,23 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.security
 
 import cats._
-import cats.effect._
-import cats.syntax.all._
+import cats.effect.*
+import cats.syntax.all.*
 import com.unboundid.ldap.sdk.LDAPURL
 import org.typelevel.log4cats.Logger
-import io.circe._
+import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.jawn.decode
-import io.circe.syntax._
+import io.circe.syntax.*
 import pdi.jwt.Jwt
 import pdi.jwt.JwtAlgorithm
 import pdi.jwt.JwtCirce
 import pdi.jwt.JwtClaim
 import observe.model.UserDetails
-import observe.model.config._
+import observe.model.config.*
 import AuthenticationService.AuthResult
 
 sealed trait AuthenticationFailure            extends Product with Serializable
@@ -45,14 +45,14 @@ final case class AuthenticationService[F[_]: Sync: Logger](
   config: AuthenticationConfig
 ) extends AuthService[F] {
   import AuthenticationService._
-  implicit val clock = java.time.Clock.systemUTC()
+  given clock: java.time.Clock = java.time.Clock.systemUTC()
 
   private val hosts =
-    config.ldapURLs.map(u => new LDAPURL(u.renderString)).map(u => (u.getHost, u.getPort))
+    config.ldapUrls.map(u => new LDAPURL(u.renderString)).map(u => (u.getHost, u.getPort))
 
   val ldapService: AuthService[F] = new FreeLDAPAuthenticationService(hosts)
 
-  implicit val codecForUserDetails: Codec[UserDetails] = deriveCodec
+  given Codec[UserDetails] = deriveCodec
 
   private val authServices =
     if (mode === Mode.Development) List(new TestAuthenticationService[F], ldapService)
@@ -94,7 +94,7 @@ object AuthenticationService {
 
   // Allows calling authenticate on a list of authenticator, stopping at the first
   // that succeeds
-  implicit class ComposedAuth[F[_]: MonadError[*[_], Throwable]: Logger](
+  implicit class ComposedAuth[F[_]: MonadThrow: Logger](
     val s: AuthenticationServices[F]
   ) {
 

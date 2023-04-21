@@ -3,7 +3,7 @@
 
 package observe.server.gmos
 
-import cats.effect._
+import cats.effect.*
 import lucuma.core.enums.{GmosAmpGain, GmosAmpReadMode, GmosRoi, GmosSouthFilter, GmosSouthFpu, GmosSouthGrating, GmosSouthStageMode}
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger

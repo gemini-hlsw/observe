@@ -1,19 +1,19 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import org.scalacheck._
-import org.scalacheck.Cogen._
-import lucuma.core.arb._
-import lucuma.core.util.arb.ArbEnumerated._
+import org.scalacheck.*
+import org.scalacheck.Cogen.*
+import lucuma.core.arb.*
+import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-import lucuma.core.math.arb.ArbOffset._
-import observe.model._
-import observe.model.enums._
+import lucuma.core.math.arb.ArbOffset.*
+import observe.model.*
+import observe.model.enums.*
 
 trait ArbStepConfig {
   val asciiStr: Gen[String] =
@@ -38,7 +38,7 @@ trait ArbStepConfig {
     .chooseNum(0, 3)
     .flatMap(s => Gen.mapOfN[SystemName, Parameters](s, stepConfigG))
 
-  implicit val stParams: Cogen[StepConfig] =
+  given stParams: Cogen[StepConfig] =
     Cogen[String].contramap(_.mkString(","))
 
   private val perturbations: List[String => Gen[String]] =

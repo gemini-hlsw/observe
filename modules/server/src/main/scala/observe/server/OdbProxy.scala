@@ -5,7 +5,7 @@ package observe.server
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import clue.FetchClient
 import clue.data.Assign
 import edu.gemini.seqexec.odb.SeqexecSequence
@@ -13,10 +13,10 @@ import eu.timepit.refined.types.numeric.PosInt
 import lucuma.core.enums.{DatasetStage, SequenceCommand, StepStage}
 import lucuma.core.model.Visit
 import observe.common.ObsQueriesGQL
-import observe.common.ObsQueriesGQL._
+import observe.common.ObsQueriesGQL.*
 import org.typelevel.log4cats.Logger
 import observe.model.{Observation, StepId}
-import observe.model.dhs._
+import observe.model.dhs.*
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.VisitId
@@ -269,16 +269,18 @@ object OdbProxy {
     ): F[Boolean] = false.pure[F]
   }
 
-  implicit class SeqexecSequenceOps(val s: SeqexecSequence) extends AnyVal {
+  extension(s: SeqexecSequence) {
     def stepsCount: Int          = Option(s.config.getAllSteps).foldMap(_.length)
     def executedCount: Int       = s.datasets.size
     def unExecutedSteps: Boolean = stepsCount =!= executedCount
   }
 
-  final case class OdbCommandsImpl[F[_]](client: FetchClient[F, ObservationDB])(implicit
+  final case class OdbCommandsImpl[F[_]](client: FetchClient[F, ObservationDB])(using
     val F:                                       Sync[F],
     L:                                           Logger[F]
   ) extends OdbEventCommands[F] {
+
+    given FetchClient[F, ObservationDB] = client
 
     private val fitsFileExtension                           = ".fits"
     private def normalizeFilename(fileName: String): String = if (

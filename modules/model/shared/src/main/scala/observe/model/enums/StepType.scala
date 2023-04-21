@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 
 sealed abstract class StepType(val tag: String, val label: String) extends Product with Serializable
@@ -21,23 +21,25 @@ object StepType {
   case object NodAndShuffle     extends StepType("NodAndShuffle", "N & S")
   case object NodAndShuffleDark extends StepType("NodAndShuffleDark", "N&S DARK")
 
-  implicit val show: Show[StepType] =
+  given Show[StepType] =
     Show.show(_.label)
 
   def fromString(s: String): Option[StepType] =
-    StepTypeEnumerated.all.find(_.label === s)
+    Enumerated[StepType].all.find(_.label === s)
 
   /** @group Typeclass Instances */
-  implicit val StepTypeEnumerated: Enumerated[StepType] =
-    Enumerated.from(Object,
-                  Arc,
-                  Flat,
-                  Bias,
-                  Dark,
-                  Calibration,
-                  AlignAndCalib,
-                  NodAndShuffle,
-                  NodAndShuffleDark
-    ).withTag(_.tag)
+  given Enumerated[StepType] =
+    Enumerated
+      .from(Object,
+            Arc,
+            Flat,
+            Bias,
+            Dark,
+            Calibration,
+            AlignAndCalib,
+            NodAndShuffle,
+            NodAndShuffleDark
+      )
+      .withTag(_.tag)
 
 }

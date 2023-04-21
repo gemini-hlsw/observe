@@ -9,87 +9,87 @@ import scala.concurrent.duration.FiniteDuration
 import cats.Applicative
 import cats.ApplicativeError
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CarStateGeneric
 import fs2.Stream
 import lucuma.core.enums.{GmosAmpCount, GmosAmpReadMode, GmosGratingOrder}
 import org.typelevel.log4cats.Logger
-import mouse.all._
+import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
-import observe.model.GmosParameters._
+import observe.model.GmosParameters.*
 import observe.model.NSSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enums.NodAndShuffleStage._
+import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex.EncodeEpicsValue
-import observe.server.EpicsCodex._
+import observe.server.EpicsCodex.*
 import observe.server.EpicsCommandBase
 import observe.server.EpicsUtil
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.NSProgress
 import observe.server.Progress
 import observe.server.RemainingTime
 import observe.server.ObserveFailure
-import observe.server.gmos.GmosController.Config._
-import observe.server.gmos.GmosController._
+import observe.server.gmos.GmosController.Config.*
+import observe.server.gmos.GmosController.*
 import shapeless.tag
 import squants.Length
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait GmosEncoders {
-  implicit val ampReadModeEncoder: EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {
     case GmosAmpReadMode.Slow => "SLOW"
     case GmosAmpReadMode.Fast => "FAST"
   }
 
-  implicit val shutterStateEncoder: EncodeEpicsValue[ShutterState, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[ShutterState, String] = EncodeEpicsValue {
     case ShutterState.OpenShutter  => "OPEN"
     case ShutterState.CloseShutter => "CLOSED"
     case _                         => ""
   }
 
-  implicit val ampCountEncoder: EncodeEpicsValue[AmpCount, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[AmpCount, String] = EncodeEpicsValue {
     // gmosAmpCount.lut
     case GmosAmpCount.Three  => ""
     case GmosAmpCount.Six    => "BEST"
     case GmosAmpCount.Twelve => "ALL"
   }
 
-  implicit val binningXEncoder: EncodeEpicsValue[BinningX, Int] = EncodeEpicsValue(_.count)
+  given EncodeEpicsValue[BinningX, Int] = EncodeEpicsValue(_.count)
 
-  implicit val binningYEncoder: EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
+  given EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
 
-  implicit val disperserOrderEncoder: EncodeEpicsValue[DisperserOrder, String] = EncodeEpicsValue(
+  given EncodeEpicsValue[DisperserOrder, String] = EncodeEpicsValue(
     _.longName
   )
 
-  implicit val disperserOrderEncoderInt: EncodeEpicsValue[DisperserOrder, Int] = EncodeEpicsValue(
+  given EncodeEpicsValue[DisperserOrder, Int] = EncodeEpicsValue(
     _.count
   )
 
-  implicit val nsStateEncoder: EncodeEpicsValue[NodAndShuffleState, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[NodAndShuffleState, String] = EncodeEpicsValue {
     case NodAndShuffleState.Classic    => "CLASSIC"
     case NodAndShuffleState.NodShuffle => "NOD_SHUFFLE"
   }
 
-  implicit val nsStateDecoder: DecodeEpicsValue[String, Option[NodAndShuffleState]] =
+  given DecodeEpicsValue[String, Option[NodAndShuffleState]] =
     DecodeEpicsValue {
       case "CLASSIC"     => NodAndShuffleState.Classic.some
       case "NOD_SHUFFLE" => NodAndShuffleState.NodShuffle.some
       case _             => none
     }
 
-  implicit val exposureTimeEncoder: EncodeEpicsValue[ExposureTime, Int] = EncodeEpicsValue(
+  given EncodeEpicsValue[ExposureTime, Int] = EncodeEpicsValue(
     _.toSeconds.toInt
   )
 
-  implicit val disperserLambdaEncoder: EncodeEpicsValue[Length, Double] =
+  given EncodeEpicsValue[Length, Double] =
     EncodeEpicsValue((l: Length) => l.toNanometers)
 
-  implicit val electronicOffsetEncoder: EncodeEpicsValue[ElectronicOffset, Int] =
+  given EncodeEpicsValue[ElectronicOffset, Int] =
     EncodeEpicsValue {
       case ElectronicOffset.On  => 1
       case ElectronicOffset.Off => 0
@@ -97,7 +97,7 @@ trait GmosEncoders {
 
   val InBeamVal: String                                    = "IN-BEAM"
   val OutOfBeamVal: String                                 = "OUT-OF-BEAM"
-  implicit val beamEncoder: EncodeEpicsValue[Beam, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Beam, String] = EncodeEpicsValue {
     case Beam.OutOfBeam => OutOfBeamVal
     case Beam.InBeam    => InBeamVal
   }
@@ -162,7 +162,7 @@ object GmosControllerEpics extends GmosEncoders {
   def apply[F[_]: Async, T <: GmosSite](
     sys: => GmosEpics[F],
     cfg: GmosController.Config[T]
-  )(implicit
+  )(using
     e:   Encoders[T],
     L:   Logger[F]
   ): GmosController[F, T] =
@@ -633,7 +633,7 @@ object GmosControllerEpics extends GmosEncoders {
 
   object Encoders {
     @inline
-    def apply[A <: GmosSite](implicit ev: Encoders[A]): Encoders[A] = ev
+    def apply[A <: GmosSite](using ev: Encoders[A]): Encoders[A] = ev
   }
 
   val DefaultTimeout: FiniteDuration = FiniteDuration(60, SECONDS)

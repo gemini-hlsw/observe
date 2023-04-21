@@ -5,18 +5,18 @@ package observe.web.client.handlers
 
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import diode.NoAction
 import observe.model.SequenceState
-import observe.model.events._
-import observe.web.client.actions._
+import observe.model.events.*
+import observe.web.client.actions.*
 import observe.web.client.circuit.SODLocationFocus
-import observe.web.client.model.ModelOps._
-import observe.web.client.model.Pages._
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.Pages.*
 import observe.web.client.services.ObserveWebClient
 
 /**
@@ -43,7 +43,7 @@ class LoadedSequencesHandler[M](modelRW: ModelRW[M, SODLocationFocus])
       }
       val nextStepToRun =
         view.sessionQueue.find(_.idName === sidName).flatMap(_.nextStepToRun)
-      val upLocation    = SODLocationFocus.location.replace(
+      val upLocation    = Focus[SODLocationFocus](_.location).replace(
         SequencePage(i, sidName.id, StepIdDisplayed(nextStepToRun))
       )
       updatedL(upSelected >>> upLocation)

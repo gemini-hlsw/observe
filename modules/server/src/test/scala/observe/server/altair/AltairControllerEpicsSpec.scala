@@ -3,7 +3,7 @@
 
 package observe.server.altair
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.effect.IO
 import edu.gemini.observe.server.altair.LgsSfoControl
 import org.typelevel.log4cats.Logger
@@ -20,8 +20,8 @@ import observe.server.tcs.TcsController.{
 import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoCorrectCmd
 import observe.server.tcs.{Gaos, TestTcsEpics}
 import shapeless.tag
-import squants.space.LengthConversions._
-import squants.space.AngleConversions._
+import squants.space.LengthConversions.*
+import squants.space.AngleConversions.*
 
 class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
 

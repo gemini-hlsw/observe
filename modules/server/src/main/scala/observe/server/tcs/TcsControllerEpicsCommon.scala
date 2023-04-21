@@ -7,15 +7,15 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats._
-import cats.data._
+import cats.data.*
 import cats.effect.Async
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.math.Wavelength
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import monocle.{Iso, Lens}
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
@@ -27,11 +27,11 @@ import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.EpicsCommand
 import observe.server.ObserveFailure
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import squants.Length
 import squants.space.Area
-import squants.space.LengthConversions._
-import squants.time.TimeConversions._
+import squants.space.LengthConversions.*
+import squants.time.TimeConversions.*
 
 /**
  * Base implementation of an Epics TcsController Type parameter BaseEpicsTcsConfig is the class used
@@ -170,8 +170,7 @@ object TcsControllerEpicsCommon {
 
   // Disable M1 guiding if source is off
   private def normalizeM1Guiding(gaosEnabled: Boolean): Endo[BasicTcsConfig] = cfg =>
-    BasicTcsConfig.gc
-      .andThen(TelescopeGuideConfig.m1Guide)
+    Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide)
       .modify {
         case g @ M1GuideConfig.M1GuideOn(src) =>
           src match {
@@ -186,8 +185,7 @@ object TcsControllerEpicsCommon {
 
   // Disable M2 sources if they are off, disable M2 guiding if all are off
   private def normalizeM2Guiding(gaosEnabled: Boolean): Endo[BasicTcsConfig] = cfg =>
-    BasicTcsConfig.gc
-      .andThen(TelescopeGuideConfig.m2Guide)
+    Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
       .modify {
         case M2GuideConfig.M2GuideOn(coma, srcs) =>
           val ss = srcs.filter {
@@ -208,8 +206,7 @@ object TcsControllerEpicsCommon {
 
   // Disable Mount guiding if M2 guiding is disabled
   private val normalizeMountGuiding: Endo[BasicTcsConfig] = cfg =>
-    BasicTcsConfig.gc
-      .andThen(TelescopeGuideConfig.mountGuide)
+    Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.mountGuide)
       .modify { m =>
         (m, cfg.gc.m2Guide) match {
           case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
@@ -225,28 +222,25 @@ object TcsControllerEpicsCommon {
       (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
 
     (BasicTcsConfig.gds.modify(
-      BasicGuidersConfig.pwfs1
-        .andThen(tagIso[GuiderConfig, TcsController.P1Config])
+      Focus[BasicGuidersConfig](_.pwfs1).andThen(tagIso[GuiderConfig, TcsController.P1Config])
         .andThen(GuiderConfig.detector)
         .replace(calc(current.pwfs1.detector, demand.gds.pwfs1.detector)) >>>
-        BasicGuidersConfig.pwfs2
-          .andThen(tagIso[GuiderConfig, TcsController.P2Config])
+        Focus[BasicGuidersConfig](_.pwfs2).andThen(tagIso[GuiderConfig, TcsController.P2Config])
           .andThen(GuiderConfig.detector)
           .replace(calc(current.pwfs2.detector, demand.gds.pwfs2.detector)) >>>
-        BasicGuidersConfig.oiwfs
-          .andThen(tagIso[GuiderConfig, TcsController.OIConfig])
+        Focus[BasicGuidersConfig](_.oiwfs).andThen(tagIso[GuiderConfig, TcsController.OIConfig])
           .andThen(GuiderConfig.detector)
           .replace(calc(current.oiwfs.detector, demand.gds.oiwfs.detector))
     ) >>> BasicTcsConfig.gc.modify(
-      TelescopeGuideConfig.mountGuide.replace(
+      Focus[TelescopeGuideConfig](_.mountGuide).replace(
         (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
           .fold(MountGuideOption.MountGuideOff, current.telescopeGuideConfig.mountGuide)
       ) >>>
-        TelescopeGuideConfig.m1Guide.replace(
+        Focus[TelescopeGuideConfig](_.m1Guide).replace(
           (mustOff || demand.gc.m1Guide === M1GuideConfig.M1GuideOff)
             .fold(M1GuideConfig.M1GuideOff, current.telescopeGuideConfig.m1Guide)
         ) >>>
-        TelescopeGuideConfig.m2Guide.replace(
+        Focus[TelescopeGuideConfig](_.m2Guide).replace(
           (mustOff || demand.gc.m2Guide === M2GuideConfig.M2GuideOff)
             .fold(M2GuideConfig.M2GuideOff, current.telescopeGuideConfig.m2Guide)
         )
@@ -276,7 +270,7 @@ object TcsControllerEpicsCommon {
       .option((c: C) => act(demand) *> lens.replace(demand)(c).pure[F])
       .map(_.withDebug(s"$name($current =!= $demand"))
 
-  private class TcsControllerEpicsCommonImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+  private class TcsControllerEpicsCommonImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
     L:                                                              Logger[F]
   ) extends TcsControllerEpicsCommon[F]
       with TcsControllerEncoders
@@ -781,34 +775,31 @@ object TcsControllerEpicsCommon {
     ): F[Unit] = {
 
       val offsetConfig: BasicTcsConfig =
-        BasicTcsConfig.tc.andThen(TelescopeConfig.offsetA).replace(offset.some)(tcs)
+        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA).replace(offset.some)(tcs)
       val noddedConfig: BasicTcsConfig =
         if (guided) offsetConfig
         else
           BasicTcsConfig.gds.modify(
-            BasicGuidersConfig.pwfs1
-              .andThen(tagIso[GuiderConfig, TcsController.P1Config])
+            Focus[BasicGuidersConfig](_.pwfs1).andThen(tagIso[GuiderConfig, TcsController.P1Config])
               .modify(
                 GuiderConfig.tracking.modify { tr =>
                   if (tr.isActive) ProbeTrackingConfig.Frozen else tr
                 } >>>
-                  GuiderConfig.detector.replace(GuiderSensorOff)
+                  Focus[GuiderConfig](_.detector).replace(GuiderSensorOff)
               ) >>>
-              BasicGuidersConfig.pwfs2
-                .andThen(tagIso[GuiderConfig, TcsController.P2Config])
+              Focus[BasicGuidersConfig](_.pwfs2).andThen(tagIso[GuiderConfig, TcsController.P2Config])
                 .modify(
                   GuiderConfig.tracking.modify { tr =>
                     if (tr.isActive) ProbeTrackingConfig.Frozen else tr
                   } >>>
-                    GuiderConfig.detector.replace(GuiderSensorOff)
+                    Focus[GuiderConfig](_.detector).replace(GuiderSensorOff)
                 ) >>>
-              BasicGuidersConfig.oiwfs
-                .andThen(tagIso[GuiderConfig, TcsController.OIConfig])
+              Focus[BasicGuidersConfig](_.oiwfs).andThen(tagIso[GuiderConfig, TcsController.OIConfig])
                 .modify(
                   GuiderConfig.tracking.modify { tr =>
                     if (tr.isActive) ProbeTrackingConfig.Frozen else tr
                   } >>>
-                    GuiderConfig.detector.replace(GuiderSensorOff)
+                    Focus[GuiderConfig](_.detector).replace(GuiderSensorOff)
                 )
           )(offsetConfig)
 

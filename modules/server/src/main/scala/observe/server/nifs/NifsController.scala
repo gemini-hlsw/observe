@@ -4,7 +4,7 @@
 package observe.server.nifs
 
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.nifs.NIFSParams.{ReadMode => LegacyReadMode}
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
@@ -13,7 +13,7 @@ import observe.server.nifs.NifsController.DCConfig
 import observe.server.nifs.NifsController.NifsConfig
 import shapeless.tag.@@
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait NifsController[F[_]] {
 
@@ -50,14 +50,20 @@ object WindowCover {
 
 object NifsController {
   // DC
-  type Coadds             = Int @@ CoaddsI
-  type Period             = Int @@ PeriodI
+  object Coadds extends NewType[Int]
+  type Coadds = Coadds.Type
+  object Period extends NewType[Int]
+  type Period = Period.Type
   type ExposureTime       = Time
-  type NumberOfResets     = Int @@ NumberOfResetsI
-  type NumberOfPeriods    = Int @@ NumberOfPeriodsI
-  type NumberOfSamples    = Int @@ NumberOfSamplesI
+  object NumberOfResets extends NewType[Int]
+  type NumberOfResets = NumberOfResets.Type
+  object NumberOfPeriods extends NewType[Int]
+  type NumberOfPeriods = NumberOfPeriods.Type
+  object NumberOfSamples extends NewType[Int]
+  type NumberOfSamples = NumberOfSamples.Type
   // this one is calculated out of the ReadMode
-  type NumberOfFowSamples = Int @@ NumberOfFowSamplesI
+  object NumberOfFowSamples extends NewType[Int]
+  type NumberOfFowSamples = NumberOfFowSamples.Type
   type ReadMode           = edu.gemini.spModel.gemini.nifs.NIFSParams.ReadMode
   type EngReadMode        = edu.gemini.spModel.gemini.nifs.NIFSParams.EngReadMode
 
@@ -66,8 +72,10 @@ object NifsController {
   type Mask              = edu.gemini.spModel.gemini.nifs.NIFSParams.Mask
   type Disperser         = edu.gemini.spModel.gemini.nifs.NIFSParams.Disperser
   type ImagingMirror     = edu.gemini.spModel.gemini.nifs.NIFSParams.ImagingMirror
-  type CentralWavelength = Double @@ CentralWavelengthD
-  type MaskOffset        = Double @@ MaskOffsetD
+  object CentralWavelength extends NewType[Double]
+  type CentralWavelength = CentralWavelength.Type
+  object MaskOffset extends NewType[Double]
+  type MaskOffset = MaskOffset.Type
 
   sealed trait DCConfig extends Product with Serializable {
     val coadds: Coadds
@@ -115,7 +123,7 @@ object NifsController {
 
   final case class NifsConfig(cc: CCConfig, dc: DCConfig)
 
-  implicit val cfgShow: Show[NifsConfig] = Show.fromToString
+  given Show[NifsConfig] = Show.fromToString
 
   def calcTotalExposureTime[F[_]](cfg: DCConfig): Time = {
     val readOutTime = cfg.readMode match {

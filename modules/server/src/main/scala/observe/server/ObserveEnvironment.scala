@@ -7,7 +7,7 @@ import eu.timepit.refined.types.numeric.PosInt
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.StepId
 import observe.model.Observation
-import observe.server.keywords._
+import observe.server.keywords.*
 import observe.server.tcs.Tcs
 
 /**

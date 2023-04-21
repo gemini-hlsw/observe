@@ -14,7 +14,7 @@ object NodAndShuffleState {
   case object Classic    extends NodAndShuffleState("Classic")
 
   /** @group Typeclass Instances */
-  implicit val NSStageEnumerated: Enumerated[NodAndShuffleState] =
+  given Enumerated[NodAndShuffleState] =
     Enumerated.from(NodShuffle, Classic).withTag(_.tag)
 
 }

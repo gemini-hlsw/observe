@@ -4,7 +4,7 @@
 package observe.server
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.enums.Instrument
 
 sealed trait StepType extends Product with Serializable {
@@ -27,7 +27,7 @@ object StepType {
     override val instrument: Instrument = Instrument.Gpi
   }
 
-  implicit val eqStepType: Eq[StepType] = Eq.instance {
+  given Eq[StepType] = Eq.instance {
     case (CelestialObject(i), CelestialObject(j))         => i === j
     case (NodAndShuffle(i), NodAndShuffle(j))             => i === j
     case (Gems(i), Gems(j))                               => i === j

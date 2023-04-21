@@ -5,10 +5,9 @@ package observe.web.client.model
 
 import cats.Eq
 import lucuma.core.util.Enumerated
-import monocle.macros.Lenses
 import observe.common.FixedLengthBuffer
 import observe.model.UserDetails
-import observe.web.client.model.SectionVisibilityState._
+import observe.web.client.model.SectionVisibilityState.*
 import observe.web.client.circuit.UserLoginFocus
 import monocle.Getter
 import monocle.Lens
@@ -20,7 +19,7 @@ object SoundSelection {
   case object SoundOff extends SoundSelection("SoundOff")
 
   /** @group Typeclass Instances */
-  implicit val SoundSelectionEnumerated: Enumerated[SoundSelection] =
+  given Enumerated[SoundSelection] =
     Enumerated.from(SoundOn, SoundOff).withTag(_.tag)
 
   def flip: SoundSelection => SoundSelection =
@@ -33,7 +32,6 @@ object SoundSelection {
 /**
  * UI model, changes here will update the UI
  */
-@Lenses
 final case class ObserveUIModel(
   navLocation:        Pages.ObservePages,
   user:               Option[UserDetails],
@@ -74,7 +72,7 @@ object ObserveUIModel {
       a => a.copy(user = n.user, displayNames = n.displayNames)
     )
 
-  implicit val eq: Eq[ObserveUIModel] =
+  given Eq[ObserveUIModel] =
     Eq.by(x =>
       (x.navLocation,
        x.user,

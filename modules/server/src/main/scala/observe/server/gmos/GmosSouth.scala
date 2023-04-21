@@ -3,7 +3,7 @@
 
 package observe.server.gmos
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.enums.Instrument

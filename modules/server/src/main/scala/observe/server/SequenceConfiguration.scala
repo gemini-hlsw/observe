@@ -3,12 +3,12 @@
 
 package observe.server
 
-import cats.syntax.all._
-import edu.gemini.spModel.ao.AOConstants._
+import cats.syntax.all.*
+import edu.gemini.spModel.ao.AOConstants.*
 import lucuma.core.math.Wavelength
 import edu.gemini.spModel.gemini.altair.AltairConstants
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{Wavelength => GNIRSWavelength}
-import edu.gemini.spModel.obscomp.InstConstants._
+import edu.gemini.spModel.obscomp.InstConstants.*
 import observe.model.StepState
 import observe.model.enums.Instrument
 import CleanConfig.extractItem
@@ -19,11 +19,11 @@ import observe.server.flamingos2.Flamingos2
 import observe.server.ghost.Ghost
 import observe.server.gmos.GmosNorth
 import observe.server.gmos.GmosSouth
-import observe.server.gnirs._
+import observe.server.gnirs.*
 import observe.server.gpi.Gpi
-import observe.server.gsaoi._
-import observe.server.nifs._
-import observe.server.niri._
+import observe.server.gsaoi.*
+import observe.server.nifs.*
+import observe.server.niri.*
 
 trait SequenceConfiguration {
   def extractInstrument(config: CleanConfig): Either[ObserveFailure, Instrument] =

@@ -3,7 +3,7 @@
 
 package observe.server.gmos
 
-import cats.effect._
+import cats.effect.*
 import lucuma.core.enums.{GmosAmpGain, GmosAmpReadMode, GmosNorthFilter, GmosNorthFpu, GmosNorthGrating, GmosNorthStageMode, GmosRoi}
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger
@@ -110,7 +110,7 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
 
 object GmosNorthControllerEpics {
   def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.North] = {
-    implicit val encoders: GmosControllerEpics.Encoders[GmosSite.North] = GmosNorthEncoders
+    given GmosControllerEpics.Encoders[GmosSite.North] = GmosNorthEncoders
     GmosControllerEpics[F, GmosSite.North](sys, northConfigTypes)
   }
 }

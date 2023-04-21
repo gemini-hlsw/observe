@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
@@ -72,16 +72,16 @@ package object tcs                                       {
 
   val AoOffsetThreshold: Length = Arcseconds(0.01) / FOCAL_PLANE_SCALE
 
-  implicit val ooEq: Eq[BinaryOnOff]              =
+  given Eq[BinaryOnOff]              =
     Eq[Int].contramap(_.ordinal())
-  implicit val ynEq: Eq[BinaryYesNo]              =
+  given Eq[BinaryYesNo]              =
     Eq[Int].contramap(_.ordinal())
-  implicit val endisEq: Eq[BinaryEnabledDisabled] =
+  given Eq[BinaryEnabledDisabled] =
     Eq[Int].contramap(_.ordinal())
 
   def tagIso[B, T]: Iso[B @@ T, B] = Iso.apply[B @@ T, B](x => x)(tag[T](_))
 
-  implicit class WithDebugOps[A](v: A) {
+  extension [A](v: A) {
     def withDebug(msg: String): WithDebug[A] = WithDebug(v, msg)
   }
 

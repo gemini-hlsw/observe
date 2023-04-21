@@ -6,7 +6,7 @@ package observe.web.client.handlers
 import scala.collection.immutable.SortedMap
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-import cats.implicits._
+import cats.implicits.*
 import diode.ActionBatch
 import diode.ActionHandler
 import diode.ActionResult
@@ -20,18 +20,18 @@ import observe.model.SingleActionOp
 import observe.model.Step
 import observe.model.StepState
 import observe.model.enums.ActionStatus
-import observe.model.events._
-import observe.web.client.actions._
-import observe.web.client.circuit._
+import observe.model.events.*
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
 import observe.web.client.model.AlignAndCalibStep
-import observe.web.client.model.ModelOps._
+import observe.web.client.model.ModelOps.*
 import observe.web.client.model.Pages.Root
 import observe.web.client.model.ResourceRunOperation
 import observe.web.client.model.SoundSelection
 import observe.web.client.model.lenses.sequenceStepT
 import observe.web.client.model.lenses.sequenceViewT
 import observe.web.client.services.ObserveWebClient
-import observe.web.client.services.WebpackResources._
+import observe.web.client.services.WebpackResources.*
 import observe.web.client.services.DisplayNamePersistence
 import web.client.Audio
 
@@ -297,12 +297,12 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(r: GuideConfigUpdate) =>
-      updatedL(WebSocketsFocus.guideConfig.replace(r.telescope))
+      updatedL(Focus[WebSocketsFocus](_.guideConfig).replace(r.telescope))
   }
 
   val acMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(AlignAndCalibEvent(i)) =>
-      updatedL(WebSocketsFocus.alignAndCalib.replace(AlignAndCalibStep.fromInt(i)))
+      updatedL(Focus[WebSocketsFocus](_.alignAndCalib).replace(AlignAndCalibStep.fromInt(i)))
   }
 
   val defaultMessage: PartialFunction[Any, ActionResult[M]] = { case ServerMessage(_) =>

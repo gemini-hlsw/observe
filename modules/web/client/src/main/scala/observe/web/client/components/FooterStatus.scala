@@ -3,16 +3,16 @@
 
 package observe.web.client.components
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.common.implicits._
+import react.common.*
+import react.common.implicits.*
 import react.semanticui.elements.header.Header
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.model.ClientStatus
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class FooterStatus(status: ClientStatus)
     extends ReactProps[FooterStatus](FooterStatus.component)
@@ -24,7 +24,7 @@ object FooterStatus {
 
   type Props = FooterStatus
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
   private val wsConnect                       = ObserveCircuit.connect(_.ws)
   private val gcConnect                       = ObserveCircuit.connect(_.guideConfig)
 

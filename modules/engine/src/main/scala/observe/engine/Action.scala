@@ -1,34 +1,31 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
 import fs2.Stream
-import monocle.Lens
-import monocle.macros.Lenses
+import monocle.{Focus, Lens}
 import Result.{Error, PartialVal, PauseContext, RetVal}
 import observe.model.ActionType
 import observe.model.enums.ActionStatus
 
-@Lenses
 final case class Action[F[_]](
   kind:  ActionType,
-  gen:   Stream[F, Result[F]],
+  gen:   Stream[F, Result],
   state: Action.State[F]
 )
 
 object Action {
 
-  def runStateL[F[_]]: Lens[Action[F], ActionState[F]] =
-    Action.state.andThen(State.runState)
+  def runStateL[F[_]]: Lens[Action[F], ActionState] =
+    Focus[Action[F]](_.state).andThen(Focus[State[F]](_.runState))
 
-  @Lenses
   final case class State[F[_]](
-    runState: ActionState[F],
+    runState: ActionState,
     partials: List[PartialVal]
   )
 
-  sealed trait ActionState[+F[_]] {
+  sealed trait ActionState {
     def isIdle: Boolean = false
 
     def errored: Boolean = this match {
@@ -74,23 +71,23 @@ object Action {
 
   object ActionState {
 
-    case object Idle                                    extends ActionState[Nothing] {
+    case object Idle                              extends ActionState {
       override val isIdle: Boolean = true
     }
-    case object Started                                 extends ActionState[Nothing]
-    final case class Paused[F[_]](ctx: PauseContext[F]) extends ActionState[F]
-    final case class Completed[V <: RetVal](r: V)       extends ActionState[Nothing]
-    final case class Failed(e: Error)                   extends ActionState[Nothing]
-    case object Aborted                                 extends ActionState[Nothing] {
+    case object Started                           extends ActionState
+    final case class Paused(ctx: PauseContext)    extends ActionState
+    final case class Completed[V <: RetVal](r: V) extends ActionState
+    final case class Failed(e: Error)             extends ActionState
+    case object Aborted                           extends ActionState {
       override val isIdle: Boolean = true
     }
-    private def actionStateToStatus[F[_]](s: ActionState[F]): ActionStatus =
+    private def actionStateToStatus[F[_]](s: ActionState): ActionStatus =
       s match {
         case Idle         => ActionStatus.Pending
         case Completed(_) => ActionStatus.Completed
         case Started      => ActionStatus.Running
         case Failed(_)    => ActionStatus.Failed
-        case _: Paused[F] => ActionStatus.Paused
+        case _: Paused    => ActionStatus.Paused
         case Aborted      => ActionStatus.Aborted
       }
 

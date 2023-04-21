@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client.gpi
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats.effect.Resource
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.Activity
 import edu.gemini.aspen.giapi.commands.SequenceCommand
 import fs2.Stream
@@ -15,7 +15,8 @@ import giapi.client.GiapiStatusDb
 import giapi.client.commands.Command
 import giapi.client.commands.CommandResult
 import giapi.client.commands.Configuration
-import mouse.boolean._
+import giapi.client.given
+import mouse.boolean.*
 import cats.effect.Temporal
 import cats.effect.kernel.Async
 

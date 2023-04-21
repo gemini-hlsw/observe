@@ -4,21 +4,21 @@
 package observe.web.client.components
 
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
 import react.clipboard.CopyToClipboard
-import react.common._
-import react.semanticui.collections.menu._
+import react.common.*
+import react.semanticui.collections.menu.*
 import react.semanticui.modules.popup.Popup
 import react.semanticui.modules.popup.PopupPosition
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.web.client.OcsBuildInfo
 import observe.web.client.actions.SelectCalibrationQueue
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.model.Pages._
-import observe.web.client.reusability._
+import observe.web.client.model.Pages.*
+import observe.web.client.reusability.*
 
 final case class Footer(router: RouterCtl[ObservePages], site: Site)
     extends ReactProps[Footer](Footer.component)
@@ -29,7 +29,7 @@ final case class Footer(router: RouterCtl[ObservePages], site: Site)
 object Footer {
   type Props = Footer
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.site)
+  given Reusability[Props] = Reusability.by(_.site)
 
   private val userConnect = ObserveCircuit.connect(ObserveCircuit.statusReader)
 

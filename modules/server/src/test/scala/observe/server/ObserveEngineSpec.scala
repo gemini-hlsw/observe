@@ -6,7 +6,7 @@ package observe.server
 import cats.Monoid
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.config2.DefaultConfig
 import edu.gemini.spModel.obsclass.ObsClass
 import edu.gemini.spModel.obscomp.InstConstants.{
@@ -28,8 +28,8 @@ import io.prometheus.client.CollectorRegistry
 import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
-import observe.server.TestCommon._
-import observe.engine._
+import observe.server.TestCommon.*
+import observe.engine.*
 import observe.model.{
   Conditions,
   Observation,
@@ -41,14 +41,14 @@ import observe.model.{
   UserDetails,
   UserPrompt
 }
-import observe.model.enums._
+import observe.model.enums.*
 import observe.model.enums.Resource.TCS
 import monocle.function.Index.mapIndex
 import observe.common.test.stepId
 import observe.engine.EventResult.{Outcome, UserCommandResponse}
 import observe.model.dhs.DataId
 import observe.server.tcs.{DummyTargetKeywordsReader, DummyTcsKeywordsReader, TargetKeywordsReader}
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.SeqEvent.RequestConfirmation
 
 class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAssertions {
@@ -71,7 +71,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setImageQuality(q, iq, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.iq).get)) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.iq).get)) { case Some(op) =>
       op shouldBe iq
     }).unsafeRunSync()
 
@@ -83,7 +83,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setWaterVapor(q, wv, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.wv).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.wv).get(_))) { case Some(op) =>
       op shouldBe wv
     }).unsafeRunSync()
   }
@@ -94,7 +94,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setCloudCover(q, cc, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.cc).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.cc).get(_))) { case Some(op) =>
       op shouldBe cc
     }).unsafeRunSync()
   }
@@ -105,7 +105,7 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setSkyBackground(q, sb, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.sb).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.sb).get(_))) { case Some(op) =>
       op shouldBe sb
     }).unsafeRunSync()
   }
@@ -901,10 +901,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.iq).replace(ImageQuality.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {
@@ -935,10 +935,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
-      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {
@@ -978,10 +978,10 @@ class ObserveEngineSpec extends TestCommon with Matchers with NonImplicitAsserti
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](seqObsId1, seq, executeEngine) >>>
-      EngineState.conditions[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
-      EngineState.conditions[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
-      EngineState.conditions[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.iq).replace(ImageQuality.Percent70) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.wv).replace(WaterVapor.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.sb).replace(SkyBackground.Percent20) >>>
+      Focus[EngineState](_.conditions[IO])[IO].andThen(Conditions.cc).replace(CloudCover.Percent50))
       .apply(EngineState.default[IO])
 
     (for {

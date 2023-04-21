@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -16,6 +16,6 @@ object RunOverride {
   case object Override extends RunOverride("Override")
 
   /** @group Typeclass Instances */
-  implicit val RunOverrideEnumerated: Enumerated[RunOverride] =
+  given Enumerated[RunOverride] =
     Enumerated.from(Default, Override).withTag(_.tag)
 }

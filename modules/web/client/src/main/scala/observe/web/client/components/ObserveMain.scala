@@ -3,22 +3,22 @@
 
 package observe.web.client.components
 
-import cats.syntax.all._
-import diode.react.ReactPot._
+import cats.syntax.all.*
+import diode.react.ReactPot.*
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
-import japgolly.scalajs.react.extra.router._
+import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import react.common._
-import react.common.implicits._
+import react.common.*
+import react.common.implicits.*
 import react.semanticui.elements.divider.Divider
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.tabs.TabsArea
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 import observe.web.client.model.WebSocketConnection
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class AppTitle(site: Site, ws: WebSocketConnection)
     extends ReactProps[AppTitle](AppTitle.component)
@@ -26,7 +26,7 @@ final case class AppTitle(site: Site, ws: WebSocketConnection)
 object AppTitle {
   type Props = AppTitle
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   private val component = ScalaComponent
     .builder[Props]
@@ -57,7 +57,7 @@ final case class ObserveMain(site: Site, ctl: RouterCtl[ObservePages])
 object ObserveMain {
   type Props = ObserveMain
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.site)
+  given Reusability[Props] = Reusability.by(_.site)
 
   private val lbConnect               = ObserveCircuit.connect(_.uiModel.loginBox)
   private val userNotificationConnect = ObserveCircuit.connect(_.uiModel.notification)

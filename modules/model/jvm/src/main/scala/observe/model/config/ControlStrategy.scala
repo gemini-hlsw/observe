@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 
 sealed abstract class ControlStrategy(val tag: String) extends Product with Serializable
@@ -23,7 +23,7 @@ object ControlStrategy {
     case _           => None
   }
 
-  implicit val ControlStrategyEnumerated: Enumerated[ControlStrategy] =
+  given Enumerated[ControlStrategy] =
     Enumerated.from(FullControl, ReadOnly, Simulated).withTag(_.tag)
 
   implicit class ControlStrategyOps(v: ControlStrategy) {

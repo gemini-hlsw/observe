@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.config2.Config
 import edu.gemini.spModel.config2.DefaultConfig
 import edu.gemini.spModel.config2.ItemEntry
@@ -57,7 +57,7 @@ final case class CleanConfig(config: Config, overrides: Map[ItemKey, AnyRef]) {
 
 object CleanConfig {
 
-  implicit val extractItem: ExtractItem[CleanConfig] =
+  given ExtractItem[CleanConfig] =
     (a: CleanConfig, key: ItemKey) => a.itemValue(key)
 
   type ConfigWiper = Config => Map[ItemKey, AnyRef]

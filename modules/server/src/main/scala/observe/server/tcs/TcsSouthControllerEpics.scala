@@ -3,16 +3,16 @@
 
 package observe.server.tcs
 
-import cats.data._
-import cats.effect._
-import cats.syntax.all._
+import cats.data.*
+import cats.effect.*
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig
-import observe.server.tcs.TcsController._
-import observe.server.tcs.TcsSouthController._
+import observe.server.tcs.TcsController.*
+import observe.server.tcs.TcsSouthController.*
 
 final case class TcsSouthControllerEpics[F[_]: Async: Logger](
   epicsSys:      TcsEpics[F],

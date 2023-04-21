@@ -6,13 +6,12 @@ package observe.web.client.model
 import scala.collection.immutable.SortedMap
 
 import cats.Eq
-import cats.syntax.all._
-import cats.Order._
+import cats.syntax.all.*
+import cats.Order.*
 import lucuma.core.util.Enumerated
 import monocle.Lens
 import monocle.function.At.at
 import monocle.function.At.atSortedMap
-import monocle.macros.Lenses
 import observe.model.StepId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
@@ -23,7 +22,7 @@ object RunOperation {
   case object RunInFlight extends RunOperation("RunInFlight")
 
   /** @group Typeclass Instances */
-  implicit val RunOperationEnumerated: Enumerated[RunOperation] =
+  given Enumerated[RunOperation] =
     Enumerated.from(RunIdle, RunInFlight).withTag(_.tag)
 
 }
@@ -34,7 +33,7 @@ object StopOperation {
   case object StopInFlight extends StopOperation("StopInFlight")
 
   /** @group Typeclass Instances */
-  implicit val StopOperationEnumerated: Enumerated[StopOperation] =
+  given Enumerated[StopOperation] =
     Enumerated.from(StopIdle, StopInFlight).withTag(_.tag)
 
 }
@@ -45,7 +44,7 @@ object AbortOperation {
   case object AbortInFlight extends AbortOperation("AbortInFlight")
 
   /** @group Typeclass Instances */
-  implicit val AbortOperationEnumerated: Enumerated[AbortOperation] =
+  given Enumerated[AbortOperation] =
     Enumerated.from(AbortIdle, AbortInFlight).withTag(_.tag)
 
 }
@@ -56,7 +55,7 @@ object PauseOperation {
   case object PauseInFlight extends PauseOperation("PauseInFlight")
 
   /** @group Typeclass Instances */
-  implicit val PauseOperationEnumerated: Enumerated[PauseOperation] =
+  given Enumerated[PauseOperation] =
     Enumerated.from(PauseIdle, PauseInFlight).withTag(_.tag)
 
 }
@@ -67,7 +66,7 @@ object CancelPauseOperation {
   case object CancelPauseInFlight extends CancelPauseOperation("CancelPauseInFlight")
 
   /** @group Typeclass Instances */
-  implicit val CancelPauseOperationEnumerated: Enumerated[CancelPauseOperation] =
+  given Enumerated[CancelPauseOperation] =
     Enumerated.from(CancelPauseIdle, CancelPauseInFlight).withTag(_.tag)
 
 }
@@ -78,7 +77,7 @@ object ResumeOperation {
   case object ResumeInFlight extends ResumeOperation("ResumeInFlight")
 
   /** @group Typeclass Instances */
-  implicit val ResumeOperationEnumerated: Enumerated[ResumeOperation] =
+  given Enumerated[ResumeOperation] =
     Enumerated.from(ResumeIdle, ResumeInFlight).withTag(_.tag)
 
 }
@@ -89,7 +88,7 @@ object SyncOperation {
   case object SyncInFlight extends SyncOperation("SyncInFlight")
 
   /** @group Typeclass Instances */
-  implicit val SyncOperationEnumerated: Enumerated[SyncOperation] =
+  given Enumerated[SyncOperation] =
     Enumerated.from(SyncIdle, SyncInFlight).withTag(_.tag)
 
 }
@@ -113,7 +112,7 @@ object ResourceRunOperation {
     case _                      => none
   }
 
-  implicit val eqResourceRunOperation: Eq[ResourceRunOperation] = Eq.instance {
+  given Eq[ResourceRunOperation] = Eq.instance {
     case (ResourceRunIdle, ResourceRunIdle)                 => true
     case (ResourceRunInFlight(a), ResourceRunInFlight(b))   => a === b
     case (ResourceRunCompleted(a), ResourceRunCompleted(b)) => a === b
@@ -128,7 +127,7 @@ object StartFromOperation {
   case object StartFromIdle     extends StartFromOperation("StartFromIdle")
 
   /** @group Typeclass Instances */
-  implicit val StartFromOperationEnumerated: Enumerated[StartFromOperation] =
+  given Enumerated[StartFromOperation] =
     Enumerated.from(StartFromIdle, StartFromInFlight).withTag(_.tag)
 
 }
@@ -136,7 +135,6 @@ object StartFromOperation {
 /**
  * Hold transient states while excuting an operation
  */
-@Lenses
 final case class TabOperations(
   runRequested:         RunOperation,
   syncRequested:        SyncOperation,
@@ -188,7 +186,7 @@ final case class TabOperations(
 }
 
 object TabOperations {
-  implicit val eq: Eq[TabOperations] =
+  given Eq[TabOperations] =
     Eq.by(x =>
       (x.runRequested,
        x.syncRequested,
@@ -205,7 +203,7 @@ object TabOperations {
   def resourceRun(
     r: Resource
   ): Lens[TabOperations, Option[ResourceRunOperation]] =
-    TabOperations.resourceRunRequested.andThen(at(r))
+    Focus[TabOperations](_.resourceRunRequested).andThen(at(r))
 
   // Set the resource operations in the map to idle.
   def clearAllResourceOperations: TabOperations => TabOperations =

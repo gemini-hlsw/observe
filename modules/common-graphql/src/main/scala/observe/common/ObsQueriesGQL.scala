@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.common
@@ -6,13 +6,14 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
+import lucuma.core.enums.Site
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto._
+import io.circe.generic.auto.*
 import lucuma.core.math
 import lucuma.core.enums
 import lucuma.core.model
-import cats.syntax.functor._
-import lucuma.core.model.sequence.{Atom, Step}
+import cats.syntax.functor.*
+import lucuma.core.model.sequence.{Atom, GmosGratingConfig, Step}
 
 import java.time
 import lucuma.core.model.{ExecutionEvent, Observation, Target}
@@ -23,13 +24,13 @@ import lucuma.core.model.{ExecutionEvent, Observation, Target}
 object ObsQueriesGQL {
 
   // I don't know why, but these implicits prevent several warnings in the generated code
-  implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id]         =
-    Observation.Id.GidId
-  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.UidId
-  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.UidId
-  implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]                = Target.Id.GidId
-  implicit val eventIdCodex: Decoder[ExecutionEvent.Id] with Encoder[ExecutionEvent.Id] =
-    ExecutionEvent.Id.GidId
+//  implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id]         =
+//    Observation.Id.GidId
+//  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.UidId
+//  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.UidId
+//  implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]                = Target.Id.GidId
+//  implicit val eventIdCodex: Decoder[ExecutionEvent.Id] with Encoder[ExecutionEvent.Id] =
+//    ExecutionEvent.Id.GidId
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
@@ -252,7 +253,7 @@ object ObsQueriesGQL {
 
     """
 
-    implicit def offsetComponentDecoder[T]: Decoder[math.Offset.Component[T]] =
+    given [T]: Decoder[math.Offset.Component[T]] =
       Decoder.instance(c =>
         c.downField("microarcseconds")
           .as[Long]
@@ -263,7 +264,7 @@ object ObsQueriesGQL {
           )
       )
 
-    implicit val offsetDecoder: Decoder[math.Offset] = Decoder.instance(c =>
+    given Decoder[math.Offset] = Decoder.instance(c =>
       for {
         p <- c.downField("p").as[math.Offset.P]
         q <- c.downField("q").as[math.Offset.Q]
@@ -277,59 +278,69 @@ object ObsQueriesGQL {
 //      Decoder[SeqStepConfig.Dark].widen
 //    ).reduceLeft(_ or _)
 
-    implicit val seqSiteDecoder: Decoder[GmosSite] = List[Decoder[GmosSite]](
-      Decoder[GmosSite.North].widen,
-      Decoder[GmosSite.South].widen
-    ).reduceLeft(_ or _)
-
-//    def seqFpuDecoder[Site <: GmosSite](implicit
-//      d1: Decoder[GmosFpu.GmosBuiltinFpu[Site]],
-//      d2: Decoder[GmosFpu.GmosCustomMask[Site]]
-//    ): Decoder[GmosFpu[Site]] = List[Decoder[GmosFpu[Site]]](
-//      Decoder[GmosFpu.GmosBuiltinFpu[Site]].widen,
-//      Decoder[GmosFpu.GmosCustomMask[Site]].widen
+//    given Decoder[GmosSite] = List[Decoder[GmosSite]](
+//      Decoder[Site.GN.type].widen,
+//      Decoder[Site.GS.type].widen
 //    ).reduceLeft(_ or _)
 
-//    implicit val fpuSouthDecoder: Decoder[GmosFpu[GmosSite.South]] = seqFpuDecoder[GmosSite.South]
-//    implicit val fpuNorthDecoder: Decoder[GmosFpu[GmosSite.North]] = seqFpuDecoder[GmosSite.North]
+//    def seqFpuDecoder[S <: Site](using
+//      d1: Decoder[GmosFpu.GmosBuiltinFpu[S]],
+//      d2: Decoder[GmosFpu.GmosCustomMask[S]]
+//    ): Decoder[GmosFpu[S]] = List[Decoder[GmosFpu[S]]](
+//      Decoder[GmosFpu.GmosBuiltinFpu[S]].widen,
+//      Decoder[GmosFpu.GmosCustomMask[S]].widen
+//    ).reduceLeft(_ or _)
 
-    sealed trait GmosSite {
-      type Detector <: AnyRef
-      type Grating <: AnyRef
-      type BuiltInFpu <: AnyRef
-      type Filter <: AnyRef
-      type StageMode <: AnyRef
-    }
-    object GmosSite       {
-      case class North() extends GmosSite {
-        override type Detector   = enums.GmosNorthDetector
-        override type Grating    = enums.GmosNorthGrating
-        override type BuiltInFpu = enums.GmosNorthFpu
-        override type Filter     = enums.GmosNorthFilter
-        override type StageMode  = enums.GmosNorthStageMode
-      }
-      case class South() extends GmosSite {
-        override type Detector   = enums.GmosSouthDetector
-        override type Grating    = enums.GmosSouthGrating
-        override type BuiltInFpu = enums.GmosSouthFpu
-        override type Filter     = enums.GmosSouthFilter
-        override type StageMode  = enums.GmosSouthStageMode
-      }
-    }
+//    implicit val fpuSouthDecoder: Decoder[GmosFpu[Site.GS.type]] = seqFpuDecoder[Site.GS.type]
+//    implicit val fpuNorthDecoder: Decoder[GmosFpu[Site.GN.type]] = seqFpuDecoder[Site.GN.type]
 
-    trait GmosGrating[Site <: GmosSite]          {
-      val grating: Site#Grating
-      val order: enums.GmosGratingOrder
-      val wavelength: math.Wavelength
+    sealed trait GmosSite[T <: Site] {
+      type Detector      = T match {
+        case Site.GN.type => GmosSite.North.Detector
+        case Site.GS.type => GmosSite.South.Detector
+      }
+      type GratingConfig = T match {
+        case Site.GN.type => GmosSite.North.Grating
+        case Site.GS.type => GmosSite.South.Grating
+      }
+      type BuiltInFpu    = T match {
+        case Site.GN.type => GmosSite.North.BuiltInFpu
+        case Site.GS.type => GmosSite.South.BuiltInFpu
+      }
+      type Filter        = T match {
+        case Site.GN.type => GmosSite.North.Filter
+        case Site.GS.type => GmosSite.South.Filter
+      }
+      type StageMode     = T match {
+        case Site.GN.type => GmosSite.North.StageMode
+        case Site.GS.type => GmosSite.South.StageMode
+      }
+    }
+    object GmosSite                  {
+
+      object North {
+        type Detector   = enums.GmosNorthDetector
+        type Grating    = GmosGratingConfig.North
+        type BuiltInFpu = enums.GmosNorthFpu
+        type Filter     = enums.GmosNorthFilter
+        type StageMode  = enums.GmosNorthStageMode
+      }
+      object South {
+        type Detector   = enums.GmosSouthDetector
+        type Grating    = GmosGratingConfig.South
+        type BuiltInFpu = enums.GmosSouthFpu
+        type Filter     = enums.GmosSouthFilter
+        type StageMode  = enums.GmosSouthStageMode
+      }
     }
 
     case class GmosCustomMask(
       filename:  String,
       slitWidth: enums.GmosCustomSlitWidth
     )
-    case class GmosFpu[Site <: GmosSite](
+    case class GmosFpu[S <: Site](
       customMask: Option[GmosCustomMask],
-      builtin:    Option[Site#BuiltInFpu]
+      builtin:    Option[GmosSite[S]#BuiltInFpu]
     )
 
     case class GmosReadout(
@@ -339,62 +350,68 @@ object ObsQueriesGQL {
       ampGain:     enums.GmosAmpGain,
       ampReadMode: enums.GmosAmpReadMode
     )
-    trait GmosInstrumentConfig[Site <: GmosSite] {
+    trait GmosInstrumentConfig[S <: Site]         {
       val exposure: time.Duration
       val readout: GmosReadout
       val dtax: enums.GmosDtax
       val roi: enums.GmosRoi
-      val gratingConfig: Option[GmosGrating[Site]]
-      val filter: Option[Site#Filter]
-      val fpu: Option[GmosFpu[Site]]
+      val gratingConfig: Option[GmosSite[S]#GratingConfig]
+      val filter: Option[GmosSite[S]#Filter]
+      val fpu: Option[GmosFpu[S]]
     }
     sealed trait SeqStepConfig
-    object SeqStepConfig                         {
+    object SeqStepConfig                          {
       case class SeqScienceStep(offset: math.Offset) extends SeqStepConfig
       case class Gcal(
         filter:   enums.GcalFilter,
         diffuser: enums.GcalDiffuser,
         shutter:  enums.GcalShutter
       ) extends SeqStepConfig
-      case object Dark extends SeqStepConfig
-      case object Bias extends SeqStepConfig
+      case object Dark                               extends SeqStepConfig
+      case object Bias                               extends SeqStepConfig
     }
-    trait InsConfig                              {
-      type StaticConfig
-      type StepConfig
-    }
-    object InsConfig                             {
-      trait Gmos[S <: GmosSite] extends InsConfig {
-        override type StaticConfig = GmosStatic[S]
-        override type StepConfig   = GmosInstrumentConfig[S]
+    sealed trait InsConfig[T <: enums.Instrument] {
+      type StaticConfig = T match {
+        case enums.Instrument.GmosNorth.type => InsConfig.GmosNorth.StaticConfig
+        case enums.Instrument.GmosSouth.type => InsConfig.GmosSouth.StaticConfig
       }
-      type GmosNorth = Gmos[GmosSite.North]
-      type GmosSouth = Gmos[GmosSite.South]
+      type StepConfig   = T match {
+        case enums.Instrument.GmosNorth.type => InsConfig.GmosNorth.StepConfig
+        case enums.Instrument.GmosSouth.type => InsConfig.GmosSouth.StepConfig
+      }
+    }
+    object InsConfig                              {
+      trait Gmos[S <: Site] {
+        type StaticConfig = GmosStatic[S]
+        type StepConfig   = GmosInstrumentConfig[S]
+      }
+      object GmosNorth extends Gmos[Site.GN.type]
+      object GmosSouth extends Gmos[Site.GS.type]
     }
 
-    trait SeqStep[I <: InsConfig]      {
+    trait SeqStep[I <: enums.Instrument]  {
       val id: model.sequence.Step.Id
-      val instrumentConfig: I#StepConfig
+      val instrumentConfig: InsConfig[I]#StepConfig
       val stepConfig: SeqStepConfig
     }
-    trait SeqAtom[I <: InsConfig]      {
+    trait SeqAtom[I <: enums.Instrument]  {
       val id: model.sequence.Atom.Id
       val steps: List[SeqStep[I]]
     }
-    trait Sequence[I <: InsConfig]     {
+    trait Sequence[I <: enums.Instrument] {
       val nextAtom: Option[SeqAtom[I]]
       val possibleFuture: List[SeqAtom[I]]
     }
-    trait GmosNodAndShuffle            {
+    trait GmosNodAndShuffle               {
       val posA: math.Offset
       val posB: math.Offset
       val eOffset: enums.GmosEOffsetting
       val shuffleOffset: Int
       val shuffleCycles: Int
     }
-    trait GmosStatic[Site <: GmosSite] {
-      val stageMode: Site#StageMode
-      val detector: Site#Detector
+    trait GmosStatic[S <: Site]           {
+      val stageMode: GmosSite[S]#StageMode
+      val detector: GmosSite[S]#Detector
       val mosPreImaging: enums.MosPreImaging
       val nodAndShuffle: Option[GmosNodAndShuffle]
     }
@@ -404,10 +421,10 @@ object ObsQueriesGQL {
         object Execution {
           object Config {
             object GmosNorthExecutionConfig {
-              trait StaticN extends GmosStatic[GmosSite.North]
+              trait StaticN extends GmosStatic[Site.GN.type]
 
               object StaticN {
-                type StageMode = GmosSite.North#StageMode
+                type StageMode = GmosSite.North.StageMode
 
                 trait NodAndShuffle extends GmosNodAndShuffle
 
@@ -417,28 +434,28 @@ object ObsQueriesGQL {
                 }
               }
 
-              trait AcquisitionN extends Sequence[InsConfig.GmosNorth]
+              trait AcquisitionN extends Sequence[enums.Instrument.GmosNorth.type]
 
               object AcquisitionN {
-                trait NextAtom extends SeqAtom[InsConfig.GmosNorth]
+                trait NextAtom extends SeqAtom[enums.Instrument.GmosNorth.type]
 
                 object NextAtom {
-                  trait Steps extends SeqStep[InsConfig.GmosNorth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosNorth.type]
 
                   object Steps {
                     // object StepType
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GN.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.North]
+                      type GratingConfig = GmosGratingConfig.North
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.North]
+                      type Fpu     = GmosFpu[Site.GN.type]
                       type Readout = GmosReadout
                     }
 
@@ -446,24 +463,24 @@ object ObsQueriesGQL {
                   }
                 }
 
-                trait PossibleFuture extends SeqAtom[InsConfig.GmosNorth]
+                trait PossibleFuture extends SeqAtom[enums.Instrument.GmosNorth.type]
 
                 object PossibleFuture {
-                  trait Steps extends SeqStep[InsConfig.GmosNorth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosNorth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GN.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.North]
+                      type GratingConfig = GmosGratingConfig.North
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.North]
+                      type Fpu     = GmosFpu[Site.GN.type]
                       type Readout = GmosReadout
                     }
 
@@ -472,27 +489,27 @@ object ObsQueriesGQL {
                 }
               }
 
-              trait ScienceN extends Sequence[InsConfig.GmosNorth]
+              trait ScienceN extends Sequence[enums.Instrument.GmosNorth.type]
 
               object ScienceN {
-                trait NextAtom extends SeqAtom[InsConfig.GmosNorth]
+                trait NextAtom extends SeqAtom[enums.Instrument.GmosNorth.type]
 
                 object NextAtom {
-                  trait Steps extends SeqStep[InsConfig.GmosNorth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosNorth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GN.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.North]
+                      type GratingConfig = GmosGratingConfig.North
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.North]
+                      type Fpu     = GmosFpu[Site.GN.type]
                       type Readout = GmosReadout
                     }
 
@@ -500,24 +517,24 @@ object ObsQueriesGQL {
                   }
                 }
 
-                trait PossibleFuture extends SeqAtom[InsConfig.GmosNorth]
+                trait PossibleFuture extends SeqAtom[enums.Instrument.GmosNorth.type]
 
                 object PossibleFuture {
-                  trait Steps extends SeqStep[InsConfig.GmosNorth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosNorth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.North]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GN.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.North]
+                      type GratingConfig = GmosGratingConfig.North
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.North]
+                      type Fpu     = GmosFpu[Site.GN.type]
                       type Readout = GmosReadout
                     }
 
@@ -528,10 +545,10 @@ object ObsQueriesGQL {
             }
 
             object GmosSouthExecutionConfig {
-              trait StaticS extends GmosStatic[GmosSite.South]
+              trait StaticS extends GmosStatic[Site.GS.type]
 
               object StaticS {
-                type StageMode = GmosSite.South#StageMode
+                type StageMode = GmosSite.South.StageMode
 
                 trait NodAndShuffle extends GmosNodAndShuffle
 
@@ -541,27 +558,27 @@ object ObsQueriesGQL {
                 }
               }
 
-              trait AcquisitionS extends Sequence[InsConfig.GmosSouth]
+              trait AcquisitionS extends Sequence[enums.Instrument.GmosSouth.type]
 
               object AcquisitionS {
-                trait NextAtom extends SeqAtom[InsConfig.GmosSouth]
+                trait NextAtom extends SeqAtom[enums.Instrument.GmosSouth.type]
 
                 object NextAtom {
-                  trait Steps extends SeqStep[InsConfig.GmosSouth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosSouth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GS.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.South]
+                      type GratingConfig = GmosGratingConfig.South
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.South]
+                      type Fpu     = GmosFpu[Site.GS.type]
                       type Readout = GmosReadout
                     }
 
@@ -569,24 +586,24 @@ object ObsQueriesGQL {
                   }
                 }
 
-                trait PossibleFuture extends SeqAtom[InsConfig.GmosSouth]
+                trait PossibleFuture extends SeqAtom[enums.Instrument.GmosSouth.type]
 
                 object PossibleFuture {
-                  trait Steps extends SeqStep[InsConfig.GmosSouth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosSouth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GS.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.South]
+                      type GratingConfig = GmosGratingConfig.South
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.South]
+                      type Fpu     = GmosFpu[Site.GS.type]
                       type Readout = GmosReadout
                     }
 
@@ -595,28 +612,28 @@ object ObsQueriesGQL {
                 }
               }
 
-              trait ScienceS extends Sequence[InsConfig.GmosSouth]
+              trait ScienceS extends Sequence[enums.Instrument.GmosSouth.type]
 
               object ScienceS {
-                trait NextAtom extends SeqAtom[InsConfig.GmosSouth]
+                trait NextAtom extends SeqAtom[enums.Instrument.GmosSouth.type]
 
                 object NextAtom {
-                  trait Steps extends SeqStep[InsConfig.GmosSouth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosSouth.type]
 
                   object Steps {
                     // object StepType
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GS.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.South]
+                      type GratingConfig = GmosGratingConfig.South
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.South]
+                      type Fpu     = GmosFpu[Site.GS.type]
                       type Readout = GmosReadout
                     }
 
@@ -624,24 +641,24 @@ object ObsQueriesGQL {
                   }
                 }
 
-                trait PossibleFuture extends SeqAtom[InsConfig.GmosSouth]
+                trait PossibleFuture extends SeqAtom[enums.Instrument.GmosSouth.type]
 
                 object PossibleFuture {
-                  trait Steps extends SeqStep[InsConfig.GmosSouth]
+                  trait Steps extends SeqStep[enums.Instrument.GmosSouth.type]
 
                   object Steps {
-                    trait InstrumentConfig extends GmosInstrumentConfig[GmosSite.South]
+                    trait InstrumentConfig extends GmosInstrumentConfig[Site.GS.type]
 
                     object InstrumentConfig {
                       type Exposure = time.Duration
 
-                      trait GratingConfig extends GmosGrating[GmosSite.South]
+                      type GratingConfig = GmosGratingConfig.South
 
                       object GratingConfig {
                         type Wavelength = math.Wavelength
                       }
 
-                      type Fpu     = GmosFpu[GmosSite.South]
+                      type Fpu     = GmosFpu[Site.GS.type]
                       type Readout = GmosReadout
                     }
 

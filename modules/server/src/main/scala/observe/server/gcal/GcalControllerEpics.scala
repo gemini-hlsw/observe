@@ -6,16 +6,16 @@ package observe.server.gcal
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.gcal.BinaryOnOff
 import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
 import org.typelevel.log4cats.Logger
-import observe.server.EpicsCodex._
+import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil.applyParam
 import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
-import observe.server.gcal.GcalController._
+import observe.server.gcal.GcalController.*
 
 object GcalControllerEpics {
   // Default value from Tcl Observe
@@ -123,7 +123,7 @@ object GcalControllerEpics {
   )
 
   def configure[F[_]: Async](epics: GcalEpics[F], current: EpicsGcalConfig, demand: GcalConfig)(
-    implicit L:                     Logger[F]
+    using L:                     Logger[F]
   ): F[Unit] = {
     val params: List[F[Unit]] = List(
       applyParam(current.lampAr, encode(demand.lampAr.self), setArLampParams(epics)),

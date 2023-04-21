@@ -4,15 +4,15 @@
 package observe.web.client.model
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import japgolly.scalajs.react.Callback
-import japgolly.scalajs.react.extra.router._
+import japgolly.scalajs.react.extra.router.*
 import monocle.Prism
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.enums._
-import observe.web.client.actions._
+import observe.model.enums.*
+import observe.web.client.actions.*
 import observe.web.client.circuit.ObserveCircuit
 
 // Pages
@@ -23,7 +23,7 @@ object Pages {
   final case class StepIdDisplayed(step: Option[StepId])
 
   object StepIdDisplayed {
-    implicit val equal: Eq[StepIdDisplayed] = Eq.fromUniversalEquals
+    given Eq[StepIdDisplayed] = Eq.fromUniversalEquals
   }
 
   case object Root                 extends ObservePages
@@ -44,7 +44,7 @@ object Pages {
   final case class SequenceConfigPage(instrument: Instrument, obsId: Observation.Id, stepId: StepId)
       extends ObservePages
 
-  implicit val equal: Eq[ObservePages] = Eq.instance {
+  given Eq[ObservePages] = Eq.instance {
     case (Root, Root)                                               =>
       true
     case (SoundTest, SoundTest)                                     =>
@@ -84,7 +84,7 @@ object Pages {
   /**
    * Extensions methods for RouterCtl
    */
-  implicit class RouterCtlOps(val r: RouterCtl[ObservePages]) extends AnyVal {
+  extension(r: RouterCtl[ObservePages]) {
 
     /**
      * Some pages are linked to actions. This methods lets you set the url and dispatch an action at

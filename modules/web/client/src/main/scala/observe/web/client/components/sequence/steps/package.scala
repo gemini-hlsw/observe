@@ -4,8 +4,8 @@
 package observe.web.client.components.sequence
 
 package object steps {
-  implicit class ControlButtonResolverOps[A](val a: A) extends AnyVal {
-    def controlButtonsActive(implicit resolver: ControlButtonResolver[A]): Boolean =
+  extension [A]( a: A) {
+    def controlButtonsActive(using resolver: ControlButtonResolver[A]): Boolean =
       resolver.controlButtonsActive(a)
   }
 }

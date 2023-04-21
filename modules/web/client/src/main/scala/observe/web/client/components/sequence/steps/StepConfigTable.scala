@@ -8,23 +8,23 @@ import scala.scalajs.js
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.common.implicits._
-import react.virtualized._
+import react.common.*
+import react.common.implicits.*
+import react.virtualized.*
 import observe.model.Step
 import observe.model.enums.SystemName
 import observe.web.client.actions.UpdateStepsConfigTableState
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
 import observe.web.client.components.TableContainer
-import observe.web.client.reusability._
-import web.client.table._
+import observe.web.client.reusability.*
+import web.client.table.*
 
 final case class StepConfigTable(
   step:       Step,
@@ -52,15 +52,15 @@ object StepConfigTable {
   case object ValueColumn  extends TableColumn
 
   object TableColumn {
-    implicit val eq: Eq[TableColumn]             = Eq.fromUniversalEquals
-    implicit val reuse: Reusability[TableColumn] = Reusability.byRef
+    given Eq[TableColumn]             = Eq.fromUniversalEquals
+    given Reusability[TableColumn] = Reusability.byRef
   }
 
   type Props = StepConfigTable
 
   type Backend = RenderScope[Props, TableState[TableColumn], Unit]
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.by(p => (p.settingsList, p.startState))
 
   // ScalaJS defined trait

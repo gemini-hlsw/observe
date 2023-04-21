@@ -5,12 +5,11 @@ package observe.server.tcs
 
 import java.time.Duration
 import cats._
-import cats.data._
+import cats.data.*
 import cats.effect.Async
-import cats.implicits._
+import cats.implicits.*
 import org.typelevel.log4cats.Logger
-import monocle.macros.Lenses
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
@@ -22,13 +21,13 @@ import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
 import observe.server.altair.AltairController.AltairConfig
-import observe.server.tcs.Gaos._
-import observe.server.tcs.TcsController._
+import observe.server.tcs.Gaos.*
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import shapeless.tag.@@
 import squants.Length
 import squants.space.Area
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 import TcsNorthController._
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.tcs.TcsControllerEpicsCommon.{calcMoveDistanceSquared, offsetNear}
@@ -43,7 +42,7 @@ trait TcsNorthControllerEpicsAo[F[_]] {
 
 object TcsNorthControllerEpicsAo {
 
-  private final class TcsNorthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+  private final class TcsNorthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
     L:                                                                     Logger[F]
   ) extends TcsNorthControllerEpicsAo[F]
       with TcsControllerEncoders {
@@ -80,7 +79,7 @@ object TcsNorthControllerEpicsAo {
 
         actions.map { r =>
           { (x: EpicsTcsAoConfig) =>
-            r.self.as(EpicsTcsAoConfig.aowfs.replace(d)(x))
+            r.self.as(Focus[EpicsTcsAoConfig](_.aowfs).replace(d)(x))
           }.withDebug(s"AltairProbe(${r.debug})")
         }
       } else none
@@ -187,8 +186,7 @@ object TcsNorthControllerEpicsAo {
                            .whenA(!s0.base.useAo)
         pr            <- pauseResumeGaos(gaos, s0, tcs)
         adjustedDemand =
-          AoTcsConfig.gds
-            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+          Focus[AoTcsConfig](_.gds).andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
             .andThen(tagIso[GuiderConfig, AoGuide])
             .andThen(GuiderConfig.tracking)
             .modify(t => (pr.forceFreeze && t.isActive).fold(ProbeTrackingConfig.Off, t))(tcs)
@@ -329,8 +327,7 @@ object TcsNorthControllerEpicsAo {
           .gc[GuiderConfig @@ AoGuide, AltairConfig]
           .andThen(TelescopeGuideConfig.m1Guide)
           .replace(M1GuideConfig.M1GuideOff)
-      ) >>> AoTcsConfig.gc
-        .andThen(TelescopeGuideConfig.m2Guide)
+      ) >>> Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
         .replace(
           m2config
         ) >>> normalizeMountGuiding)(demand)
@@ -436,9 +433,8 @@ object TcsNorthControllerEpicsAo {
       val newGuideConfig = (
         enableM1Guide.fold[TcsNorthAoConfig => TcsNorthAoConfig](
           identity,
-          AoTcsConfig.gc.andThen(TelescopeGuideConfig.m1Guide).replace(M1GuideConfig.M1GuideOff)
-        ) >>> AoTcsConfig.gc
-          .andThen(TelescopeGuideConfig.m2Guide)
+          Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide).replace(M1GuideConfig.M1GuideOff)
+        ) >>> Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
           .replace(
             m2config
           ) >>> normalizeMountGuiding
@@ -462,8 +458,7 @@ object TcsNorthControllerEpicsAo {
 
     // Disable Mount guiding if M2 guiding is disabled
     val normalizeMountGuiding: Endo[TcsNorthAoConfig] = cfg =>
-      AoTcsConfig.gc
-        .andThen(TelescopeGuideConfig.mountGuide)
+      Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.mountGuide)
         .modify { m =>
           (m, cfg.gc.m2Guide) match {
             case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
@@ -477,8 +472,7 @@ object TcsNorthControllerEpicsAo {
   def apply[F[_]: Async: Logger](epicsSys: TcsEpics[F]): TcsNorthControllerEpicsAo[F] =
     new TcsNorthControllerEpicsAoImpl(epicsSys)
 
-  @Lenses
-  final case class EpicsTcsAoConfig(
+    final case class EpicsTcsAoConfig(
     base:  BaseEpicsTcsConfig,
     aowfs: ProbeTrackingConfig
   )

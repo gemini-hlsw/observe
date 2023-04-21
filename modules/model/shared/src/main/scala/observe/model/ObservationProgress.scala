@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 import monocle.Iso
 import monocle.Prism
@@ -22,20 +22,20 @@ sealed trait Progress extends Product with Serializable {
 
 object Progress {
 
-  implicit val equalProgress: Eq[Progress] =
+  given Eq[Progress] =
     Eq.instance {
       case (a: ObservationProgress, b: ObservationProgress)     => a === b
       case (a: NSObservationProgress, b: NSObservationProgress) => a === b
       case _                                                    => false
     }
 
-  implicit val obsProgressP: Prism[Progress, ObservationProgress] =
+  given Prism[Progress, ObservationProgress] =
     GenPrism[Progress, ObservationProgress]
 
-  implicit val nsProgressP: Prism[Progress, NSObservationProgress] =
+  given Prism[Progress, NSObservationProgress] =
     GenPrism[Progress, NSObservationProgress]
 
-  implicit val progressP: Prism[Progress, Progress] =
+  given Prism[Progress, Progress] =
     Iso.id[Progress].asPrism
 }
 
@@ -49,7 +49,7 @@ final case class ObservationProgress(
 
 object ObservationProgress {
 
-  implicit val equalObservationProgress: Eq[ObservationProgress] =
+  given Eq[ObservationProgress] =
     Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
 
 }
@@ -65,12 +65,12 @@ final case class NSObservationProgress(
 
 object NSObservationProgress {
 
-  implicit val equalNSObservationProgress: Eq[NSObservationProgress] =
+  given Eq[NSObservationProgress] =
     Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
 }
 
-sealed abstract class ObserveStage(val tag: String) extends Product with Serializable
+sealed abstract class ObserveStage(val tag: String)
 
 object ObserveStage {
 
@@ -79,7 +79,7 @@ object ObserveStage {
   case object Acquiring  extends ObserveStage("Acquiring")
   case object ReadingOut extends ObserveStage("ReadingOut")
 
-  implicit val observeStageEnum: Enumerated[ObserveStage] =
+  given Enumerated[ObserveStage] =
     Enumerated.from(Idle, Preparing, Acquiring, ReadingOut).withTag(_.tag)
 
   def fromBooleans(prep: Boolean, acq: Boolean, rdout: Boolean): ObserveStage =

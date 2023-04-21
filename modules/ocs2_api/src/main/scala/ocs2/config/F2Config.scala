@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2.config
@@ -28,7 +28,7 @@ object F2Config {
     case object Custom                   extends F2FpuChoice
     final case class Builtin(fpu: F2Fpu) extends F2FpuChoice
 
-    implicit val EqF2FpuChoice: Eq[F2FpuChoice] =
+    given Eq[F2FpuChoice] =
       Eq.fromUniversalEquals
   }
 

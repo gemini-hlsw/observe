@@ -8,17 +8,17 @@ import observe.model.M2GuideConfig
 import observe.model.enums.ComaOption
 import observe.model.enums.MountGuideOption
 import observe.server.EpicsCodex.EncodeEpicsValue
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 trait TcsControllerEncoders {
   // Encoders
-  implicit val encodeMountGuideConfig: EncodeEpicsValue[MountGuideOption, String] =
+  given EncodeEpicsValue[MountGuideOption, String] =
     EncodeEpicsValue {
       case MountGuideOption.MountGuideOn  => "on"
       case MountGuideOption.MountGuideOff => "off"
     }
 
-  implicit val encodeM1GuideConfig: EncodeEpicsValue[M1GuideConfig, String] =
+  given EncodeEpicsValue[M1GuideConfig, String] =
     EncodeEpicsValue {
       case M1GuideConfig.M1GuideOn(_) => "on"
       case M1GuideConfig.M1GuideOff   => "off"
@@ -42,19 +42,19 @@ trait TcsControllerEncoders {
       case M2GuideConfig.M2GuideOff      => "on"
     }
 
-  implicit val encodeNodChopOption: EncodeEpicsValue[NodChopTrackingOption, String] =
+  given EncodeEpicsValue[NodChopTrackingOption, String] =
     EncodeEpicsValue {
       case NodChopTrackingOption.NodChopTrackingOn  => "On"
       case NodChopTrackingOption.NodChopTrackingOff => "Off"
     }
 
-  implicit val encodeFollowOption: EncodeEpicsValue[FollowOption, String] =
+  given EncodeEpicsValue[FollowOption, String] =
     EncodeEpicsValue {
       case FollowOption.FollowOn  => "On"
       case FollowOption.FollowOff => "Off"
     }
 
-  implicit val encodeHrwfsPickupPosition: EncodeEpicsValue[HrwfsPickupPosition, String] =
+  given EncodeEpicsValue[HrwfsPickupPosition, String] =
     EncodeEpicsValue {
       case HrwfsPickupPosition.IN     => "IN"
       case HrwfsPickupPosition.OUT    => "OUT"

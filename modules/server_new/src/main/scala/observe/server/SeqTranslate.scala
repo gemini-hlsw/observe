@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -8,7 +8,7 @@ package observe.server
 //import cats.data.EitherT
 //import cats.data.NonEmptySet
 import cats.effect.{Async, Temporal}
-import cats.syntax.all._
+import cats.syntax.all.*
 //import lucuma.core.math.Wavelength
 //import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
@@ -78,23 +78,23 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
-  def sequence(sequence: OdbObservation)(implicit
-    tio:              Temporal[F]
+  def sequence(sequence: OdbObservation)(using
+    tio:                 Temporal[F]
   ): Option[Either[List[Throwable], SequenceGen[F]]]
 
-  def stopObserve(seqId: Observation.Id, graceful: Boolean)(implicit
+  def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
     tio:                 Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
-  def abortObserve(seqId: Observation.Id)(implicit
+  def abortObserve(seqId: Observation.Id)(using
     tio:                  Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
-  def pauseObserve(seqId: Observation.Id, graceful: Boolean)(implicit
+  def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
     tio:                  Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
-  def resumePaused(seqId: Observation.Id)(implicit
+  def resumePaused(seqId: Observation.Id)(using
     tio:                  Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
@@ -107,8 +107,8 @@ object SeqTranslate {
 //  }
 
   class SeqTranslateImpl[F[_]: Async: Logger](
-    site:      Site,
-    systemss:  Systems[F]/*,
+    site:     Site,
+    systemss: Systems[F] /*,
     gmosNsCmd: Ref[F, Option[NSObserveCommand]],
     instStepBuilder: InstrumentStepBuilder[F, S, I]*/
   ) extends SeqTranslate[F] {
@@ -224,7 +224,7 @@ object SeqTranslate {
 ////      )
 ////    }
 //
-//    override def sequence[C](sequence: OdbObservation)(implicit
+//    override def sequence[C](sequence: OdbObservation)(using
 //      tio:                       Temporal[F]
 //    ): F[(List[Throwable], Option[SequenceGen[F]])] = {
 //
@@ -328,7 +328,7 @@ object SeqTranslate {
 //      case _                       => Event.nullEvent[F].pure[F].widen[EventType[F]]
 //    }
 //
-//    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(implicit
+//    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
 //      tio:                          Temporal[F]
 //    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
 //      def f(oc: ObserveControl[F]): F[Unit] = oc match {
@@ -339,7 +339,7 @@ object SeqTranslate {
 //      deliverObserveCmd(seqId, f)(st).orElse(stopPaused(seqId).apply(st))
 //    }
 //
-//    override def abortObserve(seqId: Observation.Id)(implicit
+//    override def abortObserve(seqId: Observation.Id)(using
 //      tio:                           Temporal[F]
 //    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
 //      def f(oc: ObserveControl[F]): F[Unit] = oc match {
@@ -351,7 +351,7 @@ object SeqTranslate {
 //      deliverObserveCmd(seqId, f)(st).orElse(abortPaused(seqId).apply(st))
 //    }
 //
-//    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(implicit
+//    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
 //      tio:                           Temporal[F]
 //    ): EngineState[F] => Option[Stream[F, EventType[F]]] = {
 //      def f(oc: ObserveControl[F]): F[Unit] = oc match {
@@ -361,7 +361,7 @@ object SeqTranslate {
 //      deliverObserveCmd(seqId, f)
 //    }
 //
-//    override def resumePaused(seqId: Observation.Id)(implicit
+//    override def resumePaused(seqId: Observation.Id)(using
 //      tio:                           Temporal[F]
 //    ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
 //      val observeIndex: Option[(ObserveContext[F], Option[Time], Int)] =
@@ -397,7 +397,7 @@ object SeqTranslate {
 //      }
 //    }
 //
-//    private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result[F]])(
+//    private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
 //      st:                        EngineState[F]
 //    ): Option[Stream[F, EventType[F]]] =
 //      st.sequences
@@ -808,15 +808,25 @@ object SeqTranslate {
 //        }.pure[F]
 //    }
 
-    override def sequence(sequence: OdbObservation)(implicit tio: Temporal[F]): Option[Either[List[Throwable], SequenceGen[F]]] = None
+    override def sequence(sequence: OdbObservation)(using
+      tio:                          Temporal[F]
+    ): Option[Either[List[Throwable], SequenceGen[F]]] = None
 
-    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(implicit tio: Temporal[F]): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
+    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio:                          Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
-    override def abortObserve(seqId: Observation.Id)(implicit tio: Temporal[F]): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
+    override def abortObserve(seqId: Observation.Id)(using
+      tio:                           Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
-    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(implicit tio: Temporal[F]): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
+    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio:                           Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
-    override def resumePaused(seqId: Observation.Id)(implicit tio: Temporal[F]): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
+    override def resumePaused(seqId: Observation.Id)(using
+      tio:                           Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
   }
 
 //  def calcStepType(a: SeqStepConfig, i: Instrument): StepType = a match {
@@ -830,7 +840,7 @@ object SeqTranslate {
     new SeqTranslateImpl(site, systems).pure[F].widen[SeqTranslate[F]]
 ////    Ref.of[F, Option[NSObserveCommand]](none).map(new SeqTranslateImpl(site, systems, _))
 //
-//  def dataIdFromConfig[F[_]: MonadError[*[_], Throwable]](config: CleanConfig): F[DataId] =
+//  def dataIdFromConfig[F[_]: MonadThrow](config: CleanConfig): F[DataId] =
 //    EitherT
 //      .fromEither[F](
 //        config

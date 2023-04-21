@@ -11,9 +11,9 @@ case object IsModified    extends UserModified
 case object NotModified   extends UserModified
 
 object UserModified {
-  implicit val eq: Eq[UserModified] = Eq.fromUniversalEquals
+  given Eq[UserModified] = Eq.fromUniversalEquals
 
-  implicit val reuse: Reusability[UserModified] = Reusability.byRef
+  given Reusability[UserModified] = Reusability.byRef
 
   def fromBool(b: Boolean): UserModified = if (b) IsModified else NotModified
 }

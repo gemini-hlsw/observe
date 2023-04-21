@@ -6,7 +6,7 @@ package observe.web.client.model
 import scala.math.max
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Axis
 import observe.model.NodAndShuffleStep
@@ -15,8 +15,8 @@ import observe.model.OffsetType
 import observe.model.StandardStep
 import observe.model.Step
 import observe.model.enums.Instrument
-import observe.web.client.model.StepItems._
-import web.client.utils._
+import observe.web.client.model.StepItems.*
+import web.client.utils.*
 
 /**
  * Utility methods to format step items
@@ -32,29 +32,29 @@ object Formatting {
       axisLabelWidth:  Double,
       nsNodLabelWidth: Double
     ) extends OffsetsDisplay
-    implicit val eq: Eq[OffsetsDisplay] =
+    given Eq[OffsetsDisplay] =
       Eq.by {
         case NoDisplay                  => None
         case DisplayOffsets(ow, aw, nw) => Some((ow, aw, nw))
       }
   }
 
-  def offsetAxis[A](implicit show: OffsetFormat[A]): String =
+  def offsetAxis[A](using show: OffsetFormat[A]): String =
     s"${show.format}:"
 
-  def offsetNSNod[T](implicit show: OffsetFormat[T]): String =
+  def offsetNSNod[T](using show: OffsetFormat[T]): String =
     s"${show.format}"
 
   def offsetAngle(off: Angle): String =
     f" ${Angle.signedDecimalArcseconds.get(off).toDouble}%03.2f″"
 
-  def axisLabelWidth[A](implicit show: OffsetFormat[A]): Double =
+  def axisLabelWidth[A](using show: OffsetFormat[A]): Double =
     tableTextWidth(offsetAxis[A])
 
-  def nsNodLabelWidth[A](implicit show: OffsetFormat[A]): Double =
+  def nsNodLabelWidth[A](using show: OffsetFormat[A]): Double =
     tableTextWidth(offsetNSNod[A])
 
-  implicit class OffsetWidthsFnsOps(val steps: List[Step]) extends AnyVal {
+  extension(steps: List[Step]) {
     private def maxWidth(angles: List[Angle]): Double =
       angles.map(angle => tableTextWidth(offsetAngle(angle))).maximumOption.orEmpty
 
@@ -92,7 +92,7 @@ object Formatting {
         }
   }
 
-  implicit class ExtraStringOps(val s: String) extends AnyVal {
+  extension(s: String) {
     def sentenceCase: String =
       (s.toList match {
         case Nil       => Nil

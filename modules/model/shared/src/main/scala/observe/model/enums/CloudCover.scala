@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 
 sealed abstract class CloudCover(val tag: String, val toInt: Option[Int], val label: String)
@@ -19,6 +19,6 @@ object CloudCover {
   case object Any       extends CloudCover("Any", 100.some, "Any")
 
   /** @group Typeclass Instances */
-  implicit val CloudCoverEnumerated: Enumerated[CloudCover] =
+  given Enumerated[CloudCover] =
     Enumerated.from(Unknown, Percent50, Percent70, Percent80, Any).withTag(_.tag)
 }

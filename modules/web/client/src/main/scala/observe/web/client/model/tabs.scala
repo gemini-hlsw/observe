@@ -6,14 +6,13 @@ package observe.web.client.model
 import scala.collection.immutable.SortedMap
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 import monocle.Lens
 import monocle.Optional
 import monocle.Prism
 import monocle.macros.GenPrism
-import monocle.macros.Lenses
-import monocle.std.either._
+import monocle.std.either.*
 import observe.model.Observation
 import observe.model.Observer
 import observe.model.RunningStep
@@ -21,8 +20,8 @@ import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.StepId
 import observe.model.SystemOverrides
-import observe.model.enums._
-import observe.web.client.model.ModelOps._
+import observe.model.enums.*
+import observe.web.client.model.ModelOps.*
 import shapeless.tag.@@
 
 final case class AvailableTab(
@@ -40,7 +39,7 @@ final case class AvailableTab(
 )
 
 object AvailableTab {
-  implicit val eq: Eq[AvailableTab] =
+  given Eq[AvailableTab] =
     Eq.by(x =>
       (x.idName,
        x.status,
@@ -60,7 +59,7 @@ object AvailableTab {
 final case class CalibrationQueueTabActive(calibrationTab: CalibrationQueueTab, active: TabSelected)
 
 object CalibrationQueueTabActive {
-  implicit val eq: Eq[CalibrationQueueTabActive] =
+  given Eq[CalibrationQueueTabActive] =
     Eq.by(x => (x.calibrationTab, x.active))
 }
 
@@ -72,7 +71,7 @@ object TabSelected {
   def fromBoolean(b: Boolean): TabSelected = if (b) Selected else Background
 
   /** @group Typeclass Instances */
-  implicit val TabSelectedEnumerated: Enumerated[TabSelected] =
+  given Enumerated[TabSelected] =
     Enumerated.from(Selected, Background).withTag(_.tag)
 
 }
@@ -80,7 +79,7 @@ object TabSelected {
 final case class ObserveTabActive(tab: SequenceTab, active: TabSelected)
 
 object ObserveTabActive {
-  implicit val eq: Eq[ObserveTabActive] =
+  given Eq[ObserveTabActive] =
     Eq.by(x => (x.tab, x.active))
 
 }
@@ -90,7 +89,7 @@ sealed trait ObserveTab {
 }
 
 object ObserveTab {
-  implicit val eq: Eq[ObserveTab] =
+  given Eq[ObserveTab] =
     Eq.instance {
       case (a: SequenceTab, b: SequenceTab)                 => a === b
       case (a: CalibrationQueueTab, b: CalibrationQueueTab) => a === b
@@ -111,7 +110,6 @@ object ObserveTab {
 
 }
 
-@Lenses
 final case class CalibrationQueueTab(state: BatchExecState, observer: Option[Observer])
     extends ObserveTab {
   val isPreview: Boolean = false
@@ -121,7 +119,7 @@ object CalibrationQueueTab {
   val Empty: CalibrationQueueTab =
     CalibrationQueueTab(BatchExecState.Idle, None)
 
-  implicit val eq: Eq[CalibrationQueueTab] =
+  given Eq[CalibrationQueueTab] =
     Eq.by(x => (x.state, x.observer))
 }
 
@@ -197,7 +195,7 @@ sealed trait SequenceTab extends ObserveTab {
 }
 
 object SequenceTab {
-  implicit val eq: Eq[SequenceTab] =
+  given Eq[SequenceTab] =
     Eq.instance {
       case (a: InstrumentSequenceTab, b: InstrumentSequenceTab) => a === b
       case (a: PreviewSequenceTab, b: PreviewSequenceTab)       => a === b
@@ -223,10 +221,9 @@ object SequenceTab {
     })
 
   val resourcesRunOperationsL: Lens[SequenceTab, SortedMap[Resource, ResourceRunOperation]] =
-    SequenceTab.tabOperationsL.andThen(TabOperations.resourceRunRequested)
+    Focus[SequenceTab](_.tabOperationsL).andThen(TabOperations.resourceRunRequested)
 }
 
-@Lenses
 final case class InstrumentSequenceTab(
   inst:            Instrument,
   curSequence:     Either[
@@ -250,13 +247,15 @@ object InstrumentSequenceTab {
   trait LoadedSV
   trait CompletedSV
 
-  type LoadedSequenceView    = SequenceView @@ LoadedSV
-  type CompletedSequenceView = SequenceView @@ CompletedSV
+  object LoadedSequenceView extends NewType[SequenceView]
+  type LoadedSequenceView = LoadedSequenceView.Type
+  object CompletedSequenceView extends NewType[SequenceView]
+  type CompletedSequenceView = CompletedSequenceView.Type
 
   private implicit val loadedEq: Eq[LoadedSequenceView]       = Eq.by(identity)
   private implicit val completedEq: Eq[CompletedSequenceView] = Eq.by(identity)
 
-  implicit val eq: Eq[InstrumentSequenceTab] =
+  given Eq[InstrumentSequenceTab] =
     Eq.by(x =>
       (x.instrument,
        x.sequence,
@@ -268,20 +267,19 @@ object InstrumentSequenceTab {
       )
     )
 
-  implicit val completedSequence: Optional[InstrumentSequenceTab, CompletedSequenceView] =
-    InstrumentSequenceTab.curSequence.andThen(
+  given Optional[InstrumentSequenceTab, CompletedSequenceView] =
+    Focus[InstrumentSequenceTab](_.curSequence).andThen(
       stdLeft[InstrumentSequenceTab.CompletedSequenceView, InstrumentSequenceTab.LoadedSequenceView]
     )
 
-  implicit val loadedSequence: Optional[InstrumentSequenceTab, LoadedSequenceView] =
-    InstrumentSequenceTab.curSequence.andThen(
+  given Optional[InstrumentSequenceTab, LoadedSequenceView] =
+    Focus[InstrumentSequenceTab](_.curSequence).andThen(
       stdRight[InstrumentSequenceTab.CompletedSequenceView,
                InstrumentSequenceTab.LoadedSequenceView
       ]
     )
 }
 
-@Lenses
 final case class PreviewSequenceTab(
   currentSequence: SequenceView,
   stepConfig:      Option[StepId],
@@ -290,6 +288,6 @@ final case class PreviewSequenceTab(
 ) extends SequenceTab
 
 object PreviewSequenceTab {
-  implicit val eq: Eq[PreviewSequenceTab] =
+  given Eq[PreviewSequenceTab] =
     Eq.by(x => (x.currentSequence, x.stepConfig, x.isLoading, x.tabOperations))
 }

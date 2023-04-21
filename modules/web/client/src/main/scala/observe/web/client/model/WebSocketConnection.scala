@@ -20,7 +20,7 @@ object WebSocketConnection {
   val Empty: WebSocketConnection =
     WebSocketConnection(diode.data.Empty, 0, autoReconnect = true, None)
 
-  implicit val equal: Eq[WebSocketConnection] =
+  given Eq[WebSocketConnection] =
     Eq.by { x =>
       (x.ws, x.nextAttempt, x.autoReconnect)
     }

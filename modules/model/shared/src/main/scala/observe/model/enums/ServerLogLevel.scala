@@ -1,11 +1,13 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class ServerLogLevel(val tag: String, val label: String) extends Product with Serializable
+sealed abstract class ServerLogLevel(val tag: String, val label: String)
+    extends Product
+    with Serializable
 
 object ServerLogLevel {
 
@@ -14,6 +16,6 @@ object ServerLogLevel {
   case object ERROR extends ServerLogLevel("ERROR", "ERROR")
 
   /** @group Typeclass Instances */
-  implicit val ServerLogLevelEnumerated: Enumerated[ServerLogLevel] =
+  given Enumerated[ServerLogLevel] =
     Enumerated.from(INFO, WARN, ERROR).withTag(_.tag)
 }

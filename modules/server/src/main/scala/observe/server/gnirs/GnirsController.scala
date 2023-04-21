@@ -6,7 +6,7 @@ package observe.server.gnirs
 import cats.Applicative
 import cats.Eq
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{ReadMode => LegacyReadMode}
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
@@ -14,7 +14,7 @@ import observe.server.Progress
 import observe.server.gnirs.GnirsController.GnirsConfig
 import squants.Length
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait GnirsController[F[_]] {
 
@@ -118,7 +118,7 @@ object GnirsController {
     case object LR_IFU       extends SlitWidth
     case object HR_IFU       extends SlitWidth
 
-    implicit val eq: Eq[SlitWidth] = Eq.fromUniversalEquals
+    given Eq[SlitWidth] = Eq.fromUniversalEquals
   }
 
   type WellDepth = edu.gemini.spModel.gemini.gnirs.GNIRSParams.WellDepth
@@ -149,7 +149,7 @@ object GnirsController {
 
   final case class GnirsConfig(cc: CCConfig, dc: DCConfig)
 
-  implicit val cfgShow: Show[GnirsConfig] = Show.fromToString
+  given Show[GnirsConfig] = Show.fromToString
 
   def calcTotalExposureTime[F[_]: Applicative](cfg: GnirsController.DCConfig): F[Time] = {
     val readOutTime = cfg.readMode match {

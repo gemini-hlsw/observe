@@ -7,8 +7,8 @@ import java.lang.{Double => JDouble}
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.nifs.{DhsConnected, ReadMode, TimeMode}
 import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
 import observe.server.EpicsCommandBase.setParameter

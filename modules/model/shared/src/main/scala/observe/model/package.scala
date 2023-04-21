@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe
@@ -6,7 +6,7 @@ package observe
 import java.util.UUID
 
 import cats._
-import observe.model.enums._
+import observe.model.enums.*
 import squants.time.Time
 import squants.time.TimeUnit
 
@@ -24,33 +24,33 @@ package object model {
   type ObservationName = String
   type TargetName      = String
 
-  implicit val queueIdEq: Eq[QueueId]                        = Eq.by(x => x.self)
-  implicit val queueIdShow: Show[QueueId]                    = Show.fromToString
-  implicit val queueIdOrder: Order[QueueId]                  =
+  given Eq[QueueId]                  = Eq.by(x => x.self)
+  given Show[QueueId]                = Show.fromToString
+  given Order[QueueId]               =
     Order.by(_.self)
-  implicit val queueIdOrdering: scala.math.Ordering[QueueId] =
-    queueIdOrder.toOrdering
+  given scala.math.Ordering[QueueId] =
+    Order[QueueId].toOrdering
 
-  implicit val stEq: Eq[StepConfig]                            = Eq.fromUniversalEquals
-  implicit val clientIdEq: Eq[ClientId]                        = Eq.by(x => x.self)
-  implicit val clientIdShow: Show[ClientId]                    = Show.fromToString
-  implicit val clientIdOrder: Order[ClientId]                  =
+  given Eq[StepConfig]                = Eq.fromUniversalEquals
+  given Eq[ClientId]                  = Eq.by(x => x.self)
+  given Show[ClientId]                = Show.fromToString
+  given Order[ClientId]               =
     Order.by(_.self)
-  implicit val clientIdOrdering: scala.math.Ordering[ClientId] =
-    clientIdOrder.toOrdering
-  val UnknownTargetName                                        = "None"
+  given scala.math.Ordering[ClientId] =
+    Order[ClientId].toOrdering
+  val UnknownTargetName               = "None"
 
   val CalibrationQueueName: String = "Calibration Queue"
   val CalibrationQueueId: QueueId  =
     QueueId(UUID.fromString("7156fa7e-48a6-49d1-a267-dbf3bbaa7577"))
 
-  implicit val timeUnit: Eq[TimeUnit] =
+  given Eq[TimeUnit] =
     Eq.by(_.symbol)
 
-  implicit val timeEq: Eq[Time] =
+  given Eq[Time] =
     Eq.by(_.toMilliseconds)
 
-  implicit class InstrumentOps(val i: Instrument) extends AnyVal {
+  extension (i: Instrument) {
     def hasOI: Boolean = i match {
       case Instrument.F2    => true
       case Instrument.GmosS => true
@@ -61,7 +61,6 @@ package object model {
       case Instrument.Gsaoi => false
       case Instrument.Gpi   => true
       case Instrument.Ghost => false
-      case _                => false
     }
   }
 }

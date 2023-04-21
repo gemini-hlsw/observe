@@ -26,7 +26,7 @@ object AlignAndCalibStep {
   case object Done               extends AlignAndCalibStep("Done")
 
   /** @group Typeclass Instances */
-  implicit val AlignAndCalibStepEnumerated: Enumerated[AlignAndCalibStep] =
+  given Enumerated[AlignAndCalibStep] =
     Enumerated.from(
       NoAction,
       StartGuiding,

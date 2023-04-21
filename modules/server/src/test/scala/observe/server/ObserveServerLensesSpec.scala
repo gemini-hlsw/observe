@@ -7,8 +7,8 @@ import cats.Eq
 import cats.tests.CatsSuite
 import edu.gemini.spModel.config2.{Config, ItemKey}
 import monocle.law.discipline.LensTests
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.enums.Instrument
 import observe.model.SystemOverrides
 import observe.engine
@@ -22,36 +22,36 @@ import observe.common.test.observationId
  */
 final class ObserveServerLensesSpec extends CatsSuite with ObserveServerArbitraries {
 
-  implicit val eqItemKeys: Eq[Map[ItemKey, AnyRef]] = Eq.fromUniversalEquals
-  implicit val eqLegacyConfig: Eq[Config]           = Eq.fromUniversalEquals
-  implicit val eqCleanConfig: Eq[CleanConfig]       =
+  given Eq[Map[ItemKey, AnyRef]] = Eq.fromUniversalEquals
+  given Eq[Config]           = Eq.fromUniversalEquals
+  given Eq[CleanConfig]       =
     Eq.by(x => (x.config, x.overrides))
 
   // I tried to go down the rabbit hole with the Eqs, but it is not worth it for what they are used.
-  implicit def actStateEq[F[_]]: Eq[Action.State[F]]                                             = Eq.fromUniversalEquals
-  implicit def actionEq[F[_]]: Eq[Action[F]]                                                     = Eq.by(x => (x.kind, x.state))
+  given [F[_]]:Eq[Action.State[F]]                                             = Eq.fromUniversalEquals
+  given [F[_]]:Eq[Action[F]]                                                     = Eq.by(x => (x.kind, x.state))
   // Formally, to probe equality between two functions it must be probed that they produce the same result for all
   // possible inputs. We settle for the `UniversalEquals` instead.
-  implicit def steplEq[F[_]]: Eq[HeaderExtraData => List[ParallelActions[F]]]                    =
+  given [F[_]]:Eq[HeaderExtraData => List[ParallelActions[F]]]                    =
     Eq.fromUniversalEquals
-  implicit def stepmEq[F[_]]: Eq[(HeaderExtraData, SystemOverrides) => List[ParallelActions[F]]] =
+  given [F[_]]:Eq[(HeaderExtraData, SystemOverrides) => List[ParallelActions[F]]] =
     Eq.fromUniversalEquals
-  implicit def stepnEq[F[_]]: Eq[SystemOverrides => Action[F]]                                   = Eq.fromUniversalEquals
-  implicit def stepActionsGenEq[F[_]]: Eq[StepActionsGen[F]]                                     = Eq.by(x => (x.configs, x.post))
-  implicit def pndstepgEq[F[_]]: Eq[PendingStepGen[F]]                                           =
+  given [F[_]]:Eq[SystemOverrides => Action[F]]                                   = Eq.fromUniversalEquals
+  given [F[_]]:Eq[StepActionsGen[F]]                                     = Eq.by(x => (x.configs, x.post))
+  given [F[_]]:Eq[PendingStepGen[F]]                                           =
     Eq.by(x => (x.id, x.config, x.resources, x.generator))
-  implicit val skipstepgEq: Eq[SkippedStepGen]                                                   = Eq.by(x => (x.id, x.config))
-  implicit val cmpstepgEq: Eq[CompletedStepGen]                                                  = Eq.by(x => (x.id, x.config, x.fileId))
-  implicit def stepqEq[F[_]]: Eq[StepGen[F]]                                                     = Eq.instance {
+  given Eq[SkippedStepGen]                                                   = Eq.by(x => (x.id, x.config))
+  given Eq[CompletedStepGen]                                                  = Eq.by(x => (x.id, x.config, x.fileId))
+  given [F[_]]:Eq[StepGen[F]]                                                     = Eq.instance {
     case (a: PendingStepGen[F], b: PendingStepGen[F]) => a === b
     case (a: SkippedStepGen, b: SkippedStepGen)       => a === b
     case (a: CompletedStepGen, b: CompletedStepGen)   => a === b
     case _                                            => false
   }
-  implicit def seqgEq[F[_]]: Eq[SequenceGen[F]]                                                  = Eq.by(x => (x.id, x.title, x.instrument, x.steps))
-  implicit def obsseqEq[F[_]]: Eq[SequenceData[F]]                                               = Eq.by(x => (x.observer, x.seqGen))
-  implicit def seqstateEq[F[_]]: Eq[engine.Sequence.State[F]]                                    = Eq.fromUniversalEquals
-  implicit val stateEq: Eq[EngineState[IO]]                                                      =
+  given [F[_]]:Eq[SequenceGen[F]]                                                  = Eq.by(x => (x.id, x.title, x.instrument, x.steps))
+  given [F[_]]:Eq[SequenceData[F]]                                               = Eq.by(x => (x.observer, x.seqGen))
+  given [F[_]]:Eq[engine.Sequence.State[F]]                                    = Eq.fromUniversalEquals
+  given Eq[EngineState[IO]]                                                      =
     Eq.by(x => (x.queues, x.selected, x.conditions, x.operator, x.sequences))
 
   checkAll("selected optional", LensTests(EngineState.instrumentLoadedL[IO](Instrument.Gpi)))

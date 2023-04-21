@@ -61,7 +61,7 @@ package gmos {
     case object PauseGracefully  extends NSObserveCommand("PauseGracefully")
     case object PauseImmediately extends NSObserveCommand("PauseImmediately")
 
-    implicit val nsObserveCommandEnum: Enumerated[NSObserveCommand] =
+    given Enumerated[NSObserveCommand] =
       Enumerated.from(
         StopGracefully,
         StopImmediately,

@@ -6,7 +6,7 @@ package observe.server.keywords
 import cats.Applicative
 import cats.data.Nested
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.guide.StandardGuideOptions
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName
@@ -54,7 +54,7 @@ class StandardHeader[F[_]: Sync: Logger](
     if (obsType === "OBJECT" && obsObject =!= "Twilight" && obsObject =!= "Domeflat") tcsObject
     else obsObject
 
-  private def optTcsKeyword[B](s: TcsController.Subsystem)(v: F[B])(implicit
+  private def optTcsKeyword[B](s: TcsController.Subsystem)(v: F[B])(using
     d:                            DefaultHeaderValue[B]
   ): F[B] =
     if (tcsSubsystems.contains(s)) v else d.default.pure[F]

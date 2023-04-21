@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
 import cats.data.NonEmptyList
-import cats.syntax.all._
-import mouse.all._
+import cats.syntax.all.*
+import mouse.all.*
 import observe.engine.Action
 import observe.engine.ActionCoordsInSeq
 import observe.engine.ActionIndex
@@ -19,6 +19,7 @@ import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
+import monocle.Focus
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.
@@ -56,7 +57,7 @@ final case class SequenceGen[F[_]](
 
 object SequenceGen {
 
-  sealed trait StepGen[+F[_]] {
+  sealed trait StepGen[F[_]] {
     val id: StepId
     val dataId: DataId
     val config: Map[String, String]
@@ -72,7 +73,7 @@ object SequenceGen {
         case p: PendingStepGen[F]          =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
         case SkippedStepGen(id, _, _)      =>
-          EngineStep.skippedL.replace(true)(EngineStep.init[F](id, Nil))
+          EngineStep.skippedL[F].replace(true)(EngineStep.init[F](id, Nil))
         case CompletedStepGen(id, _, _, _) => EngineStep.init[F](id, Nil)
       }
   }
@@ -102,24 +103,24 @@ object SequenceGen {
     override val dataId: DataId,
     override val config: Map[String, String],
     resources:           Set[Resource],
-    //obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
+    // obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:           StepActionsGen[F]
   ) extends StepGen[F]
 
-  final case class SkippedStepGen[D](
+  final case class SkippedStepGen[F[_]](
     override val id:     StepId,
     override val dataId: DataId,
     override val config: Map[String, String]
-  ) extends StepGen[Nothing]
+  ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
-  final case class CompletedStepGen[D](
+  final case class CompletedStepGen[F[_]](
     override val id:     StepId,
     override val dataId: DataId,
     override val config: Map[String, String],
     fileId:              Option[ImageFileId]
-  ) extends StepGen[Nothing]
+  ) extends StepGen[F]
 
   def stepIndex[F[_], D](steps: List[SequenceGen.StepGen[F]], stepId: StepId): Option[Int] =
     steps.zipWithIndex.find(_._1.id === stepId).map(_._2)

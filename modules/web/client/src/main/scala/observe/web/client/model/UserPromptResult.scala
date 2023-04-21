@@ -13,7 +13,7 @@ object UserPromptResult {
   case object Ok     extends UserPromptResult("Ok")
 
   /** @group Typeclass Instances */
-  implicit val SectionVisibilityStateEnumerated: Enumerated[UserPromptResult] =
+  given Enumerated[UserPromptResult] =
     Enumerated.from(Cancel, Ok).withTag(_.tag)
 
 }

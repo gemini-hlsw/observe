@@ -4,16 +4,16 @@
 package observe.server.gws
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.server.EpicsHealth
-import observe.server.keywords._
+import observe.server.keywords.*
 
 object GwsHeader {
-  def header[F[_]: MonadError[*[_], Throwable]: Logger](
+  def header[F[_]: MonadThrow: Logger](
     kwClient:  KeywordsClient[F],
     gwsReader: GwsKeywordReader[F]
   ): Header[F] = new Header[F] {

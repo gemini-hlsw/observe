@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.enums.ComaOption
 import observe.model.enums.TipTiltSource
 
@@ -22,11 +22,11 @@ object M2GuideConfig {
   }
 
   object M2GuideOn {
-    implicit val eq: Eq[M2GuideOn] = Eq.by(x => (x.coma, x.sources))
+    given Eq[M2GuideOn] = Eq.by(x => (x.coma, x.sources))
   }
 
-  implicit val show: Show[M2GuideConfig] = Show.fromToString
-  implicit val eq: Eq[M2GuideConfig]     = Eq.instance {
+  given Show[M2GuideConfig] = Show.fromToString
+  given Eq[M2GuideConfig]   = Eq.instance {
     case (M2GuideOff, M2GuideOff)                   => true
     case (a @ M2GuideOn(_, _), b @ M2GuideOn(_, _)) => a === b
     case _                                          => false

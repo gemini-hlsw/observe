@@ -5,19 +5,19 @@ package observe.server.gmos
 
 import scala.concurrent.duration.Duration
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.{GmosEOffsetting, GmosRoi, GmosXBinning, GmosYBinning}
 import lucuma.core.math.{Offset, Wavelength}
 import lucuma.core.util.Enumerated
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import observe.model.GmosParameters
-import observe.model.GmosParameters._
+import observe.model.GmosParameters.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server._
+import observe.server.*
 import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NSConfig}
 import shapeless.tag
 
@@ -107,7 +107,7 @@ object GmosController {
       case object CloseShutter extends ShutterState("CloseShutter")
 
       /** @group Typeclass Instances */
-      implicit val ShutterStateEnumerated: Enumerated[ShutterState] =
+      given Enumerated[ShutterState] =
         Enumerated.from(UnsetShutter, OpenShutter, CloseShutter).withTag(_.tag)
     }
 
@@ -118,7 +118,7 @@ object GmosController {
       case object OutOfBeam extends Beam("OutOfBeam")
 
       /** @group Typeclass Instances */
-      implicit val BeamEnumerated: Enumerated[Beam] =
+      given Enumerated[Beam] =
         Enumerated.from(InBeam, OutOfBeam).withTag(_.tag)
     }
 
@@ -231,7 +231,7 @@ object GmosController {
     def this(c: Config[T])(cc: Config.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)
   }
 
-  implicit def configShow[T <: GmosSite]: Show[GmosConfig[T]] =
+  given [T <: GmosSite]:Show[GmosConfig[T]] =
     Show.show { config =>
       val ccShow = config.cc match {
         case DarkOrBias => "DarkOrBias"

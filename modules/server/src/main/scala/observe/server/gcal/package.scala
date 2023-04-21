@@ -7,5 +7,5 @@ import cats.Eq
 import edu.gemini.observe.server.gcal.BinaryOnOff
 
 package object gcal {
-  implicit val binaryOnOffEq: Eq[BinaryOnOff] = Eq.by(_.ordinal())
+  given Eq[BinaryOnOff] = Eq.by(_.ordinal())
 }

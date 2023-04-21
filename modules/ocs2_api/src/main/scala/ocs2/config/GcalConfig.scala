@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package ocs2
@@ -10,8 +10,8 @@ import scala.collection.immutable.SortedSet
 
 import cats.Eq
 import cats.data.NonEmptySet
-import cats.syntax.all._
-import io.chrisdavenport.cats.time.instances.all._
+import cats.syntax.all.*
+import io.chrisdavenport.cats.time.instances.all.*
 import lucuma.core.enums.GcalArc
 import lucuma.core.enums.GcalContinuum
 import lucuma.core.enums.GcalDiffuser
@@ -59,7 +59,7 @@ object GcalConfig extends GcalConfigOptics {
     def of(arc0: GcalArc, arcs: GcalArc*): GcalArcs =
       GcalArcs(NonEmptySet.of(arc0, arcs: _*))
 
-    implicit val EqGcalArcs: Eq[GcalArcs] =
+    given Eq[GcalArcs] =
       Eq.by(_.arcs)
   }
 
@@ -107,7 +107,7 @@ object GcalConfig extends GcalConfigOptics {
       }
   }
 
-  implicit val GcalConfigEq: Eq[GcalConfig] =
+  given Eq[GcalConfig] =
     Eq.by(g => (g.lamp, g.filter, g.diffuser, g.shutter, g.exposureTime, g.coadds))
 
 }

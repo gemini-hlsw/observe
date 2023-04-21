@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 
 sealed abstract class ImageQuality(val tag: String, val toInt: Option[Int], val label: String)
@@ -19,6 +19,6 @@ object ImageQuality {
   case object Any       extends ImageQuality("Any", 100.some, "Any")
 
   /** @group Typeclass Instances */
-  implicit val ImageQualityEnumerated: Enumerated[ImageQuality] =
+  given Enumerated[ImageQuality] =
     Enumerated.from(Unknown, Percent20, Percent70, Percent85, Any).withTag(_.tag)
 }

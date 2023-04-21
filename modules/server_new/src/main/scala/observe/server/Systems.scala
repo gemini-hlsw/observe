@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
 //import cats.Monad
-import cats.effect._
+import cats.effect.*
 //import cats.syntax.all._
 //import edu.gemini.epics.acm.CaService
 //import giapi.client.ghost.GhostClient
@@ -14,7 +14,7 @@ import lucuma.core.enums.Site
 //import mouse.boolean._
 import org.http4s.client.Client
 //import org.http4s.jdkhttpclient.JdkWSClient
-import observe.model.config._
+import observe.model.config.*
 //import observe.server.altair._
 //import observe.server.flamingos2._
 //import observe.server.gcal._
@@ -28,7 +28,7 @@ import observe.model.config._
 //import observe.server.gws.GwsEpics
 //import observe.server.gws.GwsKeywordReader
 //import observe.server.gws.GwsKeywordsReaderEpics
-import observe.server.keywords._
+import observe.server.keywords.*
 //import observe.server.nifs._
 //import observe.server.niri._
 //import observe.server.tcs._
@@ -41,8 +41,8 @@ import cats.effect.Temporal
 //import scala.concurrent.duration.FiniteDuration
 
 final case class Systems[F[_]](
-  //odb:                 OdbProxy[F],
-  dhs:                 DhsClient[F]/*,
+  // odb:                 OdbProxy[F],
+  dhs: DhsClient[F] /*,
   tcsSouth:            TcsSouthController[F],
   tcsNorth:            TcsNorthController[F],
   gcal:                GcalController[F],
@@ -73,10 +73,10 @@ final case class Systems[F[_]](
 object Systems {
 
   final case class Builder(
-    settings:   ObserveEngineConfiguration,
+    settings: ObserveEngineConfiguration,
 //    service:    CaService,
-    tops:       Map[String, String]
-  )(implicit L: Logger[IO], T: Temporal[IO]) {
+    tops:     Map[String, String]
+  )(using L:  Logger[IO], T: Temporal[IO]) {
 //    val reconnectionStrategy: WebSocketReconnectionStrategy =
 //      (attempt, reason) =>
 //        // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
@@ -406,7 +406,8 @@ object Systems {
 //        gwsKR
 //      )
 
-    def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] = Resource.pure(Systems(new DhsClientDisabled[IO]))
+    def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
+      Resource.pure(Systems(new DhsClientDisabled[IO]))
   }
 
   private def decodeTops(s: String): Map[String, String] =
@@ -420,8 +421,8 @@ object Systems {
   def build(
     site:       Site,
     httpClient: Client[IO],
-    settings:   ObserveEngineConfiguration/*,
+    settings:   ObserveEngineConfiguration /*,
     service:    CaService*/
-  )(implicit T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
+  )(using T:    Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
     Builder(settings, /*service,*/ decodeTops(settings.tops)).build(site, httpClient)
 }

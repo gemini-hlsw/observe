@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.security
@@ -7,15 +7,16 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.tests.CatsSuite
 import org.typelevel.log4cats.noop.NoOpLogger
-import observe.model.config._
+import observe.model.config.*
 import observe.model.UserDetails
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
+import org.typelevel.log4cats.Logger
 
 class JWTTokensSpec extends CatsSuite {
-  private implicit def logger = NoOpLogger.impl[IO]
+  private given logger: Logger[IO] = NoOpLogger.impl[IO]
 
   private val config      =
-    AuthenticationConfig(FiniteDuration(8, HOURS), "token", "key", useSSL = false, Nil)
+    AuthenticationConfig(FiniteDuration(8, HOURS), "token", "key", useSsl = false, Nil)
   private val authService = AuthenticationService[IO](Mode.Production, config)
 
   test("JWT Tokens: encode/decode") {

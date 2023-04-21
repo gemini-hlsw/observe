@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -14,6 +14,6 @@ object ScienceMode {
   case object Imaging      extends ScienceMode("Imaging")
   case object Spectroscopy extends ScienceMode("Spectroscopy")
 
-  implicit val ScienceModeEnumerated: Enumerated[ScienceMode] =
+  given Enumerated[ScienceMode] =
     Enumerated.from(Imaging, Spectroscopy).withTag(_.tag)
 }

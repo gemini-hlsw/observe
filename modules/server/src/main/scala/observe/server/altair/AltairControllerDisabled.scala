@@ -4,7 +4,7 @@
 package observe.server.altair
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.enums.Instrument
 import observe.server.overrideLogMessage

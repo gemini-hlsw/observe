@@ -6,12 +6,11 @@ package observe.web.client.circuit
 import scala.collection.immutable.SortedMap
 
 import cats._
-import cats.Order._
+import cats.Order.*
 import lucuma.core.enums.Site
 import monocle.Lens
-import monocle.macros.Lenses
 import observe.model.Observation
-import observe.model._
+import observe.model.*
 import observe.model.enums.Resource
 import observe.web.client.model.AlignAndCalibStep
 import observe.web.client.model.Pages
@@ -21,7 +20,6 @@ import observe.web.client.model.SequenceTab
 import observe.web.client.model.SequencesOnDisplay
 import observe.web.client.model.SoundSelection
 
-@Lenses
 final case class WebSocketsFocus(
   location:             Pages.ObservePages,
   sequences:            SequencesQueue[SequenceView],
@@ -37,7 +35,7 @@ final case class WebSocketsFocus(
 )
 
 object WebSocketsFocus {
-  implicit val eq: Eq[WebSocketsFocus] =
+  given Eq[WebSocketsFocus] =
     Eq.by(x =>
       (x.location,
        x.sequences,
@@ -76,7 +74,7 @@ object WebSocketsFocus {
           uiModel = m.uiModel.copy(
             user = v.user,
             sequencesOnDisplay = SequencesOnDisplay.sequenceTabs.modify(seqTab =>
-              SequenceTab.resourcesRunOperationsL.replace(
+              Focus[SequenceTab](_.resourcesRunOperationsL).replace(
                 v.resourceRunRequested
                   .getOrElse(seqTab.obsIdName.id, SortedMap.empty)
               )(seqTab)

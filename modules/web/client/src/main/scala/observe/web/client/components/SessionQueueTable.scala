@@ -7,24 +7,23 @@ import scala.math.max
 import scala.scalajs.js
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
-import japgolly.scalajs.react.ReactCats._
-import japgolly.scalajs.react.ReactMonocle._
+import japgolly.scalajs.react.ReactCats.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
-import monocle.macros.Lenses
-import react.common._
-import react.common.implicits._
-import react.semanticui.colors._
+import react.common.*
+import react.common.implicits.*
+import react.semanticui.colors.*
 import react.semanticui.elements.icon.Icon
-import react.semanticui.sizes._
-import react.virtualized._
+import react.semanticui.sizes.*
+import react.virtualized.*
 import observe.model.{
   CalibrationQueueId,
   Observation,
@@ -36,16 +35,16 @@ import observe.model.{
   UserDetails
 }
 import observe.model.enums.Instrument
-import observe.web.client.actions._
-import observe.web.client.circuit._
-import observe.web.client.icons._
-import observe.web.client.model.ModelOps._
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
+import observe.web.client.icons.*
+import observe.web.client.model.ModelOps.*
 import observe.web.client.model.ObsClass
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 import observe.web.client.model.SessionQueueFilter
-import observe.web.client.reusability._
-import web.client.table._
-import web.client.JsNumberOps._
+import observe.web.client.reusability.*
+import web.client.table.*
+import web.client.JsNumberOps.*
 
 trait Columns {
   import SessionQueueTable._
@@ -363,13 +362,12 @@ object SessionQueueTable extends Columns {
   case object ObserverColumn   extends TableColumn
 
   object TableColumn {
-    implicit val equal: Eq[TableColumn] = Eq.fromUniversalEquals
+    given Eq[TableColumn] = Eq.fromUniversalEquals
 
-    implicit val tcReuse: Reusability[TableColumn] = Reusability.byRef
+    given Reusability[TableColumn] = Reusability.byRef
   }
 
-  @Lenses
-  final case class State(
+    final case class State(
     tableState:   TableState[TableColumn],
     rowLoading:   Option[Int],
     lastSize:     Option[Size],
@@ -404,14 +402,14 @@ object SessionQueueTable extends Columns {
   }
 
   // Reusability
-  implicit val sqSeFocusReuse: Reusability[SequenceInSessionQueue]        =
+  given Reusability[SequenceInSessionQueue]        =
     Reusability.byEq
-  implicit val qfReuse: Reusability[SessionQueueFilter]                   =
+  given Reusability[SessionQueueFilter]                   =
     Reusability.byEq
-  implicit val stSeFocusReuse: Reusability[StatusAndLoadedSequencesFocus] =
+  given Reusability[StatusAndLoadedSequencesFocus] =
     Reusability.by(x => (x.status, x.sequences, x.tableState, x.queueFilter))
-  implicit val propsReuse: Reusability[Props]                             = Reusability.by(_.sequences)
-  implicit val stateReuse: Reusability[State]                             =
+  given Reusability[Props]                             = Reusability.by(_.sequences)
+  given Reusability[State]                             =
     Reusability.by(s => (s.tableState, s.rowLoading, s.lastSize))
 
   private def linkTo(p: Props, page: ObservePages)(mod: TagMod*) =
@@ -608,8 +606,8 @@ object SessionQueueTable extends Columns {
   }
 
   def updateScrollPosition(b: Backend, pos: JsNumber): Callback = {
-    val mods = State.userModified.replace(IsModified) >>>
-      State.scrollPosition.replace(pos)
+    val mods = Focus[State](_.userModified).replace(IsModified) >>>
+      Focus[State](_.scrollPosition).replace(pos)
     (b.modState(mods) *> ObserveCircuit.dispatchCB(
       UpdateSessionQueueTableState(mods(b.state).tableState)
     )).unless(pos === 0 && !b.state.tableState.isModified).void
@@ -752,9 +750,9 @@ object SessionQueueTable extends Columns {
 
   private def initialState(p: Props): State =
     (
-      State.tableState.replace(p.sequences.tableState) >>>
-        State.prevObsIds.replace(p.obsIds) >>>
-        State.prevLoggedIn.replace(p.loggedIn)
+      Focus[State](_.tableState).replace(p.sequences.tableState) >>>
+        Focus[State](_.prevObsIds).replace(p.obsIds) >>>
+        Focus[State](_.prevLoggedIn).replace(p.loggedIn)
     )(State.InitialState)
 
   private def onResize(b: Backend): Size => Callback =
@@ -793,8 +791,8 @@ object SessionQueueTable extends Columns {
                     )
                   )(s)
               ),
-            State.prevObsIds.replace(props.obsIds),
-            State.prevLoggedIn.replace(props.loggedIn)
+            Focus[State](_.prevObsIds).replace(props.obsIds),
+            Focus[State](_.prevLoggedIn).replace(props.loggedIn)
           ).some
             .filter(_ => props.obsIds =!= state.prevObsIds || props.loggedIn =!= state.prevLoggedIn)
             .orEmpty

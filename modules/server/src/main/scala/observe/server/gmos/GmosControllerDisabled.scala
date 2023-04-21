@@ -4,7 +4,7 @@
 package observe.server.gmos
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger

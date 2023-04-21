@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -8,8 +8,8 @@ import scala.collection.immutable.SortedMap
 import cats._
 import monocle.Getter
 import monocle.Traversal
-import monocle.function.Each._
-import monocle.macros.Lenses
+import monocle.function.Each.*
+import monocle.Focus
 import observe.model.Observation
 import observe.model.enums.Instrument
 
@@ -17,7 +17,6 @@ import observe.model.enums.Instrument
  * Represents a queue with different levels of details. E.g. it could be a list of Ids Or a list of
  * fully hydrated SequenceViews
  */
-@Lenses
 final case class SequencesQueue[T](
   loaded:       Map[Instrument, Observation.Id],
   conditions:   Conditions,
@@ -27,13 +26,12 @@ final case class SequencesQueue[T](
 )
 
 object SequencesQueue {
-  implicit def equal[T: Eq]: Eq[SequencesQueue[T]] =
+  given [T: Eq]: Eq[SequencesQueue[T]] =
     Eq.by(x => (x.loaded, x.conditions, x.operator, x.queues, x.sessionQueue))
 
   def sessionQueueT[T]: Traversal[SequencesQueue[T], T] =
-    SequencesQueue.sessionQueue[T].andThen(each[List[T], T])
+    Focus[SequencesQueue[T]](_.sessionQueue).andThen(each[List[T], T])
 
   def queueItemG[T](pred: T => Boolean): Getter[SequencesQueue[T], Option[T]] =
-    SequencesQueue.sessionQueue
-      .andThen(Getter[List[T], Option[T]](_.find(pred)))
+    Focus[SequencesQueue[T]](_.sessionQueue).andThen(Getter[List[T], Option[T]](_.find(pred)))
 }

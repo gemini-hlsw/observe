@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats.Applicative
 import cats.data.NonEmptySet
-import cats.implicits._
+import cats.implicits.*
 import org.typelevel.log4cats.Logger
 import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems

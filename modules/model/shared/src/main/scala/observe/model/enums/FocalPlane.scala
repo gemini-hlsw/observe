@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.enums
@@ -12,17 +12,17 @@ sealed abstract class FocalPlane(val tag: String) extends Product with Serializa
 }
 
 object FocalPlane {
-  case object SingleSlit   extends FocalPlane("SingleSlit") {
+  case object SingleSlit   extends FocalPlane("SingleSlit")   {
     val label = "Single Slit"
   }
   case object MultipleSlit extends FocalPlane("MultipleSlit") {
     val label = "Multiple Slits"
   }
-  case object IFU          extends FocalPlane("IFU") {
+  case object IFU          extends FocalPlane("IFU")          {
     val label = "IFU"
   }
 
   /** @group Typeclass Instances */
-  implicit val FocalPlaneEnumerated: Enumerated[FocalPlane] =
+  given Enumerated[FocalPlane] =
     Enumerated.from(SingleSlit, MultipleSlit, IFU).withTag(_.tag)
 }

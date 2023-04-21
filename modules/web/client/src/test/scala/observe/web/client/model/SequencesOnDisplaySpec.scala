@@ -13,7 +13,7 @@ import observe.model.SequencesQueue
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.SystemOverrides
-import observe.common.test._
+import observe.common.test.*
 
 /**
  * Tests Sequences on display class

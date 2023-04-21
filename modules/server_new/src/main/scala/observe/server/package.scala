@@ -3,22 +3,20 @@
 
 package observe
 
-import cats.data._
+import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
-import cats.syntax.all._
-import cats.{Applicative, ApplicativeError, Endo, Eq, Functor, MonadError}
+import cats.syntax.all.*
+import cats.{Applicative, ApplicativeThrow, Endo, Eq, Functor, MonadError, MonadThrow}
 import clue.ErrorPolicy
-import edu.gemini.spModel.`type`.SequenceableSpType
-import edu.gemini.spModel.guide.StandardGuideOptions
 import fs2.Stream
-import monocle.function.At._
-import monocle.function.Index._
-import monocle.macros.{GenLens, Lenses}
+import monocle.function.At.*
+import monocle.function.Index.*
+import monocle.Focus
 import monocle.{Lens, Optional}
 import observe.engine.Result.PauseContext
 import observe.engine.{Engine, Result, _}
-import observe.model.enums._
+import observe.model.enums.*
 import observe.model.{Observation, _}
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -29,7 +27,6 @@ package server {
 
   import scala.concurrent.duration.Duration
 
-  @Lenses
   final case class EngineState[F[_]](
     queues:     ExecutionQueues,
     selected:   Map[Instrument, Observation.Id],
@@ -51,13 +48,16 @@ package server {
     def instrumentLoadedL[F[_]](
       instrument: Instrument
     ): Lens[EngineState[F], Option[Observation.Id]] =
-      GenLens[EngineState[F]](_.selected).andThen(at(instrument))
+      Focus[EngineState[F]](_.selected).andThen(
+        at[Map[Instrument, Observation.Id], Instrument, Option[Observation.Id]](instrument)
+      )
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
-      EngineState.sequences.andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
+      Focus[EngineState[F]](_.sequences)
+        .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
 
     def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
-      atSequence[F](sid).andThen(SequenceData.seq)
+      atSequence[F](sid).andThen(Focus[SequenceData[F]](_.seq))
 
     def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
       EngineState.sequenceStateIndex(sid)
@@ -78,10 +78,10 @@ package server {
   }
 
 //  final case class ObserveContext[F[_]](
-//    resumePaused: Duration => Stream[F, Result[F]],
-//    progress:     ElapsedTime => Stream[F, Result[F]],
-//    stopPaused:   Stream[F, Result[F]],
-//    abortPaused:  Stream[F, Result[F]],
+//    resumePaused: Duration => Stream[F, Result],
+//    progress:     ElapsedTime => Stream[F, Result],
+//    stopPaused:   Stream[F, Result],
+//    abortPaused:  Stream[F, Result],
 //    expTime:      Duration
 //  ) extends PauseContext[F]
 
@@ -90,32 +90,26 @@ package server {
 package object server    {
   implicit val DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
 
-  implicit def geEq[D <: SequenceableSpType]: Eq[D] =
-    Eq[String].contramap(_.sequenceValue())
-
-  implicit val sgoEq: Eq[StandardGuideOptions.Value] =
-    Eq[Int].contramap(_.ordinal())
-
   type ExecutionQueues = Map[QueueId, ExecutionQueue]
 
   // This is far from ideal but we'll address this in another refactoring
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
   // TODO move this out of being a global. This act as an anchor to the rest of the code
-  implicit val executeEngine: Engine[IO, EngineState[IO], SeqEvent] =
+  given executeEngine: Engine[IO, EngineState[IO], SeqEvent] =
     new Engine[IO, EngineState[IO], SeqEvent](EngineState.engineState[IO])
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 
-  implicit class EitherTFailureOps[F[_]: MonadError[*[_], Throwable], A](
+  implicit class EitherTFailureOps[F[_]: MonadThrow, A](
     s: EitherT[F, ObserveFailure, A]
   ) {
     def liftF: F[A] =
       s.value.flatMap(_.liftTo[F])
   }
 
-  implicit class EitherTOps[F[_], A, B](fa: EitherT[F, A, B]) {
-    def widenRethrowT[T](implicit
+  extension [F[_], A, B](fa: EitherT[F, A, B]) {
+    def widenRethrowT[T](using
       me: MonadError[F, T],
       at: A <:< T
     ): F[B] =
@@ -123,7 +117,7 @@ package object server    {
   }
 
   // This assumes that there is only one instance of e in l
-  private def moveElement[T](l: List[T], e: T, delta: Int)(implicit eq: Eq[T]): List[T] = {
+  private def moveElement[T](l: List[T], e: T, delta: Int)(using eq: Eq[T]): List[T] = {
     val idx = l.indexOf(e)
 
     if (delta === 0 || idx < 0) {
@@ -134,7 +128,7 @@ package object server    {
     }
   }
 
-  implicit class ExecutionQueueOps[F[_]](val q: ExecutionQueue) extends AnyVal {
+  extension [F[_]](q: ExecutionQueue) {
     def status(st: EngineState[F]): BatchExecState = {
       val statuses: Seq[SequenceState] = q.queue
         .map(sid => st.sequences.get(sid))
@@ -162,7 +156,7 @@ package object server    {
   }
 
   implicit final class ToHandle[F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
-    import Handle.StateToHandle
+    import Handle.toHandle
     def toHandle: HandleType[F, A] =
       StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
   }
@@ -175,13 +169,13 @@ package object server    {
 //    seq.steps.map(StepGen.generate(_, overrides, d))
 
   // If f is true continue, otherwise fail
-  def failUnlessM[F[_]: MonadError[*[_], Throwable]](f: F[Boolean], err: Exception): F[Unit] =
+  def failUnlessM[F[_]: MonadThrow](f: F[Boolean], err: Exception): F[Unit] =
     f.flatMap {
       MonadError[F, Throwable].raiseError(err).unlessA
     }
 
-  implicit class ResponseToResult(val r: Either[Throwable, Response]) extends AnyVal {
-    def toResult[F[_]]: Result[F] = r.fold(
+  extension (r: Either[Throwable, Response]) {
+    def toResult[F[_]]: Result = r.fold(
       e =>
         e match {
           case e: ObserveFailure => Result.Error(ObserveFailure.explain(e))
@@ -192,14 +186,14 @@ package object server    {
     )
   }
 
-  implicit class RecoverResultErrorOps[F[_]: ApplicativeError[*[_], Throwable]](r: F[Result[F]]) {
-    def safeResult: F[Result[F]] = r.recover {
+  extension [F[_]: ApplicativeThrow](r: F[Result]) {
+    def safeResult: F[Result] = r.recover {
       case e: ObserveFailure => Result.Error(ObserveFailure.explain(e))
       case e: Throwable      => Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
     }
   }
 
-  def catchObsErrors[F[_]](t: Throwable)(implicit L: Logger[F]): Stream[F, Result[F]] = t match {
+  def catchObsErrors[F[_]](t: Throwable)(using L: Logger[F]): Stream[F, Result] = t match {
     case e: ObserveFailure =>
       Stream.eval(L.error(e)(s"Observation error: ${ObserveFailure.explain(e)}")) *>
         Stream.emit(Result.Error(ObserveFailure.explain(e)))
@@ -215,7 +209,7 @@ package object server    {
 //    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
 //  }
 //
-//  implicit class ConfigResultToAction[F[_]: Functor](val x: F[ConfigResult[F]]) {
+//extension [F[_]: Functor]( x: F[ConfigResult]) {
 //    def toAction(kind: ActionType): Action[F] =
 //      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
 //  }

@@ -3,9 +3,9 @@
 
 package observe.server.tcs
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.guide.StandardGuideOptions
-import mouse.all._
+import mouse.all.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
@@ -14,10 +14,10 @@ import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.TipTiltSource
 import observe.server.ConfigResult
 import observe.server.System
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 trait Tcs[F[_]] extends System[F] {
-  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult[F]]
+  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult]
 }
 
 object Tcs {

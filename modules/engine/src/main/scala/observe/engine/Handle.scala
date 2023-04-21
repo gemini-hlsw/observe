@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.Functor
 import cats.Monad
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 
 /**
@@ -27,7 +27,7 @@ object Handle {
 
   def liftF[F[_]: Monad, D, V, A](f: F[A]): Handle[F, D, V, A] = StateT.liftF[F, D, A](f).toHandle
 
-  implicit def handlePMonad[F[_]: Monad, D, V]: Monad[Handle[F, D, V, *]] =
+  given [F[_]: Monad, D, V]: Monad[Handle[F, D, V, *]] =
     new Monad[Handle[F, D, V, *]] {
       private def concatOpP(
         op1: Option[Stream[F, V]],
@@ -76,7 +76,7 @@ object Handle {
 
   // This class adds a method to Handle similar to flatMap, but the Streams resulting from both Handle instances
   // are concatenated in the reverse order.
-  implicit class HandleReverseMap[F[_]: Monad, D, V, A](self: Handle[F, D, V, A]) {
+  extension [F[_]: Monad, D, V, A](self: Handle[F, D, V, A]) {
     private def reverseConcatOpP(
       op1: Option[Stream[F, V]],
       op2: Option[Stream[F, V]]
@@ -97,7 +97,7 @@ object Handle {
       )
   }
 
-  implicit class StateToHandle[F[_]: Functor, D, V, A](self: StateT[F, D, A]) {
+  extension [F[_]: Functor, D, V, A](self: StateT[F, D, A]) {
     def toHandle: Handle[F, D, V, A] = Handle(self.map((_, None)))
   }
 
