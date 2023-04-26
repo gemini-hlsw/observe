@@ -94,7 +94,7 @@ ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
 lazy val root = tlCrossRootProject.aggregate(
   graphql,
   giapi,
-  ocs2_api,
+//  ocs2_api,
   observe_web_server,
 //  observe_web_client,
   observe_server,
@@ -135,17 +135,17 @@ lazy val giapi = project
     ) ++ MUnit.value
   )
 
-lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/ocs2_api"))
-  .settings(commonSettings)
-  .settings(
-    name := "ocs2-api",
-    libraryDependencies ++= Seq(CatsTime.value) ++
-      LucumaCore.value
-  )
-  .jsSettings(coverageEnabled := false)
-  .dependsOn(observe_model)
+//lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
+//  .crossType(CrossType.Pure)
+//  .in(file("modules/ocs2_api"))
+//  .settings(commonSettings)
+//  .settings(
+//    name := "ocs2-api",
+//    libraryDependencies ++= Seq(CatsTime.value) ++
+//      LucumaCore.value
+//  )
+//  .jsSettings(coverageEnabled := false)
+//  .dependsOn(observe_model)
 
 // Project for the server side application
 lazy val observe_web_server = project
@@ -322,7 +322,7 @@ lazy val observe_server = project
   )
   .dependsOn(observe_engine    % "compile->compile;test->test",
              giapi,
-             ocs2_api.jvm,
+//             ocs2_api.jvm,
              observe_model.jvm % "compile->compile;test->test"
   )
   .settings(
