@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.transition
@@ -347,8 +347,8 @@ object GmosTranslator {
 //  }
 
   def instrumentParameters[S <: GmosSite](
-    staticConfig:         GmosStatic[S],
-    instConfig:           GmosInstrumentConfig[S]
+    staticConfig: GmosStatic[S],
+    instConfig:   GmosInstrumentConfig[S]
   )(implicit conversions: GmosSiteConversions[S]): Map[ItemKey, AnyRef] = {
     val baseParams = List(
       (INSTRUMENT_KEY / INSTRUMENT_NAME_PROP, conversions.instrumentName)
