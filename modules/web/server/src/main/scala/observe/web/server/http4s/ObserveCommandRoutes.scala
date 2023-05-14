@@ -5,6 +5,7 @@ package observe.web.server.http4s
 
 import cats.effect.Async
 import cats.syntax.all._
+import fs2.compression.Compression
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.middleware.GZip
@@ -24,7 +25,7 @@ import lucuma.core.model.sequence.Step.{Id => StepId}
 /**
  * Rest Endpoints under the /api route
  */
-class ObserveCommandRoutes[F[_]: Async](
+class ObserveCommandRoutes[F[_]: Async: Compression](
   auth:       AuthenticationService[F],
   inputQueue: server.EventQueue[F],
   se:         ObserveEngine[F]
