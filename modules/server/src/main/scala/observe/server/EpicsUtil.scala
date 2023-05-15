@@ -273,6 +273,7 @@ object EpicsUtil {
             attr.addListener(statusListener)
           }
         }
+        Some(Async[F].unit)
       }
     }
 
