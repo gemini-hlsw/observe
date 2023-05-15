@@ -43,18 +43,21 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
 
   override def post(timeout: FiniteDuration): F[ApplyCommandResult] = setTimeout(timeout) *>
     Async[F]
-      .async_[ApplyCommandResult] { (f: Either[Throwable, ApplyCommandResult] => Unit) =>
-        cs.map { ccs =>
-          ccs.postCallback {
-            new CaCommandListener {
-              override def onSuccess(): Unit                 = f(ApplyCommandResult.Completed.asRight)
-              override def onPause(): Unit                   = f(ApplyCommandResult.Paused.asRight)
-              override def onFailure(cause: Exception): Unit = f(cause.asLeft)
+      .async[ApplyCommandResult] { (f: Either[Throwable, ApplyCommandResult] => Unit) =>
+        Async[F].delay {
+          cs.map { ccs =>
+            ccs.postCallback {
+              new CaCommandListener {
+                override def onSuccess(): Unit                 = f(ApplyCommandResult.Completed.asRight)
+                override def onPause(): Unit                   = f(ApplyCommandResult.Paused.asRight)
+                override def onFailure(cause: Exception): Unit = f(cause.asLeft)
+              }
             }
-          }
-        // It should call f on all execution paths, thanks @tpolecat
-        }.void
-          .getOrElse(f(ObserveFailure.Unexpected("Unable to trigger command.").asLeft))
+          // It should call f on all execution paths, thanks @tpolecat
+          }.void
+            .getOrElse(f(ObserveFailure.Unexpected("Unable to trigger command.").asLeft))
+          Some(Async[F].unit)
+        }
       }
       .addSystemNameToCmdError(sysName)
 
@@ -143,21 +146,24 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
 
   override def post(timeout: FiniteDuration): F[ObserveCommandResult] = setTimeout(timeout) *>
     Async[F]
-      .async_[ObserveCommandResult] { (f: Either[Throwable, ObserveCommandResult] => Unit) =>
-        os.map { oos =>
-          oos.postCallback {
-            new CaCommandListener {
-              override def onSuccess(): Unit                 = f(ObserveCommandResult.Success.asRight)
-              override def onPause(): Unit                   = f(ObserveCommandResult.Paused.asRight)
-              override def onFailure(cause: Exception): Unit = cause match {
-                case _: CaObserveStopped => f(ObserveCommandResult.Stopped.asRight)
-                case _: CaObserveAborted => f(ObserveCommandResult.Aborted.asRight)
-                case _                   => f(cause.asLeft)
+      .async[ObserveCommandResult] { (f: Either[Throwable, ObserveCommandResult] => Unit) =>
+        Async[F].delay {
+          os.map { oos =>
+            oos.postCallback {
+              new CaCommandListener {
+                override def onSuccess(): Unit                 = f(ObserveCommandResult.Success.asRight)
+                override def onPause(): Unit                   = f(ObserveCommandResult.Paused.asRight)
+                override def onFailure(cause: Exception): Unit = cause match {
+                  case _: CaObserveStopped => f(ObserveCommandResult.Stopped.asRight)
+                  case _: CaObserveAborted => f(ObserveCommandResult.Aborted.asRight)
+                  case _                   => f(cause.asLeft)
+                }
               }
             }
-          }
-        }.void
-          .getOrElse(f(ObserveFailure.Unexpected("Unable to trigger command.").asLeft))
+          }.void
+            .getOrElse(f(ObserveFailure.Unexpected("Unable to trigger command.").asLeft))
+          Some(Async[F].unit)
+        }
       }
       .addSystemNameToCmdError(sysName)
 
@@ -211,7 +217,8 @@ object EpicsUtil {
     timeout: FiniteDuration,
     name:    String
   ): F[T] =
-    Async[F].async_[T] { (f: Either[Throwable, T] => Unit) =>
+    Async[F].async[T] { (f: Either[Throwable, T] => Unit) =>
+      Async[F].delay {
       // The task is created with async. So we do whatever we need to do,
       // and then call `f` to signal the completion of the task.
 
@@ -265,6 +272,7 @@ object EpicsUtil {
           attr.addListener(statusListener)
         }
       }
+    }
     }
 
   def waitForValueF[T, F[_]: Async](
