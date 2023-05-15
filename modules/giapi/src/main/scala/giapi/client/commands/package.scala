@@ -103,32 +103,35 @@ package object commands {
     command:        Command,
     timeout:        Duration
   ): F[CommandResult] =
-    Async[F].async_ { cb =>
-      val hr = commandsClient.sendCommand(
-        command.toGiapi,
-        (hr: HandlerResponse, _: GiapiCommand) => {
-          if (hr.getResponse === Response.ERROR || hr.getResponse === Response.NOANSWER) {
-            cb(Left(CommandResultException(hr.getResponse, hr.getMessage)))
-          } else {
-            cb(Right(CommandResult(hr.getResponse)))
-          }
-          ()
-        },
-        timeout.toMillis
-      )
-      if (hr.getResponse === Response.ERROR || hr.getResponse === Response.NOANSWER) {
-        cb(
-          Left(
-            CommandResultException(hr.getResponse,
-                                   if (hr.getResponse === Response.NOANSWER)
-                                     "No answer from the instrument"
-                                   else hr.getMessage
+    Async[F].async { cb =>
+      Async[F].delay {
+        val hr = commandsClient.sendCommand(
+          command.toGiapi,
+          (hr: HandlerResponse, _: GiapiCommand) => {
+            if (hr.getResponse === Response.ERROR || hr.getResponse === Response.NOANSWER) {
+              cb(Left(CommandResultException(hr.getResponse, hr.getMessage)))
+            } else {
+              cb(Right(CommandResult(hr.getResponse)))
+            }
+            ()
+          },
+          timeout.toMillis
+        )
+        if (hr.getResponse === Response.ERROR || hr.getResponse === Response.NOANSWER) {
+          cb(
+            Left(
+              CommandResultException(hr.getResponse,
+                                     if (hr.getResponse === Response.NOANSWER)
+                                       "No answer from the instrument"
+                                     else hr.getMessage
+              )
             )
           )
-        )
-      } else if (hr.getResponse === Response.COMPLETED) {
-        cb(Right(CommandResult(hr.getResponse)))
+        } else if (hr.getResponse === Response.COMPLETED) {
+          cb(Right(CommandResult(hr.getResponse)))
+        }
+        // A third case is ACCEPTED but that is handled on the callback
+        Some(Async[F].unit)
       }
-    // A third case is ACCEPTED but that is handled on the callback
     }
 }
