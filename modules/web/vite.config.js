@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const ViteFonts = require('vite-plugin-fonts');
 const mkcert = require('vite-plugin-mkcert');
-
+import { VitePluginFonts } from 'vite-plugin-fonts';
 
 const fixCssRoot = (opts = {}) => {
   return {
@@ -20,7 +20,7 @@ const fixCssRoot = (opts = {}) => {
 }
 fixCssRoot.postcss = true;
 
-const fontImport = ViteFonts.Plugin({
+const fontImport = VitePluginFonts({
   google: {
     families: [
       {
@@ -36,8 +36,8 @@ module.exports = ({ command, mode }) => {
   const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.2.1');
   const isProduction = mode == 'production';
   const sjs = isProduction
-    ? path.resolve(scalaClassesDir, 'new_web-opt')
-    : path.resolve(scalaClassesDir, 'new_web-fastopt');
+    ? path.resolve(scalaClassesDir, 'web-opt')
+    : path.resolve(scalaClassesDir, 'web-fastopt');
   const common = path.resolve(__dirname, 'common/');
   const webappCommon = path.resolve(common, 'src/main/webapp/');
   const imagesCommon = path.resolve(webappCommon, 'images');

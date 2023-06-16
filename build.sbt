@@ -291,8 +291,8 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
     scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
-lazy val new_web = project
-  .in(file("modules/new_web"))
+lazy val web = project
+  .in(file("modules/web"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
