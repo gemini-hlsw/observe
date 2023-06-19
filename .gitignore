@@ -78,3 +78,6 @@ package-lock.json
 
 # Project specific
 modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
+
+# Nix
+.direnv/
