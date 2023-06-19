@@ -41,6 +41,9 @@ object Home {
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
+      .useStreamResourceOnMountBy { (props, ctx) =>
+        import ctx.given
+      }
       .useStateView(
         Execution(
           obsId = Observation.Id.fromLong(133742).get,
