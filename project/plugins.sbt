@@ -25,4 +25,7 @@ addDependencyTreePlugin
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
 
+// Generate code for GraphQL queries
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
+
 Global / onLoad := { s => "dependencyUpdates" :: s }
