@@ -32,7 +32,7 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.19"
+    val http4sVersion                  = "0.23.21"
     val http4sBlazeVersion             = "0.23.15"
     val http4sJdkHttpClientVersion     = "0.9.1"
     val http4sBoopickleVersion         = "0.23.11"
@@ -93,7 +93,7 @@ object Settings {
     val lucumaSchemas = "0.33.0"
 
     // Clue
-    val clue = "0.24.1"
+    val clue = "0.30.0"
 
     val sttp = "3.8.15"
   }
