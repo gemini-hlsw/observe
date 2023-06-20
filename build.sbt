@@ -282,7 +282,7 @@ lazy val observe_server = project
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
-      "modules/server"
+      "modules/server_new"
     ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName
   )
   .settings(
