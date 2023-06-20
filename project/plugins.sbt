@@ -19,6 +19,9 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
 // Clue code generation
 addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
 
+// Clue code generation
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
+
 // Used to find dependencies
 addDependencyTreePlugin
 
