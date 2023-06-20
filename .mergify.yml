@@ -6,102 +6,117 @@
 # to meet your needs, then regenerate this file.
 
 pull_request_rules:
-- name: merge scala-steward's PRs
-  conditions:
-  - author=lucuma-steward[bot]
-  - or:
-    - body~=labels:.*early-semver-patch
-    - body~=labels:.*early-semver-minor
-    - 'title=flake.lock: Update'
-  - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJS)
-  - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJVM)
-  actions:
-    merge: {}
-- name: Label engine PRs
-  conditions:
-  - files~=^modules/engine/
-  actions:
-    label:
-      add:
-      - engine
-      remove: []
-- name: Label giapi PRs
-  conditions:
-  - files~=^modules/giapi/
-  actions:
-    label:
-      add:
-      - giapi
-      remove: []
-- name: Label model PRs
-  conditions:
-  - files~=^modules/model/
-  actions:
-    label:
-      add:
-      - model
-      remove: []
-- name: Label modules PRs
-  conditions:
-  - files~=^modules/
-  actions:
-    label:
-      add:
-      - modules
-      remove: []
-- name: Label observe-server PRs
-  conditions:
-  - files~=^app/observe-server/
-  actions:
-    label:
-      add:
-      - observe-server
-      remove: []
-- name: Label observe-server-gn PRs
-  conditions:
-  - files~=^app/observe-server-gn/
-  actions:
-    label:
-      add:
-      - observe-server-gn
-      remove: []
-- name: Label observe-server-gn-test PRs
-  conditions:
-  - files~=^app/observe-server-gn-test/
-  actions:
-    label:
-      add:
-      - observe-server-gn-test
-      remove: []
-- name: Label observe-server-gs PRs
-  conditions:
-  - files~=^app/observe-server-gs/
-  actions:
-    label:
-      add:
-      - observe-server-gs
-      remove: []
-- name: Label observe-server-gs-test PRs
-  conditions:
-  - files~=^app/observe-server-gs-test/
-  actions:
-    label:
-      add:
-      - observe-server-gs-test
-      remove: []
-- name: Label server PRs
-  conditions:
-  - files~=^modules/web/server/
-  actions:
-    label:
-      add:
-      - server
-      remove: []
-- name: Label server_new PRs
-  conditions:
-  - files~=^modules/server_new/
-  actions:
-    label:
-      add:
-      - server_new
-      remove: []
+  - name: merge scala-steward's PRs
+    conditions:
+      - author=lucuma-steward[bot]
+      - or:
+          - body~=labels:.*early-semver-patch
+          - body~=labels:.*early-semver-minor
+          - "title=flake.lock: Update"
+      - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJS)
+      - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJVM)
+    actions:
+      merge: {}
+  - name: Label engine PRs
+    conditions:
+      - files~=^modules/engine/
+    actions:
+      label:
+        add:
+          - engine
+        remove: []
+  - name: Label giapi PRs
+    conditions:
+      - files~=^modules/giapi/
+    actions:
+      label:
+        add:
+          - giapi
+        remove: []
+  - name: Label model PRs
+    conditions:
+      - files~=^modules/model/
+    actions:
+      label:
+        add:
+          - model
+        remove: []
+  - name: Label modules PRs
+    conditions:
+      - files~=^modules/
+    actions:
+      label:
+        add:
+          - modules
+        remove: []
+  - name: Label new_model PRs
+    conditions:
+      - files~=^modules/new_model/
+    actions:
+      label:
+        add:
+          - new_model
+        remove: []
+  - name: Label observe-server PRs
+    conditions:
+      - files~=^app/observe-server/
+    actions:
+      label:
+        add:
+          - observe-server
+        remove: []
+  - name: Label observe-server-gn PRs
+    conditions:
+      - files~=^app/observe-server-gn/
+    actions:
+      label:
+        add:
+          - observe-server-gn
+        remove: []
+  - name: Label observe-server-gn-test PRs
+    conditions:
+      - files~=^app/observe-server-gn-test/
+    actions:
+      label:
+        add:
+          - observe-server-gn-test
+        remove: []
+  - name: Label observe-server-gs PRs
+    conditions:
+      - files~=^app/observe-server-gs/
+    actions:
+      label:
+        add:
+          - observe-server-gs
+        remove: []
+  - name: Label observe-server-gs-test PRs
+    conditions:
+      - files~=^app/observe-server-gs-test/
+    actions:
+      label:
+        add:
+          - observe-server-gs-test
+        remove: []
+  - name: Label server PRs
+    conditions:
+      - files~=^modules/web/server/
+    actions:
+      label:
+        add:
+          - server
+        remove: []
+  - name: Label server_new PRs
+    conditions:
+      - files~=^modules/server_new/
+    actions:
+      label:
+        add:
+          - server_new
+  - name: Label web PRs
+    conditions:
+      - files~=^modules/web/
+    actions:
+      label:
+        add:
+          - web
+        remove: []
