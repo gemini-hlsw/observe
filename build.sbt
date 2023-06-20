@@ -29,8 +29,8 @@ inThisBuild(
   ) ++ lucumaPublishSettings
 )
 
-ThisBuild / scalaVersion               := "3.3.0"
-ThisBuild / crossScalaVersions         := Seq("3.3.0")
+ThisBuild / scalaVersion       := "3.3.0"
+ThisBuild / crossScalaVersions := Seq("3.3.0")
 ThisBuild / scalacOptions ++= Seq(
   "-language:implicitConversions"
 )
@@ -349,7 +349,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       BooPickle.value,
       CatsTime.value,
       Atto
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value,
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,

@@ -130,9 +130,9 @@ object Settings {
       "com.unboundid" % "unboundid-ldapsdk-minimal-edition" % LibraryVersions.unboundId
     val JwtCore          = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
     val JwtCirce         = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
-    val Slf4j            = "org.slf4j"      % "slf4j-api"    % LibraryVersions.slf4j
-    val JuliSlf4j        = "org.slf4j"      % "jul-to-slf4j" % LibraryVersions.slf4j
-    val NopSlf4j         = "org.slf4j"      % "slf4j-nop"    % LibraryVersions.slf4j
+    val Slf4j            = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
+    val JuliSlf4j        = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
+    val NopSlf4j         = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
     val CatsTime         = Def.setting(
       "io.chrisdavenport" %%% "cats-time" % LibraryVersions.catsTime % "compile->compile;test->test"
     )
@@ -262,8 +262,8 @@ object Settings {
       "edu.gemini.aspen.gmp" % "gmp-statusdb" % LibraryVersions.gmpStatusDatabase
     val GmpCmdJmsBridge =
       "edu.gemini.aspen.gmp" % "gmp-commands-jms-bridge" % LibraryVersions.gmpCmdClientBridge
-    val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
-    val ACM   = "edu.gemini"      % "acm_2.13"   % LibraryVersions.acm
+    val Guava = "com.google.guava" % "guava"    % LibraryVersions.guava
+    val ACM   = "edu.gemini"       % "acm_2.13" % LibraryVersions.acm
 
     // Lucuma Libraries
     val LucumaCore    = Def.setting(
