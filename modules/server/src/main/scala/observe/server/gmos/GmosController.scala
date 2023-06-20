@@ -178,9 +178,9 @@ object GmosController {
           tag[NsRowsI][Int](Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
         val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](2)
         val nsState: NodAndShuffleState                       = NodAndShuffleState.NodShuffle
-        val totalExposureTime: Duration                           =
+        val totalExposureTime: Duration                       =
           cycles * exposureTime / exposureDivider.toDouble
-        val nodExposureTime: Duration                             =
+        val nodExposureTime: Duration                         =
           exposureTime / exposureDivider.toDouble
       }
     }
@@ -194,7 +194,7 @@ object GmosController {
           case (b, r) if b =!= GmosRoi.Custom && r.isEmpty =>
             new RegionsOfInterest(b.asLeft) {}
           case (GmosRoi.Custom, r) if r.nonEmpty           => new RegionsOfInterest(r.asRight) {}
-          case _                                           => new RegionsOfInterest((GmosRoi.FullFrame:GmosRoi).asLeft) {}
+          case _                                           => new RegionsOfInterest((GmosRoi.FullFrame: GmosRoi).asLeft) {}
         }
 
       def unapply(r: RegionsOfInterest): Option[Either[BuiltinROI, List[ROI]]] = r.rois.some
@@ -231,11 +231,12 @@ object GmosController {
     def this(c: Config[T])(cc: Config.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)
   }
 
-  given [T <: GmosSite]:Show[GmosConfig[T]] =
+  given [T <: GmosSite]: Show[GmosConfig[T]] =
     Show.show { config =>
       val ccShow = config.cc match {
-        case DarkOrBias => "DarkOrBias"
-        case cc: Config[T]#StandardCCConfig => s"${cc.filter}, ${cc.disperser}, ${cc.fpu}, ${cc.stage}, ${cc.stage}, ${cc.dtaX}, ${cc.adc}, ${cc.useElectronicOffset}"
+        case DarkOrBias                     => "DarkOrBias"
+        case cc: Config[T]#StandardCCConfig =>
+          s"${cc.filter}, ${cc.disperser}, ${cc.fpu}, ${cc.stage}, ${cc.stage}, ${cc.dtaX}, ${cc.adc}, ${cc.useElectronicOffset}"
       }
       s"($ccShow, ${config.dc.t}, ${config.dc.s}, ${config.dc.bi}, ${config.dc.roi.rois} ${config.ns})"
     }
