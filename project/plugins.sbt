@@ -16,6 +16,9 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.15")
 // Use NPM modules rather than webjars
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.20.0")
 
+// Clue code generation
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
+
 // Used to find dependencies
 addDependencyTreePlugin
 

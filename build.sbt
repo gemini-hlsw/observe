@@ -21,7 +21,7 @@ inThisBuild(
   Seq(
     scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource                            := ReloadOnSourceChanges,
-    scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
+    scalafixDependencies += LucumaSchemas,
     scalafixScalaBinaryVersion                               := "2.13",
     ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
   ) ++ lucumaPublishSettings
@@ -80,7 +80,6 @@ ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 //////////////
 
 lazy val root = tlCrossRootProject.aggregate(
-  graphql,
   giapi,
   ocs2_api,
   observe_web_server,
@@ -89,18 +88,6 @@ lazy val root = tlCrossRootProject.aggregate(
   observe_model,
   observe_engine
 )
-
-lazy val graphql = project
-  .in(file("modules/common-graphql"))
-  .dependsOn(observe_model.jvm)
-  .settings(commonSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      Clue,
-      LucumaSchemas,
-      ClueGenerator
-    )
-  )
 
 lazy val giapi = project
   .in(file("modules/giapi"))
@@ -267,8 +254,7 @@ lazy val observe_web_server = project
 // List all the modules and their inter dependencies
 lazy val observe_server = project
   .in(file("modules/server"))
-  .enablePlugins(GitBranchPrompt)
-  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(GitBranchPrompt, BuildInfoPlugin, CluePlugin)
   .settings(commonSettings: _*)
   .settings(
     scalacOptions += "-Ymacro-annotations",
@@ -296,20 +282,7 @@ lazy val observe_server = project
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server"
-    ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName,
-    Compile / sourceGenerators += Def.taskDyn {
-      val root    = (ThisBuild / baseDirectory).value.toURI.toString
-      val from    = (graphql / Compile / sourceDirectory).value
-      val to      = (Compile / sourceManaged).value
-      val outFrom = from.toURI.toString.stripSuffix("/").stripPrefix(root)
-      val outTo   = to.toURI.toString.stripSuffix("/").stripPrefix(root)
-      Def.task {
-        (graphql / Compile / scalafix)
-          .toTask(s" GraphQLGen --out-from=$outFrom --out-to=$outTo")
-          .value
-        (to ** "*.scala").get
-      }
-    }.taskValue
+    ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName
   )
   .settings(
     buildInfoUsePackageAsPath := true,
