@@ -16,14 +16,6 @@ pull_request_rules:
   - status-success=Build and Test (ubuntu-latest, 2.13.8, temurin@17, rootJVM)
   actions:
     merge: {}
-- name: Label common-graphql PRs
-  conditions:
-  - files~=^modules/common-graphql/
-  actions:
-    label:
-      add:
-      - common-graphql
-      remove: []
 - name: Label engine PRs
   conditions:
   - files~=^modules/engine/
@@ -47,6 +39,14 @@ pull_request_rules:
     label:
       add:
       - model
+      remove: []
+- name: Label modules PRs
+  conditions:
+  - files~=^modules/
+  actions:
+    label:
+      add:
+      - modules
       remove: []
 - name: Label observe-server PRs
   conditions:
