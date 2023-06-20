@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gems
@@ -55,7 +55,7 @@ object Gems {
     controller:    GemsController[F],
     config:        GemsConfig,
     guideConfigDb: GuideConfigDb[F]
-  )(implicit L: Logger[F])
+  )(implicit L:    Logger[F])
       extends Gems[F] {
 
     override val cfg: GemsConfig = config

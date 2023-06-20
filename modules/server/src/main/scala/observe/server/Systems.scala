@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
@@ -73,9 +73,9 @@ final case class Systems[F[_]](
 object Systems {
 
   final case class Builder(
-    settings: ObserveEngineConfiguration,
-    service:  CaService,
-    tops:     Map[String, String]
+    settings:   ObserveEngineConfiguration,
+    service:    CaService,
+    tops:       Map[String, String]
   )(implicit L: Logger[IO], T: Temporal[IO]) {
     val reconnectionStrategy: WebSocketReconnectionStrategy =
       (attempt, reason) =>
