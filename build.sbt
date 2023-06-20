@@ -291,17 +291,13 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
     scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
-lazy val webGraphQL = project
-  .in(file("modules/web-graphql"))
-  .enablePlugins(ScalaJSPlugin, CluePlugin)
-
 lazy val web = project
   .in(file("modules/web"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
-    scalaVersion    := "3.2.1",
+    scalaVersion    := "3.3.0",
     scalacOptions += "-language:implicitConversions",
     Test / test     := {},
     coverageEnabled := false,
@@ -318,7 +314,7 @@ lazy val web = project
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
-  .dependsOn(new_model.js, webGraphQL)
+  .dependsOn(new_model.js)
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project

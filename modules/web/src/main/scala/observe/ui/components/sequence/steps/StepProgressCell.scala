@@ -36,7 +36,7 @@ case class StepProgressCell(
   sequenceState: SequenceState,
   selectedStep:  Option[Step.Id],
   isPreview:     Boolean
-) extends ReactFnProps(StepProgressCell.component):
+) extends ReactFnProps(StepProgressCell.component) {
   def stepSelected(i: Step.Id): Boolean =
     selectedStep.exists(_ === i) && !isPreview &&
       (clientStatus.isLogged || tabOperations.resourceRunNotIdle(i))
@@ -92,6 +92,7 @@ case class StepProgressCell(
 
   def isStopping: Boolean =
     tabOperations.stopRequested === StopOperation.StopInFlight
+}
 
 object StepProgressCell:
   private type Props = StepProgressCell
@@ -168,29 +169,33 @@ object StepProgressCell:
 
   private val component = ScalaFnComponent[Props](props =>
     (props.sequenceState, props.step.get) match
-      case (f, s) if s.status === StepState.Running && s.fileId.isEmpty && f.userStopRequested =>
+      // case (f, s) if s.status === StepState.Running && s.fileId.isEmpty && f.userStopRequested =>
+      case (f, s)
+          if cats
+            .Eq[StepState]
+            .eqv(s.status, StepState.Running) && s.fileId.isEmpty && f.userStopRequested =>
         // Case pause at the sequence level
         // step.getObservationPausing(props)
         EmptyVdom
-      case (_, s) if s.status === StepState.Running && s.fileId.isEmpty                        =>
+      case (_, s) if s.status === StepState.Running && s.fileId.isEmpty     =>
         // Case configuring, label and status icons
         // step.getSystemsStatus(s)
         EmptyVdom
-      case (_, s) if s.isObservePaused && s.fileId.isDefined                                   =>
+      case (_, s) if s.isObservePaused && s.fileId.isDefined                =>
         // Case for exposure paused, label and control buttons
         stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = true)
-      case (_, s) if s.status === StepState.Running && s.fileId.isDefined                      =>
+      case (_, s) if s.status === StepState.Running && s.fileId.isDefined   =>
         // Case for a exposure onging, progress bar and control buttons
         stepObservationStatusAndFile(props, s.fileId.orEmpty, paused = false)
-      case (_, s) if s.wasSkipped                                                              =>
+      case (_, s) if s.wasSkipped                                           =>
         <.p("Skipped")
-      case (_, _) if props.step.get.skip                                                       =>
+      case (_, _) if props.step.get.skip                                    =>
         <.p("Skip")
-      case (_, s) if s.status === StepState.Completed && s.fileId.isDefined                    =>
+      case (_, s) if s.status === StepState.Completed && s.fileId.isDefined =>
         <.p(ObserveStyles.ComponentLabel, s.fileId.map(_.value).orEmpty)
-      case (_, s) if props.stepSelected(s.id) && s.canConfigure                                =>
+      case (_, s) if props.stepSelected(s.id) && s.canConfigure             =>
         // step.getSubsystemControl(props)
         EmptyVdom
-      case _                                                                                   =>
+      case _                                                                =>
         <.p(ObserveStyles.ComponentLabel, props.step.get.shortName)
   )

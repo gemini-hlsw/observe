@@ -12,7 +12,6 @@ sealed trait ControlButtonResolver[A]:
 
   def controlButtonsActive(a: A): Boolean =
     val (clientStatus, state, step) = extractor(a)
-
     clientStatus.isLogged && state.isRunning && (step.isObserving || step.isObservePaused || state.userStopRequested)
 
 object ControlButtonResolver:
