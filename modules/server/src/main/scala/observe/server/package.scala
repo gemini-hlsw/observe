@@ -12,6 +12,7 @@ import cats.MonadError
 import cats.data._
 import cats.effect.IO
 import cats.syntax.all._
+import clue.ErrorPolicy
 import edu.gemini.spModel.`type`.SequenceableSpType
 import edu.gemini.spModel.guide.StandardGuideOptions
 import fs2.Stream
@@ -98,6 +99,8 @@ package server {
 }
 
 package object server    {
+  implicit val DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
+
   implicit def geEq[D <: SequenceableSpType]: Eq[D] =
     Eq[String].contramap(_.sequenceValue())
 

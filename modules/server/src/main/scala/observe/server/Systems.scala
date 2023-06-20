@@ -33,7 +33,8 @@ import observe.server.nifs._
 import observe.server.niri._
 import observe.server.tcs._
 import cats.effect.Temporal
-import clue._
+import clue.http4s._
+import clue.websocket._
 import lucuma.schemas.ObservationDB
 import io.circe.syntax._
 
@@ -77,7 +78,7 @@ object Systems {
     service:    CaService,
     tops:       Map[String, String]
   )(implicit L: Logger[IO], T: Temporal[IO]) {
-    val reconnectionStrategy: WebSocketReconnectionStrategy =
+    val reconnectionStrategy: ReconnectionStrategy =
       (attempt, reason) =>
         // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
         if (reason.toOption.flatMap(_.toOption.flatMap(_.code)).exists(_ === 1000))
@@ -88,9 +89,8 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
-    def odbProxy[F[_]: Async: Logger: WebSocketBackend]: F[OdbProxy[F]] = for {
-      sk <- ApolloWebSocketClient
-              .of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
+    def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
+      sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       _  <- sk.connect()
       _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
     } yield OdbProxy[F](
@@ -360,7 +360,7 @@ object Systems {
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
         clt                                        <- Resource.eval(JdkWSClient.simple[IO])
-        webSocketBackend                            = clue.http4s.Http4sWSBackend[IO](clt)
+        webSocketBackend                            = clue.http4s.Http4sWebSocketBackend[IO](clt)
         odbProxy                                   <-
           Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
         dhsClient                                  <- Resource.eval(dhs[IO](httpClient))
