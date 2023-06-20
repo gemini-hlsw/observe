@@ -19,7 +19,7 @@
     "@packtracker/webpack-plugin": "^2.3.0",
     "autoprefixer": "^10.0.1",
     "concat-with-sourcemaps": "^1.0.7",
-    "css-loader": "^3.5.3",
+    "css-loader": "^5.2.7",
     "css-minimizer-webpack-plugin": "^1.1.5",
     "cssnano": "^4.1.10",
     "favicons-webpack-plugin": "^4.2.0",
