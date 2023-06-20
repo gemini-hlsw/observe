@@ -24,7 +24,7 @@ import react.fa.IconSize
 import react.primereact.*
 // import reactST.primereact.components.*
 // import reactST.primereact.selectitemMod.SelectItem
-import reactST.{ tanstackTableCore => raw }
+import reactST.{tanstackTableCore => raw}
 
 import scalajs.js.JSConverters.*
 

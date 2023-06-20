@@ -42,22 +42,22 @@ object Settings {
     val http4sPrometheusMetricsVersion = "0.24.3"
     val http4sScalaXmlVersion          = "0.23.13"
 
-    val squants        = "1.8.3"
-    val commonsHttp    = "3.1"
-    val unboundId      = "3.2.1"
-    val jwt            = "9.2.0"
-    val slf4j          = "2.0.7"
-    val log4s          = "1.10.0"
-    val log4cats       = "2.6.0"
-    val log4catsLevel  = "0.3.1"
-    val logback        = "1.4.7"
-    val janino         = "3.1.9"
-    val logstash       = "7.0"
-    val pureConfig     = "0.17.4"
-    val monocleVersion = "3.2.0"
-    val circeVersion   = "0.14.5"
-    val doobieVersion  = "0.6.0"
-    val flywayVersion  = "6.0.4"
+    val squants          = "1.8.3"
+    val commonsHttp      = "3.1"
+    val unboundId        = "3.2.1"
+    val jwt              = "9.2.0"
+    val slf4j            = "2.0.7"
+    val log4s            = "1.10.0"
+    val log4cats         = "2.6.0"
+    val log4catsLogLevel = "0.3.1"
+    val logback          = "1.4.7"
+    val janino           = "3.1.9"
+    val logstash         = "7.0"
+    val pureConfig       = "0.17.4"
+    val monocleVersion   = "3.2.0"
+    val circeVersion     = "0.14.5"
+    val doobieVersion    = "0.6.0"
+    val flywayVersion    = "6.0.4"
 
     // test libraries
     val xmlUnit                = "1.6"
@@ -294,14 +294,7 @@ object Settings {
         "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore
       )
     )
-    val LucumaCore3   = Def.setting(
-      Seq(
-        "edu.gemini" %%% "lucuma-core"         % LibraryVersions.lucumaCore3,
-        "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore3
-      )
-    )
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
-    val LucumaUI3     = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI3)
     val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
 
     val Clue          = "edu.gemini" %% "clue-core"      % LibraryVersions.clue

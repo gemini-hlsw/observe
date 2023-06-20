@@ -26,7 +26,7 @@ import observe.ui.model.extensions.*
 import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
-import reactST.{ tanstackTableCore => raw }
+import reactST.{tanstackTableCore => raw}
 import lucuma.ui.table.ColumnSize.*
 import scalajs.js
 import observe.ui.Icons
@@ -447,7 +447,7 @@ object StepsTable:
               headerCell.column.id match
                 case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
                 case id if id == SkipColumnId.value       => ^.colSpan := 2
-                case id if id == IconColumnId.value       =>            ^.display.none
+                case id if id == IconColumnId.value       => ^.display.none
                 case _                                    => TagMod.empty
             )
           },

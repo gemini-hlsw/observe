@@ -11,7 +11,7 @@ import observe.ui.model.RootModel
 import react.common.ReactFnProps
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
-  val rootModel:     View[RootModel]
+  val rootModel: View[RootModel]
 ) extends ReactFnProps[Layout](Layout.component)
 
 object Layout:

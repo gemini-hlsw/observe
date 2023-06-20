@@ -188,7 +188,7 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
       Cats.value,
       Kittens.value,
       CatsTime.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore3.value ++ Circe.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -216,8 +216,8 @@ lazy val observe_web_client = project
       CatsEffect.value,
       Crystal.value,
       Fs2.value,
-      LucumaUI3.value
-    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore3.value ++ Log4CatsLogLevel.value,
+      LucumaUI.value
+    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
@@ -307,7 +307,7 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(Fs2,
+    libraryDependencies ++= Seq(Fs2.value,
                                 CatsEffect.value,
                                 Log4s.value,
                                 Log4Cats.value
