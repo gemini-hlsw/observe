@@ -9,9 +9,9 @@ name: Continuous Integration
 
 on:
   pull_request:
-    branches: ["**", "!update/**", "!pr/**"]
+    branches: ['**', '!update/**', '!pr/**']
   push:
-    branches: ["**", "!update/**", "!pr/**"]
+    branches: ['**', '!update/**', '!pr/**']
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,4 +82,4 @@ jobs:
         run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' coverageReport coverageAggregate
 
       - name: Upload code coverage data
-        run: "bash <(curl -s https://codecov.io/bash)"
+        run: 'bash <(curl -s https://codecov.io/bash)'
