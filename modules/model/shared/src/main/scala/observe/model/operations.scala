@@ -40,20 +40,20 @@ object operations {
 
   sealed trait SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]]
   }
 
   private val F2SupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       Nil
   }
 
   private val GmosSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       level match {
         case ObservationLevel =>
@@ -85,7 +85,7 @@ object operations {
 
   private val GnirsSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       level match {
         case ObservationLevel =>
@@ -100,7 +100,7 @@ object operations {
 
   private val NiriSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       level match {
         case ObservationLevel =>
@@ -115,7 +115,7 @@ object operations {
 
   private val NifsSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       level match {
         case ObservationLevel =>
@@ -130,7 +130,7 @@ object operations {
 
   private val GsaoiSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       level match {
         case ObservationLevel =>
@@ -141,7 +141,7 @@ object operations {
 
   private val NilSupportedOperations = new SupportedOperations {
     def apply[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean)(using
-      level:                                        OperationLevelType[L]
+      level: OperationLevelType[L]
     ): List[Operations[L]] =
       Nil
   }
@@ -158,7 +158,7 @@ object operations {
 
   extension (i: Instrument) {
     def operations[L <: OperationLevel](isObservePaused: Boolean, isMultiLevel: Boolean = false)(
-      using level:                                       OperationLevelType[L]
+      using level: OperationLevelType[L]
     ): List[Operations[L]] =
       instrumentOperations
         .getOrElse(i, NilSupportedOperations)(isObservePaused, isMultiLevel)

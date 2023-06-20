@@ -69,10 +69,10 @@ trait ModelLenses {
     param:  String
   ): Optional[StepConfig, String] =
     systemConfigL(system)
-      .andThen(      // observe parameters
+      .andThen( // observe parameters
         some[Parameters]
       )
-      .andThen(      // focus on the option
+      .andThen( // focus on the option
         paramValueL(system.withParam(param))
       )
       .andThen(      // find the target name
@@ -286,13 +286,13 @@ trait ModelLenses {
   // Lens to find guidingWith configurations
   val telescopeGuidingWithT: Traversal[Step, Guiding] =
     Step.config
-      .andThen(          // configuration of the step
+      .andThen( // configuration of the step
         systemConfigL(SystemName.Telescope)
       )
-      .andThen(          // Observe config
+      .andThen( // Observe config
         some[Parameters]
       )
-      .andThen(          // some
+      .andThen( // some
         paramValuesWithPrefixT(
           SystemName.Telescope.withParam("guideWith")
         )

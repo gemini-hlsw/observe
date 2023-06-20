@@ -79,23 +79,23 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
   def sequence(sequence: OdbObservation)(using
-    tio:                 Temporal[F]
+    tio: Temporal[F]
   ): Option[Either[List[Throwable], SequenceGen[F]]]
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-    tio:                 Temporal[F]
+    tio: Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
   def abortObserve(seqId: Observation.Id)(using
-    tio:                  Temporal[F]
+    tio: Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
   def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-    tio:                  Temporal[F]
+    tio: Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
   def resumePaused(seqId: Observation.Id)(using
-    tio:                  Temporal[F]
+    tio: Temporal[F]
   ): EngineState[F] => Option[Stream[F, EventType[F]]]
 
 }
@@ -809,23 +809,23 @@ object SeqTranslate {
 //    }
 
     override def sequence(sequence: OdbObservation)(using
-      tio:                          Temporal[F]
+      tio: Temporal[F]
     ): Option[Either[List[Throwable], SequenceGen[F]]] = None
 
     override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-      tio:                          Temporal[F]
+      tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
     override def abortObserve(seqId: Observation.Id)(using
-      tio:                           Temporal[F]
+      tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
     override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-      tio:                           Temporal[F]
+      tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
 
     override def resumePaused(seqId: Observation.Id)(using
-      tio:                           Temporal[F]
+      tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
   }
 

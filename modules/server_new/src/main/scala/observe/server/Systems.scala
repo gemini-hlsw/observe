@@ -76,7 +76,7 @@ object Systems {
     settings: ObserveEngineConfiguration,
 //    service:    CaService,
     tops:     Map[String, String]
-  )(using L:  Logger[IO], T: Temporal[IO]) {
+  )(using L: Logger[IO], T: Temporal[IO]) {
 //    val reconnectionStrategy: WebSocketReconnectionStrategy =
 //      (attempt, reason) =>
 //        // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
@@ -423,6 +423,6 @@ object Systems {
     httpClient: Client[IO],
     settings:   ObserveEngineConfiguration /*,
     service:    CaService*/
-  )(using T:    Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
+  )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
     Builder(settings, /*service,*/ decodeTops(settings.tops)).build(site, httpClient)
 }

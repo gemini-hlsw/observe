@@ -228,7 +228,7 @@ trait ObserveEngine[F[_]] {
 
   // Used by tests
   def stream(p: Stream[F, EventType[F]])(
-    s0:         EngineState[F]
+    s0: EngineState[F]
   ): Stream[F, (EventResult[SeqEvent], EngineState[F])]
 }
 
@@ -1692,7 +1692,7 @@ object ObserveEngine {
     override def eventStream(q: EventQueue[F]): Stream[F, ObserveEvent] = Stream.empty
 
     override def stream(p: Stream[F, EventType[F]])(
-      s0:                  EngineState[F]
+      s0: EngineState[F]
     ): Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
   }
 
@@ -1822,7 +1822,7 @@ object ObserveEngine {
    *   parallel.
    */
   private def nextRunnableObservations[F[_]](qid: QueueId, freed: Set[Resource])(
-    st:                                           EngineState[F]
+    st: EngineState[F]
   ): Set[Observation.Id] = {
     // Set of all resources in use
     val used = resourcesInUse(st)
@@ -1861,7 +1861,7 @@ object ObserveEngine {
    * to check if sequences added to a queue should be started.
    */
   private def shouldSchedule[F[_]](qid: QueueId, sids: Set[Observation.Id])(
-    st:                                 EngineState[F]
+    st: EngineState[F]
   ): Set[Observation.Id] =
     findRunnableObservations(qid)(st).intersect(sids)
 

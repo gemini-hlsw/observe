@@ -385,7 +385,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
   }
 
   private def handleSystemEvent(
-    se:       SystemEvent
+    se: SystemEvent
   )(using ci: Concurrent[F]): HandleType[ResultType] = se match {
     case Completed(id, _, i, r)     =>
       debug(s"Engine: From sequence $id: Action completed ($r)") *> complete(id, i, r) *>
@@ -441,7 +441,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
    */
   private def run(
     userReact: PartialFunction[SystemEvent, HandleType[Unit]]
-  )(ev:        EventType)(using ci: Concurrent[F]): HandleType[ResultType] =
+  )(ev: EventType)(using ci: Concurrent[F]): HandleType[ResultType] =
     ev match {
       case EventUser(ue)   => handleUserEvent(ue)
       case EventSystem(se) =>
@@ -458,7 +458,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
     input:        Stream[F, A],
     initialState: S,
     f:            (A, S) => F[(S, B, Option[Stream[F, A]])]
-  )(using ev:     Concurrent[F]): Stream[F, B] =
+  )(using ev: Concurrent[F]): Stream[F, B] =
     Stream.eval(cats.effect.std.Queue.unbounded[F, Stream[F, A]]).flatMap { q =>
       Stream.exec(q.offer(input)) ++
         Stream
@@ -475,7 +475,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
 
   private def runE(
     userReact: PartialFunction[SystemEvent, HandleType[Unit]]
-  )(ev:        EventType, s: S)(using
+  )(ev: EventType, s: S)(using
     ci:        Concurrent[F]
   ): F[(S, (ResultType, S), Option[Stream[F, EventType]])] =
     run(userReact)(ev).run.run(s).map { case (si, (r, p)) =>
@@ -483,8 +483,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
     }
 
   def process(userReact: PartialFunction[SystemEvent, HandleType[Unit]])(
-    input:               Stream[F, EventType]
-  )(qs:                  S)(using ev: Concurrent[F]): Stream[F, (ResultType, S)] =
+    input: Stream[F, EventType]
+  )(qs: S)(using ev: Concurrent[F]): Stream[F, (ResultType, S)] =
     mapEvalState[EventType, (ResultType, S)](input, qs, runE(userReact)(_, _))
 
   // Functions for type bureaucracy
@@ -512,7 +512,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
     inspect(stateL.sequenceStateIndex(id).getOption(_).map(f))
 
   private def modifyS(id: Observation.Id)(
-    f:                    Sequence.State[F] => Sequence.State[F]
+    f: Sequence.State[F] => Sequence.State[F]
   ): HandleType[Unit] =
     modify(stateL.sequenceStateIndex(id).modify(f))
 

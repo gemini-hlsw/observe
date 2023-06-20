@@ -171,7 +171,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
   def redirectWebServer[F[_]: Logger: Async: Compression](
 //    gcdb: GuideConfigDb[F],
-    cal:  SmartGcal
+    cal: SmartGcal
   )(conf: WebServerConfiguration): Resource[F, Server] = {
     val router = Router[F](
 //      "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,

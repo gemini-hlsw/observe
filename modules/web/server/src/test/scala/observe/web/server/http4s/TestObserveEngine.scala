@@ -231,7 +231,7 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
   override def eventStream(q: EventQueue[F]): fs2.Stream[F, events.ObserveEvent] = Stream.empty
 
   override def stream(p: fs2.Stream[F, EventType[F]])(
-    s0:                  EngineState[F]
+    s0: EngineState[F]
   ): fs2.Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
 }
 
