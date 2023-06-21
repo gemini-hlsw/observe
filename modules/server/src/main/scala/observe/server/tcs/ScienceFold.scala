@@ -4,9 +4,9 @@
 package observe.server.tcs
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 sealed trait ScienceFold extends Product with Serializable
 
@@ -14,9 +14,9 @@ object ScienceFold {
   case object Parked                                                             extends ScienceFold
   final case class Position(source: LightSource, sink: LightSinkName, port: Int) extends ScienceFold
 
-  implicit val positionEq: Eq[Position] = Eq.by(x => (x.source, x.sink, x.port))
+  given Eq[Position] = Eq.by(x => (x.source, x.sink, x.port))
 
-  implicit val eq: Eq[ScienceFold] = Eq.instance {
+  given Eq[ScienceFold] = Eq.instance {
     case (Parked, Parked)           => true
     case (a: Position, b: Position) => a === b
     case _                          => false

@@ -5,7 +5,7 @@ package observe.web.client.model
 
 import cats.Eq
 import cats.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.GpiDisperser
 import lucuma.core.enums.GpiFilter
 import lucuma.core.enums.GpiObservingMode
@@ -17,12 +17,12 @@ import observe.model.OffsetConfigResolver
 import observe.model.SequenceState
 import observe.model.Step
 import observe.model.StepId
-import observe.model.enum.Guiding
-import observe.model.enum.Instrument
-import observe.model.enum.StepType
+import observe.model.enums.Guiding
+import observe.model.enums.Instrument
+import observe.model.enums.StepType
 import observe.model.enumerations
-import observe.web.client.model.Formatting._
-import observe.web.client.model.lenses._
+import observe.web.client.model.Formatting.*
+import observe.web.client.model.lenses.*
 
 /**
  * Contains methods to access details of a step normally stored on the step sequence
@@ -40,7 +40,7 @@ object StepItems {
   private val obsNames =
     GpiObservingMode.all.map(x => x.shortName -> x.longName).toMap
 
-  implicit class StepOps(val s: Step) extends AnyVal {
+  extension(s: Step) {
     def fpuNameMapper(i: Instrument): String => Option[String] =
       i match {
         case Instrument.GmosS => enumerations.fpu.GmosSFPU.get
@@ -171,7 +171,7 @@ object StepItems {
       }
     }
 
-    def offset[T, A](implicit
+    def offset[T, A](using
       resolver: OffsetConfigResolver[T, A],
       m:        Monoid[Offset.Component[A]]
     ): Offset.Component[A] =
@@ -201,7 +201,7 @@ object StepItems {
       instrumentImagingMirrorO.getOption(s)
   }
 
-  implicit class OffsetFnsOps(val steps: List[Step]) extends AnyVal {
+  extension(steps: List[Step]) {
 
     // Offsets to be displayed with a width
     def offsetsDisplay: OffsetsDisplay =
@@ -277,7 +277,7 @@ object StepItems {
   }
 
   object StepStateSummary {
-    implicit val EqStepStateSummary: Eq[StepStateSummary] =
+    given Eq[StepStateSummary] =
       Eq.by(x => (x.step, x.stepIdx, x.obsIdName, x.instrument, x.tabOperations, x.state))
   }
 

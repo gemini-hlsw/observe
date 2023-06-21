@@ -4,9 +4,9 @@
 package web.client.table
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import mouse.boolean._
+import mouse.boolean.*
 
 sealed trait ColumnWidth
 sealed abstract class FixedColumnWidth(val width: Double) extends ColumnWidth {
@@ -23,13 +23,13 @@ sealed abstract class VariableColumnWidth(val percentage: Double, val minWidth: 
 }
 
 object ColumnWidth {
-  implicit val eq: Eq[ColumnWidth] =
+  given Eq[ColumnWidth] =
     Eq[Either[FixedColumnWidth, VariableColumnWidth]].contramap {
       case x: FixedColumnWidth    => x.asLeft
       case x: VariableColumnWidth => x.asRight
     }
 
-  implicit val columnWidthReuse: Reusability[ColumnWidth] = Reusability {
+  given Reusability[ColumnWidth] = Reusability {
     case (a: FixedColumnWidth, b: FixedColumnWidth)       =>
       !FixedColumnWidth.fixedColWidthReuse.testNot(a, b)
     case (a: VariableColumnWidth, b: VariableColumnWidth) =>
@@ -39,7 +39,7 @@ object ColumnWidth {
 }
 
 object FixedColumnWidth {
-  implicit val eqFcw: Eq[FixedColumnWidth] = Eq.by(_.width)
+  given Eq[FixedColumnWidth] = Eq.by(_.width)
   private[table] def apply(p: Double)      = new FixedColumnWidth(p) {}
 
   def fromDouble(width: Double): Option[FixedColumnWidth] =
@@ -53,12 +53,12 @@ object FixedColumnWidth {
 
   private implicit val doubleReuse: Reusability[Double]          =
     Reusability.double(0.1)
-  implicit val fixedColWidthReuse: Reusability[FixedColumnWidth] =
+  given Reusability[FixedColumnWidth] =
     Reusability.by(_.width)
 }
 
 object VariableColumnWidth {
-  implicit val eqPcw: Eq[VariableColumnWidth] =
+  given Eq[VariableColumnWidth] =
     Eq.by(x => (x.percentage, x.minWidth))
 
   private final case class VariableColumnWidthI(
@@ -95,6 +95,6 @@ object VariableColumnWidth {
   // Deltas are very small when resizing a col
   private implicit val doubleReuse: Reusability[Double]                =
     Reusability.double(0.0001)
-  implicit val variableColWidthReuse: Reusability[VariableColumnWidth] =
+  given Reusability[VariableColumnWidth] =
     Reusability.by(x => (x.percentage, x.minWidth))
 }

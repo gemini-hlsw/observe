@@ -3,9 +3,9 @@
 
 package observe.server.gcal
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
-import observe.server.gcal.GcalController._
+import observe.server.gcal.GcalController.*
 
 /**
  * Tests Gcal typeclasses

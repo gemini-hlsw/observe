@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s.encoder
@@ -10,12 +10,12 @@ import org.http4s.booPickle.instances.BooPickleInstances
 import observe.model.Conditions
 import observe.model.Observation
 import observe.model.Operator
-import observe.model._
+import observe.model.*
 import observe.model.boopickle.ModelBooPicklers
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
 
 /**
  * Contains http4s implicit encoders of model objects
@@ -23,27 +23,27 @@ import observe.model.enum.WaterVapor
 trait BooEncoders extends ModelBooPicklers with BooPickleInstances {
   // Decoders, Included here instead of the on the object definitions to avoid
   // a circular dependency on http4s
-  implicit def usrLoginDecoder[F[_]: Concurrent]: EntityDecoder[F, UserLoginRequest] =
+  given [F[_]: Concurrent]: EntityDecoder[F, UserLoginRequest]     =
     booOf[F, UserLoginRequest]
-  implicit def userDetailEncoder[F[_]]: EntityEncoder[F, UserDetails]                =
+  given [F[_]]: EntityEncoder[F, UserDetails]                      =
     booEncoderOf[F, UserDetails]
-  implicit def operatorEncoder[F[_]]: EntityEncoder[F, Operator]                     =
+  given [F[_]]: EntityEncoder[F, Operator]                         =
     booEncoderOf[F, Operator]
-  implicit def idEncoder[F[_]: Concurrent]: EntityDecoder[F, Observation.Id]         =
+  given [F[_]: Concurrent]: EntityDecoder[F, Observation.Id]       =
     booOf[F, Observation.Id]
-  implicit def lidEncoder[F[_]: Concurrent]: EntityDecoder[F, List[Observation.Id]]  =
+  given [F[_]: Concurrent]: EntityDecoder[F, List[Observation.Id]] =
     booOf[F, List[Observation.Id]]
-  implicit def sIdEncoder[F[_]]: EntityEncoder[F, SequencesQueue[Observation.Id]]    =
+  given [F[_]]: EntityEncoder[F, SequencesQueue[Observation.Id]]   =
     booEncoderOf[F, SequencesQueue[Observation.Id]]
-  implicit def conditionsEncoder[F[_]: Concurrent]: EntityDecoder[F, Conditions]     =
+  given [F[_]: Concurrent]: EntityDecoder[F, Conditions]           =
     booOf[F, Conditions]
-  implicit def iqEncoder[F[_]: Concurrent]: EntityDecoder[F, ImageQuality]           =
+  given [F[_]: Concurrent]: EntityDecoder[F, ImageQuality]         =
     booOf[F, ImageQuality]
-  implicit def wvEncoder[F[_]: Concurrent]: EntityDecoder[F, WaterVapor]             =
+  given [F[_]: Concurrent]: EntityDecoder[F, WaterVapor]           =
     booOf[F, WaterVapor]
-  implicit def sbEncoder[F[_]: Concurrent]: EntityDecoder[F, SkyBackground]          =
+  given [F[_]: Concurrent]: EntityDecoder[F, SkyBackground]        =
     booOf[F, SkyBackground]
-  implicit def ccEncoder[F[_]: Concurrent]: EntityDecoder[F, CloudCover]             =
+  given [F[_]: Concurrent]: EntityDecoder[F, CloudCover]           =
     booOf[F, CloudCover]
 }
 
@@ -51,14 +51,14 @@ trait BooEncoders extends ModelBooPicklers with BooPickleInstances {
  * Contains http4s implicit encoders of model objects, from the point of view of a client
  */
 trait ClientBooEncoders extends ModelBooPicklers with BooPickleInstances {
-  implicit def usrLoginEncoder[F[_]]: EntityEncoder[F, UserLoginRequest] =
+  given [F[_]]: EntityEncoder[F, UserLoginRequest] =
     booEncoderOf[F, UserLoginRequest]
-  implicit def wvEncoder[F[_]]: EntityEncoder[F, WaterVapor]             =
+  given [F[_]]: EntityEncoder[F, WaterVapor]       =
     booEncoderOf[F, WaterVapor]
-  implicit def iqEncoder[F[_]]: EntityEncoder[F, ImageQuality]           =
+  given [F[_]]: EntityEncoder[F, ImageQuality]     =
     booEncoderOf[F, ImageQuality]
-  implicit def sbEncoder[F[_]]: EntityEncoder[F, SkyBackground]          =
+  given [F[_]]: EntityEncoder[F, SkyBackground]    =
     booEncoderOf[F, SkyBackground]
-  implicit def ccEncoder[F[_]]: EntityEncoder[F, CloudCover]             =
+  given [F[_]]: EntityEncoder[F, CloudCover]       =
     booEncoderOf[F, CloudCover]
 }

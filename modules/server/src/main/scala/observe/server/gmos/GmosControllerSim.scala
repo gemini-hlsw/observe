@@ -5,18 +5,17 @@ package observe.server.gmos
 
 import cats.Show
 import cats.effect.{Async, Ref, Temporal}
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import monocle.Optional
-import monocle.macros.Lenses
 import monocle.std.option.some
 import observe.model.GmosParameters.NsCyclesI
 import observe.model.NSSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.NodAndShuffleStage._
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.NodAndShuffleStage.*
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObsProgress
@@ -30,12 +29,11 @@ import observe.server.gmos.GmosController.SiteDependentTypes
 import observe.server.gmos.GmosController.SouthTypes
 import shapeless.tag
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 /**
  * Keep track of the current execution state
  */
-@Lenses
 final case class NSCurrent(
   fileId:        ImageFileId,
   totalCycles:   Int,
@@ -53,7 +51,7 @@ final case class NSCurrent(
 }
 
 object NSCurrent {
-  implicit val showNSCurrent: Show[NSCurrent] = Show.show { a =>
+  given Show[NSCurrent] = Show.show { a =>
     s"NS State: file=${a.fileId}, cycle=${a.cycle + 1}, stage=${NsSequence.toList
         .lift(a.exposureCount % NsSequence.length)
         .getOrElse("Unknown")}/${(a.exposureCount % NsSequence.length) + 1}, subexposure=${a.exposureCount + 1}, expTime=${a.expTime}"
@@ -63,7 +61,6 @@ object NSCurrent {
 /**
  * Used to keep the internal state of NS
  */
-@Lenses
 final case class NSObsState(config: NSConfig, current: Option[NSCurrent])
 
 object NSObsState {
@@ -73,13 +70,13 @@ object NSObsState {
   val Zero: NSObsState = NSObsState(NSConfig.NoNodAndShuffle, None)
 
   val fileId: Optional[NSObsState, ImageFileId] =
-    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.fileId)
+    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(NSCurrent.fileId)
 
   val exposureCount: Optional[NSObsState, Int] =
-    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.exposureCount)
+    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(NSCurrent.exposureCount)
 
   val expTime: Optional[NSObsState, Time] =
-    NSObsState.current.andThen(some[NSCurrent]).andThen(NSCurrent.expTime)
+    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(NSCurrent.expTime)
 
 }
 
@@ -99,7 +96,7 @@ object GmosControllerSim {
           case s @ NSObsState(NSConfig.NodAndShuffle(cycles, _, _, _), _) =>
             // Initialize the current state
             val update =
-              NSObsState.current.replace(NSCurrent(fileId, cycles, 0, expTime).some)
+              Focus[NSObsState](_.current).replace(NSCurrent(fileId, cycles, 0, expTime).some)
             (update(s), update(s))
         } >>= {
           case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
@@ -187,13 +184,13 @@ object GmosControllerSim {
       override def nsCount: F[Int] = nsConfig.get.map(_.current.foldMap(_.exposureCount))
     }
 
-  def south[F[_]: Async: Logger]: F[GmosController[F, SouthTypes]] =
+  def south[F[_]: Async: Logger]: F[GmosController[F, GmosSite.South]] =
     (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS South")).mapN { (nsConfig, sim) =>
-      GmosControllerSim[F, SouthTypes](sim, nsConfig)
+      GmosControllerSim[F, GmosSite.South](sim, nsConfig)
     }
 
-  def north[F[_]: Async: Logger]: F[GmosController[F, NorthTypes]] =
+  def north[F[_]: Async: Logger]: F[GmosController[F, GmosSite.North]] =
     (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS North")).mapN { (nsConfig, sim) =>
-      GmosControllerSim[F, NorthTypes](sim, nsConfig)
+      GmosControllerSim[F, GmosSite.North](sim, nsConfig)
     }
 }

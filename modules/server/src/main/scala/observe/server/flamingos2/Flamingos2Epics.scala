@@ -8,13 +8,13 @@ import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
-import observe.model.enum.ApplyCommandResult
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
+import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 
 final class Flamingos2Epics[F[_]: Async](epicsService: CaService, tops: Map[String, String]) {
   val sysName       = "FLAMINGOS-2"

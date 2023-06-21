@@ -3,7 +3,7 @@
 
 package observe.server
 
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import squants.space.Length
 
 trait InstrumentGuide {

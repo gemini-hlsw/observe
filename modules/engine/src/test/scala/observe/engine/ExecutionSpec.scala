@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -10,7 +10,7 @@ import observe.model.ActionType
 class ExecutionSpec extends munit.FunSuite {
 
   private object DummyResult extends Result.RetVal
-  private val ok: Result[Nothing]         = Result.OK(DummyResult)
+  private val ok: Result                  = Result.OK(DummyResult)
   private val completedAction: Action[Id] = fromF[Id](ActionType.Observe, ok)
     .copy(state = Action.State(Action.ActionState.Completed(DummyResult), Nil))
   private val action: Action[Id]          = fromF[Id](ActionType.Observe, ok)

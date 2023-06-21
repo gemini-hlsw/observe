@@ -5,8 +5,8 @@ package observe.server.tcs
 
 import cats.Show
 import cats.data.NonEmptySet
-import cats.implicits._
-import observe.model.enum.NodAndShuffleStage
+import cats.implicits.*
+import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController.{
@@ -62,11 +62,11 @@ object TcsSouthController {
   type TcsSouthConfig   = TcsConfig[GemsGuiders, GemsConfig]
   type TcsSouthAoConfig = AoTcsConfig[GemsGuiders, GemsConfig]
 
-  implicit val aoGuideShow: Show[GemsGuiders] = Show.show { x =>
+  given Show[GemsGuiders] = Show.show { x =>
     s"(cwfs1 = ${(x.cwfs1: GuiderConfig).show}, cwfs2 = ${(x.cwfs2: GuiderConfig).show}, cwfs3 = ${(x.cwfs3: GuiderConfig).show}, odgw1 = ${(x.odgw1: GuiderConfig).show}, odgw2 = ${(x.odgw2: GuiderConfig).show}, odgw3 = ${(x.odgw3: GuiderConfig).show}, odgw4 = ${(x.odgw4: GuiderConfig).show})"
   }
 
-  implicit val tcsSouthConfigShow: Show[TcsSouthConfig] = Show.show {
+  given Show[TcsSouthConfig] = Show.show {
     case x: BasicTcsConfig   => x.show
     case x: TcsSouthAoConfig => x.show
   }

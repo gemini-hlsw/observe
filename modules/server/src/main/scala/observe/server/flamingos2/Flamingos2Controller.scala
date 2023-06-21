@@ -9,7 +9,7 @@ import cats.Show
 import cats.Eq
 import fs2.Stream
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import squants.Time
 
@@ -43,7 +43,7 @@ object Flamingos2Controller {
     case object Slit6Pix                  extends FocalPlaneUnit
     case object Slit8Pix                  extends FocalPlaneUnit
     final case class Custom(mask: String) extends FocalPlaneUnit
-    implicit val equal: Eq[FocalPlaneUnit] = Eq.fromUniversalEquals
+    given Eq[FocalPlaneUnit] = Eq.fromUniversalEquals
   }
 
   type Filter = edu.gemini.spModel.gemini.flamingos2.Flamingos2.Filter

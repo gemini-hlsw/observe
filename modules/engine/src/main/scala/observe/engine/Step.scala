@@ -1,12 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
-import cats.syntax.all._
-import monocle.Lens
+import cats.syntax.all.*
+import monocle.{Focus, Lens}
 import monocle.macros.GenLens
-import monocle.macros.Lenses
 import observe.engine.Action.ActionState
 import observe.model.StepId
 import observe.model.StepState
@@ -14,7 +13,6 @@ import observe.model.StepState
 /**
  * A list of `Executions` grouped by observation.
  */
-@Lenses
 final case class Step[F[_]](
   id:         StepId,
   breakpoint: Step.BreakpointMark,
@@ -25,17 +23,16 @@ final case class Step[F[_]](
 
 object Step {
 
-  @Lenses
   final case class BreakpointMark(self: Boolean) extends AnyVal
 
-  @Lenses
   final case class SkipMark(self: Boolean) extends AnyVal
 
-  @Lenses
   final case class Skipped(self: Boolean) extends AnyVal
 
-  def breakpointL[F[_]]: Lens[Step[F], Boolean] = Step.breakpoint.andThen(BreakpointMark.self)
-  def skippedL[F[_]]: Lens[Step[F], Boolean]    = Step.skipped.andThen(Skipped.self)
+  def breakpointL[F[_]]: Lens[Step[F], Boolean] =
+    Focus[Step[F]](_.breakpoint).andThen(Focus[BreakpointMark](_.self))
+  def skippedL[F[_]]: Lens[Step[F], Boolean]    =
+    Focus[Step[F]](_.skipped).andThen(Focus[Skipped](_.self))
 
   def init[F[_]](id: StepId, executions: List[ParallelActions[F]]): Step[F] =
     Step(id = id,
@@ -48,7 +45,7 @@ object Step {
   /**
    * Calculate the `Step` `Status` based on the underlying `Action`s.
    */
-  private def status[F[_]](step: Step[F]): StepState =
+  private def status_[F[_]](step: Step[F]): StepState =
     if (step.skipped.self) StepState.Skipped
     else
       // Find an error in the Step
@@ -62,7 +59,7 @@ object Step {
             // Return error or continue with the rest of the checks
           }
         }
-        .map[StepState](StepState.Failed)
+        .map[StepState](StepState.Failed.apply)
         .getOrElse(
           // All actions in this Step were completed successfully, or the Step is empty.
           if (step.executions.flatMap(_.toList).exists(Action.aborted)) StepState.Aborted
@@ -73,8 +70,8 @@ object Step {
           else StepState.Running
         )
 
-  implicit class StepOps[F[_]](val s: Step[F]) extends AnyVal {
-    def status: StepState = Step.status(s)
+  extension [F[_]](s: Step[F]) {
+    def status: StepState = Step.status_(s)
   }
 
   /**

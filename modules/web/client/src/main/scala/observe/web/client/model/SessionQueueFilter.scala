@@ -4,23 +4,22 @@
 package observe.web.client.model
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.util.Enumerated
-import monocle.macros.Lenses
 import observe.model.SequenceView
 import observe.web.client.circuit.SequenceInSessionQueue
 import observe.web.client.model.lenses.obsClassT
 
-sealed trait ObsClass extends Product with Serializable
+sealed abstract class ObsClass(val tag: String) extends Product with Serializable
 
 object ObsClass {
-  case object All       extends ObsClass
-  case object Daytime   extends ObsClass
-  case object Nighttime extends ObsClass
+  case object All       extends ObsClass("All")
+  case object Daytime   extends ObsClass("Daytime")
+  case object Nighttime extends ObsClass("Nighttime")
 
   /** @group Typeclass Instances */
-  implicit val ObsClassEnumerated: Enumerated[ObsClass] =
-    Enumerated.of(All, Daytime, Nighttime)
+  given Enumerated[ObsClass] =
+    Enumerated.from(All, Daytime, Nighttime).withTag(_.tag)
 
   def fromString(s: String): ObsClass = s match {
     case "dayCal" => Daytime
@@ -31,7 +30,6 @@ object ObsClass {
 /**
  * Model of a filter for the session queue
  */
-@Lenses
 final case class SessionQueueFilter(obsClass: ObsClass) {
   val dayTimeSelected: Boolean = obsClass match {
     case ObsClass.Daytime => true
@@ -71,7 +69,7 @@ final case class SessionQueueFilter(obsClass: ObsClass) {
 }
 
 object SessionQueueFilter {
-  implicit val eq: Eq[SessionQueueFilter] =
+  given Eq[SessionQueueFilter] =
     Eq.by(_.obsClass)
 
   val NoFilter: SessionQueueFilter = SessionQueueFilter(ObsClass.All)

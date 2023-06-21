@@ -6,14 +6,14 @@ package observe.web.client.handlers
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import observe.model.Notification.RequestFailed
-import observe.model.enum.Resource
-import observe.web.client.actions._
+import observe.model.enums.Resource
+import observe.web.client.actions.*
 import observe.web.client.model.AbortOperation
 import observe.web.client.model.CancelPauseOperation
 import observe.web.client.model.PauseOperation
@@ -36,7 +36,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
-          TabOperations.runRequested.replace(RunOperation.RunInFlight)
+          Focus[TabOperations](_.runRequested).replace(RunOperation.RunInFlight)
         )
       )
 
@@ -44,7 +44,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
-          TabOperations.stopRequested.replace(StopOperation.StopInFlight)
+          Focus[TabOperations](_.stopRequested).replace(StopOperation.StopInFlight)
         )
       )
 
@@ -52,7 +52,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
-          TabOperations.abortRequested.replace(AbortOperation.AbortInFlight)
+          Focus[TabOperations](_.abortRequested).replace(AbortOperation.AbortInFlight)
         )
       )
 
@@ -60,7 +60,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
-          TabOperations.syncRequested.replace(SyncOperation.SyncInFlight)
+          Focus[TabOperations](_.syncRequested).replace(SyncOperation.SyncInFlight)
         )
       )
 
@@ -68,7 +68,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
-          TabOperations.pauseRequested.replace(PauseOperation.PauseInFlight)
+          Focus[TabOperations](_.pauseRequested).replace(PauseOperation.PauseInFlight)
         )
       )
 
@@ -76,7 +76,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
-          TabOperations.cancelPauseRequested.replace(CancelPauseOperation.CancelPauseInFlight)
+          Focus[TabOperations](_.cancelPauseRequested).replace(CancelPauseOperation.CancelPauseInFlight)
         )
       )
 
@@ -126,7 +126,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           idName.id,
-          TabOperations.syncRequested.replace(SyncOperation.SyncIdle)
+          Focus[TabOperations](_.syncRequested).replace(SyncOperation.SyncIdle)
         )
       )
 
@@ -165,7 +165,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
       updatedLE(SequencesOnDisplay.markOperations(
                   idName.id,
-                  TabOperations.syncRequested.replace(SyncOperation.SyncIdle)
+                  Focus[TabOperations](_.syncRequested).replace(SyncOperation.SyncIdle)
                 ),
                 notification
       )
@@ -184,7 +184,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
       updatedLE(SequencesOnDisplay.markOperations(
                   idName,
-                  TabOperations.stopRequested.replace(StopOperation.StopIdle)
+                  Focus[TabOperations](_.stopRequested).replace(StopOperation.StopIdle)
                 ),
                 notification
       )
@@ -196,7 +196,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       )
       updatedLE(SequencesOnDisplay.markOperations(
                   idName.id,
-                  TabOperations.pauseRequested.replace(PauseOperation.PauseIdle)
+                  Focus[TabOperations](_.pauseRequested).replace(PauseOperation.PauseIdle)
                 ),
                 notification
       )
@@ -209,7 +209,7 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedLE(
         SequencesOnDisplay.markOperations(
           idName,
-          TabOperations.startFromRequested.replace(StartFromOperation.StartFromIdle)
+          Focus[TabOperations](_.startFromRequested).replace(StartFromOperation.StartFromIdle)
         ),
         notification
       )

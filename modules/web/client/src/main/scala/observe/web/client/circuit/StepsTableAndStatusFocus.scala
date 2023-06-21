@@ -4,13 +4,13 @@
 package observe.web.client.circuit
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
 import observe.model.Observation
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable
-import observe.web.client.model._
-import web.client.table._
+import observe.web.client.model.*
+import web.client.table.*
 
 final case class StepsTableAndStatusFocus(
   status:           ClientStatus,
@@ -20,7 +20,7 @@ final case class StepsTableAndStatusFocus(
 )
 
 object StepsTableAndStatusFocus {
-  implicit val eq: Eq[StepsTableAndStatusFocus] =
+  given Eq[StepsTableAndStatusFocus] =
     Eq.by(x => (x.status, x.stepsTable, x.tableState, x.configTableState))
 
   def stepsTableAndStatusFocusG(

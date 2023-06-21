@@ -7,13 +7,13 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
 
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import observe.model.ObserveStage
 import squants.time.Milliseconds
 import squants.time.Seconds
 import squants.time.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 import cats.effect.Temporal
 
 object ProgressUtil {

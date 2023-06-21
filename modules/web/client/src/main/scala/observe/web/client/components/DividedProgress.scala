@@ -3,16 +3,16 @@
 
 package observe.web.client.components
 
-import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.JSConverters.*
 
-import cats.syntax.all._
-import japgolly.scalajs.react._
+import cats.syntax.all.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.common.implicits._
+import react.common.*
+import react.common.implicits.*
 import react.semanticui.SemanticColor
 import react.semanticui.modules.progress.Progress
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Progress bar divided in steps
@@ -34,7 +34,7 @@ object DividedProgress {
   type Label    = String
   type Quantity = Int
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[DividedProgress]
+  given Reusability[Props] = Reusability.derive[DividedProgress]
 
   protected val component = ScalaComponent
     .builder[Props]("DividedProgress")

@@ -4,11 +4,11 @@
 package observe.server.gnirs
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.`enum`.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import observe.server.overrideLogMessage
 import squants.Time

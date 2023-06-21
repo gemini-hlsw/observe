@@ -6,7 +6,7 @@ package observe.server.flamingos2
 import cats.Applicative
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.data.YesNoType
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.MOS_PREIMAGING_PROP
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.READMODE_PROP
@@ -18,9 +18,9 @@ import observe.model.dhs.ImageFileId
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.ObserveFailure
-import observe.server.keywords._
+import observe.server.keywords.*
 import observe.server.tcs.TcsKeywordsReader
 
 object Flamingos2Header {

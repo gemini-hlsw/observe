@@ -4,22 +4,22 @@
 package observe.server
 
 import cats.effect.IO
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
-import org.scalacheck.Arbitrary._
-import org.scalacheck.{Arbitrary, Cogen}
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.{ Arbitrary, Cogen }
 import observe.model.BatchCommandState
-import observe.model.enum.Instrument
-import observe.model.{Conditions, Operator}
-import observe.model.ObserveModelArbitraries._
+import observe.model.enums.Instrument
+import observe.model.{ Conditions, Operator }
+import observe.model.ObserveModelArbitraries.{*, given}
 
 trait ObserveServerArbitraries {
 
-  implicit val selectedCoGen: Cogen[Map[Instrument, Observation.Name]] =
+  given Cogen[Map[Instrument, Observation.Name]] =
     Cogen[List[(Instrument, Observation.Name)]].contramap(_.toList)
-  implicit val engineStateArb: Arbitrary[EngineState[IO]]              = Arbitrary {
+  given Arbitrary[EngineState[IO]]              = Arbitrary {
     for {
       q <- arbitrary[ExecutionQueues]
       s <- arbitrary[Map[Instrument, Observation.Id]]
@@ -28,7 +28,7 @@ trait ObserveServerArbitraries {
     } yield EngineState.default[IO].copy(queues = q, selected = s, conditions = c, operator = o)
   }
 
-  implicit val executionQueueArb: Arbitrary[ExecutionQueue] = Arbitrary {
+  given Arbitrary[ExecutionQueue] = Arbitrary {
     for {
       n <- arbitrary[String]
       s <- arbitrary[BatchCommandState]
@@ -36,7 +36,7 @@ trait ObserveServerArbitraries {
     } yield ExecutionQueue(n, s, q)
   }
 
-  implicit val executionQueueCogen: Cogen[ExecutionQueue] =
+  given Cogen[ExecutionQueue] =
     Cogen[(String, BatchCommandState, List[Observation.Id])]
       .contramap(x => (x.name, x.cmdState, x.queue))
 

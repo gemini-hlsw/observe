@@ -8,9 +8,9 @@ import java.lang.{Integer => JInt}
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.niri.ReadMode
-import edu.gemini.spModel.gemini.niri.InstNIRI._
+import edu.gemini.spModel.gemini.niri.InstNIRI.*
 import edu.gemini.spModel.gemini.niri.Niri.Camera
 import edu.gemini.spModel.gemini.niri.Niri.WellDepth
 import edu.gemini.spModel.gemini.niri.Niri.{ReadMode => OCSReadMode}
@@ -20,14 +20,14 @@ import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigResult
 import observe.server.ConfigUtilOps
 import observe.server.ConfigUtilOps.ExtractFailure
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.InstrumentActions
 import observe.server.InstrumentSpecifics
 import observe.server.InstrumentSystem
@@ -39,12 +39,12 @@ import observe.server.ObserveFailure
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
-import observe.server.niri.NiriController._
+import observe.server.niri.NiriController.*
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import squants.Length
 import squants.Time
 import squants.space.Arcseconds
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 import cats.effect.Async
 
 final case class Niri[F[_]: Async: Logger](
@@ -89,7 +89,7 @@ final case class Niri[F[_]: Async: Logger](
   /**
    * Called to configure a system
    */
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

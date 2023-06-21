@@ -5,9 +5,9 @@ package observe.web.client.circuit
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
-import observe.web.client.model._
+import observe.web.client.model.*
 
 final case class TabFocus(
   canOperate:  Boolean,
@@ -16,13 +16,12 @@ final case class TabFocus(
 )
 
 object TabFocus {
-  implicit val eq: Eq[TabFocus] =
+  given Eq[TabFocus] =
     Eq.by(x => (x.canOperate, x.tabs, x.displayName))
 
   val tabFocusG: Getter[ObserveAppRootModel, TabFocus] = {
-    val getter = ObserveAppRootModel.uiModel.andThen(
-      ObserveUIModel.sequencesOnDisplay
-        .andThen(SequencesOnDisplay.availableTabsG)
+    val getter = Focus[ObserveAppRootModel](_.uiModel).andThen(
+      Focus[ObserveUIModel](_.sequencesOnDisplay).andThen(SequencesOnDisplay.availableTabsG)
         .zip(ObserveUIModel.displayNameG)
     )
     ClientStatus.canOperateG.zip(getter) >>> { case (o, (t, ob)) =>

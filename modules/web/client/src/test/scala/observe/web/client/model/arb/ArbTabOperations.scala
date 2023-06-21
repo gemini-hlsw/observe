@@ -4,20 +4,20 @@
 package observe.web.client.model.arb
 
 import cats._
-import org.scalacheck.Arbitrary._
-import org.scalacheck._
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.*
 
 import scala.collection.immutable.SortedMap
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.StepId
-import observe.model.enum.Resource
-import observe.web.client.model._
+import observe.model.enums.Resource
+import observe.web.client.model.*
 import observe.web.client.model.RunOperation
 
 trait ArbTabOperations {
-  implicit val arbResourceRunOperation: Arbitrary[ResourceRunOperation] =
+  given Arbitrary[ResourceRunOperation] =
     Arbitrary {
       for {
         i <- arbitrary[StepId]
@@ -28,7 +28,7 @@ trait ArbTabOperations {
       } yield s
     }
 
-  implicit val rroCogen: Cogen[ResourceRunOperation] =
+  given Cogen[ResourceRunOperation] =
     Cogen[Option[Either[StepId, Either[StepId, StepId]]]].contramap {
       case ResourceRunOperation.ResourceRunIdle         => None
       case ResourceRunOperation.ResourceRunInFlight(i)  => Some(Left(i))
@@ -36,8 +36,8 @@ trait ArbTabOperations {
       case ResourceRunOperation.ResourceRunFailed(i)    => Some(Right(Left(i)))
     }
 
-  implicit val arbTabOperations: Arbitrary[TabOperations] = {
-    implicit val ordering: Ordering[Resource] =
+  given Arbitrary[TabOperations] = {
+    given Ordering[Resource] =
       Order[Resource].toOrdering
 
     Arbitrary {
@@ -55,7 +55,7 @@ trait ArbTabOperations {
     }
   }
 
-  implicit val toCogen: Cogen[TabOperations] =
+  given Cogen[TabOperations] =
     Cogen[
       (
         RunOperation,

@@ -28,7 +28,7 @@ final case class ClientStatus(
 }
 
 object ClientStatus {
-  implicit val eq: Eq[ClientStatus] =
+  given Eq[ClientStatus] =
     Eq.by(x => (x.user, x.clientId, x.displayNames, x.w))
 
   val clientStatusFocusL: Lens[ObserveAppRootModel, ClientStatus] =

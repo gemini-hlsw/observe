@@ -1,23 +1,23 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.optics.Format
-import lucuma.core.syntax.all._
+import lucuma.core.syntax.all.*
 import monocle._
 import monocle.function.At.atMap
 import monocle.function.FilterIndex
 import monocle.macros.GenLens
 import monocle.macros.GenPrism
 import monocle.std.option.some
-import monocle.std.string._
-import observe.model.enum._
-import observe.model.events._
+import monocle.std.string.*
+import observe.model.enums.*
+import observe.model.events.*
 
 trait ModelLenses {
   // Some useful Monocle lenses
@@ -53,7 +53,7 @@ trait ModelLenses {
   // Focus on params with a prefix
   def paramValuesWithPrefixT(param: ParamName): Traversal[Parameters, String] =
     // parametersRoot andThen // map of parameters
-    FilterIndex.mapFilterIndex[ParamName, ParamValue].filterIndex { n: ParamName =>
+    FilterIndex.mapFilterIndex[ParamName, ParamValue].filterIndex { (n: ParamName) =>
       n.startsWith(param)
     } // parameter containing the name
 
@@ -69,10 +69,10 @@ trait ModelLenses {
     param:  String
   ): Optional[StepConfig, String] =
     systemConfigL(system)
-      .andThen(      // observe parameters
+      .andThen( // observe parameters
         some[Parameters]
       )
-      .andThen(      // focus on the option
+      .andThen( // focus on the option
         paramValueL(system.withParam(param))
       )
       .andThen(      // find the target name
@@ -192,7 +192,7 @@ trait ModelLenses {
     prism:      Prism[String, A]
   ): Optional[Step, A] =
     Step.config
-      .andThen( // configuration of the step
+      .andThen(       // configuration of the step
         configParamValueO(systemName, param)
       )
       .andThen(prism) // step type
@@ -272,10 +272,10 @@ trait ModelLenses {
     stepObserveOptional(SystemName.Instrument, "disperserLambda", stringToDoubleP)
 
   // Lens to find offsets
-  def offsetO[T, A](implicit resolver: OffsetConfigResolver[T, A]): Optional[Step, String] =
+  def offsetO[T, A](using resolver: OffsetConfigResolver[T, A]): Optional[Step, String] =
     stepObserveOptional(resolver.systemName, resolver.configItem, Iso.id[String])
 
-  def offsetF[T, A](implicit
+  def offsetF[T, A](using
     resolver: OffsetConfigResolver[T, A]
   ): Fold[Step, Option[Offset.Component[A]]] =
     offsetO[T, A].andThen(Getter(signedComponentFormat[A].getOption))
@@ -286,13 +286,13 @@ trait ModelLenses {
   // Lens to find guidingWith configurations
   val telescopeGuidingWithT: Traversal[Step, Guiding] =
     Step.config
-      .andThen(          // configuration of the step
+      .andThen( // configuration of the step
         systemConfigL(SystemName.Telescope)
       )
-      .andThen(          // Observe config
+      .andThen( // Observe config
         some[Parameters]
       )
-      .andThen(          // some
+      .andThen( // some
         paramValuesWithPrefixT(
           SystemName.Telescope.withParam("guideWith")
         )

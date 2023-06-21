@@ -3,7 +3,7 @@
 
 package observe.web.client.services
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.scalajs.dom.window
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
@@ -18,7 +18,7 @@ trait DisplayNamePersistence {
     } yield m).getOrElse(Map.empty)
   }
 
-  def persistDisplayName(result: Map[String, String])(implicit ec: ExecutionContext): Future[Unit] =
+  def persistDisplayName(result: Map[String, String])(using ec: ExecutionContext): Future[Unit] =
     Future {
       import io.circe.syntax._
       for {
@@ -27,7 +27,7 @@ trait DisplayNamePersistence {
       } yield ls.setItem("displayNames", m)
     }.void
 
-  def removeDisplayName(result: Map[String, String])(implicit ec: ExecutionContext): Future[Unit] =
+  def removeDisplayName(result: Map[String, String])(using ec: ExecutionContext): Future[Unit] =
     Future {
       import io.circe.syntax._
       for {

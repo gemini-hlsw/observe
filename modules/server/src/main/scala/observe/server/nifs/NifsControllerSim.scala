@@ -4,17 +4,17 @@
 package observe.server.nifs
 
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.Progress
 import observe.server.nifs.NifsController.DCConfig
 import observe.server.nifs.NifsController.NifsConfig
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object NifsControllerSim {
   def apply[F[_]: Async: Logger]: F[NifsController[F]] =

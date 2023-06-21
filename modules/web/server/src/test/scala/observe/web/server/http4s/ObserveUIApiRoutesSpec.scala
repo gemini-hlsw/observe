@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
 
 import cats.effect.IO
 import cats.data.Nested
-import org.http4s._
-import org.http4s.implicits._
+import org.http4s.*
+import org.http4s.implicits.*
 import org.http4s.server.websocket.WebSocketBuilder2
 import observe.model.UserLoginRequest
-import observe.web.server.http4s.encoder._
+import observe.web.server.http4s.encoder.*
 import munit.CatsEffectSuite
 
 class ObserveUIApiRoutesSpec extends CatsEffectSuite with ClientBooEncoders with TestRoutes {

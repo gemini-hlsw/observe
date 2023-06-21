@@ -19,12 +19,20 @@ ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
 inThisBuild(
   Seq(
-    scalacOptions += "-Ymacro-annotations",
     Global / onChangedBuildSource                            := ReloadOnSourceChanges,
-    scalafixDependencies ++= List(ClueGenerator, LucumaSchemas),
+    ThisBuild / scalafixDependencies ++= Seq(
+      ClueGenerator,
+      "edu.gemini" % "lucuma-schemas_3" % Settings.LibraryVersions.lucumaSchemas
+    ),
     scalafixScalaBinaryVersion                               := "2.13",
     ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
   ) ++ lucumaPublishSettings
+)
+
+ThisBuild / scalaVersion       := "3.3.0"
+ThisBuild / crossScalaVersions := Seq("3.3.0")
+ThisBuild / scalacOptions ++= Seq(
+  "-language:implicitConversions"
 )
 
 // Gemini repository
@@ -79,10 +87,14 @@ ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
 // Projects
 //////////////
 
+ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
+  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+)
+
 lazy val root = tlCrossRootProject.aggregate(
   graphql,
   giapi,
-  ocs2_api,
+//  ocs2_api,
   observe_web_server,
 //  observe_web_client,
   observe_server,
@@ -97,8 +109,7 @@ lazy val graphql = project
   .settings(
     libraryDependencies ++= Seq(
       Clue,
-      LucumaSchemas,
-      ClueGenerator
+      LucumaSchemas
     )
   )
 
@@ -109,7 +120,6 @@ lazy val giapi = project
   .settings(
     libraryDependencies ++= Seq(Cats.value,
                                 Mouse.value,
-                                Shapeless.value,
                                 CatsEffect.value,
                                 Fs2,
                                 GiapiJmsUtil,
@@ -125,17 +135,17 @@ lazy val giapi = project
     ) ++ MUnit.value
   )
 
-lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("modules/ocs2_api"))
-  .settings(commonSettings)
-  .settings(
-    name := "ocs2-api",
-    libraryDependencies ++= Seq(CatsTime.value) ++
-      LucumaCore.value
-  )
-  .jsSettings(coverageEnabled := false)
-  .dependsOn(observe_model)
+//lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
+//  .crossType(CrossType.Pure)
+//  .in(file("modules/ocs2_api"))
+//  .settings(commonSettings)
+//  .settings(
+//    name := "ocs2-api",
+//    libraryDependencies ++= Seq(CatsTime.value) ++
+//      LucumaCore.value
+//  )
+//  .jsSettings(coverageEnabled := false)
+//  .dependsOn(observe_model)
 
 // Project for the server side application
 lazy val observe_web_server = project
@@ -150,7 +160,6 @@ lazy val observe_web_server = project
                                 Http4sServer,
                                 Http4sPrometheus,
                                 CommonsHttp,
-                                ScalaMock,
                                 Log4CatsNoop.value
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
@@ -177,8 +186,6 @@ lazy val observe_web_server = project
   .enablePlugins(GitBranchPrompt)
   .disablePlugins(RevolverPlugin)
   .settings(
-    // Needed for Monocle macros
-    scalacOptions += "-Ymacro-annotations",
     scalacOptions ~= (_.filterNot(
       Set(
         // By necessity facades will have unused params
@@ -266,19 +273,15 @@ lazy val observe_web_server = project
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project
-  .in(file("modules/server"))
+  .in(file("modules/server_new"))
   .enablePlugins(GitBranchPrompt)
   .enablePlugins(BuildInfoPlugin)
   .settings(commonSettings: _*)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++=
       Seq(
         Http4sCirce,
         Squants.value,
-        // OCS bundles
-        SpModelCore,
-        POT,
         OpenCSV,
         Http4sXml,
         Http4sBoopickle,
@@ -290,9 +293,9 @@ lazy val observe_server = project
         Clue,
         ClueHttp4s,
         LucumaSchemas,
-        ClueGenerator,
-        ACM
-      ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ SeqexecOdb ++ Monocle.value ++ WDBAClient ++
+        ACM,
+        Atto
+      ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server"
@@ -319,8 +322,18 @@ lazy val observe_server = project
   )
   .dependsOn(observe_engine    % "compile->compile;test->test",
              giapi,
-             ocs2_api.jvm,
+//             ocs2_api.jvm,
              observe_model.jvm % "compile->compile;test->test"
+  )
+  .settings(
+    unmanagedSources / excludeFilter := (unmanagedSources / excludeFilter).value
+      || (Compile / sourceDirectory).value + "/scala/observe/server/flamingos2/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/ghost/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gnirs/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gpi/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/gsaoi/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/nifs/*"
+      || (Compile / sourceDirectory).value + "/scala/observe/server/niri/*"
   )
 
 // Unfortunately crossProject doesn't seem to work properly at the module/build.sbt level
@@ -330,12 +343,12 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/model"))
   .enablePlugins(GitBranchPrompt)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Seq(
       Squants.value,
       Mouse.value,
       BooPickle.value,
-      CatsTime.value
+      CatsTime.value,
+      Atto
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
   )
   .jvmSettings(
@@ -354,7 +367,6 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Seq(Fs2,
                                 CatsEffect.value,
                                 Log4s.value,

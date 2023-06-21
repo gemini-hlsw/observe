@@ -3,15 +3,15 @@
 
 package observe.server.ghost
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Eq
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import giapi.client.GiapiConfig
 import giapi.client.commands.Configuration
 import giapi.client.ghost.GhostClient
-import giapi.client.syntax.giapiconfig._
+import giapi.client.syntax.giapiconfig.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.math.Coordinates
 import lucuma.core.util.Enumerated
@@ -32,7 +32,7 @@ object BundleConfig {
   case object Standard extends BundleConfig(configName = "IFU_LORES")
   case object HighRes  extends BundleConfig(configName = "IFU_HIRES")
   case object Sky      extends BundleConfig(configName = "IFU_SKY")
-  implicit val bundleConfiguration: GiapiConfig[BundleConfig] = _.configName
+  given GiapiConfig[BundleConfig] = _.configName
 }
 
 sealed abstract class IFUNum(val ifuNum: Int) {
@@ -41,7 +41,7 @@ sealed abstract class IFUNum(val ifuNum: Int) {
 object IFUNum                                 {
   case object IFU1 extends IFUNum(ifuNum = 1)
   case object IFU2 extends IFUNum(ifuNum = 2)
-  implicit val ifuNumConfiguration: GiapiConfig[IFUNum] = _.ifuStr
+  given GiapiConfig[IFUNum] = _.ifuStr
 }
 
 sealed abstract class IFUTargetType(val targetType: String)
@@ -56,7 +56,7 @@ object IFUTargetType {
     case Some(x)     => Target(x)
   }
 
-  implicit val ifuTargetTypeConfiguration: GiapiConfig[IFUTargetType] = _.targetType
+  given GiapiConfig[IFUTargetType] = _.targetType
 }
 
 sealed trait DemandType {
@@ -71,14 +71,14 @@ object DemandType       {
   }
 }
 
-sealed trait FiberAgitator extends Product with Serializable
+sealed abstract class FiberAgitator(val tag: String) extends Product with Serializable
 
 object FiberAgitator {
-  case object On  extends FiberAgitator
-  case object Off extends FiberAgitator
+  case object On  extends FiberAgitator("On")
+  case object Off extends FiberAgitator("Off")
 
-  implicit val FiberAgitatorEnumerated: Enumerated[FiberAgitator] =
-    Enumerated.of(On, Off)
+  given Enumerated[FiberAgitator] =
+    Enumerated.from(On, Off).withTag(_.tag)
 
   def fromBoolean(b: Boolean): FiberAgitator =
     if (b) On else Off
@@ -179,7 +179,7 @@ object GhostConfig {
     }
   }
 
-  implicit val eq: Eq[GhostConfig] = Eq.instance {
+  given Eq[GhostConfig] = Eq.instance {
     case (a: StandardResolutionMode.SingleTarget, b: StandardResolutionMode.SingleTarget)   => a === b
     case (a: StandardResolutionMode.DualTarget, b: StandardResolutionMode.DualTarget)       => a === b
     case (a: StandardResolutionMode.TargetPlusSky, b: StandardResolutionMode.TargetPlusSky) =>
@@ -236,7 +236,7 @@ object StandardResolutionMode {
       GhostConfig.ifuPark(IFUNum.IFU2)
   }
 
-  implicit val srmSingleTargetEq: Eq[SingleTarget] =
+  given Eq[SingleTarget] =
     Eq.by(x => (x.baseCoords, x.expTime, x.fiberAgitator, x.ifu1TargetName, x.ifu1Coordinates))
 
   final case class DualTarget(
@@ -256,7 +256,7 @@ object StandardResolutionMode {
       )
   }
 
-  implicit val srmDualTargetEq: Eq[DualTarget] = Eq.by(x =>
+  given Eq[DualTarget] = Eq.by(x =>
     (x.baseCoords,
      x.expTime,
      x.fiberAgitator,
@@ -283,7 +283,7 @@ object StandardResolutionMode {
       )
   }
 
-  implicit val srmTargetPlusSkyEq: Eq[TargetPlusSky] = Eq.by(x =>
+  given Eq[TargetPlusSky] = Eq.by(x =>
     (x.baseCoords,
      x.expTime,
      x.fiberAgitator,
@@ -310,7 +310,7 @@ object StandardResolutionMode {
 
   }
 
-  implicit val srmSkyPlusTargetEq: Eq[SkyPlusTarget] = Eq.by(x =>
+  given Eq[SkyPlusTarget] = Eq.by(x =>
     (x.baseCoords,
      x.expTime,
      x.fiberAgitator,
@@ -353,7 +353,7 @@ object HighResolutionMode {
       GhostConfig.ifuPark(IFUNum.IFU2)
   }
 
-  implicit val hrSingleTargetEq: Eq[SingleTarget] =
+  given Eq[SingleTarget] =
     Eq.by(x => (x.baseCoords, x.expTime, x.fiberAgitator, x.ifu1TargetName, x.ifu1Coordinates))
 
   final case class TargetPlusSky(
@@ -372,7 +372,7 @@ object HighResolutionMode {
       )
   }
 
-  implicit val hrTargetPlusSkyEq: Eq[TargetPlusSky] = Eq.by(x =>
+  given Eq[TargetPlusSky] = Eq.by(x =>
     (x.baseCoords,
      x.expTime,
      x.fiberAgitator,

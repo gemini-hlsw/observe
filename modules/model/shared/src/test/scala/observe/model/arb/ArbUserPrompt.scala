@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import cats.data.NonEmptyList
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.{Observation, StepId, UserPrompt}
 import org.scalacheck.{Arbitrary, Cogen, Gen}
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import observe.model.UserPrompt.{
   ChecksOverride,
   Discrepancy,
@@ -19,9 +19,9 @@ import observe.model.UserPrompt.{
 }
 
 trait ArbUserPrompt {
-  import ArbObservationIdName._
+  import ArbObservationIdName.{*, given}
 
-  implicit def discrepancyArb[A: Arbitrary]: Arbitrary[Discrepancy[A]] =
+  given discrepancyArb[A: Arbitrary]: Arbitrary[Discrepancy[A]] =
     Arbitrary[Discrepancy[A]] {
       for {
         actual   <- arbitrary[A]
@@ -29,20 +29,20 @@ trait ArbUserPrompt {
       } yield Discrepancy[A](actual, required)
     }
 
-  implicit def discrepancyCogen[A: Cogen]: Cogen[Discrepancy[A]] =
+  given discrepancyCogen[A: Cogen]: Cogen[Discrepancy[A]] =
     Cogen[(A, A)].contramap(x => (x.actual, x.required))
 
-  implicit val targetCheckOverrideArb: Arbitrary[TargetCheckOverride] =
+  given targetCheckOverrideArb: Arbitrary[TargetCheckOverride] =
     Arbitrary[TargetCheckOverride] {
       for {
         self <- arbitrary[Discrepancy[String]]
       } yield TargetCheckOverride(self)
     }
 
-  implicit val targetCheckOverrideCogen: Cogen[TargetCheckOverride] =
+  given targetCheckOverrideCogen: Cogen[TargetCheckOverride] =
     Cogen[Discrepancy[String]].contramap(x => x.self)
 
-  implicit val obsConditionsCheckOverrideArb: Arbitrary[ObsConditionsCheckOverride] =
+  given obsConditionsCheckOverrideArb: Arbitrary[ObsConditionsCheckOverride] =
     Arbitrary[ObsConditionsCheckOverride] {
       for {
         i  <- Gen.choose(0, 3)
@@ -57,7 +57,7 @@ trait ArbUserPrompt {
       } yield ObsConditionsCheckOverride(cc, iq, sc, wv)
     }
 
-  implicit val obsConditionsCheckOverrideCogen: Cogen[ObsConditionsCheckOverride] =
+  given obsConditionsCheckOverrideCogen: Cogen[ObsConditionsCheckOverride] =
     Cogen[
       (
         Option[Discrepancy[String]],
@@ -67,14 +67,14 @@ trait ArbUserPrompt {
       )
     ].contramap(x => (x.cc, x.iq, x.sb, x.wv))
 
-  implicit val seqCheckCogen: Cogen[SeqCheck] =
+  given seqCheckCogen: Cogen[SeqCheck] =
     Cogen[Either[TargetCheckOverride, ObsConditionsCheckOverride]]
       .contramap {
         case a: TargetCheckOverride        => Left(a)
         case b: ObsConditionsCheckOverride => Right(b)
       }
 
-  implicit val nelSeqCheckCogen: Cogen[NonEmptyList[SeqCheck]] =
+  given nelSeqCheckCogen: Cogen[NonEmptyList[SeqCheck]] =
     Cogen[(SeqCheck, List[SeqCheck])].contramap(x => (x.head, x.tail))
 
   private val checksGen = for {
@@ -85,7 +85,7 @@ trait ArbUserPrompt {
     oco <- arbitrary[Option[ObsConditionsCheckOverride]]
   } yield if (b) NonEmptyList(tc, oco.toList) else NonEmptyList(oc, tco.toList)
 
-  implicit val checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
+  given checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
     for {
       sid   <- arbitrary[Observation.IdName]
       stid  <- arbitrary[StepId]
@@ -94,22 +94,21 @@ trait ArbUserPrompt {
     } yield ChecksOverride(sid, stid, stidx, chks)
   }
 
-  implicit val checksOverrideCogen: Cogen[ChecksOverride] =
+  given checksOverrideCogen: Cogen[ChecksOverride] =
     Cogen[(Observation.IdName, StepId, NonEmptyList[SeqCheck])].contramap(x =>
       (x.sidName, x.stepId, x.checks)
     )
 
-  implicit val userPromptArb: Arbitrary[UserPrompt] = Arbitrary[UserPrompt] {
+  given userPromptArb: Arbitrary[UserPrompt] = Arbitrary[UserPrompt] {
     for {
       r <- arbitrary[ChecksOverride]
     } yield r
   }
 
-  implicit val userPromptCogen: Cogen[UserPrompt] =
+  given userPromptCogen: Cogen[UserPrompt] =
     Cogen[Option[ChecksOverride]]
-      .contramap {
-        case r: ChecksOverride => Some(r)
-        case _                 => None
+      .contramap { case r: ChecksOverride =>
+        Some(r)
       }
 
 }

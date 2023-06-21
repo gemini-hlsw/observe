@@ -6,91 +6,90 @@ package observe.web.client.model
 import scala.collection.immutable.SortedMap
 
 import cats.Eq
-import cats.syntax.all._
-import cats.Order._
+import cats.syntax.all.*
+import cats.Order.*
 import lucuma.core.util.Enumerated
 import monocle.Lens
 import monocle.function.At.at
 import monocle.function.At.atSortedMap
-import monocle.macros.Lenses
 import observe.model.StepId
-import observe.model.enum.ActionStatus
-import observe.model.enum.Resource
+import observe.model.enums.ActionStatus
+import observe.model.enums.Resource
 
-sealed trait RunOperation extends Product with Serializable
+sealed abstract class RunOperation(val tag: String) extends Product with Serializable
 object RunOperation {
-  case object RunIdle     extends RunOperation
-  case object RunInFlight extends RunOperation
+  case object RunIdle     extends RunOperation("RunIdle")
+  case object RunInFlight extends RunOperation("RunInFlight")
 
   /** @group Typeclass Instances */
-  implicit val RunOperationEnumerated: Enumerated[RunOperation] =
-    Enumerated.of(RunIdle, RunInFlight)
+  given Enumerated[RunOperation] =
+    Enumerated.from(RunIdle, RunInFlight).withTag(_.tag)
 
 }
 
-sealed trait StopOperation extends Product with Serializable
+sealed abstract class StopOperation(val tag: String) extends Product with Serializable
 object StopOperation {
-  case object StopIdle     extends StopOperation
-  case object StopInFlight extends StopOperation
+  case object StopIdle     extends StopOperation("StopIdle")
+  case object StopInFlight extends StopOperation("StopInFlight")
 
   /** @group Typeclass Instances */
-  implicit val StopOperationEnumerated: Enumerated[StopOperation] =
-    Enumerated.of(StopIdle, StopInFlight)
+  given Enumerated[StopOperation] =
+    Enumerated.from(StopIdle, StopInFlight).withTag(_.tag)
 
 }
 
-sealed trait AbortOperation extends Product with Serializable
+sealed abstract class AbortOperation(val tag: String) extends Product with Serializable
 object AbortOperation {
-  case object AbortIdle     extends AbortOperation
-  case object AbortInFlight extends AbortOperation
+  case object AbortIdle     extends AbortOperation("AbortIdle")
+  case object AbortInFlight extends AbortOperation("AbortInFlight")
 
   /** @group Typeclass Instances */
-  implicit val AbortOperationEnumerated: Enumerated[AbortOperation] =
-    Enumerated.of(AbortIdle, AbortInFlight)
+  given Enumerated[AbortOperation] =
+    Enumerated.from(AbortIdle, AbortInFlight).withTag(_.tag)
 
 }
 
-sealed trait PauseOperation extends Product with Serializable
+sealed abstract class PauseOperation(val tag: String) extends Product with Serializable
 object PauseOperation {
-  case object PauseIdle     extends PauseOperation
-  case object PauseInFlight extends PauseOperation
+  case object PauseIdle     extends PauseOperation("PauseIdle")
+  case object PauseInFlight extends PauseOperation("PauseInFlight")
 
   /** @group Typeclass Instances */
-  implicit val PauseOperationEnumerated: Enumerated[PauseOperation] =
-    Enumerated.of(PauseIdle, PauseInFlight)
+  given Enumerated[PauseOperation] =
+    Enumerated.from(PauseIdle, PauseInFlight).withTag(_.tag)
 
 }
 
-sealed trait CancelPauseOperation extends Product with Serializable
+sealed abstract class CancelPauseOperation(val tag: String) extends Product with Serializable
 object CancelPauseOperation {
-  case object CancelPauseIdle     extends CancelPauseOperation
-  case object CancelPauseInFlight extends CancelPauseOperation
+  case object CancelPauseIdle     extends CancelPauseOperation("CancelPauseIdle")
+  case object CancelPauseInFlight extends CancelPauseOperation("CancelPauseInFlight")
 
   /** @group Typeclass Instances */
-  implicit val CancelPauseOperationEnumerated: Enumerated[CancelPauseOperation] =
-    Enumerated.of(CancelPauseIdle, CancelPauseInFlight)
+  given Enumerated[CancelPauseOperation] =
+    Enumerated.from(CancelPauseIdle, CancelPauseInFlight).withTag(_.tag)
 
 }
 
-sealed trait ResumeOperation extends Product with Serializable
+sealed abstract class ResumeOperation(val tag: String) extends Product with Serializable
 object ResumeOperation {
-  case object ResumeIdle     extends ResumeOperation
-  case object ResumeInFlight extends ResumeOperation
+  case object ResumeIdle     extends ResumeOperation("ResumeIdle")
+  case object ResumeInFlight extends ResumeOperation("ResumeInFlight")
 
   /** @group Typeclass Instances */
-  implicit val ResumeOperationEnumerated: Enumerated[ResumeOperation] =
-    Enumerated.of(ResumeIdle, ResumeInFlight)
+  given Enumerated[ResumeOperation] =
+    Enumerated.from(ResumeIdle, ResumeInFlight).withTag(_.tag)
 
 }
 
-sealed trait SyncOperation extends Product with Serializable
+sealed abstract class SyncOperation(val tag: String) extends Product with Serializable
 object SyncOperation {
-  case object SyncIdle     extends SyncOperation
-  case object SyncInFlight extends SyncOperation
+  case object SyncIdle     extends SyncOperation("SyncIdle")
+  case object SyncInFlight extends SyncOperation("SyncInFlight")
 
   /** @group Typeclass Instances */
-  implicit val SyncOperationEnumerated: Enumerated[SyncOperation] =
-    Enumerated.of(SyncIdle, SyncInFlight)
+  given Enumerated[SyncOperation] =
+    Enumerated.from(SyncIdle, SyncInFlight).withTag(_.tag)
 
 }
 
@@ -113,7 +112,7 @@ object ResourceRunOperation {
     case _                      => none
   }
 
-  implicit val eqResourceRunOperation: Eq[ResourceRunOperation] = Eq.instance {
+  given Eq[ResourceRunOperation] = Eq.instance {
     case (ResourceRunIdle, ResourceRunIdle)                 => true
     case (ResourceRunInFlight(a), ResourceRunInFlight(b))   => a === b
     case (ResourceRunCompleted(a), ResourceRunCompleted(b)) => a === b
@@ -122,21 +121,20 @@ object ResourceRunOperation {
   }
 }
 
-sealed trait StartFromOperation extends Product with Serializable
+sealed abstract class StartFromOperation(val tag: String) extends Product with Serializable
 object StartFromOperation {
-  case object StartFromInFlight extends StartFromOperation
-  case object StartFromIdle     extends StartFromOperation
+  case object StartFromInFlight extends StartFromOperation("StartFromInFlight")
+  case object StartFromIdle     extends StartFromOperation("StartFromIdle")
 
   /** @group Typeclass Instances */
-  implicit val StartFromOperationEnumerated: Enumerated[StartFromOperation] =
-    Enumerated.of(StartFromIdle, StartFromInFlight)
+  given Enumerated[StartFromOperation] =
+    Enumerated.from(StartFromIdle, StartFromInFlight).withTag(_.tag)
 
 }
 
 /**
  * Hold transient states while excuting an operation
  */
-@Lenses
 final case class TabOperations(
   runRequested:         RunOperation,
   syncRequested:        SyncOperation,
@@ -188,7 +186,7 @@ final case class TabOperations(
 }
 
 object TabOperations {
-  implicit val eq: Eq[TabOperations] =
+  given Eq[TabOperations] =
     Eq.by(x =>
       (x.runRequested,
        x.syncRequested,
@@ -205,7 +203,7 @@ object TabOperations {
   def resourceRun(
     r: Resource
   ): Lens[TabOperations, Option[ResourceRunOperation]] =
-    TabOperations.resourceRunRequested.andThen(at(r))
+    Focus[TabOperations](_.resourceRunRequested).andThen(at(r))
 
   // Set the resource operations in the map to idle.
   def clearAllResourceOperations: TabOperations => TabOperations =

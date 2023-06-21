@@ -7,7 +7,7 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 
 object WebpackResources {
 
@@ -15,10 +15,10 @@ object WebpackResources {
   trait WebpackResource extends js.Object
 
   object WebpackResource {
-    implicit val show: Show[WebpackResource] = Show.fromToString
+    given Show[WebpackResource] = Show.fromToString
   }
 
-  implicit class WebpackResourceOps(val r: WebpackResource) extends AnyVal {
+  extension(r: WebpackResource) {
     def resource: String = r.show
   }
 

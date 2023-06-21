@@ -3,7 +3,7 @@
 
 package observe.server.ghost
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 
 /**

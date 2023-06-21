@@ -6,10 +6,9 @@ package observe.server.altair
 import cats.Applicative
 import cats.effect.Async
 import cats.effect.Ref
-import cats.implicits._
+import cats.implicits.*
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
-import monocle.macros.Lenses
 import observe.server.TestEpicsCommand.TestEpicsCommand1
 import observe.server.altair.AltairEpics.{
   BtoLoopControlCommand,
@@ -169,8 +168,7 @@ case class TestAltairEpics[F[_]: Async](
 object TestAltairEpics {
   val DefaultTimeout: FiniteDuration = FiniteDuration(1, SECONDS)
 
-  @Lenses
-  final case class State(
+    final case class State(
     strapTempStatus:     Boolean,
     strapGate:           Int,
     strapLoop:           Boolean,

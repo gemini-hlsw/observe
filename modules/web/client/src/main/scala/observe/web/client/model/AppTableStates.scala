@@ -5,20 +5,18 @@ package observe.web.client.model
 
 import cats.Eq
 import monocle.Lens
-import monocle.function.At._
-import monocle.macros.Lenses
+import monocle.function.At.*
 import observe.model.Observation
-import observe.model._
+import observe.model.*
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.components.queue.CalQueueTable
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable
-import web.client.table._
+import web.client.table.*
 
 /**
  * Store the state of each of the app tables
  */
-@Lenses
 final case class AppTableStates(
   sessionQueueTable: TableState[SessionQueueTable.TableColumn],
   stepConfigTable:   TableState[StepConfigTable.TableColumn],
@@ -35,16 +33,16 @@ object AppTableStates {
     Map.empty
   )
 
-  implicit val eq: Eq[AppTableStates] =
+  given Eq[AppTableStates] =
     Eq.by(x => (x.sessionQueueTable, x.stepConfigTable, x.stepsTables, x.queueTables))
 
   def stepsTableAtL(
     id: Observation.Id
   ): Lens[AppTableStates, Option[TableState[StepsTable.TableColumn]]] =
-    AppTableStates.stepsTables.andThen(at(id))
+    Focus[AppTableStates](_.stepsTables).andThen(at(id))
 
   def queueTableAtL(
     id: QueueId
   ): Lens[AppTableStates, Option[TableState[CalQueueTable.TableColumn]]] =
-    AppTableStates.queueTables.andThen(at(id))
+    Focus[AppTableStates](_.queueTables).andThen(at(id))
 }

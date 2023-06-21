@@ -4,22 +4,20 @@
 package observe.web.client.circuit
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
-import monocle.macros.Lenses
 import monocle.std
 import observe.model.Observation
 import observe.model.SequenceMetadata
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 
-@Lenses
 final case class CalQueueSeq(idName: Observation.IdName, i: Instrument, status: SequenceState)
 
 object CalQueueSeq {
-  implicit val eq: Eq[CalQueueSeq] =
+  given Eq[CalQueueSeq] =
     Eq.by(x => (x.idName, x.i, x.status))
 
   def calQueueSeqG(

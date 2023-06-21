@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -9,17 +9,17 @@ import observe.model.StepId
 
 final case class ActionIndex(self: Long) extends AnyVal
 object ActionIndex {
-  implicit val actionIndexEq: Eq[ActionIndex] = Eq.by(_.self)
+  given Eq[ActionIndex] = Eq.by(_.self)
 }
 
 final case class ExecutionIndex(self: Long) extends AnyVal
 object ExecutionIndex {
-  implicit val actionIndexEq: Eq[ExecutionIndex] = Eq.by(_.self)
+  given Eq[ExecutionIndex] = Eq.by(_.self)
 }
 
 final case class ActionCoordsInSeq(stepId: StepId, execIdx: ExecutionIndex, actIdx: ActionIndex)
 object ActionCoordsInSeq {
-  implicit val actionCoordsInSeqEq: Eq[ActionCoordsInSeq] =
+  given Eq[ActionCoordsInSeq] =
     Eq.by(x => (x.stepId, x.execIdx, x.actIdx))
 }
 
@@ -28,5 +28,5 @@ object ActionCoordsInSeq {
  */
 final case class ActionCoords(sid: Observation.Id, actCoords: ActionCoordsInSeq)
 object ActionCoords {
-  implicit val actionCoordsEq: Eq[ActionCoords] = Eq.by(x => (x.sid, x.actCoords))
+  given Eq[ActionCoords] = Eq.by(x => (x.sid, x.actCoords))
 }

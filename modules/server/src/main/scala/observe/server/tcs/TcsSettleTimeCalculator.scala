@@ -5,16 +5,16 @@ package observe.server.tcs
 
 import cats.Order
 import cats.data.NonEmptySet
-import cats.syntax.all._
-import mouse.boolean._
-import observe.model.enum.Instrument
+import cats.syntax.all.*
+import mouse.boolean.*
+import observe.model.enums.Instrument
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem
 import squants.Ratio
 import squants.Time
 import squants.space.Angle
-import squants.space.AngleConversions._
-import squants.time.TimeConversions._
+import squants.space.AngleConversions.*
+import squants.time.TimeConversions.*
 
 object TcsSettleTimeCalculator {
 
@@ -61,7 +61,7 @@ object TcsSettleTimeCalculator {
       )
       .arcseconds
 
-  implicit val timeOrder: Order[Time] = Order.fromLessThan((a: Time, b: Time) => a < b)
+  given Order[Time] = Order.fromLessThan((a: Time, b: Time) => a < b)
 
   def calc(
     startOffset: InstrumentOffset,

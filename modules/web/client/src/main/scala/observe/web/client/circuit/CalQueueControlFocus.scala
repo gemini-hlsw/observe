@@ -4,20 +4,24 @@
 package observe.web.client.circuit
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
 import monocle.Optional
 import monocle.Traversal
 import monocle.function.At.atSortedMap
-import monocle.macros.Lenses
 import monocle.std
-import observe.model.{BatchCommandState, ExecutionQueueView, QueueId, SequenceView, SequencesQueue}
-import observe.model.enum.BatchExecState
-import observe.web.client.model._
+import observe.model.{
+  BatchCommandState,
+  ExecutionQueueView,
+  QueueId,
+  SequenceView,
+  SequencesQueue
+}
+import observe.model.enums.BatchExecState
+import observe.web.client.model.*
 
 import scala.collection.immutable.SortedMap
 
-@Lenses
 final case class CalQueueControlFocus(
   canOperate:  Boolean,
   state:       BatchCommandState,
@@ -28,17 +32,15 @@ final case class CalQueueControlFocus(
 )
 
 object CalQueueControlFocus {
-  implicit val eq: Eq[CalQueueControlFocus] =
+  given Eq[CalQueueControlFocus] =
     Eq.by(x => (x.canOperate, x.state, x.execState, x.ops, x.queueSize, x.selectedSeq))
 
   val allQueues: Getter[ObserveAppRootModel, Int] =
-    ObserveAppRootModel.sequences
-      .andThen(SequencesQueue.queues[SequenceView])
+    Focus[ObserveAppRootModel](_.sequences).andThen(SequencesQueue.queues[SequenceView])
       .andThen(Getter[SortedMap[QueueId, ExecutionQueueView], Int](_.foldMap(_.queue.size)))
 
   def optQueue(id: QueueId): Optional[ObserveAppRootModel, QueueOperations] =
-    ObserveAppRootModel.uiModel
-      .andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.queues)
       .andThen(atSortedMap[QueueId, CalQueueState].at(id))
       .andThen(std.option.some[CalQueueState])

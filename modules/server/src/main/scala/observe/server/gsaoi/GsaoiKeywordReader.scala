@@ -5,8 +5,8 @@ package observe.server.gsaoi
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
-import observe.server.keywords._
+import cats.syntax.all.*
+import observe.server.keywords.*
 
 trait GsaoiKeywordReader[F[_]] {
   def obsElapsedTime: F[Double]
@@ -131,7 +131,7 @@ trait GsaoiLUT {
 }
 
 object GsaoiKeywordReaderEpics extends GsaoiLUT {
-  def apply[F[_]](sys: GsaoiEpics[F])(implicit F: Sync[F]): GsaoiKeywordReader[F] =
+  def apply[F[_]](sys: GsaoiEpics[F])(using F: Sync[F]): GsaoiKeywordReader[F] =
     new GsaoiKeywordReader[F] {
       override def obsElapsedTime: F[Double]             = sys.obsElapsedTime.safeValOrDefault
       override def readInterval: F[Double]               = sys.readInterval.safeValOrDefault

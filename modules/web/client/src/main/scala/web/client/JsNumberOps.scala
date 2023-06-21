@@ -4,11 +4,11 @@
 package web.client
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.facade.JsNumber
 
 object JsNumberOps {
-  implicit val jsNumberEq: Eq[JsNumber] = Eq.instance { (a, b) =>
+  given Eq[JsNumber] = Eq.instance { (a, b) =>
     (a: Any, b: Any) match {
       case (a: Double, b: Double) => a === b
       case (a: Int, b: Int)       => a === b

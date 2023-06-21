@@ -1,6 +1,6 @@
-import com.typesafe.sbt.packager.MappingsHelper._
-import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
-import sbt.Keys._
+import com.typesafe.sbt.packager.MappingsHelper.*
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.*
+import sbt.Keys.*
 import sbt.{Project, Resolver, _}
 
 /**

@@ -7,7 +7,7 @@ import japgolly.scalajs.react.CtorType
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.virtualized._
+import react.virtualized.*
 
 object SortableRow {
   final case class Props(p: react.virtualized.raw.RawRowRendererParameter)

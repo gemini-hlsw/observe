@@ -6,11 +6,9 @@ package observe.web.client.circuit
 import cats.Eq
 import monocle.Getter
 import monocle.Lens
-import monocle.macros.Lenses
-import observe.model._
-import observe.web.client.model._
+import observe.model.*
+import observe.web.client.model.*
 
-@Lenses
 final case class HeaderSideBarFocus(
   status:     ClientStatus,
   conditions: Conditions,
@@ -18,7 +16,7 @@ final case class HeaderSideBarFocus(
 )
 
 object HeaderSideBarFocus {
-  implicit val eq: Eq[HeaderSideBarFocus] =
+  given Eq[HeaderSideBarFocus] =
     Eq.by(x => (x.status, x.conditions, x.operator))
 
   val headerSideBarG: Getter[ObserveAppRootModel, HeaderSideBarFocus] =
@@ -33,17 +31,16 @@ final case class UserLoginFocus(user: Option[UserDetails], displayNames: Map[Str
 }
 
 object UserLoginFocus {
-  implicit val eqUserLoginFocus: Eq[UserLoginFocus] = Eq.by(u => (u.user, u.displayNames))
+  given Eq[UserLoginFocus] = Eq.by(u => (u.user, u.displayNames))
 }
 
-@Lenses
 final case class SequencesQueueFocus(
   sequences:   SequencesQueue[SequenceView],
   displayName: Option[String]
 )
 
 object SequencesQueueFocus {
-  implicit val eqSequencesQueueFocus: Eq[SequencesQueueFocus] =
+  given Eq[SequencesQueueFocus] =
     Eq.by(u => (u.sequences, u.displayName))
 
   val sessionQueue: Lens[SequencesQueueFocus, List[SequenceView]] =

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.http4s
@@ -10,10 +10,10 @@ import java.security.Security
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
-import scala.concurrent.duration._
-import cats.effect._
-import cats.effect.syntax.all._
-import cats.syntax.all._
+import scala.concurrent.duration.*
+import cats.effect.*
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
 import fs2.Stream
@@ -33,18 +33,18 @@ import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{Logger => Http4sLogger}
 import pureconfig._
-import observe.model.config._
-import observe.model.events._
+import observe.model.config.*
+import observe.model.events.*
 import observe.server
-import observe.server.CaServiceInit
+//import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.ObserveFailure
 import observe.server.ObserveMetrics
 import observe.server.Systems
 import observe.server.executeEngine
-import observe.server.tcs.GuideConfigDb
+//import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
-import observe.web.server.config._
+import observe.web.server.config.*
 import observe.web.server.logging.AppenderForClients
 import observe.web.server.security.AuthenticationService
 import web.server.common.LogInitialization
@@ -142,16 +142,17 @@ object WebServerLauncher extends IOApp with LogInitialization {
     def router(wsb: WebSocketBuilder2[F]) = Router[F](
       "/"                     -> new StaticRoutes(conf.mode === Mode.Development, OcsBuildInfo.builtAtMillis).service,
       "/api/observe/commands" -> new ObserveCommandRoutes(as, inputs, se).service,
-      "/api"                  -> new ObserveUIApiRoutes(conf.site,
-                                       conf.mode,
-                                       as,
-                                       se.systems.guideDb,
-                                       se.systems.gpi.statusDb,
-                                       clientsDb,
-                                       outputs,
-                                       wsb
+      "/api"                  -> new ObserveUIApiRoutes(
+        conf.site,
+        conf.mode,
+        as,
+//                                       se.systems.guideDb,
+//                                       se.systems.gpi.statusDb,
+        clientsDb,
+        outputs,
+        wsb
       ).service,
-      "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
+//      "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
       "/smartgcal"            -> new SmartGcalRoutes[F](cal).service
     )
 
@@ -169,13 +170,13 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   def redirectWebServer[F[_]: Logger: Async: Compression](
-    gcdb: GuideConfigDb[F],
-    cal:  SmartGcal
+//    gcdb: GuideConfigDb[F],
+    cal: SmartGcal
   )(conf: WebServerConfiguration): Resource[F, Server] = {
     val router = Router[F](
-      "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,
-      "/smartgcal"         -> new SmartGcalRoutes[F](cal).service,
-      "/"                  -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
+//      "/api/observe/guide" -> new GuideConfigDbRoutes(gcdb).service,
+      "/smartgcal" -> new SmartGcalRoutes[F](cal).service,
+      "/"          -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
     )
 
     BlazeServerBuilder[F]
@@ -252,8 +253,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
     ): Resource[IO, ObserveEngine[IO]] =
       for {
         met  <- Resource.eval(ObserveMetrics.build[IO](conf.site, collector))
-        caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
-        sys  <- Systems.build(conf.site, httpClient, conf.observeEngine, caS)
+//        caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
+        sys  <- Systems.build(conf.site, httpClient, conf.observeEngine /*, caS*/ )
         seqE <- Resource.eval(ObserveEngine.build(conf.site, sys, conf.observeEngine, met))
       } yield seqE
 
@@ -268,7 +269,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       for {
         as <- Resource.eval(authService[IO](conf.mode, conf.authentication))
         ca <- Resource.eval(SmartGcalInitializer.init[IO](conf.smartGcal))
-        _  <- redirectWebServer(en.systems.guideDb, ca)(conf.webServer)
+//        _  <- redirectWebServer(en.systems.guideDb, ca)(conf.webServer)
         _  <- webServer[IO](conf, ca, as, in, out, en, cr, cs)
       } yield ()
 
@@ -317,8 +318,9 @@ object WebServerLauncher extends IOApp with LogInitialization {
   /** Reads the configuration and launches the observe */
   override def run(args: List[String]): IO[ExitCode] =
     observe.guaranteeCase {
-      case ExitCode.Success => IO.unit
-      case e                => IO(Console.println(s"Exit code $e")) // scalastyle:off console.io
+      case Outcome.Errored(e) =>
+        IO(Console.println(s"Observe exited with error $e")) // scalastyle:off console.io
+      case _                  => IO.unit
     }
 
 }

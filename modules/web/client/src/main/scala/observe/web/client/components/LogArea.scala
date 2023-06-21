@@ -13,11 +13,11 @@ import scala.scalajs.js
 
 import cats._
 import cats.data.NonEmptyList
-import cats.syntax.all._
-import cats.Order._
-import japgolly.scalajs.react.ReactMonocle._
+import cats.syntax.all.*
+import cats.Order.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.vdom.html_<^._
@@ -25,30 +25,29 @@ import lucuma.core.enums.Site
 import monocle.Lens
 import monocle.function.At.at
 import monocle.function.At.atSortedMap
-import monocle.macros.Lenses
-import mouse.all._
-import react.clipboard._
-import react.common._
-import react.common.implicits._
+import mouse.all.*
+import react.clipboard.*
+import react.common.*
+import react.common.implicits.*
 import react.semanticui.collections.form.Form
 import react.semanticui.collections.form.FormCheckbox
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.button.LabelPosition
 import react.semanticui.elements.segment.Segment
 import react.semanticui.modules.checkbox.Checkbox
-import react.semanticui.sizes._
-import react.semanticui.textalignment._
-import react.virtualized._
+import react.semanticui.sizes.*
+import react.semanticui.textalignment.*
+import react.virtualized.*
 import observe.common.FixedLengthBuffer
-import observe.model.enum.ServerLogLevel
-import observe.model.events._
+import observe.model.enums.ServerLogLevel
+import observe.model.events.*
 import observe.web.client.actions.ToggleLogArea
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.GlobalLog
 import observe.web.client.model.SectionVisibilityState.SectionOpen
-import observe.web.client.reusability._
-import web.client.table._
+import observe.web.client.reusability.*
+import web.client.table.*
 
 /**
  * Area to display a sequence's log
@@ -74,7 +73,7 @@ object CopyLogToClipboard {
 object LogArea {
   type Backend = RenderScope[Props, State, Unit]
 
-  implicit val show: Show[ServerLogLevel] =
+  given Show[ServerLogLevel] =
     Show.show(_.label)
 
   sealed trait TableColumn
@@ -84,8 +83,8 @@ object LogArea {
   case object ClipboardColumn extends TableColumn
 
   object TableColumn {
-    implicit val eq: Eq[TableColumn]               = Eq.fromUniversalEquals
-    implicit val tcReuse: Reusability[TableColumn] = Reusability.byRef
+    given Eq[TableColumn]               = Eq.fromUniversalEquals
+    given Reusability[TableColumn] = Reusability.byRef
   }
 
   // Date time formatter
@@ -139,8 +138,7 @@ object LogArea {
 
   }
 
-  @Lenses
-  final case class State(
+    final case class State(
     selectedLevels: SortedMap[ServerLogLevel, Boolean],
     tableState:     TableState[TableColumn]
   ) {
@@ -150,15 +148,15 @@ object LogArea {
 
   }
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.derive[Props]
-  implicit val stateReuse: Reusability[State] =
+  given Reusability[State] =
     Reusability.by(x => (x.selectedLevels.toList, x.tableState))
 
   object State {
 
     def levelLens(l: ServerLogLevel): Lens[State, Option[Boolean]] =
-      State.selectedLevels.andThen(at(l))
+      Focus[State](_.selectedLevels).andThen(at(l))
 
     private val DefaultTableState: TableState[TableColumn] =
       TableState[TableColumn](
@@ -169,7 +167,7 @@ object LogArea {
       )
 
     val Default: State =
-      State(SortedMap(ServerLogLevel.ServerLogLevelEnumerated.all.map(_ -> true): _*),
+      State(SortedMap(ServerLogLevel.Enumerated[ServerLogLevel].all.map(_ -> true): _*),
             DefaultTableState
       )
   }

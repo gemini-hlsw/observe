@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
-import cats.syntax.all._
-import observe.model.enum.Resource
+import cats.syntax.all.*
+import observe.model.enums.Resource
 
 sealed trait ActionType extends Product with Serializable
 
@@ -15,7 +15,7 @@ object ActionType {
   case object Undefined                     extends ActionType // Used in tests
   final case class Configure(sys: Resource) extends ActionType
 
-  implicit val equal: Eq[ActionType] =
+  given Eq[ActionType] =
     Eq.instance {
       case (Observe, Observe)           => true
       case (Undefined, Undefined)       => true

@@ -3,23 +3,23 @@
 
 package observe.web.client.components
 
-import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.JSConverters.*
 
-import cats.syntax.all._
-import japgolly.scalajs.react._
+import cats.syntax.all.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
 import react.common.ReactProps
 import react.semanticui.addons.confirm.Confirm
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.modal.ModalContent
 import react.semanticui.modules.modal.ModalSize
 import observe.model.UserPrompt
-import observe.model.UserPrompt._
+import observe.model.UserPrompt.*
 import observe.web.client.actions.CloseUserPromptBox
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.model._
-import observe.web.client.reusability._
+import observe.web.client.model.*
+import observe.web.client.reusability.*
 
 final case class UserPromptBox(prompt: UserPromptState)
     extends ReactProps[UserPromptBox](UserPromptBox.component)
@@ -79,11 +79,11 @@ object UserPromptBox {
 
   type Props = UserPromptBox
 
-  implicit class PromptButtonColorOps(val c: PromptButtonColor) extends AnyVal {
+  extension(c: PromptButtonColor) {
     def suiColor: Option[SemanticColor] = none
   }
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.prompt)
+  given Reusability[Props] = Reusability.by(_.prompt)
 
   private val ok     = Callback(ObserveCircuit.dispatch(CloseUserPromptBox(UserPromptResult.Ok)))
   private val cancel = Callback(

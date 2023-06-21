@@ -4,17 +4,17 @@
 package observe.web.client.components
 
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.collections.menu.MenuIcon
-import react.semanticui.collections.menu._
-import react.semanticui.sizes._
-import react.semanticui.views.item._
+import react.semanticui.collections.menu.*
+import react.semanticui.sizes.*
+import react.semanticui.views.item.*
 import observe.web.client.actions.UpdateSessionFilter
-import observe.web.client.circuit._
-import observe.web.client.icons._
+import observe.web.client.circuit.*
+import observe.web.client.icons.*
 import observe.web.client.model.ObsClass
 import observe.web.client.model.SessionQueueFilter
 

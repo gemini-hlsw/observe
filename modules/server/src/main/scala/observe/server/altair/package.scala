@@ -11,5 +11,5 @@ object AOCRFollow {
   case object Following extends AOCRFollow
   case object Fixed     extends AOCRFollow
 
-  implicit val eq: Eq[AOCRFollow] = Eq.fromUniversalEquals
+  given Eq[AOCRFollow] = Eq.fromUniversalEquals
 }

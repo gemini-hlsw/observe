@@ -5,7 +5,7 @@ package observe.server.gnirs
 
 import cats.Applicative
 import cats.effect.Sync
-import observe.server.keywords._
+import observe.server.keywords.*
 
 trait GnirsKeywordReader[F[_]] {
   def arrayId: F[String]

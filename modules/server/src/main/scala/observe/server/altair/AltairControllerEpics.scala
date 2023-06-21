@@ -11,30 +11,28 @@ import cats._
 import cats.effect.Async
 import cats.effect.Sync
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
 import org.typelevel.log4cats.Logger
-import monocle.macros.Lenses
-import mouse.boolean._
-import observe.model.`enum`.Instrument
-import observe.model.enum.ApplyCommandResult
+import mouse.boolean.*
+import observe.model.enums.Instrument
+import observe.model.enums.ApplyCommandResult
 import observe.server.ObserveFailure
-import observe.server.altair.AltairController._
+import observe.server.altair.AltairController.*
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import observe.server.tcs.Gaos.PauseCondition.{GaosGuideOff, OiOff, P1Off}
 import observe.server.tcs.Gaos.ResumeCondition.{GaosGuideOn, OiOn, P1On}
-import observe.server.tcs.Gaos._
+import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import observe.server.tcs.TcsEpics
 import squants.Length
 import squants.Time
 import squants.space.{Arcseconds, Millimeters}
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object AltairControllerEpics {
-  @Lenses
-  final case class EpicsAltairConfig(
+    final case class EpicsAltairConfig(
     currentMatrixCoords:  (Length, Length),
     preparedMatrixCoords: (Length, Length),
     strapRTStatus:        Boolean,
@@ -49,7 +47,7 @@ object AltairControllerEpics {
   def apply[F[_]: Async](
     epicsAltair: => AltairEpics[F],
     epicsTcs:    => TcsEpics[F]
-  )(implicit L:  Logger[F]): AltairController[F] = new AltairController[F] {
+  )(using L:  Logger[F]): AltairController[F] = new AltairController[F] {
 
     private def inRangeLinear[T <: Ordered[T]](vMin: T, vMax: T)(v: T): Boolean =
       v > vMin && v < vMax
@@ -292,7 +290,7 @@ object AltairControllerEpics {
         L.debug("STRAP loop stopped")
     ).whenA(currCfg.strapLoop)
 
-    implicit val sfoControlEq: Eq[LgsSfoControl] = Eq.by(_.ordinal)
+    given Eq[LgsSfoControl] = Eq.by(_.ordinal)
 
     private def startSfoLoop(currCfg: EpicsAltairConfig): F[Unit] = (
       L.debug("Start SFO loop in Altair") *>
@@ -315,8 +313,8 @@ object AltairControllerEpics {
         (startStrapGate(currCfg) *> startStrapLoop(currCfg)).whenA(strap) *>
         startSfoLoop(currCfg).whenA(sfo)
 
-    private val ttgsOffEndo: Endo[EpicsAltairConfig] = EpicsAltairConfig.strapGate.replace(0) >>>
-      EpicsAltairConfig.strapLoop.replace(false) >>>
+    private val ttgsOffEndo: Endo[EpicsAltairConfig] = Focus[EpicsAltairConfig](_.strapGate).replace(0) >>>
+      Focus[EpicsAltairConfig](_.strapLoop).replace(false) >>>
       EpicsAltairConfig.sfoLoop.modify { v =>
         (v === LgsSfoControl.Disable).fold(LgsSfoControl.Disable, LgsSfoControl.Pause)
       }

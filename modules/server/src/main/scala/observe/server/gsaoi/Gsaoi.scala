@@ -9,28 +9,28 @@ import java.lang.{Integer => JInt}
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.{Async, Sync}
-import cats.syntax.all._
-import edu.gemini.spModel.gemini.gsaoi.Gsaoi._
+import cats.syntax.all.*
+import edu.gemini.spModel.gemini.gsaoi.Gsaoi.*
 import edu.gemini.spModel.obscomp.InstConstants.DARK_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigResult
 import observe.server.ConfigUtilOps
 import observe.server.ConfigUtilOps.ExtractFailure
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.InstrumentActions
 import observe.server.InstrumentSpecifics
 import observe.server.InstrumentSystem
-import observe.server.InstrumentSystem._
+import observe.server.InstrumentSystem.*
 import observe.server.Progress
 import observe.server.ObserveFailure
-import observe.server.gsaoi.GsaoiController._
+import observe.server.gsaoi.GsaoiController.*
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
@@ -39,7 +39,7 @@ import shapeless.tag
 import squants.Length
 import squants.Time
 import squants.space.Arcseconds
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 final case class Gsaoi[F[_]: Logger: Async](
   controller: GsaoiController[F],
@@ -90,7 +90,7 @@ final case class Gsaoi[F[_]: Logger: Async](
   /**
    * Called to configure a system
    */
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

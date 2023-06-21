@@ -5,28 +5,28 @@ package observe.web.client.components.sequence.steps
 
 import scala.collection.immutable.SortedMap
 import scala.scalajs.js
-import cats.syntax.all._
-import cats.Order._
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.Reusability._
+import cats.syntax.all.*
+import cats.Order.*
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.Reusability.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.SemanticColor
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.button.LabelPosition
 import react.semanticui.elements.icon.Icon
 import react.semanticui.modules.popup.Popup
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.enum._
+import observe.model.enums.*
 import observe.web.client.actions.RequestResourceRun
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.ResourceRunOperation
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Contains the control buttons for each subsystem
@@ -42,7 +42,7 @@ final case class SubsystemControlCell(
 object SubsystemControlCell {
   type Props = SubsystemControlCell
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   def requestResourceCall(
     id:     Observation.Id,

@@ -3,13 +3,13 @@
 
 package observe.web.client.components.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import react.semanticui.As
 import react.semanticui.collections.message.Message
 import react.semanticui.elements.segment.Segment
@@ -18,10 +18,10 @@ import react.semanticui.modules.tab.TabPane
 import observe.model.CalibrationQueueId
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.SectionVisibilityState
 import observe.web.client.model.TabSelected
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 import observe.web.client.semanticui.dataTab
 
 final case class CalQueueTabContent(
@@ -44,7 +44,7 @@ final case class CalQueueTabContent(
 object CalQueueTabContent {
   type Props = CalQueueTabContent
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   private val defaultContent =
     Message(

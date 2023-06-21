@@ -3,33 +3,33 @@
 
 package observe.web.client.components.sequence.toolbars
 
-import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
 import scala.concurrent.Future
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.AsyncCallback
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.vdom.html_<^._
-import mouse.all._
-import react.common._
+import mouse.all.*
+import react.common.*
 import react.semanticui.collections.form.FormCheckbox
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
 import observe.model.{Observation, SystemOverrides}
-import observe.web.client.actions._
+import observe.web.client.actions.*
 import observe.web.client.actions.RunOptions
-import observe.web.client.circuit._
+import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.CancelPauseOperation
 import observe.web.client.model.PauseOperation
 import observe.web.client.model.RunOperation
 import observe.web.client.model.SectionVisibilityState
 import observe.web.client.model.SyncOperation
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 import observe.web.client.semanticui.controlButton
 import observe.web.client.services.ObserveWebClient
 
@@ -73,7 +73,7 @@ final case class SequenceControl(p: SequenceControlFocus)
 object SequenceControl {
   type Props = SequenceControl
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   def requestRun(s: Observation.Id): Callback =
     ObserveCircuit.dispatchCB(RequestRun(s, RunOptions.Normal))

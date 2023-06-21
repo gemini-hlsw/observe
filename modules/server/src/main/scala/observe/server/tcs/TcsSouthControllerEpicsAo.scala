@@ -7,19 +7,18 @@ import java.time.Duration
 import cats._
 import cats.data.NonEmptySet
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import monocle.Lens
-import monocle.macros.Lenses
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.M1GuideConfig
 import observe.model.M1GuideConfig.M1GuideOn
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.M1Source
-import observe.model.enum.MountGuideOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
@@ -28,7 +27,7 @@ import observe.server.tcs.Gaos.PauseCondition
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.ResumeCondition
 import observe.server.tcs.Gaos.ResumeConditionSet
-import observe.server.tcs.GemsSource._
+import observe.server.tcs.GemsSource.*
 import observe.server.tcs.TcsController.AoGuidersConfig
 import observe.server.tcs.TcsController.AoTcsConfig
 import observe.server.tcs.TcsController.GuiderConfig
@@ -40,7 +39,7 @@ import observe.server.tcs.TcsEpics.ProbeFollowCmd
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.tcs.TcsSouthController.TcsSouthAoConfig
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 import TcsSouthController._
 import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 
@@ -57,8 +56,7 @@ sealed trait TcsSouthControllerEpicsAo[F[_]] {
 }
 
 object TcsSouthControllerEpicsAo {
-  @Lenses
-  final case class EpicsTcsAoConfig(
+    final case class EpicsTcsAoConfig(
     base:    BaseEpicsTcsConfig,
     mapping: Map[GemsSource, VirtualGemsTelescope],
     cwfs1:   GuiderConfig,
@@ -70,7 +68,7 @@ object TcsSouthControllerEpicsAo {
     odgw4:   GuiderConfig
   )
 
-  private final class TcsSouthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(implicit
+  private final class TcsSouthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
     L:                                                                     Logger[F]
   ) extends TcsSouthControllerEpicsAo[F]
       with TcsControllerEncoders {
@@ -150,7 +148,7 @@ object TcsSouthControllerEpicsAo {
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
         .setGuideProbe(odgw1GuiderControl(g),
-                       EpicsTcsAoConfig.odgw1.andThen(GuiderConfig.tracking).replace
+                       Focus[EpicsTcsAoConfig](_.odgw1).andThen(GuiderConfig.tracking).replace
         )(a, b, c)
         .map(_.mapDebug(m => s"ODGW1: $m"))
 
@@ -168,7 +166,7 @@ object TcsSouthControllerEpicsAo {
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
         .setGuideProbe(odgw2GuiderControl(g),
-                       EpicsTcsAoConfig.odgw2.andThen(GuiderConfig.tracking).replace
+                       Focus[EpicsTcsAoConfig](_.odgw2).andThen(GuiderConfig.tracking).replace
         )(a, b, c)
         .map(_.mapDebug(m => s"ODGW2: $m"))
 
@@ -186,7 +184,7 @@ object TcsSouthControllerEpicsAo {
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
         .setGuideProbe(odgw3GuiderControl(g),
-                       EpicsTcsAoConfig.odgw3.andThen(GuiderConfig.tracking).replace
+                       Focus[EpicsTcsAoConfig](_.odgw3).andThen(GuiderConfig.tracking).replace
         )(a, b, c)
         .map(_.mapDebug(m => s"ODGW3: $m"))
 
@@ -204,7 +202,7 @@ object TcsSouthControllerEpicsAo {
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
         .setGuideProbe(odgw4GuiderControl(g),
-                       EpicsTcsAoConfig.odgw4.andThen(GuiderConfig.tracking).replace
+                       Focus[EpicsTcsAoConfig](_.odgw4).andThen(GuiderConfig.tracking).replace
         )(a, b, c)
         .map(_.mapDebug(m => s"ODGW4: $m"))
 
@@ -397,15 +395,15 @@ object TcsSouthControllerEpicsAo {
         AoTcsConfig
           .gc[GemsGuiders, GemsConfig]
           .modify(
-            TelescopeGuideConfig.mountGuide.replace(
+            Focus[TelescopeGuideConfig](_.mountGuide).replace(
               (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
                 .fold(MountGuideOption.MountGuideOff, current.base.telescopeGuideConfig.mountGuide)
             ) >>>
-              TelescopeGuideConfig.m1Guide.replace(
+              Focus[TelescopeGuideConfig](_.m1Guide).replace(
                 (mustOff || demand.gc.m1Guide === M1GuideConfig.M1GuideOff)
                   .fold(M1GuideConfig.M1GuideOff, current.base.telescopeGuideConfig.m1Guide)
               ) >>>
-              TelescopeGuideConfig.m2Guide.replace(
+              Focus[TelescopeGuideConfig](_.m2Guide).replace(
                 (mustOff || demand.gc.m2Guide === M2GuideConfig.M2GuideOff)
                   .fold(M2GuideConfig.M2GuideOff, current.base.telescopeGuideConfig.m2Guide)
               )
@@ -575,8 +573,7 @@ object TcsSouthControllerEpicsAo {
 
     // Disable M1 guiding if source is off
     def normalizeM1Guiding: Endo[TcsSouthAoConfig] = cfg =>
-      AoTcsConfig.gc
-        .andThen(TelescopeGuideConfig.m1Guide)
+      Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide)
         .modify {
           case g @ M1GuideConfig.M1GuideOn(src) =>
             src match {
@@ -589,8 +586,7 @@ object TcsSouthControllerEpicsAo {
 
     // Disable M2 sources if they are off, disable M2 guiding if all are off
     def normalizeM2Guiding(gaosEnabled: Boolean): Endo[TcsSouthAoConfig] = cfg =>
-      AoTcsConfig.gc
-        .andThen(TelescopeGuideConfig.m2Guide)
+      Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
         .modify {
           case M2GuideConfig.M2GuideOn(coma, srcs) =>
             val ss = srcs.filter {
@@ -611,8 +607,7 @@ object TcsSouthControllerEpicsAo {
 
   // Disable Mount guiding if M2 guiding is disabled
   val normalizeMountGuiding: Endo[TcsSouthAoConfig] = cfg =>
-    AoTcsConfig.gc
-      .andThen(TelescopeGuideConfig.mountGuide)
+    Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.mountGuide)
       .modify { m =>
         (m, cfg.gc.m2Guide) match {
           case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>

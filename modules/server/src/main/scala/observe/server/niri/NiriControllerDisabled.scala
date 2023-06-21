@@ -4,15 +4,15 @@
 package observe.server.niri
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.`enum`.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import observe.server.overrideLogMessage
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 class NiriControllerDisabled[F[_]: Logger: Applicative] extends NiriController[F] {
   private val name = "NIRI"
