@@ -207,7 +207,6 @@ lazy val observe_web_client = project
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
     scalaVersion                            := "3.3.0",
-    scalacOptions += "-language:implicitConversions",
     Test / test                             := {},
     coverageEnabled                         := false,
     libraryDependencies ++= Seq(
