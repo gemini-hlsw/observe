@@ -17,18 +17,12 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 // Use NPM modules rather than webjars
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
 
-// Clue code generation
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
-
-// Clue code generation
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
+// Generate code for GraphQL queries
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.31.0")
 
 // Used to find dependencies
 addDependencyTreePlugin
 
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
-
-// Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.30.0")
 
 Global / onLoad := { s => "dependencyUpdates" :: s }

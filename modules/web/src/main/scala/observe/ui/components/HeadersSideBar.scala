@@ -10,7 +10,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import observe.model.*
 import observe.ui.ObserveStyles
 import react.common.*
-import reactST.primereact.components.*
+import lucuma.typed.primereact.components.*
 
 case class HeadersSideBar(
   status:     ClientStatus,

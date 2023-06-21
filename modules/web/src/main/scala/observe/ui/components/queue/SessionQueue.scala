@@ -24,7 +24,7 @@ import react.fa.IconSize
 import react.primereact.*
 // import reactST.primereact.components.*
 // import reactST.primereact.selectitemMod.SelectItem
-import reactST.{tanstackTableCore => raw}
+import lucuma.typed.{tanstackTableCore => raw}
 
 import scalajs.js.JSConverters.*
 
@@ -114,8 +114,8 @@ object SessionQueue:
     <.div(ObserveStyles.Centered |+| css)(node)
 
   private def linked[T, A](
-    f: raw.mod.CellContext[T, A] => VdomNode
-  ): raw.mod.CellContext[T, A] => VdomNode =
+    f: raw.buildLibCoreCellMod.CellContext[T, A] => VdomNode
+  ): raw.buildLibCoreCellMod.CellContext[T, A] => VdomNode =
     f // .andThen(node => renderCell(node))
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))

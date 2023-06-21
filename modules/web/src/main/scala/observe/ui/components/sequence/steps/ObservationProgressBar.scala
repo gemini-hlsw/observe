@@ -15,7 +15,7 @@ import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage
 import observe.ui.ObserveStyles
 import react.common.*
-import reactST.primereact.components.*
+import lucuma.typed.primereact.components.*
 
 import java.time.Duration
 import java.util.UUID

@@ -26,12 +26,11 @@ import observe.ui.model.extensions.*
 import observe.ui.model.reusability.given
 import org.scalablytyped.runtime.StringDictionary
 import react.common.*
-import reactST.{tanstackTableCore => raw}
+import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.table.ColumnSize.*
 import scalajs.js
 import observe.ui.Icons
 import react.resizeDetector.hooks.*
-import org.scalajs.dom.HTMLDivElement
 import observe.ui.components.sequence.steps.StepSkipCell
 import crystal.react.View
 import lucuma.ui.utils.*
@@ -123,7 +122,8 @@ object StepsTable:
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[raw.mod.CellContext[View[ExecutionStep], V] => VdomNode] = js.undefined
+    cell:   js.UndefOr[raw.buildLibCoreCellMod.CellContext[View[ExecutionStep], V] => VdomNode] =
+      js.undefined
   ): ColumnDef[View[ExecutionStep], V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
@@ -436,7 +436,7 @@ object StepsTable:
           table,
           // TODO Is it necessary to explicitly specify increased height of Running row?
           estimateSize = _ => 40.toPx,
-          containerRef = resize.ref.asInstanceOf[Ref.Simple[HTMLDivElement]],
+          containerRef = resize.ref,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row =>
             rowClass(row.index.toInt, row.original.get) |+|
