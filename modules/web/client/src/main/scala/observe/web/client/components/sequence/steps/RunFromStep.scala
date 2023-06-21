@@ -3,14 +3,14 @@
 
 package observe.web.client.components.sequence.steps
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.ReactMouseEvent
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.popup.Popup
 import observe.model.{Observation, StepId}
@@ -18,9 +18,9 @@ import observe.web.client.actions.RequestRunFrom
 import observe.web.client.actions.RunOptions
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.StartFromOperation
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Contains the control to start a step from an arbitrary point
@@ -36,7 +36,7 @@ final case class RunFromStep(
 object RunFromStep {
   type Props = RunFromStep
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   def requestRunFrom(
     id:     Observation.Id,

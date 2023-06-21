@@ -5,10 +5,10 @@ package observe.server.gcal
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.gcal.BinaryOnOff
-import mouse.boolean._
-import observe.server.keywords._
+import mouse.boolean.*
+import observe.server.keywords.*
 
 trait GcalKeywordReader[F[_]] {
   def diffuser: F[String]

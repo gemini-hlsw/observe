@@ -4,7 +4,7 @@
 package observe.server.gems
 
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.guide.StandardGuideOptions
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName

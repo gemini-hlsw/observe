@@ -3,15 +3,15 @@
 
 package observe.web.client.components.sequence.steps
 
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
+import react.common.*
 import observe.model.Observation
 import observe.model.ObservationProgress
 import observe.model.StepId
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 case class BiasStatus(
   obsId:    Observation.Id,
@@ -28,7 +28,7 @@ case class BiasStatus(
 object BiasStatus extends ProgressLabel {
   type Props = BiasStatus
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]("BiasStatus")

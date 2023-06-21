@@ -12,7 +12,7 @@ import edu.gemini.epics.acm.CaAttribute
 import edu.gemini.epics.acm.CaCommandSender
 import edu.gemini.epics.acm.CaService
 import edu.gemini.observe.server.gcal.BinaryOnOff
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem

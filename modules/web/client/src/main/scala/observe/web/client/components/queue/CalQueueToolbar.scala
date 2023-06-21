@@ -3,26 +3,26 @@
 
 package observe.web.client.components.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import observe.model.QueueId
 import observe.web.client.actions.RequestAllSelectedSequences
 import observe.web.client.actions.RequestClearAllCal
 import observe.web.client.actions.RequestRunCal
 import observe.web.client.actions.RequestStopCal
-import observe.web.client.circuit._
+import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.AddDayCalOperation
 import observe.web.client.model.ClearAllCalOperation
 import observe.web.client.model.RunCalOperation
 import observe.web.client.model.StopCalOperation
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 import observe.web.client.semanticui.controlButton
 
 final case class CalQueueToolbar(queueId: QueueId, control: CalQueueControlFocus)
@@ -55,7 +55,7 @@ object CalQueueToolbar {
 
   type Props = CalQueueToolbar
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   def allDayCal(id: QueueId): Callback =
     ObserveCircuit.dispatchCB(RequestAllSelectedSequences(id))

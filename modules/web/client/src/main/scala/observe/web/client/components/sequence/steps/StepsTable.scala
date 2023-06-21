@@ -4,36 +4,35 @@
 package observe.web.client.components.sequence.steps
 
 import scala.collection.immutable.SortedMap
-import scala.math._
+import scala.math.*
 import scala.scalajs.js
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.implicits._
-import japgolly.scalajs.react.ReactMonocle._
+import cats.implicits.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
-import japgolly.scalajs.react.component.builder.Lifecycle._
+import japgolly.scalajs.react.component.builder.Lifecycle.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
-import monocle.macros.Lenses
-import mouse.boolean._
+import mouse.boolean.*
 import org.scalajs.dom.HTMLElement
-import react.common._
-import react.common.implicits._
-import react.semanticui.sizes._
+import react.common.*
+import react.common.implicits.*
+import react.semanticui.sizes.*
 import react.semanticui.{SemanticSize => SSize}
-import react.virtualized._
+import react.virtualized.*
 import observe.model.Observation
 import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.model.Step
 import observe.model.StepId
 import observe.model.StepState
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.StepType
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.StepType
 import observe.web.client.actions.ClearAllResourceOperations
 import observe.web.client.actions.FlipBreakpointStep
 import observe.web.client.actions.UpdateSelectedStep
@@ -43,19 +42,19 @@ import observe.web.client.circuit.StepsTableAndStatusFocus
 import observe.web.client.circuit.StepsTableFocus
 import observe.web.client.components.ObserveStyles
 import observe.web.client.components.TableContainer
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.ClientStatus
-import observe.web.client.model.Formatting._
-import observe.web.client.model.ModelOps._
+import observe.web.client.model.Formatting.*
+import observe.web.client.model.ModelOps.*
 import observe.web.client.model.Pages.ObservePages
 import observe.web.client.model.ResourceRunOperation
 import observe.web.client.model.RunOperation
-import observe.web.client.model.StepItems._
+import observe.web.client.model.StepItems.*
 import observe.web.client.model.TabOperations
-import observe.web.client.model.lenses._
-import observe.web.client.reusability._
-import web.client.table._
-import web.client.JsNumberOps._
+import observe.web.client.model.lenses.*
+import observe.web.client.reusability.*
+import web.client.table.*
+import web.client.JsNumberOps.*
 
 trait Columns {
   val ControlWidth: Double          = 40
@@ -122,9 +121,9 @@ trait Columns {
   )
 
   object TableColumn {
-    implicit val equal: Eq[TableColumn] = Eq.fromUniversalEquals
+    given Eq[TableColumn] = Eq.fromUniversalEquals
 
-    implicit val reuse: Reusability[TableColumn] = Reusability.byRef
+    given Reusability[TableColumn] = Reusability.byRef
   }
 
   val ControlColumnMeta: ColumnMeta[TableColumn] = ColumnMeta[TableColumn](
@@ -490,11 +489,10 @@ object StepsTable extends Columns {
   object StepSummary {
     def fromStep(step: Step): StepSummary = StepSummary(step.id, step.status, step.breakpoint)
 
-    implicit val stepSummaryEq: Eq[StepSummary] = Eq.by(x => (x.id, x.status, x.breakpoint))
+    given Eq[StepSummary] = Eq.by(x => (x.id, x.status, x.breakpoint))
   }
 
-  @Lenses
-  final case class State(
+    final case class State(
     tableState:               TableState[TableColumn],
     breakpointHover:          Option[StepId],
     selected:                 Option[StepId],
@@ -510,7 +508,7 @@ object StepsTable extends Columns {
   ) {
 
     def visibleCols(p: Props): State =
-      State.columns.replace(NonEmptyList.fromListUnsafe(p.shownForInstrument))(this)
+      Focus[State](_.columns).replace(NonEmptyList.fromListUnsafe(p.shownForInstrument))(this)
 
     def recalculateWidths(p: Props, size: Size): TableState[TableColumn] =
       tableState.recalculateWidths(size, p.visibleColumns, p.columnWidths)
@@ -546,7 +544,7 @@ object StepsTable extends Columns {
     )
   }
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.by(x =>
       (x.canOperate,
        x.selectedStep,
@@ -556,9 +554,9 @@ object StepsTable extends Columns {
       )
     )
 
-  implicit val tcReuse: Reusability[TableColumn]   = Reusability.byRef
-  implicit val scrollBarReuse: Reusability[Double] = Reusability.double(1.0)
-  implicit val stateReuse: Reusability[State]      =
+  given Reusability[TableColumn]   = Reusability.byRef
+  given Reusability[Double] = Reusability.double(1.0)
+  given Reusability[State]      =
     Reusability.by(x => (x.tableState, x.breakpointHover, x.selected, x.scrollBarWidth))
 
   private def canSetBreakpoint(step: Step, l: List[Step]): Boolean = step.canSetBreakpoint(l)
@@ -811,7 +809,7 @@ object StepsTable extends Columns {
   ): ColumnRenderArgs[TableColumn] => Table.ColumnArg =
     tb => {
       def updateState(s: TableState[TableColumn]): Callback =
-        ($.modState(State.tableState.replace(s)) *> $.props.obsIdName
+        ($.modState(Focus[State](_.tableState).replace(s)) *> $.props.obsIdName
           .map(i => ObserveCircuit.dispatchCB(UpdateStepTableState(i.id, s)))
           .getOrEmpty).when_(size.width.toInt > 0)
 
@@ -865,9 +863,9 @@ object StepsTable extends Columns {
     // Separately calculate the state to send upstream
     val newTs             =
       if (hasScrolledBefore)
-        (State.userModified.replace(IsModified) >>> State.scrollPosition.replace(pos))($.state)
+        (Focus[State](_.userModified).replace(IsModified) >>> Focus[State](_.scrollPosition).replace(pos))($.state)
       else
-        State.scrollPosition.replace(pos)($.state)
+        Focus[State](_.scrollPosition).replace(pos)($.state)
     val posDiff           = abs(pos.toDouble - $.state.tableState.scrollPosition.toDouble)
     // Always update the position and counts, but the modification flag only if
     // we are sure the user did scroll manually
@@ -906,7 +904,7 @@ object StepsTable extends Columns {
           .dispatchCB(UpdateSelectedStep(idName.id, stepId)) *>
           ObserveCircuit
             .dispatchCB(ClearAllResourceOperations(idName.id)) *>
-          $.modState(State.selected.replace(Some(stepId))) *>
+          $.modState(Focus[State](_.selected).replace(Some(stepId))) *>
           recomputeRowHeightsCB($.props)(stepId))
           .when_(
             $.props.stepSelectionAllowed(stepId) && State.selected.get($.state).forall(_ =!= stepId)
@@ -1053,12 +1051,12 @@ object StepsTable extends Columns {
 
   def rowBreakpointHoverOnCB($ : Scope)(stepId: StepId): Callback =
     (if ($.props.rowGetter(stepId).step.breakpoint)
-       $.modState(State.breakpointHover.replace(None))
-     else $.modState(State.breakpointHover.replace(stepId.some))) *>
+       $.modState(Focus[State](_.breakpointHover).replace(None))
+     else $.modState(Focus[State](_.breakpointHover).replace(stepId.some))) *>
       recomputeRowHeightsCB($.props)(stepId)
 
   def rowBreakpointHoverOffCB($ : Scope)(stepId: StepId): Callback =
-    $.modState(State.breakpointHover.replace(None)) *> recomputeRowHeightsCB($.props)(stepId)
+    $.modState(Focus[State](_.breakpointHover).replace(None)) *> recomputeRowHeightsCB($.props)(stepId)
 
   private def scrollTo(props: Props)(stepId: StepId): Callback = index(props.stepsList, stepId)
     .map(i => ref.get.asCBO.flatMapCB(_.raw.scrollToRowCB(i)).toCallback)
@@ -1113,13 +1111,13 @@ object StepsTable extends Columns {
 
   def initialState(p: Props): State =
     (
-      State.tableState.replace(p.tableState) >>>
-        State.selected.replace(p.selectedStep) >>>
-        State.prevStepSummaries.replace(p.stepsList.map(StepSummary.fromStep)) >>>
-        State.prevSelectedStep.replace(p.selectedStep) >>>
-        State.prevSequenceState.replace(p.sequenceState) >>>
-        State.prevRunning.replace(p.runningStep) >>>
-        State.prevResourceRunRequested.replace(p.tabOperations.resourceRunRequested)
+      Focus[State](_.tableState).replace(p.tableState) >>>
+        Focus[State](_.selected).replace(p.selectedStep) >>>
+        Focus[State](_.prevStepSummaries).replace(p.stepsList.map(StepSummary.fromStep)) >>>
+        Focus[State](_.prevSelectedStep).replace(p.selectedStep) >>>
+        Focus[State](_.prevSequenceState).replace(p.sequenceState) >>>
+        Focus[State](_.prevRunning).replace(p.runningStep) >>>
+        Focus[State](_.prevResourceRunRequested).replace(p.tabOperations.resourceRunRequested)
     )(State.InitialState)
 
   private def updateStep(obsId: Observation.Id, i: StepId): Callback =
@@ -1160,7 +1158,7 @@ object StepsTable extends Columns {
           case (cur, prev) if cur.status =!= prev.status         => cur.id
           case (cur, prev) if cur.breakpoint =!= prev.breakpoint => cur.id
         }
-        .map(stepId => (stepId, State.prevStepSummaries.replace(propsStepSummaries)))
+        .map(stepId => (stepId, Focus[State](_.prevStepSummaries).replace(propsStepSummaries)))
     }
 
     // If the selected step changes recompute height
@@ -1171,7 +1169,7 @@ object StepsTable extends Columns {
       if p.selectedStep =!= s.prevSelectedStep
     } yield (first.id,
              State.prevSelectedStep
-               .replace(p.selectedStep) >>> State.selected.replace(p.selectedStep)
+               .replace(p.selectedStep) >>> Focus[State](_.selected).replace(p.selectedStep)
     )
 
     // If the step is running recompute height
@@ -1179,7 +1177,7 @@ object StepsTable extends Columns {
       p.selectedStep
         .filter(_ => s.prevResourceRunRequested =!= p.tabOperations.resourceRunRequested)
         .map(stepId =>
-          (stepId, State.prevResourceRunRequested.replace(p.tabOperations.resourceRunRequested))
+          (stepId, Focus[State](_.prevResourceRunRequested).replace(p.tabOperations.resourceRunRequested))
         )
 
     // Recompute selected step
@@ -1196,7 +1194,7 @@ object StepsTable extends Columns {
               .some
               .filter(_ => p.canControlSubsystems(stepId))
               .toList :+
-              State.runNewStep.replace((stepId, scroll).some)
+              Focus[State](_.runNewStep).replace((stepId, scroll).some)
           )
         }
       )
@@ -1205,12 +1203,12 @@ object StepsTable extends Columns {
     val runningStepUpdate: Option[State => State] =
       p.runningStep.some
         .filter(_ =!= s.prevRunning)
-        .map(State.prevRunning.replace)
+        .map(Focus[State](_.prevRunning).replace)
 
     val sequenceStateUpdate: Option[State => State] =
       p.sequenceState.some
         .filter(_ =!= s.prevSequenceState)
-        .map(State.prevSequenceState.replace)
+        .map(Focus[State](_.prevSequenceState).replace)
 
     val (minSteps, stateMods) = List(steps, selected, runRequested).flatten.unzip
 

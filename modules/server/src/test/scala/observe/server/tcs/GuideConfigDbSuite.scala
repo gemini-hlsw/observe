@@ -3,13 +3,13 @@
 
 package observe.server.tcs
 
-import io.circe.parser._
+import io.circe.parser.*
 import cats.effect.IO
-import observe.model.enum._
+import observe.model.enums.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.server.tcs.GuideConfigDb._
+import observe.server.tcs.GuideConfigDb.*
 import observe.server.altair.AltairController.Lgs
 import observe.server.gems.GemsController.GemsOn
 import observe.server.gems.GemsController.OIUsage

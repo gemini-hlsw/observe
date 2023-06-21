@@ -6,7 +6,7 @@ package observe.web.client
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
 import cats.effect.Sync
-import cats.effect._
+import cats.effect.*
 import lucuma.core.enums.Site
 import org.scalajs.dom.document
 import org.scalajs.dom.Element
@@ -20,7 +20,7 @@ import typings.loglevel.mod.{^ => logger}
 /**
  * Observe WebApp entry point
  */
-final class ObserveLauncher[F[_]](implicit val F: Sync[F], L: LiftIO[F]) {
+final class ObserveLauncher[F[_]](using val F: Sync[F], L: LiftIO[F]) {
   japgolly.scalajs.react.extra.ReusabilityOverlay.overrideGloballyInDev()
 
   def serverSite: F[Site] =

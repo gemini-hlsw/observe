@@ -3,14 +3,14 @@
 
 package observe.server.tcs
 
-import cats.data._
+import cats.data.*
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
-import observe.model.enum.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
 

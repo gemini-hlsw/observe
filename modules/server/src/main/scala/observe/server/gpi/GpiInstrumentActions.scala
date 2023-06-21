@@ -3,7 +3,7 @@
 
 package observe.server.gpi
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.engine.ParallelActions
@@ -21,7 +21,7 @@ class GpiInstrumentActions[F[_]: Logger: Temporal] extends InstrumentActions[F] 
 
   override def observationProgressStream(
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
+  ): Stream[F, Result] =
     ObserveActions.observationProgressStream(env)
 
   override def observeActions(

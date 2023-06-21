@@ -6,7 +6,7 @@ package observe.web.client.handlers
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
-import observe.web.client.actions._
+import observe.web.client.actions.*
 import observe.web.client.model.SessionQueueFilter
 
 /**

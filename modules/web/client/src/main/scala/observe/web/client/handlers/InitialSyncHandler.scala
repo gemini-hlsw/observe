@@ -6,7 +6,7 @@ package observe.web.client.handlers
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import diode.ActionHandler
 import diode.ActionResult
@@ -15,9 +15,9 @@ import diode.ModelRW
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.events.ObserveModelUpdate
-import observe.web.client.actions._
-import observe.web.client.circuit._
-import observe.web.client.model.Pages._
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
+import observe.web.client.model.Pages.*
 import observe.web.client.services.DisplayNamePersistence
 
 /**
@@ -34,7 +34,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
   private def pageE(action: Action): InitialSyncFocus => InitialSyncFocus =
     PageActionP
       .getOption(action)
-      .map(p => InitialSyncFocus.location.replace(p))
+      .map(p => Focus[InitialSyncFocus](_.location).replace(p))
       .getOrElse(identity)
 
   private val noUpdate: InitialSyncFocus => InitialSyncFocus = identity
@@ -102,7 +102,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
           // No matches
           (noUpdate, VoidEffect)
       }
-      updatedLE(InitialSyncFocus.firstLoad.replace(false) >>> InitialSyncFocus.displayNames.replace(
+      updatedLE(Focus[InitialSyncFocus](_.firstLoad).replace(false) >>> Focus[InitialSyncFocus](_.displayNames).replace(
                   storedDisplayNames
                 ) >>> update,
                 Effect(Future(CleanSequences)) >> effect

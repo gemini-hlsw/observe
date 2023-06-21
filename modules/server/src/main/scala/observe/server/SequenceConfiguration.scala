@@ -3,14 +3,14 @@
 
 package observe.server
 
-import cats.syntax.all._
-import edu.gemini.spModel.ao.AOConstants._
-import edu.gemini.spModel.core.Wavelength
+import cats.syntax.all.*
+import edu.gemini.spModel.ao.AOConstants.*
+import lucuma.core.math.Wavelength
 import edu.gemini.spModel.gemini.altair.AltairConstants
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{Wavelength => GNIRSWavelength}
-import edu.gemini.spModel.obscomp.InstConstants._
+import edu.gemini.spModel.obscomp.InstConstants.*
 import observe.model.StepState
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import CleanConfig.extractItem
 import ConfigUtilOps._
 import ObserveFailure.Unexpected
@@ -19,11 +19,11 @@ import observe.server.flamingos2.Flamingos2
 import observe.server.ghost.Ghost
 import observe.server.gmos.GmosNorth
 import observe.server.gmos.GmosSouth
-import observe.server.gnirs._
+import observe.server.gnirs.*
 import observe.server.gpi.Gpi
-import observe.server.gsaoi._
-import observe.server.nifs._
-import observe.server.niri._
+import observe.server.gsaoi.*
+import observe.server.nifs.*
+import observe.server.niri.*
 
 trait SequenceConfiguration {
   def extractInstrument(config: CleanConfig): Either[ObserveFailure, Instrument] =
@@ -60,18 +60,18 @@ trait SequenceConfiguration {
    */
   def extractWavelength(config: CleanConfig): Either[ObserveFailure, Option[Wavelength]] =
     if (!config.containsKey(OBSERVING_WAVELENGTH_KEY))
-      none.asRight
+      none[Wavelength].asRight
     else
       // Gmos uses String
       config
         .extractAs[String](OBSERVING_WAVELENGTH_KEY)
-        .flatMap(v => Either.catchNonFatal(v.toDouble).leftMap(_ => new ContentError(v)))
-        .map(Wavelength.fromMicrons[Double](_).some)
+        .flatMap(v => Either.catchNonFatal(v.toDouble).leftMap(_ => ContentError(v)))
+        .map(w => Wavelength.fromMicrometers(w.toInt))
         .orElse {
           // GNIRS uses its own wavelength!!
           config
             .extractAs[GNIRSWavelength](OBSERVING_WAVELENGTH_KEY)
-            .map(w => Wavelength.fromMicrons(w.doubleValue()).some)
+            .map(w => Wavelength.fromMicrometers(w.doubleValue().toInt))
         }
         .orElse {
           // Maybe we use ocs Wavelength
@@ -83,12 +83,12 @@ trait SequenceConfiguration {
           // Just in case
           config
             .extractAs[java.lang.Double](OBSERVING_WAVELENGTH_KEY)
-            .map(v => Wavelength.fromMicrons[Double](v.doubleValue).some)
+            .map(w => Wavelength.fromMicrometers(w.toInt))
         }
-        .leftMap { case _ =>
+        .leftMap { _ =>
           Unexpected(
-            s"Error reading wavelength ${config.itemValue(OBSERVING_WAVELENGTH_KEY)}: ${config.itemValue(OBSERVING_WAVELENGTH_KEY).getClass()}"
-          )
+            s"Error reading wavelength ${config.itemValue(OBSERVING_WAVELENGTH_KEY)}: ${config.itemValue(OBSERVING_WAVELENGTH_KEY).getClass}"
+          ): ObserveFailure
         }
 
   def calcStepType(config: CleanConfig, isNightSeq: Boolean): Either[ObserveFailure, StepType] = {

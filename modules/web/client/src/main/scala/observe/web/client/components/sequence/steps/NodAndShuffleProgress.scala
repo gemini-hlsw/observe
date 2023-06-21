@@ -4,25 +4,24 @@
 package observe.web.client.components.sequence.steps
 
 import scala.math.max
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.{CtorType, _}
 import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
-import monocle.macros.Lenses
-import react.common._
+import react.common.*
 import react.semanticui.SemanticColor
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import observe.model.NSObservationProgress
 import observe.model.NodAndShuffleStatus
 import observe.model.Observation
 import observe.model.ObserveStage
 import observe.model.StepId
 import observe.model.dhs.ImageFileId
-import observe.model.enum.NodAndShuffleStage
-import observe.model.operations._
+import observe.model.enums.NodAndShuffleStage
+import observe.model.operations.*
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.DividedProgress
 import observe.web.client.components.ObserveStyles
@@ -30,7 +29,7 @@ import observe.web.client.components.sequence.steps
 import observe.web.client.model.ClientStatus
 import observe.web.client.model.StepItems.StepStateSummary
 import observe.web.client.model.StopOperation
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class NodAndShuffleProgressMessage(
   obsId:    Observation.Id,
@@ -48,11 +47,10 @@ final case class NodAndShuffleProgressMessage(
 object NodAndShuffleProgressMessage extends ProgressLabel {
   type Props = NodAndShuffleProgressMessage
 
-  @Lenses
-  protected case class State(progressConnect: ReactConnectProxy[Option[NSObservationProgress]])
+    protected case class State(progressConnect: ReactConnectProxy[Option[NSObservationProgress]])
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
-  implicit val stateReuse: Reusability[State] = Reusability.always
+  given Reusability[Props] = Reusability.derive[Props]
+  given Reusability[State] = Reusability.always
 
   protected[steps] val component: Component[Props, State, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]
@@ -99,7 +97,7 @@ final case class SmoothDividedProgressBar(
 object SmoothDividedProgressBar extends SmoothProgressBar[SmoothDividedProgressBar] {
   type Props = SmoothDividedProgressBar
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component: Component[
     Props,
@@ -147,11 +145,10 @@ sealed trait NodAndShuffleProgress {
   // From diode doc (Usage with React): "Having a single reference to (connect)
   // during your components lifecycle ensures that React will update your
   // component rather than unmounting and remounting it."
-  @Lenses
-  protected case class State(progressConnect: ReactConnectProxy[Option[NSObservationProgress]])
+    protected case class State(progressConnect: ReactConnectProxy[Option[NSObservationProgress]])
 
-  implicit val propsReuse: Reusability[Props]
-  implicit val stateReuse: Reusability[State] = Reusability.always
+  given Reusability[Props]
+  given Reusability[State] = Reusability.always
 
   protected def sections(nsStatus: NodAndShuffleStatus): List[DividedProgress.Label]
 
@@ -214,7 +211,7 @@ final case class NodAndShuffleCycleProgress(summary: StepStateSummary)
 object NodAndShuffleCycleProgress extends NodAndShuffleProgress {
   type Props = NodAndShuffleCycleProgress
 
-  implicit lazy val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected def sections(nsStatus: NodAndShuffleStatus): List[DividedProgress.Label] =
     List.range(1, nsStatus.cycles + 1).map(_.show)
@@ -236,7 +233,7 @@ final case class NodAndShuffleNodProgress(summary: StepStateSummary)
 object NodAndShuffleNodProgress extends NodAndShuffleProgress {
   type Props = NodAndShuffleNodProgress
 
-  implicit lazy val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected def sections(nsStatus: NodAndShuffleStatus): List[DividedProgress.Label] =
     NodAndShuffleStage.NsSequence.map(_.symbol.name).toList
@@ -261,9 +258,9 @@ sealed abstract class NodAndShuffleRowProps[A](
 sealed trait NodAndShuffleRow[A, L <: OperationLevel] {
   type Props <: NodAndShuffleRowProps[A]
 
-  implicit val propsReuse: Reusability[Props]
+  given Reusability[Props]
 
-  implicit val propsControlButtonResolver: ControlButtonResolver[Props] =
+  given ControlButtonResolver[Props] =
     ControlButtonResolver.build(p => (p.clientStatus, p.stateSummary.state, p.stateSummary.step))
 
   implicit protected val operationLevelType: OperationLevelType[L]
@@ -307,7 +304,7 @@ object NodAndShuffleCycleRow
 
   type Props = NodAndShuffleCycleRowProps
 
-  implicit lazy val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   implicit protected val operationLevelType: OperationLevelType[OperationLevel.NsCycle] =
     implicitly[OperationLevelType[OperationLevel.NsCycle]]
@@ -328,7 +325,7 @@ object NodAndShuffleNodRow
 
   type Props = NodAndShuffleNodRowProps
 
-  implicit lazy val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   implicit protected val operationLevelType: OperationLevelType[OperationLevel.NsNod] =
     implicitly[OperationLevelType[OperationLevel.NsNod]]

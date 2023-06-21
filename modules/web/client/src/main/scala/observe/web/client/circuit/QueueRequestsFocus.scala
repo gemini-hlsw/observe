@@ -7,7 +7,6 @@ import scala.collection.immutable.SortedMap
 
 import cats.Eq
 import monocle.Lens
-import monocle.macros.Lenses
 import observe.model.BatchCommandState
 import observe.model.ExecutionQueueView
 import observe.model.Observer
@@ -18,7 +17,6 @@ import observe.web.client.model.ObserveAppRootModel
 import observe.web.client.model.SessionQueueFilter
 import observe.web.client.model.ClientStatus
 
-@Lenses
 final case class QueueRequestsFocus(
   clientStatus: ClientStatus,
   sequences:    SequencesQueue[SequenceView],
@@ -26,7 +24,7 @@ final case class QueueRequestsFocus(
 )
 
 object QueueRequestsFocus {
-  implicit val eq: Eq[QueueRequestsFocus] =
+  given Eq[QueueRequestsFocus] =
     Eq.by(x => (x.clientStatus, x.sequences, x.seqFilter))
 
   def observers(m: ObserveAppRootModel): SortedMap[QueueId, Observer] =

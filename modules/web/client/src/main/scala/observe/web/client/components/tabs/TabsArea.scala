@@ -9,11 +9,11 @@ import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import react.common._
-import observe.web.client.circuit._
+import react.common.*
+import observe.web.client.circuit.*
 import observe.web.client.components.queue.CalQueueTabContent
 import observe.web.client.model.Pages.ObservePages
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Top level container of the tabs area
@@ -24,7 +24,7 @@ final case class TabsArea(router: RouterCtl[ObservePages], site: Site)
 object TabsArea {
   type Props = TabsArea
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.site)
+  given Reusability[Props] = Reusability.by(_.site)
   private val tabsConnect                     = ObserveCircuit.connect(ObserveCircuit.observeTabs)
 
   val component = ScalaComponent

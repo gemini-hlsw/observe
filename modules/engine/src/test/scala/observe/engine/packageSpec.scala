@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.syntax.all._
+import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import observe.model.Observation
@@ -18,12 +18,12 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 import observe.engine.Sequence.State.Final
 import observe.model.{ClientId, SequenceState, StepState}
-import observe.model.enum.Instrument.GmosS
-import observe.model.enum.Resource.TCS
+import observe.model.enums.Instrument.GmosS
+import observe.model.enums.Resource.TCS
 import observe.model.{ActionType, UserDetails}
 import observe.engine.TestUtil.TestState
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import org.scalatest.flatspec.AnyFlatSpec
 import cats.effect.std.Semaphore
 import eu.timepit.refined.types.numeric.PosLong
@@ -157,9 +157,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
                 id = stepId(1),
                 executions = List(
                   NonEmptyList.one(
-                    fromF[IO](ActionType.Undefined,
-                              IO(Result.Paused(new Result.PauseContext[IO] {}))
-                    )
+                    fromF[IO](ActionType.Undefined, IO(Result.Paused(new Result.PauseContext {})))
                   )
                 )
               )
@@ -190,8 +188,12 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
   }
 
   "engine" should "run sequence to completion after resuming a paused action" in {
-    val p =
-      Stream.eval(IO.pure(Event.actionResume(seqId, 0, Stream.eval(IO(Result.OK(DummyResult))))))
+    val p: Stream[IO, executionEngine.EventType] =
+      Stream.eval(
+        IO.pure(
+          Event.actionResume[IO, TestState, Unit](seqId, 0, Stream.eval(IO(Result.OK(DummyResult))))
+        )
+      )
 
     val result = actionPause.flatMap(
       executionEngine
@@ -250,7 +252,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
               startedFlag.acquire,
               q.offer(Event.nullEvent),
               q.offer(Event.getState[IO, TestState, Unit] { _ =>
-                Stream.eval(finishFlag.release).as(Event.nullEvent[IO]).some
+                Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
               })
             ).sequence,
             executionEngine

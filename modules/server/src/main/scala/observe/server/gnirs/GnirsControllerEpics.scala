@@ -8,23 +8,23 @@ import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams
 import edu.gemini.spModel.gemini.gnirs.GNIRSParams.{Camera, Decker, Disperser, ReadMode}
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
-import observe.server.EpicsCodex._
-import observe.server.EpicsUtil._
-import observe.server._
-import observe.server.gnirs.GnirsController._
+import observe.model.enums.ObserveCommandResult
+import observe.server.EpicsCodex.*
+import observe.server.EpicsUtil.*
+import observe.server.*
+import observe.server.gnirs.GnirsController.*
 import squants.Length
 import squants.Time
 import squants.electro.Millivolts
-import squants.space.LengthConversions._
-import squants.time.TimeConversions._
+import squants.space.LengthConversions.*
+import squants.time.TimeConversions.*
 
 trait GnirsEncoders {
   val readModeEncoder: EncodeEpicsValue[ReadMode, (Int, Int)] = EncodeEpicsValue {
@@ -34,19 +34,19 @@ trait GnirsEncoders {
     case ReadMode.VERY_FAINT  => (32, 16)
   }
 
-  implicit val wellDepthEncoder: EncodeEpicsValue[GNIRSParams.WellDepth, Double] =
+  given EncodeEpicsValue[GNIRSParams.WellDepth, Double] =
     EncodeEpicsValue { w =>
       Millivolts(w.getBias).toVolts
     }
 
-  implicit val cameraDecoder: EncodeEpicsValue[Camera, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Camera, String] = EncodeEpicsValue {
     case Camera.SHORT_RED  => "ShortRed"
     case Camera.SHORT_BLUE => "ShortBlue"
     case Camera.LONG_RED   => "LongRed"
     case Camera.LONG_BLUE  => "LongBlue"
   }
 
-  implicit val slitWidthEncoder: EncodeEpicsValue[SlitWidth, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[SlitWidth, String] = EncodeEpicsValue {
     case SlitWidth.Slit0_10     => "0.10arcsec"
     case SlitWidth.Slit0_15     => "0.15arcsec"
     case SlitWidth.Slit0_20     => "0.20arcsec"
@@ -62,7 +62,7 @@ trait GnirsEncoders {
     case SlitWidth.LR_IFU       => "LR-IFU"
   }
 
-  implicit val deckerEncoder: EncodeEpicsValue[Decker, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Decker, String] = EncodeEpicsValue {
     case Decker.ACQUISITION         => "Acq"
     case Decker.PUPIL_VIEWER        => "PV"
     case Decker.SHORT_CAM_LONG_SLIT => "SCLong"
@@ -75,7 +75,7 @@ trait GnirsEncoders {
     case Decker.HR_IFU              => "HR-IFU"
   }
 
-  implicit val filter1Encoder: EncodeEpicsValue[Filter1, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Filter1, String] = EncodeEpicsValue {
     case Filter1.Open        => "Open"
     case Filter1.J_MK        => "J-MK"
     case Filter1.K_MK        => "K-MK"
@@ -86,7 +86,7 @@ trait GnirsEncoders {
     case Filter1.LeftMask    => "LeftMask"
   }
 
-  implicit val filter2Encoder: EncodeEpicsValue[Filter2Pos, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Filter2Pos, String] = EncodeEpicsValue {
     case Filter2Pos.H    => "H"
     case Filter2Pos.H2   => "H2"
     case Filter2Pos.J    => "J"
@@ -99,7 +99,7 @@ trait GnirsEncoders {
     case Filter2Pos.XD   => "XD"
   }
 
-  implicit val wavelEncoder: EncodeEpicsValue[Wavelength, Double] = EncodeEpicsValue(_.toNanometers)
+  given EncodeEpicsValue[Wavelength, Double] = EncodeEpicsValue(_.toNanometers)
 }
 
 object GnirsControllerEpics extends GnirsEncoders {
@@ -121,7 +121,7 @@ object GnirsControllerEpics extends GnirsEncoders {
 
   def apply[F[_]: Async](
     epicsSys:   => GnirsEpics[F]
-  )(implicit L: Logger[F]): GnirsController[F] =
+  )(using L: Logger[F]): GnirsController[F] =
     new GnirsController[F] {
 
       private val ccCmd = epicsSys.configCCCmd

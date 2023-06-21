@@ -3,10 +3,10 @@
 
 package observe.server.flamingos2
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 import observe.server.flamingos2.Flamingos2Controller.FocalPlaneUnit
-import observe.server._
+import observe.server.*
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.FPUnit
 
 /**

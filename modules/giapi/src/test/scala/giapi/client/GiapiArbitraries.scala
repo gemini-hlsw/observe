@@ -1,16 +1,16 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client
 
-import cats.syntax.all._
-import giapi.client.commands._
+import cats.syntax.all.*
+import giapi.client.commands.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 
 trait GiapiArbitraries {
-  implicit val configurationArb = Arbitrary {
+  given configurationArb: Arbitrary[Configuration] = Arbitrary {
     for {
       m <- arbitrary[Map[String, String]]
     } yield m
@@ -21,7 +21,7 @@ trait GiapiArbitraries {
       .combineAll
   }
 
-  implicit val configurationCogen: Cogen[Configuration] =
+  given Cogen[Configuration] =
     Cogen[Map[String, String]].contramap {
       _.config.map { case (c, v) =>
         (c.getName, v)

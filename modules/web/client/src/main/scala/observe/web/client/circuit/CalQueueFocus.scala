@@ -5,23 +5,21 @@ package observe.web.client.circuit
 
 import scala.collection.immutable.SortedMap
 import cats._
-import cats.implicits._
+import cats.implicits.*
 import monocle.Getter
 import monocle.Lens
 import monocle.Traversal
 import monocle.function.Each.each
 import monocle.function.Each.listEach
 import monocle.function.FilterIndex.sortedMapFilterIndex
-import monocle.macros.Lenses
 import observe.model.ExecutionQueueView
 import observe.model.Observation
 import observe.model.QueueId
 import observe.model.QueueManipulationOp
 import observe.web.client.components.queue.CalQueueTable
-import observe.web.client.model._
+import observe.web.client.model.*
 import web.client.table.TableState
 
-@Lenses
 final case class CalQueueFocus(
   status:     ClientStatus,
   seqs:       List[CalQueueSeq],
@@ -34,13 +32,13 @@ final case class CalQueueFocus(
 }
 
 object CalQueueFocus {
-  implicit val eq: Eq[CalQueueFocus] =
+  given Eq[CalQueueFocus] =
     Eq.by(x => (x.status, x.seqs, x.tableState, x.seqOps, x.lastOp))
 
   def seqQueueOpsT(
     id: Observation.Id
   ): Traversal[CalQueueFocus, QueueSeqOperations] =
-    CalQueueFocus.seqOps.andThen(
+    Focus[CalQueueFocus](_.seqOps).andThen(
       sortedMapFilterIndex[Observation.Id, QueueSeqOperations].filterIndex((oid: Observation.Id) =>
         oid === id
       )
@@ -50,23 +48,20 @@ object CalQueueFocus {
   def calSeq(
     id: Observation.Id
   ): Getter[ObserveAppRootModel, Option[CalQueueSeq]] =
-    ObserveAppRootModel.sequences.andThen(CalQueueSeq.calQueueSeqG(id))
+    Focus[ObserveAppRootModel](_.sequences).andThen(CalQueueSeq.calQueueSeqG(id))
 
   def calTS(
     id: QueueId
   ): Lens[ObserveAppRootModel, Option[TableState[CalQueueTable.TableColumn]]] =
-    ObserveAppRootModel.uiModel
-      .andThen(ObserveUIModel.appTableStates)
+    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates)
       .andThen(AppTableStates.queueTableAtL(id))
 
   private def seqOpsL(id: QueueId) =
-    ObserveAppRootModel.uiModel
-      .andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.calStateSeqOpsT(id))
 
   private def qLastOpL(id: QueueId) =
-    ObserveAppRootModel.uiModel
-      .andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.calLastOpO(id))
 
   // A fairly complicated getter

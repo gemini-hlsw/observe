@@ -4,7 +4,7 @@
 package observe.web.client.circuit
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.StepId
 
 sealed trait StepsTableTypeSelection extends Product with Serializable
@@ -13,7 +13,7 @@ object StepsTableTypeSelection {
   case object StepsTableSelected                         extends StepsTableTypeSelection
   final case class StepConfigTableSelected(step: StepId) extends StepsTableTypeSelection
 
-  implicit val eq: Eq[StepsTableTypeSelection] = Eq.instance {
+  given Eq[StepsTableTypeSelection] = Eq.instance {
     case (StepsTableSelected, StepsTableSelected)                 => true
     case (StepConfigTableSelected(a), StepConfigTableSelected(b)) => a === b
     case _                                                        => false

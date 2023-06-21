@@ -5,11 +5,11 @@ package observe.web.client.circuit
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import monocle.Getter
-import observe.model.{Observation, StepId}
-import observe.model.enum._
-import observe.web.client.model._
+import observe.model.{ Observation, StepId }
+import observe.model.enums.*
+import observe.web.client.model.*
 
 sealed trait TabContentFocus extends Product with Serializable {
   val canOperate: Boolean
@@ -19,7 +19,7 @@ sealed trait TabContentFocus extends Product with Serializable {
 }
 
 object TabContentFocus {
-  implicit val eq: Eq[TabContentFocus] =
+  given Eq[TabContentFocus] =
     Eq.instance {
       case (a: SequenceTabContentFocus, b: SequenceTabContentFocus) => a === b
       case (a: CalQueueTabContentFocus, b: CalQueueTabContentFocus) => a === b
@@ -64,7 +64,7 @@ final case class SequenceTabContentFocus(
 }
 
 object SequenceTabContentFocus {
-  implicit val eq: Eq[SequenceTabContentFocus] =
+  given Eq[SequenceTabContentFocus] =
     Eq.by(x =>
       (x.canOperate,
        x.instrument,
@@ -85,6 +85,6 @@ final case class CalQueueTabContentFocus(
 ) extends TabContentFocus
 
 object CalQueueTabContentFocus {
-  implicit val eq: Eq[CalQueueTabContentFocus] =
+  given Eq[CalQueueTabContentFocus] =
     Eq.by(x => (x.canOperate, x.active, x.logDisplayed))
 }

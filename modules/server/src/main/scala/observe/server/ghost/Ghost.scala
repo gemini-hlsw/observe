@@ -3,15 +3,15 @@
 
 package observe.server.ghost
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.reflect.ClassTag
 
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.ghost.{Ghost => SPGhost}
-import edu.gemini.spModel.seqcomp.SeqConfigNames._
+import edu.gemini.spModel.seqcomp.SeqConfigNames.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
@@ -20,11 +20,11 @@ import lucuma.core.math.Declination
 import lucuma.core.math.RightAscension
 import lucuma.core.optics.Format
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps._
-import observe.server._
+import observe.server.ConfigUtilOps.*
+import observe.server.*
 import observe.server.keywords.GdsClient
 import observe.server.keywords.GdsInstrument
 import observe.server.keywords.KeywordsClient
@@ -58,11 +58,11 @@ final case class Ghost[F[_]: Logger: Async](controller: GhostController[F])
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     Ghost
       .fromSequenceConfig[F](config)
       .flatMap(controller.applyConfig)
-      .as(ConfigResult[F](this))
+      .as(ConfigResult(this))
 
   override def notifyObserveEnd: F[Unit] =
     controller.endObserve

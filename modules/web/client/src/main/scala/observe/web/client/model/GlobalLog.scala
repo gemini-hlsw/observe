@@ -4,19 +4,17 @@
 package observe.web.client.model
 
 import cats._
-import monocle.macros.Lenses
 import observe.common.FixedLengthBuffer
-import observe.model.events._
+import observe.model.events.*
 
 /**
  * Keeps a list of log entries for display
  */
-@Lenses
 final case class GlobalLog(
   log:     FixedLengthBuffer[ServerLogMessage],
   display: SectionVisibilityState
 )
 
 object GlobalLog {
-  implicit val eq: Eq[GlobalLog] = Eq.by(x => (x.log, x.display))
+  given Eq[GlobalLog] = Eq.by(x => (x.log, x.display))
 }

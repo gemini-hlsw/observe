@@ -4,17 +4,17 @@
 package observe.server.gnirs
 
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.Progress
 import observe.server.gnirs.GnirsController.DCConfig
 import observe.server.gnirs.GnirsController.GnirsConfig
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object GnirsControllerSim {
   def apply[F[_]: Logger: Async]: F[GnirsController[F]] =

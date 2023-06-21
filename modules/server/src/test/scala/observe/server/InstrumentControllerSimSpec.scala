@@ -6,10 +6,10 @@ package observe.server
 import cats.effect.{IO, Ref}
 import org.typelevel.log4cats.noop.NoOpLogger
 
-import scala.concurrent.duration._
-import observe.model.enum.ObserveCommandResult
-import observe.model.dhs._
-import squants.time.TimeConversions._
+import scala.concurrent.duration.*
+import observe.model.enums.ObserveCommandResult
+import observe.model.dhs.*
+import squants.time.TimeConversions.*
 import munit.CatsEffectSuite
 
 class InstrumentControllerSimSpec extends CatsEffectSuite {

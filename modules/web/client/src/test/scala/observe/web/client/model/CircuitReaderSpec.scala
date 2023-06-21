@@ -3,14 +3,14 @@
 
 package observe.web.client.model
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 // import observe.model.Observation
 // import monocle.law.discipline.LensTests
 // import observe.model.QueueId
 // import observe.model.ObserveModelArbitraries.queueIdArb
 // import observe.web.client.model._
-import observe.web.client.circuit._
+import observe.web.client.circuit.*
 // import observe.web.client.circuit.ObserveCircuit._
 
 final class CircuitReaderSpec extends CatsSuite with ArbitrariesWebClient {

@@ -3,13 +3,13 @@
 
 package observe.web.client.handlers
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
-import observe.web.client.model.SectionVisibilityState._
-import observe.web.client.model._
+import observe.web.client.model.SectionVisibilityState.*
+import observe.web.client.model.*
 
 /**
  * Handles actions related to opening/closing a modal

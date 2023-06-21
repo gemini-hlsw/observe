@@ -3,12 +3,12 @@
 
 package observe.web.client.model
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
-import diode.data._
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import diode.data.*
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 import monocle.law.discipline.LensTests
 import monocle.law.discipline.PrismTests
 import monocle.law.discipline.OptionalTests
@@ -17,7 +17,7 @@ import org.scalajs.dom.WebSocket
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.circuit.StepsTableTypeSelection
-import observe.web.client.model._
+import observe.web.client.model.*
 import observe.web.client.model.Formatting.OffsetsDisplay
 import web.client.table.TableState
 

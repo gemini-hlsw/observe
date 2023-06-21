@@ -6,13 +6,13 @@ package observe.server
 import edu.gemini.spModel.config2.{Config, DefaultConfig, ItemEntry, ItemKey}
 import edu.gemini.spModel.seqcomp.SeqConfigNames
 import org.scalacheck.{Arbitrary, _}
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Prop._
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Prop.*
 import munit.DisciplineSuite
 
 trait ConfigArbitraries {
 
-  implicit val arbItemKey: Arbitrary[ItemKey] =
+  given Arbitrary[ItemKey] =
     Arbitrary {
       for {
         prefix <- Gen.oneOf(
@@ -30,7 +30,7 @@ trait ConfigArbitraries {
     }
 
   // Will generate ItemEntry with only String values
-  implicit val arbItemEntry: Arbitrary[ItemEntry] =
+  given Arbitrary[ItemEntry] =
     Arbitrary {
       for {
         key   <- arbitrary[ItemKey]
@@ -38,7 +38,7 @@ trait ConfigArbitraries {
       } yield new ItemEntry(key, value)
     }
 
-  implicit val arbConfig: Arbitrary[Config] =
+  given Arbitrary[Config] =
     Arbitrary {
       for {
         items <- arbitrary[Array[ItemEntry]]

@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.Observation
 
 sealed trait UserPrompt extends Product with Serializable
@@ -23,7 +23,7 @@ object UserPrompt {
   sealed trait SeqCheck extends Product with Serializable;
 
   object SeqCheck {
-    implicit lazy val eq: Eq[SeqCheck] = Eq.instance {
+    given Eq[SeqCheck] = Eq.instance {
       case (a: TargetCheckOverride, b: TargetCheckOverride)               => a === b
       case (a: ObsConditionsCheckOverride, b: ObsConditionsCheckOverride) => a === b
       case _                                                              => false
@@ -33,13 +33,13 @@ object UserPrompt {
   final case class Discrepancy[A](actual: A, required: A)
 
   object Discrepancy {
-    implicit def eq[A: Eq]: Eq[Discrepancy[A]] = Eq.by(x => (x.actual, x.required))
+    given [A: Eq]: Eq[Discrepancy[A]] = Eq.by(x => (x.actual, x.required))
   }
 
   final case class TargetCheckOverride(self: Discrepancy[String]) extends SeqCheck
 
   object TargetCheckOverride {
-    implicit lazy val eq: Eq[TargetCheckOverride] =
+    given Eq[TargetCheckOverride] =
       Eq.by(_.self)
   }
 
@@ -52,13 +52,12 @@ object UserPrompt {
   ) extends SeqCheck
 
   object ObsConditionsCheckOverride {
-    implicit lazy val eq: Eq[ObsConditionsCheckOverride] = Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
+    given Eq[ObsConditionsCheckOverride] = Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
   }
 
-  implicit lazy val eq: Eq[UserPrompt] =
-    Eq.instance {
-      case (a: ChecksOverride, b: ChecksOverride) => a === b
-      case _                                      => false
+  given Eq[UserPrompt] =
+    Eq.instance { case (a: ChecksOverride, b: ChecksOverride) =>
+      a === b
     }
 
   // UserPrompt whether to override start checks
@@ -70,7 +69,7 @@ object UserPrompt {
   ) extends UserPrompt
 
   object ChecksOverride {
-    implicit lazy val eq: Eq[ChecksOverride] =
+    given Eq[ChecksOverride] =
       Eq.by(x => (x.sidName, x.stepId, x.stepIdx, x.checks))
   }
 

@@ -5,9 +5,9 @@ package observe.server.gws
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.server.EpicsHealth
-import observe.server.keywords._
+import observe.server.keywords.*
 import shapeless.tag
 import shapeless.tag.@@
 import squants.Angle
@@ -42,19 +42,19 @@ trait GwsDefaults {
     tag[DewPoint][Temperature](t)
 
   // Default value for quantities
-  implicit val TemperatureDefaultValue: DefaultHeaderValue[Temperature] =
+  given DefaultHeaderValue[Temperature] =
     DefaultHeaderValue[Double].map(Celsius(_))
 
-  implicit val DewPointDefaultValue: DefaultHeaderValue[Temperature @@ DewPoint] =
+  given DefaultHeaderValue[Temperature @@ DewPoint] =
     DefaultHeaderValue[Temperature].map(toDewPoint)
 
-  implicit val PressureDefaultValue: DefaultHeaderValue[Pressure] =
+  given DefaultHeaderValue[Pressure] =
     DefaultHeaderValue[Double].map(StandardAtmospheres(_))
 
-  implicit val VelocityDefaultValue: DefaultHeaderValue[Velocity] =
+  given DefaultHeaderValue[Velocity] =
     DefaultHeaderValue[Double].map(MetersPerSecond(_))
 
-  implicit val WindDirectionDefaultValue: DefaultHeaderValue[Angle] =
+  given DefaultHeaderValue[Angle] =
     DefaultHeaderValue[Double].map(Degrees(_))
 
 }

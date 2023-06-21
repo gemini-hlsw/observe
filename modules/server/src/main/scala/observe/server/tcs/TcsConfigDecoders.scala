@@ -3,28 +3,28 @@
 
 package observe.server.tcs
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.M1Source
-import observe.model.enum.MountGuideOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.DecodeEpicsValue
 import observe.server.tcs.TcsController.FollowOption.FollowOff
 import observe.server.tcs.TcsController.FollowOption.FollowOn
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 trait TcsConfigDecoders {
   // Code to retrieve the current configuration from TCS. Include a lot of decoders
-  implicit val decodeMountGuideOption: DecodeEpicsValue[Int, MountGuideOption] =
+  given DecodeEpicsValue[Int, MountGuideOption] =
     DecodeEpicsValue((d: Int) =>
       if (d === 0) MountGuideOption.MountGuideOff else MountGuideOption.MountGuideOn
     )
 
-  implicit val decodeM1GuideSource: DecodeEpicsValue[String, M1Source] =
+  given DecodeEpicsValue[String, M1Source] =
     DecodeEpicsValue((s: String) =>
       s.trim match {
         case "PWFS1" => M1Source.PWFS1
@@ -41,27 +41,27 @@ trait TcsConfigDecoders {
 
   def decodeGuideSourceOption(s: String): Boolean = s.trim =!= "OFF"
 
-  implicit val decodeComaOption: DecodeEpicsValue[String, ComaOption] =
+  given DecodeEpicsValue[String, ComaOption] =
     DecodeEpicsValue((s: String) => if (s.trim === "Off") ComaOption.ComaOff else ComaOption.ComaOn)
 
   def decodeM2Guide(s: BinaryOnOff, u: ComaOption, v: Set[TipTiltSource]): M2GuideConfig =
     if (s === BinaryOnOff.Off) M2GuideConfig.M2GuideOff
     else M2GuideConfig.M2GuideOn(u, v)
 
-  implicit val decodeAoFold: DecodeEpicsValue[String, AoFold] = DecodeEpicsValue((s: String) =>
+  given DecodeEpicsValue[String, AoFold] = DecodeEpicsValue((s: String) =>
     if (s.trim === "IN") AoFold.In
     else AoFold.Out
   )
 
-  implicit val decodeFollowOption: DecodeEpicsValue[String, FollowOption] =
+  given DecodeEpicsValue[String, FollowOption] =
     DecodeEpicsValue((s: String) => if (s.trim === "Off") FollowOff else FollowOn)
 
-  implicit val decodeGuideSensorOption: DecodeEpicsValue[BinaryYesNo, GuiderSensorOption] =
+  given DecodeEpicsValue[BinaryYesNo, GuiderSensorOption] =
     DecodeEpicsValue((s: BinaryYesNo) =>
       if (s === BinaryYesNo.No) GuiderSensorOff else GuiderSensorOn
     )
 
-  implicit val decodeHwrsPickupPosition: DecodeEpicsValue[String, HrwfsPickupPosition] =
+  given DecodeEpicsValue[String, HrwfsPickupPosition] =
     DecodeEpicsValue((t: String) =>
       if (t.trim === "IN") HrwfsPickupPosition.IN
       else HrwfsPickupPosition.OUT

@@ -3,16 +3,16 @@
 
 package observe.server.tcs
 
-import atto.Atto._
+import atto.Atto.*
 import atto._
-import cats.syntax.all._
+import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
 import observe.server.EpicsCodex.DecodeEpicsValue
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.tcs.ScienceFold.Parked
 import observe.server.tcs.ScienceFold.Position
 import observe.server.tcs.TcsController.LightSource
-import observe.server.tcs.TcsController.LightSource._
+import observe.server.tcs.TcsController.LightSource.*
 
 // Decoding and encoding the science fold position require some common definitions, therefore I
 // put them inside an object
@@ -30,14 +30,14 @@ private[server] trait ScienceFoldPositionCodex {
   val park: Parser[ScienceFold] =
     (string(PARK_POS) <~ many(anyChar)).as(Parked)
 
-  implicit val decodeScienceFold: DecodeEpicsValue[String, Option[ScienceFold]] =
+  given DecodeEpicsValue[String, Option[ScienceFold]] =
     DecodeEpicsValue((t: String) =>
       (park | prefixed(AO_PREFIX, AO) | prefixed(GCAL_PREFIX, GCAL) | prefixed("", Sky))
         .parseOnly(t)
         .option
     )
 
-  implicit val encodeScienceFold: EncodeEpicsValue[Position, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Position, String] = EncodeEpicsValue {
     (a: Position) =>
       val instAGName = a.sink.name + a.port.toString
 

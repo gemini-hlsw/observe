@@ -5,9 +5,8 @@ package observe.server.transition
 
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.shared.util.immutable.MapOp
-import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemEntry, ItemKey}
-import edu.gemini.spModel.gemini.calunit.CalUnitConstants._
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+import edu.gemini.spModel.config2.{ Config, ConfigSequence, ItemEntry, ItemKey }
+import edu.gemini.spModel.gemini.calunit.CalUnitConstants.{DIFFUSER_PROP, FILTER_PROP, SHUTTER_PROP}
 import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.seqcomp.SeqConfigNames.{
   CALIBRATION_KEY,
@@ -25,7 +24,6 @@ import edu.gemini.spModel.obscomp.InstConstants.{
   SCIENCE_OBSERVE_TYPE,
   STATUS_PROP
 }
-import lucuma.core.enums._
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.Config.{
   GmosNorthExecutionConfig,
@@ -39,16 +37,15 @@ import observe.common.ObsQueriesGQL.ObsQuery.{
   SeqStepConfig
 }
 import observe.server.tcs.Tcs
-import observe.server.ConfigUtilOps._
-import observe.server.transition.GmosTranslator._
-import cats.implicits._
-import edu.gemini.spModel.gemini.calunit.CalUnitParams
+import observe.server.ConfigUtilOps.*
+import observe.server.transition.GmosTranslator.*
+import cats.implicits.*
 import edu.gemini.spModel.obscomp.InstConstants
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 
 import java.util
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object OcsOdbTranslator {
 
@@ -97,33 +94,9 @@ object OcsOdbTranslator {
         )
       case SeqStepConfig.Gcal(filter, diffuser, shutter) =>
         List[(ItemKey, AnyRef)](
-          (CALIBRATION_KEY / SHUTTER_PROP)  -> (
-            shutter match {
-              case GcalShutter.Open   => Shutter.OPEN
-              case GcalShutter.Closed => Shutter.CLOSED
-            }
-          ),
-          (CALIBRATION_KEY / FILTER_PROP)   -> (
-            filter match {
-              case GcalFilter.None => CalUnitParams.Filter.NONE
-              case GcalFilter.Gmos => CalUnitParams.Filter.GMOS
-              case GcalFilter.Hros => CalUnitParams.Filter.HROS
-              case GcalFilter.Nir  => CalUnitParams.Filter.NIR
-              case GcalFilter.Nd10 => CalUnitParams.Filter.ND_10
-              case GcalFilter.Nd16 => CalUnitParams.Filter.ND_16
-              case GcalFilter.Nd20 => CalUnitParams.Filter.ND_20
-              case GcalFilter.Nd30 => CalUnitParams.Filter.ND_30
-              case GcalFilter.Nd40 => CalUnitParams.Filter.ND_40
-              case GcalFilter.Nd45 => CalUnitParams.Filter.ND_45
-              case GcalFilter.Nd50 => CalUnitParams.Filter.ND_50
-            }
-          ),
-          (CALIBRATION_KEY / DIFFUSER_PROP) -> (
-            diffuser match {
-              case GcalDiffuser.Ir      => CalUnitParams.Diffuser.IR
-              case GcalDiffuser.Visible => CalUnitParams.Diffuser.VISIBLE
-            }
-          ),
+          (CALIBRATION_KEY / SHUTTER_PROP) -> shutter,
+          (CALIBRATION_KEY / FILTER_PROP)  -> filter,
+          (CALIBRATION_KEY / DIFFUSER_PROP) -> diffuser,
           (OBSERVE_KEY / OBS_CLASS_PROP)    -> ObsClass.PROG_CAL,
           (OBSERVE_KEY / OBSERVE_TYPE_PROP) -> CAL_OBSERVE_TYPE
         )

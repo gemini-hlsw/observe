@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client.ghost
 
-import scala.concurrent.duration._
-import cats.effect._
-import cats.syntax.all._
+import scala.concurrent.duration.*
+import cats.effect.*
+import cats.syntax.all.*
 import giapi.client.Giapi
 import giapi.client.GiapiClient
 import cats.effect.Temporal

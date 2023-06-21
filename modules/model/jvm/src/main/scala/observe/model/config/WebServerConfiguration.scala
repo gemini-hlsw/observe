@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
@@ -20,7 +20,7 @@ final case class TLSConfig(keyStore: Path, keyStorePwd: String, certPwd: String)
 
 object TLSConfig {
 
-  implicit val sslConfigEq: Eq[TLSConfig] =
+  given Eq[TLSConfig] =
     Eq.by(x => (x.keyStore, x.keyStorePwd, x.certPwd))
 }
 
@@ -46,6 +46,6 @@ final case class WebServerConfiguration(
 )
 
 object WebServerConfiguration {
-  implicit val webServerConfigurationEq: Eq[WebServerConfiguration] =
+  given Eq[WebServerConfiguration] =
     Eq.by(x => (x.host, x.port, x.insecurePort, x.externalBaseUrl, x.tls))
 }

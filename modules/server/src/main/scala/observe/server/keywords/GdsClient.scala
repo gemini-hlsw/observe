@@ -3,18 +3,18 @@
 
 package observe.server.keywords
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.xml.Elem
 import cats.effect.Async
-import cats.syntax.all._
-import org.http4s._
+import cats.syntax.all.*
+import org.http4s.*
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
-import org.http4s.dsl.io._
-import org.http4s.implicits._
-import org.http4s.scalaxml._
+import org.http4s.dsl.io.*
+import org.http4s.implicits.*
+import org.http4s.scalaxml.*
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.server.ObserveFailure
@@ -36,7 +36,7 @@ trait GdsClient[F[_]] extends Http4sClientDsl[F] {
 
 object GdsClient {
 
-  def apply[F[_]](base: Client[F], gdsUri: Uri)(implicit
+  def apply[F[_]](base: Client[F], gdsUri: Uri)(using
     timer:              Async[F]
   ): GdsClient[F] = new GdsClient[F] {
 

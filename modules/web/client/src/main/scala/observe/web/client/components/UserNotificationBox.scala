@@ -3,23 +3,23 @@
 
 package observe.web.client.components
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.modules.modal.ModalSize
-import react.semanticui.modules.modal._
+import react.semanticui.modules.modal.*
 import observe.model.Notification
-import observe.model.Notification._
+import observe.model.Notification.*
 import observe.web.client.actions.CloseUserNotificationBox
 import observe.web.client.circuit.ObserveCircuit
-import observe.web.client.icons._
-import observe.web.client.model.SectionVisibilityState._
-import observe.web.client.model._
-import observe.web.client.reusability._
+import observe.web.client.icons.*
+import observe.web.client.model.SectionVisibilityState.*
+import observe.web.client.model.*
+import observe.web.client.reusability.*
 
 final case class UserNotificationBox(notification: UserNotificationState)
     extends ReactProps[UserNotificationBox](UserNotificationBox.component)
@@ -57,7 +57,7 @@ object UserNotificationBox {
 
   type Props = UserNotificationBox
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.notification)
+  given Reusability[Props] = Reusability.by(_.notification)
 
   private val close = Callback(ObserveCircuit.dispatch(CloseUserNotificationBox))
 

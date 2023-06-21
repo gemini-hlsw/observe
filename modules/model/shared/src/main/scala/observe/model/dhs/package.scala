@@ -1,41 +1,31 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
-import cats._
-import shapeless.tag
-import shapeless.tag.@@
+import cats.*
+import lucuma.core.util.NewType
 
-package dhs {
-
-  // Common data types
-  trait ImageFileIdT
-  trait DataIdT
-
-}
+import scala.annotation.targetName
 
 package object dhs {
 
-  type ImageFileId = String @@ ImageFileIdT
-  type DataId      = String @@ DataIdT
+  object ImageFileId extends NewType[String]
+  type ImageFileId = ImageFileId.Type
 
-  implicit val eqImageFileId: Eq[ImageFileId] = Eq.fromUniversalEquals
-  implicit val eqDataId: Eq[DataId]           = Eq.fromUniversalEquals
+  object DataId extends NewType[String]
+  type DataId = DataId.Type
 
-  implicit val monoidImageFileId: Monoid[ImageFileId] =
-    new Monoid[ImageFileId] {
-      def empty: ImageFileId                                   = toImageFileId(Monoid[String].empty)
-      def combine(x: ImageFileId, y: ImageFileId): ImageFileId =
-        toImageFileId(Monoid[String].combine(x, y))
-    }
-  implicit val monoidDataId: Monoid[DataId]           = new Monoid[DataId] {
-    def empty: DataId                         = toDataId(Monoid[String].empty)
-    def combine(x: DataId, y: DataId): DataId =
-      toDataId(Monoid[String].combine(x, y))
-  }
-
-  def toImageFileId(i: String): ImageFileId = tag[ImageFileIdT][String](i)
-  def toDataId(i: String): DataId           = tag[DataIdT][String](i)
+//  given monoidImageFileId: Monoid[ImageFileId] =
+//    new Monoid[ImageFileId] {
+//      def empty: ImageFileId                                   = toImageFileId(Monoid[String].empty)
+//      def combine(x: ImageFileId, y: ImageFileId): ImageFileId =
+//        toImageFileId(Monoid[String].combine(x, y))
+//    }
+//  given monoidDataId: Monoid[DataId]           = new Monoid[DataId] {
+//    def empty: DataId                         = toDataId(Monoid[String].empty)
+//    def combine(x: DataId, y: DataId): DataId =
+//      toDataId(Monoid[String].combine(x, y))
+//  }
 
 }

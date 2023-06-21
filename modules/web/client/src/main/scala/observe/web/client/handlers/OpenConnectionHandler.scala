@@ -3,12 +3,12 @@
 
 package observe.web.client.handlers
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
-import observe.model.events._
-import observe.web.client.actions._
+import observe.model.events.*
+import observe.web.client.actions.*
 import observe.web.client.components.queue.CalQueueTable
 import observe.web.client.model.CalibrationQueues
 
@@ -24,6 +24,6 @@ class OpenConnectionHandler[M](modelRW: ModelRW[M, CalibrationQueues])
       val ts = u
         .as(CalQueueTable.State.EditableTableState)
         .getOrElse(CalQueueTable.State.ROTableState)
-      updatedL(CalibrationQueues.tableStatesT.replace(ts))
+      updatedL(Focus[CalibrationQueues](_.tableStatesT).replace(ts))
   }
 }

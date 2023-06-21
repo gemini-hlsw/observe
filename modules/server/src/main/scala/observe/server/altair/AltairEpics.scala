@@ -9,14 +9,14 @@ import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.altair.LgsSfoControl
-import mouse.boolean._
-import observe.model.`enum`.ApplyCommandResult
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
+import mouse.boolean.*
+import observe.model.enums.ApplyCommandResult
+import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
 import observe.server.EpicsCommandBase.setParameter
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 
 trait AltairEpics[F[_]] {
   import AltairEpics._

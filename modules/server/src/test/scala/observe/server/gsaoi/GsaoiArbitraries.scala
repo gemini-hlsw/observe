@@ -5,23 +5,23 @@ package observe.server.gsaoi
 
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
 import edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Cogen._
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import shapeless.tag
-import observe.server.gsaoi.GsaoiController._
-import observe.model.arb.ArbTime._
+import observe.server.gsaoi.GsaoiController.*
+import observe.model.arb.ArbTime.*
 
 trait GsaoiArbitraries {
 
-  implicit val windowCoverArb: Arbitrary[WindowCover] =
+  given Arbitrary[WindowCover] =
     Arbitrary(Gen.oneOf(WindowCover.Closed, WindowCover.Opened))
-  implicit val windowCoverCogen: Cogen[WindowCover]   =
+  given Cogen[WindowCover]   =
     Cogen[String].contramap(_.productPrefix)
 
-  implicit val DCConfigArb: Arbitrary[DCConfig] =
+  given Arbitrary[DCConfig] =
     Arbitrary {
       for {
         readMode           <- arbitrary[ReadMode]
@@ -37,18 +37,18 @@ trait GsaoiArbitraries {
       )
     }
 
-  implicit val readModeCogen: Cogen[ReadMode] =
+  given Cogen[ReadMode] =
     Cogen[String].contramap(_.displayValue())
 
-  implicit val roiCogen: Cogen[Roi] =
+  given Cogen[Roi] =
     Cogen[String].contramap(_.displayValue())
 
-  implicit val DCConfigCogen: Cogen[DCConfig] =
+  given Cogen[DCConfig] =
     Cogen[(ReadMode, Roi, Int, ExposureTime, Int)].contramap(x =>
       (x.readMode, x.roi, x.coadds, x.exposureTime, x.numberOfFowSamples)
     )
 
-  implicit val CCConfigArb: Arbitrary[CCConfig] =
+  given Arbitrary[CCConfig] =
     Arbitrary {
       for {
         filter       <- arbitrary[Filter]
@@ -58,16 +58,16 @@ trait GsaoiArbitraries {
       } yield CCConfig(filter, odgwSize, utilityWheel, windowCover)
     }
 
-  implicit val filterCogen: Cogen[Filter] =
+  given Cogen[Filter] =
     Cogen[String].contramap(_.displayValue())
 
-  implicit val odgwSizeCogen: Cogen[OdgwSize] =
+  given Cogen[OdgwSize] =
     Cogen[String].contramap(_.displayValue())
 
-  implicit val utilityWheelCogen: Cogen[UtilityWheel] =
+  given Cogen[UtilityWheel] =
     Cogen[String].contramap(_.displayValue())
 
-  implicit val CCConfigCogen: Cogen[CCConfig] =
+  given Cogen[CCConfig] =
     Cogen[(Filter, OdgwSize, UtilityWheel, WindowCover)].contramap(x =>
       (x.filter, x.odgwSize, x.utilityWheel, x.windowCover)
     )

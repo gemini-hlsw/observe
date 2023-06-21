@@ -3,13 +3,13 @@
 
 package observe.web.client.handlers
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
 import observe.model.QueueManipulationOp
-import observe.model.events._
-import observe.web.client.actions._
+import observe.model.events.*
+import observe.web.client.actions.*
 import observe.web.client.model.CalibrationQueues
 import observe.web.client.model.RunCalOperation
 import observe.web.client.model.StopCalOperation

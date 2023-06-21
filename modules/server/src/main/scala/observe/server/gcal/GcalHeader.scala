@@ -9,10 +9,10 @@ import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
-import observe.server.keywords._
+import observe.server.keywords.*
 
 object GcalHeader {
-  implicit def header[F[_]: Sync: Logger](
+  given [F[_]:Sync: Logger](
     kwClient:   KeywordsClient[F],
     gcalReader: GcalKeywordReader[F]
   ): Header[F] =

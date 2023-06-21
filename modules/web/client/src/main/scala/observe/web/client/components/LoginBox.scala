@@ -3,33 +3,32 @@
 
 package observe.web.client.components
 
-import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
 
-import cats.syntax.all._
-import japgolly.scalajs.react._
+import cats.syntax.all.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import monocle.macros.Lenses
-import react.common._
+import react.common.*
 import react.semanticui.As
-import react.semanticui.collections.form._
-import react.semanticui.collections.grid._
-import react.semanticui.colors._
+import react.semanticui.collections.form.*
+import react.semanticui.collections.grid.*
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.icon.Icon
 import react.semanticui.floats
-import react.semanticui.modules.modal._
-import react.semanticui.textalignment._
-import react.semanticui.verticalalignment._
-import react.semanticui.widths._
+import react.semanticui.modules.modal.*
+import react.semanticui.textalignment.*
+import react.semanticui.verticalalignment.*
+import react.semanticui.widths.*
 import observe.model.UserDetails
 import observe.web.client.actions.CloseLoginBox
 import observe.web.client.actions.LoggedIn
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.forms.FormLabel
-import observe.web.client.icons._
-import observe.web.client.model.SectionVisibilityState._
-import observe.web.client.model._
-import observe.web.client.reusability._
+import observe.web.client.icons.*
+import observe.web.client.model.SectionVisibilityState.*
+import observe.web.client.model.*
+import observe.web.client.reusability.*
 import observe.web.client.services.ObserveWebClient
 
 /**
@@ -42,8 +41,7 @@ final case class LoginBox(
 object LoginBox {
   type Props = LoginBox
 
-  @Lenses
-  final case class State(
+    final case class State(
     username:    String,
     password:    String,
     progressMsg: Option[String],
@@ -54,8 +52,8 @@ object LoginBox {
     val Empty: State = State("", "", None, None)
   }
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
-  implicit val stateReuse: Reusability[State] = Reusability.derive[State]
+  given Reusability[Props] = Reusability.derive[Props]
+  given Reusability[State] = Reusability.derive[State]
 
   private val formId = "login"
 
@@ -63,20 +61,20 @@ object LoginBox {
     def pwdMod(e: ReactEventFromInput): CallbackTo[Unit] = {
       // Capture the value outside setState, react reuses the events
       val v = e.target.value
-      b.modState(State.password.replace(v))
+      b.modState(Focus[State](_.password).replace(v))
     }
 
     def userMod(e: ReactEventFromInput): CallbackTo[Unit] = {
       val v = e.target.value
-      b.modState(State.username.replace(v))
+      b.modState(Focus[State](_.username).replace(v))
     }
 
     def loggedInEvent(u: UserDetails): Callback =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(LoggedIn(u))
     def updateProgressMsg(m: String): Callback  =
-      b.modState(State.progressMsg.replace(m.some) >>> State.errorMsg.replace(none))
+      b.modState(Focus[State](_.progressMsg).replace(m.some) >>> Focus[State](_.errorMsg).replace(none))
     def updateErrorMsg(m: String): Callback     =
-      b.modState(State.errorMsg.replace(m.some) >>> State.progressMsg.replace(none))
+      b.modState(Focus[State](_.errorMsg).replace(m.some) >>> Focus[State](_.progressMsg).replace(none))
     def closeBox: Callback                      =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 

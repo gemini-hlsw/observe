@@ -4,18 +4,18 @@
 package observe.web.client
 
 import cats.Eq
-import cats.syntax.all._
-import diode.data._
+import cats.syntax.all.*
+import diode.data.*
 import org.scalajs.dom.WebSocket
-import observe.web.client.model.SectionVisibilityState._
+import observe.web.client.model.SectionVisibilityState.*
 
 package object model {
-  implicit val eqWebSocket: Eq[WebSocket] =
+  given Eq[WebSocket] =
     Eq.by { x =>
       (x.url, x.protocol, x.readyState)
     }
 
-  implicit def eqPot[A: Eq]: Eq[Pot[A]] = Eq.instance {
+  given [A: Eq]:Eq[Pot[A]] = Eq.instance {
     case (Empty, Empty)                           => true
     case (Unavailable, Unavailable)               => true
     case (Pending(a), Pending(b))                 => a === b
@@ -26,7 +26,7 @@ package object model {
     case _                                        => false
   }
 
-  implicit class SectionVisibilityStateOps(val s: SectionVisibilityState) extends AnyVal {
+  extension(s: SectionVisibilityState) {
     def toggle: SectionVisibilityState = s match {
       case SectionOpen   => SectionClosed
       case SectionClosed => SectionOpen

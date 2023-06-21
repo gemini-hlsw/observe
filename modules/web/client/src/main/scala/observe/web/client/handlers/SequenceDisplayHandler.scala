@@ -3,14 +3,14 @@
 
 package observe.web.client.handlers
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
 import observe.model.SequenceView
 import observe.model.SequencesQueue
-import observe.web.client.actions._
-import observe.web.client.circuit._
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
 
 /**
  * Handles actions related to the changing the selection of the displayed sequence

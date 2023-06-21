@@ -7,5 +7,5 @@ import cats.Eq
 import edu.gemini.observe.server.nifs.DhsConnected
 
 package object nifs {
-  implicit val eqDhsConnect: Eq[DhsConnected] = Eq.by(_.ordinal)
+  given Eq[DhsConnected] = Eq.by(_.ordinal)
 }

@@ -3,15 +3,15 @@
 
 package observe.server.gmos
 
-import cats.syntax.all._
-import mouse.all._
+import cats.syntax.all.*
+import mouse.all.*
 import observe.engine
 import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model._
-import observe.model.enum._
-import observe.server.StepsView._
-import observe.server._
-import observe.server.gmos.GmosController.Config._
+import observe.model.*
+import observe.model.enums.*
+import observe.server.StepsView.*
+import observe.server.*
+import observe.server.gmos.GmosController.Config.*
 
 final class GmosStepsView[F[_]] extends StepsView[F] {
   override def stepView(

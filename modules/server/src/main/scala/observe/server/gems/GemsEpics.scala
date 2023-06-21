@@ -7,7 +7,7 @@ import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CaCommandSender
 import edu.gemini.epics.acm.CaService
 import edu.gemini.epics.acm.CaStatusAcceptor
@@ -15,7 +15,7 @@ import edu.gemini.observe.server.gems.LoopState
 import edu.gemini.observe.server.gems.ReadyState
 import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
 import observe.server.EpicsCommandBase.setParameter
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 
 trait GemsEpics[F[_]] {
   import observe.server.gems.GemsEpics.LoopControl

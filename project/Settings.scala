@@ -1,6 +1,6 @@
 import sbt._
 import java.lang.{Runtime => JRuntime}
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport.*
 
 /**
  * Application settings and dependencies
@@ -42,7 +42,7 @@ object Settings {
     val squants        = "1.8.3"
     val commonsHttp    = "3.1"
     val unboundId      = "3.2.1"
-    val jwt            = "5.0.0"
+    val jwt            = "9.2.0"
     val slf4j          = "2.0.7"
     val log4s          = "1.10.0"
     val log4cats       = "2.6.0"
@@ -59,7 +59,6 @@ object Settings {
     // test libraries
     val xmlUnit                = "1.6"
     val jUnitInterface         = "0.13.2"
-    val scalaMock              = "5.2.0"
     val munitVersion           = "0.7.29"
     val munitDisciplineVersion = "1.0.9"
     val munitCatsEffectVersion = "1.0.7"
@@ -88,14 +87,16 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.45.0"
+    val lucumaCore    = "0.74.0"
     val lucumaUI      = "0.39.0"
-    val lucumaSchemas = "0.33.0"
+    val lucumaSchemas = "0.50.0"
 
     // Clue
     val clue = "0.30.0"
 
     val sttp = "3.8.15"
+
+    val atto = "0.9.5"
   }
 
   /**
@@ -116,7 +117,6 @@ object Settings {
     val XmlUnit        = "xmlunit" % "xmlunit" % LibraryVersions.xmlUnit % "test"
     val JUnitInterface =
       "com.github.sbt" % "junit-interface" % LibraryVersions.jUnitInterface % "test"
-    val ScalaMock   = "org.scalamock"     %% "scalamock"          % LibraryVersions.scalaMock  % "test"
     // Server side libraries
     val Cats        = Def.setting("org.typelevel" %%% "cats-core" % LibraryVersions.catsVersion)
     val CatsEffect  =
@@ -128,11 +128,11 @@ object Settings {
     val CommonsHttp = "commons-httpclient" % "commons-httpclient" % LibraryVersions.commonsHttp
     val UnboundId   =
       "com.unboundid" % "unboundid-ldapsdk-minimal-edition" % LibraryVersions.unboundId
-    val JwtCore          = "com.pauldijou" %% "jwt-core"     % LibraryVersions.jwt
-    val JwtCirce         = "com.pauldijou" %% "jwt-circe"    % LibraryVersions.jwt
-    val Slf4j            = "org.slf4j"      % "slf4j-api"    % LibraryVersions.slf4j
-    val JuliSlf4j        = "org.slf4j"      % "jul-to-slf4j" % LibraryVersions.slf4j
-    val NopSlf4j         = "org.slf4j"      % "slf4j-nop"    % LibraryVersions.slf4j
+    val JwtCore          = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
+    val JwtCirce         = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
+    val Slf4j            = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
+    val JuliSlf4j        = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
+    val NopSlf4j         = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
     val CatsTime         = Def.setting(
       "io.chrisdavenport" %%% "cats-time" % LibraryVersions.catsTime % "compile->compile;test->test"
     )
@@ -155,9 +155,10 @@ object Settings {
       "io.prometheus" % "simpleclient_common" % LibraryVersions.prometheusClient
     val Logging         = Def.setting(Seq(JuliSlf4j, Log4s.value) ++ Logback)
     val PureConfig      = Seq(
-      "com.github.pureconfig" %% "pureconfig"             % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
-      "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig
+      "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig
     )
     val OpenCSV         = "net.sf.opencsv" % "opencsv" % LibraryVersions.opencsv
     val Squants         = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
@@ -237,27 +238,6 @@ object Settings {
       Def.setting("edu.gemini" %%% "gemini-locales" % LibraryVersions.geminiLocales)
     val PPrint                  = Def.setting("com.lihaoyi" %%% "pprint" % LibraryVersions.pprint)
 
-    // OCS Libraries, these should become modules in the future
-    val SpModelCore = "edu.gemini.ocs" %% "edu-gemini-spmodel-core" % LibraryVersions.ocsVersion
-    val SeqexecOdb  = Seq(
-      "edu.gemini.ocs" %% "edu-gemini-seqexec-odb" % LibraryVersions.ocsVersion,
-      ("dom4j"          % "dom4j"                  % "1.6.1")
-        .exclude("jaxen", "jaxen")
-        .exclude("jaxme", "jaxme-api")
-        .exclude("msv", "xsdlib")
-        .exclude("msv", "relaxngDatatype")
-        .exclude("pull-parser", "pull-parser")
-        .exclude("stax", "stax")
-        .exclude("xml-apis", "xml-apis")
-        .exclude("xpp3", "xpp3")
-    )
-    val POT         = "edu.gemini.ocs" %% "edu-gemini-pot"          % LibraryVersions.ocsVersion
-    val TRPC        = "edu.gemini.ocs" %% "edu-gemini-util-trpc"    % LibraryVersions.ocsVersion
-    val WDBAClient  = Seq(
-      "edu.gemini.ocs"   %% "edu-gemini-wdba-session-client" % LibraryVersions.ocsVersion,
-      "org.apache.xmlrpc" % "xmlrpc-client"                  % LibraryVersions.apacheXMLRPC
-    )
-
     val JAXB = Seq(
       "javax.xml.bind"     % "jaxb-api"     % LibraryVersions.jaxb,
       "org.glassfish.jaxb" % "jaxb-runtime" % LibraryVersions.jaxb,
@@ -282,8 +262,8 @@ object Settings {
       "edu.gemini.aspen.gmp" % "gmp-statusdb" % LibraryVersions.gmpStatusDatabase
     val GmpCmdJmsBridge =
       "edu.gemini.aspen.gmp" % "gmp-commands-jms-bridge" % LibraryVersions.gmpCmdClientBridge
-    val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
-    val ACM   = "edu.gemini"      %% "acm"   % LibraryVersions.acm
+    val Guava = "com.google.guava" % "guava"    % LibraryVersions.guava
+    val ACM   = "edu.gemini"       % "acm_2.13" % LibraryVersions.acm
 
     // Lucuma Libraries
     val LucumaCore    = Def.setting(
@@ -306,6 +286,8 @@ object Settings {
         "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
       )
     )
+
+    val Atto = "org.tpolecat" %% "atto-core" % LibraryVersions.atto
   }
 
 }

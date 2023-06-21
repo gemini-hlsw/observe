@@ -12,21 +12,21 @@ import scala.reflect.ClassTag
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Reads
-import edu.gemini.spModel.gemini.flamingos2.Flamingos2._
+import edu.gemini.spModel.gemini.flamingos2.Flamingos2.*
 import edu.gemini.spModel.obscomp.InstConstants.DARK_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
-import edu.gemini.spModel.seqcomp.SeqConfigNames._
+import edu.gemini.spModel.seqcomp.SeqConfigNames.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
-import observe.server.ConfigUtilOps._
-import observe.server._
-import observe.server.flamingos2.Flamingos2Controller._
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
+import observe.server.ConfigUtilOps.*
+import observe.server.*
+import observe.server.flamingos2.Flamingos2Controller.*
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
@@ -64,7 +64,7 @@ final case class Flamingos2[F[_]: Async: Logger](
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT
@@ -154,7 +154,7 @@ object Flamingos2 {
     }
 
   // This method deals with engineering parameters that can come as a T or an Option[T]
-  private def extractEngineeringParam[T](item: Extracted[CleanConfig], default: T)(implicit
+  private def extractEngineeringParam[T](item: Extracted[CleanConfig], default: T)(using
     clazz:                                     ClassTag[T]
   ): Either[ExtractFailure, T] = item.as[T].recoverWith {
     case _: ConfigUtilOps.KeyNotFound     => Right(default)

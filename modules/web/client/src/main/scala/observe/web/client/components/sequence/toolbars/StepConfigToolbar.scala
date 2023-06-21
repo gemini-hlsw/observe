@@ -3,27 +3,27 @@
 
 package observe.web.client.components.sequence.toolbars
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import mouse.boolean._
-import react.common._
+import mouse.boolean.*
+import react.common.*
 import react.semanticui.elements.button.Button
 import react.semanticui.elements.button.ButtonGroup
 import react.semanticui.elements.button.LabelPosition
 import react.semanticui.elements.label.Label
-import react.semanticui.sizes._
-import observe.model.{Observation, RunningStep, StepId}
-import observe.model.enum.Instrument
+import react.semanticui.sizes.*
+import observe.model.{ Observation, RunningStep, StepId }
+import observe.model.enums.Instrument
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.circuit.SequenceInfoFocus
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
-import observe.web.client.model.Pages._
+import observe.web.client.icons.*
+import observe.web.client.model.Pages.*
 
 final case class StepConfigToolbar(
   router:     RouterCtl[ObservePages],

@@ -9,7 +9,7 @@ import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CaApplySender
 import edu.gemini.epics.acm.CaAttribute
 import edu.gemini.epics.acm.CaCommandSender

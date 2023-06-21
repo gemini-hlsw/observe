@@ -7,24 +7,24 @@ import scala.scalajs.LinkingInfo
 
 import cats._
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode._
 import diode.react.ReactConnector
 import japgolly.scalajs.react.Callback
 import monocle.Prism
 import observe.model.Observation
-import observe.model._
-import observe.model.events._
+import observe.model.*
+import observe.model.events.*
 import observe.web.client.actions.AppendToLog
 import observe.web.client.actions.CloseLoginBox
 import observe.web.client.actions.CloseUserNotificationBox
 import observe.web.client.actions.OpenLoginBox
 import observe.web.client.actions.OpenUserNotificationBox
 import observe.web.client.actions.ServerMessage
-import observe.web.client.actions._
+import observe.web.client.actions.*
 import observe.web.client.actions.show
-import observe.web.client.handlers._
-import observe.web.client.model._
+import observe.web.client.handlers.*
+import observe.web.client.model.*
 import typings.loglevel.mod.{^ => logger}
 
 /**
@@ -70,10 +70,10 @@ object ObserveCircuit
     this.zoomRWL(WebSocketsFocus.webSocketFocusL)
 
   val initialSyncFocusRW: ModelRW[ObserveAppRootModel, InitialSyncFocus] =
-    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(InitialSyncFocus.initialSyncFocusL))
+    this.zoomRWL(Focus[ObserveAppRootModel](_.uiModel).andThen(InitialSyncFocus.initialSyncFocusL))
 
   val tableStateRW: ModelRW[ObserveAppRootModel, AppTableStates] =
-    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(ObserveUIModel.appTableStates))
+    this.zoomRWL(Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates))
 
   // Reader to indicate the allowed interactions
   val statusReader: ModelRW[ObserveAppRootModel, ClientStatus] =
@@ -85,7 +85,7 @@ object ObserveCircuit
 
   // Reader for the queue operations
   val queueOperationsRW: ModelRW[ObserveAppRootModel, CalibrationQueues] =
-    this.zoomRWL(ObserveAppRootModel.uiModel.andThen(ObserveUIModel.queues))
+    this.zoomRWL(Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues))
 
   // Reader to update the sequences in both parts of the model being used
   val sequencesReaderRW: ModelRW[ObserveAppRootModel, SequencesFocus] =
@@ -133,8 +133,7 @@ object ObserveCircuit
     id: Observation.Id
   ): ModelR[ObserveAppRootModel, Option[ObserveTabActive]] =
     this.zoomG(
-      ObserveAppRootModel.sequencesOnDisplayL
-        .andThen(SequencesOnDisplay.tabG(id))
+      Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
     )
 
   def sequenceObserverReader(
@@ -145,7 +144,7 @@ object ObserveCircuit
   def obsProgressReader[P <: Progress: Eq](
     id:                     Observation.Id,
     stepId:                 StepId
-  )(implicit progressPrism: Prism[Progress, P]): ModelR[ObserveAppRootModel, Option[P]] =
+  )(using progressPrism: Prism[Progress, P]): ModelR[ObserveAppRootModel, Option[P]] =
     this.zoomO(AllObservationsProgressState.progressStateO[P](id, stepId))
 
   def statusAndStepReader(

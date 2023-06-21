@@ -3,21 +3,21 @@
 
 package observe.server.tcs
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.guide.StandardGuideOptions
-import mouse.all._
+import mouse.all.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.M1Source
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.TipTiltSource
+import observe.model.enums.M1Source
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.TipTiltSource
 import observe.server.ConfigResult
 import observe.server.System
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 trait Tcs[F[_]] extends System[F] {
-  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult[F]]
+  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult]
 }
 
 object Tcs {
@@ -30,13 +30,6 @@ object Tcs {
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
       .getOrElse(defaultGuiderConf)
-
-  // Shouldn't these be defined somewhere ?
-  val GUIDE_WITH_PWFS1_PROP: String = "guideWithPWFS1"
-  val GUIDE_WITH_PWFS2_PROP: String = "guideWithPWFS2"
-  val GUIDE_WITH_AOWFS_PROP: String = "guideWithAOWFS"
-  val P_OFFSET_PROP: String         = "p"
-  val Q_OFFSET_PROP: String         = "q"
 
   // Conversions from ODB model values to TCS configuration values
   implicit class GuideWithOps(guideWith: StandardGuideOptions.Value) {

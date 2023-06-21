@@ -3,11 +3,11 @@
 
 package observe.server
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.HandlerResponse
 import giapi.client.GiapiClient
 import giapi.client.commands.CommandResult
@@ -30,7 +30,7 @@ trait GiapiInstrumentController[F[_], CFG] {
  */
 private[server] abstract class AbstractGiapiInstrumentController[F[_]: Sync, CFG, C <: GiapiClient[
   F
-]](client: C)(implicit
+]](client: C)(using
   L:       Logger[F]
 ) extends GiapiInstrumentController[F, CFG] {
 

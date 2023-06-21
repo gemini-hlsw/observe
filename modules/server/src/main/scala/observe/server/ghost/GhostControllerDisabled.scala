@@ -4,7 +4,7 @@
 package observe.server.ghost
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.Observation
 import observe.model.dhs.ImageFileId

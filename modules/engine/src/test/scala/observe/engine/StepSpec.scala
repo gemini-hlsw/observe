@@ -1,28 +1,28 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
 import cats.effect.IO
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.implicits.*
 import munit.CatsEffectSuite
 import cats.effect.std.Queue
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import java.util.UUID
-import org.scalatest.Inside._
+import org.scalatest.Inside.*
 import observe.engine.TestUtil.TestState
-import observe.engine.EventResult._
-import observe.engine.SystemEvent._
-import observe.model.enum.Instrument.GmosS
+import observe.engine.EventResult.*
+import observe.engine.SystemEvent.*
+import observe.model.enums.Instrument.GmosS
 import observe.model.{ClientId, SequenceState, StepState}
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 import observe.model.{ActionType, UserDetails}
-import observe.common.test._
+import observe.common.test.*
 import scala.Function.const
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats.effect.Ref
 
 class StepSpec extends CatsEffectSuite {
@@ -47,7 +47,7 @@ class StepSpec extends CatsEffectSuite {
   def simpleStep(
     pending: List[ParallelActions[IO]],
     focus:   Execution[IO],
-    done:    List[NonEmptyList[Result[IO]]]
+    done:    List[NonEmptyList[Result]]
   ): Step.Zipper[IO] = {
     val rollback: (Execution[IO], List[ParallelActions[IO]]) = {
       val doneParallelActions: List[ParallelActions[IO]]  = done.map(_.map(const(action)))
@@ -429,7 +429,7 @@ class StepSpec extends CatsEffectSuite {
       }
 
     qss.map { x =>
-      val actionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Completed[_], _) => x }
+      val actionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Completed[?], _) => x }
       assertEquals(actionsCompleted.length, 4)
 
       val executionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Executed, _) => x }

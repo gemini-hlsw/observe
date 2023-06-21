@@ -5,29 +5,29 @@ package observe.web.client.model
 
 import lucuma.core.util.Enumerated
 
-sealed trait AlignAndCalibStep extends Product with Serializable
+sealed abstract class AlignAndCalibStep(val tag: String) extends Product with Serializable
 
 object AlignAndCalibStep {
-  case object NoAction           extends AlignAndCalibStep
-  case object StartGuiding       extends AlignAndCalibStep
-  case object StopGuiding        extends AlignAndCalibStep
-  case object SuperContOff       extends AlignAndCalibStep
-  case object OMSSEntShutterOff  extends AlignAndCalibStep
-  case object CalExistShutterOff extends AlignAndCalibStep
-  case object ArtSourceDeploy    extends AlignAndCalibStep
-  case object AoDarks            extends AlignAndCalibStep
-  case object SuperContOn        extends AlignAndCalibStep
-  case object CalFlags           extends AlignAndCalibStep
-  case object Twt2Lens           extends AlignAndCalibStep
-  case object CalExitShutterOn   extends AlignAndCalibStep
-  case object ArtSourceExtract   extends AlignAndCalibStep
-  case object OMSSEntShutterOn   extends AlignAndCalibStep
-  case object InputFoldTracking  extends AlignAndCalibStep
-  case object Done               extends AlignAndCalibStep
+  case object NoAction           extends AlignAndCalibStep("NoAction")
+  case object StartGuiding       extends AlignAndCalibStep("StartGuiding")
+  case object StopGuiding        extends AlignAndCalibStep("StopGuiding")
+  case object SuperContOff       extends AlignAndCalibStep("SuperContOff")
+  case object OMSSEntShutterOff  extends AlignAndCalibStep("OMSSEntShutterOff")
+  case object CalExistShutterOff extends AlignAndCalibStep("CalExistShutterOff")
+  case object ArtSourceDeploy    extends AlignAndCalibStep("ArtSourceDeploy")
+  case object AoDarks            extends AlignAndCalibStep("AoDarks")
+  case object SuperContOn        extends AlignAndCalibStep("SuperContOn")
+  case object CalFlags           extends AlignAndCalibStep("CalFlags")
+  case object Twt2Lens           extends AlignAndCalibStep("Twt2Lens")
+  case object CalExitShutterOn   extends AlignAndCalibStep("CalExitShutterOn")
+  case object ArtSourceExtract   extends AlignAndCalibStep("ArtSourceExtract")
+  case object OMSSEntShutterOn   extends AlignAndCalibStep("OMSSEntShutterOn")
+  case object InputFoldTracking  extends AlignAndCalibStep("InputFoldTracking")
+  case object Done               extends AlignAndCalibStep("Done")
 
   /** @group Typeclass Instances */
-  implicit val AlignAndCalibStepEnumerated: Enumerated[AlignAndCalibStep] =
-    Enumerated.of(
+  given Enumerated[AlignAndCalibStep] =
+    Enumerated.from(
       NoAction,
       StartGuiding,
       StopGuiding,
@@ -44,7 +44,7 @@ object AlignAndCalibStep {
       OMSSEntShutterOn,
       InputFoldTracking,
       Done
-    )
+    ).withTag(_.tag)
 
   def fromInt(i: Int): AlignAndCalibStep =
     i match {
