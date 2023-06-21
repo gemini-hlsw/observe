@@ -3,17 +3,17 @@
 
 package observe.web.client.components.queue
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.math.max
 import scala.scalajs.js
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import eu.timepit.refined.types.all.PosLong
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.CallbackTo
-import japgolly.scalajs.react.ReactMonocle._
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Unmounted
@@ -21,31 +21,30 @@ import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
-import monocle.macros.Lenses
-import react.common._
-import react.common.implicits._
-import react.semanticui.colors._
+import react.common.*
+import react.common.implicits.*
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
-import react.semanticui.sizes._
-import react.sortable._
-import react.virtualized._
+import react.semanticui.sizes.*
+import react.sortable.*
+import react.virtualized.*
 import observe.model.Observation
 import observe.model.QueueId
 import observe.model.QueueManipulationOp
 import observe.model.SequenceState
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.web.client.actions.ClearLastQueueOp
 import observe.web.client.actions.RequestMoveCal
 import observe.web.client.actions.RequestRemoveSeqCal
 import observe.web.client.actions.UpdateCalTableState
-import observe.web.client.circuit._
+import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles
 import observe.web.client.components.TableContainer
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.QueueSeqOperations
 import observe.web.client.model.RemoveSeqQueue
-import observe.web.client.reusability._
-import web.client.table._
+import observe.web.client.reusability.*
+import web.client.table.*
 
 // ScalaJS defined trait
 trait CalQueueRow extends js.Object {
@@ -167,9 +166,9 @@ object CalQueueTable {
   private val InstrumentMinWidth = 90.4333 + ObserveStyles.TableBorderWidth
 
   object TableColumn {
-    implicit val equal: Eq[TableColumn] = Eq.fromUniversalEquals
+    given Eq[TableColumn] = Eq.fromUniversalEquals
 
-    implicit val reuse: Reusability[TableColumn] = Reusability.byRef
+    given Reusability[TableColumn] = Reusability.byRef
   }
 
   val RemoveSeqMeta: ColumnMeta[TableColumn] = ColumnMeta[TableColumn](
@@ -210,8 +209,7 @@ object CalQueueTable {
   val ro: NonEmptyList[ColumnMeta[TableColumn]] =
     NonEmptyList.of(StateSeqMeta, ObsIdColumnMeta, InstrumentColumnMeta)
 
-  @Lenses
-  final case class State(
+    final case class State(
     tableState:        TableState[TableColumn],
     animationRendered: Boolean,
     moved:             Option[(Observation.Id, IndexChange)],
@@ -229,16 +227,16 @@ object CalQueueTable {
       State(EditableTableState, animationRendered = false, moved = None, prevLastOp = None)
 
     val scrollPosition: Lens[State, JsNumber] =
-      State.tableState.andThen(TableState.scrollPosition)
+      Focus[State](_.tableState).andThen(TableState.scrollPosition)
 
     val columns: Lens[State, NonEmptyList[ColumnMeta[TableColumn]]] =
-      State.tableState.andThen(TableState.columns)
+      Focus[State](_.tableState).andThen(TableState.columns)
   }
 
-  implicit val propsReuse: Reusability[Props]    = Reusability.derive[Props]
-  implicit val icReuse: Reusability[IndexChange] =
+  given Reusability[Props]    = Reusability.derive[Props]
+  given Reusability[IndexChange] =
     Reusability.derive[IndexChange]
-  implicit val stateReuse: Reusability[State]    =
+  given Reusability[State]    =
     Reusability.by(x => (x.tableState, x.moved))
 
   val obsIdRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =
@@ -378,7 +376,7 @@ object CalQueueTable {
     def updateScrollPosition(pos: JsNumber): Callback =
       b.props.zip(b.state) >>= { case (p, state) =>
         val s =
-          State.scrollPosition.replace(pos)(state)
+          Focus[State](_.scrollPosition).replace(pos)(state)
         b.setState(s) *>
           ObserveCircuit.dispatchCB(UpdateCalTableState(p.queueId, s.tableState))
       }
@@ -495,10 +493,10 @@ object CalQueueTable {
       }
 
       (
-        State.animationRendered.replace(animationRendered) >>>
-          State.moved.replace(moved) >>>
-          State.columns.replace(cols) >>>
-          State.prevLastOp.replace(props.data.lastOp)
+        Focus[State](_.animationRendered).replace(animationRendered) >>>
+          Focus[State](_.moved).replace(moved) >>>
+          Focus[State](_.columns).replace(cols) >>>
+          Focus[State](_.prevLastOp).replace(props.data.lastOp)
       )(state)
     }
     .componentDidMount($ => $.backend.resetAnim($.props))

@@ -5,8 +5,8 @@ package observe.server.nifs
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
-import observe.server.keywords._
+import cats.syntax.all.*
+import observe.server.keywords.*
 
 trait NifsKeywordReader[F[_]] {
   def aperture: F[String]

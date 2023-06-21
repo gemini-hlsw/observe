@@ -3,7 +3,7 @@
 
 package observe.web.client.components
 
-import react.common.style._
+import react.common.style.*
 
 /**
  * Custom CSS for the Observe UI

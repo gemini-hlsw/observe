@@ -3,27 +3,24 @@
 
 package observe.server
 
-import cats.ApplicativeError
 import cats.Endo
 import cats.effect.Async
-import cats.syntax.all._
-import edu.gemini.spModel.core.SPProgramID
-import edu.gemini.spModel.obscomp.InstConstants
-import edu.gemini.spModel.seqcomp.SeqConfigNames.OCS_KEY
+import cats.syntax.all.*
 import observe.engine.Event
 import observe.engine.Sequence
 import observe.model.Observation
 import observe.model.SystemOverrides
-import ConfigUtilOps._
 import SeqEvent._
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
+import lucuma.core.model.Program
 import observe.server.transition.OcsOdbTranslator
+import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:            OdbProxy[F],
-  translator:          SeqTranslate[F]
-)(implicit execEngine: ExecEngineType[F]) {
+  translators:          List[SeqTranslate[F]]
+)(using execEngine: ExecEngineType[F]) {
 
   private def unloadEvent(seqId: Observation.Id): EventType[F] =
     Event.modifyState[F, EngineState[F], SeqEvent](
@@ -40,21 +37,17 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(UnloadSequence(seqId)).toHandle
     )
 
+  private def tryTranslate(sequence: OdbObservation): Option[Either[List[Throwable], SequenceGen[F]]] = {
+    translators.foldLeft(none[Either[List[Throwable], SequenceGen[F]]])( (a, b) => a match {
+      case Some(_) => a
+      case None => b.sequence(sequence)
+    } )
+  }
+
   def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
     // Three ways of handling errors are mixed here: java exceptions, Either and MonadError
-    val t: F[(List[Throwable], Option[SequenceGen[F]])] =
-      odbProxy.read(seqId).map(OcsOdbTranslator.translate).flatMap { odbSeq =>
-        val configObsId: F[String] =
-          odbSeq.config
-            .extractAs[String](OCS_KEY / InstConstants.PROGRAMID_PROP)
-            .toF[F]
-
-        // Verify that the program id is valid
-        configObsId
-          .adaptErr { case _ => ObserveFailure.Unexpected(s"Invalid $configObsId") }
-          .flatMap(s => ApplicativeError[F, Throwable].catchNonFatal(SPProgramID.toProgramID(s)))
-          .flatMap(_ => translator.sequence(seqId, odbSeq))
-      }
+    val t: F[Option[Either[List[Throwable], SequenceGen[F]]]] =
+      odbProxy.read(seqId).map(tryTranslate)
 
     def loadSequenceEvent(seqg: SequenceGen[F]): EventType[F] =
       Event.modifyState[F, EngineState[F], SeqEvent]({ st: EngineState[F] =>
@@ -66,20 +59,15 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(LoadSequence(seqId)).toHandle)
 
     t.map {
-      case (UnrecognizedInstrument(_) :: _, None) =>
-        Nil
-      case (err :: _, None)                       =>
+      case None =>
+        List.empty[EventType[F]].pure[F]
+      case Some(Left(err :: _))                      =>
         val explanation = explain(err)
         List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explanation))
-      case (errs, Some(seq))                      =>
-        loadSequenceEvent(seq).pure[F] :: errs.map(e =>
-          Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))
-        )
-      case _                                      => Nil
-    }.recover { case e => List(Event.logDebugMsgF(explain(e))) }
-      .map(_.sequence)
-      .flatten
-  }
+      case Some(Right(seq))                      => List(loadSequenceEvent(seq)).pure[F]
+      case _                                      => List.empty[EventType[F]].pure[F]
+    }.recover { case e => List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))) }
+  }.map(_.sequence).flatten
 
   private def explain(err: Throwable): String =
     err match {

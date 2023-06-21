@@ -3,15 +3,15 @@
 
 package observe.web.client.services
 
-import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
 import scala.concurrent.Future
-import scala.scalajs.js.URIUtils._
+import scala.scalajs.js.URIUtils.*
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js.typedarray.TypedArrayBuffer
 import boopickle.Default.Pickle
 import boopickle.Default.Pickler
 import boopickle.Default.Unpickle
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.scalajs.dom.XMLHttpRequest
 import org.scalajs.dom.ext.Ajax
 import observe.common.HttpStatusCodes
@@ -24,13 +24,13 @@ import observe.model.Step
 import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserLoginRequest
-import observe.model.boopickle._
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
+import observe.model.boopickle.*
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
 import observe.web.client.actions.RunOptions
 import scala.annotation.nowarn
 
@@ -41,7 +41,7 @@ object ObserveWebClient extends ModelBooPicklers {
   private val baseUrl = "/api/observe"
 
   // Decodes the binary response with BooPickle, errors are not handled
-  def unpickle[A](r: XMLHttpRequest)(implicit u: Pickler[A]): A = {
+  def unpickle[A](r: XMLHttpRequest)(using u: Pickler[A]): A = {
     val ab = TypedArrayBuffer.wrap(r.response.asInstanceOf[ArrayBuffer])
     Unpickle[A].fromBytes(ab)
   }

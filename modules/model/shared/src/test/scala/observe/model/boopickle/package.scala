@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -6,8 +6,8 @@ package observe.model
 import _root_.boopickle.Default.Pickler
 import _root_.boopickle.Default.Pickle
 import _root_.boopickle.Default.Unpickle
-import cats.laws._
-import cats.laws.discipline._
+import cats.laws.*
+import cats.laws.discipline.*
 import cats.Eq
 import org.scalacheck.{Arbitrary, Prop, Shrink}
 import org.typelevel.discipline.Laws
@@ -15,7 +15,7 @@ import org.typelevel.discipline.Laws
 package boopickle {
 
   trait PicklerLaws[A] {
-    implicit def pickler: Pickler[A]
+    given pickler: Pickler[A]
 
     def picklerRoundTrip(a: A): IsEq[A] =
       Unpickle[A].fromBytes(Pickle.intoBytes(a)) <-> a
@@ -24,16 +24,16 @@ package boopickle {
 
   object PicklerLaws {
 
-    def apply[A](implicit picklerA: Pickler[A]): PicklerLaws[A] =
+    def apply[A](using picklerA: Pickler[A]): PicklerLaws[A] =
       new PicklerLaws[A] {
-        override def pickler: Pickler[A] = picklerA
+        override given pickler: Pickler[A] = picklerA
       }
   }
 
   trait PicklerTests[A] extends Laws {
     def laws: PicklerLaws[A]
 
-    def pickler(implicit arbitraryA: Arbitrary[A], shrinkA: Shrink[A], eqA: Eq[A]): RuleSet =
+    def pickler(using arbitraryA: Arbitrary[A], shrinkA: Shrink[A], eqA: Eq[A]): RuleSet =
       new DefaultRuleSet(
         name = "codec",
         parent = None,

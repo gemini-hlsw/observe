@@ -9,7 +9,7 @@ import java.lang.{Integer => JInt}
 import scala.reflect.ClassTag
 
 import cats.ApplicativeError
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.ao.AOConstants.AO_CONFIG_NAME
 import edu.gemini.spModel.config2.Config
 import edu.gemini.spModel.config2.ConfigSequence
@@ -51,7 +51,7 @@ object ConfigUtilOps {
   implicit class EitherExtractFailureOps[A] private[server] (r: Either[ExtractFailure, A]) {
     def adaptExtractFailure: Either[ObserveFailure, A] = r.leftMap(explainExtractError)
 
-    def toF[F[_]: ApplicativeError[*[_], Throwable]]: F[A] =
+    def toF[F[_]: ApplicativeThrow]: F[A] =
       r.fold(explainExtractError(_).raiseError[F, A], _.pure[F])
   }
 
@@ -62,7 +62,7 @@ object ConfigUtilOps {
   }
 
   // key syntax: parent / child
-  implicit class ItemKeyOps(val k: ItemKey) extends AnyVal {
+  extension(k: ItemKey) {
     def /(s: String): ItemKey             = new ItemKey(k, s)
     def /(p: PropertyDescriptor): ItemKey = /(p.getName)
   }
@@ -71,14 +71,14 @@ object ConfigUtilOps {
     def itemValue(a: A, key: ItemKey): Option[AnyRef]
   }
 
-  implicit val ConfigExtractItem: ExtractItem[Config] =
+  given ExtractItem[Config] =
     (c: Config, key: ItemKey) => Option(c.getItemValue(key))
 
-  implicit val ConfigSequenceExtractItem: ExtractItem[ConfigSequence] =
+  given ExtractItem[ConfigSequence] =
     (c: ConfigSequence, key: ItemKey) => Option(c.getItemValue(0, key))
 
-  final class Extracted[C] private[server] (c: C, key: ItemKey)(implicit ei: ExtractItem[C]) {
-    def as[A](implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+  final class Extracted[C] private[server] (c: C, key: ItemKey)(using ei: ExtractItem[C]) {
+    def as[A](using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       for {
         v <- Either.fromOption(ei.itemValue(c, key), KeyNotFound(key))
         b <- Either
@@ -89,64 +89,64 @@ object ConfigUtilOps {
 
   val AO_KEY: ItemKey = new ItemKey(AO_CONFIG_NAME)
 
-  implicit class ExtractOps[C: ExtractItem](val c: C) {
+  extension [C: ExtractItem]( c: C) {
     // config syntax: cfg.extract(key).as[Type]
     def extract(key: ItemKey): Extracted[C] = new Extracted(c, key)
 
     // config syntax: cfg.extractAs[Type](key)
-    def extractAs[A](key: ItemKey)(implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+    def extractAs[A](key: ItemKey)(using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       new Extracted(c, key).as[A]
 
     // config syntax: cfg.extractInstAs[Type](key)
-    def extractInstAs[A](key: PropertyDescriptor)(implicit
+    def extractInstAs[A](key: PropertyDescriptor)(using
       clazz:                  ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, INSTRUMENT_KEY / key).as[A]
 
     // config syntax: cfg.extractInstAs[Type](key)
-    def extractInstAs[A](key: String)(implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+    def extractInstAs[A](key: String)(using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       new Extracted(c, INSTRUMENT_KEY / key).as[A]
 
     // config syntax: cfg.extractInstAs[Type](key)
-    def extractObsAs[A](key: PropertyDescriptor)(implicit
+    def extractObsAs[A](key: PropertyDescriptor)(using
       clazz:                 ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, OBSERVE_KEY / key).as[A]
 
     // config syntax: cfg.extractInstAs[Type](key)
-    def extractObsAs[A](key: String)(implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+    def extractObsAs[A](key: String)(using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       new Extracted(c, OBSERVE_KEY / key).as[A]
 
     // config syntax: cfg.extractTelescopeAs[Type](key)
-    def extractTelescopeAs[A](key: PropertyDescriptor)(implicit
+    def extractTelescopeAs[A](key: PropertyDescriptor)(using
       clazz:                       ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, TELESCOPE_KEY / key).as[A]
 
     // config syntax: cfg.extractTelescopeAs[Type](key)
-    def extractTelescopeAs[A](key: String)(implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+    def extractTelescopeAs[A](key: String)(using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       new Extracted(c, TELESCOPE_KEY / key).as[A]
 
     // config syntax: cfg.extractCalibrationAs[Type](key)
-    def extractCalibrationAs[A](key: PropertyDescriptor)(implicit
+    def extractCalibrationAs[A](key: PropertyDescriptor)(using
       clazz:                         ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, CALIBRATION_KEY / key).as[A]
 
     // config syntax: cfg.extractCalibrationAs[Type](key)
-    def extractCalibrationAs[A](key: String)(implicit
+    def extractCalibrationAs[A](key: String)(using
       clazz:                         ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, CALIBRATION_KEY / key).as[A]
 
     // config syntax: cfg.extractAOAs[Type](key)
-    def extractAOAs[A](key: PropertyDescriptor)(implicit
+    def extractAOAs[A](key: PropertyDescriptor)(using
       clazz:                ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, AO_KEY / key).as[A]
 
     // config syntax: cfg.extractAOAs[Type](key)
-    def extractAOAs[A](key: String)(implicit clazz: ClassTag[A]): Either[ExtractFailure, A] =
+    def extractAOAs[A](key: String)(using clazz: ClassTag[A]): Either[ExtractFailure, A] =
       new Extracted(c, AO_KEY / key).as[A]
 
     def extractInstInt[A](

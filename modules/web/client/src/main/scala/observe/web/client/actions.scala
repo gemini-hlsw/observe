@@ -4,25 +4,25 @@
 package observe.web.client
 
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import lucuma.core.enums.Site
 import org.scalajs.dom.WebSocket
 import pprint.PPrinter
 import observe.model.Notification.RequestFailed
 import observe.model.Observation
-import observe.model._
-import observe.model.enum._
-import observe.model.events._
+import observe.model.*
+import observe.model.enums.*
+import observe.model.events.*
 import observe.web.client.components.SessionQueueTable
 import observe.web.client.components.queue.CalQueueTable
 import observe.web.client.components.sequence.steps.StepConfigTable
 import observe.web.client.components.sequence.steps.StepsTable
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 import observe.web.client.model.SectionVisibilityState
 import observe.web.client.model.SessionQueueFilter
 import observe.web.client.model.UserPromptResult
-import web.client.table._
+import web.client.table.*
 
 object actions {
 
@@ -215,7 +215,7 @@ object actions {
     case i: NodAndShuffleStep => (i.id, i.status, i.configStatus, i.nsStatus, i.pendingObserveCmd)
   }
 
-  implicit val show: Show[Action] = Show.show {
+  given Show[Action] = Show.show {
     case FlipBreakpointStep(oid, st)                     =>
       s"FlipBreakpointStep(${oid.name}, ${st.id})"
     case FlipSkipStep(oid, st)                           =>

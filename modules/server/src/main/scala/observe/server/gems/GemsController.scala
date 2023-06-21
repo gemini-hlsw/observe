@@ -4,8 +4,8 @@
 package observe.server.gems
 
 import cats.{Eq, Show}
-import cats.implicits._
-import mouse.boolean._
+import cats.implicits.*
+import mouse.boolean.*
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
@@ -29,7 +29,7 @@ object GemsController {
     case object Use     extends P1Usage
     case object DontUse extends P1Usage
 
-    implicit val p1UsageEq: Eq[P1Usage] = Eq.fromUniversalEquals
+    given Eq[P1Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): P1Usage = if (b) Use else DontUse
   }
@@ -39,7 +39,7 @@ object GemsController {
     case object Use     extends OIUsage
     case object DontUse extends OIUsage
 
-    implicit val oiUsageEq: Eq[OIUsage] = Eq.fromUniversalEquals
+    given Eq[OIUsage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): OIUsage = if (b) Use else DontUse
   }
@@ -57,7 +57,7 @@ object GemsController {
   }
 
   object GemsConfig {
-    implicit val show: Show[GemsConfig] = Show.show { x =>
+    given Show[GemsConfig] = Show.show { x =>
       List(
         x.isCwfs1Used.option("CWFS1"),
         x.isCwfs2Used.option("CWFS2"),
@@ -88,7 +88,7 @@ object GemsController {
     case object Use     extends Cwfs1Usage
     case object DontUse extends Cwfs1Usage
 
-    implicit val cwfs1UsageEq: Eq[Cwfs1Usage] = Eq.fromUniversalEquals
+    given Eq[Cwfs1Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Cwfs1Usage = if (b) Use else DontUse
   }
@@ -98,7 +98,7 @@ object GemsController {
     case object Use     extends Cwfs2Usage
     case object DontUse extends Cwfs2Usage
 
-    implicit val cwfs2UsageEq: Eq[Cwfs2Usage] = Eq.fromUniversalEquals
+    given Eq[Cwfs2Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Cwfs2Usage = if (b) Use else DontUse
   }
@@ -108,7 +108,7 @@ object GemsController {
     case object Use     extends Cwfs3Usage
     case object DontUse extends Cwfs3Usage
 
-    implicit val cwfs3UsageEq: Eq[Cwfs3Usage] = Eq.fromUniversalEquals
+    given Eq[Cwfs3Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Cwfs3Usage = if (b) Use else DontUse
   }
@@ -118,7 +118,7 @@ object GemsController {
     case object Use     extends Odgw1Usage
     case object DontUse extends Odgw1Usage
 
-    implicit val odgw1UsageEq: Eq[Odgw1Usage] = Eq.fromUniversalEquals
+    given Eq[Odgw1Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Odgw1Usage = if (b) Use else DontUse
   }
@@ -128,7 +128,7 @@ object GemsController {
     case object Use     extends Odgw2Usage
     case object DontUse extends Odgw2Usage
 
-    implicit val odgw2UsageEq: Eq[Odgw2Usage] = Eq.fromUniversalEquals
+    given Eq[Odgw2Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Odgw2Usage = if (b) Use else DontUse
   }
@@ -138,7 +138,7 @@ object GemsController {
     case object Use     extends Odgw3Usage
     case object DontUse extends Odgw3Usage
 
-    implicit val odgw3UsageEq: Eq[Odgw3Usage] = Eq.fromUniversalEquals
+    given Eq[Odgw3Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Odgw3Usage = if (b) Use else DontUse
   }
@@ -148,7 +148,7 @@ object GemsController {
     case object Use     extends Odgw4Usage
     case object DontUse extends Odgw4Usage
 
-    implicit val odgw4UsageEq: Eq[Odgw4Usage] = Eq.fromUniversalEquals
+    given Eq[Odgw4Usage] = Eq.fromUniversalEquals
 
     def fromBoolean(b: Boolean): Odgw4Usage = if (b) Use else DontUse
   }

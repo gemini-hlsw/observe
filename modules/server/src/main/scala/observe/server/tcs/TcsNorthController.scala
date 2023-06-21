@@ -5,8 +5,8 @@ package observe.server.tcs
 
 import cats.Show
 import cats.data.NonEmptySet
-import cats.implicits._
-import observe.model.enum.NodAndShuffleStage
+import cats.implicits.*
+import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.tcs.TcsController.{
@@ -45,10 +45,10 @@ object TcsNorthController {
   type TcsNorthConfig   = TcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
   type TcsNorthAoConfig = AoTcsConfig[GuiderConfig @@ AoGuide, AltairController.AltairConfig]
 
-  implicit val aoGuideShow: Show[GuiderConfig @@ AoGuide] =
+  given Show[GuiderConfig @@ AoGuide] =
     Show.show(_.asInstanceOf[GuiderConfig].show)
 
-  implicit val tcsNorthConfigShow: Show[TcsNorthConfig] = Show.show {
+  given Show[TcsNorthConfig] = Show.show {
     case x: BasicTcsConfig   => x.show
     case x: TcsNorthAoConfig => x.show
   }

@@ -5,7 +5,7 @@ package observe.server
 
 import cats.Id
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
@@ -13,11 +13,11 @@ import fs2.Stream
 import org.scalatest.Inside.inside
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
-import observe.engine._
-import observe.model._
-import observe.model.enum._
-import observe.model.enum.Resource.TCS
-import observe.server.TestCommon._
+import observe.engine.*
+import observe.model.*
+import observe.model.enums.*
+import observe.model.enums.Resource.TCS
+import observe.server.TestCommon.*
 import monocle.function.Index.mapIndex
 import observe.common.test.stepId
 
@@ -163,7 +163,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setImageQuality(q, iq, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.iq).get)) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.iq).get)) { case Some(op) =>
       op shouldBe iq
     }).unsafeRunSync()
 
@@ -175,7 +175,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setWaterVapor(q, wv, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.wv).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.wv).get(_))) { case Some(op) =>
       op shouldBe wv
     }).unsafeRunSync()
   }
@@ -186,7 +186,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setCloudCover(q, cc, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.cc).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.cc).get(_))) { case Some(op) =>
       op shouldBe cc
     }).unsafeRunSync()
   }
@@ -197,7 +197,7 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setSkyBackground(q, sb, UserDetails("", "")), 2)
-    } yield inside(sf.map(EngineState.conditions.andThen(Conditions.sb).get(_))) { case Some(op) =>
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.sb).get(_))) { case Some(op) =>
       op shouldBe sb
     }).unsafeRunSync()
   }

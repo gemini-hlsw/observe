@@ -1,17 +1,17 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config.arb
 
-import lucuma.core.util.arb.ArbEnumerated._
+import lucuma.core.util.arb.ArbEnumerated.*
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import observe.model.config._
+import observe.model.config.*
 
 trait ArbSystemsControlConfiguration {
 
-  implicit val arbSystemsControlConfiguration: Arbitrary[SystemsControlConfiguration] =
+  given Arbitrary[SystemsControlConfiguration] =
     Arbitrary {
       for {
         altair   <- arbitrary[ControlStrategy]
@@ -49,7 +49,7 @@ trait ArbSystemsControlConfiguration {
       )
     }
 
-  implicit val systemsControlConfigurationCogen: Cogen[SystemsControlConfiguration] =
+  given Cogen[SystemsControlConfiguration] =
     Cogen[
       (
         ControlStrategy,

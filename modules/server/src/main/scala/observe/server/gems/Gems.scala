@@ -6,7 +6,7 @@ package observe.server.gems
 import cats.Applicative
 import cats.Eq
 import cats.MonadError
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.gems.CanopusWfs
 import edu.gemini.spModel.gemini.gsaoi.GsaoiOdgw
 import edu.gemini.spModel.guide.StandardGuideOptions
@@ -14,7 +14,7 @@ import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS
 import org.typelevel.log4cats.Logger
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.gems.GemsController.Cwfs1Usage
@@ -51,11 +51,11 @@ trait Gems[F[_]] extends Gaos[F] {
 
 object Gems {
 
-  private class GemsImpl[F[_]: MonadError[*[_], Throwable]](
+  private class GemsImpl[F[_]: MonadThrow](
     controller:    GemsController[F],
     config:        GemsConfig,
     guideConfigDb: GuideConfigDb[F]
-  )(implicit L:    Logger[F])
+  )(using L:    Logger[F])
       extends Gems[F] {
 
     override val cfg: GemsConfig = config
@@ -84,14 +84,14 @@ object Gems {
                   x.pause.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.replace(true))
+                        .update(Focus[GuideConfig](_.gemsSkyPaused).replace(true))
                         .whenA(filteredPauseReasons.contains(PauseCondition.GaosGuideOff))
                     )
                   ),
                   x.resume.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.replace(false))
+                        .update(Focus[GuideConfig](_.gemsSkyPaused).replace(false))
                         .whenA(filteredResumeReasons.contains(ResumeCondition.GaosGuideOn))
                     )
                   )
@@ -141,7 +141,7 @@ object Gems {
       OIUsage.fromBoolean(opConfig.isOIUsed && stepConfig.isOIUsed)
     )
 
-  def fromConfig[F[_]: MonadError[*[_], Throwable]: Logger](
+  def fromConfig[F[_]: MonadThrow: Logger](
     guideConfigDb: GuideConfigDb[F],
     config:        CleanConfig
   ): F[GemsController[F] => Gems[F]] = {
@@ -187,7 +187,7 @@ object Gems {
   }
 
   object DetectorStateOps {
-    def apply[T](implicit b: DetectorStateOps[T]): DetectorStateOps[T] = b
+    def apply[T](using b: DetectorStateOps[T]): DetectorStateOps[T] = b
 
     def build[T](t: T, f: T): DetectorStateOps[T] = new DetectorStateOps[T] {
       override val trueVal: T  = t
@@ -205,8 +205,8 @@ object Gems {
     case object On  extends Cwfs1DetectorState
     case object Off extends Cwfs1DetectorState
 
-    implicit val cwfs1DetectorStateEq: Eq[Cwfs1DetectorState]                             = Eq.fromUniversalEquals
-    implicit val cwfs1DetectorStateDetectorStateOps: DetectorStateOps[Cwfs1DetectorState] =
+    given Eq[Cwfs1DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Cwfs1DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -215,8 +215,8 @@ object Gems {
     case object On  extends Cwfs2DetectorState
     case object Off extends Cwfs2DetectorState
 
-    implicit val cwfs2DetectorStateEq: Eq[Cwfs2DetectorState]                             = Eq.fromUniversalEquals
-    implicit val cwfs2DetectorStateDetectorStateOps: DetectorStateOps[Cwfs2DetectorState] =
+    given Eq[Cwfs2DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Cwfs2DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -225,8 +225,8 @@ object Gems {
     case object On  extends Cwfs3DetectorState
     case object Off extends Cwfs3DetectorState
 
-    implicit val cwfs3DetectorStateEq: Eq[Cwfs3DetectorState]                             = Eq.fromUniversalEquals
-    implicit val cwfs3DetectorStateDetectorStateOps: DetectorStateOps[Cwfs3DetectorState] =
+    given Eq[Cwfs3DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Cwfs3DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -235,8 +235,8 @@ object Gems {
     case object On  extends Odgw1DetectorState
     case object Off extends Odgw1DetectorState
 
-    implicit val odgw1DetectorStateEq: Eq[Odgw1DetectorState]                             = Eq.fromUniversalEquals
-    implicit val odgw1DetectorStateDetectorStateOps: DetectorStateOps[Odgw1DetectorState] =
+    given Eq[Odgw1DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Odgw1DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -245,8 +245,8 @@ object Gems {
     case object On  extends Odgw2DetectorState
     case object Off extends Odgw2DetectorState
 
-    implicit val odgw2DetectorStateEq: Eq[Odgw2DetectorState]                             = Eq.fromUniversalEquals
-    implicit val odgw2DetectorStateDetectorStateOps: DetectorStateOps[Odgw2DetectorState] =
+    given Eq[Odgw2DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Odgw2DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -255,8 +255,8 @@ object Gems {
     case object On  extends Odgw3DetectorState
     case object Off extends Odgw3DetectorState
 
-    implicit val odgw3DetectorStateEq: Eq[Odgw3DetectorState]                             = Eq.fromUniversalEquals
-    implicit val odgw3DetectorStateDetectorStateOps: DetectorStateOps[Odgw3DetectorState] =
+    given Eq[Odgw3DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Odgw3DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 
@@ -265,8 +265,8 @@ object Gems {
     case object On  extends Odgw4DetectorState
     case object Off extends Odgw4DetectorState
 
-    implicit val odgw4DetectorStateEq: Eq[Odgw4DetectorState]                             = Eq.fromUniversalEquals
-    implicit val odgw4DetectorStateDetectorStateOps: DetectorStateOps[Odgw4DetectorState] =
+    given Eq[Odgw4DetectorState]                             = Eq.fromUniversalEquals
+    given DetectorStateOps[Odgw4DetectorState] =
       DetectorStateOps.build(On, Off)
   }
 

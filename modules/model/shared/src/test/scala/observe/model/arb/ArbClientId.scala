@@ -1,25 +1,25 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import java.util.UUID
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import org.scalacheck.Cogen._
+import org.scalacheck.Cogen.*
 import observe.model.ClientId
 
 trait ArbClientId {
 
-  implicit val clientIdArb: Arbitrary[ClientId] = Arbitrary {
-    arbitrary[UUID].map(ClientId)
+  given clientIdArb: Arbitrary[ClientId] = Arbitrary {
+    arbitrary[UUID].map(ClientId.apply)
   }
 
-  implicit val cogenUUID: Cogen[UUID] =
+  given cogenUUID: Cogen[UUID] =
     Cogen[(Long, Long)].contramap(u => (u.getMostSignificantBits, u.getLeastSignificantBits))
 
-  implicit val cidCogen: Cogen[ClientId] =
+  given cidCogen: Cogen[ClientId] =
     Cogen[UUID].contramap(_.self)
 
 }

@@ -5,8 +5,8 @@ package observe.server.altair
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
-import observe.server.keywords._
+import cats.syntax.all.*
+import observe.server.keywords.*
 
 trait AltairKeywordReader[F[_]] {
   def aofreq: F[Double]

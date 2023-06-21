@@ -3,12 +3,12 @@
 
 package observe.web.client.handlers
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
-import observe.web.client.actions._
-import observe.web.client.model._
+import observe.web.client.actions.*
+import observe.web.client.model.*
 
 class NavigationHandler[M](modelRW: ModelRW[M, Pages.ObservePages])
     extends ActionHandler(modelRW)

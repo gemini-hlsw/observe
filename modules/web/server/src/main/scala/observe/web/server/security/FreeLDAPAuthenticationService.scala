@@ -1,13 +1,13 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server.security
 
 import cats._
-import cats.effect._
+import cats.effect.*
 import cats.free.Free
-import cats.syntax.all._
-import com.unboundid.ldap.sdk._
+import cats.syntax.all.*
+import com.unboundid.ldap.sdk.*
 import org.typelevel.log4cats.Logger
 import observe.model.UserDetails
 import AuthenticationService.AuthResult
@@ -35,8 +35,8 @@ object FreeLDAPAuthenticationService {
   type LdapM[A] = Free[LdapOp, A]
 
   // Smart constructors for LdapOp[A]
-  def bind(u: String, p: String): LdapM[UID]                                   = Free.liftF(LdapOp.AuthenticateOp(u, p))
-  def displayName(u: UID): LdapM[DisplayName]                                  = Free.liftF(LdapOp.UserDisplayNameOp(u))
+  def bind(u:        String, p: String): LdapM[UID] = Free.liftF(LdapOp.AuthenticateOp(u, p))
+  def displayName(u: UID): LdapM[DisplayName] = Free.liftF(LdapOp.UserDisplayNameOp(u))
   def nameGroupsThumb(u: UID): LdapM[(DisplayName, Groups, Option[Thumbnail])] =
     Free.liftF(LdapOp.DisplayNameGrpThumbOp(u))
 

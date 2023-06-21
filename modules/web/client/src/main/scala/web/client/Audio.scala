@@ -17,7 +17,7 @@ class Audio(val src: String) extends js.Object {
 }
 
 object Audio {
-  implicit class AudioOps(val a: Audio) extends AnyVal {
+  extension(a: Audio) {
     def canPlayMP3: Boolean  = a.canPlayType("audio/mpeg").nonEmpty
     def canPlayWebM: Boolean = a.canPlayType("audio/webm").nonEmpty
   }

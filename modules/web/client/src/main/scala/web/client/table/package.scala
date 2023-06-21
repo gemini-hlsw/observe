@@ -5,24 +5,24 @@ package web.client
 
 import scala.math.max
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.JSConverters.*
 
 import cats.Foldable
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import org.scalajs.dom.MouseEvent
-import react.common._
-import react.common.implicits._
-import react.draggable._
+import react.common.*
+import react.common.implicits.*
+import react.draggable.*
 import react.sortable.SortableElement
-import react.virtualized._
+import react.virtualized.*
 import react.virtualized.raw
-import web.client.utils._
+import web.client.utils.*
 
 package object table {
   val DragHandleWidth: Int = 12
@@ -30,13 +30,13 @@ package object table {
   private[table] implicit val doubleReuse: Reusability[Double] =
     Reusability.double(0.01)
 
-  implicit val sizeReuse: Reusability[Size] =
+  given Reusability[Size] =
     Reusability.by(x => (x.width, x.height))
 
-  implicit def nelR[A: Reusability]: Reusability[NonEmptyList[A]] =
+  given [A: Reusability]:Reusability[NonEmptyList[A]] =
     Reusability.by(_.toList)
 
-  implicit def tsR[A: Reusability]: Reusability[TableState[A]] =
+  given [A: Reusability]:Reusability[TableState[A]] =
     Reusability.by(x => (x.userModified, x.scrollPosition, x.columns))
 
   // Renderer for a resizable column
@@ -59,7 +59,7 @@ package object table {
         )
       )
 
-  private implicit class ClickCallbackOps(val cb: OnRowClick) extends AnyVal {
+  privateextension(cb: OnRowClick) {
     def toJsCallback: raw.RawOnRowEvent =
       (i: raw.RawIndexParameter) => cb(i.index).runNow()
   }

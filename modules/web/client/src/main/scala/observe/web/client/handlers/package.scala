@@ -3,10 +3,10 @@
 
 package observe.web.client
 
-import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
 import scala.concurrent.Future
 import cats.Monoid
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import diode.ActionHandler
 import diode.ActionResult
@@ -16,7 +16,7 @@ import diode.NoAction
 package handlers {
 
   trait Handlers[M, T] { this: ActionHandler[M, T] =>
-    implicit def pfMonoid[A, B]: Monoid[PartialFunction[A, B]] =
+  given [A, B]:Monoid[PartialFunction[A, B]] =
       new Monoid[PartialFunction[A, B]] {
         override def empty = PartialFunction.empty[A, B]
         override def combine(

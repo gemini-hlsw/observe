@@ -5,11 +5,11 @@ package observe.server.gws
 
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CaService
 import observe.server.EpicsHealth
 import observe.server.EpicsSystem
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 import squants.MetricSystem.Milli
 import squants.Temperature
 import squants.Velocity

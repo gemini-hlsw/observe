@@ -1,35 +1,33 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.boopickle
 
-import lucuma.core.util.arb.ArbEnumerated._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
-import observe.model.enum._
-import observe.model._
-import observe.model.events._
-import observe.model.ObserveModelArbitraries._
-import observe.model.SequenceEventsArbitraries._
-import observe.model.arb.all._
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
+import observe.model.enums.*
+import observe.model.{*, given}
+import observe.model.events.*
+import observe.model.ObserveModelArbitraries.{*, given}
+import observe.model.SequenceEventsArbitraries.{*, given}
+import observe.model.arb.all.{*, given}
 import squants.time.Time
-import java.time._
-import io.chrisdavenport.cats.time.instances.all._
-import io.chrisdavenport.cats.time.instances.TimeArbitraries._
+import java.time.*
+import io.chrisdavenport.cats.time.instances.all.*
+import io.chrisdavenport.cats.time.instances.TimeArbitraries.*
 import lucuma.core.math.Index
-import lucuma.core.math.arb.ArbIndex._
-import observe.model.arb._
+import lucuma.core.math.arb.ArbIndex.*
+import observe.model.arb.{*, given}
 
 /**
  * Tests Serialization/Deserialization using BooPickle
  */
 final class BoopicklingSuite extends munit.DisciplineSuite with ModelBooPicklers {
-  import ArbProgramId._
 
   checkAll("Pickler[Year]", PicklerTests[Year].pickler)
   checkAll("Pickler[LocalDate]", PicklerTests[LocalDate].pickler)
   checkAll("Pickler[Index]", PicklerTests[Index].pickler)
-  checkAll("Pickler[ProgramId]", PicklerTests[ProgramId].pickler)
   checkAll("Pickler[Observation.Id]", PicklerTests[Observation.Id].pickler)
 
   checkAll("Pickler[UserDetails]", PicklerTests[UserDetails].pickler)

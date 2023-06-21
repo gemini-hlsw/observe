@@ -6,21 +6,20 @@ package observe.web.client.components.sequence.steps
 import scala.math.max
 
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.util.Enumerated
-import monocle.macros.Lenses
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.modules.progress.Progress
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
 import observe.web.client.model.AlignAndCalibStep
-import observe.web.client.model.AlignAndCalibStep._
+import observe.web.client.model.AlignAndCalibStep.*
 import observe.web.client.model.StepItems.StepStateSummary
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class ACProgressBar(
   step:  AlignAndCalibStep,
@@ -30,8 +29,7 @@ final case class ACProgressBar(
 object ACProgressBar {
   type Props = ACProgressBar
 
-  @Lenses
-  final case class State(counter: Int, msg: String)
+    final case class State(counter: Int, msg: String)
 
   object State {
     def initialStateFromProps(p: Props): State =
@@ -41,11 +39,11 @@ object ACProgressBar {
       }
   }
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
-  implicit val stateReuse: Reusability[State] = Reusability.derive[State]
+  given Reusability[Props] = Reusability.derive[Props]
+  given Reusability[State] = Reusability.derive[State]
 
   val acSteps                                   = Enumerated[AlignAndCalibStep]
-  implicit val showACS: Show[AlignAndCalibStep] = Show.show {
+  given Show[AlignAndCalibStep] = Show.show {
     case NoAction           => ""
     case StartGuiding       => "Start Guiding"
     case StopGuiding        => "Stop Guiding"
@@ -98,7 +96,7 @@ object ACProgressBar {
       )(s"Align and Calib: $msg")
     }
     .getDerivedStateFromProps((p, s) =>
-      (State.counter.modify(_ + 1) >>> State.msg.replace(p.step.show))(s)
+      (State.counter.modify(_ + 1) >>> Focus[State](_.msg).replace(p.step.show))(s)
     )
     .configure(Reusability.shouldComponentUpdate)
     .build
@@ -117,7 +115,7 @@ final case class AlignAndCalibProgress(state: StepStateSummary)
 object AlignAndCalibProgress {
   type Props = AlignAndCalibProgress
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]("AlignAndCalibProgress")

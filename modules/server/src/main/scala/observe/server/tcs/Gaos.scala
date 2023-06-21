@@ -5,7 +5,7 @@ package observe.server.tcs
 
 import cats.Eq
 import cats.Show
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos.PauseCondition.FixedPauseCondition
@@ -51,11 +51,11 @@ object Gaos {
     // Instrument config (affects ODGW)
     case object InstConfigMove extends FixedPauseCondition
 
-    implicit val offsetMoveEq: Eq[OffsetMove] = Eq.by(_.to)
+    given Eq[OffsetMove] = Eq.by(_.to)
 
-    implicit val fixedPauseReasonEq: Eq[FixedPauseCondition] = Eq.fromUniversalEquals
+    given Eq[FixedPauseCondition] = Eq.fromUniversalEquals
 
-    implicit val pauseReasonEq: Eq[PauseCondition] = Eq.instance {
+    given Eq[PauseCondition] = Eq.instance {
       case (a: OffsetMove, b: OffsetMove)                   => a === b
       case (a: FixedPauseCondition, b: FixedPauseCondition) => a === b
       case _                                                => false
@@ -91,9 +91,9 @@ object Gaos {
 
     val empty: PauseConditionSet = PauseConditionSet(None, Set.empty)
 
-    implicit val pauseConditionSetEq: Eq[PauseConditionSet] = Eq.by(x => (x.offsetO, x.fixed))
+    given Eq[PauseConditionSet] = Eq.by(x => (x.offsetO, x.fixed))
 
-    implicit val pauseConditionSetShow: Show[PauseConditionSet] =
+    given Show[PauseConditionSet] =
       Show.show(x => (x.offsetO.toList ++ x.fixed.toList).mkString("(", ", ", ")"))
 
   }
@@ -115,9 +115,9 @@ object Gaos {
     // Instrument config (affects ODGW)
     case object InstConfigCompleted extends FixedResumeCondition
 
-    implicit val offsetReachedEq: Eq[OffsetReached] = Eq.by(_.newOffset)
+    given Eq[OffsetReached] = Eq.by(_.newOffset)
 
-    implicit val fixedResumeReasonEq: Eq[FixedResumeCondition] = Eq.instance {
+    given Eq[FixedResumeCondition] = Eq.instance {
       case (OiOn, OiOn)                               => true
       case (P1On, P1On)                               => true
       case (GaosGuideOn, GaosGuideOn)                 => true
@@ -125,7 +125,7 @@ object Gaos {
       case _                                          => false
     }
 
-    implicit val resumeReasonEq: Eq[ResumeCondition] = Eq.instance {
+    given Eq[ResumeCondition] = Eq.instance {
       case (a: OffsetReached, b: OffsetReached)               => a === b
       case (a: FixedResumeCondition, b: FixedResumeCondition) => a === b
       case _                                                  => false
@@ -160,9 +160,9 @@ object Gaos {
 
     val empty: ResumeConditionSet = ResumeConditionSet(None, Set.empty)
 
-    implicit val resumeConditionSetEq: Eq[ResumeConditionSet] = Eq.by(x => (x.offsetO, x.fixed))
+    given Eq[ResumeConditionSet] = Eq.by(x => (x.offsetO, x.fixed))
 
-    implicit val resumeConditionSetShow: Show[ResumeConditionSet] =
+    given Show[ResumeConditionSet] =
       Show.show(x => (x.offsetO.toList ++ x.fixed.toList).mkString("(", ", ", ")"))
 
   }

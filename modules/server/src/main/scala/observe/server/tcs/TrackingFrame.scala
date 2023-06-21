@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 
 sealed trait TrackingFrame
 

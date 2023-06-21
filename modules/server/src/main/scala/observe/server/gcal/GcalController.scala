@@ -5,8 +5,8 @@ package observe.server.gcal
 
 import cats.Eq
 import cats.Show
-import cats.syntax.all._
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+import cats.syntax.all.*
+import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
 
 trait GcalController[F[_]] {
 
@@ -25,7 +25,7 @@ object GcalController {
 
     case object On extends LampState
 
-    implicit val eq: Eq[LampState] =
+    given Eq[LampState] =
       Eq.fromUniversalEquals
 
   }
@@ -33,57 +33,57 @@ object GcalController {
   final case class ArLampState(self: LampState)
 
   object ArLampState {
-    implicit val eq: Eq[ArLampState] =
+    given Eq[ArLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class CuArLampState(self: LampState)
 
   object CuArLampState {
-    implicit val eq: Eq[CuArLampState] =
+    given Eq[CuArLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class QH5WLampState(self: LampState)
 
   object QH5WLampState {
-    implicit val eq: Eq[QH5WLampState] =
+    given Eq[QH5WLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class QH100WLampState(self: LampState)
 
   object QH100WLampState {
-    implicit val eq: Eq[QH100WLampState] =
+    given Eq[QH100WLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class ThArLampState(self: LampState)
 
   object ThArLampState {
-    implicit val eq: Eq[ThArLampState] =
+    given Eq[ThArLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class XeLampState(self: LampState)
 
   object XeLampState {
-    implicit val eq: Eq[XeLampState] =
+    given Eq[XeLampState] =
       Eq[LampState].contramap(_.self)
   }
 
   final case class IrLampState(self: LampState)
 
   object IrLampState {
-    implicit val eq: Eq[IrLampState] =
+    given Eq[IrLampState] =
       Eq[LampState].contramap(_.self)
   }
 
-  type Shutter = edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+  type Shutter = GcalShutter
 
-  type Filter = edu.gemini.spModel.gemini.calunit.CalUnitParams.Filter
+  type Filter = GcalFilter
 
-  type Diffuser = edu.gemini.spModel.gemini.calunit.CalUnitParams.Diffuser
+  type Diffuser = GcalDiffuser
 
   sealed trait GcalConfig {
     val lampAr: ArLampState
@@ -124,7 +124,7 @@ object GcalController {
       override val lampThAr: ThArLampState      = ThArLampState(LampState.Off)
       override val lampXe: XeLampState          = XeLampState(LampState.Off)
       override val lampIrO: Option[IrLampState] = IrLampState(LampState.Off).some
-      override val shutter: Shutter             = Shutter.CLOSED
+      override val shutter: Shutter             = GcalShutter.Closed
       override val filterO: Option[Filter]      = none
       override val diffuserO: Option[Diffuser]  = none
     }
@@ -138,14 +138,14 @@ object GcalController {
       override val lampThAr: ThArLampState      = ThArLampState(LampState.Off)
       override val lampXe: XeLampState          = XeLampState(LampState.Off)
       override val lampIrO: Option[IrLampState] = none
-      override val shutter: Shutter             = Shutter.CLOSED
+      override val shutter: Shutter             = GcalShutter.Closed
       override val filterO: Option[Filter]      = none
       override val diffuserO: Option[Diffuser]  = none
     }
 
   }
 
-  implicit val gcalConfigShow: Show[GcalConfig] = Show.show(config =>
+  given Show[GcalConfig] = Show.show(config =>
     List(
       s"lampAr = ${config.lampAr}",
       s"lampCuar = ${config.lampCuAr}",

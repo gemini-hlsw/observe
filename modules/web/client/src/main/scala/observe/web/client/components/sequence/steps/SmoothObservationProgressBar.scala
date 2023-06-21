@@ -3,17 +3,17 @@
 
 package observe.web.client.components.sequence.steps
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.modules.progress.Progress
 import observe.model.ObserveStage
 import observe.web.client.components.ObserveStyles
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 final case class SmoothObservationProgressBar(
   fileId:   String,
@@ -34,7 +34,7 @@ object SmoothObservationProgressBar
     with ProgressLabel {
   type Props = SmoothObservationProgressBar
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   protected val component = ScalaComponent
     .builder[Props]

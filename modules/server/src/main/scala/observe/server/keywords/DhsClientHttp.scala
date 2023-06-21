@@ -6,27 +6,27 @@ package observe.server.keywords
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.FlatMap
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import io.circe.Decoder
 import io.circe.DecodingFailure
 import io.circe.Encoder
 import io.circe.Json
-import io.circe.syntax._
+import io.circe.syntax.*
 import lucuma.core.enums.DhsKeywordName
-import org.http4s._
-import org.http4s.circe._
+import org.http4s.*
+import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
-import org.http4s.dsl.io._
-import observe.model.dhs._
+import org.http4s.dsl.io.*
+import observe.model.dhs.*
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
 import observe.server.keywords.DhsClient.ImageParameters
@@ -35,7 +35,7 @@ import cats.effect.{Ref, Temporal}
 /**
  * Implementation of DhsClient that interfaces with the real DHS over the http interface
  */
-class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(implicit timer: Temporal[F])
+class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F])
     extends DhsClient[F]
     with Http4sClientDsl[F] {
   import DhsClientHttp._
@@ -171,7 +171,7 @@ object DhsClientHttp {
     override def toString = s"(${t.str}) $msg"
   }
 
-  def apply[F[_]](client: Client[F], uri: Uri)(implicit
+  def apply[F[_]](client: Client[F], uri: Uri)(using
     timer:                Temporal[F]
   ): DhsClient[F] =
     new DhsClientHttp[F](client, uri)

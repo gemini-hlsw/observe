@@ -5,27 +5,26 @@ package observe.web.client
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode._
 import monocle.Getter
 import monocle.Lens
-import monocle.macros.Lenses
 import observe.model.Observation
-import observe.model._
-import observe.model.enum._
-import observe.web.client.model.ModelOps._
-import observe.web.client.model._
+import observe.model.*
+import observe.model.enums.*
+import observe.web.client.model.ModelOps.*
+import observe.web.client.model.*
 import observe.web.client.model.lenses.firstScienceStepTargetNameT
 
 package object circuit {
   implicit def CircuitToOps[T <: AnyRef](c: Circuit[T]): CircuitOps[T] =
     new CircuitOps(c)
 
-  implicit def fastEq[A: Eq]: FastEq[A] = new FastEq[A] {
+  given [A: Eq]:FastEq[A] = new FastEq[A] {
     override def eqv(a: A, b: A): Boolean = a === b
   }
 
-  implicit def fastNelEq[A: Eq]: FastEq[NonEmptyList[A]] =
+  given [A: Eq]:FastEq[NonEmptyList[A]] =
     new FastEq[NonEmptyList[A]] {
       override def eqv(a: NonEmptyList[A], b: NonEmptyList[A]): Boolean =
         a === b
@@ -55,11 +54,10 @@ package circuit {
 
   // All these classes are focused views of the root model. They are used to only update small sections of the
   // UI even if other parts of the root model change
-  @Lenses
-  final case class SequencesFocus(sequences: SequencesQueue[SequenceView], sod: SequencesOnDisplay)
+    final case class SequencesFocus(sequences: SequencesQueue[SequenceView], sod: SequencesOnDisplay)
 
   object SequencesFocus {
-    implicit val eq: Eq[SequencesFocus] =
+    given Eq[SequencesFocus] =
       Eq.by(x => (x.sequences, x.sod))
 
     val sequencesFocusL: Lens[ObserveAppRootModel, SequencesFocus] =
@@ -71,15 +69,14 @@ package circuit {
 
   }
 
-  @Lenses
-  final case class SODLocationFocus(
+    final case class SODLocationFocus(
     location: Pages.ObservePages,
     sod:      SequencesOnDisplay,
     clientId: Option[ClientId]
   )
 
   object SODLocationFocus {
-    implicit val eq: Eq[SODLocationFocus] =
+    given Eq[SODLocationFocus] =
       Eq.by(x => (x.location, x.sod, x.clientId))
 
     val sodLocationFocusL: Lens[ObserveAppRootModel, SODLocationFocus] =
@@ -93,8 +90,7 @@ package circuit {
       )
   }
 
-  @Lenses
-  final case class InitialSyncFocus(
+    final case class InitialSyncFocus(
     location:     Pages.ObservePages,
     sod:          SequencesOnDisplay,
     displayNames: Map[String, String],
@@ -102,7 +98,7 @@ package circuit {
   )
 
   object InitialSyncFocus {
-    implicit val eq: Eq[InitialSyncFocus] =
+    given Eq[InitialSyncFocus] =
       Eq.by(x => (x.location, x.sod, x.firstLoad))
 
     val initialSyncFocusL: Lens[ObserveUIModel, InitialSyncFocus] =
@@ -126,14 +122,14 @@ package circuit {
   )
 
   object SequenceInfoFocus {
-    implicit val eq: Eq[SequenceInfoFocus] =
+    given Eq[SequenceInfoFocus] =
       Eq.by(x => (x.canOperate, x.obsName, x.status, x.targetName))
 
     def sequenceInfoG(
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceInfoFocus]] = {
       val getter =
-        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
+        Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(getter) >>> {
         case (status, Some(ObserveTabActive(tab, _))) =>
           val targetName =
@@ -158,7 +154,7 @@ package circuit {
   )
 
   object StatusAndStepFocus {
-    implicit val eq: Eq[StatusAndStepFocus] =
+    given Eq[StatusAndStepFocus] =
       Eq.by(x =>
         (x.canOperate, x.instrument, x.obsId, x.stepConfigDisplayed, x.totalSteps, x.isPreview)
       )
@@ -167,7 +163,7 @@ package circuit {
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[StatusAndStepFocus]] = {
       val getter =
-        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
+        Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(getter) >>> { case (canOperate, st) =>
         st.map { case ObserveTabActive(tab, _) =>
           StatusAndStepFocus(canOperate,
@@ -182,8 +178,7 @@ package circuit {
     }
   }
 
-  @Lenses
-  final case class ControlModel(
+    final case class ControlModel(
     idName:              Observation.IdName,
     isPartiallyExecuted: Boolean,
     nextStepToRunIndex:  Option[Int],
@@ -192,7 +187,7 @@ package circuit {
   )
 
   object ControlModel {
-    implicit val eq: Eq[ControlModel] =
+    given Eq[ControlModel] =
       Eq.by(x => (x.idName, x.isPartiallyExecuted, x.nextStepToRunIndex, x.status, x.tabOperations))
 
     val controlModelG: Getter[SequenceTab, ControlModel] =
@@ -206,8 +201,7 @@ package circuit {
       )
   }
 
-  @Lenses
-  final case class SequenceControlFocus(
+    final case class SequenceControlFocus(
     instrument:             Instrument,
     obsId:                  Observation.Id,
     systemOverrides:        SystemOverrides,
@@ -217,7 +211,7 @@ package circuit {
   )
 
   object SequenceControlFocus {
-    implicit val eq: Eq[SequenceControlFocus] =
+    given Eq[SequenceControlFocus] =
       Eq.by(x =>
         (x.instrument,
          x.obsId,
@@ -232,7 +226,7 @@ package circuit {
       id: Observation.Id
     ): Getter[ObserveAppRootModel, Option[SequenceControlFocus]] = {
       val tabGetter =
-        ObserveAppRootModel.sequencesOnDisplayL.andThen(SequencesOnDisplay.tabG(id))
+        Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
       ClientStatus.canOperateG.zip(tabGetter) >>> {
         case (status, Some(ObserveTabActive(tab, _))) =>
           SequenceControlFocus(tab.instrument,

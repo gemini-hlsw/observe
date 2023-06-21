@@ -6,14 +6,14 @@ package observe.web.client.model
 import cats.tests.CatsSuite
 import observe.model.Observation
 import scala.collection.immutable.SortedMap
-import observe.model.enum.Instrument
+import observe.model.enums.Instrument
 import observe.model.SequenceMetadata
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.SystemOverrides
-import observe.common.test._
+import observe.common.test.*
 
 /**
  * Tests Sequences on display class

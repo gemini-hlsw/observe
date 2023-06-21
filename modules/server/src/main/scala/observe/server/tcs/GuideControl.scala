@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import observe.server.EpicsCommand
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsEpics.ProbeFollowCmd
 import observe.server.tcs.TcsEpics.ProbeGuideCmd
 

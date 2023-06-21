@@ -3,33 +3,32 @@
 
 package observe.web.client.components
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats.Eq
-import cats.syntax.all._
-import japgolly.scalajs.react.ReactCats._
-import japgolly.scalajs.react.ReactMonocle._
-import japgolly.scalajs.react._
+import cats.syntax.all.*
+import japgolly.scalajs.react.ReactCats.*
+import japgolly.scalajs.react.ReactMonocle.*
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.StateSnapshot
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.util.Display
-import lucuma.ui.forms._
+import lucuma.ui.forms.*
 import lucuma.ui.input.InputFormat
-import monocle.macros.Lenses
 import observe.web.client.circuit.ObserveCircuit
-import react.common._
-import react.semanticui.collections.form._
+import react.common.*
+import react.semanticui.collections.form.*
 import react.semanticui.elements.segment.Segment
-import react.semanticui.widths._
+import react.semanticui.widths.*
 import observe.model.Operator
-import observe.model.enum.CloudCover
-import observe.model.enum.ImageQuality
-import observe.model.enum.SkyBackground
-import observe.model.enum.WaterVapor
-import observe.web.client.actions._
-import observe.web.client.circuit._
+import observe.model.enums.CloudCover
+import observe.model.enums.ImageQuality
+import observe.model.enums.SkyBackground
+import observe.model.enums.WaterVapor
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
 import observe.web.client.components.forms.FormLabel
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Container for a table with the steps
@@ -45,25 +44,24 @@ final case class HeadersSideBar(model: HeaderSideBarFocus)
  * Display to show headers per sequence
  */
 object HeadersSideBar {
-  implicit val eqHeadersSideBar: Eq[HeadersSideBar]    = Eq.by(_.model)
-  implicit val propsReuse: Reusability[HeadersSideBar] = Reusability.byEq
+  given Eq[HeadersSideBar]    = Eq.by(_.model)
+  given Reusability[HeadersSideBar] = Reusability.byEq
 
   private def conditionIntToString(v: Int): String = if (v === 100) "Any" else v.toString
 
-  implicit val showSkyBackground: Display[SkyBackground] =
+  given Display[SkyBackground] =
     Display.by(_.toInt.map(conditionIntToString).getOrElse("Unknown"), _.label)
 
-  implicit val displayWaterVapor: Display[WaterVapor] =
+  given Display[WaterVapor] =
     Display.by(_.toInt.map(conditionIntToString).getOrElse("Unknown"), _.label)
 
-  implicit val showCloudCover: Display[CloudCover] =
+  given Display[CloudCover] =
     Display.by(_.toInt.map(conditionIntToString).getOrElse("Unknown"), _.label)
 
-  implicit val showImageQuality: Display[ImageQuality] =
+  given Display[ImageQuality] =
     Display.by(_.toInt.map(conditionIntToString).getOrElse("Unknown"), _.label)
 
-  @Lenses
-  final case class State(
+    final case class State(
     operator:        Option[Operator],
     prevOperator:    Option[Operator],
     displayName:     Option[String],
@@ -74,9 +72,9 @@ object HeadersSideBar {
     def apply(operator: Option[Operator], displayName: Option[String]): State =
       State(operator, operator, displayName, displayName)
 
-    implicit val stateEquals: Eq[State] = Eq.by(s => (s.operator, s.displayName))
+    given Eq[State] = Eq.by(s => (s.operator, s.displayName))
 
-    implicit val stateReuse: Reusability[State] = Reusability.byEq
+    given Reusability[State] = Reusability.byEq
   }
 
   class Backend(val $ : BackendScope[HeadersSideBar, State]) extends TimerSupport {
@@ -209,14 +207,14 @@ object HeadersSideBar {
       sOpt.fold(State(operator, displayName)) { s =>
         Function.chain(
           List(
-            State.operator.replace(operator),
-            State.prevOperator.replace(operator)
+            Focus[State](_.operator).replace(operator),
+            Focus[State](_.prevOperator).replace(operator)
           ).some
             .filter(_ => (operator =!= s.prevOperator) && operator.nonEmpty)
             .orEmpty :::
             List(
-              State.displayName.replace(displayName),
-              State.prevDisplayName.replace(displayName)
+              Focus[State](_.displayName).replace(displayName),
+              Focus[State](_.prevDisplayName).replace(displayName)
             ).some
               .filter(_ => (displayName =!= s.prevDisplayName) && displayName.nonEmpty)
               .orEmpty

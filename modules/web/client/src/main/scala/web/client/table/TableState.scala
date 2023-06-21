@@ -9,16 +9,16 @@ import scala.math.min
 
 import cats.Eq
 import cats.data.NonEmptyList
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.facade.JsNumber
 import monocle.Lens
 import monocle.Optional
-import monocle.function.Each._
-import monocle.function.Index._
-import react.common._
-import react.virtualized._
-import web.client.JsNumberOps._
+import monocle.function.Each.*
+import monocle.function.Index.*
+import react.common.*
+import react.virtualized.*
+import web.client.JsNumberOps.*
 
 /**
  * State of a table
@@ -37,7 +37,7 @@ final case class TableState[A: Eq](
       .columns[A]
       .andThen(nelEach[ColumnMeta[A]].each)
       .modify { c =>
-        ColumnMeta.visible.replace(visibleFilter(c.column))(c)
+        Focus[ColumnMeta](_.visible).replace(visibleFilter(c.column))(c)
       }(this)
 
   // width set aside for fixed width columns
@@ -134,7 +134,7 @@ final case class TableState[A: Eq](
         case None    => cols
         case Some(x) =>
           val updatedCols = cols.map {
-            case c if x.column === c.column => ColumnMeta.visible.replace(false)(c)
+            case c if x.column === c.column => Focus[ColumnMeta](_.visible).replace(false)(c)
             case c                          => c
           }
           discardUntilUnder(calculatedWidth, updatedCols, allowedWidth)
@@ -307,10 +307,10 @@ object TableState {
 
   def NoInitialWidth[A]: A => Option[Double] = _ => None
 
-  implicit def eqTs[A: Eq]: Eq[TableState[A]] =
+  given [A: Eq]:Eq[TableState[A]] =
     Eq.by(x => (x.userModified, x.scrollPosition.toDouble, x.columns))
 
-  implicit val eqSize: Eq[Size] =
+  given Eq[Size] =
     Eq.by(x => (x.width.toDouble, x.height.toDouble))
 
   def userModified[A: Eq]: Lens[TableState[A], UserModified] =

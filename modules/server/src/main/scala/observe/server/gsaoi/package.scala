@@ -11,5 +11,5 @@ package gsaoi {
 }
 
 package object gsaoi {
-  implicit val dhsConnectedEq: Eq[DhsConnected] = Eq.by(_.ordinal)
+  given Eq[DhsConnected] = Eq.by(_.ordinal)
 }

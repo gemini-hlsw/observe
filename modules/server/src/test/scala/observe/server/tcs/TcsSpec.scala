@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 

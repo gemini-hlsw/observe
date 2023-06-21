@@ -8,8 +8,8 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.virtualized._
+import react.common.*
+import react.virtualized.*
 
 final case class TableContainer(
   hasControls: Boolean,
@@ -23,7 +23,7 @@ final case class TableContainer(
 object TableContainer {
   type Props = TableContainer
 
-  implicit val reuse: Reusability[Props] = Reusability.never
+  given Reusability[Props] = Reusability.never
 
   private val component = ScalaComponent
     .builder[Props]("TableContainer")

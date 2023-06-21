@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.common
@@ -6,8 +6,7 @@ package observe.common
 import cats.kernel.laws.discipline.EqTests
 import cats.laws.discipline.{FoldableTests, FunctorTests, TraverseTests}
 import cats.tests.CatsSuite
-import observe.common.ArbitrariesCommon.arbFixedLengthBuffer
-import observe.common.ArbitrariesCommon.fixedLengthBufferCogen
+import observe.common.ArbitrariesCommon.given
 
 /**
  * Tests the Monocle Lenses for Observe Events

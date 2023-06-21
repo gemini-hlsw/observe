@@ -7,27 +7,27 @@ import cats.Applicative
 import cats.MonadError
 import cats.data.EitherT
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.data.YesNoType
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.IS_MOS_PREIMAGING_PROP
 import edu.gemini.spModel.gemini.gmos.InstGmosCommon.USE_NS_PROP
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import monocle.Getter
-import observe.model.enum.NodAndShuffleStage
-import observe.model.enum.NodAndShuffleStage.StageA
-import observe.model.enum.NodAndShuffleStage.StageB
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.NodAndShuffleStage.StageA
+import observe.model.enums.NodAndShuffleStage.StageB
 import observe.server.CleanConfig
 import observe.server.CleanConfig.extractItem
 import observe.server.ConfigUtilOps
-import observe.server.ConfigUtilOps._
+import observe.server.ConfigUtilOps.*
 import observe.server.ObserveFailure
 import observe.server.gmos.GmosEpics.RoiStatus
-import observe.server.keywords._
+import observe.server.keywords.*
 
 final case class RoiValues(xStart: Int, xSize: Int, yStart: Int, ySize: Int)
 
-final case class GmosObsKeywordsReader[F[_]: MonadError[*[_], Throwable]](config: CleanConfig) {
+final case class GmosObsKeywordsReader[F[_]: MonadThrow](config: CleanConfig) {
   import GmosObsKeywordsReader._
 
   private implicit val BooleanDefaultValue: DefaultHeaderValue[Boolean] =
@@ -63,13 +63,13 @@ final case class GmosObsKeywordsReader[F[_]: MonadError[*[_], Throwable]](config
           )
       )
 
-  def nodAxOff: F[Double] = extractOffset(StageA, Offset.p.asGetter.andThen(Offset.P.angle))
+  def nodAxOff: F[Double] = extractOffset(StageA, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
 
-  def nodAyOff: F[Double] = extractOffset(StageA, Offset.q.asGetter.andThen(Offset.Q.angle))
+  def nodAyOff: F[Double] = extractOffset(StageA, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
 
-  def nodBxOff: F[Double] = extractOffset(StageB, Offset.p.asGetter.andThen(Offset.P.angle))
+  def nodBxOff: F[Double] = extractOffset(StageB, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
 
-  def nodByOff: F[Double] = extractOffset(StageB, Offset.q.asGetter.andThen(Offset.Q.angle))
+  def nodByOff: F[Double] = extractOffset(StageB, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
 
   def isNS: F[Boolean] =
     config.extractInstAs[java.lang.Boolean](USE_NS_PROP).map(_.booleanValue).explainExtractError[F]
@@ -81,8 +81,8 @@ final case class GmosObsKeywordsReader[F[_]: MonadError[*[_], Throwable]](config
 
 object GmosObsKeywordsReader {
 
-  private implicit class ExplainExtractError[A](v: Either[ExtractFailure, A]) {
-    def explainExtractError[F[_]: MonadError[*[_], Throwable]]: F[A] =
+  privateextension [A](v: Either[ExtractFailure, A]) {
+    def explainExtractError[F[_]: MonadThrow]: F[A] =
       EitherT(v.pure[F])
         .leftMap(e => ObserveFailure.Unexpected(ConfigUtilOps.explain(e)))
         .widenRethrowT[Throwable]

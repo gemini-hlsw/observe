@@ -5,9 +5,9 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.server.gsaoi.GsaoiEpics
-import observe.server.keywords._
+import observe.server.keywords.*
 
 trait GemsKeywordReader[F[_]] {
   def sadc: F[String]

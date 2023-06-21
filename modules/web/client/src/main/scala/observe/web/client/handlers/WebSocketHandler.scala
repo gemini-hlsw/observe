@@ -6,14 +6,14 @@ package observe.web.client.handlers
 import java.time.Instant
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-import scala.scalajs.js.timers._
+import scala.scalajs.js.timers.*
 import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.scalajs.js.typedarray.TypedArrayBuffer
 
 import boopickle.Default.Unpickle
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.Action
 import diode.ActionHandler
 import diode.ActionResult
@@ -24,14 +24,14 @@ import diode.data.Pending
 import diode.data.Pot
 import diode.data.Ready
 import diode.util.RunAfterJS
-import mouse.all._
-import org.scalajs.dom._
+import mouse.all.*
+import org.scalajs.dom.*
 import observe.model.boopickle.ModelBooPicklers
-import observe.model.enum.ServerLogLevel
-import observe.model.events._
-import observe.web.client.actions._
-import observe.web.client.circuit._
-import observe.web.client.model._
+import observe.model.enums.ServerLogLevel
+import observe.model.events.*
+import observe.web.client.actions.*
+import observe.web.client.circuit.*
+import observe.web.client.model.*
 import typings.loglevel.mod.{^ => logger}
 
 /**

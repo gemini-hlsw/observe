@@ -1,36 +1,36 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package io.chrisdavenport.cats.time.instances
 
-import java.time._
+import java.time.*
 
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary.arbitrary
 
 object TimeArbitraries {
 
-  implicit def functionArbitrary[B, A: Arbitrary]: Arbitrary[B => A] = Arbitrary {
+  given [B, A: Arbitrary]: Arbitrary[B => A] = Arbitrary {
     for {
       a <- Arbitrary.arbitrary[A]
-    } yield { _: B => a }
+    } yield { (_: B) => a }
   }
 
-  implicit val arbitraryZoneId: Arbitrary[ZoneId] = Arbitrary {
+  given Arbitrary[ZoneId] = Arbitrary {
     import scala.jdk.CollectionConverters._
     Gen.oneOf(ZoneId.getAvailableZoneIds.asScala.map(ZoneId.of).toSeq)
   }
 
-  implicit val arbitraryZoneOffset: Arbitrary[ZoneOffset] = Arbitrary {
+  given Arbitrary[ZoneOffset] = Arbitrary {
     // Range is specified in `ofTotalSeconds` javadoc.
     Gen.choose(-64800, 64800).map(ZoneOffset.ofTotalSeconds)
   }
 
-  implicit val arbitraryInstant: Arbitrary[Instant] = Arbitrary(
+  given Arbitrary[Instant] = Arbitrary(
     Gen.choose(Instant.MIN.getEpochSecond, Instant.MAX.getEpochSecond).map(Instant.ofEpochSecond)
   )
 
-  implicit val arbitraryPeriod: Arbitrary[Period] = Arbitrary(
+  given Arbitrary[Period] = Arbitrary(
     for {
       years  <- arbitrary[Int]
       months <- arbitrary[Int]
@@ -38,57 +38,57 @@ object TimeArbitraries {
     } yield Period.of(years, months, days)
   )
 
-  implicit val arbitraryLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary(
+  given Arbitrary[LocalDateTime] = Arbitrary(
     for {
       instant <- arbitrary[Instant]
       zoneId  <- arbitrary[ZoneId]
     } yield LocalDateTime.ofInstant(instant, zoneId)
   )
 
-  implicit val arbitraryZonedDateTime: Arbitrary[ZonedDateTime] = Arbitrary(
+  given Arbitrary[ZonedDateTime] = Arbitrary(
     for {
       instant <- arbitrary[Instant]
       zoneId  <- arbitrary[ZoneId]
     } yield ZonedDateTime.ofInstant(instant, zoneId)
   )
 
-  implicit val arbitraryOffsetDateTime: Arbitrary[OffsetDateTime] = Arbitrary(
+  given Arbitrary[OffsetDateTime] = Arbitrary(
     for {
       instant <- arbitrary[Instant]
       zoneId  <- arbitrary[ZoneId]
     } yield OffsetDateTime.ofInstant(instant, zoneId)
   )
 
-  implicit val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary(
+  given Arbitrary[LocalDate] = Arbitrary(
     arbitrary[LocalDateTime].map(_.toLocalDate)
   )
 
-  implicit val arbitraryLocalTime: Arbitrary[LocalTime] = Arbitrary(
+  given Arbitrary[LocalTime] = Arbitrary(
     arbitrary[LocalDateTime].map(_.toLocalTime)
   )
 
-  implicit val arbitraryOffsetTime: Arbitrary[OffsetTime] = Arbitrary(
+  given Arbitrary[OffsetTime] = Arbitrary(
     arbitrary[OffsetDateTime].map(_.toOffsetTime)
   )
 
-  implicit val arbitraryYearMonth: Arbitrary[YearMonth] = Arbitrary(
+  given Arbitrary[YearMonth] = Arbitrary(
     arbitrary[LocalDateTime].map(ldt => YearMonth.of(ldt.getYear, ldt.getMonth))
   )
 
-  implicit val arbitraryYear: Arbitrary[Year] = Arbitrary(
+  given Arbitrary[Year] = Arbitrary(
     arbitrary[LocalDateTime].map(ldt => Year.of(ldt.getYear))
   )
 
-  implicit val arbitraryDuration: Arbitrary[Duration] = Arbitrary(
+  given Arbitrary[Duration] = Arbitrary(
     for {
       first  <- arbitrary[Instant]
       second <- arbitrary[Instant]
     } yield Duration.between(first, second)
   )
 
-  implicit val arbitraryMonthDay: Arbitrary[MonthDay] = Arbitrary(
+  given Arbitrary[MonthDay] = Arbitrary(
     arbitrary[LocalDateTime].map(ldt => MonthDay.of(ldt.getMonth, ldt.getDayOfMonth))
   )
 
-  implicit val arbitraryMonth: Arbitrary[Month] = Arbitrary(arbitrary[MonthDay].map(_.getMonth))
+  given Arbitrary[Month] = Arbitrary(arbitrary[MonthDay].map(_.getMonth))
 }

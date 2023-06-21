@@ -4,22 +4,18 @@
 package observe.server.gcal
 
 import java.util.concurrent.TimeUnit.SECONDS
-
 import scala.concurrent.duration.FiniteDuration
-
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.gcal.BinaryOnOff
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Diffuser
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Filter
-import edu.gemini.spModel.gemini.calunit.CalUnitParams.Shutter
+import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
 import org.typelevel.log4cats.Logger
-import observe.server.EpicsCodex._
+import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil.applyParam
 import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
-import observe.server.gcal.GcalController._
+import observe.server.gcal.GcalController.*
 
 object GcalControllerEpics {
   // Default value from Tcl Observe
@@ -33,26 +29,26 @@ object GcalControllerEpics {
     }
 
   implicit private val encodeShutter: EncodeEpicsValue[Shutter, String] = EncodeEpicsValue {
-    case Shutter.OPEN   => "OPEN"
-    case Shutter.CLOSED => "CLOSE"
+    case GcalShutter.Open   => "OPEN"
+    case GcalShutter.Closed => "CLOSE"
   }
 
   implicit private val encodeFilter: EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
-    case Filter.NONE  => "CLEAR"
-    case Filter.GMOS  => "GMOS"
-    case Filter.HROS  => "HROS"
-    case Filter.NIR   => "NIR"
-    case Filter.ND_10 => "ND1.0"
-    case Filter.ND_20 => "ND2.0"
-    case Filter.ND_30 => "ND3.0"
-    case Filter.ND_40 => "ND4.0"
-    case Filter.ND_45 => "ND4-5"
-    case _            => "CLEAR"
+    case GcalFilter.None => "CLEAR"
+    case GcalFilter.Gmos => "GMOS"
+    case GcalFilter.Hros => "HROS"
+    case GcalFilter.Nir  => "NIR"
+    case GcalFilter.Nd10 => "ND1.0"
+    case GcalFilter.Nd20 => "ND2.0"
+    case GcalFilter.Nd30 => "ND3.0"
+    case GcalFilter.Nd40 => "ND4.0"
+    case GcalFilter.Nd45 => "ND4-5"
+    case _               => "CLEAR"
   }
 
   implicit private val encodeDiffuser: EncodeEpicsValue[Diffuser, String] = EncodeEpicsValue {
-    case Diffuser.IR      => "IR"
-    case Diffuser.VISIBLE => "VISIBLE"
+    case GcalDiffuser.Ir      => "IR"
+    case GcalDiffuser.Visible => "VISIBLE"
   }
 
   private def setArLampParams[F[_]: Async](sys: GcalEpics[F])(v: BinaryOnOff): F[Unit] =
@@ -127,7 +123,7 @@ object GcalControllerEpics {
   )
 
   def configure[F[_]: Async](epics: GcalEpics[F], current: EpicsGcalConfig, demand: GcalConfig)(
-    implicit L:                     Logger[F]
+    using L:                     Logger[F]
   ): F[Unit] = {
     val params: List[F[Unit]] = List(
       applyParam(current.lampAr, encode(demand.lampAr.self), setArLampParams(epics)),

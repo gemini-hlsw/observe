@@ -3,20 +3,19 @@
 
 package observe.web.client.components.sequence.steps
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.math.max
 import scala.math.min
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.BackendScope
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.CtorType
-import japgolly.scalajs.react.ReactMonocle._
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.extra.TimerSupport
-import monocle.macros.Lenses
-import react.common._
+import react.common.*
 
 abstract class SmoothProgressBarProps[A](
   override val component: Scala.Component[A, _, _, CtorType.Props]
@@ -28,8 +27,7 @@ abstract class SmoothProgressBarProps[A](
 }
 
 trait SmoothProgressBar[P <: SmoothProgressBarProps[P]] {
-  @Lenses
-  protected case class State(value: Int, prevStopping: Boolean, prevPaused: Boolean)
+    protected case class State(value: Int, prevStopping: Boolean, prevPaused: Boolean)
 
   protected object State {
     def fromProps(p: P): State = State(p.value, p.stopping, p.paused)

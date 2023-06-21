@@ -4,20 +4,20 @@
 package observe.web.client.components
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.common.implicits._
+import react.common.*
+import react.common.implicits.*
 import react.semanticui.elements.header.Header
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.MountGuideOption
-import observe.web.client.reusability._
+import observe.model.enums.ComaOption
+import observe.model.enums.MountGuideOption
+import observe.web.client.reusability.*
 
 final case class GuideConfigStatus(config: TelescopeGuideConfig)
     extends ReactProps[GuideConfigStatus](GuideConfigStatus.component)
@@ -43,7 +43,7 @@ object GuideConfigStatus {
     case M1GuideConfig.M1GuideOff   => "Off"
   }
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   private val component = ScalaComponent
     .builder[Props]("GuideConfigStatus")

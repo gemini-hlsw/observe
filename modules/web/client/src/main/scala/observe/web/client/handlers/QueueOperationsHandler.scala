@@ -6,13 +6,13 @@ package observe.web.client.handlers
 import scala.concurrent.Future
 import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.Effect
 import diode.ModelRW
 import observe.model.Notification.RequestFailed
-import observe.web.client.actions._
+import observe.web.client.actions.*
 import observe.web.client.model.AddDayCalOperation
 import observe.web.client.model.CalibrationQueues
 import observe.web.client.model.ClearAllCalOperation

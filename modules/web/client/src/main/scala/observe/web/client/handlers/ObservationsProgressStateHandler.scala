@@ -5,7 +5,7 @@ package observe.web.client.handlers
 
 import scala.concurrent.duration.Duration
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
@@ -15,14 +15,14 @@ import observe.model.ObservationProgress
 import observe.model.ObserveStage
 import observe.model.Progress
 import observe.model.Step
-import observe.model.enum.ActionStatus
+import observe.model.enums.ActionStatus
 import observe.model.events.ObservationProgressEvent
 import observe.model.events.ObserveModelUpdate
 import observe.model.events.SequenceAborted
 import observe.model.events.SequenceError
 import observe.model.events.StepExecuted
-import observe.web.client.actions._
-import observe.web.client.model._
+import observe.web.client.actions.*
+import observe.web.client.model.*
 import observe.web.client.model.lenses.sequenceStepT
 import observe.web.client.model.lenses.sequenceViewT
 import squants.time.Time

@@ -4,12 +4,12 @@
 package observe.web.client.components
 
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import observe.web.client.circuit._
-import observe.web.client.model.Pages._
+import react.common.*
+import observe.web.client.circuit.*
+import observe.web.client.model.Pages.*
 
 /**
  * Container for the queue table
@@ -20,7 +20,7 @@ final case class SessionQueueTableSection(pages: RouterCtl[ObservePages])
 object SessionQueueTableSection {
   type Props = SessionQueueTableSection
 
-  implicit val propsReuse: Reusability[Props] = Reusability.by(_.pages)
+  given Reusability[Props] = Reusability.by(_.pages)
 
   private val sequencesConnect =
     ObserveCircuit.connect(ObserveCircuit.statusAndLoadedSequencesReader)

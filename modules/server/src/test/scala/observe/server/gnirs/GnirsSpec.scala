@@ -3,10 +3,10 @@
 
 package observe.server.gnirs
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
-import observe.server._
-import edu.gemini.spModel.gemini.gnirs.GNIRSParams._
+import observe.server.*
+import edu.gemini.spModel.gemini.gnirs.GNIRSParams.*
 
 /**
  * Tests GNIRS typeclasses

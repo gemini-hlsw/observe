@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -13,10 +13,10 @@ import observe.model.events.ObserveEvent
 package boopickle {
 
   trait BooPicklerSyntax {
-    implicit class PicklerPrismOps[A, B <: AnyRef](p: Prism[A, B])(implicit PA: Pickler[A]) {
+    extension [A, B <: AnyRef](p: Prism[A, B])(using PA: Pickler[A]) {
       def toPickler: Pickler[B] =
         new Pickler[B] {
-          override def pickle(obj: B)(implicit state: PickleState): Unit =
+          override def pickle(obj: B)(using state: PickleState): Unit =
             state.identityRefFor(obj) match {
               case Some(idx) =>
                 state.enc.writeInt(-idx)
@@ -29,7 +29,7 @@ package boopickle {
                 state.addIdentityRef(obj)
             }
 
-          override def unpickle(implicit state: UnpickleState): B =
+          override def unpickle(using state: UnpickleState): B =
             state.dec.readInt match {
               case idx if idx < 0 =>
                 state.identityFor[B](-idx)

@@ -3,38 +3,37 @@
 
 package observe.web.client.components.tabs
 
-import cats.syntax.all._
-import japgolly.scalajs.react.ReactMonocle._
+import cats.syntax.all.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react._
+import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import monocle.macros.Lenses
 import react.common.{Size => _, _}
-import react.semanticui.colors._
+import react.semanticui.colors.*
 import react.semanticui.elements.button.Button
-import react.semanticui.elements.icon._
+import react.semanticui.elements.icon.*
 import react.semanticui.elements.label.Label
 import react.semanticui.modules.popup.Popup
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.model.Observation
 import observe.model.Observer
 import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.model.SystemOverrides
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.web.client.actions.LoadSequence
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.AvailableTab
-import observe.web.client.model.Pages._
+import observe.web.client.model.Pages.*
 import observe.web.client.model.ResourceRunOperation
 import observe.web.client.model.TabSelected
-import observe.web.client.reusability._
-import observe.web.client.semanticui._
+import observe.web.client.reusability.*
+import observe.web.client.semanticui.*
 
 final case class SequenceTab(
   router:             RouterCtl[ObservePages],
@@ -48,12 +47,11 @@ final case class SequenceTab(
 object SequenceTab {
   type Props = SequenceTab
 
-  @Lenses
-  final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
+    final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.caseClassExcept[Props]("router")
-  implicit val stateReuse: Reusability[State] = Reusability.by(_.loading)
+  given Reusability[State] = Reusability.by(_.loading)
 
   type Backend = RenderScope[Props, State, Unit]
 
@@ -235,8 +233,8 @@ object SequenceTab {
           .filter(_ => preview && (id =!= newId || (wasLoading && !isLoading)))
           .toList :::
           List(
-            State.prevTabId.replace(newId),
-            State.prevTabLoading.replace(isLoading)
+            Focus[State](_.prevTabId).replace(newId),
+            Focus[State](_.prevTabLoading).replace(isLoading)
           )
       )(state)
     }

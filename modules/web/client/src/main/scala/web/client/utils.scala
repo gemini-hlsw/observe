@@ -3,7 +3,7 @@
 
 package web.client
 
-import japgolly.scalajs.react.ReactCats._
+import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.facade.JsNumber
 import org.scalajs.dom
@@ -28,5 +28,5 @@ trait utils {
 }
 
 object utils extends utils {
-  implicit val reuse: Reusability[JsNumber] = Reusability.byEq
+  given Reusability[JsNumber] = Reusability.byEq
 }

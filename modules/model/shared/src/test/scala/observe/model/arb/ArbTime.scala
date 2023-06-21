@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
@@ -6,16 +6,16 @@ package observe.model.arb
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import lucuma.core.arb.ArbTime.arbSDuration
-import squants.time._
+import squants.time.*
 
 trait ArbTime {
 
-  implicit val arbTime: Arbitrary[Time] =
+  given arbTime: Arbitrary[Time] =
     Arbitrary {
       arbSDuration.arbitrary.map(Time.apply)
     }
 
-  implicit val timeCogen: Cogen[Time] =
+  given timeCogen: Cogen[Time] =
     Cogen[Long]
       .contramap(_.millis)
 

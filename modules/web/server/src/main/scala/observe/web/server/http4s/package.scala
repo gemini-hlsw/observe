@@ -1,9 +1,9 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.web.server
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.http4s.QueryParamDecoder
 import org.http4s.dsl.impl.OptionalQueryParamDecoderMatcher
 import observe.model.ClientId
@@ -11,9 +11,9 @@ import observe.model.Observation
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.QueueId
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
-import observe.model.enum.RunOverride
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.RunOverride
 
 trait Var {
   object ObsIdVar {
@@ -72,7 +72,7 @@ trait Var {
 }
 
 trait QueryParams {
-  implicit val RunOverrideQueryParamDecoder: QueryParamDecoder[RunOverride] =
+  given QueryParamDecoder[RunOverride] =
     QueryParamDecoder[Boolean].map {
       case true => RunOverride.Override
       case _    => RunOverride.Default

@@ -6,16 +6,16 @@ package observe.web.client.components.sequence.steps
 import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import observe.model.{Observation, Step, StepId}
 import observe.web.client.actions.FlipBreakpointStep
 import observe.web.client.actions.FlipSkipStep
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 import observe.web.client.model.ClientStatus
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 /**
  * Component to display an icon for the state
@@ -34,7 +34,7 @@ final case class StepBreakStopCell(
 object StepBreakStopCell {
   type Props = StepBreakStopCell
 
-  implicit val propsReuse: Reusability[Props] =
+  given Reusability[Props] =
     Reusability.caseClassExcept[Props]("heightChangeCB", "breakPointEnterCB", "breakPointLeaveCB")
 
   // Request a to flip the breakpoint

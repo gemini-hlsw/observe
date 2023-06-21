@@ -5,17 +5,16 @@ package observe.server.tcs
 
 import cats.{Applicative, Eq}
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import monocle.{Getter, Lens}
-import monocle.macros.Lenses
-import observe.model.enum.ApplyCommandResult
-import observe.server.TestEpicsCommand._
+import observe.model.enums.ApplyCommandResult
+import observe.server.TestEpicsCommand.*
 import observe.server.EpicsCommand
-import observe.server.tcs.TcsEpics._
+import observe.server.tcs.TcsEpics.*
 import observe.server.tcs.TestTcsEpics.TestTcsEvent.{AoCorrectCmd, AoPrepareMatrix}
 import squants.Angle
-import squants.space.AngleConversions._
+import squants.space.AngleConversions.*
 
 import java.util.concurrent.TimeUnit.SECONDS
 import java.time.Duration
@@ -441,12 +440,12 @@ case class TestTcsEpics[F[_]: Async](
   override val oiwfsProbeGuideConfig: ProbeGuideConfig[F] =
     probeGuideConfigGetters(state, State.oiwfsProbeGuideConfig.asGetter)
 
-  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(implicit
+  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
     T:                                           Temporal[F]
   ): F[Unit] =
     Applicative[F].unit
 
-  override def waitAGInPosition(timeout: FiniteDuration)(implicit T: Temporal[F]): F[Unit] =
+  override def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit] =
     Applicative[F].unit
 
   override def hourAngle: F[String] = state.get.map(_.hourAngle)
@@ -772,8 +771,7 @@ case class TestTcsEpics[F[_]: Async](
 
 object TestTcsEpics {
 
-  @Lenses
-  case class State(
+    case class State(
     absorbTipTilt:             Int,
     m1GuideSource:             String,
     m1Guide:                   BinaryOnOff,
@@ -921,8 +919,7 @@ object TestTcsEpics {
     aoPrepareControlMatrixCmd: TestEpicsCommand2.State[Double, Double]
   )
 
-  @Lenses
-  final case class ProbeGuideConfigVals(
+    final case class ProbeGuideConfigVals(
     nodachopa: Int,
     nodachopb: Int,
     nodbchopa: Int,
@@ -933,8 +930,7 @@ object TestTcsEpics {
     val default: ProbeGuideConfigVals = ProbeGuideConfigVals(0, 0, 0, 0)
   }
 
-  @Lenses
-  final case class TargetVals(
+    final case class TargetVals(
     objectName:        String,
     ra:                Double,
     dec:               Double,
@@ -1036,7 +1032,7 @@ object TestTcsEpics {
     final case class AoCorrectCmd(correct: String, gains: Int)     extends TestTcsEvent
     final case class AoPrepareMatrix(aogsx: Double, aogsy: Double) extends TestTcsEvent
 
-    implicit val eqTestTcsEvPent: Eq[TestTcsEvent] = Eq.instance {
+    given Eq[TestTcsEvent] = Eq.instance {
       case (Pwfs1ParkCmd, Pwfs1ParkCmd)                                           => true
       case (Pwfs2ParkCmd, Pwfs2ParkCmd)                                           => true
       case (OiwfsParkCmd, OiwfsParkCmd)                                           => true

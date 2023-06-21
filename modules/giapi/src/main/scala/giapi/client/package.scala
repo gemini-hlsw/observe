@@ -1,15 +1,16 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats._
-import cats.effect._
+import cats.effect.*
 import cats.effect.std.Queue
-import cats.effect.implicits._
-import cats.syntax.all._
+import cats.effect.implicits.*
+import cats.syntax.all.*
+import scala.util.Try
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
 import edu.gemini.aspen.giapi.commands.SequenceCommand
 import edu.gemini.aspen.giapi.status.StatusHandler
@@ -22,8 +23,7 @@ import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
 import fs2.Stream
 import giapi.client.commands.Command
 import giapi.client.commands.CommandResultException
-import giapi.client.commands._
-import shapeless.Typeable._
+import giapi.client.commands.{*, given}
 import cats.effect.Temporal
 
 package object client {
@@ -31,13 +31,13 @@ package object client {
   /**
    * Allowed types according to GIAPI
    */
-  implicit val strItemGetter: ItemGetter[String] = new ItemGetter[String] {}
+  given ItemGetter[String] = new ItemGetter[String] {}
 
-  implicit val doubleItemGetter: ItemGetter[Double] = new ItemGetter[Double] {}
+  given ItemGetter[Double] = new ItemGetter[Double] {}
 
-  implicit val intItemGetter: ItemGetter[Int] = new ItemGetter[Int] {}
+  given ItemGetter[Int] = new ItemGetter[Int] {}
 
-  implicit val floatItemGetter: ItemGetter[Float] = new ItemGetter[Float] {}
+  given ItemGetter[Float] = new ItemGetter[Float] {}
 }
 
 package client {
@@ -50,18 +50,18 @@ package client {
   /**
    * Typeclass to present as evidence when calling `Giapi.get`
    */
-  sealed abstract class ItemGetter[A: shapeless.Typeable] {
+  sealed abstract class ItemGetter[A] {
 
     /**
      * Attempt to convert any value to A as sent by StatusHandler
      */
-    def value(p: Any): Option[A] = shapeless.Typeable[A].cast(p)
+    def value(p: Any): Option[A] = Try(p.asInstanceOf[A]).toOption
   }
 
   object ItemGetter {
 
     @inline
-    def apply[F](implicit instance: ItemGetter[F]): ItemGetter[F] = instance
+    def apply[F](using instance: ItemGetter[F]): ItemGetter[F] = instance
   }
 
   /**
@@ -255,9 +255,9 @@ package client {
      */
     def giapiConnectionId: GiapiConnection[Id] = new GiapiConnection[Id] {
       override def connect: Id[Giapi[Id]] = new Giapi[Id] {
-        override def get[A: ItemGetter](statusItem: String): Id[A]                         =
+        override def get[A: ItemGetter](statusItem: String): Id[A] =
           sys.error(s"Cannot read $statusItem")
-        override def getO[A: ItemGetter](statusItem: String): Id[Option[A]]                = None
+        override def getO[A: ItemGetter](statusItem: String): Id[Option[A]] = None
         override def stream[A: ItemGetter](statusItem: String): Id[Stream[Id, A]]          =
           sys.error(s"Cannot read $statusItem")
         override def command(command: Command, timeout: FiniteDuration): Id[CommandResult] =
@@ -269,14 +269,14 @@ package client {
     /**
      * Simulator interpreter on IO, Reading items will fail and all commands will succeed
      */
-    def simulatedGiapiConnection[F[_]](implicit
+    def simulatedGiapiConnection[F[_]](using
       T: Temporal[F],
       F: ApplicativeError[F, Throwable]
     ): GiapiConnection[F] = new GiapiConnection[F] {
       override def connect: F[Giapi[F]] = F.pure(new Giapi[F] {
-        override def get[A: ItemGetter](statusItem: String): F[A]                         =
+        override def get[A: ItemGetter](statusItem: String): F[A] =
           F.raiseError(new RuntimeException(s"Cannot read $statusItem"))
-        override def getO[A: ItemGetter](statusItem: String): F[Option[A]]                = F.pure(None)
+        override def getO[A: ItemGetter](statusItem: String): F[Option[A]] = F.pure(None)
         override def stream[A: ItemGetter](statusItem: String): F[Stream[F, A]]           =
           F.pure(Stream.empty.covary[F])
         override def command(command: Command, timeout: FiniteDuration): F[CommandResult] =

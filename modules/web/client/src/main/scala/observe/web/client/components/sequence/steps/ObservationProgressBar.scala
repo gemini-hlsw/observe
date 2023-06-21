@@ -4,13 +4,13 @@
 package observe.web.client.components.sequence.steps
 
 import scala.math.max
-import cats.syntax.all._
+import cats.syntax.all.*
 import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.modules.progress.Progress
 import observe.model.Observation
 import observe.model.ObservationProgress
@@ -19,7 +19,7 @@ import observe.model.StepId
 import observe.model.dhs.ImageFileId
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
-import observe.web.client.reusability._
+import observe.web.client.reusability.*
 
 trait ProgressLabel {
   def label(
@@ -72,7 +72,7 @@ final case class ObservationProgressBar(
 object ObservationProgressBar {
   type Props = ObservationProgressBar
 
-  implicit val propsReuse: Reusability[Props] = Reusability.derive[Props]
+  given Reusability[Props] = Reusability.derive[Props]
 
   val component: Component[Props, Unit, Unit, CtorType.Props] = ScalaComponent
     .builder[Props]("ObservationProgressDisplay")

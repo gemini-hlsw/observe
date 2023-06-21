@@ -3,18 +3,18 @@
 
 package observe.web.client.components.sequence.toolbars
 
-import cats.syntax.all._
+import cats.syntax.all.*
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common._
-import react.semanticui.colors._
+import react.common.*
+import react.semanticui.colors.*
 import react.semanticui.elements.label.Label
-import react.semanticui.sizes._
+import react.semanticui.sizes.*
 import observe.model.SequenceState
 import observe.model.UnknownTargetName
 import observe.web.client.circuit.SequenceInfoFocus
 import observe.web.client.components.ObserveStyles
-import observe.web.client.icons._
+import observe.web.client.icons.*
 
 final case class SequenceInfo(p: SequenceInfoFocus)
     extends ReactProps[SequenceInfo](SequenceInfo.component)

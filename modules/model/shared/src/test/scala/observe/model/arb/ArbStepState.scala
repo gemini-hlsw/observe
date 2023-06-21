@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
@@ -9,7 +9,7 @@ import org.scalacheck.Cogen
 import observe.model.StepState
 
 trait ArbStepState {
-  implicit val stepStateArb = Arbitrary[StepState] {
+  given stepStateArb: Arbitrary[StepState] = Arbitrary[StepState] {
     for {
       v1 <- Gen.oneOf(StepState.Pending,
                       StepState.Completed,
@@ -23,7 +23,7 @@ trait ArbStepState {
     } yield r
   }
 
-  implicit val stepStateCogen: Cogen[StepState] =
+  given stepStateCogen: Cogen[StepState] =
     Cogen[String].contramap(_.productPrefix)
 
 }

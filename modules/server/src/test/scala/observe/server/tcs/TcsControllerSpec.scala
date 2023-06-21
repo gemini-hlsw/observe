@@ -3,9 +3,9 @@
 
 package observe.server.tcs
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 
 /**
  * Tests TcsController typeclasses

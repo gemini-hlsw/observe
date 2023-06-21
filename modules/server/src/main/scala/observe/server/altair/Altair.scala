@@ -7,11 +7,11 @@ import cats.ApplicativeError
 import cats.effect.Sync
 import edu.gemini.spModel.gemini.altair.AltairConstants.GUIDESTAR_TYPE_PROP
 import edu.gemini.spModel.gemini.altair.AltairParams.GuideStarType
-import observe.model.`enum`.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.server.CleanConfig
-import observe.server.ConfigUtilOps._
-import observe.server.altair.AltairController._
+import observe.server.ConfigUtilOps.*
+import observe.server.altair.AltairController.*
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.{PauseConditionSet, ResumeConditionSet}
@@ -85,7 +85,7 @@ object Altair {
 
   def apply[F[_]: Sync](controller: AltairController[F]): Altair[F] = new AltairImpl[F](controller)
 
-  def guideStarType[F[_]: ApplicativeError[*[_], Throwable]](
+  def guideStarType[F[_]: ApplicativeThrow](
     config: CleanConfig
   ): F[GuideStarType] =
     config.extractAOAs[GuideStarType](GUIDESTAR_TYPE_PROP).toF[F]

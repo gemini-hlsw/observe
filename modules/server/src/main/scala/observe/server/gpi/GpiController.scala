@@ -3,11 +3,11 @@
 
 package observe.server.gpi
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats._
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
 import edu.gemini.spModel.gemini.gpi.Gpi.{Adc => LegacyAdc}
 import edu.gemini.spModel.gemini.gpi.Gpi.{Apodizer => LegacyApodizer}
@@ -24,9 +24,9 @@ import giapi.client.commands.CommandResultException
 import giapi.client.commands.Configuration
 import giapi.client.gpi.GpiClient
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.GiapiStatusApply._
+import lucuma.core.enums.GiapiStatusApply.*
 import lucuma.core.enums.GpiReadMode
-import mouse.boolean._
+import mouse.boolean.*
 import observe.server.AbstractGiapiInstrumentController
 import observe.server.GiapiInstrumentController
 import observe.server.ObserveFailure
@@ -42,8 +42,8 @@ final case class AOFlags(
 )
 
 object AOFlags {
-  implicit val eq: Eq[AOFlags]     = Eq.fromUniversalEquals
-  implicit val show: Show[AOFlags] = Show.fromToString
+  given Eq[AOFlags]     = Eq.fromUniversalEquals
+  given Show[AOFlags] = Show.fromToString
 }
 
 final case class ArtificialSources(
@@ -54,9 +54,9 @@ final case class ArtificialSources(
 )
 
 object ArtificialSources extends GpiConfigEq {
-  implicit val eq: Eq[ArtificialSources]     =
+  given Eq[ArtificialSources]     =
     Eq.by(x => (x.ir, x.vis, x.sc, x.attenuation))
-  implicit val show: Show[ArtificialSources] = Show.fromToString
+  given Show[ArtificialSources] = Show.fromToString
 }
 
 final case class Shutters(
@@ -67,10 +67,10 @@ final case class Shutters(
 )
 
 object Shutters extends GpiConfigEq {
-  implicit val eq: Eq[Shutters]     = Eq.by(x =>
+  given Eq[Shutters]     = Eq.by(x =>
     (x.entranceShutter, x.calEntranceShutter, x.calScienceShutter, x.calReferenceShutter)
   )
-  implicit val show: Show[Shutters] = Show.fromToString
+  given Show[Shutters] = Show.fromToString
 }
 
 final case class NonStandardModeParams(
@@ -81,9 +81,9 @@ final case class NonStandardModeParams(
 )
 
 object NonStandardModeParams extends GpiConfigEq {
-  implicit val eq: Eq[NonStandardModeParams]     =
+  given Eq[NonStandardModeParams]     =
     Eq.by(x => (x.apodizer, x.fpm, x.lyot, x.filter))
-  implicit val show: Show[NonStandardModeParams] = Show.fromToString
+  given Show[NonStandardModeParams] = Show.fromToString
 }
 
 sealed abstract class ReadoutArea(val startX: Int, val startY: Int, val endX: Int, val endY: Int)
@@ -104,7 +104,7 @@ object ReadoutArea {
       none
     }
 
-  implicit val eqRa: Eq[ReadoutArea] = Eq.by(x => (x.startX, x.startY, x.endX, x.endY))
+  given Eq[ReadoutArea] = Eq.by(x => (x.startX, x.startY, x.endX, x.endY))
 }
 
 sealed trait GpiConfig extends Product with Serializable
@@ -125,7 +125,7 @@ final case class RegularGpiConfig(
 ) extends GpiConfig
 
 object RegularGpiConfig extends GpiConfigEq {
-  implicit val eq: Eq[RegularGpiConfig] = Eq.by(x =>
+  given Eq[RegularGpiConfig] = Eq.by(x =>
     (x.adc,
      x.expTime,
      x.coAdds,
@@ -159,25 +159,25 @@ trait GpiController[F[_]] extends GiapiInstrumentController[F, GpiConfig] {
 }
 
 trait GpiConfigEq {
-  implicit val apodizerEq: Eq[LegacyApodizer] = Eq.by(_.displayValue)
+  given Eq[LegacyApodizer] = Eq.by(_.displayValue)
 
-  implicit val adcEq: Eq[LegacyAdc] = Eq.by(_.displayValue)
+  given Eq[LegacyAdc] = Eq.by(_.displayValue)
 
-  implicit val omEq: Eq[LegacyObservingMode] = Eq.by(_.displayValue)
+  given Eq[LegacyObservingMode] = Eq.by(_.displayValue)
 
-  implicit val dispEq: Eq[LegacyDisperser] = Eq.by(_.displayValue)
+  given Eq[LegacyDisperser] = Eq.by(_.displayValue)
 
-  implicit val fpmEq: Eq[LegacyFPM] = Eq.by(_.displayValue)
+  given Eq[LegacyFPM] = Eq.by(_.displayValue)
 
-  implicit val filterEq: Eq[LegacyFilter] = Eq.by(_.displayValue)
+  given Eq[LegacyFilter] = Eq.by(_.displayValue)
 
-  implicit val lyotEq: Eq[LegacyLyot] = Eq.by(_.displayValue)
+  given Eq[LegacyLyot] = Eq.by(_.displayValue)
 
-  implicit val shEq: Eq[LegacyShutter] = Eq.by(_.displayValue)
+  given Eq[LegacyShutter] = Eq.by(_.displayValue)
 
-  implicit val asEq: Eq[LegacyArtificialSource] = Eq.by(_.displayValue)
+  given Eq[LegacyArtificialSource] = Eq.by(_.displayValue)
 
-  implicit val pcEq: Eq[LegacyPupilCamera] = Eq.by(_.displayValue)
+  given Eq[LegacyPupilCamera] = Eq.by(_.displayValue)
 }
 
 object GpiController extends GpiLookupTables with GpiConfigEq {

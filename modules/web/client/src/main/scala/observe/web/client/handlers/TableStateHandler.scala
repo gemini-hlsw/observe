@@ -6,7 +6,7 @@ package observe.web.client.handlers
 import diode.ActionHandler
 import diode.ActionResult
 import diode.ModelRW
-import observe.web.client.actions._
+import observe.web.client.actions.*
 import observe.web.client.model.AppTableStates
 
 /**
@@ -18,12 +18,12 @@ class TableStateHandler[M](modelRW: ModelRW[M, AppTableStates])
   override def handle: PartialFunction[Any, ActionResult[M]] = {
     case UpdateStepsConfigTableState(state) =>
       updatedSilentL(
-        AppTableStates.stepConfigTable.replace(state)
+        Focus[AppTableStates](_.stepConfigTable).replace(state)
       ) // We should only do silent updates as these change too quickly
 
     case UpdateSessionQueueTableState(state) =>
       updatedSilentL(
-        AppTableStates.sessionQueueTable.replace(state)
+        Focus[AppTableStates](_.sessionQueueTable).replace(state)
       ) // We should only do silent updates as these change too quickly
 
     case UpdateStepTableState(id, state) =>

@@ -5,9 +5,9 @@ package observe.server
 
 import cats.tests.CatsSuite
 import monocle.law.discipline.LensTests
-import observe.model.ObserveModelArbitraries._
-import lucuma.core.util.arb.ArbGid._
-import lucuma.core.util.arb.ArbUid._
+import observe.model.ObserveModelArbitraries.{*, given}
+import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbUid.*
 
 final class ExecutionQueueSpec extends CatsSuite with ObserveServerArbitraries {
   checkAll("ExecutionQueue name lens", LensTests(ExecutionQueue.name))

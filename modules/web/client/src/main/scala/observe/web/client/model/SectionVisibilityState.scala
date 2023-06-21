@@ -6,7 +6,7 @@ package observe.web.client.model
 import lucuma.core.util.Enumerated
 
 // UI model
-sealed trait SectionVisibilityState extends Product with Serializable {
+sealed abstract class SectionVisibilityState(val tag: String) extends Product with Serializable {
   def flip: SectionVisibilityState = this match {
     case SectionVisibilityState.SectionOpen   => SectionVisibilityState.SectionClosed
     case SectionVisibilityState.SectionClosed => SectionVisibilityState.SectionOpen
@@ -14,11 +14,11 @@ sealed trait SectionVisibilityState extends Product with Serializable {
 }
 
 object SectionVisibilityState {
-  case object SectionOpen   extends SectionVisibilityState
-  case object SectionClosed extends SectionVisibilityState
+  case object SectionOpen   extends SectionVisibilityState("SectionOpen")
+  case object SectionClosed extends SectionVisibilityState("SectionClosed")
 
   /** @group Typeclass Instances */
-  implicit val SectionVisibilityStateEnumerated: Enumerated[SectionVisibilityState] =
-    Enumerated.of(SectionOpen, SectionClosed)
+  given Enumerated[SectionVisibilityState] =
+    Enumerated.from(SectionOpen, SectionClosed).withTag(_.tag)
 
 }
