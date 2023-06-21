@@ -13,13 +13,15 @@ import lucuma.core.math
 import lucuma.core.enums
 import lucuma.core.model
 import cats.syntax.functor.*
-import lucuma.core.model.sequence.{Atom, ExecutionSequence, GmosGratingConfig, StaticConfig, Step}
+import lucuma.core.model.sequence.{Atom, ExecutionSequence, Step}
+import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosGratingConfig, StaticConfig}
 
 import java.time
 import lucuma.core.model.{ExecutionEvent, Observation, Target}
 
-// gql: import lucuma.schemas.decoders._
-// gql: import io.circe.refined._
+// gql: import lucuma.schemas.decoders.given
+// gql: import io.circe.refined.*
+// gql: import lucuma.odb.json.sequence.given
 
 object ObsQueriesGQL {
 
@@ -269,17 +271,17 @@ object ObsQueriesGQL {
             object GmosNorthExecutionConfig {
               type StaticN = StaticConfig.GmosNorth
 
-              type AcquisitionN = ExecutionSequence.GmosNorth
+              type AcquisitionN = ExecutionSequence[DynamicConfig.GmosNorth]
 
-              type ScienceN = ExecutionSequence.GmosNorth
+              type ScienceN = ExecutionSequence[DynamicConfig.GmosNorth]
             }
 
             object GmosSouthExecutionConfig {
               type StaticS = StaticConfig.GmosSouth
 
-              type AcquisitionS = ExecutionSequence.GmosSouth
+              type AcquisitionS = ExecutionSequence[DynamicConfig.GmosSouth]
 
-              type ScienceS = ExecutionSequence.GmosSouth
+              type ScienceS = ExecutionSequence[DynamicConfig.GmosSouth]
             }
           }
         }
