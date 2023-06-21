@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.keywords
@@ -172,7 +172,7 @@ object DhsClientHttp {
   }
 
   def apply[F[_]](client: Client[F], uri: Uri)(implicit
-    timer: Temporal[F]
+    timer:                Temporal[F]
   ): DhsClient[F] =
     new DhsClientHttp[F](client, uri)
 }

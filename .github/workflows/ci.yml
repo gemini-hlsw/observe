@@ -28,28 +28,28 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
       - name: Download Java (temurin@17)
         id: download-java-temurin-17
         if: matrix.java == 'temurin@17'
-        uses: typelevel/download-java@v2
+        uses: typelevel/download-java@v1
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v2
         with:
           distribution: jdkfile
           java-version: 17
           jdkFile: ${{ steps.download-java-temurin-17.outputs.jdkFile }}
 
       - name: Cache sbt
-        uses: actions/cache@v3
+        uses: actions/cache@v2
         with:
           path: |
             ~/.sbt
@@ -61,25 +61,25 @@ jobs:
           key: ${{ runner.os }}-sbt-cache-v2-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
       - name: Check that workflows are up to date
-        run: sbt -v -J-Xmx6g githubWorkflowCheck
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'project /' githubWorkflowCheck
 
       - name: Check headers and formatting
         if: matrix.java == 'temurin@17'
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck lucumaScalafmtCheck lucumaScalafixCheck
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' headerCheckAll scalafmtCheckAll 'project /' scalafmtSbtCheck lucumaScalafmtCheck lucumaScalafixCheck
 
       - name: scalaJSLink
         if: matrix.project == 'rootJS'
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' Test/scalaJSLinkerResult
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' Test/scalaJSLinkerResult
 
       - name: Test
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' test
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' test
 
       - name: Check scalafix lints
-        if: matrix.java == 'temurin@17' && matrix.os == 'ubuntu-latest'
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' 'scalafixAll --check'
+        if: matrix.java == 'temurin@17'
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' 'scalafixAll --check'
 
       - name: Aggregate coverage reports
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' coverageReport coverageAggregate
+        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++${{ matrix.scala }}' coverageReport coverageAggregate
 
       - name: Upload code coverage data
         run: 'bash <(curl -s https://codecov.io/bash)'
