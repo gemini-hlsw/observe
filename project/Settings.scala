@@ -11,7 +11,7 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val booPickle               = "1.4.0"
-    val crystal                 = "0.32.2"
+    val crystal                 = "0.34.0"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val lucumaReact             = "0.37.3"
@@ -91,8 +91,8 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.80.0"
-    val lucumaUI      = "0.71.0"
-    val lucumaSchemas = "0.53.1"
+    val lucumaUI      = "0.72.0"
+    val lucumaSchemas = "0.53.1-4-a821360-20230628T204732Z-SNAPSHOT"
 
     // Clue
     val clue = "0.31.1"
@@ -202,7 +202,7 @@ object Settings {
 
     // Client Side JS libraries
     val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
-    val Crystal                 = Def.setting("com.rpiaggio" %%% "crystal" % LibraryVersions.crystal)
+    val Crystal                 = Def.setting("edu.gemini" %%% "crystal" % LibraryVersions.crystal)
     val LucumaReact             = Def.setting(
       Seq(
         "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
@@ -295,11 +295,13 @@ object Settings {
       )
     )
     val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
-    val LucumaSchemas = "edu.gemini" %% "lucuma-schemas" % LibraryVersions.lucumaSchemas
+    val LucumaSchemas =
+      Def.setting("edu.gemini" %%% "lucuma-schemas" % LibraryVersions.lucumaSchemas)
 
-    val Clue          = "edu.gemini" %% "clue-core"      % LibraryVersions.clue
-    val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
+    val Clue          = Def.setting("edu.gemini" %%% "clue-core" % LibraryVersions.clue)
     val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
+    val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
+    val ClueJs        = Def.setting("edu.gemini" %%% "clue-scalajs" % LibraryVersions.clue)
 
     val Sttp = Def.setting(
       Seq(

@@ -36,8 +36,8 @@ module.exports = ({ command, mode }) => {
   const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.3.0');
   const isProduction = mode == 'production';
   const sjs = isProduction
-    ? path.resolve(scalaClassesDir, 'web-opt')
-    : path.resolve(scalaClassesDir, 'web-fastopt');
+    ? path.resolve(scalaClassesDir, 'observe_web_client-opt')
+    : path.resolve(scalaClassesDir, 'observe_web_client-fastopt');
   const common = path.resolve(__dirname, 'common/');
   const webappCommon = path.resolve(common, 'src/main/webapp/');
   const imagesCommon = path.resolve(webappCommon, 'images');
@@ -97,7 +97,7 @@ module.exports = ({ command, mode }) => {
         strict: true,
       },
       host: '0.0.0.0',
-      port: 8080,
+      port: 8081,
       https: true,
       watch: {
         ignored: [

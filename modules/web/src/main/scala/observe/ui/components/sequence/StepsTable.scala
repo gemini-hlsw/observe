@@ -32,7 +32,7 @@ import scalajs.js
 import observe.ui.Icons
 import react.resizeDetector.hooks.*
 import observe.ui.components.sequence.steps.StepSkipCell
-import crystal.react.View
+import crystal.react.*
 import lucuma.ui.utils.*
 import monocle.std.option.some
 

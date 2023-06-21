@@ -12,6 +12,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.syntax.display.*
 import lucuma.ui.primereact.LucumaStyles
+import lucuma.ui.syntax.effect.*
 import observe.model.ClientStatus
 import observe.model.UserDetails
 import observe.model.enums.SequenceState
@@ -29,6 +30,12 @@ import react.common.given
 import react.primereact.*
 import crystal.ViewF
 import crystal.react.hooks.*
+import observe.queries.ObsQueriesGQL
+import observe.ui.DefaultErrorPolicy
+import observe.ui.model.SessionQueueRow
+import observe.ui.model.enums.ObsClass
+import lucuma.core.enums.ObsActiveStatus
+import observe.model.Observer
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -41,6 +48,32 @@ object Home {
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
+      .useStreamResourceOnMountBy((_, ctx) =>
+        import ctx.given
+
+        ObsQueriesGQL
+          .ActiveObservationIdsQuery[IO]
+          .query()
+          .map(
+            _.observations.matches.map(obs =>
+              SessionQueueRow(
+                obs.id,
+                SequenceState.Idle,
+                obs.instrument.getOrElse(Instrument.Visitor),
+                obs.title.some,
+                Observer("Telops").some,
+                obs.subtitle.map(_.value).orEmpty,
+                ObsClass.Nighttime,
+                obs.activeStatus === ObsActiveStatus.Active,
+                false,
+                none,
+                none,
+                false
+              )
+            )
+          )
+          .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
+      )
       .useStateView(
         Execution(
           obsId = Observation.Id.fromLong(133742).get,
@@ -55,7 +88,9 @@ object Home {
           tabOperations = TabOperations.Default
         ).some
       )
-      .render { (props, _, demo) =>
+      .render { (props, _, observations, demo) =>
+        println(observations)
+
         <.div(ObserveStyles.MainUI)(
           Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
             "Observe GS"
@@ -67,12 +102,13 @@ object Home {
             clazz = ObserveStyles.Shrinkable
           )(
             SplitterPanel()(
-              Splitter(stateKey = "top-splitter",
-                       stateStorage = StateStorage.Local,
-                       clazz = ObserveStyles.TopPanel
+              Splitter(
+                stateKey = "top-splitter",
+                stateStorage = StateStorage.Local,
+                clazz = ObserveStyles.TopPanel
               )(
                 SplitterPanel(size = 80)(
-                  SessionQueue(observe.demo.DemoSessionQueue)
+                  observations.toPot.render(SessionQueue(_))
                 ),
                 SplitterPanel()(
                   HeadersSideBar(

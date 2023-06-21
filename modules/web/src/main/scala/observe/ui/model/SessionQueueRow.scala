@@ -12,6 +12,8 @@ import observe.model.Observer
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
 import observe.ui.model.enums.ObsClass
+import japgolly.scalajs.react.Reusability
+import japgolly.scalajs.react.ReactCats.*
 
 case class SessionQueueRow(
   obsId:         Observation.Id,
@@ -27,3 +29,6 @@ case class SessionQueueRow(
   runningStep:   Option[RunningStep],
   inDayCalQueue: Boolean
 ) derives Eq
+
+object SessionQueueRow:
+  given Reusability[SessionQueueRow] = Reusability.byEq

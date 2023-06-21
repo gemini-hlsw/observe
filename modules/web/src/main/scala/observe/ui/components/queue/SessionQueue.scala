@@ -195,8 +195,8 @@ object SessionQueue:
       .withHooks[Props]
       .useState(SessionQueueFilter.All)
       .useMemo(())(_ => columns)
-      .useMemoBy((_, filter, _) => filter)((props, _, _) =>
-        filter => filter.value.filter(props.queue)
+      .useMemoBy((props, filter, _) => (props.queue, filter))((_, _, _) =>
+        (queue, filter) => filter.value.filter(queue)
       )
       .useReactTableBy((_, _, cols, rows) =>
         TableOptions(
