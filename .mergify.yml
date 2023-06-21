@@ -41,14 +41,6 @@ pull_request_rules:
       add:
       - model
       remove: []
-- name: Label modules PRs
-  conditions:
-  - files~=^modules/
-  actions:
-    label:
-      add:
-      - modules
-      remove: []
 - name: Label observe-server PRs
   conditions:
   - files~=^app/observe-server/
@@ -104,4 +96,12 @@ pull_request_rules:
     label:
       add:
       - server_new
+      remove: []
+- name: Label server_new-clue PRs
+  conditions:
+  - files~=^modules/server_new-clue/
+  actions:
+    label:
+      add:
+      - server_new-clue
       remove: []
