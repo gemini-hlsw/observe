@@ -7,8 +7,9 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.eq.*
 import observe.model.ParamName
+import lucuma.core.util.Enumerated
 
-enum SystemName(val system: String) derives Eq:
+enum SystemName(val tag: String) derives Enumerated:
   case Ocs            extends SystemName("ocs")
   case Observe        extends SystemName("observe")
   case Instrument     extends SystemName("instrument")
@@ -19,11 +20,4 @@ enum SystemName(val system: String) derives Eq:
   case AdaptiveOptics extends SystemName("adaptive optics")
 
   def withParam(p: ParamName): ParamName =
-    ParamName(s"$system:${p.value}")
-
-object SystemName:
-  def fromString(system: String): Option[SystemName] =
-    values.find(_.system === system)
-
-  def unsafeFromString(system: String): SystemName =
-    fromString(system).getOrElse(sys.error(s"Unknown system name $system"))
+    ParamName(s"$tag:${p.value}")
