@@ -23,15 +23,6 @@ import lucuma.core.model.{ExecutionEvent, Observation, Target}
 
 object ObsQueriesGQL {
 
-  // I don't know why, but these implicits prevent several warnings in the generated code
-//  implicit val obsIdCodex: Decoder[Observation.Id] with Encoder[Observation.Id]         =
-//    Observation.Id.GidId
-//  implicit val atomIdCodex: Decoder[Atom.Id] with Encoder[Atom.Id]                      = Atom.Id.UidId
-//  implicit val stepIdCodex: Decoder[Step.Id] with Encoder[Step.Id]                      = Step.Id.UidId
-//  implicit val targetIdCodex: Decoder[Target.Id] with Encoder[Target.Id]                = Target.Id.GidId
-//  implicit val eventIdCodex: Decoder[ExecutionEvent.Id] with Encoder[ExecutionEvent.Id] =
-//    ExecutionEvent.Id.GidId
-
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = """
@@ -270,29 +261,6 @@ object ObsQueriesGQL {
         q <- c.downField("q").as[math.Offset.Q]
       } yield math.Offset(p, q)
     )
-
-//    implicit val seqStepConfigDecoder: Decoder[SeqStepConfig] = List[Decoder[SeqStepConfig]](
-//      Decoder[SeqStepConfig.SeqScienceStep].widen,
-//      Decoder[SeqStepConfig.Gcal].widen,
-//      Decoder[SeqStepConfig.Bias].widen,
-//      Decoder[SeqStepConfig.Dark].widen
-//    ).reduceLeft(_ or _)
-
-//    given Decoder[GmosSite] = List[Decoder[GmosSite]](
-//      Decoder[Site.GN.type].widen,
-//      Decoder[Site.GS.type].widen
-//    ).reduceLeft(_ or _)
-
-//    def seqFpuDecoder[S <: Site](using
-//      d1: Decoder[GmosFpu.GmosBuiltinFpu[S]],
-//      d2: Decoder[GmosFpu.GmosCustomMask[S]]
-//    ): Decoder[GmosFpu[S]] = List[Decoder[GmosFpu[S]]](
-//      Decoder[GmosFpu.GmosBuiltinFpu[S]].widen,
-//      Decoder[GmosFpu.GmosCustomMask[S]].widen
-//    ).reduceLeft(_ or _)
-
-//    implicit val fpuSouthDecoder: Decoder[GmosFpu[Site.GS.type]] = seqFpuDecoder[Site.GS.type]
-//    implicit val fpuNorthDecoder: Decoder[GmosFpu[Site.GN.type]] = seqFpuDecoder[Site.GN.type]
 
     object Data {
       object Observation {
