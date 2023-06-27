@@ -14,7 +14,7 @@ trait KeywordArbitraries extends ArbEnumerated {
   given Arbitrary[KeywordType] = Arbitrary {
     Gen.oneOf(TypeInt8, TypeInt16, TypeInt32, TypeFloat, TypeDouble, TypeBoolean, TypeString)
   }
-  given Cogen[KeywordType]   =
+  given Cogen[KeywordType]     =
     Cogen[String].contramap(_.productPrefix)
 
   given Arbitrary[InternalKeyword] = Arbitrary {
@@ -24,12 +24,12 @@ trait KeywordArbitraries extends ArbEnumerated {
       value <- Gen.listOfN(17, Gen.alphaChar)
     } yield InternalKeyword(name, kt, value.mkString)
   }
-  given Cogen[InternalKeyword]   =
+  given Cogen[InternalKeyword]     =
     Cogen[(KeywordName, KeywordType, String)].contramap(x => (x.name, x.keywordType, x.value))
 
   given Arbitrary[KeywordBag] = Arbitrary {
     arbitrary[List[InternalKeyword]].map(KeywordBag.apply)
   }
-  given Cogen[KeywordBag]   =
+  given Cogen[KeywordBag]     =
     Cogen[List[InternalKeyword]].contramap(_.keywords)
 }

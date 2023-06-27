@@ -8,7 +8,12 @@ import scala.Function.const
 import scala.jdk.CollectionConverters.*
 import cats.effect.Sync
 import cats.syntax.all.*
-import edu.gemini.spModel.gemini.calunit.CalUnitConstants.{DIFFUSER_PROP, FILTER_PROP, LAMP_PROP, SHUTTER_PROP}
+import edu.gemini.spModel.gemini.calunit.CalUnitConstants.{
+  DIFFUSER_PROP,
+  FILTER_PROP,
+  LAMP_PROP,
+  SHUTTER_PROP
+}
 import edu.gemini.spModel.gemini.calunit.CalUnitParams.Lamp
 import lucuma.core.enums.GcalShutter
 import observe.model.enums.Resource

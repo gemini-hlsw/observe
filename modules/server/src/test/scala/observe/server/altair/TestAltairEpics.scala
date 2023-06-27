@@ -168,7 +168,7 @@ case class TestAltairEpics[F[_]: Async](
 object TestAltairEpics {
   val DefaultTimeout: FiniteDuration = FiniteDuration(1, SECONDS)
 
-    final case class State(
+  final case class State(
     strapTempStatus:     Boolean,
     strapGate:           Int,
     strapLoop:           Boolean,

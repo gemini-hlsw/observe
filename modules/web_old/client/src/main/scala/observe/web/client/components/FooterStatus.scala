@@ -25,8 +25,8 @@ object FooterStatus {
   type Props = FooterStatus
 
   given Reusability[Props] = Reusability.derive[Props]
-  private val wsConnect                       = ObserveCircuit.connect(_.ws)
-  private val gcConnect                       = ObserveCircuit.connect(_.guideConfig)
+  private val wsConnect    = ObserveCircuit.connect(_.ws)
+  private val gcConnect    = ObserveCircuit.connect(_.guideConfig)
 
   private val component = ScalaComponent
     .builder[Props]

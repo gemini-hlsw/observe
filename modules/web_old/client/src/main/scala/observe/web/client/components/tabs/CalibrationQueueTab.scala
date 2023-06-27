@@ -35,7 +35,7 @@ object CalibrationQueueTab {
 
   type Backend = RenderScope[Props, State, Unit]
 
-    final case class State(draggingOver: Option[String]) {
+  final case class State(draggingOver: Option[String]) {
     val onDrag: Boolean = draggingOver.isDefined
   }
 

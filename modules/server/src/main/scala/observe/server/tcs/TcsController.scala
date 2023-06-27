@@ -147,7 +147,7 @@ object TcsController {
 
     given Eq[On] = Eq.by(_.ndconfig)
 
-    given Eq[ProbeTrackingConfig]     = Eq.instance {
+    given Eq[ProbeTrackingConfig]   = Eq.instance {
       case (Parked, Parked)       => true
       case (Off, Off)             => true
       case (Frozen, Frozen)       => true
@@ -261,7 +261,7 @@ object TcsController {
       o.toInstrumentOffset(iaa)
   }
 
-    final case class TelescopeConfig(
+  final case class TelescopeConfig(
     offsetA: Option[InstrumentOffset],
     wavelA:  Option[Wavelength]
   )
@@ -290,7 +290,7 @@ object TcsController {
     given Eq[GuiderSensorOption] = Eq.fromUniversalEquals
   }
 
-    final case class GuiderConfig(tracking: ProbeTrackingConfig, detector: GuiderSensorOption) {
+  final case class GuiderConfig(tracking: ProbeTrackingConfig, detector: GuiderSensorOption) {
     val isActive: Boolean = tracking.isActive && detector === GuiderSensorOn
   }
 
@@ -334,7 +334,7 @@ object TcsController {
     case object Gaos extends Subsystem
 
     val allList: List[Subsystem]                = List(PWFS1, PWFS2, OIWFS, AGUnit, Mount, M1, M2, Gaos)
-    given Order[Subsystem]        = Order.from { case (a, b) =>
+    given Order[Subsystem]                      = Order.from { case (a, b) =>
       allList.indexOf(a) - allList.indexOf(b)
     }
     val allButGaos: NonEmptySet[Subsystem]      =
@@ -343,7 +343,7 @@ object TcsController {
       NonEmptySet.of(PWFS1, PWFS2, AGUnit, Mount, M1, M2)
 
     given Show[Subsystem] = Show.show(_.productPrefix)
-    given Eq[Subsystem]  = Eq.fromUniversalEquals
+    given Eq[Subsystem]   = Eq.fromUniversalEquals
   }
 
   sealed trait GuidersConfig[+C] {
@@ -352,13 +352,13 @@ object TcsController {
     val oiwfs: GuiderConfig @@ OIConfig
   }
 
-    final case class BasicGuidersConfig(
+  final case class BasicGuidersConfig(
     pwfs1: GuiderConfig @@ P1Config,
     pwfs2: GuiderConfig @@ P2Config,
     oiwfs: GuiderConfig @@ OIConfig
   ) extends GuidersConfig[Nothing]
 
-    final case class AoGuidersConfig[C](
+  final case class AoGuidersConfig[C](
     pwfs1:   GuiderConfig @@ P1Config,
     aoguide: C,
     oiwfs:   GuiderConfig @@ OIConfig
@@ -382,7 +382,7 @@ object TcsController {
       s"(pwfs1 = ${x.pwfs1.show}, pwfs2 = ${x.pwfs2.show}, oiwfs = ${x.oiwfs.show})"
     }
 
-  given [C: Show]:Show[AoGuidersConfig[C]] = Show.show { x =>
+    given [C: Show]: Show[AoGuidersConfig[C]] = Show.show { x =>
       s"(pwfs1 = ${x.pwfs1.show}, aoguide = ${x.aoguide.show}, oiwfs = ${x.oiwfs.show})"
     }
   }
@@ -395,7 +395,7 @@ object TcsController {
     val inst: InstrumentGuide
   }
 
-    final case class BasicTcsConfig(
+  final case class BasicTcsConfig(
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
     gds:  BasicGuidersConfig,
@@ -403,7 +403,7 @@ object TcsController {
     inst: InstrumentGuide
   ) extends TcsConfig[Nothing, Nothing]
 
-    final case class AoTcsConfig[C, G](
+  final case class AoTcsConfig[C, G](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
     gds:  AoGuidersConfig[C],
@@ -418,7 +418,7 @@ object TcsController {
       s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show})"
     }
 
-  given [C: Show, G: Show]:Show[AoTcsConfig[C, G]] = Show.show { x =>
+    given [C: Show, G: Show]: Show[AoTcsConfig[C, G]] = Show.show { x =>
       s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show}, gaos = ${x.gaos.show})"
     }
 

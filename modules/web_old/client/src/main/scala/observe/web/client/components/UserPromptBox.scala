@@ -79,7 +79,7 @@ object UserPromptBox {
 
   type Props = UserPromptBox
 
-  extension(c: PromptButtonColor) {
+  extension (c: PromptButtonColor) {
     def suiColor: Option[SemanticColor] = none
   }
 

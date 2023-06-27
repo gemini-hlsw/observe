@@ -18,7 +18,7 @@ object WebpackResources {
     given Show[WebpackResource] = Show.fromToString
   }
 
-  extension(r: WebpackResource) {
+  extension (r: WebpackResource) {
     def resource: String = r.show
   }
 

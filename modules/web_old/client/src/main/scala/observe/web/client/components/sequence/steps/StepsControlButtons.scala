@@ -49,7 +49,7 @@ object ControlButtons {
   type Props = ControlButtons
 
   given Reusability[Operations[_]] = Reusability.derive[Operations[_]]
-  given Reusability[Props]              = Reusability.derive[Props]
+  given Reusability[Props]         = Reusability.derive[Props]
 
   private def requestStop(obsId: Observation.Id, stepId: StepId): Callback =
     ObserveCircuit.dispatchCB(RequestStop(obsId, stepId))
@@ -71,7 +71,7 @@ object ControlButtons {
 
   private def requestedIcon(icon: Icon): IconGroup =
     IconGroup(
-      icon(^.key                                                   := "main"),
+      icon(^.key := "main"),
       IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
     )
 

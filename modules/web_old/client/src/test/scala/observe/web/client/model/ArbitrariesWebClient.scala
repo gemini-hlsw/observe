@@ -216,7 +216,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
   given Cogen[WebSocket] =
     Cogen[String].contramap(_.url)
 
-  given [A: Arbitrary]:Arbitrary[PendingStale[A]] =
+  given [A: Arbitrary]: Arbitrary[PendingStale[A]] =
     Arbitrary {
       for {
         a <- arbitrary[A]
@@ -224,7 +224,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
       } yield PendingStale(a, t)
     }
 
-  given [A: Arbitrary]:Arbitrary[Pot[A]] =
+  given [A: Arbitrary]: Arbitrary[Pot[A]] =
     Arbitrary(
       Gen.oneOf(
         Gen.const(Empty),
@@ -237,7 +237,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
       )
     )
 
-  given [A: Cogen]:Cogen[Pot[A]] =
+  given [A: Cogen]: Cogen[Pot[A]] =
     Cogen[Option[
       Option[Either[Long, Either[A, Either[(A, Long), Either[Throwable, (A, Throwable)]]]]]
     ]]
@@ -549,10 +549,13 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
     }
 
   given Cogen[ObservePages] =
-    Cogen[Option[Option[Option[Either[(Instrument, Observation.Id, StepIdDisplayed), Either[
+    Cogen[Option[Option[Option[Either[
       (Instrument, Observation.Id, StepIdDisplayed),
-      Either[(Instrument, Observation.Id, StepId), (Instrument, Observation.Id, StepId)]
-    ]]]]]]
+      Either[
+        (Instrument, Observation.Id, StepIdDisplayed),
+        Either[(Instrument, Observation.Id, StepId), (Instrument, Observation.Id, StepId)]
+      ]
+    ]]]]]
       .contramap {
         case Root                        => None
         case CalibrationQueuePage        => Some(None)

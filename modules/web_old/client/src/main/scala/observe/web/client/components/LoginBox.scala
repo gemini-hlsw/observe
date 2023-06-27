@@ -41,7 +41,7 @@ final case class LoginBox(
 object LoginBox {
   type Props = LoginBox
 
-    final case class State(
+  final case class State(
     username:    String,
     password:    String,
     progressMsg: Option[String],
@@ -72,9 +72,13 @@ object LoginBox {
     def loggedInEvent(u: UserDetails): Callback =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(LoggedIn(u))
     def updateProgressMsg(m: String): Callback  =
-      b.modState(Focus[State](_.progressMsg).replace(m.some) >>> Focus[State](_.errorMsg).replace(none))
+      b.modState(
+        Focus[State](_.progressMsg).replace(m.some) >>> Focus[State](_.errorMsg).replace(none)
+      )
     def updateErrorMsg(m: String): Callback     =
-      b.modState(Focus[State](_.errorMsg).replace(m.some) >>> Focus[State](_.progressMsg).replace(none))
+      b.modState(
+        Focus[State](_.errorMsg).replace(m.some) >>> Focus[State](_.progressMsg).replace(none)
+      )
     def closeBox: Callback                      =
       b.setState(State.Empty) >> ObserveCircuit.dispatchCB(CloseLoginBox)
 

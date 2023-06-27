@@ -10,13 +10,7 @@ import monocle.Optional
 import monocle.Traversal
 import monocle.function.At.atSortedMap
 import monocle.std
-import observe.model.{
-  BatchCommandState,
-  ExecutionQueueView,
-  QueueId,
-  SequenceView,
-  SequencesQueue
-}
+import observe.model.{BatchCommandState, ExecutionQueueView, QueueId, SequenceView, SequencesQueue}
 import observe.model.enums.BatchExecState
 import observe.web.client.model.*
 
@@ -36,11 +30,13 @@ object CalQueueControlFocus {
     Eq.by(x => (x.canOperate, x.state, x.execState, x.ops, x.queueSize, x.selectedSeq))
 
   val allQueues: Getter[ObserveAppRootModel, Int] =
-    Focus[ObserveAppRootModel](_.sequences).andThen(SequencesQueue.queues[SequenceView])
+    Focus[ObserveAppRootModel](_.sequences)
+      .andThen(SequencesQueue.queues[SequenceView])
       .andThen(Getter[SortedMap[QueueId, ExecutionQueueView], Int](_.foldMap(_.queue.size)))
 
   def optQueue(id: QueueId): Optional[ObserveAppRootModel, QueueOperations] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.queues)
       .andThen(atSortedMap[QueueId, CalQueueState].at(id))
       .andThen(std.option.some[CalQueueState])

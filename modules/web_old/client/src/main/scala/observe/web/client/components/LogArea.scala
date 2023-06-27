@@ -83,7 +83,7 @@ object LogArea {
   case object ClipboardColumn extends TableColumn
 
   object TableColumn {
-    given Eq[TableColumn]               = Eq.fromUniversalEquals
+    given Eq[TableColumn]          = Eq.fromUniversalEquals
     given Reusability[TableColumn] = Reusability.byRef
   }
 
@@ -138,7 +138,7 @@ object LogArea {
 
   }
 
-    final case class State(
+  final case class State(
     selectedLevels: SortedMap[ServerLogLevel, Boolean],
     tableState:     TableState[TableColumn]
   ) {
@@ -230,7 +230,7 @@ object LogArea {
     (_, _, _, _, _, _) => IconCopyOutline.clazz(ObserveStyles.logIconHeader)
 
   private def colBuilder(b: Backend, size: Size)(
-    r:                      ColumnRenderArgs[TableColumn]
+    r: ColumnRenderArgs[TableColumn]
   ): Table.ColumnArg =
     r match {
       case ColumnRenderArgs(meta, _, _, _) if meta.column === ClipboardColumn =>

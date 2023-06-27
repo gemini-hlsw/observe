@@ -25,7 +25,7 @@ object TabsArea {
   type Props = TabsArea
 
   given Reusability[Props] = Reusability.by(_.site)
-  private val tabsConnect                     = ObserveCircuit.connect(ObserveCircuit.observeTabs)
+  private val tabsConnect  = ObserveCircuit.connect(ObserveCircuit.observeTabs)
 
   val component = ScalaComponent
     .builder[Props]("TabsArea")

@@ -27,24 +27,26 @@ object AlignAndCalibStep {
 
   /** @group Typeclass Instances */
   given Enumerated[AlignAndCalibStep] =
-    Enumerated.from(
-      NoAction,
-      StartGuiding,
-      StopGuiding,
-      SuperContOff,
-      OMSSEntShutterOff,
-      CalExistShutterOff,
-      ArtSourceDeploy,
-      AoDarks,
-      SuperContOn,
-      CalFlags,
-      Twt2Lens,
-      CalExitShutterOn,
-      ArtSourceExtract,
-      OMSSEntShutterOn,
-      InputFoldTracking,
-      Done
-    ).withTag(_.tag)
+    Enumerated
+      .from(
+        NoAction,
+        StartGuiding,
+        StopGuiding,
+        SuperContOff,
+        OMSSEntShutterOff,
+        CalExistShutterOff,
+        ArtSourceDeploy,
+        AoDarks,
+        SuperContOn,
+        CalFlags,
+        Twt2Lens,
+        CalExitShutterOn,
+        ArtSourceExtract,
+        OMSSEntShutterOn,
+        InputFoldTracking,
+        Done
+      )
+      .withTag(_.tag)
 
   def fromInt(i: Int): AlignAndCalibStep =
     i match {

@@ -62,14 +62,16 @@ package gmos {
     case object PauseImmediately extends NSObserveCommand("PauseImmediately")
 
     given Enumerated[NSObserveCommand] =
-      Enumerated.from(
-        StopGracefully,
-        StopImmediately,
-        AbortGracefully,
-        AbortImmediately,
-        PauseGracefully,
-        PauseImmediately
-      ).withTag(_.tag)
+      Enumerated
+        .from(
+          StopGracefully,
+          StopImmediately,
+          AbortGracefully,
+          AbortImmediately,
+          PauseGracefully,
+          PauseImmediately
+        )
+        .withTag(_.tag)
   }
 
 }

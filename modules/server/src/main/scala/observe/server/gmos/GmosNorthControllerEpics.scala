@@ -4,7 +4,15 @@
 package observe.server.gmos
 
 import cats.effect.*
-import lucuma.core.enums.{GmosAmpGain, GmosAmpReadMode, GmosNorthFilter, GmosNorthFpu, GmosNorthGrating, GmosNorthStageMode, GmosRoi}
+import lucuma.core.enums.{
+  GmosAmpGain,
+  GmosAmpReadMode,
+  GmosNorthFilter,
+  GmosNorthFpu,
+  GmosNorthGrating,
+  GmosNorthStageMode,
+  GmosRoi
+}
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger
 import observe.server.EpicsCodex
@@ -13,7 +21,8 @@ import observe.server.gmos.GmosController.northConfigTypes
 import observe.server.gmos.GmosControllerEpics.ROIValues
 
 object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
-  override val filter: EpicsCodex.EncodeEpicsValue[Option[GmosSite.North#Filter], (String, String)] =
+  override val filter
+    : EpicsCodex.EncodeEpicsValue[Option[GmosSite.North#Filter], (String, String)] =
     EncodeEpicsValue {
       _.map {
         case GmosNorthFilter.GPrime           => ("open1-6", "g_G0301")

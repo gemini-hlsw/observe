@@ -45,7 +45,7 @@ sealed trait InstrumentControllerSim[F[_]] {
 }
 
 object InstrumentControllerSim {
-    final case class ObserveState(
+  final case class ObserveState(
     stopFlag:      Boolean,
     abortFlag:     Boolean,
     pauseFlag:     Boolean,
@@ -57,7 +57,9 @@ object InstrumentControllerSim {
       ObserveState(stopFlag = false, abortFlag = false, pauseFlag = false, remainingTime = 0)
 
     val pauseFalse = (o: ObserveState) =>
-      (Focus[ObserveState](_.pauseFlag).replace(false)(o), Focus[ObserveState](_.pauseFlag).replace(false)(o))
+      (Focus[ObserveState](_.pauseFlag).replace(false)(o),
+       Focus[ObserveState](_.pauseFlag).replace(false)(o)
+      )
 
     def unsafeRef[F[_]: Sync]: Ref[F, ObserveState] = Ref.unsafe(Zero)
 
@@ -71,7 +73,7 @@ object InstrumentControllerSim {
     stopObserveDelay:   FiniteDuration,
     configurationDelay: FiniteDuration,
     obsStateRef:        Ref[F, ObserveState]
-  )(using val F:     MonadThrow[F], L: Logger[F], T: Temporal[F])
+  )(using val F: MonadThrow[F], L: Logger[F], T: Temporal[F])
       extends InstrumentControllerSim[F] {
     private val TIC = 200L
 
@@ -88,7 +90,9 @@ object InstrumentControllerSim {
       } else if (observeState.abortFlag) {
         ObserveCommandResult.Aborted.pure[F].widen
       } else if (observeState.pauseFlag) {
-        obsStateRef.update(Focus[ObserveState](_.remainingTime).replace(observeState.remainingTime)) *>
+        obsStateRef.update(
+          Focus[ObserveState](_.remainingTime).replace(observeState.remainingTime)
+        ) *>
           ObserveCommandResult.Paused.pure[F].widen
       } else if (timeout.exists(_ <= 0)) {
         F.raiseError(ObserveException(new TimeoutException()))

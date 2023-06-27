@@ -55,7 +55,7 @@ object Gems {
     controller:    GemsController[F],
     config:        GemsConfig,
     guideConfigDb: GuideConfigDb[F]
-  )(using L:    Logger[F])
+  )(using L: Logger[F])
       extends Gems[F] {
 
     override val cfg: GemsConfig = config
@@ -205,7 +205,7 @@ object Gems {
     case object On  extends Cwfs1DetectorState
     case object Off extends Cwfs1DetectorState
 
-    given Eq[Cwfs1DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Cwfs1DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Cwfs1DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -215,7 +215,7 @@ object Gems {
     case object On  extends Cwfs2DetectorState
     case object Off extends Cwfs2DetectorState
 
-    given Eq[Cwfs2DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Cwfs2DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Cwfs2DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -225,7 +225,7 @@ object Gems {
     case object On  extends Cwfs3DetectorState
     case object Off extends Cwfs3DetectorState
 
-    given Eq[Cwfs3DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Cwfs3DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Cwfs3DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -235,7 +235,7 @@ object Gems {
     case object On  extends Odgw1DetectorState
     case object Off extends Odgw1DetectorState
 
-    given Eq[Odgw1DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Odgw1DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Odgw1DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -245,7 +245,7 @@ object Gems {
     case object On  extends Odgw2DetectorState
     case object Off extends Odgw2DetectorState
 
-    given Eq[Odgw2DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Odgw2DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Odgw2DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -255,7 +255,7 @@ object Gems {
     case object On  extends Odgw3DetectorState
     case object Off extends Odgw3DetectorState
 
-    given Eq[Odgw3DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Odgw3DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Odgw3DetectorState] =
       DetectorStateOps.build(On, Off)
   }
@@ -265,7 +265,7 @@ object Gems {
     case object On  extends Odgw4DetectorState
     case object Off extends Odgw4DetectorState
 
-    given Eq[Odgw4DetectorState]                             = Eq.fromUniversalEquals
+    given Eq[Odgw4DetectorState]               = Eq.fromUniversalEquals
     given DetectorStateOps[Odgw4DetectorState] =
       DetectorStateOps.build(On, Off)
   }

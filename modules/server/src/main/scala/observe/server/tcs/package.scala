@@ -55,7 +55,7 @@ package tcs {
 
 }
 
-package object tcs                                       {
+package object tcs {
   val BottomPort: Int  = 1
   val InvalidPort: Int = 0
 
@@ -72,9 +72,9 @@ package object tcs                                       {
 
   val AoOffsetThreshold: Length = Arcseconds(0.01) / FOCAL_PLANE_SCALE
 
-  given Eq[BinaryOnOff]              =
+  given Eq[BinaryOnOff]           =
     Eq[Int].contramap(_.ordinal())
-  given Eq[BinaryYesNo]              =
+  given Eq[BinaryYesNo]           =
     Eq[Int].contramap(_.ordinal())
   given Eq[BinaryEnabledDisabled] =
     Eq[Int].contramap(_.ordinal())

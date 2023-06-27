@@ -8,7 +8,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import lucuma.core.enums.Site
 import mouse.all.booleanSyntaxMouse
-import observe.model.{ SequenceState, SequenceView, Step, StepId, StepState }
+import observe.model.{SequenceState, SequenceView, Step, StepId, StepState}
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
 
@@ -52,7 +52,7 @@ object ModelOps {
     case i: Instrument   => i.show
   }
 
-  extension(s: SequenceView) {
+  extension (s: SequenceView) {
 
     def allStepsDone: Boolean = s.steps.forall(_.status === StepState.Completed)
 
@@ -77,7 +77,7 @@ object ModelOps {
 
   }
 
-  extension(s: Site) {
+  extension (s: Site) {
 
     def instruments: NonEmptyList[Instrument] =
       s match {
@@ -101,7 +101,7 @@ object ModelOps {
     case object ReadMode      extends InstrumentProperties
   }
 
-  extension(i: Instrument) {
+  extension (i: Instrument) {
 
     def displayItems: Set[InstrumentProperties] =
       i match {

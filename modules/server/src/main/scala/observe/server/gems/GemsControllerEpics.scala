@@ -23,12 +23,12 @@ import observe.server.tcs.Gaos.ResumeConditionSet
 class GemsControllerEpics[F[_]: Async](
   epicsSys:    GemsEpics[F],
   gsaoiGuider: GsaoiGuider[F]
-)(using L:  Logger[F])
+)(using L: Logger[F])
     extends GemsController[F] {
   import GemsControllerEpics._
 
   override def pauseResume(pauseReasons: PauseConditionSet, resumeReasons: ResumeConditionSet)(
-    cfg:                                 GemsConfig
+    cfg: GemsConfig
   ): F[PauseResume[F]] = {
     val r1 = pause(pauseReasons)
     val r2 = resume(resumeReasons)
@@ -103,7 +103,7 @@ object GemsControllerEpics {
     gsaoiGuider: GsaoiGuider[F]
   ): GemsController[F] = new GemsControllerEpics[F](epicsSys, gsaoiGuider)
 
-    final case class EpicsGems(
+  final case class EpicsGems(
     cwfs1: Cwfs1DetectorState,
     cwfs2: Cwfs2DetectorState,
     cwfs3: Cwfs3DetectorState,

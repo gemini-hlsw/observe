@@ -84,7 +84,7 @@ object Pages {
   /**
    * Extensions methods for RouterCtl
    */
-  extension(r: RouterCtl[ObservePages]) {
+  extension (r: RouterCtl[ObservePages]) {
 
     /**
      * Some pages are linked to actions. This methods lets you set the url and dispatch an action at

@@ -25,9 +25,9 @@ final case class ColumnMeta[A](
 }
 
 object ColumnMeta {
-  given [A: Eq]:Eq[ColumnMeta[A]] =
+  given [A: Eq]: Eq[ColumnMeta[A]] =
     Eq.by(x => (x.column, x.name, x.label, x.visible, x.width, x.grow, x.removeable))
 
-  given [A: Reusability]:Reusability[ColumnMeta[A]] =
+  given [A: Reusability]: Reusability[ColumnMeta[A]] =
     Reusability.derive[ColumnMeta[A]]
 }

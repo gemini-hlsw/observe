@@ -33,10 +33,10 @@ package object table {
   given Reusability[Size] =
     Reusability.by(x => (x.width, x.height))
 
-  given [A: Reusability]:Reusability[NonEmptyList[A]] =
+  given [A: Reusability]: Reusability[NonEmptyList[A]] =
     Reusability.by(_.toList)
 
-  given [A: Reusability]:Reusability[TableState[A]] =
+  given [A: Reusability]: Reusability[TableState[A]] =
     Reusability.by(x => (x.userModified, x.scrollPosition, x.columns))
 
   // Renderer for a resizable column

@@ -102,10 +102,13 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
           // No matches
           (noUpdate, VoidEffect)
       }
-      updatedLE(Focus[InitialSyncFocus](_.firstLoad).replace(false) >>> Focus[InitialSyncFocus](_.displayNames).replace(
-                  storedDisplayNames
-                ) >>> update,
-                Effect(Future(CleanSequences)) >> effect
+      updatedLE(
+        Focus[InitialSyncFocus](_.firstLoad).replace(false) >>> Focus[InitialSyncFocus](
+          _.displayNames
+        ).replace(
+          storedDisplayNames
+        ) >>> update,
+        Effect(Future(CleanSequences)) >> effect
       )
   }
 }

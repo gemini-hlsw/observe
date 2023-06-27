@@ -4,7 +4,7 @@
 package observe.web.client.components.sequence
 
 package object steps {
-  extension [A]( a: A) {
+  extension [A](a: A) {
     def controlButtonsActive(using resolver: ControlButtonResolver[A]): Boolean =
       resolver.controlButtonsActive(a)
   }

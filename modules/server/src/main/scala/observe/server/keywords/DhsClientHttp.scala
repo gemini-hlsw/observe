@@ -43,12 +43,13 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F
   private val clientWithRetry = {
     val max             = 4
     var attemptsCounter = 1
-    val policy          = RetryPolicy[F] { attempts: Int =>
-      if (attempts >= max) None
-      else {
-        attemptsCounter = attemptsCounter + 1
-        10.milliseconds.some
-      }
+    val policy          = RetryPolicy[F] {
+      attempts: Int =>
+        if (attempts >= max) None
+        else {
+          attemptsCounter = attemptsCounter + 1
+          10.milliseconds.some
+        }
     }
     Retry[F](policy)(base)
   }
@@ -172,7 +173,7 @@ object DhsClientHttp {
   }
 
   def apply[F[_]](client: Client[F], uri: Uri)(using
-    timer:                Temporal[F]
+    timer: Temporal[F]
   ): DhsClient[F] =
     new DhsClientHttp[F](client, uri)
 }

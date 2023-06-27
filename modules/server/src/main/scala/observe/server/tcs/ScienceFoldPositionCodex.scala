@@ -37,15 +37,14 @@ private[server] trait ScienceFoldPositionCodex {
         .option
     )
 
-  given EncodeEpicsValue[Position, String] = EncodeEpicsValue {
-    (a: Position) =>
-      val instAGName = a.sink.name + a.port.toString
+  given EncodeEpicsValue[Position, String] = EncodeEpicsValue { (a: Position) =>
+    val instAGName = a.sink.name + a.port.toString
 
-      a.source match {
-        case Sky  => instAGName
-        case AO   => AO_PREFIX + instAGName
-        case GCAL => GCAL_PREFIX + instAGName
-      }
+    a.source match {
+      case Sky  => instAGName
+      case AO   => AO_PREFIX + instAGName
+      case GCAL => GCAL_PREFIX + instAGName
+    }
   }
 
 }

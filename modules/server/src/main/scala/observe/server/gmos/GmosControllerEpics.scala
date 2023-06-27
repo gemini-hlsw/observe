@@ -95,8 +95,8 @@ trait GmosEncoders {
       case ElectronicOffset.Off => 0
     }
 
-  val InBeamVal: String                                    = "IN-BEAM"
-  val OutOfBeamVal: String                                 = "OUT-OF-BEAM"
+  val InBeamVal: String                = "IN-BEAM"
+  val OutOfBeamVal: String             = "OUT-OF-BEAM"
   given EncodeEpicsValue[Beam, String] = EncodeEpicsValue {
     case Beam.OutOfBeam => OutOfBeamVal
     case Beam.InBeam    => InBeamVal

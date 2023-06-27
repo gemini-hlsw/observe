@@ -29,7 +29,7 @@ final case class ACProgressBar(
 object ACProgressBar {
   type Props = ACProgressBar
 
-    final case class State(counter: Int, msg: String)
+  final case class State(counter: Int, msg: String)
 
   object State {
     def initialStateFromProps(p: Props): State =
@@ -42,7 +42,7 @@ object ACProgressBar {
   given Reusability[Props] = Reusability.derive[Props]
   given Reusability[State] = Reusability.derive[State]
 
-  val acSteps                                   = Enumerated[AlignAndCalibStep]
+  val acSteps                   = Enumerated[AlignAndCalibStep]
   given Show[AlignAndCalibStep] = Show.show {
     case NoAction           => ""
     case StartGuiding       => "Start Guiding"

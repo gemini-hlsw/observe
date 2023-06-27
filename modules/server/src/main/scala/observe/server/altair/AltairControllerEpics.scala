@@ -32,7 +32,7 @@ import squants.space.{Arcseconds, Millimeters}
 import squants.time.TimeConversions.*
 
 object AltairControllerEpics {
-    final case class EpicsAltairConfig(
+  final case class EpicsAltairConfig(
     currentMatrixCoords:  (Length, Length),
     preparedMatrixCoords: (Length, Length),
     strapRTStatus:        Boolean,
@@ -47,7 +47,7 @@ object AltairControllerEpics {
   def apply[F[_]: Async](
     epicsAltair: => AltairEpics[F],
     epicsTcs:    => TcsEpics[F]
-  )(using L:  Logger[F]): AltairController[F] = new AltairController[F] {
+  )(using L: Logger[F]): AltairController[F] = new AltairController[F] {
 
     private def inRangeLinear[T <: Ordered[T]](vMin: T, vMax: T)(v: T): Boolean =
       v > vMin && v < vMax
@@ -93,9 +93,9 @@ object AltairControllerEpics {
         epicsTcs.aoPrepareControlMatrix.setY(newPos._2.toMillimeters)
 
     private def pauseNgsMode(
-      position:     (Length, Length),
-      currCfg:      EpicsAltairConfig,
-      instrument:   Instrument
+      position:   (Length, Length),
+      currCfg:    EpicsAltairConfig,
+      instrument: Instrument
     )(pauseReasons: PauseConditionSet): PauseReturn[F] = {
       // There are two reasons to stop NGS:
       // 1. This is an unguided step
@@ -155,10 +155,10 @@ object AltairControllerEpics {
         epicsTcs.aoCorrect.post(DefaultTimeout)
 
     private def pauseResumeNgsMode(
-      startPos:     (Length, Length),
-      currCfg:      EpicsAltairConfig,
-      currOffset:   FocalPlaneOffset,
-      instrument:   Instrument
+      startPos:   (Length, Length),
+      currCfg:    EpicsAltairConfig,
+      currOffset: FocalPlaneOffset,
+      instrument: Instrument
     )(pauseReasons: PauseConditionSet, resumeReasons: ResumeConditionSet): AltairPauseResume[F] = {
       val newPos                = pauseReasons.offsetO
         .map(x => newPosition(startPos)(x.to))
@@ -313,11 +313,12 @@ object AltairControllerEpics {
         (startStrapGate(currCfg) *> startStrapLoop(currCfg)).whenA(strap) *>
         startSfoLoop(currCfg).whenA(sfo)
 
-    private val ttgsOffEndo: Endo[EpicsAltairConfig] = Focus[EpicsAltairConfig](_.strapGate).replace(0) >>>
-      Focus[EpicsAltairConfig](_.strapLoop).replace(false) >>>
-      EpicsAltairConfig.sfoLoop.modify { v =>
-        (v === LgsSfoControl.Disable).fold(LgsSfoControl.Disable, LgsSfoControl.Pause)
-      }
+    private val ttgsOffEndo: Endo[EpicsAltairConfig] =
+      Focus[EpicsAltairConfig](_.strapGate).replace(0) >>>
+        Focus[EpicsAltairConfig](_.strapLoop).replace(false) >>>
+        EpicsAltairConfig.sfoLoop.modify { v =>
+          (v === LgsSfoControl.Disable).fold(LgsSfoControl.Disable, LgsSfoControl.Pause)
+        }
 
     private def ttgsOff(currCfg: EpicsAltairConfig): F[Unit] =
       stopStrapGate(currCfg) *>
@@ -325,12 +326,12 @@ object AltairControllerEpics {
         pauseSfoLoop(currCfg)
 
     private def pauseResumeLgsMode(
-      strap:        Boolean,
-      sfo:          Boolean,
-      startPos:     (Length, Length),
-      currCfg:      EpicsAltairConfig,
-      currOffset:   FocalPlaneOffset,
-      instrument:   Instrument
+      strap:      Boolean,
+      sfo:        Boolean,
+      startPos:   (Length, Length),
+      currCfg:    EpicsAltairConfig,
+      currOffset: FocalPlaneOffset,
+      instrument: Instrument
     )(pauseReasons: PauseConditionSet, resumeReasons: ResumeConditionSet): AltairPauseResume[F] = {
       val newPos                = pauseReasons.offsetO
         .map(x => newPosition(startPos)(x.to))
@@ -361,7 +362,7 @@ object AltairControllerEpics {
       sfo:        Boolean,
       currCfg:    EpicsAltairConfig,
       instrument: Instrument
-    )(reasons:    PauseConditionSet): PauseReturn[F] = {
+    )(reasons: PauseConditionSet): PauseReturn[F] = {
       val guidedStep    = !reasons.contains(PauseCondition.GaosGuideOff)
       val isSmallOffset = reasons.offsetO.forall(canGuideWhileOffseting(_, instrument))
       val mustPauseNGS  = !(guidedStep && isSmallOffset) && (strap || sfo)
@@ -453,7 +454,7 @@ object AltairControllerEpics {
       resumeReasons: ResumeConditionSet,
       currentOffset: FocalPlaneOffset,
       instrument:    Instrument
-    )(cfg:           AltairConfig): F[AltairPauseResume[F]] = {
+    )(cfg: AltairConfig): F[AltairPauseResume[F]] = {
       val unguidedStep                                = pauseReasons.contains(GaosGuideOff)
       def guideOff(turnOff: Boolean): Option[F[Unit]] =
         (turnOff || unguidedStep).option(

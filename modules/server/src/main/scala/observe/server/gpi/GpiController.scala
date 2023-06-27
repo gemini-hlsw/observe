@@ -42,7 +42,7 @@ final case class AOFlags(
 )
 
 object AOFlags {
-  given Eq[AOFlags]     = Eq.fromUniversalEquals
+  given Eq[AOFlags]   = Eq.fromUniversalEquals
   given Show[AOFlags] = Show.fromToString
 }
 
@@ -54,7 +54,7 @@ final case class ArtificialSources(
 )
 
 object ArtificialSources extends GpiConfigEq {
-  given Eq[ArtificialSources]     =
+  given Eq[ArtificialSources]   =
     Eq.by(x => (x.ir, x.vis, x.sc, x.attenuation))
   given Show[ArtificialSources] = Show.fromToString
 }
@@ -67,7 +67,7 @@ final case class Shutters(
 )
 
 object Shutters extends GpiConfigEq {
-  given Eq[Shutters]     = Eq.by(x =>
+  given Eq[Shutters]   = Eq.by(x =>
     (x.entranceShutter, x.calEntranceShutter, x.calScienceShutter, x.calReferenceShutter)
   )
   given Show[Shutters] = Show.fromToString
@@ -81,7 +81,7 @@ final case class NonStandardModeParams(
 )
 
 object NonStandardModeParams extends GpiConfigEq {
-  given Eq[NonStandardModeParams]     =
+  given Eq[NonStandardModeParams]   =
     Eq.by(x => (x.apodizer, x.fpm, x.lyot, x.filter))
   given Show[NonStandardModeParams] = Show.fromToString
 }

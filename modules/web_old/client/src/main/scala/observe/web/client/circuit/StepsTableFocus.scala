@@ -48,7 +48,8 @@ object StepsTableFocus {
   def stepsTableG(
     id: Observation.Id
   ): Getter[ObserveAppRootModel, Option[StepsTableFocus]] =
-    Focus[ObserveAppRootModel](_.sequencesOnDisplayL).andThen(SequencesOnDisplay.tabG(id))
+    Focus[ObserveAppRootModel](_.sequencesOnDisplayL)
+      .andThen(SequencesOnDisplay.tabG(id))
       .zip(ObserveAppRootModel.stepsTableStateL(id).asGetter) >>> {
       case (Some(ObserveTabActive(tab, _)), ts) =>
         val sequence = tab.sequence

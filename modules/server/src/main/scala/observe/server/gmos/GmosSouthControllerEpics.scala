@@ -4,7 +4,15 @@
 package observe.server.gmos
 
 import cats.effect.*
-import lucuma.core.enums.{GmosAmpGain, GmosAmpReadMode, GmosRoi, GmosSouthFilter, GmosSouthFpu, GmosSouthGrating, GmosSouthStageMode}
+import lucuma.core.enums.{
+  GmosAmpGain,
+  GmosAmpReadMode,
+  GmosRoi,
+  GmosSouthFilter,
+  GmosSouthFpu,
+  GmosSouthGrating,
+  GmosSouthStageMode
+}
 import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import org.typelevel.log4cats.Logger
 import observe.server.EpicsCodex.EncodeEpicsValue

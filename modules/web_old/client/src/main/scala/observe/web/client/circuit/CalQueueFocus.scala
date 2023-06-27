@@ -53,15 +53,18 @@ object CalQueueFocus {
   def calTS(
     id: QueueId
   ): Lens[ObserveAppRootModel, Option[TableState[CalQueueTable.TableColumn]]] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.appTableStates)
       .andThen(AppTableStates.queueTableAtL(id))
 
   private def seqOpsL(id: QueueId) =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.calStateSeqOpsT(id))
 
   private def qLastOpL(id: QueueId) =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.queues)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.queues)
       .andThen(CalibrationQueues.calLastOpO(id))
 
   // A fairly complicated getter

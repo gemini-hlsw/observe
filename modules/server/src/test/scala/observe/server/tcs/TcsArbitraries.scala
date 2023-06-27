@@ -15,10 +15,10 @@ import squants.space.AngleConversions.*
 import squants.space.Degrees
 
 trait TcsArbitraries {
-  given Arbitrary[TcsController.Beam]       = Arbitrary(
+  given Arbitrary[TcsController.Beam]    = Arbitrary(
     Gen.oneOf(TcsController.Beam.A, TcsController.Beam.B, TcsController.Beam.C)
   )
-  given Cogen[TcsController.Beam]         =
+  given Cogen[TcsController.Beam]        =
     Cogen[String].contramap(_.productPrefix)
   given Arbitrary[TcsController.NodChop] = Arbitrary {
     for {
@@ -26,7 +26,7 @@ trait TcsArbitraries {
       c <- arbitrary[TcsController.Beam]
     } yield TcsController.NodChop(n, c)
   }
-  given Cogen[TcsController.NodChop]   =
+  given Cogen[TcsController.NodChop]     =
     Cogen[(TcsController.Beam, TcsController.Beam)].contramap(x => (x.nod, x.chop))
 
   private def rangedAngleGen(minVal: Angle, maxVal: Angle) =
@@ -37,41 +37,41 @@ trait TcsArbitraries {
   given Arbitrary[Angle @@ TcsController.OffsetP] = Arbitrary(
     rangedAngleGen(-offsetLimit, offsetLimit).map(tag[TcsController.OffsetP].apply)
   )
-  given Cogen[Angle @@ TcsController.OffsetP]   =
+  given Cogen[Angle @@ TcsController.OffsetP]     =
     Cogen[Double].contramap(_.value)
   given Arbitrary[Angle @@ TcsController.OffsetQ] = Arbitrary(
     rangedAngleGen(-offsetLimit, offsetLimit).map(tag[TcsController.OffsetQ].apply)
   )
-  given Cogen[Angle @@ TcsController.OffsetQ]   =
+  given Cogen[Angle @@ TcsController.OffsetQ]     =
     Cogen[Double].contramap(_.value)
-  given Arbitrary[TcsController.InstrumentOffset]     = Arbitrary {
+  given Arbitrary[TcsController.InstrumentOffset] = Arbitrary {
     for {
       p <- arbitrary[Angle @@ TcsController.OffsetP]
       q <- arbitrary[Angle @@ TcsController.OffsetQ]
     } yield TcsController.InstrumentOffset(p, q)
   }
-  given Cogen[TcsController.InstrumentOffset]       =
+  given Cogen[TcsController.InstrumentOffset]     =
     Cogen[(Angle @@ TcsController.OffsetP, Angle @@ TcsController.OffsetQ)].contramap(x =>
       (x.p, x.q)
     )
 
   given Arbitrary[Angle] = Arbitrary(rangedAngleGen(-90.degrees, 270.degrees))
-  given Cogen[Angle]   = Cogen[Double].contramap(_.toDegrees)
+  given Cogen[Angle]     = Cogen[Double].contramap(_.toDegrees)
 
   given Arbitrary[CRFollow] = Arbitrary {
     Gen.oneOf(CRFollow.On, CRFollow.Off)
   }
-  given Cogen[CRFollow]   =
+  given Cogen[CRFollow]     =
     Cogen[String].contramap(_.productPrefix)
 
-  given Arbitrary[BinaryYesNo]      = Arbitrary(
+  given Arbitrary[BinaryYesNo] = Arbitrary(
     Gen.oneOf(BinaryYesNo.Yes, BinaryYesNo.No)
   )
-  given Cogen[BinaryYesNo] =
+  given Cogen[BinaryYesNo]     =
     Cogen[String].contramap(_.name)
-  given Arbitrary[BinaryOnOff]      = Arbitrary(
+  given Arbitrary[BinaryOnOff] = Arbitrary(
     Gen.oneOf(BinaryOnOff.Off, BinaryOnOff.On)
   )
-  given Cogen[BinaryOnOff] =
+  given Cogen[BinaryOnOff]     =
     Cogen[String].contramap(_.name)
 }
