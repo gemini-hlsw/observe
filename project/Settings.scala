@@ -45,12 +45,12 @@ object Settings {
     val squants          = "1.8.3"
     val commonsHttp      = "3.1"
     val unboundId        = "3.2.1"
-    val jwt              = "9.2.0"
+    val jwt              = "9.4.0"
     val slf4j            = "2.0.7"
     val log4s            = "1.10.0"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
-    val logback          = "1.4.7"
+    val logback          = "1.4.8"
     val janino           = "3.1.9"
     val logstash         = "7.0"
     val pureConfig       = "0.17.4"
@@ -92,10 +92,10 @@ object Settings {
     // Gemini Libraries
     val lucumaCore    = "0.80.0"
     val lucumaUI      = "0.71.0"
-    val lucumaSchemas = "0.53.0"
+    val lucumaSchemas = "0.53.1"
 
     // Clue
-    val clue = "0.31.0"
+    val clue = "0.31.1"
 
     val sttp = "3.8.15"
 
