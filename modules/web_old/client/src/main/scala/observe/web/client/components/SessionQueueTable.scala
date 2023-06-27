@@ -367,7 +367,7 @@ object SessionQueueTable extends Columns {
     given Reusability[TableColumn] = Reusability.byRef
   }
 
-    final case class State(
+  final case class State(
     tableState:   TableState[TableColumn],
     rowLoading:   Option[Int],
     lastSize:     Option[Size],
@@ -404,12 +404,12 @@ object SessionQueueTable extends Columns {
   // Reusability
   given Reusability[SequenceInSessionQueue]        =
     Reusability.byEq
-  given Reusability[SessionQueueFilter]                   =
+  given Reusability[SessionQueueFilter]            =
     Reusability.byEq
   given Reusability[StatusAndLoadedSequencesFocus] =
     Reusability.by(x => (x.status, x.sequences, x.tableState, x.queueFilter))
-  given Reusability[Props]                             = Reusability.by(_.sequences)
-  given Reusability[State]                             =
+  given Reusability[Props]                         = Reusability.by(_.sequences)
+  given Reusability[State]                         =
     Reusability.by(s => (s.tableState, s.rowLoading, s.lastSize))
 
   private def linkTo(p: Props, page: ObservePages)(mod: TagMod*) =
@@ -428,7 +428,7 @@ object SessionQueueTable extends Columns {
     }
 
   private def linkedTextRenderer(p: Props)(
-    f:                              SessionQueueRow => String
+    f: SessionQueueRow => String
   ): CellRenderer[js.Object, js.Object, SessionQueueRow] =
     (_, _, _, row: SessionQueueRow, _) =>
       linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))

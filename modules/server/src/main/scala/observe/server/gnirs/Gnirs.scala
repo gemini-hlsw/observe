@@ -117,7 +117,7 @@ object Gnirs {
     }
 
   // Used for optional keys. If the key is not present, the result is a None. Other extraction errors are passed on.
-  privateextension [T](v: Either[ExtractFailure, T]) {
+  privateextension[T](v: Either[ExtractFailure, T]) {
     def optionalKey: Either[ExtractFailure, Option[T]] = v match {
       case Right(r)             => r.some.asRight
       case Left(_: KeyNotFound) => none.asRight

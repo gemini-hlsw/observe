@@ -27,7 +27,7 @@ abstract class SmoothProgressBarProps[A](
 }
 
 trait SmoothProgressBar[P <: SmoothProgressBarProps[P]] {
-    protected case class State(value: Int, prevStopping: Boolean, prevPaused: Boolean)
+  protected case class State(value: Int, prevStopping: Boolean, prevPaused: Boolean)
 
   protected object State {
     def fromProps(p: P): State = State(p.value, p.stopping, p.paused)

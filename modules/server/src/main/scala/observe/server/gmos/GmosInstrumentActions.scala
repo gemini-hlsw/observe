@@ -34,7 +34,7 @@ import scala.concurrent.duration.Duration
  * Gmos needs different actions for N&S
  */
 class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
-  inst:   Gmos[F, A]
+  inst: Gmos[F, A]
 ) extends InstrumentActions[F] {
   override def observationProgressStream(
     env: ObserveEnvironment[F]
@@ -48,7 +48,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F],
     nsCfg:  NSConfig.NodAndShuffle
-  )(r:      ObserveCommandResult): F[Result] =
+  )(r: ObserveCommandResult): F[Result] =
     r match {
       case ObserveCommandResult.Success =>
         okTail(fileId, stopped = false, env)
@@ -58,16 +58,18 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
       case ObserveCommandResult.Aborted =>
         abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
-            Result
-              .Paused(
-                ObserveContext(
-                  (_: Duration) => resumeObserve(fileId, env, nsCfg),
-                  (_: ElapsedTime) => observationProgressStream(env),
-                  stopPausedObserve(fileId, env, nsCfg),
-                  abortPausedObserve(fileId, env, nsCfg),
-                  env.inst.calcObserveTime
-                )
-              ).pure[F].widen
+        Result
+          .Paused(
+            ObserveContext(
+              (_: Duration) => resumeObserve(fileId, env, nsCfg),
+              (_: ElapsedTime) => observationProgressStream(env),
+              stopPausedObserve(fileId, env, nsCfg),
+              abortPausedObserve(fileId, env, nsCfg),
+              env.inst.calcObserveTime
+            )
+          )
+          .pure[F]
+          .widen
 
     }
 
@@ -97,11 +99,11 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     } yield t).safeResult
 
   private def continueResult(
-    fileId:    ImageFileId,
-    env:       ObserveEnvironment[F],
-    nsCfg:     NSConfig.NodAndShuffle,
-    subExp:    NSSubexposure,
-    nsObsCmd:  Option[NSObserveCommand]
+    fileId:   ImageFileId,
+    env:      ObserveEnvironment[F],
+    nsCfg:    NSConfig.NodAndShuffle,
+    subExp:   NSSubexposure,
+    nsObsCmd: Option[NSObserveCommand]
   )(obsResult: ObserveCommandResult): F[Result] =
     (nsObsCmd, obsResult) match {
       case (Some(PauseImmediately), ObserveCommandResult.Paused) |

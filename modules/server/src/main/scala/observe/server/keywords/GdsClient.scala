@@ -37,18 +37,19 @@ trait GdsClient[F[_]] extends Http4sClientDsl[F] {
 object GdsClient {
 
   def apply[F[_]](base: Client[F], gdsUri: Uri)(using
-    timer:              Async[F]
+    timer: Async[F]
   ): GdsClient[F] = new GdsClient[F] {
 
     private val client = {
       val max             = 2
       var attemptsCounter = 1
-      val policy          = RetryPolicy[F] { attempts: Int =>
-        if (attempts >= max) None
-        else {
-          attemptsCounter = attemptsCounter + 1
-          Some(10.milliseconds)
-        }
+      val policy          = RetryPolicy[F] {
+        attempts: Int =>
+          if (attempts >= max) None
+          else {
+            attemptsCounter = attemptsCounter + 1
+            Some(10.milliseconds)
+          }
       }
       Retry(policy)(base)
     }

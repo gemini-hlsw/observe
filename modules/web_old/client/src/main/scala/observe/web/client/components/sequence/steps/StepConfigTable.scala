@@ -52,7 +52,7 @@ object StepConfigTable {
   case object ValueColumn  extends TableColumn
 
   object TableColumn {
-    given Eq[TableColumn]             = Eq.fromUniversalEquals
+    given Eq[TableColumn]          = Eq.fromUniversalEquals
     given Reusability[TableColumn] = Reusability.byRef
   }
 

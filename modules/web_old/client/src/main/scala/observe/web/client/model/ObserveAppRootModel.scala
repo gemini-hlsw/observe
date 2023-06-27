@@ -65,7 +65,9 @@ object ObserveAppRootModel {
   )
 
   val logDisplayL: Lens[ObserveAppRootModel, SectionVisibilityState] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.globalLog).andThen(GlobalLog.display)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.globalLog)
+      .andThen(GlobalLog.display)
 
   val userLoginFocus: Lens[ObserveAppRootModel, UserLoginFocus] =
     Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.userLoginFocus)
@@ -84,13 +86,15 @@ object ObserveAppRootModel {
 
   val sessionQueueTableStateL
     : Lens[ObserveAppRootModel, TableState[SessionQueueTable.TableColumn]] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.appTableStates)
       .andThen(AppTableStates.sessionQueueTable)
 
   def stepsTableStateL(
     id: Observation.Id
   ): Lens[ObserveAppRootModel, Option[TableState[StepsTable.TableColumn]]] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.appTableStates)
       .andThen(
         AppTableStates
           .stepsTableAtL(id)
@@ -107,23 +111,27 @@ object ObserveAppRootModel {
     Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.sound)
 
   val configTableStateL: Lens[ObserveAppRootModel, TableState[StepConfigTable.TableColumn]] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.appTableStates)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.appTableStates)
       .andThen(AppTableStates.stepConfigTable)
 
   def executionQueuesT(
     id: QueueId
   ): Traversal[ObserveAppRootModel, ExecutionQueueView] =
-    Focus[ObserveAppRootModel](_.sequences).andThen(SequencesQueue.queues[SequenceView])
+    Focus[ObserveAppRootModel](_.sequences)
+      .andThen(SequencesQueue.queues[SequenceView])
       .andThen(
         sortedMapFilterIndex[QueueId, ExecutionQueueView].filterIndex((qid: QueueId) => qid === id)
       )
 
   val queuesT: Traversal[ObserveAppRootModel, ExecutionQueueView] =
-    Focus[ObserveAppRootModel](_.sequences).andThen(SequencesQueue.queues[SequenceView])
+    Focus[ObserveAppRootModel](_.sequences)
+      .andThen(SequencesQueue.queues[SequenceView])
       .andThen(mapEach[QueueId, ExecutionQueueView].each)
 
   val dayCalG: Getter[ObserveAppRootModel, Option[ExecutionQueueView]] =
-    Focus[ObserveAppRootModel](_.sequences).andThen(SequencesQueue.queues[SequenceView])
+    Focus[ObserveAppRootModel](_.sequences)
+      .andThen(SequencesQueue.queues[SequenceView])
       .andThen(atSortedMap[QueueId, ExecutionQueueView].at(CalibrationQueueId))
       .asGetter
 

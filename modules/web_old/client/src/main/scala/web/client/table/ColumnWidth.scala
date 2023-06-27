@@ -40,7 +40,7 @@ object ColumnWidth {
 
 object FixedColumnWidth {
   given Eq[FixedColumnWidth] = Eq.by(_.width)
-  private[table] def apply(p: Double)      = new FixedColumnWidth(p) {}
+  private[table] def apply(p: Double) = new FixedColumnWidth(p) {}
 
   def fromDouble(width: Double): Option[FixedColumnWidth] =
     (width >= 0).option(FixedColumnWidth(width))
@@ -51,9 +51,9 @@ object FixedColumnWidth {
   def unapply(fc: FixedColumnWidth): Option[Double] =
     Some(fc.width)
 
-  private implicit val doubleReuse: Reusability[Double]          =
+  private implicit val doubleReuse: Reusability[Double] =
     Reusability.double(0.1)
-  given Reusability[FixedColumnWidth] =
+  given Reusability[FixedColumnWidth]                   =
     Reusability.by(_.width)
 }
 
@@ -93,8 +93,8 @@ object VariableColumnWidth {
   val Half: VariableColumnWidth = VariableColumnWidth(0.5, 1)
 
   // Deltas are very small when resizing a col
-  private implicit val doubleReuse: Reusability[Double]                =
+  private implicit val doubleReuse: Reusability[Double] =
     Reusability.double(0.0001)
-  given Reusability[VariableColumnWidth] =
+  given Reusability[VariableColumnWidth]                =
     Reusability.by(x => (x.percentage, x.minWidth))
 }

@@ -21,12 +21,12 @@ import edu.gemini.spModel.gemini.ghost.Ghost.INSTRUMENT_NAME_PROP
 import observe.common.ObsQueriesGQL.ObsQuery.{GmosInstrumentConfig, GmosSite, GmosStatic}
 
 final case class GmosNorth[F[_]: Temporal: Logger] private (
-  c:         GmosNorthController[F],
-  dhsClient: DhsClient[F],
-  nsCmdR:    Ref[F, Option[NSObserveCommand]],
-    obsType: StepType,
-    staticCfg: GmosStatic[GmosSite.North],
-    dynamicCfg: GmosInstrumentConfig[GmosSite.North]
+  c:          GmosNorthController[F],
+  dhsClient:  DhsClient[F],
+  nsCmdR:     Ref[F, Option[NSObserveCommand]],
+  obsType:    StepType,
+  staticCfg:  GmosStatic[GmosSite.North],
+  dynamicCfg: GmosInstrumentConfig[GmosSite.North]
 ) extends Gmos[F, GmosSite.North](
       c,
       new SiteSpecifics[GmosSite.North] {
@@ -35,19 +35,21 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
         ): Option[GmosSite.North#Filter] = d.filter
 
         def extractDisperser(
-                              d: GmosInstrumentConfig[GmosSite.North]
+          d: GmosInstrumentConfig[GmosSite.North]
         ): Option[GmosSite.North#Grating] = d.gratingConfig.map(_.grating)
 
         def extractFPU(
-                        d: GmosInstrumentConfig[GmosSite.North]
+          d: GmosInstrumentConfig[GmosSite.North]
         ): Option[GmosSite.North#BuiltInFpu] = d.fpu.flatMap(_.builtin)
 
         def extractStageMode(
-                              s: GmosStatic[GmosSite.North]
+          s: GmosStatic[GmosSite.North]
         ): GmosSite.North#StageMode = s.stageMode
       },
       nsCmdR,
-  obsType, staticCfg, dynamicCfg
+      obsType,
+      staticCfg,
+      dynamicCfg
     )(
       northConfigTypes
     ) {
@@ -60,12 +62,12 @@ object GmosNorth {
   val name: String = INSTRUMENT_NAME_PROP
 
   def apply[F[_]: Temporal: Logger](
-    c:         GmosController[F, GmosSite.North],
-    dhsClient: DhsClient[F],
-    nsCmdR:    Ref[F, Option[NSObserveCommand]],
-        obsType: StepType,
-        staticCfg: GmosStatic[GmosSite.North],
-        dynamicCfg: GmosInstrumentConfig[GmosSite.North]
+    c:          GmosController[F, GmosSite.North],
+    dhsClient:  DhsClient[F],
+    nsCmdR:     Ref[F, Option[NSObserveCommand]],
+    obsType:    StepType,
+    staticCfg:  GmosStatic[GmosSite.North],
+    dynamicCfg: GmosInstrumentConfig[GmosSite.North]
   ): GmosNorth[F] = new GmosNorth[F](c, dhsClient, nsCmdR, obsType, staticCfg, dynamicCfg)
 
   object specifics extends InstrumentSpecifics {

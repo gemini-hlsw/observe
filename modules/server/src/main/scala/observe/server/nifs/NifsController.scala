@@ -53,8 +53,8 @@ object NifsController {
   object Coadds extends NewType[Int]
   type Coadds = Coadds.Type
   object Period extends NewType[Int]
-  type Period = Period.Type
-  type ExposureTime       = Time
+  type Period       = Period.Type
+  type ExposureTime = Time
   object NumberOfResets extends NewType[Int]
   type NumberOfResets = NumberOfResets.Type
   object NumberOfPeriods extends NewType[Int]
@@ -68,10 +68,10 @@ object NifsController {
   type EngReadMode        = edu.gemini.spModel.gemini.nifs.NIFSParams.EngReadMode
 
   // CC
-  type Filter            = edu.gemini.spModel.gemini.nifs.NIFSParams.Filter
-  type Mask              = edu.gemini.spModel.gemini.nifs.NIFSParams.Mask
-  type Disperser         = edu.gemini.spModel.gemini.nifs.NIFSParams.Disperser
-  type ImagingMirror     = edu.gemini.spModel.gemini.nifs.NIFSParams.ImagingMirror
+  type Filter        = edu.gemini.spModel.gemini.nifs.NIFSParams.Filter
+  type Mask          = edu.gemini.spModel.gemini.nifs.NIFSParams.Mask
+  type Disperser     = edu.gemini.spModel.gemini.nifs.NIFSParams.Disperser
+  type ImagingMirror = edu.gemini.spModel.gemini.nifs.NIFSParams.ImagingMirror
   object CentralWavelength extends NewType[Double]
   type CentralWavelength = CentralWavelength.Type
   object MaskOffset extends NewType[Double]

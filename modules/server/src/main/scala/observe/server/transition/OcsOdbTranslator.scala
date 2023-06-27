@@ -5,7 +5,7 @@ package observe.server.transition
 
 import edu.gemini.seqexec.odb.SeqexecSequence
 import edu.gemini.shared.util.immutable.MapOp
-import edu.gemini.spModel.config2.{ Config, ConfigSequence, ItemEntry, ItemKey }
+import edu.gemini.spModel.config2.{Config, ConfigSequence, ItemEntry, ItemKey}
 import edu.gemini.spModel.gemini.calunit.CalUnitConstants.{DIFFUSER_PROP, FILTER_PROP, SHUTTER_PROP}
 import edu.gemini.spModel.guide.StandardGuideOptions
 import edu.gemini.spModel.seqcomp.SeqConfigNames.{
@@ -94,8 +94,8 @@ object OcsOdbTranslator {
         )
       case SeqStepConfig.Gcal(filter, diffuser, shutter) =>
         List[(ItemKey, AnyRef)](
-          (CALIBRATION_KEY / SHUTTER_PROP) -> shutter,
-          (CALIBRATION_KEY / FILTER_PROP)  -> filter,
+          (CALIBRATION_KEY / SHUTTER_PROP)  -> shutter,
+          (CALIBRATION_KEY / FILTER_PROP)   -> filter,
           (CALIBRATION_KEY / DIFFUSER_PROP) -> diffuser,
           (OBSERVE_KEY / OBS_CLASS_PROP)    -> ObsClass.PROG_CAL,
           (OBSERVE_KEY / OBSERVE_TYPE_PROP) -> CAL_OBSERVE_TYPE

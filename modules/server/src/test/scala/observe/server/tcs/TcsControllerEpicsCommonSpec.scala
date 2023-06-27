@@ -3,18 +3,18 @@
 
 package observe.server.tcs
 
-import cats.effect.{ Async, IO }
+import cats.effect.{Async, IO}
 import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
-import edu.gemini.observe.server.tcs.{ BinaryOnOff, BinaryYesNo }
+import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import lucuma.core.math.Wavelength
 import lucuma.core.enums.LightSinkName.Gmos
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 import org.scalatest.PrivateMethodTester
 import org.scalatest.matchers.should.Matchers.*
-import observe.model.{ M1GuideConfig, M2GuideConfig, TelescopeGuideConfig }
-import observe.model.enums.{ ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource }
+import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
+import observe.model.enums.{ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource}
 import observe.server.InstrumentGuide
 import observe.server.tcs.TcsController.LightSource.Sky
 import observe.server.tcs.TcsController.{
@@ -40,10 +40,10 @@ import observe.server.tcs.TcsController.{
   TelescopeConfig
 }
 import shapeless.tag
-import squants.space.{ Arcseconds, Length, Millimeters }
+import squants.space.{Arcseconds, Length, Millimeters}
 import org.scalatest.flatspec.AnyFlatSpec
 import observe.server.keywords.USLocale
-import observe.server.tcs.TestTcsEpics.{ ProbeGuideConfigVals, TestTcsEvent }
+import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
 import squants.space.AngleConversions.*
 import squants.space.LengthConversions.*
 
@@ -108,7 +108,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     // Offset, but no guider in use
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
-      Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+      Focus[BasicTcsConfig](_.tc)
+        .andThen(TelescopeConfig.offsetA)
         .replace(
           InstrumentOffset(
             tag[OffsetP](pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
@@ -123,18 +124,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs1)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs1)
             .replace(
               tag[P1Config](
                 GuiderConfig(
@@ -149,18 +153,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m1Guide)
             .replace(
               M1GuideConfig.M1GuideOn(M1Source.PWFS1)
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs1)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs1)
             .replace(
               tag[P1Config](
                 GuiderConfig(
@@ -176,18 +183,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs1)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs1)
             .replace(
               tag[P1Config](
                 GuiderConfig(
@@ -205,18 +215,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs2)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs2)
             .replace(
               tag[P2Config](
                 GuiderConfig(
@@ -231,18 +244,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m1Guide)
             .replace(
               M1GuideConfig.M1GuideOn(M1Source.PWFS2)
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs2)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs2)
             .replace(
               tag[P2Config](
                 GuiderConfig(
@@ -258,18 +274,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.pwfs2)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.pwfs2)
             .replace(
               tag[P2Config](
                 GuiderConfig(
@@ -290,18 +309,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](threshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.oiwfs)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.oiwfs)
             .replace(
               tag[OIConfig](
                 GuiderConfig(
@@ -317,18 +339,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](threshold * 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m1Guide)
             .replace(
               M1GuideConfig.M1GuideOn(M1Source.OIWFS)
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.oiwfs)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.oiwfs)
             .replace(
               tag[OIConfig](
                 GuiderConfig(
@@ -345,18 +370,21 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TcsControllerEpicsCommon.mustPauseWhileOffsetting(
       baseCurrentStatus,
       (
-        Focus[BasicTcsConfig](_.tc).andThen(TelescopeConfig.offsetA)
+        Focus[BasicTcsConfig](_.tc)
+          .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
               tag[OffsetP](threshold / 2.0 * FOCAL_PLANE_SCALE),
               tag[OffsetQ](Arcseconds(0.0))
             ).some
           ) >>>
-          Focus[BasicTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[BasicTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m2Guide)
             .replace(
               M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
             ) >>>
-          Focus[BasicTcsConfig](_.gds).andThen(BasicGuidersConfig.oiwfs)
+          Focus[BasicTcsConfig](_.gds)
+            .andThen(BasicGuidersConfig.oiwfs)
             .replace(
               tag[OIConfig](
                 GuiderConfig(
@@ -932,7 +960,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
     val wavelengthDemand: Wavelength  = Wavelength.fromNanometers((2000.0 / 7.0).toInt).get
     val wavelengthCurrent: Wavelength = Wavelength.fromNanometers((2000.0 / 7.0 + 0.1).toInt).get
-    val recordPrec        = 0
+    val recordPrec                    = 0
 
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(

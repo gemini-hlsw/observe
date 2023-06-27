@@ -63,13 +63,17 @@ final case class GmosObsKeywordsReader[F[_]: MonadThrow](config: CleanConfig) {
           )
       )
 
-  def nodAxOff: F[Double] = extractOffset(StageA, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
+  def nodAxOff: F[Double] =
+    extractOffset(StageA, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
 
-  def nodAyOff: F[Double] = extractOffset(StageA, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
+  def nodAyOff: F[Double] =
+    extractOffset(StageA, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
 
-  def nodBxOff: F[Double] = extractOffset(StageB, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
+  def nodBxOff: F[Double] =
+    extractOffset(StageB, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
 
-  def nodByOff: F[Double] = extractOffset(StageB, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
+  def nodByOff: F[Double] =
+    extractOffset(StageB, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
 
   def isNS: F[Boolean] =
     config.extractInstAs[java.lang.Boolean](USE_NS_PROP).map(_.booleanValue).explainExtractError[F]
@@ -81,7 +85,7 @@ final case class GmosObsKeywordsReader[F[_]: MonadThrow](config: CleanConfig) {
 
 object GmosObsKeywordsReader {
 
-  privateextension [A](v: Either[ExtractFailure, A]) {
+  privateextension[A](v: Either[ExtractFailure, A]) {
     def explainExtractError[F[_]: MonadThrow]: F[A] =
       EitherT(v.pure[F])
         .leftMap(e => ObserveFailure.Unexpected(ConfigUtilOps.explain(e)))

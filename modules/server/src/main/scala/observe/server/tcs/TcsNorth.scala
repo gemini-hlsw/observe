@@ -34,7 +34,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   subsystems:    NonEmptySet[Subsystem],
   gaos:          Option[Altair[F]],
   guideDb:       GuideConfigDb[F]
-)(config:        TcsNorth.TcsSeqConfig[F])
+)(config: TcsNorth.TcsSeqConfig[F])
     extends Tcs[F] {
   import Tcs.{GuideWithOps, calcGuiderInUse}
 
@@ -178,7 +178,7 @@ object TcsNorth {
 
   import Tcs._
 
-    final case class TcsSeqConfig[F[_]](
+  final case class TcsSeqConfig[F[_]](
     guideWithP1: Option[StandardGuideOptions.Value],
     guideWithP2: Option[StandardGuideOptions.Value],
     guideWithOI: Option[StandardGuideOptions.Value],

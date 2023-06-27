@@ -71,7 +71,7 @@ trait TableArbitraries {
       }
     }
 
-  given [A: Arbitrary]:Arbitrary[ColumnMeta[A]] =
+  given [A: Arbitrary]: Arbitrary[ColumnMeta[A]] =
     Arbitrary {
       for {
         a <- arbitrary[A]
@@ -82,12 +82,12 @@ trait TableArbitraries {
       } yield ColumnMeta(a, n, l, v, w)
     }
 
-  given [A: Cogen]:Cogen[ColumnMeta[A]] =
+  given [A: Cogen]: Cogen[ColumnMeta[A]] =
     Cogen[(A, String, String, Boolean, ColumnWidth)].contramap(x =>
       (x.column, x.name, x.label, x.visible, x.width)
     )
 
-  given [A: Arbitrary: Eq]:Arbitrary[TableState[A]] =
+  given [A: Arbitrary: Eq]: Arbitrary[TableState[A]] =
     Arbitrary {
       for {
         u <- arbitrary[UserModified]
@@ -96,19 +96,19 @@ trait TableArbitraries {
       } yield TableState(u, s, NonEmptyList.fromListUnsafe(c))
     }
 
-  given [A: Cogen]:Cogen[TableState[A]] =
+  given [A: Cogen]: Cogen[TableState[A]] =
     Cogen[(UserModified, Double, List[ColumnMeta[A]])].contramap(x =>
       (x.userModified, x.scrollPosition.toDouble, x.columns.toList)
     )
 
-  given [A: Arbitrary: Eq]:Arbitrary[NonEmptyList[ColumnMeta[A]]] =
+  given [A: Arbitrary: Eq]: Arbitrary[NonEmptyList[ColumnMeta[A]]] =
     Arbitrary {
       for {
         c <- Gen.nonEmptyListOf[ColumnMeta[A]](arbitrary[ColumnMeta[A]])
       } yield NonEmptyList.fromListUnsafe(c)
     }
 
-  given [A: Cogen]:Cogen[NonEmptyList[ColumnMeta[A]]] =
+  given [A: Cogen]: Cogen[NonEmptyList[ColumnMeta[A]]] =
     Cogen[List[ColumnMeta[A]]].contramap(_.toList)
 }
 

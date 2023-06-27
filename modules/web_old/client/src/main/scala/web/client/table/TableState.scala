@@ -307,7 +307,7 @@ object TableState {
 
   def NoInitialWidth[A]: A => Option[Double] = _ => None
 
-  given [A: Eq]:Eq[TableState[A]] =
+  given [A: Eq]: Eq[TableState[A]] =
     Eq.by(x => (x.userModified, x.scrollPosition.toDouble, x.columns))
 
   given Eq[Size] =

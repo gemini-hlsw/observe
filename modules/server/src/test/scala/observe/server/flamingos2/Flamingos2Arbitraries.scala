@@ -10,10 +10,10 @@ import org.scalacheck.Gen
 import scala.collection.immutable.ArraySeq
 
 trait Flamingos2Arbitraries {
-  given Arbitrary[LegacyF2.FPUnit]                      = Arbitrary(
+  given Arbitrary[LegacyF2.FPUnit]                     = Arbitrary(
     Gen.oneOf(ArraySeq.unsafeWrapArray(LegacyF2.FPUnit.values()))
   )
-  given Cogen[LegacyF2.FPUnit]                        =
+  given Cogen[LegacyF2.FPUnit]                         =
     Cogen[String].contramap(_.displayValue())
   given Arbitrary[Flamingos2Controller.FocalPlaneUnit] = Arbitrary(
     Gen.oneOf(
@@ -28,6 +28,6 @@ trait Flamingos2Arbitraries {
       Flamingos2Controller.FocalPlaneUnit.Slit8Pix
     )
   )
-  given Cogen[Flamingos2Controller.FocalPlaneUnit]   =
+  given Cogen[Flamingos2Controller.FocalPlaneUnit]     =
     Cogen[String].contramap(_.productPrefix)
 }

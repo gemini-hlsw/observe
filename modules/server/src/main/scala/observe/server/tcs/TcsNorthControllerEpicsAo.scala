@@ -43,7 +43,7 @@ trait TcsNorthControllerEpicsAo[F[_]] {
 object TcsNorthControllerEpicsAo {
 
   private final class TcsNorthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
-    L:                                                                     Logger[F]
+    L: Logger[F]
   ) extends TcsNorthControllerEpicsAo[F]
       with TcsControllerEncoders {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
@@ -186,7 +186,8 @@ object TcsNorthControllerEpicsAo {
                            .whenA(!s0.base.useAo)
         pr            <- pauseResumeGaos(gaos, s0, tcs)
         adjustedDemand =
-          Focus[AoTcsConfig](_.gds).andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
+          Focus[AoTcsConfig](_.gds)
+            .andThen(AoGuidersConfig.aoguide[GuiderConfig @@ AoGuide])
             .andThen(tagIso[GuiderConfig, AoGuide])
             .andThen(GuiderConfig.tracking)
             .modify(t => (pr.forceFreeze && t.isActive).fold(ProbeTrackingConfig.Off, t))(tcs)
@@ -232,12 +233,12 @@ object TcsNorthControllerEpicsAo {
     ).flattenOption
 
     private def calcGuideOffCapabilities(m2Name: TipTiltSource, m1Name: M1Source)(
-      tcsGuideCurrent:                           TelescopeGuideConfig,
-      guiderCurrent:                             GuiderConfig,
-      tcsGuideDemand:                            TelescopeGuideConfig,
-      guiderDemand:                              GuiderConfig,
-      distanceSquared:                           Option[Area],
-      threshold:                                 Option[Length]
+      tcsGuideCurrent: TelescopeGuideConfig,
+      guiderCurrent:   GuiderConfig,
+      tcsGuideDemand:  TelescopeGuideConfig,
+      guiderDemand:    GuiderConfig,
+      distanceSquared: Option[Area],
+      threshold:       Option[Length]
     ): GuideCapabilities = {
       val canGuideWhileOffseting = (distanceSquared, threshold) match {
         case (None, _)           => true
@@ -327,7 +328,8 @@ object TcsNorthControllerEpicsAo {
           .gc[GuiderConfig @@ AoGuide, AltairConfig]
           .andThen(TelescopeGuideConfig.m1Guide)
           .replace(M1GuideConfig.M1GuideOff)
-      ) >>> Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+      ) >>> Focus[AoTcsConfig](_.gc)
+        .andThen(TelescopeGuideConfig.m2Guide)
         .replace(
           m2config
         ) >>> normalizeMountGuiding)(demand)
@@ -433,8 +435,11 @@ object TcsNorthControllerEpicsAo {
       val newGuideConfig = (
         enableM1Guide.fold[TcsNorthAoConfig => TcsNorthAoConfig](
           identity,
-          Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m1Guide).replace(M1GuideConfig.M1GuideOff)
-        ) >>> Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.m2Guide)
+          Focus[AoTcsConfig](_.gc)
+            .andThen(TelescopeGuideConfig.m1Guide)
+            .replace(M1GuideConfig.M1GuideOff)
+        ) >>> Focus[AoTcsConfig](_.gc)
+          .andThen(TelescopeGuideConfig.m2Guide)
           .replace(
             m2config
           ) >>> normalizeMountGuiding
@@ -458,7 +463,8 @@ object TcsNorthControllerEpicsAo {
 
     // Disable Mount guiding if M2 guiding is disabled
     val normalizeMountGuiding: Endo[TcsNorthAoConfig] = cfg =>
-      Focus[AoTcsConfig](_.gc).andThen(TelescopeGuideConfig.mountGuide)
+      Focus[AoTcsConfig](_.gc)
+        .andThen(TelescopeGuideConfig.mountGuide)
         .modify { m =>
           (m, cfg.gc.m2Guide) match {
             case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
@@ -473,9 +479,9 @@ object TcsNorthControllerEpicsAo {
     new TcsNorthControllerEpicsAoImpl(epicsSys)
 
     final case class EpicsTcsAoConfig(
-    base:  BaseEpicsTcsConfig,
-    aowfs: ProbeTrackingConfig
-  )
+      base:  BaseEpicsTcsConfig,
+      aowfs: ProbeTrackingConfig
+    )
 
   val TargetFilterShortcircuitOpen: String   = "Open"
   val TargetFilterShortcircuitClosed: String = "Closed"

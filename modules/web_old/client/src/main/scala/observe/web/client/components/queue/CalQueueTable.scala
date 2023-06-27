@@ -210,11 +210,11 @@ object CalQueueTable {
     NonEmptyList.of(StateSeqMeta, ObsIdColumnMeta, InstrumentColumnMeta)
 
     final case class State(
-    tableState:        TableState[TableColumn],
-    animationRendered: Boolean,
-    moved:             Option[(Observation.Id, IndexChange)],
-    prevLastOp:        Option[QueueManipulationOp]
-  )
+      tableState:        TableState[TableColumn],
+      animationRendered: Boolean,
+      moved:             Option[(Observation.Id, IndexChange)],
+      prevLastOp:        Option[QueueManipulationOp]
+    )
 
   object State {
     val EditableTableState: TableState[TableColumn] =
@@ -233,10 +233,10 @@ object CalQueueTable {
       Focus[State](_.tableState).andThen(TableState.columns)
   }
 
-  given Reusability[Props]    = Reusability.derive[Props]
+  given Reusability[Props]       = Reusability.derive[Props]
   given Reusability[IndexChange] =
     Reusability.derive[IndexChange]
-  given Reusability[State]    =
+  given Reusability[State]       =
     Reusability.by(x => (x.tableState, x.moved))
 
   val obsIdRenderer: CellRenderer[js.Object, js.Object, CalQueueRow] =

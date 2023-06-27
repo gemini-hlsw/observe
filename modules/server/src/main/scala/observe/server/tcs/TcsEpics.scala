@@ -200,7 +200,7 @@ trait TcsEpics[F[_]] {
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
   def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
-    T:                                  Temporal[F]
+    T: Temporal[F]
   ): F[Unit]
 
   // `waitAGInPosition` works like `waitInPosition`, but for the AG in-position flag.
@@ -912,7 +912,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
   override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
-    T:                                           Temporal[F]
+    T: Temporal[F]
   ): F[Unit] =
     T.sleep(FiniteDuration(tcsSettleTime.toMillis, TimeUnit.MILLISECONDS)) *> (
       if (stabilizationTime.isZero) {
@@ -935,7 +935,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   /* TODO: AG inposition can take up to 1[s] to react to a TCS command. If the value is read before that, it may induce
    * an error. A better solution is to detect the edge, from not in position to in-position.
    */
-  private val AGSettleTime                                                                 = FiniteDuration(1100, MILLISECONDS)
+  private val AGSettleTime                                                              = FiniteDuration(1100, MILLISECONDS)
   override def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit] =
     T.sleep(AGSettleTime) *>
       Sync[F]
@@ -1443,7 +1443,7 @@ object TcsEpics extends EpicsSystem[TcsEpics[IO]] {
   }
 
   // TODO: Delete me after fully moved to tagless
-  extension(tio: Target[IO]) {
+  extension (tio: Target[IO]) {
     def to[F[_]: LiftIO]: Target[F] = new Target[F] {
       def objectName: F[String]        = tio.objectName.to[F]
       def ra: F[Double]                = tio.ra.to[F]

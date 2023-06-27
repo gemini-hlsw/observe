@@ -20,11 +20,11 @@ package object circuit {
   implicit def CircuitToOps[T <: AnyRef](c: Circuit[T]): CircuitOps[T] =
     new CircuitOps(c)
 
-  given [A: Eq]:FastEq[A] = new FastEq[A] {
+  given [A: Eq]: FastEq[A] = new FastEq[A] {
     override def eqv(a: A, b: A): Boolean = a === b
   }
 
-  given [A: Eq]:FastEq[NonEmptyList[A]] =
+  given [A: Eq]: FastEq[NonEmptyList[A]] =
     new FastEq[NonEmptyList[A]] {
       override def eqv(a: NonEmptyList[A], b: NonEmptyList[A]): Boolean =
         a === b
@@ -54,7 +54,7 @@ package circuit {
 
   // All these classes are focused views of the root model. They are used to only update small sections of the
   // UI even if other parts of the root model change
-    final case class SequencesFocus(sequences: SequencesQueue[SequenceView], sod: SequencesOnDisplay)
+  final case class SequencesFocus(sequences: SequencesQueue[SequenceView], sod: SequencesOnDisplay)
 
   object SequencesFocus {
     given Eq[SequencesFocus] =
@@ -69,7 +69,7 @@ package circuit {
 
   }
 
-    final case class SODLocationFocus(
+  final case class SODLocationFocus(
     location: Pages.ObservePages,
     sod:      SequencesOnDisplay,
     clientId: Option[ClientId]
@@ -90,7 +90,7 @@ package circuit {
       )
   }
 
-    final case class InitialSyncFocus(
+  final case class InitialSyncFocus(
     location:     Pages.ObservePages,
     sod:          SequencesOnDisplay,
     displayNames: Map[String, String],
@@ -178,7 +178,7 @@ package circuit {
     }
   }
 
-    final case class ControlModel(
+  final case class ControlModel(
     idName:              Observation.IdName,
     isPartiallyExecuted: Boolean,
     nextStepToRunIndex:  Option[Int],
@@ -201,7 +201,7 @@ package circuit {
       )
   }
 
-    final case class SequenceControlFocus(
+  final case class SequenceControlFocus(
     instrument:             Instrument,
     obsId:                  Observation.Id,
     systemOverrides:        SystemOverrides,

@@ -62,7 +62,7 @@ object ConfigUtilOps {
   }
 
   // key syntax: parent / child
-  extension(k: ItemKey) {
+  extension (k: ItemKey) {
     def /(s: String): ItemKey             = new ItemKey(k, s)
     def /(p: PropertyDescriptor): ItemKey = /(p.getName)
   }
@@ -89,7 +89,7 @@ object ConfigUtilOps {
 
   val AO_KEY: ItemKey = new ItemKey(AO_CONFIG_NAME)
 
-  extension [C: ExtractItem]( c: C) {
+  extension [C: ExtractItem](c: C) {
     // config syntax: cfg.extract(key).as[Type]
     def extract(key: ItemKey): Extracted[C] = new Extracted(c, key)
 
@@ -99,7 +99,7 @@ object ConfigUtilOps {
 
     // config syntax: cfg.extractInstAs[Type](key)
     def extractInstAs[A](key: PropertyDescriptor)(using
-      clazz:                  ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, INSTRUMENT_KEY / key).as[A]
 
@@ -109,7 +109,7 @@ object ConfigUtilOps {
 
     // config syntax: cfg.extractInstAs[Type](key)
     def extractObsAs[A](key: PropertyDescriptor)(using
-      clazz:                 ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, OBSERVE_KEY / key).as[A]
 
@@ -119,7 +119,7 @@ object ConfigUtilOps {
 
     // config syntax: cfg.extractTelescopeAs[Type](key)
     def extractTelescopeAs[A](key: PropertyDescriptor)(using
-      clazz:                       ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, TELESCOPE_KEY / key).as[A]
 
@@ -129,19 +129,19 @@ object ConfigUtilOps {
 
     // config syntax: cfg.extractCalibrationAs[Type](key)
     def extractCalibrationAs[A](key: PropertyDescriptor)(using
-      clazz:                         ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, CALIBRATION_KEY / key).as[A]
 
     // config syntax: cfg.extractCalibrationAs[Type](key)
     def extractCalibrationAs[A](key: String)(using
-      clazz:                         ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, CALIBRATION_KEY / key).as[A]
 
     // config syntax: cfg.extractAOAs[Type](key)
     def extractAOAs[A](key: PropertyDescriptor)(using
-      clazz:                ClassTag[A]
+      clazz: ClassTag[A]
     ): Either[ExtractFailure, A] =
       new Extracted(c, AO_KEY / key).as[A]
 

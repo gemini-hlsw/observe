@@ -14,7 +14,7 @@ import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.altair.LgsSfoControl
 import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
-import observe.server.{ EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil }
+import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil.*
 

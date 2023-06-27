@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats.{ Applicative, Monoid }
+import cats.{Applicative, Monoid}
 import cats.effect.IO
 import cats.syntax.all.*
 import cats.data.NonEmptyList
@@ -14,34 +14,34 @@ import org.typelevel.log4cats.noop.NoOpLogger
 import org.typelevel.log4cats.Logger
 
 import java.util.UUID
-import observe.model.{ ActionType, ClientId, Observation, SystemOverrides }
+import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
 import lucuma.core.enums.Site
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
 import org.http4s.Uri
 import org.http4s.implicits.*
 import observe.engine
-import observe.engine.{ Action, Result }
+import observe.engine.{Action, Result}
 import observe.engine.Result.PauseContext
 import observe.engine.Result.PartialVal
-import observe.model.enums.{ Instrument, Resource }
+import observe.model.enums.{Instrument, Resource}
 import observe.model.dhs.*
 import observe.model.config.*
 import observe.common.test.*
 import observe.server.OdbProxy.TestOdbProxy
-import observe.server.altair.{ AltairControllerSim, AltairKeywordReaderDummy }
+import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
 import observe.server.flamingos2.Flamingos2ControllerSim
-import observe.server.gcal.{ DummyGcalKeywordsReader, GcalControllerSim }
-import observe.server.gems.{ GemsControllerSim, GemsKeywordReaderDummy }
+import observe.server.gcal.{DummyGcalKeywordsReader, GcalControllerSim}
+import observe.server.gems.{GemsControllerSim, GemsKeywordReaderDummy}
 import observe.server.ghost.GhostController
-import observe.server.gmos.{ GmosControllerSim, GmosKeywordReaderDummy }
-import observe.server.gnirs.{ GnirsControllerSim, GnirsKeywordReaderDummy }
+import observe.server.gmos.{GmosControllerSim, GmosKeywordReaderDummy}
+import observe.server.gnirs.{GnirsControllerSim, GnirsKeywordReaderDummy}
 import observe.server.gpi.GpiController
-import observe.server.gsaoi.{ GsaoiControllerSim, GsaoiKeywordReaderDummy }
+import observe.server.gsaoi.{GsaoiControllerSim, GsaoiKeywordReaderDummy}
 import observe.server.gws.DummyGwsKeywordsReader
-import observe.server.keywords.{ DhsClientSim, GdsClient }
-import observe.server.nifs.{ NifsControllerSim, NifsKeywordReaderDummy }
-import observe.server.niri.{ NiriControllerSim, NiriKeywordReaderDummy }
+import observe.server.keywords.{DhsClientSim, GdsClient}
+import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
+import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
 import observe.server.tcs.{
   DummyTcsKeywordsReader,
   GuideConfigDb,

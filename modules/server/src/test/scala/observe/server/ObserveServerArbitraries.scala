@@ -9,17 +9,17 @@ import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
 import org.scalacheck.Arbitrary.*
-import org.scalacheck.{ Arbitrary, Cogen }
+import org.scalacheck.{Arbitrary, Cogen}
 import observe.model.BatchCommandState
 import observe.model.enums.Instrument
-import observe.model.{ Conditions, Operator }
+import observe.model.{Conditions, Operator}
 import observe.model.ObserveModelArbitraries.{*, given}
 
 trait ObserveServerArbitraries {
 
   given Cogen[Map[Instrument, Observation.Name]] =
     Cogen[List[(Instrument, Observation.Name)]].contramap(_.toList)
-  given Arbitrary[EngineState[IO]]              = Arbitrary {
+  given Arbitrary[EngineState[IO]]               = Arbitrary {
     for {
       q <- arbitrary[ExecutionQueues]
       s <- arbitrary[Map[Instrument, Observation.Id]]

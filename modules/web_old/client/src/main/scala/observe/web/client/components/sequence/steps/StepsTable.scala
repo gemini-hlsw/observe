@@ -492,7 +492,7 @@ object StepsTable extends Columns {
     given Eq[StepSummary] = Eq.by(x => (x.id, x.status, x.breakpoint))
   }
 
-    final case class State(
+  final case class State(
     tableState:               TableState[TableColumn],
     breakpointHover:          Option[StepId],
     selected:                 Option[StepId],
@@ -554,9 +554,9 @@ object StepsTable extends Columns {
       )
     )
 
-  given Reusability[TableColumn]   = Reusability.byRef
-  given Reusability[Double] = Reusability.double(1.0)
-  given Reusability[State]      =
+  given Reusability[TableColumn] = Reusability.byRef
+  given Reusability[Double]      = Reusability.double(1.0)
+  given Reusability[State]       =
     Reusability.by(x => (x.tableState, x.breakpointHover, x.selected, x.scrollBarWidth))
 
   private def canSetBreakpoint(step: Step, l: List[Step]): Boolean = step.canSetBreakpoint(l)
@@ -863,7 +863,8 @@ object StepsTable extends Columns {
     // Separately calculate the state to send upstream
     val newTs             =
       if (hasScrolledBefore)
-        (Focus[State](_.userModified).replace(IsModified) >>> Focus[State](_.scrollPosition).replace(pos))($.state)
+        (Focus[State](_.userModified).replace(IsModified) >>> Focus[State](_.scrollPosition)
+          .replace(pos))($.state)
       else
         Focus[State](_.scrollPosition).replace(pos)($.state)
     val posDiff           = abs(pos.toDouble - $.state.tableState.scrollPosition.toDouble)
@@ -945,7 +946,7 @@ object StepsTable extends Columns {
     p:          Props,
     stepId:     StepId,
     onRowClick: Option[OnRowClick]
-  )(e:          ReactMouseEvent): Callback =
+  )(e: ReactMouseEvent): Callback =
     // If alt is pressed or middle button flip the breakpoint
     if (e.altKey || e.button === MiddleButton)
       e.stopPropagationCB *> e.preventDefaultCB >>
@@ -1056,7 +1057,9 @@ object StepsTable extends Columns {
       recomputeRowHeightsCB($.props)(stepId)
 
   def rowBreakpointHoverOffCB($ : Scope)(stepId: StepId): Callback =
-    $.modState(Focus[State](_.breakpointHover).replace(None)) *> recomputeRowHeightsCB($.props)(stepId)
+    $.modState(Focus[State](_.breakpointHover).replace(None)) *> recomputeRowHeightsCB($.props)(
+      stepId
+    )
 
   private def scrollTo(props: Props)(stepId: StepId): Callback = index(props.stepsList, stepId)
     .map(i => ref.get.asCBO.flatMapCB(_.raw.scrollToRowCB(i)).toCallback)
@@ -1128,7 +1131,7 @@ object StepsTable extends Columns {
     nextStep:     Option[RunningStep],
     curSeqState:  Option[SequenceState],
     nextSeqState: Option[SequenceState]
-  )(f:            Option[(StepId, Boolean)] => A): A =
+  )(f: Option[(StepId, Boolean)] => A): A =
     (curStep, nextStep) match {
       case (Some(RunningStep(Some(i), _, _)), None)                                        =>
         // This happens when a sequence stops, e.g. with a pause
@@ -1177,7 +1180,9 @@ object StepsTable extends Columns {
       p.selectedStep
         .filter(_ => s.prevResourceRunRequested =!= p.tabOperations.resourceRunRequested)
         .map(stepId =>
-          (stepId, Focus[State](_.prevResourceRunRequested).replace(p.tabOperations.resourceRunRequested))
+          (stepId,
+           Focus[State](_.prevResourceRunRequested).replace(p.tabOperations.resourceRunRequested)
+          )
         )
 
     // Recompute selected step

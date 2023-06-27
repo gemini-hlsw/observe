@@ -33,77 +33,77 @@ import shapeless.tag.@@
 import squants.Time
 
 package object reusability {
-  given [A <: AnyRef: Enumerated]:Reusability[A]             =
+  given [A <: AnyRef: Enumerated]: Reusability[A]              =
     Reusability.byRef
-  given [A]:Reusability[Int @@ A]                                  =
+  given [A]: Reusability[Int @@ A]                             =
     Reusability.by(x => x: Int)
-  given Reusability[Time]                                         = Reusability.by(_.toMilliseconds.toLong)
+  given Reusability[Time]                                      = Reusability.by(_.toMilliseconds.toLong)
   given Reusability[ImageFileId]                               = Reusability.byEq
-  given Reusability[StepState]                               = Reusability.byEq
-  given Reusability[Observation.Id]                              = Reusability.byEq
-  given Reusability[Observation.IdName]                      = Reusability.byEq
-  given Reusability[Observer]                                 = Reusability.byEq
-  given Reusability[Operator]                                 = Reusability.byEq
-  given Reusability[SemanticColor]                               = Reusability.by(_.toJs)
-  given Reusability[Css]                                           = Reusability.by(_.htmlClass)
-  given Reusability[StepId]                                     = Reusability.byEq
-  given Reusability[StepConfig]                             = Reusability.byEq
-  val stdStepReuse: Reusability[StandardStep]                                       =
+  given Reusability[StepState]                                 = Reusability.byEq
+  given Reusability[Observation.Id]                            = Reusability.byEq
+  given Reusability[Observation.IdName]                        = Reusability.byEq
+  given Reusability[Observer]                                  = Reusability.byEq
+  given Reusability[Operator]                                  = Reusability.byEq
+  given Reusability[SemanticColor]                             = Reusability.by(_.toJs)
+  given Reusability[Css]                                       = Reusability.by(_.htmlClass)
+  given Reusability[StepId]                                    = Reusability.byEq
+  given Reusability[StepConfig]                                = Reusability.byEq
+  val stdStepReuse: Reusability[StandardStep]                  =
     Reusability.caseClassExcept("config")
-  given Reusability[NSSubexposure]                       =
+  given Reusability[NSSubexposure]                             =
     Reusability.derive[NSSubexposure]
-  given Reusability[SystemOverrides]                         = Reusability.byEq
-  given Reusability[NSRunningState]                     =
+  given Reusability[SystemOverrides]                           = Reusability.byEq
+  given Reusability[NSRunningState]                            =
     Reusability.derive[NSRunningState]
-  given Reusability[NodAndShuffleStatus]                           =
+  given Reusability[NodAndShuffleStatus]                       =
     Reusability.derive[NodAndShuffleStatus]
-  val nsStepReuse: Reusability[NodAndShuffleStep]                                   =
+  val nsStepReuse: Reusability[NodAndShuffleStep]              =
     Reusability.caseClassExcept("config")
-  given Reusability[Step]                                         =
+  given Reusability[Step]                                      =
     Reusability {
       case (a: StandardStep, b: StandardStep)           => stdStepReuse.test(a, b)
       case (a: NodAndShuffleStep, b: NodAndShuffleStep) => nsStepReuse.test(a, b)
       case _                                            => false
     }
-  given Reusability[StepStateSummary]                =
+  given Reusability[StepStateSummary]                          =
     Reusability.byEq
-  given Reusability[SequenceState]                            = Reusability.byEq
-  given Reusability[ClientStatus]                         = Reusability.byEq
-  given Reusability[StepsTableTypeSelection]                    =
+  given Reusability[SequenceState]                             = Reusability.byEq
+  given Reusability[ClientStatus]                              = Reusability.byEq
+  given Reusability[StepsTableTypeSelection]                   =
     Reusability.byEq
-  given Reusability[StepsTableFocus]                         = Reusability.byEq
-  given Reusability[StatusAndStepFocus]                      =
+  given Reusability[StepsTableFocus]                           = Reusability.byEq
+  given Reusability[StatusAndStepFocus]                        =
     Reusability.byEq
   given Reusability[SequenceControlFocus]                      =
     Reusability.byEq
-  given Reusability[TabSelected]                                = Reusability.byRef
-  given Reusability[PotState]                                 = Reusability.byRef
-  given Reusability[WebSocketConnection]                          =
+  given Reusability[TabSelected]                               = Reusability.byRef
+  given Reusability[PotState]                                  = Reusability.byRef
+  given Reusability[WebSocketConnection]                       =
     Reusability.by(_.ws.state)
-  given Reusability[ResourceRunOperation]             =
+  given Reusability[ResourceRunOperation]                      =
     Reusability.derive
-  given Reusability[AvailableTab]                        = Reusability.byEq
-  given Reusability[UserDetails]                           = Reusability.byEq
-  given Reusability[UserPromptState]                         = Reusability.byEq
-  given Reusability[UserNotificationState]                      = Reusability.byEq
-  given Reusability[QueueOperations]                                = Reusability.byEq
-  given Reusability[CalQueueControlFocus]                           = Reusability.byEq
-  given Reusability[CalQueueFocus]                                 = Reusability.byEq
-  given Reusability[QueueId]                                       = Reusability.byEq
-  given Reusability[GlobalLog]                               = Reusability.byEq
-  given Reusability[Map[Resource, ResourceRunOperation]]        =
+  given Reusability[AvailableTab]                              = Reusability.byEq
+  given Reusability[UserDetails]                               = Reusability.byEq
+  given Reusability[UserPromptState]                           = Reusability.byEq
+  given Reusability[UserNotificationState]                     = Reusability.byEq
+  given Reusability[QueueOperations]                           = Reusability.byEq
+  given Reusability[CalQueueControlFocus]                      = Reusability.byEq
+  given Reusability[CalQueueFocus]                             = Reusability.byEq
+  given Reusability[QueueId]                                   = Reusability.byEq
+  given Reusability[GlobalLog]                                 = Reusability.byEq
+  given Reusability[Map[Resource, ResourceRunOperation]]       =
     Reusability.map
-  given Reusability[Map[ServerLogLevel, Boolean]]                   =
+  given Reusability[Map[ServerLogLevel, Boolean]]              =
     Reusability.map
   given Reusability[SortedMap[Resource, ResourceRunOperation]] =
     Reusability.by(_.toMap)
-  given Reusability[TabOperations]                                =
+  given Reusability[TabOperations]                             =
     Reusability.byEq
-  given Reusability[M1GuideConfig]                                 =
+  given Reusability[M1GuideConfig]                             =
     Reusability.derive[M1GuideConfig]
-  given Reusability[M2GuideConfig]                                 =
+  given Reusability[M2GuideConfig]                             =
     Reusability.derive[M2GuideConfig]
-  given Reusability[TelescopeGuideConfig]                       =
+  given Reusability[TelescopeGuideConfig]                      =
     Reusability.derive[TelescopeGuideConfig]
-  given Reusability[SemanticSize]                                     = Reusability.byRef[SemanticSize]
+  given Reusability[SemanticSize]                              = Reusability.byRef[SemanticSize]
 }

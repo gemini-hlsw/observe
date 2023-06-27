@@ -32,10 +32,11 @@ object AllObservationsProgressState {
     Eq.by(_.obsProgress)
 
   def progressStateO[P <: Progress](
-    obsId:                  Observation.Id,
-    stepId:                 StepId
+    obsId:  Observation.Id,
+    stepId: StepId
   )(using progressPrism: Prism[Progress, P]): Optional[ObserveAppRootModel, P] =
-    Focus[ObserveAppRootModel](_.uiModel).andThen(ObserveUIModel.obsProgress)
+    Focus[ObserveAppRootModel](_.uiModel)
+      .andThen(ObserveUIModel.obsProgress)
       .andThen(progressByIdO(obsId, stepId))
 
   def progressByIdL(
@@ -45,8 +46,8 @@ object AllObservationsProgressState {
     Focus[AllObservationsProgressState](_.obsProgress).andThen(at((obsId, stepId)))
 
   def progressByIdO[P <: Progress](
-    obsId:                  Observation.Id,
-    stepId:                 StepId
+    obsId:  Observation.Id,
+    stepId: StepId
   )(using progressPrism: Prism[Progress, P]): Optional[AllObservationsProgressState, P] =
     progressByIdL(obsId, stepId).andThen(some[Progress]).andThen(progressPrism)
 

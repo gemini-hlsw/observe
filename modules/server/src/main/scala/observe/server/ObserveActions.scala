@@ -89,7 +89,9 @@ trait ObserveActions {
    */
   def observationProgressStream[F[_]](
     env: ObserveEnvironment[F]
-  ): Stream[F, Result] = env.inst.observeProgress(env.inst.calcObserveTime, ElapsedTime(0.0.seconds)).map(Result.Partial(_))
+  ): Stream[F, Result] = env.inst
+    .observeProgress(env.inst.calcObserveTime, ElapsedTime(0.0.seconds))
+    .map(Result.Partial(_))
 
   /**
    * Tell each subsystem that an observe will start
@@ -163,7 +165,7 @@ trait ObserveActions {
   private def observeTail[F[_]: Temporal, S, D](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
-  )(r:      ObserveCommandResult): Stream[F, Result] =
+  )(r: ObserveCommandResult): Stream[F, Result] =
     Stream.eval(r match {
       case ObserveCommandResult.Success =>
         okTail(fileId, stopped = false, env)
@@ -173,52 +175,52 @@ trait ObserveActions {
         abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
         val totalTime = env.inst.calcObserveTime
-            env.inst.observeControl match {
-              case c: CompleteControl[F] =>
-                val resumePaused: Duration => Stream[F, Result]    =
-                  (remaining: Duration) =>
-                    Stream
-                      .eval {
-                        c.continue
-                          .self(remaining)
-                      }
-                      .flatMap(observeTail(fileId, env))
-                val progress: ElapsedTime => Stream[F, Result] =
-                  (elapsed: ElapsedTime) =>
-                    env.inst
-                      .observeProgress(totalTime, elapsed)
-                      .map(Result.Partial(_))
-                      .widen[Result]
-                val stopPaused: Stream[F, Result]              =
-                  Stream
-                    .eval {
-                      c.stopPaused.self
-                    }
-                    .flatMap(observeTail(fileId, env))
-                val abortPaused: Stream[F, Result]             =
-                  Stream
-                    .eval {
-                      c.abortPaused.self
-                    }
-                    .flatMap(observeTail(fileId, env))
-
-                Result
-                  .Paused(
-                    ObserveContext[F](
-                      resumePaused,
-                      progress,
-                      stopPaused,
-                      abortPaused,
-                      totalTime
-                    )
-                  )
-                  .pure[F]
+        env.inst.observeControl match {
+          case c: CompleteControl[F] =>
+            val resumePaused: Duration => Stream[F, Result] =
+              (remaining: Duration) =>
+                Stream
+                  .eval {
+                    c.continue
+                      .self(remaining)
+                  }
+                  .flatMap(observeTail(fileId, env))
+            val progress: ElapsedTime => Stream[F, Result]  =
+              (elapsed: ElapsedTime) =>
+                env.inst
+                  .observeProgress(totalTime, elapsed)
+                  .map(Result.Partial(_))
                   .widen[Result]
-              case _                     =>
-                ObserveFailure
-                  .Execution("Observation paused for an instrument that does not support pause")
-                  .raiseError[F, Result]
-            }
+            val stopPaused: Stream[F, Result]               =
+              Stream
+                .eval {
+                  c.stopPaused.self
+                }
+                .flatMap(observeTail(fileId, env))
+            val abortPaused: Stream[F, Result]              =
+              Stream
+                .eval {
+                  c.abortPaused.self
+                }
+                .flatMap(observeTail(fileId, env))
+
+            Result
+              .Paused(
+                ObserveContext[F](
+                  resumePaused,
+                  progress,
+                  stopPaused,
+                  abortPaused,
+                  totalTime
+                )
+              )
+              .pure[F]
+              .widen[Result]
+          case _                     =>
+            ObserveFailure
+              .Execution("Observation paused for an instrument that does not support pause")
+              .raiseError[F, Result]
+        }
     })
 
   /**
