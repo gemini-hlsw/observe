@@ -22,8 +22,8 @@ import react.common.*
 import react.fa.FontAwesomeIcon
 import react.fa.IconSize
 import react.primereact.*
-// import reactST.primereact.components.*
-// import reactST.primereact.selectitemMod.SelectItem
+// import lucuma.typed.primereact.components.*
+// import lucuma.typed.primereact.selectitemMod.SelectItem
 import lucuma.typed.{tanstackTableCore => raw}
 
 import scalajs.js.JSConverters.*
