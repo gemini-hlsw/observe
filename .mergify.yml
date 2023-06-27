@@ -49,6 +49,14 @@ pull_request_rules:
       add:
       - modules
       remove: []
+- name: Label new_model PRs
+  conditions:
+  - files~=^modules/new_model/
+  actions:
+    label:
+      add:
+      - new_model
+      remove: []
 - name: Label observe-server PRs
   conditions:
   - files~=^app/observe-server/
@@ -104,4 +112,12 @@ pull_request_rules:
     label:
       add:
       - server_new
+      remove: []
+- name: Label web PRs
+  conditions:
+  - files~=^modules/web/
+  actions:
+    label:
+      add:
+      - web
       remove: []
