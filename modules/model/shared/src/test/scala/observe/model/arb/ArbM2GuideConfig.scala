@@ -1,20 +1,20 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
 
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import lucuma.core.util.arb.ArbEnumerated._
-import observe.model.enum.ComaOption
-import observe.model.enum.TipTiltSource
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.enums.ComaOption
+import observe.model.enums.TipTiltSource
 import observe.model.M2GuideConfig
 
 trait ArbM2GuideConfig {
 
-  implicit val arbM2GuideOn: Arbitrary[M2GuideConfig.M2GuideOn] =
+  given arbM2GuideOn: Arbitrary[M2GuideConfig.M2GuideOn] =
     Arbitrary {
       for {
         c <- arbitrary[ComaOption]
@@ -22,12 +22,12 @@ trait ArbM2GuideConfig {
       } yield M2GuideConfig.M2GuideOn(c, s.sortBy(x => s"$x").toSet)
     }
 
-  implicit val m2GuideOnCogen: Cogen[M2GuideConfig.M2GuideOn] =
+  given m2GuideOnCogen: Cogen[M2GuideConfig.M2GuideOn] =
     Cogen[(ComaOption, List[TipTiltSource])].contramap(x =>
       (x.coma, x.sources.toList.sortBy(x => s"$x"))
     )
 
-  implicit val arbM2GuideConfig: Arbitrary[M2GuideConfig] =
+  given arbM2GuideConfig: Arbitrary[M2GuideConfig] =
     Arbitrary {
       for {
         off <- Gen.const(M2GuideConfig.M2GuideOff)
@@ -36,7 +36,7 @@ trait ArbM2GuideConfig {
       } yield l
     }
 
-  implicit val m2GuideConfigCogen: Cogen[M2GuideConfig] =
+  given m2GuideConfigCogen: Cogen[M2GuideConfig] =
     Cogen[Option[M2GuideConfig.M2GuideOn]].contramap {
       case x: M2GuideConfig.M2GuideOn => Some(x)
       case _                          => None

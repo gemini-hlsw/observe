@@ -4,18 +4,18 @@
 package observe.server.gpi
 
 import cats._
-import cats.syntax.all._
+import cats.syntax.all.*
 import giapi.client.GiapiStatusDb
 import giapi.client.StatusValue
 import giapi.client.commands.Configuration
-import giapi.client.syntax.status._
+import giapi.client.syntax.status.*
 import lucuma.core.enums.GiapiStatus
 import lucuma.core.enums.GiapiStatusApply
-import lucuma.core.enums.GiapiStatusApply._
+import lucuma.core.enums.GiapiStatusApply.*
 import lucuma.core.enums.GiapiType
 import lucuma.core.enums.Instrument
 import lucuma.core.math.Angle
-import lucuma.core.syntax.all._
+import lucuma.core.syntax.all.*
 import ocs2.Parsers
 
 object GpiStatusApply extends GpiLookupTables {
@@ -188,7 +188,7 @@ object GpiStatusApply extends GpiLookupTables {
             .map(Angle.fromDoubleDegrees)
         (measuredAngle, requestedAngle)
           .mapN { (m, r) =>
-            implicit val order: Order[Angle] = Angle.AngleOrder
+            given Order[Angle] = Angle.AngleOrder
             val δ: Angle                     = m.difference(r)
             val ε: Option[Angle]             =
               GpiPolarizerAngle.tolerance.map(t => Angle.fromDoubleDegrees(t.toDouble))

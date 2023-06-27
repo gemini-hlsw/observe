@@ -13,17 +13,17 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.LiftIO
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
-import observe.model.enum.ApplyCommandResult
+import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
-import observe.server.EpicsCommandBase._
+import observe.server.EpicsCommandBase.*
 import observe.server.EpicsSystem
-import observe.server.EpicsUtil._
+import observe.server.EpicsUtil.*
 import observe.server.ObserveFailure.ObserveException
 import squants.Angle
 import squants.space.Degrees
@@ -199,7 +199,7 @@ trait TcsEpics[F[_]] {
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(implicit
+  def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
     T:                                  Temporal[F]
   ): F[Unit]
 
@@ -207,7 +207,7 @@ trait TcsEpics[F[_]] {
   /* TODO: AG inposition can take up to 1[s] to react to a TCS command. If the value is read before that, it may induce
    * an error. A better solution is to detect the edge, from not in position to in-position.
    */
-  def waitAGInPosition(timeout: FiniteDuration)(implicit T: Temporal[F]): F[Unit]
+  def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit]
 
   def hourAngle: F[String]
 
@@ -911,7 +911,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(implicit
+  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
     T:                                           Temporal[F]
   ): F[Unit] =
     T.sleep(FiniteDuration(tcsSettleTime.toMillis, TimeUnit.MILLISECONDS)) *> (
@@ -936,7 +936,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
    * an error. A better solution is to detect the edge, from not in position to in-position.
    */
   private val AGSettleTime                                                                 = FiniteDuration(1100, MILLISECONDS)
-  override def waitAGInPosition(timeout: FiniteDuration)(implicit T: Temporal[F]): F[Unit] =
+  override def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit] =
     T.sleep(AGSettleTime) *>
       Sync[F]
         .delay(filteredAGInPositionAttr.restart)
@@ -1324,16 +1324,16 @@ object TcsEpics extends EpicsSystem[TcsEpics[IO]] {
       with ProbeGuideCmd[F] {
     override val cs: Option[CaCommandSender] = Option(epicsService.getCommandSender(csName))
 
-    private val nodachopa                         = cs.map(_.getString("nodachopa"))
+    private val nodachopa = cs.map(_.getString("nodachopa"))
     override def setNodachopa(v: String): F[Unit] = setParameter(nodachopa, v)
 
-    private val nodachopb                         = cs.map(_.getString("nodachopb"))
+    private val nodachopb = cs.map(_.getString("nodachopb"))
     override def setNodachopb(v: String): F[Unit] = setParameter(nodachopb, v)
 
-    private val nodbchopa                         = cs.map(_.getString("nodbchopa"))
+    private val nodbchopa = cs.map(_.getString("nodbchopa"))
     override def setNodbchopa(v: String): F[Unit] = setParameter(nodbchopa, v)
 
-    private val nodbchopb                         = cs.map(_.getString("nodbchopb"))
+    private val nodbchopb = cs.map(_.getString("nodbchopb"))
     override def setNodbchopb(v: String): F[Unit] = setParameter(nodbchopb, v)
   }
 
@@ -1352,25 +1352,25 @@ object TcsEpics extends EpicsSystem[TcsEpics[IO]] {
       with WfsObserveCmd[F] {
     override val cs: Option[CaCommandSender] = Option(epicsService.getCommandSender(csName))
 
-    private val noexp                          = cs.map(_.getInteger("noexp"))
+    private val noexp = cs.map(_.getInteger("noexp"))
     override def setNoexp(v: Integer): F[Unit] = setParameter(noexp, v)
 
-    private val int                         = cs.map(_.getDouble("int"))
+    private val int = cs.map(_.getDouble("int"))
     override def setInt(v: Double): F[Unit] = setParameter[F, java.lang.Double](int, v)
 
-    private val outopt                         = cs.map(_.getString("outopt"))
+    private val outopt = cs.map(_.getString("outopt"))
     override def setOutopt(v: String): F[Unit] = setParameter(outopt, v)
 
-    private val label                         = cs.map(_.getString("label"))
+    private val label = cs.map(_.getString("label"))
     override def setLabel(v: String): F[Unit] = setParameter(label, v)
 
-    private val output                         = cs.map(_.getString("output"))
+    private val output = cs.map(_.getString("output"))
     override def setOutput(v: String): F[Unit] = setParameter(output, v)
 
-    private val path                         = cs.map(_.getString("path"))
+    private val path = cs.map(_.getString("path"))
     override def setPath(v: String): F[Unit] = setParameter(path, v)
 
-    private val name                         = cs.map(_.getString("name"))
+    private val name = cs.map(_.getString("name"))
     override def setName(v: String): F[Unit] = setParameter(name, v)
   }
 
@@ -1385,7 +1385,7 @@ object TcsEpics extends EpicsSystem[TcsEpics[IO]] {
       epicsService.getCommandSender(csName)
     )
 
-    private val follow                              = cs.map(_.getString("followState"))
+    private val follow = cs.map(_.getString("followState"))
     override def setFollowState(v: String): F[Unit] = setParameter(follow, v)
   }
 
@@ -1443,7 +1443,7 @@ object TcsEpics extends EpicsSystem[TcsEpics[IO]] {
   }
 
   // TODO: Delete me after fully moved to tagless
-  implicit class TargetIOOps(val tio: Target[IO]) extends AnyVal {
+  extension(tio: Target[IO]) {
     def to[F[_]: LiftIO]: Target[F] = new Target[F] {
       def objectName: F[String]        = tio.objectName.to[F]
       def ra: F[Double]                = tio.ra.to[F]

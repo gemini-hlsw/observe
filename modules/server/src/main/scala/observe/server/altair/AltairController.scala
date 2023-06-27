@@ -3,10 +3,10 @@
 
 package observe.server.altair
 
-import cats.{Eq, Show}
-import cats.syntax.all._
-import observe.model.`enum`.Instrument
-import observe.server.tcs.Gaos.{GuideCapabilities, PauseConditionSet, ResumeConditionSet}
+import cats.{ Eq, Show }
+import cats.syntax.all.*
+import observe.model.enums.Instrument
+import observe.server.tcs.Gaos.{ GuideCapabilities, PauseConditionSet, ResumeConditionSet }
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 import squants.space.Length
@@ -41,10 +41,10 @@ object AltairController {
 
   type FieldLens = edu.gemini.spModel.gemini.altair.AltairParams.FieldLens
 
-  implicit val ngsEq: Eq[Ngs] = Eq.by(_.blend)
-  implicit val lgsEq: Eq[Lgs] = Eq.by(x => (x.strap, x.sfo))
+  given Eq[Ngs] = Eq.by(_.blend)
+  given Eq[Lgs] = Eq.by(x => (x.strap, x.sfo))
 
-  implicit val eq: Eq[AltairConfig] = Eq.instance {
+  given Eq[AltairConfig] = Eq.instance {
     case (AltairOff, AltairOff) => true
     case (a: Lgs, b: Lgs)       => a === b
     case (a: Ngs, b: Ngs)       => a === b
@@ -53,7 +53,7 @@ object AltairController {
     case _                      => false
   }
 
-  implicit val showAltairConfig: Show[AltairConfig] = Show.fromToString[AltairConfig]
+  given Show[AltairConfig] = Show.fromToString[AltairConfig]
 
   sealed case class AltairPauseResume[F[_]](
     pause:             Option[F[Unit]],

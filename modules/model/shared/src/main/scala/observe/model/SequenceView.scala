@@ -1,16 +1,14 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
-import cats._
-import cats.syntax.all._
-import monocle.Traversal
-import monocle.function.Each._
-import monocle.macros.Lenses
+import cats.*
+import cats.syntax.all.*
+import monocle.{Focus, Traversal}
+import monocle.function.Each.*
 import observe.model.Observation
 
-@Lenses
 final case class SequenceView(
   idName:          Observation.IdName,
   metadata:        SequenceMetadata,
@@ -35,9 +33,9 @@ final case class SequenceView(
 }
 
 object SequenceView {
-  implicit val eq: Eq[SequenceView] =
+  given Eq[SequenceView] =
     Eq.by(x => (x.idName, x.metadata, x.status, x.steps, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
-    SequenceView.steps.andThen(each[List[Step], Step])
+    Focus[SequenceView](_.steps).andThen(each[List[Step], Step])
 }

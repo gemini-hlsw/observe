@@ -3,35 +3,34 @@
 
 package observe.server
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 import cats.data.Kleisli
 import fs2.Stream
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.keywords.KeywordsClient
-import squants.Time
 
 trait InstrumentSystem[F[_]] extends System[F] {
   override val resource: Instrument
 
   val contributorName: String
 
-  def observeControl(config: CleanConfig): InstrumentSystem.ObserveControl[F]
+  def observeControl: InstrumentSystem.ObserveControl[F]
 
-  def observe(config: CleanConfig): Kleisli[F, ImageFileId, ObserveCommandResult]
+  def observe: Kleisli[F, ImageFileId, ObserveCommandResult]
 
   // Expected total observe lapse, used to calculate timeout
-  def calcObserveTime(config: CleanConfig): F[Time]
+  def calcObserveTime: Duration
 
   def observeTimeout: FiniteDuration = 1.minute
 
   def keywordsClient: KeywordsClient[F]
 
-  def observeProgress(total: Time, elapsed: InstrumentSystem.ElapsedTime): Stream[F, Progress]
+  def observeProgress(total: Duration, elapsed: InstrumentSystem.ElapsedTime): Stream[F, Progress]
 
-  def instrumentActions(config: CleanConfig): InstrumentActions[F]
+  def instrumentActions: InstrumentActions[F]
 
 }
 
@@ -42,7 +41,7 @@ object InstrumentSystem {
   final case class AbortObserveCmd[F[_]](self: F[Unit])
   final case class PauseObserveCmd[F[_]](self: Boolean => F[Unit])
 
-  final case class ContinuePausedCmd[F[_]](self: Time => F[ObserveCommandResult])
+  final case class ContinuePausedCmd[F[_]](self: Duration => F[ObserveCommandResult])
   final case class StopPausedCmd[F[_]](self: F[ObserveCommandResult])
   final case class AbortPausedCmd[F[_]](self: F[ObserveCommandResult])
 
@@ -60,5 +59,5 @@ object InstrumentSystem {
   final case class UnpausableControl[F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
       extends ObserveControl[F]
 
-  final case class ElapsedTime(self: Time) extends AnyVal
+  final case class ElapsedTime(self: Duration) extends AnyVal
 }

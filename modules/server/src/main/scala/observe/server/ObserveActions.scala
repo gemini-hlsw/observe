@@ -3,19 +3,19 @@
 
 package observe.server
 
-import scala.concurrent.duration._
-import cats._
-import cats.effect._
-import cats.syntax.all._
+import scala.concurrent.duration.*
+import cats.*
+import cats.effect.MonadThrow
+import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import observe.engine._
+import observe.engine.*
 import observe.model.{Observation, StepId}
-import observe.model.dhs._
-import observe.model.enum.ObserveCommandResult
-import InstrumentSystem._
+import observe.model.dhs.*
+import observe.model.enums.ObserveCommandResult
+import InstrumentSystem.*
 import squants.time.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 import cats.effect.Temporal
 import eu.timepit.refined.types.numeric.PosInt
 import lucuma.schemas.ObservationDB.Scalars.VisitId
@@ -31,12 +31,12 @@ trait ObserveActions {
   /**
    * Actions to perform when an observe is aborted
    */
-  def abortTail[F[_]: MonadError[*[_], Throwable]](
+  def abortTail[F[_]: MonadThrow](
     odb:         OdbProxy[F],
     visitId:     Option[VisitId],
     obsIdName:   Observation.IdName,
     imageFileId: ImageFileId
-  ): F[Result[F]] = visitId
+  ): F[Result] = visitId
     .map(
       odb
         .obsAbort(_, obsIdName, imageFileId)
@@ -51,7 +51,7 @@ trait ObserveActions {
   /**
    * Send the datasetStart command to the odb
    */
-  private def sendDataStart[F[_]: MonadError[*[_], Throwable]](
+  private def sendDataStart[F[_]: MonadThrow](
     odb:          OdbProxy[F],
     visitId:      VisitId,
     obsIdName:    Observation.IdName,
@@ -69,7 +69,7 @@ trait ObserveActions {
   /**
    * Send the datasetEnd command to the odb
    */
-  private def sendDataEnd[F[_]: MonadError[*[_], Throwable]](
+  private def sendDataEnd[F[_]: MonadThrow](
     odb:          OdbProxy[F],
     visitId:      VisitId,
     obsIdName:    Observation.IdName,
@@ -89,11 +89,7 @@ trait ObserveActions {
    */
   def observationProgressStream[F[_]](
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
-    for {
-      ot <- Stream.eval(env.inst.calcObserveTime(env.config))
-      pr <- env.inst.observeProgress(ot, ElapsedTime(0.0.seconds))
-    } yield Result.Partial(pr)
+  ): Stream[F, Result] = env.inst.observeProgress(env.inst.calcObserveTime, ElapsedTime(0.0.seconds)).map(Result.Partial(_))
 
   /**
    * Tell each subsystem that an observe will start
@@ -134,7 +130,7 @@ trait ObserveActions {
         info(
           s"Start ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
         )
-      r <- env.inst.observe(env.config)(fileId)
+      r <- env.inst.observe(fileId)
       _ <-
         info(
           s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
@@ -149,7 +145,7 @@ trait ObserveActions {
     fileId:  ImageFileId,
     stopped: Boolean,
     env:     ObserveEnvironment[F]
-  ): F[Result[F]] =
+  ): F[Result] =
     for {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
@@ -164,10 +160,10 @@ trait ObserveActions {
   /**
    * Method to process observe results and act accordingly to the response
    */
-  private def observeTail[F[_]: Temporal](
+  private def observeTail[F[_]: Temporal, S, D](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
-  )(r:      ObserveCommandResult): Stream[F, Result[F]] =
+  )(r:      ObserveCommandResult): Stream[F, Result] =
     Stream.eval(r match {
       case ObserveCommandResult.Success =>
         okTail(fileId, stopped = false, env)
@@ -176,32 +172,30 @@ trait ObserveActions {
       case ObserveCommandResult.Aborted =>
         abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
       case ObserveCommandResult.Paused  =>
-        env.inst
-          .calcObserveTime(env.config)
-          .flatMap(totalTime =>
-            env.inst.observeControl(env.config) match {
+        val totalTime = env.inst.calcObserveTime
+            env.inst.observeControl match {
               case c: CompleteControl[F] =>
-                val resumePaused: Time => Stream[F, Result[F]]    =
-                  (remaining: Time) =>
+                val resumePaused: Duration => Stream[F, Result]    =
+                  (remaining: Duration) =>
                     Stream
                       .eval {
                         c.continue
                           .self(remaining)
                       }
                       .flatMap(observeTail(fileId, env))
-                val progress: ElapsedTime => Stream[F, Result[F]] =
+                val progress: ElapsedTime => Stream[F, Result] =
                   (elapsed: ElapsedTime) =>
                     env.inst
                       .observeProgress(totalTime, elapsed)
                       .map(Result.Partial(_))
-                      .widen[Result[F]]
-                val stopPaused: Stream[F, Result[F]]              =
+                      .widen[Result]
+                val stopPaused: Stream[F, Result]              =
                   Stream
                     .eval {
                       c.stopPaused.self
                     }
                     .flatMap(observeTail(fileId, env))
-                val abortPaused: Stream[F, Result[F]]             =
+                val abortPaused: Stream[F, Result]             =
                   Stream
                     .eval {
                       c.abortPaused.self
@@ -219,13 +213,12 @@ trait ObserveActions {
                     )
                   )
                   .pure[F]
-                  .widen[Result[F]]
+                  .widen[Result]
               case _                     =>
                 ObserveFailure
                   .Execution("Observation paused for an instrument that does not support pause")
-                  .raiseError[F, Result[F]]
+                  .raiseError[F, Result]
             }
-          )
     })
 
   /**
@@ -234,7 +227,7 @@ trait ObserveActions {
   def stdObserve[F[_]: Temporal: Logger](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
-  ): Stream[F, Result[F]] =
+  ): Stream[F, Result] =
     for {
       result <- Stream.eval(observePreamble(fileId, env))
       ret    <- observeTail(fileId, env)(result)

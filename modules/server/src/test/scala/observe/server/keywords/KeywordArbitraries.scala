@@ -4,32 +4,32 @@
 package observe.server.keywords
 
 import lucuma.core.enums.KeywordName
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import lucuma.core.util.arb.ArbEnumerated
 
 trait KeywordArbitraries extends ArbEnumerated {
-  implicit val keywordTypeArb: Arbitrary[KeywordType] = Arbitrary {
+  given Arbitrary[KeywordType] = Arbitrary {
     Gen.oneOf(TypeInt8, TypeInt16, TypeInt32, TypeFloat, TypeDouble, TypeBoolean, TypeString)
   }
-  implicit val keywordTypeCogen: Cogen[KeywordType]   =
+  given Cogen[KeywordType]   =
     Cogen[String].contramap(_.productPrefix)
 
-  implicit val internalKeywordArb: Arbitrary[InternalKeyword] = Arbitrary {
+  given Arbitrary[InternalKeyword] = Arbitrary {
     for {
       name  <- arbitrary[KeywordName]
       kt    <- arbitrary[KeywordType]
       value <- Gen.listOfN(17, Gen.alphaChar)
     } yield InternalKeyword(name, kt, value.mkString)
   }
-  implicit val internalKeywordCogen: Cogen[InternalKeyword]   =
+  given Cogen[InternalKeyword]   =
     Cogen[(KeywordName, KeywordType, String)].contramap(x => (x.name, x.keywordType, x.value))
 
-  implicit val keywordBagArb: Arbitrary[KeywordBag] = Arbitrary {
+  given Arbitrary[KeywordBag] = Arbitrary {
     arbitrary[List[InternalKeyword]].map(KeywordBag.apply)
   }
-  implicit val keywordBagCogen: Cogen[KeywordBag]   =
+  given Cogen[KeywordBag]   =
     Cogen[List[InternalKeyword]].contramap(_.keywords)
 }

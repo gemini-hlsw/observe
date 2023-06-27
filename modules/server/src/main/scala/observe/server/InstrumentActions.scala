@@ -28,7 +28,7 @@ trait InstrumentActions[F[_]] {
    */
   def observationProgressStream(
     env: ObserveEnvironment[F]
-  ): Stream[F, Result[F]]
+  ): Stream[F, Result]
 
   /**
    * Builds a list of actions to run while observing In most cases it is just a plain observe but
@@ -52,7 +52,7 @@ object InstrumentActions {
    * This is the default observe action, just a simple observe call
    */
   def defaultObserveActions[F[_]](
-    observeResults: Stream[F, Result[F]]
+    observeResults: Stream[F, Result]
   ): List[ParallelActions[F]] =
     List(
       NonEmptyList.one(
@@ -62,8 +62,8 @@ object InstrumentActions {
 
   def launchObserve[F[_]](
     env:       ObserveEnvironment[F],
-    doObserve: (ImageFileId, ObserveEnvironment[F]) => Stream[F, Result[F]]
-  ): Stream[F, Result[F]] =
+    doObserve: (ImageFileId, ObserveEnvironment[F]) => Stream[F, Result]
+  ): Stream[F, Result] =
     Stream.eval(FileIdProvider.fileId(env)).flatMap { fileId =>
       Stream.emit(Result.Partial(FileIdAllocated(fileId))) ++
         doObserve(fileId, env)
@@ -76,7 +76,7 @@ object InstrumentActions {
     new InstrumentActions[F] {
       def observationProgressStream(
         env: ObserveEnvironment[F]
-      ): Stream[F, Result[F]] =
+      ): Stream[F, Result] =
         ObserveActions.observationProgressStream(env)
 
       override def observeActions(

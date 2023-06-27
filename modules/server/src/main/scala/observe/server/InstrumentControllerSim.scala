@@ -3,17 +3,16 @@
 
 package observe.server
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats._
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import fs2.Stream
 import gov.aps.jca.TimeoutException
 import org.typelevel.log4cats.Logger
-import monocle.macros.Lenses
-import mouse.all._
+import mouse.all.*
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import InstrumentSystem.ElapsedTime
 import ObserveFailure.ObserveException
 import cats.effect.kernel.Async
@@ -46,8 +45,7 @@ sealed trait InstrumentControllerSim[F[_]] {
 }
 
 object InstrumentControllerSim {
-  @Lenses
-  final case class ObserveState(
+    final case class ObserveState(
     stopFlag:      Boolean,
     abortFlag:     Boolean,
     pauseFlag:     Boolean,
@@ -59,7 +57,7 @@ object InstrumentControllerSim {
       ObserveState(stopFlag = false, abortFlag = false, pauseFlag = false, remainingTime = 0)
 
     val pauseFalse = (o: ObserveState) =>
-      (ObserveState.pauseFlag.replace(false)(o), ObserveState.pauseFlag.replace(false)(o))
+      (Focus[ObserveState](_.pauseFlag).replace(false)(o), Focus[ObserveState](_.pauseFlag).replace(false)(o))
 
     def unsafeRef[F[_]: Sync]: Ref[F, ObserveState] = Ref.unsafe(Zero)
 
@@ -73,7 +71,7 @@ object InstrumentControllerSim {
     stopObserveDelay:   FiniteDuration,
     configurationDelay: FiniteDuration,
     obsStateRef:        Ref[F, ObserveState]
-  )(implicit val F:     MonadError[*[_], Throwable][F], L: Logger[F], T: Temporal[F])
+  )(using val F:     MonadThrow[F], L: Logger[F], T: Temporal[F])
       extends InstrumentControllerSim[F] {
     private val TIC = 200L
 
@@ -90,7 +88,7 @@ object InstrumentControllerSim {
       } else if (observeState.abortFlag) {
         ObserveCommandResult.Aborted.pure[F].widen
       } else if (observeState.pauseFlag) {
-        obsStateRef.update(ObserveState.remainingTime.replace(observeState.remainingTime)) *>
+        obsStateRef.update(Focus[ObserveState](_.remainingTime).replace(observeState.remainingTime)) *>
           ObserveCommandResult.Paused.pure[F].widen
       } else if (timeout.exists(_ <= 0)) {
         F.raiseError(ObserveException(new TimeoutException()))
@@ -109,10 +107,10 @@ object InstrumentControllerSim {
     def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] = {
       val totalTime = expTime.millis + readOutDelay.toMillis
       log(s"Simulate taking $name observation with label $fileId") *> {
-        val upd = ObserveState.stopFlag.replace(false) >>>
-          ObserveState.pauseFlag.replace(false) >>>
-          ObserveState.abortFlag.replace(false) >>>
-          ObserveState.remainingTime.replace(totalTime)
+        val upd = Focus[ObserveState](_.stopFlag).replace(false) >>>
+          Focus[ObserveState](_.pauseFlag).replace(false) >>>
+          Focus[ObserveState](_.abortFlag).replace(false) >>>
+          Focus[ObserveState](_.remainingTime).replace(totalTime)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(useTimeout.option(totalTime + 2 * TIC))
     }
@@ -124,42 +122,42 @@ object InstrumentControllerSim {
     def stopObserve: F[Unit] =
       log(s"Simulate stopping $name exposure") *>
         T.sleep(stopObserveDelay) *>
-        obsStateRef.update(ObserveState.stopFlag.replace(true))
+        obsStateRef.update(Focus[ObserveState](_.stopFlag).replace(true))
 
     def abortObserve: F[Unit] =
       log(s"Simulate aborting $name exposure") *>
-        obsStateRef.update(ObserveState.abortFlag.replace(true))
+        obsStateRef.update(Focus[ObserveState](_.abortFlag).replace(true))
 
     def endObserve: F[Unit] =
       log(s"Simulate sending endObserve to $name")
 
     def pauseObserve: F[Unit] =
       log(s"Simulate pausing $name exposure") *>
-        obsStateRef.update(ObserveState.pauseFlag.replace(true))
+        obsStateRef.update(Focus[ObserveState](_.pauseFlag).replace(true))
 
     def resumePaused: F[ObserveCommandResult] =
       log(s"Simulate resuming $name observation") *> {
-        val upd = ObserveState.stopFlag.replace(false) >>>
-          ObserveState.pauseFlag.replace(false) >>>
-          ObserveState.abortFlag.replace(false)
+        val upd = Focus[ObserveState](_.stopFlag).replace(false) >>>
+          Focus[ObserveState](_.pauseFlag).replace(false) >>>
+          Focus[ObserveState](_.abortFlag).replace(false)
         obsStateRef.modify(tupledUpdate(upd))
       } >>= { s => observeTic(useTimeout.option(s.remainingTime + 2 * TIC)) }
 
     def stopPaused: F[ObserveCommandResult] =
       log(s"Simulate stopping $name paused observation") *> {
-        val upd = ObserveState.stopFlag.replace(true) >>>
-          ObserveState.pauseFlag.replace(false) >>>
-          ObserveState.abortFlag.replace(false) >>>
-          ObserveState.remainingTime.replace(1000)
+        val upd = Focus[ObserveState](_.stopFlag).replace(true) >>>
+          Focus[ObserveState](_.pauseFlag).replace(false) >>>
+          Focus[ObserveState](_.abortFlag).replace(false) >>>
+          Focus[ObserveState](_.remainingTime).replace(1000)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 
     def abortPaused: F[ObserveCommandResult] =
       log(s"Simulate aborting $name paused observation") *> {
-        val upd = ObserveState.stopFlag.replace(false) >>>
-          ObserveState.pauseFlag.replace(false) >>>
-          ObserveState.abortFlag.replace(true) >>>
-          ObserveState.remainingTime.replace(1000)
+        val upd = Focus[ObserveState](_.stopFlag).replace(false) >>>
+          Focus[ObserveState](_.pauseFlag).replace(false) >>>
+          Focus[ObserveState](_.abortFlag).replace(true) >>>
+          Focus[ObserveState](_.remainingTime).replace(1000)
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 

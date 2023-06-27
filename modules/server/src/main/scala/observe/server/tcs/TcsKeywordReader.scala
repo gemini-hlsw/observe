@@ -10,11 +10,11 @@ import cats._
 import cats.data.Nested
 import cats.data.OptionT
 import cats.effect.Sync
-import cats.syntax.all._
-import lucuma.core.syntax.string._
-import observe.server.keywords._
+import cats.syntax.all.*
+import lucuma.core.syntax.string.*
+import observe.server.keywords.*
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
-import squants.space._
+import squants.space.*
 
 sealed trait CRFollow extends Product with Serializable
 
@@ -22,7 +22,7 @@ object CRFollow {
   case object On  extends CRFollow
   case object Off extends CRFollow
 
-  implicit val eq: Eq[CRFollow] = Eq.fromUniversalEquals
+  given Eq[CRFollow] = Eq.fromUniversalEquals
 
   def keywordValue(cr: CRFollow): String = cr match {
     case On  => "yes"
@@ -174,7 +174,7 @@ trait TcsKeywordsReader[F[_]] {
 }
 
 trait TcsKeywordDefaults {
-  implicit val OffsetDirectionDefaultValue: DefaultHeaderValue[Angle] =
+  given DefaultHeaderValue[Angle] =
     DefaultHeaderValue[Double].map(Degrees(_))
 
 }

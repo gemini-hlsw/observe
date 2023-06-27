@@ -1,0 +1,13 @@
+{
+  "hash": "4033db6f",
+  "browserHash": "1f73b239",
+  "optimized": {
+    "process": {
+      "src": "../../modules/web/node_modules/process/browser.js",
+      "file": "process.js",
+      "fileHash": "74ea080c",
+      "needsInterop": true
+    }
+  },
+  "chunks": {}
+}

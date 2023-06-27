@@ -10,10 +10,10 @@ import edu.gemini.observe.server.gems.ReadyState
 
 package object gems {
 
-  implicit val readyStateEq: Eq[ReadyState] = Eq.by(_.ordinal)
+  given Eq[ReadyState] = Eq.by(_.ordinal)
 
-  implicit val apdStateEq: Eq[ApdState] = Eq.by(_.ordinal)
+  given Eq[ApdState] = Eq.by(_.ordinal)
 
-  implicit val binaryOnOffEq: Eq[BinaryOnOff] = Eq.by(_.ordinal)
+  given Eq[BinaryOnOff] = Eq.by(_.ordinal)
 
 }

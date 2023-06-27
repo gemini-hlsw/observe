@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -9,7 +9,7 @@ import cats.Eq
 final case class UserLoginRequest(username: String, password: String)
 
 object UserLoginRequest {
-  implicit val eq: Eq[UserLoginRequest] = Eq.by(x => (x.username, x.password))
+  given Eq[UserLoginRequest] = Eq.by(x => (x.username, x.password))
 }
 
 final case class UserDetails(username: String, displayName: String)
@@ -21,5 +21,5 @@ object UserDetails {
   type Groups      = List[String]
   type Thumbnail   = Array[Byte]
 
-  implicit val eq: Eq[UserDetails] = Eq.by(x => (x.username, x.displayName))
+  given Eq[UserDetails] = Eq.by(x => (x.username, x.displayName))
 }

@@ -1,16 +1,19 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
 
 import scala.concurrent.duration.FiniteDuration
-
 import cats.Eq
 import org.http4s.Uri
-import shapeless.tag.@@
+import SystemsControlConfiguration.given
+import lucuma.core.util.NewType
 
-trait GpiSettings
-trait GhostSettings
+object GpiUriSettings extends NewType[Uri]
+type GpiUriSettings = GpiUriSettings.Type
+
+object GhostUriSettings extends NewType[Uri]
+type GhostUriSettings = GhostUriSettings.Type
 
 /**
  * Configuration of the Observe Engine
@@ -30,11 +33,11 @@ trait GhostSettings
  *   frequency to check the odb queue
  * @param gpiUrl
  *   URL for the GPI GMP
- * @param gpiGDS
+ * @param gpiGds
  *   URL for GPI's GDS
  * @param ghostUrl
  *   URL for GHOST GMP
- * @param ghostGDS
+ * @param ghostGds
  *   URL for GHOST's GDS
  * @param tops
  *   Used to select the top component for epics subsystems
@@ -55,10 +58,10 @@ final case class ObserveEngineConfiguration(
   instForceError:          Boolean,
   failAt:                  Int,
   odbQueuePollingInterval: FiniteDuration,
-  gpiUrl:                  Uri @@ GpiSettings,
-  gpiGDS:                  Uri @@ GpiSettings,
-  ghostUrl:                Uri @@ GhostSettings,
-  ghostGDS:                Uri @@ GhostSettings,
+  gpiUrl:                  GpiUriSettings,
+  gpiGDS:                  GpiUriSettings,
+  ghostUrl:                GhostUriSettings,
+  ghostGds:                GhostUriSettings,
   tops:                    String,
   epicsCaAddrList:         Option[String],
   readRetries:             Int,
@@ -67,13 +70,13 @@ final case class ObserveEngineConfiguration(
 )
 
 object ObserveEngineConfiguration {
-  private implicit def taggedUriEq[A]: Eq[Uri @@ A] = Eq.by(x => x: Uri)
 
-  implicit val eqObserveEngineConfiguration: Eq[ObserveEngineConfiguration] =
+  given Eq[SystemsControlConfiguration] = Eq.instance { case (_, _) => true }
+  given Eq[ObserveEngineConfiguration]  =
     Eq.by(x =>
       (x.odb,
        x.dhsServer,
-       x.systemControl,
+       // x.systemControl,
        x.odbNotifications,
        x.instForceError,
        x.failAt,
@@ -81,7 +84,7 @@ object ObserveEngineConfiguration {
        x.gpiUrl,
        x.gpiGDS,
        x.ghostUrl,
-       x.ghostGDS,
+       x.ghostGds,
        x.tops,
        x.epicsCaAddrList,
        x.readRetries,

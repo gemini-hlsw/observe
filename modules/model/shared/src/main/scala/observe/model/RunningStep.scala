@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Show
 import cats.Eq
-import cats.syntax.option._
+import cats.syntax.option.*
 
 sealed trait RunningStep {
   val id: Option[StepId]
@@ -25,9 +25,9 @@ object RunningStep {
   def unapply(r: RunningStep): Option[(Option[StepId], Int, Int)] =
     Some((r.id, r.last, r.total))
 
-  implicit val show: Show[RunningStep] =
+  given Show[RunningStep] =
     Show.show(u => s"${u.last + 1}/${u.total}")
 
-  implicit val eq: Eq[RunningStep] =
+  given Eq[RunningStep] =
     Eq.by(x => (x.id, x.last, x.total))
 }

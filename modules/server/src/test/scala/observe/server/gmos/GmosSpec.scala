@@ -3,10 +3,10 @@
 
 package observe.server.gmos
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
-import lucuma.core.util.arb.ArbEnumerated._
-import observe.server.gmos.GmosController.Config._
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.server.gmos.GmosController.Config.*
 
 /**
  * Tests Gmos Config typeclasses

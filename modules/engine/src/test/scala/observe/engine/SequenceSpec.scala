@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -13,11 +13,11 @@ import java.util.UUID
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
-import org.scalatest.matchers.should.Matchers._
+import org.scalatest.matchers.should.Matchers.*
 import lucuma.core.model.{Observation => LObservation}
 import observe.model.{ActionType, ClientId, SequenceState, StepId, UserDetails}
 import observe.engine.TestUtil.TestState
-import observe.common.test._
+import observe.common.test.*
 
 import scala.Function.const
 import org.scalatest.flatspec.AnyFlatSpec
@@ -146,14 +146,14 @@ class SequenceSpec extends AnyFlatSpec {
 
   // TODO: Share these fixtures with StepSpec
   private object DummyResult extends Result.RetVal
-  private val result: Result[Nothing]     = Result.OK(DummyResult)
+  private val result: Result              = Result.OK(DummyResult)
   private val action: Action[IO]          = fromF[IO](ActionType.Undefined, IO(result))
   private val completedAction: Action[IO] =
     action.copy(state = Action.State(Action.ActionState.Completed(DummyResult), Nil))
   def simpleStep2(
     pending: List[ParallelActions[IO]],
     focus:   Execution[IO],
-    done:    List[NonEmptyList[Result[IO]]]
+    done:    List[NonEmptyList[Result]]
   ): Step.Zipper[IO] = {
     val rollback: (Execution[IO], List[ParallelActions[IO]]) = {
       val doneParallelActions: List[ParallelActions[IO]]  = done.map(_.map(const(action)))

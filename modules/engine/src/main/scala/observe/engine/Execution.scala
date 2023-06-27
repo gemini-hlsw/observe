@@ -1,12 +1,13 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
 
 import cats.data.NonEmptyList
 import monocle.function.Index.listIndex
-import monocle.syntax.all._
-import mouse.boolean._
+import monocle.syntax.all.*
+import monocle.Focus
+import mouse.boolean.*
 import Action.ActionState
 
 /**
@@ -47,12 +48,12 @@ final case class Execution[F[_]](execution: List[Action[F]]) {
    *
    * If the index doesn't exist, `Current` is returned unmodified.
    */
-  def mark(i: Int)(r: Result[F]): Execution[F] =
+  def mark(i: Int)(r: Result): Execution[F] =
     Execution(
       execution
         .focus()
         .andThen(listIndex[Action[F]].index(i))
-        .andThen(Action.state[F])
+        .andThen(Focus[Action[F]](_.state))
         .modify(actionStateFromResult(r))
     )
 
@@ -83,7 +84,7 @@ object Execution {
 
   def progressRatio[F[_]](ex: Execution[F]): (Int, Int) = (ex.results.length, ex.execution.length)
 
-  def actionStateFromResult[F[_]](r: Result[F]): (Action.State[F] => Action.State[F]) =
+  def actionStateFromResult[F[_]](r: Result): (Action.State[F] => Action.State[F]) =
     s =>
       r match {
         case Result.OK(x)        => s.copy(runState = ActionState.Completed(x))
@@ -91,6 +92,6 @@ object Execution {
         case Result.OKAborted(_) => s.copy(runState = ActionState.Aborted)
         case Result.Partial(x)   => s.copy(partials = x :: s.partials)
         case e @ Result.Error(_) => s.copy(runState = ActionState.Failed(e))
-        case c: Result.Paused[F] => s.copy(runState = ActionState.Paused(c.ctx))
+        case c: Result.Paused    => s.copy(runState = ActionState.Paused(c.ctx))
       }
 }

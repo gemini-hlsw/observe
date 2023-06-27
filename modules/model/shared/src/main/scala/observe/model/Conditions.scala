@@ -1,13 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats._
-import monocle.macros.Lenses
-import observe.model.enum._
+import observe.model.enums.*
 
-@Lenses
 final case class Conditions(
   cc: CloudCover,
   iq: ImageQuality,
@@ -54,7 +52,7 @@ object Conditions {
   val Default: Conditions =
     Unknown // Taken from ODB
 
-  implicit val equalConditions: Eq[Conditions] =
+  given Eq[Conditions] =
     Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
 
 }
