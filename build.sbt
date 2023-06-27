@@ -5,12 +5,15 @@ import AppsCommon._
 import sbt.Keys._
 import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
+import org.scalajs.linker.interface.ModuleSplitStyle
 
 name := "observe"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 Global / semanticdbEnabled := true
+
+ThisBuild / resolvers := List(Resolver.mavenLocal)
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
 ThisBuild / Test / bspEnabled                      := false
@@ -55,6 +58,18 @@ Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 enablePlugins(GitBranchPrompt)
 
+lazy val esModule = Seq(
+  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
+  Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
+  Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
+  Compile / fastLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
+    ModuleSplitStyle.FewestModules
+  )),
+  Compile / fullLinkJS / scalaJSLinkerConfig ~= (_.withModuleSplitStyle(
+    ModuleSplitStyle.FewestModules
+  ))
+)
+
 // Custom commands to facilitate web development
 val startObserveAllCommands   = List(
   "observe_web_server/reStart",
@@ -92,7 +107,7 @@ lazy val root = tlCrossRootProject.aggregate(
   giapi,
 //  ocs2_api,
   observe_web_server,
-//  observe_web_client,
+  observe_web_client,
   observe_server,
   observe_model,
   observe_engine
@@ -106,7 +121,7 @@ lazy val giapi = project
     libraryDependencies ++= Seq(Cats.value,
                                 Mouse.value,
                                 CatsEffect.value,
-                                Fs2,
+                                Fs2.value,
                                 GiapiJmsUtil,
                                 GiapiJmsProvider,
                                 GiapiStatusService,
@@ -163,98 +178,51 @@ lazy val observe_web_server = project
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
-/*lazy val observe_web_client = project
-  .in(file("modules/web/client"))
-  .enablePlugins(ScalaJSPlugin)
-  .enablePlugins(ScalaJSBundlerPlugin)
-  .enablePlugins(BuildInfoPlugin)
+lazy val new_model = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/new_model"))
   .enablePlugins(GitBranchPrompt)
-  .disablePlugins(RevolverPlugin)
   .settings(
-    scalacOptions ~= (_.filterNot(
-      Set(
-        // By necessity facades will have unused params
-        "-Wunused:params",
-        "-Wunused:explicits"
-      )
-    )),
-    coverageEnabled                 := false,
-    // Configurations for webpack
-    fastOptJS / webpackBundlingMode := BundlingMode.LibraryOnly(),
-    fullOptJS / webpackBundlingMode := BundlingMode.Application,
-    webpackResources                := (baseDirectory.value / "src" / "webpack") * "*.js",
-    webpackDevServerPort            := 9090,
-    webpack / version               := "4.46.0",
-    startWebpackDevServer / version := "3.11.0",
-    // Use a different Webpack configuration file for production and create a single bundle without source maps
-    fullOptJS / webpackConfigFile   := Some(
-      baseDirectory.value / "src" / "webpack" / "prod.webpack.config.js"
-    ),
-    fastOptJS / webpackConfigFile   := Some(
-      baseDirectory.value / "src" / "webpack" / "dev.webpack.config.js"
-    ),
-    Test / webpackConfigFile        := Some(
-      baseDirectory.value / "src" / "webpack" / "test.webpack.config.js"
-    ),
-    webpackEmitSourceMaps           := false,
-    Test / parallelExecution        := false,
-    installJsdom / version          := "16.4.0",
-    Test / requireJsDomEnv          := true,
-    // Use yarn as it is faster than npm
-    useYarn                         := true,
-    // JS dependencies via npm
-    Compile / npmDependencies ++= Seq(
-      "fomantic-ui-less" -> LibraryVersions.fomanticUI,
-      "prop-types"       -> "15.7.2",
-      "core-js"          -> "2.6.11" // Without this, core-js 3 is used, which conflicts with @babel/runtime-corejs2
-    ),
-    Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
-    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
-    // NPM libs for development, mostly to let webpack do its magic
-    Compile / npmDevDependencies ++= Seq(
-      "postcss"                       -> "8.1.1",
-      "postcss-loader"                -> "4.0.3",
-      "autoprefixer"                  -> "10.0.1",
-      "url-loader"                    -> "4.1.0",
-      "file-loader"                   -> "6.0.0",
-      "css-loader"                    -> "3.5.3",
-      "style-loader"                  -> "1.2.1",
-      "less"                          -> "3.9.0",
-      "less-loader"                   -> "7.0.1",
-      "webpack-merge"                 -> "4.2.2",
-      "mini-css-extract-plugin"       -> "0.8.0",
-      "webpack-dev-server-status-bar" -> "1.1.0",
-      "cssnano"                       -> "4.1.10",
-      "terser-webpack-plugin"         -> "3.0.6",
-      "html-webpack-plugin"           -> "4.3.0",
-      "css-minimizer-webpack-plugin"  -> "1.1.5",
-      "favicons-webpack-plugin"       -> "4.2.0",
-      "@packtracker/webpack-plugin"   -> "2.3.0"
-    ),
+    scalaVersion := "3.2.1",
     libraryDependencies ++= Seq(
       Cats.value,
-      Mouse.value,
-      CatsEffect.value,
-      ScalaJSDom.value,
-      JavaTimeJS.value,
-      ScalaJSReactSemanticUI.value,
-      ScalaJSReactVirtualized.value,
-      ScalaJSReactClipboard.value,
-      ScalaJSReactSortable.value,
-      ScalaJSReactDraggable.value,
-      GeminiLocales.value,
-      LucumaUI.value,
-      PPrint.value,
-      TestLibs.value
-    ) ++ MUnit.value ++ ReactScalaJS.value ++ Diode.value ++ Log4CatsLogLevel.value ++ Circe.value
+      Kittens.value,
+      CatsTime.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
+  .jvmSettings(
+    commonSettings,
+    libraryDependencies += Http4sCore
+  )
+  .jsSettings(
+    // And add a custom one
+    libraryDependencies += JavaTimeJS.value,
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
+  )
+
+lazy val observe_web_client = project
+  .in(file("modules/web"))
+  .settings(lucumaGlobalSettings: _*)
+  .settings(esModule: _*)
+  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
   .settings(
-    buildInfoUsePackageAsPath := true,
-    buildInfoKeys ++= Seq[BuildInfoKey](name, version),
-    buildInfoObject           := "OcsBuildInfo",
-    buildInfoPackage          := "observe.web.client"
+    scalaVersion                            := "3.3.0",
+    Test / test                             := {},
+    coverageEnabled                         := false,
+    libraryDependencies ++= Seq(
+      Cats.value,
+      Kittens.value,
+      CatsEffect.value,
+      Crystal.value,
+      Fs2.value,
+      LucumaUI.value
+    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
+    // TODO Remove this, only used for prototype:
+    libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
+      .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
+    scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
   )
-  .dependsOn(observe_model.js % "compile->compile;test->test")*/
+  .dependsOn(new_model.js)
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project
@@ -338,7 +306,7 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(Fs2,
+    libraryDependencies ++= Seq(Fs2.value,
                                 CatsEffect.value,
                                 Log4s.value,
                                 Log4Cats.value
@@ -353,9 +321,6 @@ lazy val observeCommonSettings = Seq(
   Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
   // This is important to keep the file generation order correctly
   Universal / parallelExecution   := false,
-  // Depend on webpack and add the assets created by webpack
-//  Compile / packageBin / mappings ++= (observe_web_client / Compile / fullOptJS / webpack).value
-//    .map(f => f.data -> f.data.getName()),
   // Name of the launch script
   executableScriptName            := "observe-server",
   // No javadocs
@@ -418,8 +383,6 @@ lazy val observeLinux = Seq(
 lazy val app_observe_server = project
   .in(file("app/observe-server"))
   .enablePlugins(NoPublishPlugin)
-//  .dependsOn(observe_web_server, observe_web_client)
-//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
@@ -459,8 +422,6 @@ lazy val app_observe_server_gs_test =
   project
     .in(file("app/observe-server-gs-test"))
     .enablePlugins(NoPublishPlugin)
-//    .dependsOn(observe_web_server, observe_web_client)
-//    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(SystemdPlugin)
@@ -491,8 +452,6 @@ lazy val app_observe_server_gn_test =
   project
     .in(file("app/observe-server-gn-test"))
     .enablePlugins(NoPublishPlugin)
-//    .dependsOn(observe_web_server, observe_web_client)
-//    .aggregate(observe_web_server, observe_web_client)
     .enablePlugins(LinuxPlugin, RpmPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(GitBranchPrompt)
@@ -521,8 +480,6 @@ lazy val app_observe_server_gn_test =
 lazy val app_observe_server_gs = project
   .in(file("app/observe-server-gs"))
   .enablePlugins(NoPublishPlugin)
-//  .dependsOn(observe_web_server, observe_web_client)
-//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
@@ -551,8 +508,6 @@ lazy val app_observe_server_gs = project
 lazy val app_observe_server_gn = project
   .in(file("app/observe-server-gn"))
   .enablePlugins(NoPublishPlugin)
-//  .dependsOn(observe_web_server, observe_web_client)
-//  .aggregate(observe_web_server, observe_web_client)
   .enablePlugins(LinuxPlugin, RpmPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)

@@ -1,0 +1,103 @@
+// Customizations and additions to prime-react
+// .pl- prefix = "Prime Lucuma": Our additions to prime-react
+
+.light-theme {
+  @import "/lucuma-css/light-theme";
+
+  --active-row-background: var(--orange-50);
+  --disabled-row-background: var(--bluegray-50);
+  --disabled-row-color: var(--bluegray-400);
+  --negative-row-background: var(--red-50); // fixme
+  --negative-row-color: var(--red-400); // fixme
+  --negative-row-boxshadow: var(--red-800); // fixme
+  --muted-color: var(--gray-600);
+}
+
+.dark-theme {
+  @import "/lucuma-css/dark-theme";
+
+  --active-row-background: var(--orange-900);
+  --disabled-row-background: var(--bluegray-800);
+  --disabled-row-color: var(--bluegray-300);
+  --negative-row-background: var(--red-50); // fixme
+  --negative-row-color: var(--red-400); // fixme
+  --negative-row-boxshadow: var(--red-800); // fixme
+  --muted-color: var(--gray-300);
+}
+
+@import "/lucuma-css/lucuma-ui";
+@import "/lucuma-css/lucuma-ui-table.scss";
+
+body,
+body .p-component {
+  margin: 0;
+  font-family: 'Lato' !important;
+  background-color: var(--surface-f);
+  color: var(--text-color);
+}
+
+.p-button {
+  &:focus {
+    box-shadow: none !important;
+  }
+}
+
+.p-tag {
+  font-size: 0.85rem !important;
+
+  .pl-tag-icon {
+    margin-right: 0.75em !important;
+  }
+}
+
+// By displaying a TabView as a flex, we can place the tab selectors on any edge.
+.p-tabview.pl-bottom-tabs {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100%;
+
+  // Invert button rounding
+  .p-tabview-nav-link {
+    border-top-right-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-right-radius: 3px !important;
+    border-bottom-left-radius: 3px !important;
+    margin: -1px 0 0 0 !important;
+  }
+}
+
+.p-card {
+  background: var(--surface-50) !important;
+}
+
+.p-tabview {
+  background-color: var(--surface-0) !important;
+}
+
+.p-tabview li .p-tabview-nav-link {
+  background: var(--surface-0) !important;
+  border-color: var(--surface-0) !important;
+  color: var(--text-color) !important;
+  font-weight: normal !important;
+  border-right-color: var(--surface-100) !important;
+  border-top-color: var(--surface-100) !important;
+  border-left-color: var(--surface-100) !important;
+}
+
+.p-tabview li.p-tabview-selected .p-tabview-nav-link {
+  background: var(--surface-50) !important;
+  border-color: var(--surface-50) !important;
+  box-shadow: none !important;
+  font-weight: bold !important;
+
+  border-right-color: var(--surface-200) !important;
+  border-top-color: var(--surface-200) !important;
+  border-left-color: var(--surface-200) !important;
+}
+
+// Experimental
+.p-splitter-panel {
+  min-width: 0px !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
