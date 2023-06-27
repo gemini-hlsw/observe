@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
@@ -10,17 +10,17 @@ import org.http4s.Uri
 
 /**
  * Configuration for Smart Gcal
- * @param smartGCalHost
+ * @param smartGcalHost
  *   Host where smartgcal runs
  * @param smartGcalDir
  *   Local directory to store cached files
  */
 final case class SmartGcalConfiguration(
-  smartGCalHost: Uri,
-  smartGCalDir:  Path
+  smartGcalHost: Uri,
+  smartGcalDir:  Path
 )
 
 object SmartGcalConfiguration {
-  implicit val eqSmartGcalConfiguration: Eq[SmartGcalConfiguration] =
-    Eq.by(x => (x.smartGCalHost, x.smartGCalDir))
+  given Eq[SmartGcalConfiguration] =
+    Eq.by(x => (x.smartGcalHost, x.smartGcalDir))
 }

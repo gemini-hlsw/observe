@@ -56,6 +56,9 @@ bin/
 # OS X
 .DS_Store
 
+# Nix
+.direnv/
+
 # Tags
 .tags
 GPATH
@@ -78,3 +81,6 @@ package-lock.json
 
 # Project specific
 modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
+
+# Nix
+.direnv/

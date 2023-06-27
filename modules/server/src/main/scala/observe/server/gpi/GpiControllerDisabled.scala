@@ -4,7 +4,7 @@
 package observe.server.gpi
 
 import cats.Applicative
-import cats.syntax.all._
+import cats.syntax.all.*
 import giapi.client.GiapiStatusDb
 import org.typelevel.log4cats.Logger
 import observe.model.Observation

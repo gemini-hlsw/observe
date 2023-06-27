@@ -1,6 +1,6 @@
 import sbt._
 import java.lang.{Runtime => JRuntime}
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport.*
 
 /**
  * Application settings and dependencies
@@ -10,11 +10,13 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "2.3.0"
-    val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
+    val crystal                 = "0.32.2"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
+    val lucumaReact             = "0.23.0"
+    val scalaDom                = "2.3.0"
+    val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -25,6 +27,7 @@ object Settings {
     // Scala libraries
     val catsEffectVersion   = "3.4.10"
     val catsVersion         = "2.9.0"
+    val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.7.0"
     val shapelessVersion    = "2.3.10"
@@ -32,34 +35,33 @@ object Settings {
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.20"
+    val http4sVersion                  = "0.23.21"
     val http4sBlazeVersion             = "0.23.15"
     val http4sJdkHttpClientVersion     = "0.9.1"
     val http4sBoopickleVersion         = "0.23.11"
     val http4sPrometheusMetricsVersion = "0.24.3"
     val http4sScalaXmlVersion          = "0.23.13"
 
-    val squants        = "1.8.3"
-    val commonsHttp    = "3.1"
-    val unboundId      = "3.2.1"
-    val jwt            = "5.0.0"
-    val slf4j          = "2.0.7"
-    val log4s          = "1.10.0"
-    val log4cats       = "2.6.0"
-    val log4catsLevel  = "0.3.1"
-    val logback        = "1.4.7"
-    val janino         = "3.1.9"
-    val logstash       = "7.0"
-    val pureConfig     = "0.17.4"
-    val monocleVersion = "3.2.0"
-    val circeVersion   = "0.14.5"
-    val doobieVersion  = "0.6.0"
-    val flywayVersion  = "6.0.4"
+    val squants          = "1.8.3"
+    val commonsHttp      = "3.1"
+    val unboundId        = "3.2.1"
+    val jwt              = "9.2.0"
+    val slf4j            = "2.0.7"
+    val log4s            = "1.10.0"
+    val log4cats         = "2.6.0"
+    val log4catsLogLevel = "0.3.1"
+    val logback          = "1.4.7"
+    val janino           = "3.1.9"
+    val logstash         = "7.0"
+    val pureConfig       = "0.17.4"
+    val monocleVersion   = "3.2.0"
+    val circeVersion     = "0.14.5"
+    val doobieVersion    = "0.6.0"
+    val flywayVersion    = "6.0.4"
 
     // test libraries
     val xmlUnit                = "1.6"
     val jUnitInterface         = "0.13.2"
-    val scalaMock              = "5.2.0"
     val munitVersion           = "0.7.29"
     val munitDisciplineVersion = "1.0.9"
     val munitCatsEffectVersion = "1.0.7"
@@ -88,14 +90,16 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.45.0"
-    val lucumaUI      = "0.39.0"
-    val lucumaSchemas = "0.33.0"
+    val lucumaCore    = "0.76.0"
+    val lucumaUI      = "0.70.2"
+    val lucumaSchemas = "0.52.1"
 
     // Clue
-    val clue = "0.24.1"
+    val clue = "0.31.0"
 
     val sttp = "3.8.15"
+
+    val atto = "0.9.5"
   }
 
   /**
@@ -116,23 +120,23 @@ object Settings {
     val XmlUnit        = "xmlunit" % "xmlunit" % LibraryVersions.xmlUnit % "test"
     val JUnitInterface =
       "com.github.sbt" % "junit-interface" % LibraryVersions.jUnitInterface % "test"
-    val ScalaMock   = "org.scalamock"     %% "scalamock"          % LibraryVersions.scalaMock  % "test"
     // Server side libraries
     val Cats        = Def.setting("org.typelevel" %%% "cats-core" % LibraryVersions.catsVersion)
+    val Kittens     = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
     val CatsEffect  =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
-    val Fs2         = "co.fs2"            %% "fs2-core"           % LibraryVersions.fs2Version
+    val Fs2         = Def.setting("co.fs2" %%% "fs2-core" % LibraryVersions.fs2Version)
     val Fs2IO       = "co.fs2"            %% "fs2-io"             % LibraryVersions.fs2Version % "test"
     val Mouse       = Def.setting("org.typelevel" %%% "mouse" % LibraryVersions.mouseVersion)
     val Shapeless   = Def.setting("com.chuusai" %%% "shapeless" % LibraryVersions.shapelessVersion)
     val CommonsHttp = "commons-httpclient" % "commons-httpclient" % LibraryVersions.commonsHttp
     val UnboundId   =
       "com.unboundid" % "unboundid-ldapsdk-minimal-edition" % LibraryVersions.unboundId
-    val JwtCore          = "com.pauldijou" %% "jwt-core"     % LibraryVersions.jwt
-    val JwtCirce         = "com.pauldijou" %% "jwt-circe"    % LibraryVersions.jwt
-    val Slf4j            = "org.slf4j"      % "slf4j-api"    % LibraryVersions.slf4j
-    val JuliSlf4j        = "org.slf4j"      % "jul-to-slf4j" % LibraryVersions.slf4j
-    val NopSlf4j         = "org.slf4j"      % "slf4j-nop"    % LibraryVersions.slf4j
+    val JwtCore          = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
+    val JwtCirce         = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
+    val Slf4j            = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
+    val JuliSlf4j        = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
+    val NopSlf4j         = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
     val CatsTime         = Def.setting(
       "io.chrisdavenport" %%% "cats-time" % LibraryVersions.catsTime % "compile->compile;test->test"
     )
@@ -148,16 +152,17 @@ object Settings {
     val Log4CatsLogLevel = Def.setting(
       Seq(
         "org.typelevel" %%% "log4cats-core"     % LibraryVersions.log4cats,
-        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLevel
+        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLogLevel
       )
     )
     val PrometheusClient =
       "io.prometheus" % "simpleclient_common" % LibraryVersions.prometheusClient
     val Logging         = Def.setting(Seq(JuliSlf4j, Log4s.value) ++ Logback)
     val PureConfig      = Seq(
-      "com.github.pureconfig" %% "pureconfig"             % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
-      "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig
+      "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig
     )
     val OpenCSV         = "net.sf.opencsv" % "opencsv" % LibraryVersions.opencsv
     val Squants         = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
@@ -196,6 +201,25 @@ object Settings {
     )
 
     // Client Side JS libraries
+    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
+    val Crystal                 = Def.setting("com.rpiaggio" %%% "crystal" % LibraryVersions.crystal)
+    val LucumaReact             = Def.setting(
+      Seq(
+        "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-font-awesome"   % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-floatingui"     % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact // Must be last, lest we hit a compiler snag
+      )
+    )
+    val ScalaJSReactIO          = Def.setting(
+      Seq(
+        "com.github.japgolly.scalajs-react" %%% "core-bundle-cb_io"        % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"                    % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3"       % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "callback-ext-cats_effect" % LibraryVersions.scalajsReact
+      )
+    )
     val ReactScalaJS            = Def.setting(
       Seq(
         "com.github.japgolly.scalajs-react" %%% "core"               % LibraryVersions.scalajsReact,
@@ -230,33 +254,11 @@ object Settings {
     val ScalaJSReactClipboard   = Def.setting(
       "io.github.cquiroz.react" %%% "react-clipboard" % LibraryVersions.scalaJSReactClipboard
     )
-    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
     val JavaTimeJS              =
       Def.setting("io.github.cquiroz" %%% "scala-java-time" % LibraryVersions.javaTimeJS)
     val GeminiLocales           =
       Def.setting("edu.gemini" %%% "gemini-locales" % LibraryVersions.geminiLocales)
     val PPrint                  = Def.setting("com.lihaoyi" %%% "pprint" % LibraryVersions.pprint)
-
-    // OCS Libraries, these should become modules in the future
-    val SpModelCore = "edu.gemini.ocs" %% "edu-gemini-spmodel-core" % LibraryVersions.ocsVersion
-    val SeqexecOdb  = Seq(
-      "edu.gemini.ocs" %% "edu-gemini-seqexec-odb" % LibraryVersions.ocsVersion,
-      ("dom4j"          % "dom4j"                  % "1.6.1")
-        .exclude("jaxen", "jaxen")
-        .exclude("jaxme", "jaxme-api")
-        .exclude("msv", "xsdlib")
-        .exclude("msv", "relaxngDatatype")
-        .exclude("pull-parser", "pull-parser")
-        .exclude("stax", "stax")
-        .exclude("xml-apis", "xml-apis")
-        .exclude("xpp3", "xpp3")
-    )
-    val POT         = "edu.gemini.ocs" %% "edu-gemini-pot"          % LibraryVersions.ocsVersion
-    val TRPC        = "edu.gemini.ocs" %% "edu-gemini-util-trpc"    % LibraryVersions.ocsVersion
-    val WDBAClient  = Seq(
-      "edu.gemini.ocs"   %% "edu-gemini-wdba-session-client" % LibraryVersions.ocsVersion,
-      "org.apache.xmlrpc" % "xmlrpc-client"                  % LibraryVersions.apacheXMLRPC
-    )
 
     val JAXB = Seq(
       "javax.xml.bind"     % "jaxb-api"     % LibraryVersions.jaxb,
@@ -282,8 +284,8 @@ object Settings {
       "edu.gemini.aspen.gmp" % "gmp-statusdb" % LibraryVersions.gmpStatusDatabase
     val GmpCmdJmsBridge =
       "edu.gemini.aspen.gmp" % "gmp-commands-jms-bridge" % LibraryVersions.gmpCmdClientBridge
-    val Guava = "com.google.guava" % "guava" % LibraryVersions.guava
-    val ACM   = "edu.gemini"      %% "acm"   % LibraryVersions.acm
+    val Guava = "com.google.guava" % "guava"    % LibraryVersions.guava
+    val ACM   = "edu.gemini"       % "acm_2.13" % LibraryVersions.acm
 
     // Lucuma Libraries
     val LucumaCore    = Def.setting(
@@ -306,6 +308,8 @@ object Settings {
         "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
       )
     )
+
+    val Atto = "org.tpolecat" %% "atto-core" % LibraryVersions.atto
   }
 
 }

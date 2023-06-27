@@ -4,7 +4,7 @@
 package observe.server
 
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CaService
 import org.typelevel.log4cats.Logger
 import observe.model.config.ObserveEngineConfiguration
@@ -14,7 +14,7 @@ object CaServiceInit {
   // the configuration file or from the environment
   def caInit[F[_]](
     conf:       ObserveEngineConfiguration
-  )(implicit F: Sync[F], L: Logger[F]): F[CaService] = {
+  )(using F: Sync[F], L: Logger[F]): F[CaService] = {
     def setAddressList(a: String) =
       F.delay(CaService.setAddressList(a))
 

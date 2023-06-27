@@ -6,7 +6,7 @@ package observe.server.niri
 import cats.Show
 import edu.gemini.observe.server.niri
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 import observe.server.niri.NiriController.DCConfig
 import observe.server.niri.NiriController.NiriConfig
@@ -66,6 +66,6 @@ object NiriController {
 
   final case class NiriConfig(cc: CCConfig, dc: DCConfig)
 
-  implicit val cfgShow: Show[NiriConfig] = Show.fromToString
+  given Show[NiriConfig] = Show.fromToString
 
 }

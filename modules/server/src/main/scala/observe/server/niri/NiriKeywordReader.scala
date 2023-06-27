@@ -5,8 +5,8 @@ package observe.server.niri
 
 import cats.Applicative
 import cats.effect.Sync
-import cats.syntax.all._
-import observe.server.keywords._
+import cats.syntax.all.*
+import observe.server.keywords.*
 
 trait NiriKeywordReader[F[_]] {
   def arrayId: F[String]

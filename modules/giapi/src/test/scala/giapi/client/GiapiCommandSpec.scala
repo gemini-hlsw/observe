@@ -1,11 +1,11 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client
 
 import cats.effect.{IO, Resource}
 import munit.CatsEffectSuite
-import giapi.client.commands._
+import giapi.client.commands.*
 import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
 import edu.gemini.aspen.giapi.commands.{
   Activity,
@@ -18,7 +18,7 @@ import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
 import edu.gemini.aspen.gmp.commands.jms.clientbridge.CommandMessagesBridgeImpl
 import edu.gemini.aspen.gmp.commands.jms.clientbridge.CommandMessagesConsumer
 import edu.gemini.aspen.giapi.commands.CommandSender
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import org.scalatest.EitherValues
 
 final case class GmpCommands(amq: ActiveMQJmsProvider, cmc: CommandMessagesConsumer)

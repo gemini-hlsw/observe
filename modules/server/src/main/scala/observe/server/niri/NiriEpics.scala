@@ -7,8 +7,8 @@ import java.lang.{Double => JDouble}
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.niri.{
   BeamSplitter,
   BuiltInROI,
@@ -36,47 +36,47 @@ class NiriEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
     private val disperser: Option[CaParameter[Disperser]] = cs.flatMap(cmd =>
       Option(cmd.addEnum("disperser", s"${NisTop}grism:menu", classOf[Disperser], false))
     )
-    def setDisperser(v: Disperser): F[Unit]               = setParameter(disperser, v)
+    def setDisperser(v: Disperser): F[Unit] = setParameter(disperser, v)
 
     private val readMode: Option[CaParameter[ReadMode]] = cs.flatMap(cmd =>
       Option(cmd.addEnum("readmode", s"${NisTop}readmode:menu", classOf[ReadMode], false))
     )
-    def setReadMode(v: ReadMode): F[Unit]               = setParameter(readMode, v)
+    def setReadMode(v: ReadMode): F[Unit] = setParameter(readMode, v)
 
     private val coadds: Option[CaParameter[Integer]] =
       cs.flatMap(cmd => Option(cmd.getInteger("numCoAdds")))
-    def setCoadds(v: Int): F[Unit]                   = setParameter(coadds, Integer.valueOf(v))
+    def setCoadds(v: Int): F[Unit] = setParameter(coadds, Integer.valueOf(v))
 
     private val mask: Option[CaParameter[Mask]] =
       cs.flatMap(cmd => Option(cmd.addEnum("mask", s"${NisTop}fpmask:menu", classOf[Mask], false)))
-    def setMask(v: Mask): F[Unit]               = setParameter(mask, v)
+    def setMask(v: Mask): F[Unit] = setParameter(mask, v)
 
     private val camera: Option[CaParameter[Camera]] = cs.flatMap(cmd =>
       Option(cmd.addEnum("camera", s"${NisTop}camera:menu", classOf[Camera], false))
     )
-    def setCamera(v: Camera): F[Unit]               = setParameter(camera, v)
+    def setCamera(v: Camera): F[Unit] = setParameter(camera, v)
 
     private val beamSplitter: Option[CaParameter[BeamSplitter]] = cs.flatMap(cmd =>
       Option(cmd.addEnum("beamSplitter", s"${NisTop}beamsplit:menu", classOf[BeamSplitter], false))
     )
-    def setBeamSplitter(v: BeamSplitter): F[Unit]               = setParameter(beamSplitter, v)
+    def setBeamSplitter(v: BeamSplitter): F[Unit] = setParameter(beamSplitter, v)
 
     private val exposureTime: Option[CaParameter[JDouble]] =
       cs.flatMap(cmd => Option(cmd.getDouble("exposureTime")))
-    def setExposureTime(v: Double): F[Unit]                = setParameter(exposureTime, JDouble.valueOf(v))
+    def setExposureTime(v: Double): F[Unit] = setParameter(exposureTime, JDouble.valueOf(v))
 
     private val builtInROI: Option[CaParameter[BuiltInROI]] = cs.flatMap(cmd =>
       Option(cmd.addEnum("builtinROI", s"${NisTop}roi:menu", classOf[BuiltInROI], false))
     )
-    def setBuiltInROI(v: BuiltInROI): F[Unit]               = setParameter(builtInROI, v)
+    def setBuiltInROI(v: BuiltInROI): F[Unit] = setParameter(builtInROI, v)
 
     private val filter: Option[CaParameter[String]] =
       cs.flatMap(cmd => Option(cmd.getString("filter")))
-    def setFilter(v: String): F[Unit]               = setParameter(filter, v)
+    def setFilter(v: String): F[Unit] = setParameter(filter, v)
 
     private val focus: Option[CaParameter[String]] =
       cs.flatMap(cmd => Option(cmd.getString("focus")))
-    def setFocus(v: String): F[Unit]               = setParameter(focus, v)
+    def setFocus(v: String): F[Unit] = setParameter(focus, v)
 
   }
 
@@ -89,7 +89,7 @@ class NiriEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
 
     private val windowCover: Option[CaParameter[String]] =
       cs.flatMap(cmd => Option(cmd.getString("windowCover")))
-    def setWindowCover(v: String): F[Unit]               = setParameter(windowCover, v)
+    def setWindowCover(v: String): F[Unit] = setParameter(windowCover, v)
   }
 
   object endObserveCmd extends EpicsCommandBase[F](sysName) {
@@ -145,7 +145,7 @@ class NiriEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
     override protected val os: Option[CaApplySender]   = observeAS
 
     private val label: Option[CaParameter[String]] = cs.map(_.getString("label"))
-    def setLabel(v: String): F[Unit]               = setParameter(label, v)
+    def setLabel(v: String): F[Unit] = setParameter(label, v)
   }
 
   private val status: CaStatusAcceptor = epicsService.getStatusAcceptor("niri::status")

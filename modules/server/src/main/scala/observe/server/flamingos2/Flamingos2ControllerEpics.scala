@@ -10,49 +10,49 @@ import scala.concurrent.duration.FiniteDuration
 
 import cats.data.StateT
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Decker
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.Filter
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.ReadoutMode
 import edu.gemini.spModel.gemini.flamingos2.Flamingos2.WindowCover
-import edu.gemini.spModel.gemini.flamingos2.Flamingos2._
+import edu.gemini.spModel.gemini.flamingos2.Flamingos2.*
 import org.typelevel.log4cats.Logger
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
-import observe.server.EpicsCodex._
+import observe.model.enums.ObserveCommandResult
+import observe.server.EpicsCodex.*
 import observe.server.ObsProgress
 import observe.server.Progress
 import observe.server.ProgressUtil
 import observe.server.RemainingTime
-import observe.server.flamingos2.Flamingos2Controller._
+import observe.server.flamingos2.Flamingos2Controller.*
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 trait Flamingos2Encoders {
-  implicit val encodeReadoutMode: EncodeEpicsValue[ReadoutMode, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[ReadoutMode, String] = EncodeEpicsValue {
     case ReadoutMode.SCIENCE     => "SCI"
     case ReadoutMode.ENGINEERING => "ENG"
   }
 
-  implicit val encodeBiasMode: EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
     case BiasMode.Imaging  => "Imaging"
     case BiasMode.LongSlit => "Long_Slit"
     case BiasMode.MOS      => "Mos"
   }
 
-  implicit val encodeWindowCoverPosition: EncodeEpicsValue[WindowCover, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[WindowCover, String] = EncodeEpicsValue {
     case WindowCover.OPEN  => "Open"
     case WindowCover.CLOSE => "Closed"
   }
 
-  implicit val encodeDeckerPosition: EncodeEpicsValue[Decker, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Decker, String] = EncodeEpicsValue {
     case Decker.IMAGING   => "Open"
     case Decker.LONG_SLIT => "Long_Slit"
     case Decker.MOS       => "Mos"
   }
 
-  implicit val encodeFPUPosition: EncodeEpicsValue[FocalPlaneUnit, (String, String)] =
+  given EncodeEpicsValue[FocalPlaneUnit, (String, String)] =
     EncodeEpicsValue {
       case FocalPlaneUnit.Open        => ("Open", "null")
       case FocalPlaneUnit.GridSub1Pix => ("sub1-pix_grid", "null")
@@ -67,7 +67,7 @@ trait Flamingos2Encoders {
     }
 
   // Removed obsolete filter positions Open and DK_G0807
-  implicit val encodeFilterPosition: EncodeEpicsValue[Filter, Option[String]] =
+  given EncodeEpicsValue[Filter, Option[String]] =
     EncodeEpicsValue.applyO {
       case Filter.Y       => "YJH_G0818"
       case Filter.F1056   => "F1056"
@@ -84,7 +84,7 @@ trait Flamingos2Encoders {
       case Filter.OPEN    => "Open"
     }
 
-  implicit val encodeLyotPosition: EncodeEpicsValue[Lyot, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Lyot, String] = EncodeEpicsValue {
     case LyotWheel.OPEN       => "f/16_G5830"
     case LyotWheel.HIGH       => "null"
     case LyotWheel.LOW        => "null"
@@ -95,7 +95,7 @@ trait Flamingos2Encoders {
     case LyotWheel.H2         => "Hart2_G5834"
   }
 
-  implicit val encodeGrismPosition: EncodeEpicsValue[Grism, String] = EncodeEpicsValue {
+  given EncodeEpicsValue[Grism, String] = EncodeEpicsValue {
     case Grism.Open    => "Open"
     case Grism.R1200HK => "HK_G5802"
     case Grism.R1200JH => "JH_G5801"
@@ -113,7 +113,7 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
 
   def apply[F[_]: Async](
     sys:        => Flamingos2Epics[F]
-  )(implicit L: Logger[F]): Flamingos2Controller[F] = new Flamingos2Controller[F] {
+  )(using L: Logger[F]): Flamingos2Controller[F] = new Flamingos2Controller[F] {
 
     private def setDCConfig(dc: DCConfig): F[Unit] = for {
       _ <- sys.dcConfigCmd.setExposureTime(dc.t.toSeconds.toDouble)

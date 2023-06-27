@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
@@ -15,10 +15,10 @@ object Observer {
   val Zero: Observer =
     Observer("")
 
-  implicit val equal: Eq[Observer] =
+  given Eq[Observer] =
     Eq.fromUniversalEquals
 
-  implicit val shows: Show[Observer] =
+  given Show[Observer] =
     Show.show(_.value)
 
   val valueI: Iso[Observer, String] = GenIso[Observer, String]

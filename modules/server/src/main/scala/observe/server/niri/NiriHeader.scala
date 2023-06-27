@@ -9,7 +9,7 @@ import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.server.keywords.Header
-import observe.server.keywords._
+import observe.server.keywords.*
 import observe.server.keywords.buildDouble
 import observe.server.keywords.buildString
 import observe.server.tcs.TcsKeywordsReader

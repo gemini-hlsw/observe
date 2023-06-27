@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.arb
@@ -6,27 +6,27 @@ package observe.model.arb
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.dhs._
+import observe.model.dhs.*
 
 trait ArbDhsTypes {
 
-  implicit val arbImageFileId: Arbitrary[ImageFileId] =
+  given arbImageFileId: Arbitrary[ImageFileId] =
     Arbitrary {
-      Gen.alphaNumStr.map(toImageFileId)
+      Gen.alphaNumStr.map(ImageFileId.apply(_))
     }
 
-  implicit val imageFileIdCogen: Cogen[ImageFileId] =
+  given imageFileIdCogen: Cogen[ImageFileId] =
     Cogen[String]
-      .contramap(identity)
+      .contramap(_.value)
 
-  implicit val arbDataId: Arbitrary[DataId] =
+  given arbDataId: Arbitrary[DataId] =
     Arbitrary {
-      Gen.alphaNumStr.map(toDataId)
+      Gen.alphaNumStr.map(DataId.apply(_))
     }
 
-  implicit val dataIdCogen: Cogen[DataId] =
+  given dataIdCogen: Cogen[DataId] =
     Cogen[String]
-      .contramap(identity)
+      .contramap(_.value)
 }
 
 object ArbDhsTypes extends ArbDhsTypes

@@ -1,18 +1,18 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.Observation
-import observe.model.enum.Instrument
-import observe.model.enum.Resource
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 
 sealed trait Notification extends Product with Serializable
 
 object Notification {
-  implicit lazy val eq: Eq[Notification] =
+  given Eq[Notification] =
     Eq.instance {
       case (a: ResourceConflict, b: ResourceConflict) => a === b
       case (a: InstrumentInUse, b: InstrumentInUse)   => a === b
@@ -24,7 +24,7 @@ object Notification {
   // Notification that user tried to run a sequence that used resource already in use
   final case class ResourceConflict(sidName: Observation.IdName) extends Notification
   object ResourceConflict {
-    implicit lazy val eq: Eq[ResourceConflict] =
+    given Eq[ResourceConflict] =
       Eq.by(_.sidName)
   }
 
@@ -33,7 +33,7 @@ object Notification {
       extends Notification
 
   object InstrumentInUse {
-    implicit lazy val eq: Eq[InstrumentInUse] =
+    given Eq[InstrumentInUse] =
       Eq.by(x => (x.sidName, x.ins))
   }
 
@@ -41,7 +41,7 @@ object Notification {
   final case class RequestFailed(msgs: List[String]) extends Notification
 
   object RequestFailed {
-    implicit lazy val eq: Eq[RequestFailed] =
+    given Eq[RequestFailed] =
       Eq.by(_.msgs)
   }
 
@@ -50,7 +50,7 @@ object Notification {
       extends Notification
 
   object SubsystemBusy {
-    implicit lazy val eq: Eq[SubsystemBusy] =
+    given Eq[SubsystemBusy] =
       Eq.by(x => (x.sidName, x.stepId, x.resource))
   }
 }

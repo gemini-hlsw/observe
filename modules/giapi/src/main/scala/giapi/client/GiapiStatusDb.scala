@@ -1,15 +1,14 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package giapi.client
 
-import scala.jdk.CollectionConverters._
-import cats.Applicative
-import cats.ApplicativeError
+import scala.jdk.CollectionConverters.*
+import cats.{Applicative, ApplicativeThrow}
 import cats.effect.{Async, Resource, Sync}
-import cats.effect.implicits._
+import cats.effect.implicits.*
 import cats.effect.std.{Dispatcher, Queue}
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.aspen.giapi.status.StatusHandler
 import edu.gemini.aspen.giapi.status.StatusItem
 import edu.gemini.aspen.giapi.statusservice.StatusHandlerAggregate
@@ -99,7 +98,7 @@ object GiapiStatusDb {
   ): F[List[Unit]] =
     sg.getAllStatusItems.asScala.toList
       .collect {
-        case s: StatusItem[_] if items.contains(s.getName) => s
+        case s: StatusItem[?] if items.contains(s.getName) => s
       }
       .traverse { s =>
         dbUpdate(db, s.getName, s.getValue)
@@ -117,13 +116,13 @@ object GiapiStatusDb {
   /**
    * Creates a new status db in simulation
    */
-  def simulatedDb[F[_]: ApplicativeError[*[_], Throwable]]: GiapiStatusDb[F] =
+  def simulatedDb[F[_]: ApplicativeThrow]: GiapiStatusDb[F] =
     new GiapiStatusDb[F] {
       def optional(i: String): F[Option[StatusValue]] =
         none.pure[F]
 
       def value(i: String): F[StatusValue] =
-        ApplicativeError[F, Throwable]
+        ApplicativeThrow[F]
           .raiseError(
             new GiapiException("No values available in a simulated db")
           )

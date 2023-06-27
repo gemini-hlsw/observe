@@ -5,17 +5,17 @@ package observe.server.gsaoi
 
 import cats.Applicative
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.Progress
 import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig
 import squants.Time
-import squants.time.TimeConversions._
+import squants.time.TimeConversions.*
 
 object GsaoiControllerSim {
   def apply[F[_]: Logger: Async]: F[GsaoiFullHandler[F]] =

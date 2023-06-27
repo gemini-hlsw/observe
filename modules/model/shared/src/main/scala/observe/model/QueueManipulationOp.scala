@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model
 
 import cats.Eq
-import cats.syntax.all._
+import cats.syntax.all.*
 import observe.model.Observation
 
 sealed trait QueueManipulationOp extends Product with Serializable {
@@ -21,7 +21,7 @@ object QueueManipulationOp {
   final case class RemovedSeqs(qid: QueueId, seqs: List[Observation.Id], positions: List[Int])
       extends QueueManipulationOp
 
-  implicit val equal: Eq[QueueManipulationOp] = Eq.instance {
+  given Eq[QueueManipulationOp] = Eq.instance {
     case (Moved(a, c, e, g), Moved(b, d, f, h))       =>
       a === b && c === d && e === f && g === h
     case (Started(a), Started(b))                     => a === b

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.engine
@@ -14,10 +14,9 @@ object EventResult {
   }
 
   final case class UserCommandResponse[F[_], U](
-    ue:      UserEvent[F, _, U],
+    ue:      UserEvent[F, ?, U],
     outcome: Outcome,
     ud:      Option[U]
   ) extends EventResult[U]
-  final case class SystemUpdate[F[_], U](se: SystemEvent[F], outcome: Outcome)
-      extends EventResult[U]
+  final case class SystemUpdate[F[_], U](se: SystemEvent, outcome: Outcome) extends EventResult[U]
 }

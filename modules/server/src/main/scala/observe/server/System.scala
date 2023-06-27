@@ -3,7 +3,7 @@
 
 package observe.server
 
-import observe.model.enum.Resource
+import observe.model.enums.Resource
 
 trait System[F[_]] {
   val resource: Resource
@@ -11,7 +11,7 @@ trait System[F[_]] {
   /**
    * Called to configure a system
    */
-  def configure(config: CleanConfig): F[ConfigResult[F]]
+  def configure: F[ConfigResult]
 
   def notifyObserveStart: F[Unit]
 

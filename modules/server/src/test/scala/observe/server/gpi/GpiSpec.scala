@@ -3,7 +3,7 @@
 
 package observe.server.gpi
 
-import cats.kernel.laws.discipline._
+import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 
 /**

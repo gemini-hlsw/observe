@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.model.config
@@ -18,7 +18,7 @@ import org.http4s.Uri
  *   Name of the cookie to store the token
  * @param secretKey
  *   Secret key to encrypt jwt tokens
- * @param useSSL
+ * @param useSsl
  *   Whether we use SSL setting the cookie to be https only
  * @param ldap
  *   URL of the ldap servers
@@ -27,12 +27,12 @@ final case class AuthenticationConfig(
   sessionLifeHrs: FiniteDuration,
   cookieName:     String,
   secretKey:      String,
-  useSSL:         Boolean = false,
-  ldapURLs:       List[Uri]
+  useSsl:         Boolean = false,
+  ldapUrls:       List[Uri]
 )
 
 object AuthenticationConfig {
-  implicit val eqAuthenticationConfig: Eq[AuthenticationConfig] =
-    Eq.by(x => (x.sessionLifeHrs.toNanos, x.cookieName, x.secretKey, x.useSSL, x.ldapURLs))
+  given Eq[AuthenticationConfig] =
+    Eq.by(x => (x.sessionLifeHrs.toNanos, x.cookieName, x.secretKey, x.useSsl, x.ldapUrls))
 
 }

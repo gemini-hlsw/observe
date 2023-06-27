@@ -4,17 +4,17 @@
 package observe.server.nifs
 
 import cats.MonadError
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
-import observe.server.keywords._
+import observe.server.keywords.*
 import observe.server.tcs.TcsKeywordsReader
 
 object NifsHeader {
 
-  def header[F[_]: MonadError[*[_], Throwable]: Logger](
+  def header[F[_]: MonadThrow: Logger](
     kwClient:          KeywordsClient[F],
     instReader:        NifsKeywordReader[F],
     tcsKeywordsReader: TcsKeywordsReader[F]

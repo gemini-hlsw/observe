@@ -8,11 +8,10 @@ import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 
 import cats.effect.Async
-import cats.syntax.all._
+import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
-import monocle.macros.Lenses
-import mouse.boolean._
-import observe.server.gems.Gems._
+import mouse.boolean.*
+import observe.server.gems.Gems.*
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.gsaoi.GsaoiGuider
 import observe.server.tcs.Gaos.PauseCondition
@@ -24,7 +23,7 @@ import observe.server.tcs.Gaos.ResumeConditionSet
 class GemsControllerEpics[F[_]: Async](
   epicsSys:    GemsEpics[F],
   gsaoiGuider: GsaoiGuider[F]
-)(implicit L:  Logger[F])
+)(using L:  Logger[F])
     extends GemsController[F] {
   import GemsControllerEpics._
 
@@ -104,8 +103,7 @@ object GemsControllerEpics {
     gsaoiGuider: GsaoiGuider[F]
   ): GemsController[F] = new GemsControllerEpics[F](epicsSys, gsaoiGuider)
 
-  @Lenses
-  final case class EpicsGems(
+    final case class EpicsGems(
     cwfs1: Cwfs1DetectorState,
     cwfs2: Cwfs2DetectorState,
     cwfs3: Cwfs3DetectorState,

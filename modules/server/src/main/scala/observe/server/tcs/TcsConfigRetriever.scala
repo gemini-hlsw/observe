@@ -5,15 +5,15 @@ package observe.server.tcs
 
 import cats._
 import cats.data.OneAnd
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryYesNo
-import edu.gemini.spModel.core.Wavelength
-import mouse.boolean._
+import lucuma.core.math.Wavelength
+import mouse.boolean.*
 import observe.model.TelescopeGuideConfig
-import observe.model.enum.ComaOption
-import observe.model.enum.M1Source
-import observe.model.enum.MountGuideOption
-import observe.model.enum.TipTiltSource
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.decode
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
@@ -42,12 +42,11 @@ import observe.server.tcs.GemsSource.Odgw3
 import observe.server.tcs.GemsSource.Odgw4
 import observe.server.tcs.TcsController.FollowOption.FollowOff
 import observe.server.tcs.TcsController.FollowOption.FollowOn
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import shapeless.tag
 import squants.Angle
 import squants.Length
-import squants.space.Angstroms
 import squants.space.Degrees
 import squants.space.Millimeters
 
@@ -64,7 +63,7 @@ sealed trait TcsConfigRetriever[F[_]] {
 }
 
 object TcsConfigRetriever {
-  private class TcsConfigRetrieverImpl[F[_]: MonadError[*[_], Throwable]](epicsSys: TcsEpics[F])
+  private class TcsConfigRetrieverImpl[F[_]: MonadThrow](epicsSys: TcsEpics[F])
       extends TcsConfigRetriever[F]
       with TcsConfigDecoders
       with ScienceFoldPositionCodex {
@@ -203,7 +202,7 @@ object TcsConfigRetriever {
     private def getOffsetY: F[Length] = epicsSys.yoffsetPoA1.map(Millimeters(_))
 
     private def getWavelength: F[Wavelength] =
-      epicsSys.sourceAWavelength.map(v => Wavelength(Angstroms(v)))
+      epicsSys.sourceAWavelength.map(v => Wavelength.fromAngstroms(v.toInt).get)
 
     private def getGemsMap: F[Map[GemsSource, VirtualGemsTelescope]] = for {
       v1 <- epicsSys.g1MapName
@@ -359,6 +358,6 @@ object TcsConfigRetriever {
 
   }
 
-  def apply[F[_]: MonadError[*[_], Throwable]](epicsSys: TcsEpics[F]): TcsConfigRetriever[F] =
+  def apply[F[_]: MonadThrow](epicsSys: TcsEpics[F]): TcsConfigRetriever[F] =
     new TcsConfigRetrieverImpl(epicsSys)
 }

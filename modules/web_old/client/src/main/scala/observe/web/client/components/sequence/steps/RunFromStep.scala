@@ -1,0 +1,68 @@
+// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
+
+package observe.web.client.components.sequence.steps
+
+import cats.syntax.all.*
+import japgolly.scalajs.react.Callback
+import japgolly.scalajs.react.ReactMouseEvent
+import japgolly.scalajs.react.Reusability
+import japgolly.scalajs.react.ScalaComponent
+import japgolly.scalajs.react.vdom.html_<^._
+import react.common.*
+import react.semanticui.colors.*
+import react.semanticui.elements.button.Button
+import react.semanticui.modules.popup.Popup
+import observe.model.{Observation, StepId}
+import observe.web.client.actions.RequestRunFrom
+import observe.web.client.actions.RunOptions
+import observe.web.client.circuit.ObserveCircuit
+import observe.web.client.components.ObserveStyles
+import observe.web.client.icons.*
+import observe.web.client.model.StartFromOperation
+import observe.web.client.reusability.*
+
+/**
+ * Contains the control to start a step from an arbitrary point
+ */
+final case class RunFromStep(
+  idName:           Observation.Id,
+  stepId:           StepId,
+  stepIdx:          Int,
+  resourceInFlight: Boolean,
+  runFrom:          StartFromOperation
+) extends ReactProps[RunFromStep](RunFromStep.component)
+
+object RunFromStep {
+  type Props = RunFromStep
+
+  given Reusability[Props] = Reusability.derive[Props]
+
+  def requestRunFrom(
+    id:     Observation.Id,
+    stepId: StepId
+  ): (ReactMouseEvent, Button.ButtonProps) => Callback =
+    (e: ReactMouseEvent, _: Button.ButtonProps) =>
+      ObserveCircuit
+        .dispatchCB(RequestRunFrom(id, stepId, RunOptions.Normal))
+        .unless_(e.altKey || e.button === StepsTable.MiddleButton)
+
+  protected val component = ScalaComponent
+    .builder[Props]
+    .render_P { p =>
+      <.div(
+        ObserveStyles.runFrom,
+        ObserveStyles.notInMobile,
+        Popup(
+          trigger = Button(
+            icon = true,
+            color = Blue,
+            onClickE = requestRunFrom(p.idName, p.stepId),
+            disabled = p.resourceInFlight || p.runFrom === StartFromOperation.StartFromInFlight
+          )(IconPlay)
+        )(s"Run from step ${p.stepIdx + 1}")
+      )
+    }
+    .configure(Reusability.shouldComponentUpdate)
+    .build
+}

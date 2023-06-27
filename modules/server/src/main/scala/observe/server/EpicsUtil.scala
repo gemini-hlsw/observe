@@ -12,20 +12,20 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import java.util.{Timer => JTimer}
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.math.abs
 import cats._
 import cats.data.Nested
 import cats.effect.Async
 import cats.effect.Sync
-import cats.syntax.all._
-import edu.gemini.epics.acm._
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import mouse.boolean._
+import mouse.boolean.*
 import observe.model.ObserveStage
-import observe.model.enum.ApplyCommandResult
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.ApplyCommandResult
+import observe.model.enums.ObserveCommandResult
 import ObserveFailure.NullEpicsError
 import ObserveFailure.ObserveException
 import squants.Time
@@ -48,8 +48,8 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
           cs.map { ccs =>
             ccs.postCallback {
               new CaCommandListener {
-                override def onSuccess(): Unit                 = f(ApplyCommandResult.Completed.asRight)
-                override def onPause(): Unit                   = f(ApplyCommandResult.Paused.asRight)
+                override def onSuccess(): Unit = f(ApplyCommandResult.Completed.asRight)
+                override def onPause(): Unit   = f(ApplyCommandResult.Paused.asRight)
                 override def onFailure(cause: Exception): Unit = f(cause.asLeft)
               }
             }
@@ -184,11 +184,11 @@ object EpicsCodex {
   }
 
   object EncodeEpicsValue {
-    def apply[A, T](f: A => T): EncodeEpicsValue[A, T]                         = (a: A) => f(a)
+    def apply[A, T](f:  A => T): EncodeEpicsValue[A, T]                        = (a: A) => f(a)
     def applyO[A, T](f: PartialFunction[A, T]): EncodeEpicsValue[A, Option[T]] = (a: A) => f.lift(a)
   }
 
-  def encode[A, T](a: A)(implicit e: EncodeEpicsValue[A, T]): T = e.encode(a)
+  def encode[A, T](a: A)(using e: EncodeEpicsValue[A, T]): T = e.encode(a)
 
   trait DecodeEpicsValue[T, A] {
     def decode(t: T): A
@@ -198,7 +198,7 @@ object EpicsCodex {
     def apply[T, A](f: T => A): DecodeEpicsValue[T, A] = (t: T) => f(t)
   }
 
-  def decode[T, A](t: T)(implicit e: DecodeEpicsValue[T, A]): A = e.decode(t)
+  def decode[T, A](t: T)(using e: DecodeEpicsValue[T, A]): A = e.decode(t)
 
 }
 
@@ -406,7 +406,7 @@ object EpicsUtil {
       a.some.pure[F]
   }
 
-  implicit def ToFOps[F[_]: Applicative, A](a: F[A]): FOps[F, A] =
+  given [F[_]:Applicative, A](a: F[A]): FOps[F, A] =
     new FOps(a)
 
   // The return signature indicates this programs calculates if we maybe need an action
@@ -458,7 +458,7 @@ object EpicsUtil {
     s.replaceAll(pattern, "")
   }
 
-  implicit class AddSystemNameToCmdErrorOp[F[_]: MonadError[*[_], Throwable], A](f: F[A]) {
+  extension [F[_]: MonadThrow, A](f: F[A]) {
     def addSystemNameToCmdError(sysName: String): F[A] = f.adaptError { case e: CaCommandError =>
       new CaCommandError(s"Error from $sysName: ${e.getMessage}")
     }

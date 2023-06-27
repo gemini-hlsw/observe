@@ -9,30 +9,30 @@ import java.lang.{Integer => JInt}
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.effect.{Async, Sync}
-import cats.syntax.all._
+import cats.syntax.all.*
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.INSTRUMENT_NAME_PROP
 import edu.gemini.spModel.gemini.gnirs.GNIRSConstants.WOLLASTON_PRISM_PROP
-import edu.gemini.spModel.gemini.gnirs.GNIRSParams._
-import edu.gemini.spModel.gemini.gnirs.InstGNIRS._
+import edu.gemini.spModel.gemini.gnirs.GNIRSParams.*
+import edu.gemini.spModel.gemini.gnirs.InstGNIRS.*
 import edu.gemini.spModel.obscomp.InstConstants.BIAS_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.DARK_OBSERVE_TYPE
 import edu.gemini.spModel.obscomp.InstConstants.OBSERVE_TYPE_PROP
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.LightSinkName
-import lucuma.core.syntax.string._
+import lucuma.core.syntax.string.*
 import observe.model.dhs.ImageFileId
-import observe.model.enum.Instrument
-import observe.model.enum.ObserveCommandResult
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps._
-import observe.server._
+import observe.server.ConfigUtilOps.*
+import observe.server.*
 import observe.server.gnirs.GnirsController.{CCConfig, DCConfig, Filter1, Other, ReadMode}
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
 import squants.Time
-import squants.space.LengthConversions._
-import squants.time.TimeConversions._
+import squants.space.LengthConversions.*
+import squants.time.TimeConversions.*
 
 final case class Gnirs[F[_]: Logger: Async](
   controller: GnirsController[F],
@@ -66,7 +66,7 @@ final case class Gnirs[F[_]: Logger: Async](
 
   override val resource: Instrument = Instrument.Gnirs
 
-  override def configure(config: CleanConfig): F[ConfigResult[F]] =
+  override def configure(config: CleanConfig): F[ConfigResult] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT
@@ -117,7 +117,7 @@ object Gnirs {
     }
 
   // Used for optional keys. If the key is not present, the result is a None. Other extraction errors are passed on.
-  private implicit class KeyAttemptToOption[T](v: Either[ExtractFailure, T]) {
+  privateextension [T](v: Either[ExtractFailure, T]) {
     def optionalKey: Either[ExtractFailure, Option[T]] = v match {
       case Right(r)             => r.some.asRight
       case Left(_: KeyNotFound) => none.asRight
@@ -271,7 +271,7 @@ object Gnirs {
     }
 
   object specifics extends InstrumentSpecifics {
-    override val instrument: Instrument                     = Instrument.Gnirs
+    override val instrument: Instrument = Instrument.Gnirs
     override def sfName(config: CleanConfig): LightSinkName = LightSinkName.Gnirs
   }
 
