@@ -47,7 +47,7 @@ final case class SequenceTab(
 object SequenceTab {
   type Props = SequenceTab
 
-    final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
+  final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
 
   given Reusability[Props] =
     Reusability.caseClassExcept[Props]("router")

@@ -76,7 +76,8 @@ class OperationsStateHandler[M](modelRW: ModelRW[M, SequencesOnDisplay])
       updatedL(
         SequencesOnDisplay.markOperations(
           id,
-          Focus[TabOperations](_.cancelPauseRequested).replace(CancelPauseOperation.CancelPauseInFlight)
+          Focus[TabOperations](_.cancelPauseRequested)
+            .replace(CancelPauseOperation.CancelPauseInFlight)
         )
       )
 

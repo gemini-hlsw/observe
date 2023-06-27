@@ -18,7 +18,7 @@ trait GsaoiArbitraries {
 
   given Arbitrary[WindowCover] =
     Arbitrary(Gen.oneOf(WindowCover.Closed, WindowCover.Opened))
-  given Cogen[WindowCover]   =
+  given Cogen[WindowCover]     =
     Cogen[String].contramap(_.productPrefix)
 
   given Arbitrary[DCConfig] =

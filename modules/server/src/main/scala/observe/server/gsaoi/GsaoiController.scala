@@ -53,11 +53,11 @@ object WindowCover {
 
 object GsaoiController {
   // DC
-  type ReadMode           = edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
-  type Roi                = edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
+  type ReadMode = edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
+  type Roi      = edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
   object Coadds extends NewType[Int]
-  type Coadds = Coadds.Type
-  type ExposureTime       = Time
+  type Coadds       = Coadds.Type
+  type ExposureTime = Time
   object NumberOfFowSamples extends NewType[Int]
   type NumberOfFowSamples = NumberOfFowSamples.Type
 

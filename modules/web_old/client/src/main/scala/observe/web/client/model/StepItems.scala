@@ -40,7 +40,7 @@ object StepItems {
   private val obsNames =
     GpiObservingMode.all.map(x => x.shortName -> x.longName).toMap
 
-  extension(s: Step) {
+  extension (s: Step) {
     def fpuNameMapper(i: Instrument): String => Option[String] =
       i match {
         case Instrument.GmosS => enumerations.fpu.GmosSFPU.get
@@ -201,7 +201,7 @@ object StepItems {
       instrumentImagingMirrorO.getOption(s)
   }
 
-  extension(steps: List[Step]) {
+  extension (steps: List[Step]) {
 
     // Offsets to be displayed with a width
     def offsetsDisplay: OffsetsDisplay =

@@ -188,9 +188,9 @@ object GpiStatusApply extends GpiLookupTables {
             .map(Angle.fromDoubleDegrees)
         (measuredAngle, requestedAngle)
           .mapN { (m, r) =>
-            given Order[Angle] = Angle.AngleOrder
-            val δ: Angle                     = m.difference(r)
-            val ε: Option[Angle]             =
+            given Order[Angle]   = Angle.AngleOrder
+            val δ: Angle         = m.difference(r)
+            val ε: Option[Angle] =
               GpiPolarizerAngle.tolerance.map(t => Angle.fromDoubleDegrees(t.toDouble))
             ε.exists(δ <= _)
           }

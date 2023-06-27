@@ -36,7 +36,8 @@ final case class SequencesOnDisplay(tabs: Zipper[ObserveTab]) {
   // Display a given step on the focused sequence
   def showStepConfig(id: Observation.Id, i: StepId): SequencesOnDisplay =
     if (isOnFocus(id))
-      SequencesOnDisplay.tabs.modify(_.modify(Focus[SequencesOnDisplay](_.stepL).replace(i.some)))(this)
+      SequencesOnDisplay.tabs
+        .modify(_.modify(Focus[SequencesOnDisplay](_.stepL).replace(i.some)))(this)
     else
       this
 
@@ -393,7 +394,8 @@ object SequencesOnDisplay {
   def previewTabById(
     id: Observation.Id
   ): Traversal[SequencesOnDisplay, PreviewSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect(previewMatch(id)))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect(previewMatch(id)))
       .andThen(ObserveTab.previewTab)
 
   private def instrumentSequenceMatch(id: Observation.Id)(tab: ObserveTab): Boolean =
@@ -412,7 +414,8 @@ object SequencesOnDisplay {
   def instrumentTabById(
     id: Observation.Id
   ): Traversal[SequencesOnDisplay, InstrumentSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(
         Zipper.unsafeSelect(
           instrumentSequenceMatch(id)
         )
@@ -422,7 +425,8 @@ object SequencesOnDisplay {
   def instrumentTabExceptId(
     id: Observation.Id
   ): Traversal[SequencesOnDisplay, InstrumentSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(
         Zipper.unsafeSelect[ObserveTab](
           !instrumentSequenceMatch(id)(_)
         )
@@ -432,7 +436,8 @@ object SequencesOnDisplay {
   def sequenceTabById(
     id: Observation.Id
   ): Traversal[SequencesOnDisplay, SequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(
         Zipper.unsafeSelect(
           sequenceMatch(id)
         )
@@ -440,7 +445,8 @@ object SequencesOnDisplay {
       .andThen(ObserveTab.sequenceTab)
 
   val previewTab: Traversal[SequencesOnDisplay, PreviewSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect[ObserveTab](_.isPreview))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect[ObserveTab](_.isPreview))
       .andThen(ObserveTab.previewTab)
 
   private def instrumentMatch(i: Instrument)(tab: ObserveTab): Boolean =
@@ -452,7 +458,8 @@ object SequencesOnDisplay {
   def instrumentTabFor(
     i: Instrument
   ): Traversal[SequencesOnDisplay, InstrumentSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect(instrumentMatch(i)))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect(instrumentMatch(i)))
       .andThen(ObserveTab.instrumentTab)
 
   private def instrumentTab(tab: ObserveTab): Boolean =
@@ -462,7 +469,8 @@ object SequencesOnDisplay {
     }
 
   val instrumentTabs: Traversal[SequencesOnDisplay, InstrumentSequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect(instrumentTab))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect(instrumentTab))
       .andThen(ObserveTab.instrumentTab)
 
   private def sequenceTab(tab: ObserveTab): Boolean =
@@ -473,7 +481,8 @@ object SequencesOnDisplay {
     }
 
   val sequenceTabs: Traversal[SequencesOnDisplay, SequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect(sequenceTab))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect(sequenceTab))
       .andThen(ObserveTab.sequenceTab)
 
   private def completedTab(tab: ObserveTab): Boolean =
@@ -483,17 +492,22 @@ object SequencesOnDisplay {
     }
 
   val completedTabs: Traversal[SequencesOnDisplay, InstrumentSequenceTab.CompletedSequenceView] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.unsafeSelect(completedTab))
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.unsafeSelect(completedTab))
       .andThen(ObserveTab.instrumentTab)
       .andThen(InstrumentSequenceTab.completedSequence)
 
   // Optional to the selected tab if on focus
   val focusSequence: Optional[SequencesOnDisplay, SequenceTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.focus[ObserveTab]).andThen(ObserveTab.sequenceTab)
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.focus[ObserveTab])
+      .andThen(ObserveTab.sequenceTab)
 
   // Optional to the calibration tab if on focus
   val focusQueue: Optional[SequencesOnDisplay, CalibrationQueueTab] =
-    Focus[SequencesOnDisplay](_.tabs).andThen(Zipper.focus[ObserveTab]).andThen(ObserveTab.calibrationTab)
+    Focus[SequencesOnDisplay](_.tabs)
+      .andThen(Zipper.focus[ObserveTab])
+      .andThen(ObserveTab.calibrationTab)
 
   val calTabObserver: Optional[SequencesOnDisplay, Observer] =
     focusQueue.andThen(CalibrationQueueTab.observer).andThen(std.option.some)

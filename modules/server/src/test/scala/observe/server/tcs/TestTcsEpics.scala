@@ -441,7 +441,7 @@ case class TestTcsEpics[F[_]: Async](
     probeGuideConfigGetters(state, State.oiwfsProbeGuideConfig.asGetter)
 
   override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
-    T:                                           Temporal[F]
+    T: Temporal[F]
   ): F[Unit] =
     Applicative[F].unit
 
@@ -771,7 +771,7 @@ case class TestTcsEpics[F[_]: Async](
 
 object TestTcsEpics {
 
-    case class State(
+  case class State(
     absorbTipTilt:             Int,
     m1GuideSource:             String,
     m1Guide:                   BinaryOnOff,
@@ -919,7 +919,7 @@ object TestTcsEpics {
     aoPrepareControlMatrixCmd: TestEpicsCommand2.State[Double, Double]
   )
 
-    final case class ProbeGuideConfigVals(
+  final case class ProbeGuideConfigVals(
     nodachopa: Int,
     nodachopb: Int,
     nodbchopa: Int,
@@ -930,7 +930,7 @@ object TestTcsEpics {
     val default: ProbeGuideConfigVals = ProbeGuideConfigVals(0, 0, 0, 0)
   }
 
-    final case class TargetVals(
+  final case class TargetVals(
     objectName:        String,
     ra:                Double,
     dec:               Double,

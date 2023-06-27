@@ -28,7 +28,16 @@ import shapeless.tag
 import cats.effect.{Ref, Temporal}
 import lucuma.core.model.sequence.DynamicConfig
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.{Config => OdbConfig}
-import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosInstrumentConfig, GmosReadout, GmosSite, GmosStatic, InsConfig, SeqStep, Sequence}
+import observe.common.ObsQueriesGQL.ObsQuery.{
+  Data,
+  GmosInstrumentConfig,
+  GmosReadout,
+  GmosSite,
+  GmosStatic,
+  InsConfig,
+  SeqStep,
+  Sequence
+}
 import observe.model.Observation
 import observe.server.SequenceGen.StepGen
 import observe.server.StepType.ExclusiveDarkOrBias
@@ -40,10 +49,10 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   val controller: GmosController[F, T],
   ss:             SiteSpecifics[T],
   nsCmdR:         Ref[F, Option[NSObserveCommand]],
-  obsType: StepType,
-  staticCfg: GmosStatic[T],
-  dynamicCfg: GmosInstrumentConfig[T]
-)(configTypes:    GmosController.Config[T])
+  obsType:        StepType,
+  staticCfg:      GmosStatic[T],
+  dynamicCfg:     GmosInstrumentConfig[T]
+)(configTypes: GmosController.Config[T])
     extends DhsInstrument[F]
     with InstrumentSystem[F] {
 
@@ -118,27 +127,31 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
       .getOrElse(configTypes.GmosDisperser.Mirror.asRight)
 
   private def ccConfigFromSequenceConfig: Config.CCConfig = {
-    val isDarkOrBias = obsType === StepType.DarkOrBias || obsType === ExclusiveDarkOrBias || obsType === StepType.DarkOrBiasNS
+    val isDarkOrBias =
+      obsType === StepType.DarkOrBias || obsType === ExclusiveDarkOrBias || obsType === StepType.DarkOrBiasNS
 
-    if(isDarkOrBias) Config.DarkOrBias
-    else configTypes.StandardCCConfig(
-      ss.extractFilter(dynamicCfg),
-      calcDisperser(ss.extractDisperser(dynamicCfg), dynamicCfg.gratingConfig.map(_.order), dynamicCfg.gratingConfig.map(_.wavelength)),
-      fpuFromFPUnit(ss.extractFPU(dynamicCfg), ss.extractCustomFPU(dynamicCfg)),
-      ss.extractStageMode(staticCfg),
-      dynamicCfg.dtax,
-      GmosAdc.Follow,
-      staticCfg.nodAndShuffle.map(_.eOffset).getOrElse(GmosEOffsetting.Off)
-    )
+    if (isDarkOrBias) Config.DarkOrBias
+    else
+      configTypes.StandardCCConfig(
+        ss.extractFilter(dynamicCfg),
+        calcDisperser(ss.extractDisperser(dynamicCfg),
+                      dynamicCfg.gratingConfig.map(_.order),
+                      dynamicCfg.gratingConfig.map(_.wavelength)
+        ),
+        fpuFromFPUnit(ss.extractFPU(dynamicCfg), ss.extractCustomFPU(dynamicCfg)),
+        ss.extractStageMode(staticCfg),
+        dynamicCfg.dtax,
+        GmosAdc.Follow,
+        staticCfg.nodAndShuffle.map(_.eOffset).getOrElse(GmosEOffsetting.Off)
+      )
   }
 
-  private def fromSequenceConfig: GmosController.GmosConfig[T] = {
+  private def fromSequenceConfig: GmosController.GmosConfig[T] =
     new GmosController.GmosConfig[T](configTypes)(
       ccConfigFromSequenceConfig,
       dcConfigFromSequenceConfig(nsConfig),
       nsConfig
     )
-  }
 
   override def observe: Kleisli[F, ImageFileId, ObserveCommandResult] =
     Kleisli { fileId =>
@@ -154,8 +167,9 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   override def notifyObserveStart: F[Unit] = Applicative[F].unit
 
   override def configure: F[ConfigResult] =
-      controller.applyConfig(fromSequenceConfig)
-        .as(ConfigResult(this))
+    controller
+      .applyConfig(fromSequenceConfig)
+      .as(ConfigResult(this))
 
   override def calcObserveTime: Duration = dynamicCfg.exposure.toScala / nsConfig.exposureDivider
 
@@ -165,21 +179,27 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
 
   def isNodAndShuffle(s: GmosStatic[T]): Boolean = s.nodAndShuffle.isDefined
 
-  def nsConfig: NSConfig = staticCfg.nodAndShuffle.map { n =>
-    NSConfig.NodAndShuffle(tag[NsCyclesI][Int](n.shuffleCycles),
-      tag[NsRowsI][Int](n.shuffleOffset),
-      Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide), NSPosition(NodAndShuffleStage.StageB, n.posB, Guiding.Guide)),
-      dynamicCfg.exposure.toScala
-    )
-  }.getOrElse(NSConfig.NoNodAndShuffle)
+  def nsConfig: NSConfig = staticCfg.nodAndShuffle
+    .map { n =>
+      NSConfig.NodAndShuffle(
+        tag[NsCyclesI][Int](n.shuffleCycles),
+        tag[NsRowsI][Int](n.shuffleOffset),
+        Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide),
+               NSPosition(NodAndShuffleStage.StageB, n.posB, Guiding.Guide)
+        ),
+        dynamicCfg.exposure.toScala
+      )
+    }
+    .getOrElse(NSConfig.NoNodAndShuffle)
 
   private def shutterStateObserveType(obsType: StepType): ShutterState = obsType match {
-    case StepType.DarkOrBias | StepType.ExclusiveDarkOrBias | StepType.DarkOrBiasNS => ShutterState.CloseShutter
-    case _                    => ShutterState.UnsetShutter
+    case StepType.DarkOrBias | StepType.ExclusiveDarkOrBias | StepType.DarkOrBiasNS =>
+      ShutterState.CloseShutter
+    case _                                                                          => ShutterState.UnsetShutter
   }
 
   private def exposureTime(
-    d: GmosInstrumentConfig[T],
+    d:        GmosInstrumentConfig[T],
     nsConfig: NSConfig
   ): Duration = d.exposure.toScala / nsConfig.exposureDivider
 
@@ -188,7 +208,11 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   ): DCConfig = DCConfig(
     exposureTime(dynamicCfg, nsConfig),
     shutterStateObserveType(obsType),
-    CCDReadout(dynamicCfg.readout.ampReadMode, dynamicCfg.readout.ampGain, dynamicCfg.readout.ampCount, calcGainSetting(dynamicCfg.readout)),
+    CCDReadout(dynamicCfg.readout.ampReadMode,
+               dynamicCfg.readout.ampGain,
+               dynamicCfg.readout.ampCount,
+               calcGainSetting(dynamicCfg.readout)
+    ),
     CCDBinning(dynamicCfg.readout.xBin, dynamicCfg.readout.yBin),
     extractROIs
   )
@@ -202,10 +226,11 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   def extractROIs: RegionsOfInterest = RegionsOfInterest.fromOCS(dynamicCfg.roi, List.empty)
 
   def calcStepType(
-    stdType: StepType,
+    stdType:    StepType,
     instrument: Instrument,
-    s: GmosStatic[T], d: GmosInstrumentConfig[T],
-  ): Either[ObserveFailure, StepType] = {
+    s:          GmosStatic[T],
+    d:          GmosInstrumentConfig[T]
+  ): Either[ObserveFailure, StepType] =
     if (s.nodAndShuffle.isDefined) {
       stdType match {
         case StepType.ExclusiveDarkOrBias(_) => StepType.DarkOrBiasNS(instrument).asRight
@@ -215,8 +240,6 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
     } else {
       stdType.asRight
     }
-  }
-
 
 }
 
@@ -240,33 +263,56 @@ object Gmos {
   }
 
   class GmosTranslator[F[_]: Applicative](
-                                           site:      Site,
-                                           systemss:  Systems[F],
-                                           gmosNsCmd: Ref[F, Option[NSObserveCommand]]
-                                         ) extends SeqTranslate[F] {
-    override def sequence(sequence: Data.Observation)(using tio: Temporal[F]): F[Option[Either[List[Throwable], SequenceGen[F]]]] =
+    site:      Site,
+    systemss:  Systems[F],
+    gmosNsCmd: Ref[F, Option[NSObserveCommand]]
+  ) extends SeqTranslate[F] {
+    override def sequence(
+      sequence: Data.Observation
+    )(using tio: Temporal[F]): F[Option[Either[List[Throwable], SequenceGen[F]]]] =
       sequence.execution.config match {
-        case OdbConfig.GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) => buildSequence[F, GmosSite.North](staticN, acquisitionN, scienceN).some.pure[F]
-        case OdbConfig.GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) => buildSequence[F, GmosSite.South](staticS, acquisitionS, scienceS).some.pure[F]
-        case _ => none[Either[List[Throwable], SequenceGen[F]]].pure[F]
+        case OdbConfig.GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) =>
+          buildSequence[F, GmosSite.North](staticN, acquisitionN, scienceN).some.pure[F]
+        case OdbConfig.GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) =>
+          buildSequence[F, GmosSite.South](staticS, acquisitionS, scienceS).some.pure[F]
+        case _                                                                      => none[Either[List[Throwable], SequenceGen[F]]].pure[F]
       }
 
-    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def abortObserve(seqId: Observation.Id)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def abortObserve(seqId: Observation.Id)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    override def resumePaused(seqId: Observation.Id)(using tio: Temporal[F]): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
+    override def resumePaused(seqId: Observation.Id)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
 
-    private def buildSequence[F[_], T <: GmosSite](sequence: Data.Observation, inst: Instrument, staticCfg: GmosStatic[T], acquisition: Sequence[InsConfig.Gmos[T]], science: Sequence[InsConfig.Gmos[T]]): Either[List[Throwable], SequenceGen[F]] = {
-      val steps = (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture).flatMap(_.steps).map(x => buildStep[F, T](staticCfg, x))
+    private def buildSequence[F[_], T <: GmosSite](
+      sequence:    Data.Observation,
+      inst:        Instrument,
+      staticCfg:   GmosStatic[T],
+      acquisition: Sequence[InsConfig.Gmos[T]],
+      science:     Sequence[InsConfig.Gmos[T]]
+    ): Either[List[Throwable], SequenceGen[F]] = {
+      val steps =
+        (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture)
+          .flatMap(_.steps)
+          .map(x => buildStep[F, T](staticCfg, x))
 
       SequenceGen(sequence.id, sequence.id.toString(), sequence.title, inst, steps).asRight
     }
 
-    private def buildStep[F[_], T <: GmosSite](staticCfg: GmosStatic[T], step: SeqStep[InsConfig.Gmos[T]]): StepGen[F] = {
+    private def buildStep[F[_], T <: GmosSite](
+      staticCfg: GmosStatic[T],
+      step:      SeqStep[InsConfig.Gmos[T]]
+    ): StepGen[F] =
       Gmos()
-    }
   }
 }

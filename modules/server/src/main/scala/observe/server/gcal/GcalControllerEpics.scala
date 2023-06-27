@@ -123,7 +123,7 @@ object GcalControllerEpics {
   )
 
   def configure[F[_]: Async](epics: GcalEpics[F], current: EpicsGcalConfig, demand: GcalConfig)(
-    using L:                     Logger[F]
+    using L: Logger[F]
   ): F[Unit] = {
     val params: List[F[Unit]] = List(
       applyParam(current.lampAr, encode(demand.lampAr.self), setArLampParams(epics)),

@@ -3,10 +3,10 @@
 
 package observe.server.altair
 
-import cats.{ Eq, Show }
+import cats.{Eq, Show}
 import cats.syntax.all.*
 import observe.model.enums.Instrument
-import observe.server.tcs.Gaos.{ GuideCapabilities, PauseConditionSet, ResumeConditionSet }
+import observe.server.tcs.Gaos.{GuideCapabilities, PauseConditionSet, ResumeConditionSet}
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 import squants.space.Length
@@ -19,7 +19,7 @@ trait AltairController[F[_]] {
     resumeReasons: ResumeConditionSet,
     currentOffset: FocalPlaneOffset,
     instrument:    Instrument
-  )(cfg:           AltairConfig): F[AltairPauseResume[F]]
+  )(cfg: AltairConfig): F[AltairPauseResume[F]]
 
   def observe(expTime: Time)(cfg: AltairConfig): F[Unit]
 

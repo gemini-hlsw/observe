@@ -23,7 +23,7 @@ sealed trait Progress extends PartialVal with Product with Serializable {
 }
 
 object Progress {
-  extension(a: Progress) {
+  extension (a: Progress) {
     def toNSProgress(sub: NSSubexposure): NSProgress =
       NSProgress.fromObsProgress(a, sub)
   }

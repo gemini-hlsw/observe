@@ -27,7 +27,7 @@ object ObserveTabs {
   type Props = ObserveTabs
 
   given Reusability[Props] = Reusability.by(_.router)
-  private val tabConnect                      = ObserveCircuit.connect(ObserveCircuit.tabsReader)
+  private val tabConnect   = ObserveCircuit.connect(ObserveCircuit.tabsReader)
 
   val component = ScalaComponent
     .builder[Props]

@@ -49,11 +49,12 @@ object ProgressUtil {
    */
   def countdown[F[_]: Temporal](total: Time, elapsed: Time): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] { t: FiniteDuration =>
-        val progress  = Milliseconds(t.toMillis) + elapsed
-        val remaining = total - progress
-        val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
-        ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
+      .fromF[F] {
+        t: FiniteDuration =>
+          val progress  = Milliseconds(t.toMillis) + elapsed
+          val remaining = total - progress
+          val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
+          ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
       }
       .takeThrough(_.remaining.self.value > 0.0)
 
@@ -74,11 +75,12 @@ object ProgressUtil {
     stage:   F[ObserveStage]
   ): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] { t: FiniteDuration =>
-        val progress  = Milliseconds(t.toMillis) + elapsed
-        val remaining = total - progress
-        val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
-        stage.map(v => ObsProgress(total, RemainingTime(clipped), v)).widen[Progress]
+      .fromF[F] {
+        t: FiniteDuration =>
+          val progress  = Milliseconds(t.toMillis) + elapsed
+          val remaining = total - progress
+          val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
+          stage.map(v => ObsProgress(total, RemainingTime(clipped), v)).widen[Progress]
       }
       .takeThrough(x => x.remaining.self.value > 0.0 || x.stage === ObserveStage.Acquiring)
 }

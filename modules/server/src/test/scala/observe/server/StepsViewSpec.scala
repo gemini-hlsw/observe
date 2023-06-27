@@ -163,8 +163,9 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setImageQuality(q, iq, UserDetails("", "")), 2)
-    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.iq).get)) { case Some(op) =>
-      op shouldBe iq
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.iq).get)) {
+      case Some(op) =>
+        op shouldBe iq
     }).unsafeRunSync()
 
   }
@@ -175,8 +176,9 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setWaterVapor(q, wv, UserDetails("", "")), 2)
-    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.wv).get(_))) { case Some(op) =>
-      op shouldBe wv
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.wv).get(_))) {
+      case Some(op) =>
+        op shouldBe wv
     }).unsafeRunSync()
   }
 
@@ -186,8 +188,9 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setCloudCover(q, cc, UserDetails("", "")), 2)
-    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.cc).get(_))) { case Some(op) =>
-      op shouldBe cc
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.cc).get(_))) {
+      case Some(op) =>
+        op shouldBe cc
     }).unsafeRunSync()
   }
 
@@ -197,8 +200,9 @@ class StepsViewSpec extends TestCommon with Matchers with NonImplicitAssertions 
     (for {
       q  <- Queue.bounded[IO, executeEngine.EventType](10)
       sf <- advanceN(q, s0, observeEngine.setSkyBackground(q, sb, UserDetails("", "")), 2)
-    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.sb).get(_))) { case Some(op) =>
-      op shouldBe sb
+    } yield inside(sf.map(Focus[EngineState](_.conditions).andThen(Conditions.sb).get(_))) {
+      case Some(op) =>
+        op shouldBe sb
     }).unsafeRunSync()
   }
 

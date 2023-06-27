@@ -12,10 +12,10 @@ import fs2.Stream
 import observe.model.Observation
 import lucuma.core.enums.Site
 import observe.common.test.*
-import observe.engine.{ Action, Result, Sequence }
+import observe.engine.{Action, Result, Sequence}
 import observe.model.enums.Instrument.GmosS
 import observe.model.dhs.*
-import observe.model.{ ActionType, SequenceState }
+import observe.model.{ActionType, SequenceState}
 import observe.server.Response.Observed
 import observe.server.TestCommon.*
 import squants.time.Seconds

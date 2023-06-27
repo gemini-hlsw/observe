@@ -54,7 +54,7 @@ object Formatting {
   def nsNodLabelWidth[A](using show: OffsetFormat[A]): Double =
     tableTextWidth(offsetNSNod[A])
 
-  extension(steps: List[Step]) {
+  extension (steps: List[Step]) {
     private def maxWidth(angles: List[Angle]): Double =
       angles.map(angle => tableTextWidth(offsetAngle(angle))).maximumOption.orEmpty
 
@@ -92,7 +92,7 @@ object Formatting {
         }
   }
 
-  extension(s: String) {
+  extension (s: String) {
     def sentenceCase: String =
       (s.toList match {
         case Nil       => Nil

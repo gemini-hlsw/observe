@@ -31,9 +31,9 @@ final case class OffsetsDisplayCell(
 object OffsetsDisplayCell {
   type Props = OffsetsDisplayCell
 
-  given Reusability[Double]      = Reusability.double(0.0001)
+  given Reusability[Double]         = Reusability.double(0.0001)
   given Reusability[OffsetsDisplay] = Reusability.derive[OffsetsDisplay]
-  given Reusability[Props]        =
+  given Reusability[Props]          =
     Reusability.by(p => (p.offsetsDisplay, p.step.config))
 
   private val guidingIcon   = IconCrosshairs.copy(color = Green, size = Large)

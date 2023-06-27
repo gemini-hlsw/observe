@@ -192,7 +192,7 @@ object TestGemsEpics {
   case object Dither       extends PauseReason
   case object Filter       extends PauseReason
 
-    case class State(
+  case class State(
     aniLoop:              LoopState,
     astrometryReady:      Boolean,
     flexureLoop:          LoopState,

@@ -7,7 +7,7 @@ import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import monocle.Getter
-import observe.model.{ Observation, StepId }
+import observe.model.{Observation, StepId}
 import observe.model.enums.*
 import observe.web.client.model.*
 

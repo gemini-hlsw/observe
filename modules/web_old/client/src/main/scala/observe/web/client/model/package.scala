@@ -15,7 +15,7 @@ package object model {
       (x.url, x.protocol, x.readyState)
     }
 
-  given [A: Eq]:Eq[Pot[A]] = Eq.instance {
+  given [A: Eq]: Eq[Pot[A]] = Eq.instance {
     case (Empty, Empty)                           => true
     case (Unavailable, Unavailable)               => true
     case (Pending(a), Pending(b))                 => a === b
@@ -26,7 +26,7 @@ package object model {
     case _                                        => false
   }
 
-  extension(s: SectionVisibilityState) {
+  extension (s: SectionVisibilityState) {
     def toggle: SectionVisibilityState = s match {
       case SectionOpen   => SectionClosed
       case SectionClosed => SectionOpen

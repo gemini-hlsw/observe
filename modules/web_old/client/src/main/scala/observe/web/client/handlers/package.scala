@@ -16,7 +16,7 @@ import diode.NoAction
 package handlers {
 
   trait Handlers[M, T] { this: ActionHandler[M, T] =>
-  given [A, B]:Monoid[PartialFunction[A, B]] =
+    given [A, B]: Monoid[PartialFunction[A, B]] =
       new Monoid[PartialFunction[A, B]] {
         override def empty = PartialFunction.empty[A, B]
         override def combine(

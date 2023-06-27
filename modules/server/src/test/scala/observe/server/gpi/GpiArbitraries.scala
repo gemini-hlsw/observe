@@ -34,11 +34,11 @@ trait GpiArbitraries extends ArbTime {
       magI     <- arbitrary[Double]
     } yield AOFlags(useAo, useCal, aoOpt, alignFpm, magH, magI)
   }
-  given Cogen[AOFlags]   =
+  given Cogen[AOFlags]     =
     Cogen[(Boolean, Boolean, Boolean, Boolean)]
       .contramap(x => (x.useAo, x.useCal, x.aoOptimize, x.alignFpm))
 
-  given Arbitrary[ArtificialSources] =
+  given Arbitrary[ArtificialSources]  =
     Arbitrary {
       for {
         ir  <- arbitrary[LegacyArtificialSource]
@@ -47,9 +47,9 @@ trait GpiArbitraries extends ArbTime {
         att <- arbitrary[Double]
       } yield ArtificialSources(ir, vis, sc, att)
     }
-  given Cogen[LegacyArtificialSource]                =
+  given Cogen[LegacyArtificialSource] =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[ArtificialSources]   =
+  given Cogen[ArtificialSources]      =
     Cogen[(LegacyArtificialSource, LegacyArtificialSource, LegacyArtificialSource, Double)]
       .contramap(x => (x.ir, x.vis, x.sc, x.attenuation))
 
@@ -62,9 +62,9 @@ trait GpiArbitraries extends ArbTime {
     } yield Shutters(ent, cal, sci, ref)
   }
 
-  given Cogen[LegacyShutter]   =
+  given Cogen[LegacyShutter] =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[Shutters] =
+  given Cogen[Shutters]      =
     Cogen[(LegacyShutter, LegacyShutter, LegacyShutter, LegacyShutter)]
       .contramap(x =>
         (x.entranceShutter, x.calEntranceShutter, x.calScienceShutter, x.calReferenceShutter)
@@ -80,13 +80,13 @@ trait GpiArbitraries extends ArbTime {
       } yield NonStandardModeParams(apo, fpm, lyo, fil)
     }
 
-  given Cogen[LegacyApodizer]                  =
+  given Cogen[LegacyApodizer]        =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[LegacyFPM]                            =
+  given Cogen[LegacyFPM]             =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[LegacyLyot]                          =
+  given Cogen[LegacyLyot]            =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[LegacyFilter]                      =
+  given Cogen[LegacyFilter]          =
     Cogen[String].contramap(_.displayValue)
   given Cogen[NonStandardModeParams] =
     Cogen[(LegacyApodizer, LegacyFPM, LegacyLyot, LegacyFilter)]
@@ -101,7 +101,7 @@ trait GpiArbitraries extends ArbTime {
         endY   <- Gen.choose(ReadoutArea.MinValue, ReadoutArea.MaxValue)
       } yield ReadoutArea.fromValues(startX, startY, endX, endY).getOrElse(ReadoutArea.DefaultArea)
     }
-  given Cogen[ReadoutArea]   =
+  given Cogen[ReadoutArea]     =
     Cogen[(Int, Int, Int, Int)].contramap(x => (x.startX, x.startY, x.endX, x.endY))
 
   given Arbitrary[RegularGpiConfig] = Arbitrary {
@@ -121,13 +121,13 @@ trait GpiArbitraries extends ArbTime {
     } yield RegularGpiConfig(adc, exp, coa, readM, area, obsM, disp, dispA, shut, asu, pc, ao)
   }
 
-  given Cogen[LegacyAdc]               =
+  given Cogen[LegacyAdc]           =
     Cogen[String].contramap(_.displayValue)
   given Cogen[LegacyObservingMode] =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[LegacyPupilCamera]        =
+  given Cogen[LegacyPupilCamera]   =
     Cogen[String].contramap(_.displayValue)
-  given Cogen[RegularGpiConfig]  =
+  given Cogen[RegularGpiConfig]    =
     Cogen[
       (
         LegacyAdc,

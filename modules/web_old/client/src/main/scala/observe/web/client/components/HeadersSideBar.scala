@@ -44,7 +44,7 @@ final case class HeadersSideBar(model: HeaderSideBarFocus)
  * Display to show headers per sequence
  */
 object HeadersSideBar {
-  given Eq[HeadersSideBar]    = Eq.by(_.model)
+  given Eq[HeadersSideBar]          = Eq.by(_.model)
   given Reusability[HeadersSideBar] = Reusability.byEq
 
   private def conditionIntToString(v: Int): String = if (v === 100) "Any" else v.toString
@@ -62,11 +62,11 @@ object HeadersSideBar {
     Display.by(_.toInt.map(conditionIntToString).getOrElse("Unknown"), _.label)
 
     final case class State(
-    operator:        Option[Operator],
-    prevOperator:    Option[Operator],
-    displayName:     Option[String],
-    prevDisplayName: Option[String]
-  )
+      operator:        Option[Operator],
+      prevOperator:    Option[Operator],
+      displayName:     Option[String],
+      prevDisplayName: Option[String]
+    )
 
   object State {
     def apply(operator: Option[Operator], displayName: Option[String]): State =

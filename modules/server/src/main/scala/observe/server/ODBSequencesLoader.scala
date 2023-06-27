@@ -18,8 +18,8 @@ import observe.server.transition.OcsOdbTranslator
 import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 
 final class ODBSequencesLoader[F[_]: Async](
-  odbProxy:            OdbProxy[F],
-  translators:          List[SeqTranslate[F]]
+  odbProxy:    OdbProxy[F],
+  translators: List[SeqTranslate[F]]
 )(using execEngine: ExecEngineType[F]) {
 
   private def unloadEvent(seqId: Observation.Id): EventType[F] =
@@ -37,12 +37,15 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(UnloadSequence(seqId)).toHandle
     )
 
-  private def tryTranslate(sequence: OdbObservation): Option[Either[List[Throwable], SequenceGen[F]]] = {
-    translators.foldLeft(none[Either[List[Throwable], SequenceGen[F]]])( (a, b) => a match {
-      case Some(_) => a
-      case None => b.sequence(sequence)
-    } )
-  }
+  private def tryTranslate(
+    sequence: OdbObservation
+  ): Option[Either[List[Throwable], SequenceGen[F]]] =
+    translators.foldLeft(none[Either[List[Throwable], SequenceGen[F]]])((a, b) =>
+      a match {
+        case Some(_) => a
+        case None    => b.sequence(sequence)
+      }
+    )
 
   def loadEvents(seqId: Observation.Id): F[List[EventType[F]]] = {
     // Three ways of handling errors are mixed here: java exceptions, Either and MonadError
@@ -59,13 +62,13 @@ final class ODBSequencesLoader[F[_]: Async](
       }.withEvent(LoadSequence(seqId)).toHandle)
 
     t.map {
-      case None =>
+      case None                 =>
         List.empty[EventType[F]].pure[F]
-      case Some(Left(err :: _))                      =>
+      case Some(Left(err :: _)) =>
         val explanation = explain(err)
         List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explanation))
-      case Some(Right(seq))                      => List(loadSequenceEvent(seq)).pure[F]
-      case _                                      => List.empty[EventType[F]].pure[F]
+      case Some(Right(seq))     => List(loadSequenceEvent(seq)).pure[F]
+      case _                    => List.empty[EventType[F]].pure[F]
     }.recover { case e => List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))) }
   }.map(_.sequence).flatten
 

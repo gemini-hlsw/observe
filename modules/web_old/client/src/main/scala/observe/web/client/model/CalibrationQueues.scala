@@ -63,7 +63,8 @@ object CalibrationQueues {
   def queueO(
     qid: QueueId
   ): Optional[CalibrationQueues, CalQueueState] =
-    Focus[CalibrationQueues](_.queues).andThen(atSortedMap[QueueId, CalQueueState].at(qid))
+    Focus[CalibrationQueues](_.queues)
+      .andThen(atSortedMap[QueueId, CalQueueState].at(qid))
       .andThen(std.option.some[CalQueueState])
 
   def calQueueStateL(
@@ -91,7 +92,8 @@ object CalibrationQueues {
     queueO(qid).andThen(CalQueueState.seqOps)
 
   def tableStatesT: Traversal[CalibrationQueues, TableState[CalQueueTable.TableColumn]] =
-    Focus[CalibrationQueues](_.queues).andThen(mapEach[QueueId, CalQueueState].each)
+    Focus[CalibrationQueues](_.queues)
+      .andThen(mapEach[QueueId, CalQueueState].each)
       .andThen(CalQueueState.tableState)
 
   def runCalL(qid: QueueId): Optional[CalibrationQueues, RunCalOperation] =

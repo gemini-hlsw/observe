@@ -41,7 +41,7 @@ object SequenceTabContent {
 
   given Reusability[SequenceTabContentFocus] =
     Reusability.derive[SequenceTabContentFocus]
-  given Reusability[Props]                  = Reusability.by(_.content)
+  given Reusability[Props]                   = Reusability.by(_.content)
 
   private def toolbar(p: Props) =
     p.content.tableType match {
