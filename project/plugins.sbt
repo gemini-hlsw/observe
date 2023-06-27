@@ -18,7 +18,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
 
 // Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.31.0")
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.31.1")
 
 // Used to find dependencies
 addDependencyTreePlugin
