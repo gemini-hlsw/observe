@@ -10,12 +10,10 @@
 @table_detail_row_bottom_padding: 1em;
 @breakpoint_line_color: #a5673f;
 @breakpoint_done_line_color: darkgray;
-@gutter_end_color: rgba(
-  34,
-  36,
-  38,
-  0.00001
-); // Alpha cannot be 0, it breaks in some browsers
+@gutter_end_color: rgba(34,
+    36,
+    38,
+    0.00001); // Alpha cannot be 0, it breaks in some browsers
 
 body {
   background-color: @white;
@@ -39,7 +37,7 @@ body {
   tbody {
     tr {
       td.selectable {
-        > a {
+        >a {
           &:not(.ui) {
             padding-top: 0.5em;
             padding-bottom: 0.5em;
@@ -71,11 +69,13 @@ body {
   0% {
     background-position: left top, right bottom, left bottom, right top;
   }
+
   100% {
     background-position: left 20px top, right 20px bottom, left bottom 20px,
       right top 20px;
   }
 }
+
 .ObserveStyles-disabledSubsystems {
   color: @white;
   background-color: darken(darkgray, 30%);
@@ -91,19 +91,17 @@ body {
   border: 0 solid transparent;
   border-radius: 0.28571429rem;
   transition: background 0.1s ease;
-  background-image: repeating-linear-gradient(
-    163deg,
-    transparent 0%,
-    transparent 48%,
-    darken(white, 20%) 50%,
-    darken(white, 20%) 58%,
-    transparent 60%,
-    transparent 100%
-  );
+  background-image: repeating-linear-gradient(163deg,
+      transparent 0%,
+      transparent 48%,
+      darken(white, 20%) 50%,
+      darken(white, 20%) 58%,
+      transparent 60%,
+      transparent 100%);
 }
 
 .ObserveStyles-activeGuide {
-  background-color: @greenHeaderColor !important;
+  background-color: @greenHeaderColor  !important;
 }
 
 .ObserveStyles-activeInstrumentLabel {
@@ -114,6 +112,7 @@ body {
 .ObserveStyles-resourceLabels {
   display: flex;
 }
+
 .ObserveStyles-tabTitleRow {
   display: flex;
   align-items: center;
@@ -122,12 +121,13 @@ body {
 
 
 .ObserveStyles-filterActiveButton {
-  background-color: @positiveColor !important;
+  background-color: @positiveColor  !important;
   box-shadow: none !important;
-  color: @invertedTextColor !important;
+  color: @invertedTextColor  !important;
+
   &:hover {
-    background-color: @positiveColorHover !important;
-    color: @invertedTextColor !important;
+    background-color: @positiveColorHover  !important;
+    color: @invertedTextColor  !important;
   }
 }
 
@@ -178,12 +178,12 @@ body {
 }
 
 .ObserveStyles-activeTabContent {
-  background-color: @secondaryBackground !important;
+  background-color: @secondaryBackground  !important;
 }
 
 .ObserveStyles-inactiveTabContent {
-  border-top: @border !important;
-  border-left: @border !important;
+  border-top: @border  !important;
+  border-left: @border  !important;
   border-top-left-radius: @borderRadius;
   border-top-right-radius: @borderRadius;
   box-shadow: @boxShadow;
@@ -201,6 +201,7 @@ body {
   background-color: none;
   align-self: center;
 }
+
 .ObserveStyles-headerSidebarStyle {
   border-width: 1px;
   border-style: solid;
@@ -230,8 +231,8 @@ body {
   display: flex;
   justify-content: space-between;
 }
-.ObserveStyles-tabControls {
-}
+
+.ObserveStyles-tabControls {}
 
 .ObserveStyles-tabTable {
   flex-grow: 1;
@@ -241,6 +242,7 @@ body {
 .ObserveStyles-sequenceControlForm {
   display: flex;
 }
+
 .ObserveStyles-sequencesControl {
   margin-top: 0.2em;
   margin-bottom: 0.2em;
@@ -307,6 +309,7 @@ body {
 
 .queueText() {
   color: @selectedTextColor;
+
   &:hover {
     color: @selectedTextColor;
   }
@@ -341,6 +344,7 @@ body {
 .ObserveStyles-resourcesLabels {
   display: flex;
 }
+
 .ObserveStyles-labelPointer {
   cursor: pointer;
 }
@@ -352,9 +356,11 @@ body {
 .ui.header.ObserveStyles-titleRow {
   padding-top: 0.2em;
   margin-bottom: 0.2em;
+
   &:after {
     top: 0px !important;
   }
+
   &:before {
     top: 0px !important;
   }
@@ -378,9 +384,11 @@ body {
   0% {
     box-shadow: none;
   }
+
   50% {
     box-shadow: 0 0 8px darken(lightblue, 20%);
   }
+
   0% {
     box-shadow: none;
   }
@@ -406,10 +414,12 @@ body {
     background-color: @background;
     // color: inherit;
   }
+
   50% {
     background-color: lightblue;
     // color: @white;
   }
+
   100% {
     background-color: @background;
     // color: inherit;
@@ -488,8 +498,7 @@ body {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: @table_detail_row_top_padding @table_detail_row_right_padding
-    @table_detail_row_bottom_padding @table_row_left_padding;
+  padding: @table_detail_row_top_padding @table_detail_row_right_padding @table_detail_row_bottom_padding @table_row_left_padding;
   z-index: 100;
   position: relative;
 }
@@ -520,6 +529,7 @@ body {
   text-align: center;
   width: 100%;
 }
+
 .ObserveStyles-observationBar {
   height: 100% !important;
 }
@@ -678,6 +688,7 @@ body {
   0% {
     transform: none;
   }
+
   100% {
     transform: translateY(-100%);
   }
@@ -710,15 +721,15 @@ body {
 .ObserveStyles-errorLog {
   .borderTop();
   .borderRight();
-  background-color: @negativeBackgroundColor !important;
-  color: @negativeTextColor !important;
+  background-color: @negativeBackgroundColor  !important;
+  color: @negativeTextColor  !important;
 }
 
 .ObserveStyles-warningLog {
   .borderTop();
   .borderRight();
-  background-color: @warningBackgroundColor !important;
-  color: @warningTextColor !important;
+  background-color: @warningBackgroundColor  !important;
+  color: @warningTextColor  !important;
 }
 
 .ObserveStyles-rowPositive {
@@ -798,25 +809,21 @@ body {
 .ObserveStyles-stepRowWithBreakpointHover {
   .stepWithBreakpoint(@breakpoint_line_color);
   background-color: @background;
-  background-image: linear-gradient(
-    to right,
-    @borderColor 0px,
-    @gutter_end_color 19px,
-    lighten(@breakpoint_line_color, 30%) 0px,
-    lighten(@breakpoint_line_color, 30%)
-  );
+  background-image: linear-gradient(to right,
+      @borderColor 0px,
+      @gutter_end_color 19px,
+      lighten(@breakpoint_line_color, 30%) 0px,
+      lighten(@breakpoint_line_color, 30%));
   padding-top: 0px;
 }
 
 .stepWithBreakpointAndControl(@line_color) {
   .stepWithBreakpoint(@line_color);
-  background-image: linear-gradient(
-    to right,
-    @borderColor 0px,
-    @gutter_end_color 19px,
-    @line_color 19px,
-    @line_color
-  );
+  background-image: linear-gradient(to right,
+      @borderColor 0px,
+      @gutter_end_color 19px,
+      @line_color 19px,
+      @line_color );
   padding-top: 4px;
 }
 
@@ -856,11 +863,9 @@ body {
 }
 
 .ObserveStyles-gutterCell {
-  background-image: linear-gradient(
-      to bottom,
+  background-image: linear-gradient(to bottom,
       rgba(249, 0, 1, 0) 0%,
-      rgba(249, 0, 1, 0) 0%
-    ),
+      rgba(249, 0, 1, 0) 0%),
     linear-gradient(to right, @borderColor 0px, @gutter_end_color 19px) !important;
   background-clip: padding-box;
   background-color: @white;
@@ -889,6 +894,7 @@ body {
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
+
   &:hover {
     transform: translateX(-0.5px) scale(2);
   }
@@ -896,6 +902,7 @@ body {
 
 .ObserveStyles-breakPointHandleOff {
   .breakPointHandle();
+
   &:hover {
     left: 4.9px;
   }
@@ -903,6 +910,7 @@ body {
 
 .ObserveStyles-breakPointHandleOn {
   .breakPointHandle();
+
   &:hover {
     transform: translateX(-0.5px) scale(2) translateY(1px);
   }
@@ -916,6 +924,7 @@ body {
   cursor: pointer;
   opacity: 0.8;
   transition: all 0.1s ease-in-out;
+
   &:hover {
     transform: translateX(-0.5px) scale(1.2);
   }
@@ -1009,6 +1018,7 @@ body {
   color: @grey;
   left: 2.5px;
   top: -6px;
+
   &:hover {
     color: darken(@grey, 20%);
   }
@@ -1019,6 +1029,7 @@ body {
   color: @grey;
   left: 1.5px;
   top: -6px;
+
   &:hover {
     color: darken(@grey, 20%);
   }
@@ -1108,9 +1119,9 @@ body {
 // Get the same background color as a button
 .ObserveStyles-labelAsButton {
   @import "~fomantic-ui-less/themes/default/elements/button.variables";
-  background: @background !important;
-  padding-top: @verticalPadding !important;
-  padding-bottom: @verticalPadding !important;
+  background: @background  !important;
+  padding-top: @verticalPadding  !important;
+  padding-bottom: @verticalPadding  !important;
 }
 
 //===========================
@@ -1120,49 +1131,56 @@ body {
 .ObserveStyles-inline {
   display: inline;
 }
+
 .ObserveStyles-offsetGrid {
   margin-right: 1em !important;
 }
+
 .ObserveStyles-hidden {
   display: none;
 }
+
 .ObserveStyles-tdNoPadding {
   padding: 0 !important;
 }
+
 .ObserveStyles-noOpacity {
   opacity: 0;
 }
+
 .ui.progress.vcentered {
   margin-bottom: 0;
 }
+
 .ObserveStyles-runningLabel {
-  background-color: @warningBackgroundColor !important;
-  color: @warningTextColor !important;
+  background-color: @warningBackgroundColor  !important;
+  color: @warningTextColor  !important;
 }
+
 .ObserveStyles-smallTextArea {
   font-size: smaller;
 }
+
 .appSegment() {
   padding-top: 0.5em !important;
   padding-bottom: 0.5em !important;
 }
+
 .ObserveStyles-stepsTable {
-  background-image: linear-gradient(
-      to bottom,
+  background-image: linear-gradient(to bottom,
       rgba(249, 0, 1, 0) 0%,
-      rgba(249, 0, 1, 0) 0%
-    ),
-    linear-gradient(
-      to right,
+      rgba(249, 0, 1, 0) 0%),
+    linear-gradient(to right,
       rgba(34, 36, 38, 0.15) 0px,
-      rgba(34, 36, 38, 0.00001) 20px
-    ) !important;
+      rgba(34, 36, 38, 0.00001) 20px) !important;
   background-clip: content-box padding-box !important;
 }
+
 .ObserveStyles-logTable {
   margin-bottom: 0.2em;
   font-size: 1em;
 }
+
 .ReactVirtualized__Table__headerRow {
   font-weight: 700;
   display: flex;
@@ -1172,11 +1190,13 @@ body {
   .borderLeft();
   .borderTop();
 }
+
 .ReactVirtualized__Table__headerColumn {
   display: flex;
   flex-direction: row;
   justify-content: center;
   padding: 0;
+
   &:first-of-type {
     border-left: none;
   }
@@ -1195,20 +1215,24 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   height: 100%;
+
   &:first-of-type {
     border-left: none;
   }
 }
+
 .ObserveStyles-rightCell {
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
+
 .ObserveStyles-leftCell {
   display: flex;
   align-items: center;
   justify-content: flex-start;
 }
+
 .ReactVirtualized__Table__Grid {
   .borderRight();
   .borderLeft();
@@ -1216,25 +1240,31 @@ body {
   .borderTop();
   outline: none;
 }
+
 .ReactVirtualized__Grid__innerScrollContainer {
   .borderBottom();
   scroll-behavior: smooth;
 }
+
 .ReactVirtualized__Table__row {
   display: flex;
   flex-direction: row;
   align-items: center;
+
   &:first-of-type {
     border-top: none;
   }
+
   &:hover {
     background-color: @transparentBlack;
     color: @selectedTextColor;
   }
 }
+
 .ObserveStyles-offsetCellWrapper {
   padding-top: 0.4em;
 }
+
 .fullCell() {
   width: 100%;
   height: 100%;
@@ -1259,9 +1289,11 @@ body {
   display: flex;
   flex-direction: column;
 }
+
 .ObserveStyles-expandedTopRow {
   height: 100%;
 }
+
 .ObserveStyles-expandedBottomRow {
   height: 100%;
   background: @secondaryBackground;
@@ -1269,24 +1301,29 @@ body {
   z-index: 100;
   border-top: @border;
 }
+
 .ObserveStyles-errorIcon {
   .queueText;
   margin-bottom: 6px !important;
 }
+
 .widerColumn() {
   padding-left: 0.5rem !important;
   padding-right: 0.5rem !important;
 }
+
 .normalizedSegment() {
   border-radius: unset !important;
   box-shadow: unset !important;
 }
+
 @media only screen and (min-width: 767px) {
   .ObserveStyles-onlyMobile {
     display: none !important;
   }
 
 }
+
 .mobileSegment() {
   padding-right: 0 !important;
   padding-left: 0 !important;
@@ -1323,6 +1360,7 @@ body {
   background-color: transparent;
   white-space: nowrap;
   box-shadow: none;
+
   .wrapper {
     background-color: @selectableInvertedBackground;
     box-shadow: 0 0 7px rgba(0, 0, 0, 0.15);
@@ -1373,16 +1411,19 @@ p.ObserveStyles-confirmLine {
 .ObserveStyles-subsystemsForm .field .ui.checkbox {
   margin-right: 1em;
 }
+
 @media only screen and (min-width: 767px) {
   .ObserveStyles-queueAreaRow {
     flex-direction: row;
   }
-  .ObserveStyles-queueArea {
-  }
+
+  .ObserveStyles-queueArea {}
+
   .ObserveStyles-headerSidebarArea {
     display: inherit;
   }
 }
+
 @media only screen and (max-width: 767px) {
   .ObserveStyles-notInMobile {
     display: none !important;
@@ -1393,34 +1434,42 @@ p.ObserveStyles-confirmLine {
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
+
   .ObserveStyles-tabSegment {
     .mobileSegment;
   }
-  .ObserveStyles-queueArea {
-  }
-  .ObserveStyles-headerSidebarArea {
-  }
+
+  .ObserveStyles-queueArea {}
+
+  .ObserveStyles-headerSidebarArea {}
+
   .ObserveStyles-logSegment {
     .mobileSegment;
   }
+
   .ReactVirtualized__Table__rowColumn {
     padding-right: 0.5em;
     padding-left: 0.5em;
   }
+
   .ReactVirtualized__Table__headerTruncatedText {
     padding-right: 0.5em;
     padding-left: 0.5em;
   }
+
   .ObserveStyles-queueAreaRow {
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
+
   .ObserveStyles-logArea {
     padding: 0em !important;
   }
+
   .ObserveStyles-emptyInstrumentTab {
     min-height: 25.4em;
   }
+
   .ObserveStyles-stepsListPaneUnauth {
     height: ~"calc(100% - 0em)";
     margin-top: 0.1em !important;

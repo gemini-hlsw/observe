@@ -10,11 +10,13 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val scalaDom                = "2.3.0"
-    val scalajsReact            = "2.1.1"
     val booPickle               = "1.4.0"
+    val crystal                 = "0.32.2"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
+    val lucumaReact             = "0.23.0"
+    val scalaDom                = "2.3.0"
+    val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
     val scalaJSSemanticUI       = "0.16.0"
     val scalaJSReactVirtualized = "0.13.1"
@@ -25,6 +27,7 @@ object Settings {
     // Scala libraries
     val catsEffectVersion   = "3.4.10"
     val catsVersion         = "2.9.0"
+    val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.7.0"
     val shapelessVersion    = "2.3.10"
@@ -39,22 +42,22 @@ object Settings {
     val http4sPrometheusMetricsVersion = "0.24.3"
     val http4sScalaXmlVersion          = "0.23.13"
 
-    val squants        = "1.8.3"
-    val commonsHttp    = "3.1"
-    val unboundId      = "3.2.1"
-    val jwt            = "9.2.0"
-    val slf4j          = "2.0.7"
-    val log4s          = "1.10.0"
-    val log4cats       = "2.6.0"
-    val log4catsLevel  = "0.3.1"
-    val logback        = "1.4.7"
-    val janino         = "3.1.9"
-    val logstash       = "7.0"
-    val pureConfig     = "0.17.4"
-    val monocleVersion = "3.2.0"
-    val circeVersion   = "0.14.5"
-    val doobieVersion  = "0.6.0"
-    val flywayVersion  = "6.0.4"
+    val squants          = "1.8.3"
+    val commonsHttp      = "3.1"
+    val unboundId        = "3.2.1"
+    val jwt              = "9.2.0"
+    val slf4j            = "2.0.7"
+    val log4s            = "1.10.0"
+    val log4cats         = "2.6.0"
+    val log4catsLogLevel = "0.3.1"
+    val logback          = "1.4.7"
+    val janino           = "3.1.9"
+    val logstash         = "7.0"
+    val pureConfig       = "0.17.4"
+    val monocleVersion   = "3.2.0"
+    val circeVersion     = "0.14.5"
+    val doobieVersion    = "0.6.0"
+    val flywayVersion    = "6.0.4"
 
     // test libraries
     val xmlUnit                = "1.6"
@@ -87,12 +90,12 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.74.0"
-    val lucumaUI      = "0.39.0"
-    val lucumaSchemas = "0.50.0"
+    val lucumaCore    = "0.76.0"
+    val lucumaUI      = "0.70.2"
+    val lucumaSchemas = "0.52.1"
 
     // Clue
-    val clue = "0.30.0"
+    val clue = "0.31.0"
 
     val sttp = "3.8.15"
 
@@ -119,9 +122,10 @@ object Settings {
       "com.github.sbt" % "junit-interface" % LibraryVersions.jUnitInterface % "test"
     // Server side libraries
     val Cats        = Def.setting("org.typelevel" %%% "cats-core" % LibraryVersions.catsVersion)
+    val Kittens     = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
     val CatsEffect  =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
-    val Fs2         = "co.fs2"            %% "fs2-core"           % LibraryVersions.fs2Version
+    val Fs2         = Def.setting("co.fs2" %%% "fs2-core" % LibraryVersions.fs2Version)
     val Fs2IO       = "co.fs2"            %% "fs2-io"             % LibraryVersions.fs2Version % "test"
     val Mouse       = Def.setting("org.typelevel" %%% "mouse" % LibraryVersions.mouseVersion)
     val Shapeless   = Def.setting("com.chuusai" %%% "shapeless" % LibraryVersions.shapelessVersion)
@@ -148,7 +152,7 @@ object Settings {
     val Log4CatsLogLevel = Def.setting(
       Seq(
         "org.typelevel" %%% "log4cats-core"     % LibraryVersions.log4cats,
-        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLevel
+        "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLogLevel
       )
     )
     val PrometheusClient =
@@ -197,6 +201,25 @@ object Settings {
     )
 
     // Client Side JS libraries
+    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
+    val Crystal                 = Def.setting("com.rpiaggio" %%% "crystal" % LibraryVersions.crystal)
+    val LucumaReact             = Def.setting(
+      Seq(
+        "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-font-awesome"   % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-floatingui"     % LibraryVersions.lucumaReact,
+        "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact // Must be last, lest we hit a compiler snag
+      )
+    )
+    val ScalaJSReactIO          = Def.setting(
+      Seq(
+        "com.github.japgolly.scalajs-react" %%% "core-bundle-cb_io"        % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra"                    % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "extra-ext-monocle3"       % LibraryVersions.scalajsReact,
+        "com.github.japgolly.scalajs-react" %%% "callback-ext-cats_effect" % LibraryVersions.scalajsReact
+      )
+    )
     val ReactScalaJS            = Def.setting(
       Seq(
         "com.github.japgolly.scalajs-react" %%% "core"               % LibraryVersions.scalajsReact,
@@ -231,7 +254,6 @@ object Settings {
     val ScalaJSReactClipboard   = Def.setting(
       "io.github.cquiroz.react" %%% "react-clipboard" % LibraryVersions.scalaJSReactClipboard
     )
-    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
     val JavaTimeJS              =
       Def.setting("io.github.cquiroz" %%% "scala-java-time" % LibraryVersions.javaTimeJS)
     val GeminiLocales           =
