@@ -1,7 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/web/"
+    schedule:
+      interval: "monthly"
   - package-ecosystem: "npm"
-    directory: "/modules/web/client/"
+    directory: "/web/"
     schedule:
       interval: "weekly"
       # Check for npm updates on Sundays
