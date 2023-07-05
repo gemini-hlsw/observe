@@ -3,14 +3,13 @@
 
 package observe.ui.components
 
-import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.typed.primereact.components.*
 import observe.model.*
 import observe.ui.ObserveStyles
 import react.common.*
-import lucuma.typed.primereact.components.*
 
 case class HeadersSideBar(
   status:     ClientStatus,

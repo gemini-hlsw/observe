@@ -6,36 +6,33 @@ package observe.ui.components
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.View
+import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.ObsActiveStatus
 import lucuma.core.model.Observation
 import lucuma.core.syntax.display.*
-import lucuma.ui.primereact.LucumaStyles
 import lucuma.ui.syntax.effect.*
 import observe.model.ClientStatus
+import observe.model.Observer
 import observe.model.UserDetails
 import observe.model.enums.SequenceState
+import observe.queries.ObsQueriesGQL
 import observe.ui.AppContext
+import observe.ui.DefaultErrorPolicy
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
 import observe.ui.components.sequence.StepsTable
 import observe.ui.model.Execution
 import observe.ui.model.RootModel
+import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
-import org.typelevel.log4cats.Logger
+import observe.ui.model.enums.ObsClass
 import react.common.ReactFnProps
 import react.common.given
 import react.primereact.*
-import crystal.ViewF
-import crystal.react.hooks.*
-import observe.queries.ObsQueriesGQL
-import observe.ui.DefaultErrorPolicy
-import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ObsClass
-import lucuma.core.enums.ObsActiveStatus
-import observe.model.Observer
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -89,8 +86,6 @@ object Home {
         ).some
       )
       .render { (props, _, observations, demo) =>
-        println(observations)
-
         <.div(ObserveStyles.MainUI)(
           Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
             "Observe GS"

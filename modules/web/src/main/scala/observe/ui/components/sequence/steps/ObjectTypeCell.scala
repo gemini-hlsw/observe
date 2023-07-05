@@ -7,14 +7,14 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
-import observe.model.enums.StepState
-import observe.model.enums.ExecutionStepType
+import lucuma.core.syntax.display.*
 import observe.model.ExecutionStep
+import observe.model.enums.ExecutionStepType
+import observe.model.enums.StepState
+import observe.ui.ObserveStyles
 import observe.ui.model.extensions.*
 import react.common.*
 import react.primereact.*
-import lucuma.core.syntax.display.*
-import observe.ui.ObserveStyles
 
 case class ObjectTypeCell(instrument: Instrument, step: ExecutionStep)
     extends ReactFnProps(ObjectTypeCell.component)

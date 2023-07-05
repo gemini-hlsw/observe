@@ -3,7 +3,6 @@
 
 package observe.ui.components.sequence
 
-import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
@@ -43,25 +42,25 @@ object ControlButtons:
   private type Props = ControlButtons
 
   private val component = ScalaFnComponent[Props] { props =>
-    def requestedIcon(icon: FontAwesomeIcon): VdomNode =
-      icon
-      // IconGroup(
-      //   icon(^.key                                                   := "main"),
-      //   IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
-      // )
+    // def requestedIcon(icon: FontAwesomeIcon): VdomNode =
+    //   icon
+    // IconGroup(
+    //   icon(^.key                                                   := "main"),
+    //   IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
+    // )
 
-    val pauseGracefullyIcon: VdomNode =
-      props.nsPendingObserveCmd match
-        case Some(NodAndShuffleStep.PendingObserveCmd.PauseGracefully) => requestedIcon(Icons.Pause)
-        case _                                                         => Icons.Pause
+    // val pauseGracefullyIcon: VdomNode =
+    //   props.nsPendingObserveCmd match
+    //     case Some(NodAndShuffleStep.PendingObserveCmd.PauseGracefully) => requestedIcon(Icons.Pause)
+    //     case _                                                         => Icons.Pause
 
-    val stopGracefullyIcon: VdomNode =
-      props.nsPendingObserveCmd match
-        case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
-        case _                                                        => Icons.Stop
+    // val stopGracefullyIcon: VdomNode =
+    //   props.nsPendingObserveCmd match
+    //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
+    //     case _                                                        => Icons.Stop
 
-        // p.connect { proxy =>
-    val isReadingOut                 = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
+    // p.connect { proxy =>
+    val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
     val tooltipOptions = TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100)
 

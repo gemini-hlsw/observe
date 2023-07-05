@@ -4,11 +4,11 @@
 package observe.ui
 
 import cats.effect.IO
+import clue.js.WebSocketJSClient
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
-import org.typelevel.log4cats.Logger
-import clue.js.WebSocketJSClient
 import lucuma.schemas.ObservationDB
+import org.typelevel.log4cats.Logger
 
 final case class AppContext[F[_]](
   logger:    Logger[F],

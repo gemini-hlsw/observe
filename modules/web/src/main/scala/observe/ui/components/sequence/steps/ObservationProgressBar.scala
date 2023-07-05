@@ -3,6 +3,7 @@
 
 package observe.ui.components.sequence.steps
 
+import _root_.react.common.*
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.*
@@ -10,16 +11,14 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.typed.primereact.components.*
 import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage
 import observe.ui.ObserveStyles
-import _root_.react.common.*
-import lucuma.typed.primereact.components.*
 
 import java.time.Duration
 import java.util.UUID
-import scala.math.max
 
 /**
  * Component to wrap the progress bar

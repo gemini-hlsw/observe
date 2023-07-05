@@ -5,18 +5,18 @@ package observe.ui.model.extensions
 
 import cats.Monoid
 import cats.syntax.all.*
+import lucuma.core.enums.GpiDisperser
+import lucuma.core.enums.GpiFilter
+import lucuma.core.enums.GpiObservingMode
 import lucuma.core.enums.Instrument
 import lucuma.core.math.Offset
-import observe.model.ExecutionStep
 import observe.model.Enumerations
+import observe.model.ExecutionStep
 import observe.model.OffsetConfigResolver
 import observe.model.enums.ExecutionStepType
 import observe.model.enums.Guiding
 import observe.model.optics.*
 import observe.ui.model.formatting.*
-import lucuma.core.enums.GpiDisperser
-import lucuma.core.enums.GpiFilter
-import lucuma.core.enums.GpiObservingMode
 
 private val gpiObsMode = GpiObservingMode.all.map(x => x.shortName -> x).toMap
 

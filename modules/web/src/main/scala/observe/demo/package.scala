@@ -4,19 +4,13 @@
 package observe.demo
 
 import cats.syntax.all.*
-import lucuma.core.enums.Instrument
-import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.*
 import observe.model.enums.ActionStatus
-import observe.model.enums.SequenceState
 import observe.model.enums.StepState
 import observe.model.enums.SystemName
-import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ObsClass
 
 import java.util.UUID
-import scala.util.Random
 
 private val stepConfig = ExecutionStepConfig(
   Map(

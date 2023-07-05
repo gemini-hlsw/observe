@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.syntax.display.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.table.*
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
@@ -22,11 +23,6 @@ import react.common.*
 import react.fa.FontAwesomeIcon
 import react.fa.IconSize
 import react.primereact.*
-// import lucuma.typed.primereact.components.*
-// import lucuma.typed.primereact.selectitemMod.SelectItem
-import lucuma.typed.{tanstackTableCore => raw}
-
-import scalajs.js.JSConverters.*
 
 case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
 
@@ -35,7 +31,7 @@ object SessionQueue:
 
   private val ColDef = ColumnDef[SessionQueueRow]
 
-  private def rowClass(index: Int, row: SessionQueueRow): Css =
+  private def rowClass( /*index: Int,*/ row: SessionQueueRow): Css =
     if (row.status === SequenceState.Completed)
       ObserveStyles.RowPositive
     else if (row.status.isRunning)
@@ -212,7 +208,7 @@ object SessionQueue:
             table,
             estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
-            rowMod = row => rowClass(row.index.toInt, row.original),
+            rowMod = row => rowClass( /*row.index.toInt,*/ row.original),
             overscan = 5
           ),
           SelectButtonOptional(

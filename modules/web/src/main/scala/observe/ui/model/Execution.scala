@@ -8,11 +8,11 @@ import cats.derived.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import monocle.Focus
+import monocle.Lens
 import observe.model.ExecutionStep
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
-import monocle.Focus
-import monocle.Lens
 
 // Formerly StepsTableFocus
 case class Execution(

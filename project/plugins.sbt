@@ -1,4 +1,4 @@
-val sbtLucumaVersion = "0.10.11"
+val sbtLucumaVersion = "0.11.1"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app"         % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-sjs-bundler" % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-css"         % sbtLucumaVersion)
@@ -18,7 +18,7 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
 
 // Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.31.1")
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.32.0")
 
 // Used to find dependencies
 addDependencyTreePlugin

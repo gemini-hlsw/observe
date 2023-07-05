@@ -8,8 +8,6 @@ import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.Enumerated
-import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
 import observe.model.enums.ObservationStage

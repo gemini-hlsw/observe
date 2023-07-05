@@ -16,13 +16,7 @@ import lucuma.schemas.ObservationDB
 // import lucuma.core.model.sequence.{Atom, ExecutionSequence, Step}
 // import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosGratingConfig, StaticConfig}
 
-import java.time
-import lucuma.core.model.{ExecutionEvent, Observation, Target}
-
-// gql: import lucuma.schemas.decoders.given
 // gql: import io.circe.refined.*
-// gql: import lucuma.odb.json.sequence.given
-// gql: import lucuma.odb.json.gmos.given
 
 object ObsQueriesGQL {
 

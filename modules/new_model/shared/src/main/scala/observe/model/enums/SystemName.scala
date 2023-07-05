@@ -3,8 +3,6 @@
 
 package observe.model.enums
 
-import cats.Eq
-import cats.derived.*
 import cats.syntax.eq.*
 import observe.model.ParamName
 import lucuma.core.util.Enumerated

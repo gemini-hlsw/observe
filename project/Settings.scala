@@ -90,12 +90,12 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.80.0"
+    val lucumaCore    = "0.80.2"
     val lucumaUI      = "0.72.0"
-    val lucumaSchemas = "0.53.1-4-a821360-20230628T204732Z-SNAPSHOT"
+    val lucumaSchemas = "0.55.0"
 
     // Clue
-    val clue = "0.31.1"
+    val clue = "0.32.0"
 
     val sttp = "3.8.15"
 

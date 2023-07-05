@@ -31,9 +31,7 @@ inThisBuild(
 
 ThisBuild / scalaVersion       := "3.3.0"
 ThisBuild / crossScalaVersions := Seq("3.3.0")
-ThisBuild / scalacOptions ++= Seq(
-  "-language:implicitConversions"
-)
+ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
@@ -183,7 +181,6 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/new_model"))
   .enablePlugins(GitBranchPrompt)
   .settings(
-    scalaVersion := "3.2.1",
     libraryDependencies ++= Seq(
       Cats.value,
       Kittens.value,
@@ -206,7 +203,6 @@ lazy val observe_web_client = project
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin)
   .settings(
-    scalaVersion                            := "3.3.0",
     Test / test                             := {},
     coverageEnabled                         := false,
     libraryDependencies ++= Seq(

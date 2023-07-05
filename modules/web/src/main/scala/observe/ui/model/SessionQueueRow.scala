@@ -5,6 +5,8 @@ package observe.ui.model
 
 import cats.Eq
 import cats.derived.*
+import japgolly.scalajs.react.ReactCats.*
+import japgolly.scalajs.react.Reusability
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -12,8 +14,6 @@ import observe.model.Observer
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
 import observe.ui.model.enums.ObsClass
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react.ReactCats.*
 
 case class SessionQueueRow(
   obsId:         Observation.Id,
