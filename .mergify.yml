@@ -13,8 +13,8 @@ pull_request_rules:
     - body~=labels:.*early-semver-patch
     - body~=labels:.*early-semver-minor
     - 'title=flake.lock: Update'
-  - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJS)
-  - status-success=Build and Test (ubuntu-latest, 3.3.0, temurin@17, rootJVM)
+  - status-success=Build and Test (ubuntu-latest, 3, temurin@17, rootJS)
+  - status-success=Build and Test (ubuntu-latest, 3, temurin@17, rootJVM)
   actions:
     merge: {}
 - name: Label engine PRs
@@ -40,14 +40,6 @@ pull_request_rules:
     label:
       add:
       - model
-      remove: []
-- name: Label modules PRs
-  conditions:
-  - files~=^modules/
-  actions:
-    label:
-      add:
-      - modules
       remove: []
 - name: Label new_model PRs
   conditions:
@@ -113,6 +105,14 @@ pull_request_rules:
       add:
       - server_new
       remove: []
+- name: Label server_new-clue PRs
+  conditions:
+  - files~=^modules/server_new-clue/
+  actions:
+    label:
+      add:
+      - server_new-clue
+      remove: []
 - name: Label web PRs
   conditions:
   - files~=^modules/web/
@@ -120,4 +120,12 @@ pull_request_rules:
     label:
       add:
       - web
+      remove: []
+- name: Label web-clue PRs
+  conditions:
+  - files~=^modules/web-clue/
+  actions:
+    label:
+      add:
+      - web-clue
       remove: []
