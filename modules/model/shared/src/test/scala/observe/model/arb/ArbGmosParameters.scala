@@ -6,7 +6,6 @@ package observe.model.arb
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import shapeless.tag
 import observe.model.GmosParameters.*
 
 trait ArbGmosParameters {
