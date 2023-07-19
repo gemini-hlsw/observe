@@ -11,7 +11,6 @@ import observe.model.*
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.*
 import observe.model.GmosParameters.*
-import shapeless.tag
 
 trait ArbNSSubexposure {
   given nsSubexposureArb: Arbitrary[NSSubexposure] = Arbitrary[NSSubexposure] {

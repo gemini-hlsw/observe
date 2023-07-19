@@ -4,19 +4,13 @@
 package observe.demo
 
 import cats.syntax.all.*
-import lucuma.core.enums.Instrument
-import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.*
 import observe.model.enums.ActionStatus
-import observe.model.enums.SequenceState
 import observe.model.enums.StepState
 import observe.model.enums.SystemName
-import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ObsClass
 
 import java.util.UUID
-import scala.util.Random
 
 private val stepConfig = ExecutionStepConfig(
   Map(
@@ -85,35 +79,35 @@ val DemoExecutionSteps: List[ExecutionStep] = List(
   buildPendingStep(true)
 ) ++ (1 to 196).map(_ => buildPendingStep(false))
 
-val DemoSessionQueue: List[SessionQueueRow] =
-  List(
-    SessionQueueRow(
-      Observation.Id.fromLong(133742).get,
-      SequenceState.Running(false, false),
-      Instrument.GmosSouth,
-      "Untitled".some,
-      Observer("Telops").some,
-      "GMOS-S Observation",
-      ObsClass.Nighttime,
-      true,
-      true,
-      none,
-      RunningStep.fromStepId(none, 2, DemoExecutionSteps.length),
-      false
-    )
-  ) ++ (1 to 80).map(_ =>
-    SessionQueueRow(
-      Observation.Id.fromLong(math.abs(Random.nextInt)).get,
-      SequenceState.Idle,
-      Instrument.GmosSouth,
-      "Untitled".some,
-      Observer("Telops").some,
-      "GMOS-S Observation",
-      ObsClass.Nighttime,
-      true,
-      true,
-      none,
-      none,
-      false
-    )
-  )
+// val DemoSessionQueue: List[SessionQueueRow] =
+//   List(
+//     SessionQueueRow(
+//       Observation.Id.fromLong(133742).get,
+//       SequenceState.Running(false, false),
+//       Instrument.GmosSouth,
+//       "Untitled".some,
+//       Observer("Telops").some,
+//       "GMOS-S Observation",
+//       ObsClass.Nighttime,
+//       true,
+//       true,
+//       none,
+//       RunningStep.fromStepId(none, 2, DemoExecutionSteps.length),
+//       false
+//     )
+//   ) ++ (1 to 80).map(_ =>
+//     SessionQueueRow(
+//       Observation.Id.fromLong(math.abs(Random.nextInt)).get,
+//       SequenceState.Idle,
+//       Instrument.GmosSouth,
+//       "Untitled".some,
+//       Observer("Telops").some,
+//       "GMOS-S Observation",
+//       ObsClass.Nighttime,
+//       true,
+//       true,
+//       none,
+//       none,
+//       false
+//     )
+//   )

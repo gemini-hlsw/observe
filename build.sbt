@@ -20,6 +20,8 @@ ThisBuild / Test / bspEnabled                      := false
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
+ThisBuild / tlFatalWarnings := false // TODO: Remove this when we are ready to have linting checks
+
 inThisBuild(
   Seq(
     Global / onChangedBuildSource                            := ReloadOnSourceChanges,
@@ -31,9 +33,7 @@ inThisBuild(
 
 ThisBuild / scalaVersion       := "3.3.0"
 ThisBuild / crossScalaVersions := Seq("3.3.0")
-ThisBuild / scalacOptions ++= Seq(
-  "-language:implicitConversions"
-)
+ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
@@ -183,7 +183,6 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/new_model"))
   .enablePlugins(GitBranchPrompt)
   .settings(
-    scalaVersion := "3.2.1",
     libraryDependencies ++= Seq(
       Cats.value,
       Kittens.value,
@@ -204,18 +203,20 @@ lazy val observe_web_client = project
   .in(file("modules/web"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
-  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin)
+  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin)
   .settings(
-    scalaVersion                            := "3.3.0",
     Test / test                             := {},
     coverageEnabled                         := false,
     libraryDependencies ++= Seq(
       Cats.value,
       Kittens.value,
       CatsEffect.value,
+      Clue.value,
+      ClueJs.value,
       Crystal.value,
       Fs2.value,
-      LucumaUI.value
+      LucumaUI.value,
+      LucumaSchemas.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
@@ -242,9 +243,9 @@ lazy val observe_server = project
         Log4CatsNoop.value,
         TestLibs.value,
         PPrint.value,
-        Clue,
+        Clue.value,
         ClueHttp4s,
-        LucumaSchemas,
+        LucumaSchemas.value,
         ACM,
         Atto
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++

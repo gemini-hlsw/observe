@@ -7,7 +7,6 @@ import cats.*
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.util.Display
-import lucuma.core.util.Enumerated
 
 enum ExecutionStepType(val label: String) derives Eq:
   case Object            extends ExecutionStepType("OBJECT")

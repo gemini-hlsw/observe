@@ -3,7 +3,6 @@
 
 package observe.ui.components.sequence.steps
 
-import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.math.Axis

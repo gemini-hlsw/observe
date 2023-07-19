@@ -88,7 +88,7 @@ package server {
 }
 
 package object server {
-  implicit val DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
+  given DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
 
   type ExecutionQueues = Map[QueueId, ExecutionQueue]
 

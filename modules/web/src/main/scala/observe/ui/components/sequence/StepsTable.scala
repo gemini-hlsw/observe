@@ -4,41 +4,36 @@
 package observe.ui.components.sequence
 
 import cats.syntax.all.*
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Instrument
-import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.SizePx
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.reusability.given
+import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
+import lucuma.ui.utils.*
+import monocle.Focus
+import monocle.Lens
 import observe.model.*
-import observe.model.enums.SequenceState
 import observe.model.enums.StepState
+import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.components.sequence.steps.StepSkipCell
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.Execution
-import observe.ui.model.TabOperations
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.extensions.*
 import observe.ui.model.reusability.given
-import org.scalablytyped.runtime.StringDictionary
 import react.common.*
-import lucuma.typed.{tanstackTableCore => raw}
-import lucuma.ui.table.ColumnSize.*
-import scalajs.js
-import observe.ui.Icons
 import react.resizeDetector.hooks.*
-import observe.ui.components.sequence.steps.StepSkipCell
-import crystal.react.View
-import lucuma.ui.utils.*
-import monocle.std.option.some
 
 import scala.annotation.tailrec
-import monocle.Lens
-import monocle.Focus
+
+import scalajs.js
 
 case class StepsTable(
   clientStatus: ClientStatus,
@@ -250,7 +245,7 @@ object StepsTable:
          resize.width
         )
       )((_, _, _) => // cols
-        (clientStatus, execution, offsetsDisplay, selectedStep, width) =>
+        (clientStatus, execution, offsetsDisplay, selectedStep, _) =>
           List(
             column(
               BreakpointColumnId,
@@ -426,11 +421,11 @@ object StepsTable:
             // case _                                     => ObserveStyles.StepRow
             case _                                     => Css.Empty
 
-        val allColumnsWidth = table.getTotalSize().value
-        val ratio           =
-          resize.width
-            .map(width => width.toDouble / allColumnsWidth)
-            .orEmpty
+        // val allColumnsWidth = table.getTotalSize().value
+        // val ratio           =
+        //   resize.width
+        //     .map(width => width.toDouble / allColumnsWidth)
+        //     .orEmpty
 
         PrimeAutoHeightVirtualizedTable(
           table,

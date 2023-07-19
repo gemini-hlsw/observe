@@ -3,7 +3,6 @@
 
 package observe.ui.components
 
-import cats.effect.IO
 import observe.ui.AppContext
 import org.typelevel.log4cats.Logger
 

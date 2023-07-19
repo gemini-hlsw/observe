@@ -8,9 +8,9 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import react.common.*
-import observe.ui.ObserveStyles
 import observe.ui.Icons
+import observe.ui.ObserveStyles
+import react.common.*
 
 case class SettingsCell(
   // ctl:        RouterCtl[Pages.ObservePages],
@@ -21,7 +21,7 @@ case class SettingsCell(
 ) extends ReactFnProps(SettingsCell.component)
 
 object SettingsCell:
-  private type Props = SettingsCell
+  // private type Props = SettingsCell
 
   protected val component = ScalaFnComponent { props =>
     // val page = if (props.isPreview) {

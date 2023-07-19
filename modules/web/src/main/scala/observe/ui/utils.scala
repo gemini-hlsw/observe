@@ -4,8 +4,6 @@
 package observe.ui
 
 import japgolly.scalajs.react.ReactCats._
-import japgolly.scalajs.react.Reusability
-import japgolly.scalajs.react.facade.JsNumber
 import org.scalajs.dom
 import org.scalajs.dom.html
 

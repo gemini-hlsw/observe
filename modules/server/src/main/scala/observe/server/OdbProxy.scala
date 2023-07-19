@@ -98,7 +98,6 @@ object OdbProxy {
       def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
         ObsQueriesGQL
           .ObsQuery[F]
-          .applyP(client)
           .query(oid)
           .flatMap(
             _.observation.fold(
@@ -113,7 +112,6 @@ object OdbProxy {
       override def queuedSequences: F[List[Observation.Id]]                                     =
         ObsQueriesGQL
           .ActiveObservationIdsQuery[F]
-          .applyP(client)
           .query()
           .map(_.observations.matches.map(_.id))
 
@@ -299,7 +297,6 @@ object OdbProxy {
         s"Send ODB event datasetStart for obsId: ${obsIdName.name}, stepId: $stepId, datasetIndex: $datasetIndex, with fileId: $fileId"
       ) *>
         AddDatasetEventMutation[F]
-          .applyP(client)
           .execute(
             visitId,
             obsId = obsIdName.id,
@@ -322,7 +319,6 @@ object OdbProxy {
         s"Send ODB event datasetComplete for obsId: ${obsIdName.name} stepId: $stepId, datasetIndex: $datasetIndex, with fileId: $fileId"
       ) *>
         AddDatasetEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -341,7 +337,6 @@ object OdbProxy {
     ): F[Boolean] =
       L.debug(s"Send ODB event observationAbort for obsId: ${obsIdName.name}") *>
         AddSequenceEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -359,7 +354,6 @@ object OdbProxy {
       _   <- L.debug(s"Send ODB event sequenceStart for obsId: ${obsIdName.name}")
       r   <-
         AddSequenceEventMutation[F]
-          .applyP(client)
           .execute(vId = Visit.Id.fromUuid(vid), obsId = obsIdName.id, cmd = SequenceCommand.Start)
       _   <- L.debug("ODB event sequenceStart sent")
     } yield r.addSequenceEvent.event.visitId.some
@@ -367,7 +361,6 @@ object OdbProxy {
     override def obsContinue(visitId: VisitId, obsIdName: Observation.IdName): F[Boolean] =
       L.debug(s"Send ODB event observationContinue for obsId: ${obsIdName.name}") *>
         AddSequenceEventMutation[F]
-          .applyP(client)
           .execute(vId = visitId, obsId = obsIdName.id, cmd = SequenceCommand.Continue)
           .as(true) <*
         L.debug("ODB event observationContinue sent")
@@ -379,7 +372,6 @@ object OdbProxy {
     ): F[Boolean] =
       L.debug(s"Send ODB event observationPause for obsId: ${obsIdName.name}") *>
         AddSequenceEventMutation[F]
-          .applyP(client)
           .execute(vId = visitId, obsId = obsIdName.id, cmd = SequenceCommand.Pause)
           .as(true) <*
         L.debug("ODB event observationPause sent")
@@ -391,7 +383,6 @@ object OdbProxy {
     ): F[Boolean] =
       L.debug(s"Send ODB event observationStop for obsId: ${obsIdName.name}") *>
         AddSequenceEventMutation[F]
-          .applyP(client)
           .execute(vId = visitId, obsId = obsIdName.id, cmd = SequenceCommand.Stop)
           .as(true) <*
         L.debug("ODB event observationStop sent")
@@ -406,7 +397,6 @@ object OdbProxy {
         s"Send ODB event stepStartStep for obsId: ${obsIdName.name}"
       ) *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(vId = visitId,
                    obsId = obsIdName.id,
                    stpId = stepId,
@@ -426,7 +416,6 @@ object OdbProxy {
         s"Send ODB event stepEndStep for obsId: ${obsIdName.name}"
       ) *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -447,7 +436,6 @@ object OdbProxy {
         s"Send ODB event stepStartConfigure for obsId: ${obsIdName.name}"
       ) *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -468,7 +456,6 @@ object OdbProxy {
         s"Send ODB event stepEndConfigure for obsId: ${obsIdName.name}"
       ) *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -489,7 +476,6 @@ object OdbProxy {
         s"Send ODB event stepStartObserve for obsId: ${obsIdName.name}"
       ) *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,
@@ -506,11 +492,8 @@ object OdbProxy {
       stepId:       StepId,
       sequenceType: SequenceType
     ): F[Boolean] =
-      L.debug(
-        s"Send ODB event stepEndObserve for obsId: ${obsIdName.name}"
-      ) *>
+      L.debug(s"Send ODB event stepEndObserve for obsId: ${obsIdName.name}") *>
         AddStepEventMutation[F]
-          .applyP(client)
           .execute(
             vId = visitId,
             obsId = obsIdName.id,

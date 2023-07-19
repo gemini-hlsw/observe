@@ -6,7 +6,6 @@ package observe.model.enums
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.derived.*
-import lucuma.core.util.Enumerated
 
 enum NodAndShuffleStage(val symbol: Symbol) derives Eq:
   case StageA extends NodAndShuffleStage(Symbol("A"))

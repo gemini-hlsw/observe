@@ -8,7 +8,6 @@ import cats.Order.*
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.Enumerated
 import monocle.Focus
 import monocle.Lens
 import monocle.function.At.at

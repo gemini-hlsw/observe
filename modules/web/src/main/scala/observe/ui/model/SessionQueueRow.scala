@@ -5,6 +5,8 @@ package observe.ui.model
 
 import cats.Eq
 import cats.derived.*
+import japgolly.scalajs.react.ReactCats.*
+import japgolly.scalajs.react.Reusability
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -27,3 +29,6 @@ case class SessionQueueRow(
   runningStep:   Option[RunningStep],
   inDayCalQueue: Boolean
 ) derives Eq
+
+object SessionQueueRow:
+  given Reusability[SessionQueueRow] = Reusability.byEq

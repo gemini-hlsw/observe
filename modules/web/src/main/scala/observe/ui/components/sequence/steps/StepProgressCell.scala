@@ -3,8 +3,8 @@
 
 package observe.ui.components.sequence.steps
 
-import alleycats.Empty
 import cats.syntax.all.*
+import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
@@ -24,7 +24,6 @@ import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
 import observe.ui.model.extensions.*
 import react.common.*
-import crystal.react.View
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,

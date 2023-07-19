@@ -3,20 +3,15 @@
 
 package observe.ui.components.sequence.steps
 
-import cats.syntax.all.*
+import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.model.sequence.Step
-import react.common.*
-import observe.ui.ObserveStyles
-import observe.ui.Icons
-import observe.model.enums.StepState
 import observe.model.ClientStatus
 import observe.model.ExecutionStep
-import lucuma.core.model.Observation
+import observe.ui.Icons
+import observe.ui.ObserveStyles
+import react.common.*
 import react.fa.FontAwesomeIcon
-import react.fa.Rotation
-import crystal.react.View
 
 /**
  * Component to display an icon for the state

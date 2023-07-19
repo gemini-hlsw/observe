@@ -6,7 +6,6 @@ package observe.model.enums
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
-import lucuma.core.util.Enumerated
 
 enum Guiding(val configValue: String) derives Eq:
   case Guide  extends Guiding("guide")
