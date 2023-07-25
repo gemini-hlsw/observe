@@ -1,0 +1,13 @@
+[
+  {
+    "hostName": "*",
+    "environment": "DEVELOPMENT",
+    "odbURI": "wss://lucuma-postgres-odb-dev.herokuapp.com/ws",
+    "sso": {
+      "uri": "https://sso-dev.gpp.lucuma.xyz",
+      "readTimeoutSeconds": 10,
+      "refreshTimeoutDeltaSeconds": 10,
+      "refreshIntervalFactor": 1
+    }
+  }
+]

@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.View
 import crystal.react.hooks.*
+import crystal.react.syntax.effect.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
@@ -36,7 +37,7 @@ import react.primereact.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
-object Home {
+object Home:
   private type Props = Home
 
   private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
@@ -85,81 +86,94 @@ object Home {
           tabOperations = TabOperations.Default
         ).some
       )
-      .render { (props, _, observations, demo) =>
-        <.div(ObserveStyles.MainUI)(
-          Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
-            "Observe GS"
-          ),
-          Splitter(
-            layout = Layout.Vertical,
-            stateKey = "main-splitter",
-            stateStorage = StateStorage.Local,
-            clazz = ObserveStyles.Shrinkable
-          )(
-            SplitterPanel()(
-              Splitter(
-                stateKey = "top-splitter",
-                stateStorage = StateStorage.Local,
-                clazz = ObserveStyles.TopPanel
-              )(
-                SplitterPanel(size = 80)(
-                  observations.toPot.render(SessionQueue(_))
-                ),
-                SplitterPanel()(
-                  HeadersSideBar(
-                    props.rootModel.get.status,
-                    props.rootModel.get.operator,
-                    props.rootModel.zoom(RootModel.conditions)
+      .render: (props, ctx, observations, demo) =>
+        import ctx.given
+
+        props.rootModel.get.userVault.map(userVault =>
+          <.div(ObserveStyles.MainUI)(
+            Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
+              "Observe GS"
+            ),
+            Splitter(
+              layout = Layout.Vertical,
+              stateKey = "main-splitter",
+              stateStorage = StateStorage.Local,
+              clazz = ObserveStyles.Shrinkable
+            )(
+              SplitterPanel()(
+                Splitter(
+                  stateKey = "top-splitter",
+                  stateStorage = StateStorage.Local,
+                  clazz = ObserveStyles.TopPanel
+                )(
+                  SplitterPanel(size = 80)(
+                    observations.toPot.render(SessionQueue(_))
+                  ),
+                  SplitterPanel()(
+                    HeadersSideBar(
+                      props.rootModel.get.status,
+                      props.rootModel.get.operator,
+                      props.rootModel.zoom(RootModel.conditions)
+                    )
+                  )
+                )
+              ),
+              SplitterPanel()(
+                TabView(clazz = ObserveStyles.SequenceTabView, activeIndex = 1)(
+                  TabPanel(
+                    clazz = ObserveStyles.SequenceTabPanel,
+                    header = React.Fragment(
+                      <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
+                      Tag(
+                        clazz = ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag,
+                        icon = Icons.CircleDot,
+                        value = "Idle"
+                      )
+                    )
+                  )(
+                  ),
+                  TabPanel(
+                    clazz = ObserveStyles.SequenceTabPanel,
+                    header = React.Fragment(
+                      <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
+                      Tag(
+                        clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
+                        icon = Icons.CircleNotch.withSpin(true),
+                        value =
+                          s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
+                      )
+                    )
+                  )(
+                    StepsTable(
+                      clientStatus = clientStatus,
+                      execution = demo
+                    )
                   )
                 )
               )
             ),
-            SplitterPanel()(
-              TabView(clazz = ObserveStyles.SequenceTabView, activeIndex = 1)(
-                TabPanel(
-                  clazz = ObserveStyles.SequenceTabPanel,
-                  header = React.Fragment(
-                    <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                    Tag(
-                      clazz = ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag,
-                      icon = Icons.CircleDot,
-                      value = "Idle"
-                    )
-                  )
-                )(
-                ),
-                TabPanel(
-                  clazz = ObserveStyles.SequenceTabPanel,
-                  header = React.Fragment(
-                    <.span(ObserveStyles.ActiveInstrumentLabel, "GMOS-S"),
-                    Tag(
-                      clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
-                      icon = Icons.CircleNotch.withSpin(true),
-                      value =
-                        s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
-                    )
-                  )
-                )(
-                  StepsTable(
-                    clientStatus = clientStatus,
-                    execution = demo
-                  )
+            Accordion(tabs =
+              List(
+                AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
+                  <.div(^.height := "200px")
                 )
               )
+            ),
+            Toolbar(
+              clazz = ObserveStyles.Footer,
+              left = "Observe - GS",
+              right = React
+                .Fragment(
+                  userVault.user.displayName,
+                  ThemeSelector(),
+                  Button(
+                    "Logout",
+                    onClick = ctx.ssoClient.logout.runAsync >> props.rootModel
+                      .zoom(RootModel.userVault)
+                      .set(none)
+                  )
+                )
+                .rawElement
             )
-          ),
-          Accordion(tabs =
-            List(
-              AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
-                <.div(^.height := "200px")
-              )
-            )
-          ),
-          Toolbar(
-            clazz = ObserveStyles.Footer,
-            left = "Observe - GS",
-            right = React.Fragment(ThemeSelector()).rawElement
           )
         )
-      }
-}
