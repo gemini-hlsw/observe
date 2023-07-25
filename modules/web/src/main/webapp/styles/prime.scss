@@ -1,3 +1,5 @@
+// @use '/lucuma-css/lucuma-ui-common.scss';
+
 // Customizations and additions to prime-react
 // .pl- prefix = "Prime Lucuma": Our additions to prime-react
 
@@ -25,7 +27,7 @@
   --muted-color: var(--gray-300);
 }
 
-@import "/lucuma-css/lucuma-ui";
+@import "/lucuma-css/lucuma-ui-prime.scss";
 @import "/lucuma-css/lucuma-ui-table.scss";
 
 body,

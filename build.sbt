@@ -20,6 +20,8 @@ ThisBuild / Test / bspEnabled                      := false
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
+ThisBuild / lucumaCssExts += "svg"
+
 ThisBuild / tlFatalWarnings := false // TODO: Remove this when we are ready to have linting checks
 
 inThisBuild(

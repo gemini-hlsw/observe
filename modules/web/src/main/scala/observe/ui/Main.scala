@@ -5,24 +5,28 @@ package observe.ui
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.effect.unsafe.implicits._
 import cats.syntax.all.*
 import clue.js.WebSocketJSBackend
 import clue.js.WebSocketJSClient
-import clue.websocket.CloseParams
 import clue.websocket.ReconnectionStrategy
+import crystal.react.*
 import crystal.react.hooks.*
-import io.circe.Json
-import io.circe.syntax.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router._
 import japgolly.scalajs.react.vdom.html_<^.*
 import log4cats.loglevel.LogLevelLogger
+import lucuma.core.model.StandardRole
+import lucuma.core.model.StandardUser
 import lucuma.schemas.ObservationDB
 import lucuma.ui.enums.Theme
+import lucuma.ui.sso.SSOClient
+import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
+import org.http4s.circe.*
+import org.http4s.dom.FetchClientBuilder
+import org.http4s.syntax.all.*
 import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
@@ -30,42 +34,56 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.*
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
 
 @JSExportTopLevel("Main")
-object Main {
+object Main:
 
   @JSExport
   def runIOApp(): Unit = run.unsafeRunAndForget()
 
-  def setupLogger[F[_]: Sync](level: LogLevelDesc): F[Logger[F]] = Sync[F].delay {
+  private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
     LogLevelLogger.setLevel(level)
-    LogLevelLogger.createForRoot[F]
-  }
+    LogLevelLogger.createForRoot[IO]
 
-  def setupDOM[F[_]: Sync]: F[Element] = Sync[F].delay(
-    Option(dom.document.getElementById("root")).getOrElse {
+  private val setupDOM: IO[Element] = IO:
+    Option(dom.document.getElementById("root")).getOrElse:
       val elem = dom.document.createElement("div")
       elem.id = "root"
       dom.document.body.appendChild(elem)
       elem
-    }
-  )
 
-  val (router, routerCtl) =
+  private val (router, _ /*routerCtl*/ ) =
     RouterWithProps.componentAndCtl(BaseUrl.fromWindowOrigin, Routing.config)
 
-  val mainApp =
+  private val mainApp =
     ScalaFnComponent
-      .withHooks[Unit]
-      .useStateView(RootModel.Initial)
-      .render((_, state) => router(state))
+      .withHooks[Either[Throwable, Option[UserVault]]]
+      .useStateViewBy(RootModel.initial(_))
+      .render: (_, rootModel) =>
+        router(rootModel)
 
-  def buildPage(ctx: AppContext[IO]): IO[Unit] =
-    setupDOM[IO].map(node => AppContext.ctx.provide(ctx)(mainApp()).renderIntoDOM(node)).void
+  private def enforceStaffRole(ctx: AppContext[IO]): IO[Option[UserVault]] =
+    ctx.ssoClient.whoami.flatMap(userVault =>
+      userVault.map(_.user) match
+        case Some(StandardUser(_, role, other, _)) =>
+          (role +: other)
+            .collectFirst { case StandardRole.Staff(roleId) => roleId }
+            .fold(IO.none)(ctx.ssoClient.switchRole)
+            .map(_.orElse(throw new Exception("User is not staff")))
+        case _                                     => IO.none
+    )
 
-  val reconnectionStrategy: ReconnectionStrategy =
+  private def buildPage(ctx: AppContext[IO]): IO[Unit] =
+    (setupDOM, enforceStaffRole(ctx).attempt)
+      .parMapN((node, userVault) =>
+        AppContext.ctx.provide(ctx)(mainApp(userVault)).renderIntoDOM(node)
+      )
+      .void
+
+  private val reconnectionStrategy: ReconnectionStrategy =
     (attempt, reason) =>
       // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
       if (reason.toOption.flatMap(_.toOption.flatMap(_.code)).exists(_ === 1000))
@@ -76,16 +94,32 @@ object Main {
           TimeUnit.SECONDS
         ).some
 
-  val initPayload: Map[String, Json] = Map(
-    "Authorization" -> "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJpc3MiOiJsdWN1bWEtc3NvIiwic3ViIjoiMjc3IiwiYXVkIjoibHVjdW1hIiwiZXhwIjoxNjg5NjI2OTk4LCJuYmYiOjE2ODk2MjYzODgsImlhdCI6MTY4OTYyNjM4OCwKICAibHVjdW1hLXVzZXIiIDogewogICAgInR5cGUiIDogInN0YW5kYXJkIiwKICAgICJpZCIgOiAidS0xMTUiLAogICAgInJvbGUiIDogewogICAgICAidHlwZSIgOiAicGkiLAogICAgICAiaWQiIDogInItMTA1IgogICAgfSwKICAgICJvdGhlclJvbGVzIiA6IFsKICAgIF0sCiAgICAicHJvZmlsZSIgOiB7CiAgICAgICJvcmNpZElkIiA6ICIwMDAwLTAwMDMtMzgzNy05OTAxIiwKICAgICAgImdpdmVuTmFtZSIgOiAiUmHDumwiLAogICAgICAiZmFtaWx5TmFtZSIgOiAiUGlhZ2dpbyIsCiAgICAgICJjcmVkaXROYW1lIiA6IG51bGwsCiAgICAgICJwcmltYXJ5RW1haWwiIDogbnVsbAogICAgfQogIH0KfQ.oXChTU9emcjnvX3yVB0_91_jrK9WfX7fWfl0Kgg9sjUZfZO9jcqRtyxvUmW6GXq6kMf7KFAwdTfddoG-qaCKrYuQ1pimhynpDud8BsHyrt3a39nP7-Zpee2a5asvCm0ZDbvRs-Tziig1ErFxiltb7LMV075PpTQ777_5MnZNNCPqPpr29ZR4NhL3CRMsoqhi6ztcJPR89HNeGbwfaXIua2Pi_FG3hDKDFIR7K9gOwC51qNf8-O_5-jA0Er4_euWVyVWQYBdcbnT90bjoSws63e-ou4L7uQBKhsyFhLNr1LLUj9aB5tFBDghhShYWejzL_a8pWv9zuqp1-ijThrYdXfRuMBkPAjmSjPKDhrJ4UMDb8HqR_W8aam3x798ARXZ3HipFv2kgD3dH6XyzRkLD_3pm1B-mD3vGGOBY4BP0-p_l7F2UFYC2LMmrVfsZqWjyjM5Ie4BixY7PcVpHtEY5_rvymfrc5nFzo3KNUuqlR15K9r0vmhTIdbO_laNgwIQiWtFUQAHUpYKU8Ls5nA8HkTL-Gra7TRG8CwFSXLw9kYxEFWBjcxJTXCEmh2K00WTZT8sy8KRr_UWTrjRMFPeBRVkyp5trzjCw40bAC7CUjDd76J182UjLiSpIFVymh5yyqnjDm1bGP4wpy8YlH5X4YakiNsymgHZRXqE7scpEk54".asJson
-  )
+  private val configFile = uri"/environments.conf.json"
 
-  val buildContext: Resource[IO, AppContext[IO]] =
-    for {
-      given Logger[IO]            <- Resource.eval(setupLogger[IO](LogLevelDesc.DEBUG))
-      dispatcher                  <- Dispatcher.parallel[IO]
-      given WebSocketJSBackend[IO] = WebSocketJSBackend[IO](dispatcher)
-      odbClient                   <-
+  private val fetchConfig: IO[AppConfig] =
+    FetchClientBuilder[IO]
+      .withRequestTimeout(5.seconds)
+      .withCache(dom.RequestCache.`no-store`)
+      .create
+      .get(configFile)(_.decodeJson[List[AppConfig]])
+      .adaptError: t =>
+        new Exception("Could not retrieve configuration.", t)
+      .flatMap: confs =>
+        IO.fromOption(
+          confs
+            .find: conf =>
+              dom.window.location.host.startsWith(conf.hostName)
+            .orElse:
+              confs.find(_.hostName === "*")
+        )(orElse = new Exception("Host not found in configuration."))
+
+  private val buildContext: Resource[IO, AppContext[IO]] =
+    for
+      appConfig                                  <- Resource.eval(fetchConfig)
+      given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.DEBUG))
+      dispatcher                                 <- Dispatcher.parallel[IO]
+      given WebSocketJSBackend[IO]                = WebSocketJSBackend[IO](dispatcher)
+      given WebSocketJSClient[IO, ObservationDB] <-
         Resource
           .eval(
             WebSocketJSClient.of[IO, ObservationDB](
@@ -94,16 +128,11 @@ object Main {
               reconnectionStrategy
             )
           )
-      autoInitClient              <-
-        Resource.make(
-          odbClient.connect() >> odbClient.initialize(initPayload).as(odbClient)
-        )(_ => odbClient.terminate() >> odbClient.disconnect(CloseParams(code = 1000)))
-    } yield AppContext[IO](summon[Logger[IO]], autoInitClient)
+    yield AppContext[IO](SSOClient(appConfig.sso))
 
-  def run: IO[Unit] =
-    (for {
+  private def run: IO[Unit] =
+    (for
       _   <- Resource.eval(Theme.Light.setup[IO]) // Theme.init[IO] (starts in Dark mode)
       ctx <- buildContext
       _   <- Resource.eval(buildPage(ctx))
-    } yield ()).useForever
-}
+    yield ()).useForever

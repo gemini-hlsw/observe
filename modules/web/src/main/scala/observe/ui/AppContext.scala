@@ -3,19 +3,27 @@
 
 package observe.ui
 
+import cats.FlatMap
 import cats.effect.IO
+import cats.syntax.all.*
 import clue.js.WebSocketJSClient
+import clue.websocket.CloseParams
+import io.circe.Json
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
 import lucuma.schemas.ObservationDB
+import lucuma.ui.sso.SSOClient
 import org.typelevel.log4cats.Logger
 
-final case class AppContext[F[_]](
-  logger:    Logger[F],
-  odbClient: WebSocketJSClient[F, ObservationDB]
+case class AppContext[F[_]: FlatMap](ssoClient: SSOClient[F])(using
+  val logger:    Logger[F],
+  val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
-  given Logger[F]                           = logger
-  given WebSocketJSClient[F, ObservationDB] = odbClient
+  def initODBClient(payload: Map[String, Json]): F[Unit] =
+    odbClient.connect() >> odbClient.initialize(payload)
+
+  val closeODBClient: F[Unit] =
+    odbClient.terminate() >> odbClient.disconnect(CloseParams(code = 1000))
 
 object AppContext:
   val ctx: Context[AppContext[IO]] = React.createContext(null) // No default value
