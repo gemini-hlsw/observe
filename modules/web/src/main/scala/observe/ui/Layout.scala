@@ -3,20 +3,45 @@
 
 package observe.ui
 
+import cats.effect.IO
+import cats.syntax.all.*
 import crystal.react.View
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router._
-import japgolly.scalajs.react.vdom.html_<^._
+import lucuma.refined.*
+import lucuma.ui.components.state.IfLogged
+import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
+import react.common.Css
 import react.common.ReactFnProps
+import react.common.given
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
   val rootModel: View[RootModel]
 ) extends ReactFnProps[Layout](Layout.component)
 
 object Layout:
-  protected type Props = Layout
+  private type Props = Layout
 
-  protected val component = ScalaFnComponent[Props] { props =>
-    props.resolution.renderP(props.rootModel)
-  }
+  private val component =
+    ScalaFnComponent
+      .withHooks[Props]
+      .useContext(AppContext.ctx)
+      .render: (props, ctx) =>
+        import ctx.given
+
+        IfLogged[BroadcastEvent](
+          "Observe".refined,
+          Css.Empty,
+          allowGuest = false,
+          ctx.ssoClient,
+          props.rootModel.zoom(RootModel.userVault),
+          props.rootModel.zoom(RootModel.userSelectionMessage),
+          ctx.initODBClient(_),
+          ctx.closeODBClient,
+          IO.unit,
+          "observe".refined,
+          _.event === BroadcastEvent.LogoutEventId,
+          _.value.toString,
+          BroadcastEvent.LogoutEvent(_)
+        )((vault: UserVault, onLogout: IO[Unit]) => props.resolution.renderP(props.rootModel))

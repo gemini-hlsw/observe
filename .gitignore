@@ -84,3 +84,6 @@ modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
 
 # Nix
 .direnv/
+
+# Web development runtime files
+modules/web/src/main/publicdev/
