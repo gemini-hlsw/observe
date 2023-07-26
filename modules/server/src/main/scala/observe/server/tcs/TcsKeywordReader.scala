@@ -6,7 +6,7 @@ package observe.server.tcs
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import cats._
+import cats.*
 import cats.data.Nested
 import cats.data.OptionT
 import cats.effect.Sync

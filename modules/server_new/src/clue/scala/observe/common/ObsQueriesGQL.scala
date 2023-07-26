@@ -6,20 +6,12 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import lucuma.core.enums.Site
-import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto.*
+import io.circe.Decoder
 import lucuma.core.math
-import lucuma.core.enums
 import lucuma.core.model
-import cats.syntax.functor.*
-import lucuma.core.model.sequence.{Atom, ExecutionSequence, Step}
-import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosGratingConfig, StaticConfig}
+import lucuma.core.model.sequence.ExecutionSequence
+import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 
-import java.time
-import lucuma.core.model.{ExecutionEvent, Observation, Target}
-
-// gql: import lucuma.schemas.decoders.given
 // gql: import io.circe.refined.*
 // gql: import lucuma.odb.json.sequence.given
 // gql: import lucuma.odb.json.gmos.given
@@ -68,7 +60,6 @@ object ObsQueriesGQL {
           }
           execution {
             config:executionConfig {
-              instrument
               ... on GmosNorthExecutionConfig {
                 staticN:static {
                   stageMode
@@ -346,6 +337,33 @@ object ObsQueriesGQL {
         addDatasetEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId, index: $dtIdx }, payload: { datasetStage: $stg, filename: $flName } } ) {
           event {
             received
+          }
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
+        recordGmosNorthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+          visit {
+            id
+          }
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB] {
+    val document =
+      """
+      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
+        recordGmosSouthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+          visit {
+            id
           }
         }
       }

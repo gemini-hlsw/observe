@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import scala.math.abs
-import cats._
+import cats.*
 import cats.data.OptionT
 import cats.effect.Async
 import cats.syntax.all.*

@@ -6,7 +6,6 @@ package observe.model
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import observe.model.Observation
 
 sealed trait UserPrompt extends Product with Serializable
 
@@ -62,7 +61,7 @@ object UserPrompt {
 
   // UserPrompt whether to override start checks
   final case class ChecksOverride(
-    sidName: Observation.IdName,
+    obsId:   Observation.Id,
     stepId:  StepId,
     stepIdx: Int,
     checks:  NonEmptyList[SeqCheck]
@@ -70,7 +69,7 @@ object UserPrompt {
 
   object ChecksOverride {
     given Eq[ChecksOverride] =
-      Eq.by(x => (x.sidName, x.stepId, x.stepIdx, x.checks))
+      Eq.by(x => (x.obsId, x.stepId, x.stepIdx, x.checks))
   }
 
 }

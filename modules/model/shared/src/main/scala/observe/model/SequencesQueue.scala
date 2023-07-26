@@ -5,12 +5,11 @@ package observe.model
 
 import scala.collection.immutable.SortedMap
 
-import cats._
+import cats.*
 import monocle.Getter
 import monocle.Traversal
 import monocle.function.Each.*
 import monocle.Focus
-import observe.model.Observation
 import observe.model.enums.Instrument
 
 /**

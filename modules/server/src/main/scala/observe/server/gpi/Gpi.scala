@@ -9,7 +9,7 @@ import java.lang.{Integer => JInt}
 
 import scala.concurrent.duration.*
 
-import cats._
+import cats.*
 import cats.data.EitherT
 import cats.data.Kleisli
 import cats.syntax.all.*

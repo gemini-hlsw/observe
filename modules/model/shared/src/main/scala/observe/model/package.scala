@@ -5,7 +5,7 @@ package observe
 
 import java.util.UUID
 
-import cats._
+import cats.*
 import observe.model.enums.*
 import squants.time.Time
 import squants.time.TimeUnit

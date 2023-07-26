@@ -10,7 +10,7 @@ import observe.engine.Event
 import observe.engine.Sequence
 import observe.model.Observation
 import observe.model.SystemOverrides
-import SeqEvent._
+import SeqEvent.*
 import ObserveFailure.ObserveException
 import ObserveFailure.UnrecognizedInstrument
 import lucuma.core.model.Program

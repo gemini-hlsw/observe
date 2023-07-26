@@ -23,7 +23,7 @@ trait ArbObservationProgress {
   given arbObservationProgress: Arbitrary[ObservationProgress] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.IdName]
+        o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
         t <- arbitrary[Time]
         r <- arbitrary[Time]
@@ -32,13 +32,13 @@ trait ArbObservationProgress {
     }
 
   given observationInProgressCogen: Cogen[ObservationProgress] =
-    Cogen[(Observation.IdName, StepId, Time, Time, ObserveStage)]
+    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage)]
       .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
 
   given arbNSObservationProgress: Arbitrary[NSObservationProgress] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.IdName]
+        o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
         t <- arbitrary[Time]
         r <- arbitrary[Time]
@@ -48,7 +48,7 @@ trait ArbObservationProgress {
     }
 
   given nsObservationInProgressCogen: Cogen[NSObservationProgress] =
-    Cogen[(Observation.IdName, StepId, Time, Time, ObserveStage, NSSubexposure)]
+    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage, NSSubexposure)]
       .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
   given arbProgress: Arbitrary[Progress] =

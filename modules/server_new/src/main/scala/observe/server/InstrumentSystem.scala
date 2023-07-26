@@ -1,18 +1,17 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import scala.concurrent.duration.*
-
 import cats.data.Kleisli
 import fs2.Stream
 import observe.model.dhs.ImageFileId
-import observe.model.enums.Instrument
-import observe.model.enums.ObserveCommandResult
+import observe.model.enums.{Instrument, ObserveCommandResult}
 import observe.server.keywords.KeywordsClient
 
-trait InstrumentSystem[F[_]] extends System[F] {
+import scala.concurrent.duration.*
+
+trait InstrumentSystem[F[_]] extends System[F] with InstrumentSpecifics {
   override val resource: Instrument
 
   val contributorName: String
@@ -45,8 +44,8 @@ object InstrumentSystem {
   final case class StopPausedCmd[F[_]](self: F[ObserveCommandResult])
   final case class AbortPausedCmd[F[_]](self: F[ObserveCommandResult])
 
-  sealed trait ObserveControl[+F[_]] extends Product with Serializable
-  case object Uncontrollable         extends ObserveControl[Nothing]
+  sealed trait ObserveControl[F[_]] extends Product with Serializable
+  case object Uncontrollable        extends ObserveControl[Nothing]
   final case class CompleteControl[F[_]](
     stop:        StopObserveCmd[F],
     abort:       AbortObserveCmd[F],

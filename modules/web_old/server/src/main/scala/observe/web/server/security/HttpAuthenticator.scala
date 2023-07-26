@@ -5,7 +5,7 @@ package observe.web.server.security
 
 import java.time.Instant
 
-import cats._
+import cats.*
 import cats.data.Kleisli
 import cats.data.OptionT
 import cats.effect.Sync

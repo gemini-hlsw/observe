@@ -3,10 +3,11 @@
 
 package observe.model
 
-import cats._
+import cats.*
 import observe.model.GmosParameters.*
 import observe.model.enums.*
-import squants.Time
+
+import scala.concurrent.duration.Duration
 
 final case class NSRunningState(action: NSAction, sub: NSSubexposure)
 
@@ -17,8 +18,8 @@ object NSRunningState {
 
 final case class NodAndShuffleStatus(
   observing:         ActionStatus,
-  totalExposureTime: Time,
-  nodExposureTime:   Time,
+  totalExposureTime: Duration,
+  nodExposureTime:   Duration,
   cycles:            NsCycles,
   state:             Option[NSRunningState]
 )

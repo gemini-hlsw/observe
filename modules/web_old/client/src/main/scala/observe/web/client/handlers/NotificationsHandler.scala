@@ -27,9 +27,9 @@ class NotificationsHandler[M](modelRW: ModelRW[M, UserNotificationState])
       val openBoxE     = Effect(Future(OpenUserNotificationBox))
       // Update the model as load failed
       val modelUpdateE = not match {
-        case InstrumentInUse(idName, _)  => Effect(Future(SequenceLoadFailed(idName)))
-        case ResourceConflict(idName)    => Effect(Future(RunStartFailed(idName.id)))
-        case SubsystemBusy(idName, _, r) => Effect(Future(ClearResourceOperations(idName.id, r)))
+        case InstrumentInUse(obsId, _)  => Effect(Future(SequenceLoadFailed(obsId)))
+        case ResourceConflict(obsId)    => Effect(Future(RunStartFailed(obsId)))
+        case SubsystemBusy(obsId, _, r) => Effect(Future(ClearResourceOperations(obsId, r)))
         case RequestFailed(_)            => VoidEffect
       }
       updatedLE(lens, openBoxE >> modelUpdateE)

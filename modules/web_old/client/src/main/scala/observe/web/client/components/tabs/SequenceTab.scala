@@ -47,7 +47,7 @@ final case class SequenceTab(
 object SequenceTab {
   type Props = SequenceTab
 
-  final case class State(loading: Boolean, prevTabId: Observation.IdName, prevTabLoading: Boolean)
+  final case class State(loading: Boolean, prevTabId: Observation.Id, prevTabLoading: Boolean)
 
   given Reusability[Props] =
     Reusability.caseClassExcept[Props]("router")
@@ -58,14 +58,14 @@ object SequenceTab {
   def load(
     b:      Backend,
     inst:   Instrument,
-    idName: Observation.IdName
+    obsId: Observation.Id
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>
       e.preventDefaultCB *>
         e.stopPropagationCB *>
         b.setStateL(State.loading)(true).when(b.props.displayName.isDefined) *>
         b.props.displayName
-          .map(d => ObserveCircuit.dispatchCB(LoadSequence(Observer(d), inst, idName)))
+          .map(d => ObserveCircuit.dispatchCB(LoadSequence(Observer(d), inst, obsId)))
           .getOrEmpty
 
   private def showSequence(p: Props, page: ObservePages)(e: ReactEvent): Callback =
@@ -103,10 +103,10 @@ object SequenceTab {
 
   val component = ScalaComponent
     .builder[Props]
-    .initialStateFromProps(props => State(false, props.tab.idName, props.tab.loading))
+    .initialStateFromProps(props => State(false, props.tab.obsId, props.tab.loading))
     .render { b =>
       val status         = b.props.tab.status
-      val sequenceIdName = b.props.tab.idName
+      val sequenceIdName = b.props.tab.obsId
       val instrument     = b.props.tab.instrument
       val running        = b.props.runningInstruments.contains(instrument)
       val isPreview      = b.props.tab.isPreview
@@ -221,7 +221,7 @@ object SequenceTab {
     .getDerivedStateFromProps { (props, state) =>
       val preview = props.tab.isPreview
       val id      = state.prevTabId
-      val newId   = props.tab.idName
+      val newId   = props.tab.obsId
 
       val wasLoading = state.prevTabLoading
       val isLoading  = props.tab.loading

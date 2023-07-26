@@ -8,18 +8,18 @@ import cats.syntax.all.*
 import observe.model.enums.Resource
 
 sealed trait SingleActionOp extends Product with Serializable {
-  val sidName: Observation.IdName
+  val sid: Observation.Id
   val stepId: StepId
   val resource: Resource
 }
 
 object SingleActionOp {
-  final case class Started(sidName: Observation.IdName, stepId: StepId, resource: Resource)
+  final case class Started(sid: Observation.Id, stepId: StepId, resource: Resource)
       extends SingleActionOp
-  final case class Completed(sidName: Observation.IdName, stepId: StepId, resource: Resource)
+  final case class Completed(sid: Observation.Id, stepId: StepId, resource: Resource)
       extends SingleActionOp
   final case class Error(
-    sidName:  Observation.IdName,
+    sid:      Observation.Id,
     stepId:   StepId,
     resource: Resource,
     msg:      String

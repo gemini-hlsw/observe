@@ -14,6 +14,8 @@ import lucuma.core.enums
 import lucuma.core.model
 import cats.syntax.functor.*
 import lucuma.core.model.sequence.{Atom, ExecutionSequence, GmosGratingConfig, StaticConfig, Step}
+import lucuma.core.model.{ConstraintSet as OcsConstraintSet}
+import lucuma.schemas.ObservationDB
 
 import java.time
 import lucuma.core.model.{ExecutionEvent, Observation, Target}
@@ -264,6 +266,7 @@ object ObsQueriesGQL {
 
     object Data {
       object Observation {
+        type ConstrainSet = lucuma.core.model.ConstraintSet
         object Execution {
           object Config {
             object GmosNorthExecutionConfig {

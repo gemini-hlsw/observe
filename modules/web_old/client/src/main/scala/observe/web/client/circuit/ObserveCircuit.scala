@@ -5,10 +5,10 @@ package observe.web.client.circuit
 
 import scala.scalajs.LinkingInfo
 
-import cats._
+import cats.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import diode._
+import diode.*
 import diode.react.ReactConnector
 import japgolly.scalajs.react.Callback
 import monocle.Prism

@@ -1,35 +1,28 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import java.lang.{Double => JDouble}
-import java.lang.{Float => JFloat}
-import java.lang.{Integer => JInt}
-import java.util
-import java.util.TimerTask
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantLock
-import java.util.{Timer => JTimer}
-import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters.*
-import scala.math.abs
-import cats._
+import cats.*
 import cats.data.Nested
-import cats.effect.Async
-import cats.effect.Sync
+import cats.effect.{Async, Sync, Temporal}
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import fs2.Stream
-import org.typelevel.log4cats.Logger
 import mouse.boolean.*
 import observe.model.ObserveStage
-import observe.model.enums.ApplyCommandResult
-import observe.model.enums.ObserveCommandResult
-import ObserveFailure.NullEpicsError
-import ObserveFailure.ObserveException
-import squants.Time
-import cats.effect.Temporal
+import observe.model.enums.{ApplyCommandResult, ObserveCommandResult}
+import observe.server.ObserveFailure.{NullEpicsError, ObserveException}
+import org.typelevel.log4cats.Logger
+
+import java.lang.{Double as JDouble, Float as JFloat, Integer as JInt}
+import java.util
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+import java.util.{Timer as JTimer, TimerTask}
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.jdk.CollectionConverters.*
+import scala.math.abs
 
 trait EpicsCommand[F[_]] {
   def post(timeout: FiniteDuration): F[ApplyCommandResult]
@@ -39,7 +32,7 @@ trait EpicsCommand[F[_]] {
 abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsCommand[F] {
   protected val cs: Option[CaCommandSender]
 
-  import EpicsUtil.AddSystemNameToCmdErrorOp
+  import EpicsUtil.*
 
   override def post(timeout: FiniteDuration): F[ApplyCommandResult] = setTimeout(timeout) *>
     Async[F]
@@ -53,7 +46,7 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
                 override def onFailure(cause: Exception): Unit = f(cause.asLeft)
               }
             }
-          // It should call f on all execution paths, thanks @tpolecat
+            // It should call f on all execution paths, thanks @tpolecat
           }.void
             .getOrElse(f(ObserveFailure.Unexpected("Unable to trigger command.").asLeft))
           Some(Async[F].unit)
@@ -142,7 +135,7 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
   protected val cs: Option[CaCommandSender]
   protected val os: Option[CaApplySender]
 
-  import EpicsUtil.AddSystemNameToCmdErrorOp
+  import EpicsUtil.*
 
   override def post(timeout: FiniteDuration): F[ObserveCommandResult] = setTimeout(timeout) *>
     Async[F]
@@ -224,7 +217,7 @@ object EpicsUtil {
 
         // `resultGuard` and `lock` are used for synchronization.
         val resultGuard = new AtomicInteger(1)
-        val lock        = new ReentrantLock()
+        val lock0       = new ReentrantLock()
 
         // First we verify that the attribute doesn't already have the required value.
         // NOTE: It was possible to lose a change to the right value if it happened between here and the line that
@@ -244,7 +237,7 @@ object EpicsUtil {
                 !newVals.isEmpty && vv.contains(newVals.get(0)) && resultGuard
                   .getAndDecrement() === 1
               ) {
-                locked(lock) {
+                locked(lock0) {
                   attr.removeListener(this)
                   timer.cancel()
                 }
@@ -256,12 +249,12 @@ object EpicsUtil {
             override def onValidityChange(newValidity: Boolean): Unit = {}
           }
 
-          locked(lock) {
+          locked(lock0) {
             if (timeout.toMillis > 0) {
               timer.schedule(
                 new TimerTask {
                   override def run(): Unit = if (resultGuard.getAndDecrement() === 1) {
-                    locked(lock) {
+                    locked(lock0) {
                       attr.removeListener(statusListener)
                     }
                     f(ObserveFailure.Timeout(name).asLeft)
@@ -299,7 +292,7 @@ object EpicsUtil {
       .ensure(NullEpicsError(channel))(_.isDefined) // equivalent to a null check
       .map {
         _.orNull
-      }                                             // orNull lets us typecheck but it will never be used due to the `ensure` call above
+      } // orNull lets us typecheck but it will never be used due to the `ensure` call above
 
   def safeAttributeF[F[_]: Sync, A >: Null](get: => CaAttribute[A]): F[A] =
     safeAttributeWrapF(get.channel, get.value)
@@ -386,7 +379,7 @@ object EpicsUtil {
    */
   def applyParamT[F[_]](
     relTolerance: Double
-  )(c:            Double, d: Double, set: Double => F[Unit]): Option[F[Unit]] =
+  )(c: Double, d: Double, set: Double => F[Unit]): Option[F[Unit]] =
     if (areValuesDifferentEnough(relTolerance, c, d)) {
       set(d).some
     } else {
@@ -401,13 +394,10 @@ object EpicsUtil {
       (act.sequence *> after).whenA(act.nonEmpty)
     }
 
-  class FOps[F[_]: Applicative, A](a: F[A]) {
+  extension [F[_]: Applicative, A](a: F[A]) {
     def wrapped: F[Option[F[A]]] =
       a.some.pure[F]
   }
-
-  given [F[_]:Applicative, A](a: F[A]): FOps[F, A] =
-    new FOps(a)
 
   // The return signature indicates this programs calculates if we maybe need an action
   // e.g. it checks that a value in epics compares to a reference and if so returns an optional
@@ -417,22 +407,22 @@ object EpicsUtil {
 
   def smartSetDoubleParamF[F[_]: Functor](
     relTolerance: Double
-  )(v:            Double, get: F[Double], set: F[Unit]): F[Option[F[Unit]]] =
+  )(v: Double, get: F[Double], set: F[Unit]): F[Option[F[Unit]]] =
     get.map(areValuesDifferentEnough(relTolerance, _, v).option(set))
 
   def defaultProgress[F[_]: Applicative](
-    time:      Time,
+    time:      Duration,
     remaining: RemainingTime,
     stage:     ObserveStage
   ): F[Progress] =
     ObsProgress(time, remaining, stage).pure[F].widen[Progress]
 
   def countdown[F[_]: Temporal](
-    total:    Time,
-    rem:      F[Time],
+    total:    Duration,
+    rem:      F[Duration],
     obsState: F[CarStateGeneric],
     obsStage: F[ObserveStage],
-    p:        (Time, RemainingTime, ObserveStage) => F[Progress]
+    p:        (Duration, RemainingTime, ObserveStage) => F[Progress]
   ): Stream[F, Progress] =
     ProgressUtil
       .fromFOption[F](_ =>
@@ -443,9 +433,9 @@ object EpicsUtil {
           r <- p(if (total > c) total else c, RemainingTime(c), v)
         } yield if (s.isBusy) r.some else none
       )
-      .dropWhile(_.remaining.self.value === 0.0) // drop leading zeros
+      .dropWhile(_.remaining.self === Duration.Zero) // drop leading zeros
       .takeThrough(x =>
-        x.remaining.self.value > 0.0 || x.stage === ObserveStage.Acquiring
+        x.remaining.self > Duration.Zero || x.stage === ObserveStage.Acquiring
       ) // drop all tailing zeros but the first one, unless it is still acquiring
 
   // Component names read from instruments usually have a part name as suffix. For example, the

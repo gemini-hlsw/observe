@@ -27,11 +27,14 @@ import scala.concurrent.duration.*
 import org.scalatest.flatspec.AnyFlatSpec
 import cats.effect.std.Semaphore
 import eu.timepit.refined.types.numeric.PosLong
+import lucuma.core.model.sequence.Atom
 import observe.common.test.{observationId, stepId}
 
 class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
 
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
+
+  private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
 
   object DummyResult extends Result.RetVal
 
@@ -79,8 +82,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       sequences = Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = observationId(2),
+             atomId = atomId,
              steps = List(
                Step.init(
                  id = stepId(1),
@@ -150,8 +154,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
     val s0: TestState = TestState(
       Map(
         seqId -> Sequence.State.init(
-          Sequence(
+          Sequence.sequence(
             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+            atomId = atomId,
             steps = List(
               Step.init(
                 id = stepId(1),
@@ -225,8 +230,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
         val qs = TestState(
           Map(
             seqId -> Sequence.State.init(
-              Sequence(
+              Sequence.sequence(
                 id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
+                atomId = atomId,
                 steps = List(
                   Step.init(
                     id = stepId(1),
@@ -274,8 +280,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
+             atomId = atomId,
              steps = List(
                Step.init(
                  id = stepId(1),
@@ -306,8 +313,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(6)),
+             atomId = atomId,
              steps = List(
                Step
                  .init(id = stepId(1), executions = executions)
@@ -333,8 +341,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(7)),
+             atomId = atomId,
              steps = List(
                Step.init(id = stepId(1), executions = executions),
                Step
@@ -360,8 +369,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(8)),
+             atomId = atomId,
              steps = List(
                Step.init(id = stepId(1), executions = executions),
                Step
@@ -400,8 +410,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step.init(id = stepId(1), executions = executions),
                Step.init(id = stepId(2), executions = executions),
@@ -429,8 +440,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step
                  .init(id = stepId(1), executions = executions)
@@ -454,8 +466,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step
                  .init(id = stepId(1), executions = executions)
@@ -483,8 +496,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step
                  .init(id = stepId(1), executions = executions)
@@ -514,8 +528,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step.init(id = stepId(1), executions = executions),
                Step
@@ -547,8 +562,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = seqId,
+             atomId = atomId,
              steps = List(
                Step.init(id = sId,
                          executions = List(
@@ -597,8 +613,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       sequences = Map(
         (seqId,
          Sequence.State.init(
-           Sequence(
+           Sequence.sequence(
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+             atomId = atomId,
              steps = List(
                Step.init(
                  id = stepId(1),

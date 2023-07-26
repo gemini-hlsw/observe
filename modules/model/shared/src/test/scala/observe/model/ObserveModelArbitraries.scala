@@ -103,7 +103,7 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[SequenceView]                 = Arbitrary[SequenceView] {
     for {
-      id <- arbitrary[Observation.IdName]
+      id <- arbitrary[Observation.Id]
       m  <- arbitrary[SequenceMetadata]
       s  <- arbitrary[SequenceState]
       o  <- arbitrary[SystemOverrides]
@@ -139,7 +139,7 @@ trait ObserveModelArbitraries {
   given Cogen[SequenceView] =
     Cogen[
       (
-        Observation.IdName,
+        Observation.Id,
         SequenceMetadata,
         SequenceState,
         SystemOverrides,
@@ -147,7 +147,7 @@ trait ObserveModelArbitraries {
         Option[Int]
       )
     ]
-      .contramap(s => (s.idName, s.metadata, s.status, s.systemOverrides, s.steps, s.willStopIn))
+      .contramap(s => (s.obsId, s.metadata, s.status, s.systemOverrides, s.steps, s.willStopIn))
 
   given [A: Cogen]: Cogen[SequencesQueue[A]] =
     Cogen[(Conditions, Option[Operator], List[A])].contramap(s =>
@@ -219,33 +219,33 @@ trait ObserveModelArbitraries {
   given Arbitrary[SingleActionOp.Started] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.IdName]
+        o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
         r <- arbitrary[Resource]
       } yield SingleActionOp.Started(o, s, r)
     }
 
   given Cogen[SingleActionOp.Started] =
-    Cogen[(Observation.IdName, StepId, Resource)]
-      .contramap(x => (x.sidName, x.stepId, x.resource))
+    Cogen[(Observation.Id, StepId, Resource)]
+      .contramap(x => (x.sid, x.stepId, x.resource))
 
   given Arbitrary[SingleActionOp.Completed] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.IdName]
+        o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
         r <- arbitrary[Resource]
       } yield SingleActionOp.Completed(o, s, r)
     }
 
   given Cogen[SingleActionOp.Completed] =
-    Cogen[(Observation.IdName, StepId, Resource)]
-      .contramap(x => (x.sidName, x.stepId, x.resource))
+    Cogen[(Observation.Id, StepId, Resource)]
+      .contramap(x => (x.sid, x.stepId, x.resource))
 
   given Arbitrary[SingleActionOp.Error] =
     Arbitrary {
       for {
-        o <- arbitrary[Observation.IdName]
+        o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
         r <- arbitrary[Resource]
         m <- arbitrary[String]
@@ -253,8 +253,8 @@ trait ObserveModelArbitraries {
     }
 
   given Cogen[SingleActionOp.Error] =
-    Cogen[(Observation.IdName, StepId, Resource, String)]
-      .contramap(x => (x.sidName, x.stepId, x.resource, x.msg))
+    Cogen[(Observation.Id, StepId, Resource, String)]
+      .contramap(x => (x.sid, x.stepId, x.resource, x.msg))
 
   given Arbitrary[SingleActionOp] = Arbitrary[SingleActionOp] {
     for {

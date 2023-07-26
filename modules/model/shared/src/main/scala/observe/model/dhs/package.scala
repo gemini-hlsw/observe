@@ -3,10 +3,8 @@
 
 package observe.model
 
-import cats.*
+//import cats.*
 import lucuma.core.util.NewType
-
-import scala.annotation.targetName
 
 package object dhs {
 

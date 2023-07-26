@@ -41,7 +41,7 @@ package object reusability {
   given Reusability[ImageFileId]                               = Reusability.byEq
   given Reusability[StepState]                                 = Reusability.byEq
   given Reusability[Observation.Id]                            = Reusability.byEq
-  given Reusability[Observation.IdName]                        = Reusability.byEq
+  given Reusability[Observation.Id]                        = Reusability.byEq
   given Reusability[Observer]                                  = Reusability.byEq
   given Reusability[Operator]                                  = Reusability.byEq
   given Reusability[SemanticColor]                             = Reusability.by(_.toJs)

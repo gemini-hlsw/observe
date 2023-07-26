@@ -3,7 +3,7 @@
 
 package observe.web.client.circuit
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import monocle.Getter
 import monocle.Optional

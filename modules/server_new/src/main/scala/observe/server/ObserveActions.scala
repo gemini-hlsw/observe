@@ -1,25 +1,22 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import scala.concurrent.duration.*
 import cats.*
-import cats.effect.MonadThrow
+import cats.effect.{Concurrent, Temporal}
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
-import org.typelevel.log4cats.Logger
+import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
-import observe.model.{Observation, StepId}
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
-import InstrumentSystem.*
-import squants.time.Time
-import squants.time.TimeConversions.*
-import cats.effect.Temporal
-import eu.timepit.refined.types.numeric.PosInt
-import lucuma.schemas.ObservationDB.Scalars.VisitId
-//import lucuma.schemas.ObservationDB.Enums.SequenceType
+import observe.model.{Observation, StepId}
+import observe.server.InstrumentSystem.*
+import org.typelevel.log4cats.Logger
+
+import scala.concurrent.duration.*
 
 /**
  * Methods usedd to generate observation related actions
@@ -34,19 +31,19 @@ trait ObserveActions {
   def abortTail[F[_]: MonadThrow](
     odb:         OdbProxy[F],
     visitId:     Option[VisitId],
-    obsIdName:   Observation.IdName,
+    obsId:       Observation.Id,
     imageFileId: ImageFileId
   ): F[Result] = visitId
     .map(
       odb
-        .obsAbort(_, obsIdName, imageFileId)
+        .obsAbort(_, obsId, imageFileId.value)
         .ensure(
           ObserveFailure
             .Unexpected("Unable to send ObservationAborted message to ODB.")
         )(identity)
     )
-    .getOrElse(Applicative[F].unit)
-    .as(Result.OKAborted(Response.Aborted(imageFileId)))
+    .map(_.as(Result.OKAborted(Response.Aborted(imageFileId))))
+    .getOrElse(Result.OKAborted(Response.Aborted(imageFileId)).pure[F])
 
   /**
    * Send the datasetStart command to the odb
@@ -54,13 +51,13 @@ trait ObserveActions {
   private def sendDataStart[F[_]: MonadThrow](
     odb:          OdbProxy[F],
     visitId:      VisitId,
-    obsIdName:    Observation.IdName,
+    obsId:        Observation.Id,
     stepId:       StepId,
     datasetIndex: PosInt,
     fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(visitId, obsIdName, stepId, datasetIndex, fileId)
+      .datasetStart(visitId, obsId, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -72,13 +69,13 @@ trait ObserveActions {
   private def sendDataEnd[F[_]: MonadThrow](
     odb:          OdbProxy[F],
     visitId:      VisitId,
-    obsIdName:    Observation.IdName,
+    obsId:        Observation.Id,
     stepId:       StepId,
     datasetIndex: PosInt,
     fileId:       ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(visitId, obsIdName, stepId, datasetIndex, fileId)
+      .datasetComplete(visitId, obsId, stepId, datasetIndex, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -124,18 +121,18 @@ trait ObserveActions {
   ): F[ObserveCommandResult] =
     for {
       _ <- env.ctx.visitId
-             .map(sendDataStart(env.odb, _, env.obsIdName, env.stepId, env.datasetIndex, fileId))
+             .map(sendDataStart(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
              .getOrElse(Applicative[F].unit)
       _ <- notifyObserveStart(env)
-      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsIdName.id, fileId))
+      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
       _ <-
         info(
-          s"Start ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
+          s"Start ${env.inst.resource.show} observation ${env.obsId} with label $fileId"
         )
       r <- env.inst.observe(fileId)
       _ <-
         info(
-          s"Completed ${env.inst.resource.show} observation ${env.obsIdName.name} with label $fileId"
+          s"Completed ${env.inst.resource.show} observation ${env.obsId} with label $fileId"
         )
     } yield r
 
@@ -153,7 +150,7 @@ trait ObserveActions {
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
       _ <- env.ctx.visitId
-             .map(sendDataEnd(env.odb, _, env.obsIdName, env.stepId, env.datasetIndex, fileId))
+             .map(sendDataEnd(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
              .getOrElse(Applicative[F].unit)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
@@ -162,7 +159,7 @@ trait ObserveActions {
   /**
    * Method to process observe results and act accordingly to the response
    */
-  private def observeTail[F[_]: Temporal, S, D](
+  private def observeTail[F[_]: Temporal](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
   )(r: ObserveCommandResult): Stream[F, Result] =
@@ -172,7 +169,7 @@ trait ObserveActions {
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
+        abortTail(env.odb, env.ctx.visitId, env.obsId, fileId)
       case ObserveCommandResult.Paused  =>
         val totalTime = env.inst.calcObserveTime
         env.inst.observeControl match {

@@ -4,7 +4,7 @@
 package observe.server.gmos
 
 import scala.concurrent.duration.*
-import cats._
+import cats.*
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all.*
@@ -26,7 +26,7 @@ import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
 import shapeless.tag
 import cats.effect.{Ref, Temporal}
-import lucuma.core.model.sequence.DynamicConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.{Config => OdbConfig}
 import observe.common.ObsQueriesGQL.ObsQuery.{
   Data,

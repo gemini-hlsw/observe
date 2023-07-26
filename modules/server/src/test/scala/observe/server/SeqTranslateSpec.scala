@@ -25,7 +25,7 @@ class SeqTranslateSpec extends TestCommon {
   private val config: CleanConfig                                                     = CleanConfig.empty
   private val fileId                                                                  = "DummyFileId"
   private val seqIdName                                                               =
-    Observation.IdName(observationId(1), "GS-2018A-Q-1-1")
+    Observation.Id(observationId(1), "GS-2018A-Q-1-1")
   private def observeActions(state: Action.ActionState[IO]): NonEmptyList[Action[IO]] =
     NonEmptyList.one(
       Action(ActionType.Observe,

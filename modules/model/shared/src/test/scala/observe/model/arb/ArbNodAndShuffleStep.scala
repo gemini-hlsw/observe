@@ -18,7 +18,7 @@ import observe.model.arb.ArbDhsTypes.{*, given}
 import observe.model.arb.ArbTime.{*, given}
 import observe.model.arb.ArbGmosParameters.{*, given}
 import observe.model.arb.ArbNSRunningState.{*, given}
-import squants._
+import squants.*
 
 trait ArbNodAndShuffleStep {
   given nssArb: Arbitrary[NodAndShuffleStatus] = Arbitrary[NodAndShuffleStatus] {

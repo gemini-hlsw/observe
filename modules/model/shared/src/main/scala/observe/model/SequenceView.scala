@@ -7,10 +7,9 @@ import cats.*
 import cats.syntax.all.*
 import monocle.{Focus, Traversal}
 import monocle.function.Each.*
-import observe.model.Observation
 
 final case class SequenceView(
-  idName:          Observation.IdName,
+  obsId:           Observation.Id,
   metadata:        SequenceMetadata,
   status:          SequenceState,
   systemOverrides: SystemOverrides,
@@ -34,7 +33,7 @@ final case class SequenceView(
 
 object SequenceView {
   given Eq[SequenceView] =
-    Eq.by(x => (x.idName, x.metadata, x.status, x.steps, x.willStopIn))
+    Eq.by(x => (x.obsId, x.metadata, x.status, x.steps, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
     Focus[SequenceView](_.steps).andThen(each[List[Step], Step])

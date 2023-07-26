@@ -5,9 +5,9 @@ package observe.model
 
 import java.time.Instant
 
-import cats._
+import cats.*
 import cats.syntax.all.*
-import observe.model.dhs.{ImageFileId, given}
+import observe.model.dhs.ImageFileId
 import observe.model.enums.*
 
 object events {
@@ -169,14 +169,14 @@ object events {
 
   final case class LoadSequenceUpdated(
     i:        Instrument,
-    sidName:  Observation.IdName,
+    obsId:    Observation.Id,
     view:     SequencesQueue[SequenceView],
     clientId: ClientId
   ) extends ObserveModelUpdate
 
   object LoadSequenceUpdated {
     given Eq[LoadSequenceUpdated] =
-      Eq.by(x => (x.i, x.sidName, x.view, x.clientId))
+      Eq.by(x => (x.i, x.obsId, x.view, x.clientId))
   }
 
   final case class ClearLoadedSequencesUpdated(view: SequencesQueue[SequenceView])

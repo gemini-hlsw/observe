@@ -1,20 +1,18 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
 
-import cats._
-import cats.data.NonEmptySet
-import cats.data.OneAnd
-import cats.implicits.*
-import lucuma.core.math.Wavelength
+import cats.*
+import cats.data.{NonEmptySet, OneAnd}
+import cats.syntax.all.*
 import lucuma.core.enums.*
+import lucuma.core.math.Wavelength
+import lucuma.core.util.NewType
 import observe.model.TelescopeGuideConfig
 import observe.server.InstrumentGuide
-import shapeless.tag
-import shapeless.tag.@@
-import squants.Angle
-import squants.Length
+import observe.server.given
+import squants.{Angle, Length}
 
 /**
  * Created by jluhrs on 7/30/15.
@@ -63,7 +61,7 @@ object TcsController {
 
   }
 
-  import NodChopTrackingOption._ // needed below
+  import NodChopTrackingOption.* // needed below
 
   // TCS can be configured to update a guide probe position only for certain nod-chop positions.
   sealed trait NodChopTrackingConfig {
@@ -125,7 +123,7 @@ object TcsController {
     given Eq[FollowOption] = Eq.fromUniversalEquals[FollowOption]
   }
 
-  import FollowOption._
+  import FollowOption.*
 
   /** Data type for probe tracking config. */
   sealed abstract class ProbeTrackingConfig(
@@ -221,14 +219,16 @@ object TcsController {
   }
 
   // TCS expects offsets as two length quantities (in millimeters) in the focal plane
-  trait OffsetX
+  object OffsetX extends NewType[Length]
+  type OffsetX = OffsetX.Type
 
-  trait OffsetY
+  object OffsetY extends NewType[Length]
+  type OffsetY = OffsetY.Type
 
-  final case class FocalPlaneOffset(x: Length @@ OffsetX, y: Length @@ OffsetY) {
+  final case class FocalPlaneOffset(x: OffsetX, y: OffsetY) {
     def toInstrumentOffset(iaa: Angle): InstrumentOffset = InstrumentOffset(
-      tag[OffsetP](((x * -1 * iaa.cos) + y * iaa.sin) * FOCAL_PLANE_SCALE),
-      tag[OffsetQ](((x * -1 * iaa.sin) - y * iaa.cos) * FOCAL_PLANE_SCALE)
+      OffsetP(((x.value * -1 * iaa.cos) + y.value * iaa.sin) * FOCAL_PLANE_SCALE),
+      OffsetQ(((x.value * -1 * iaa.sin) - y.value * iaa.cos) * FOCAL_PLANE_SCALE)
     )
 
   }
@@ -241,14 +241,16 @@ object TcsController {
 
   }
 
-  trait OffsetP
+  object OffsetP extends NewType[Angle]
+  type OffsetP = OffsetP.Type
 
-  trait OffsetQ
+  object OffsetQ extends NewType[Angle]
+  type OffsetQ = OffsetQ.Type
 
-  final case class InstrumentOffset(p: Angle @@ OffsetP, q: Angle @@ OffsetQ) {
+  final case class InstrumentOffset(p: OffsetP, q: OffsetQ) {
     def toFocalPlaneOffset(iaa: Angle): FocalPlaneOffset = FocalPlaneOffset(
-      tag[OffsetX](((p * -1 * iaa.cos) - q * iaa.sin) / FOCAL_PLANE_SCALE),
-      tag[OffsetY]((p * iaa.sin - q * iaa.cos) / FOCAL_PLANE_SCALE)
+      OffsetX(((p.value * -1 * iaa.cos) - q.value * iaa.sin) / FOCAL_PLANE_SCALE),
+      OffsetY((p.value * iaa.sin - q.value * iaa.cos) / FOCAL_PLANE_SCALE)
     )
 
   }
@@ -272,13 +274,17 @@ object TcsController {
     given Show[TelescopeConfig] = Show.fromToString
   }
 
-  trait P1Config
+  object P1Config extends NewType[GuiderConfig]
+  type P1Config = P1Config.Type
 
-  trait P2Config
+  object P2Config extends NewType[GuiderConfig]
+  type P2Config = P2Config.Type
 
-  trait OIConfig
+  object OIConfig extends NewType[GuiderConfig]
+  type OIConfig = OIConfig.Type
 
-  trait AoGuide
+  object AoGuide extends NewType[GuiderConfig]
+  type AoGuide = AoGuide.Type
 
   sealed trait GuiderSensorOption
 
@@ -347,34 +353,34 @@ object TcsController {
   }
 
   sealed trait GuidersConfig[+C] {
-    val pwfs1: GuiderConfig @@ P1Config
-    val pwfs2: GuiderConfig @@ P2Config
-    val oiwfs: GuiderConfig @@ OIConfig
+    val pwfs1: P1Config
+    val pwfs2: P2Config
+    val oiwfs: OIConfig
   }
 
   final case class BasicGuidersConfig(
-    pwfs1: GuiderConfig @@ P1Config,
-    pwfs2: GuiderConfig @@ P2Config,
-    oiwfs: GuiderConfig @@ OIConfig
+    pwfs1: P1Config,
+    pwfs2: P2Config,
+    oiwfs: OIConfig
   ) extends GuidersConfig[Nothing]
 
   final case class AoGuidersConfig[C](
-    pwfs1:   GuiderConfig @@ P1Config,
+    pwfs1:   P1Config,
     aoguide: C,
-    oiwfs:   GuiderConfig @@ OIConfig
+    oiwfs:   OIConfig
   ) extends GuidersConfig[C] {
-    override val pwfs2: GuiderConfig @@ P2Config =
-      tag[P2Config](GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff))
+    override val pwfs2: P2Config =
+      P2Config(GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff))
   }
 
   object GuidersConfig {
-    given Show[GuiderConfig @@ P1Config] = Show.show {
+    given Show[P1Config] = Show.show {
       _.asInstanceOf[GuiderConfig].show
     }
-    given Show[GuiderConfig @@ P2Config] = Show.show {
+    given Show[P2Config] = Show.show {
       _.asInstanceOf[GuiderConfig].show
     }
-    given Show[GuiderConfig @@ OIConfig] = Show.show {
+    given Show[OIConfig] = Show.show {
       _.asInstanceOf[GuiderConfig].show
     }
 

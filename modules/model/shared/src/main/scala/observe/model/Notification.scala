@@ -5,7 +5,6 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
-import observe.model.Observation
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
 
@@ -22,19 +21,18 @@ object Notification {
     }
 
   // Notification that user tried to run a sequence that used resource already in use
-  final case class ResourceConflict(sidName: Observation.IdName) extends Notification
+  final case class ResourceConflict(obsId: Observation.Id) extends Notification
   object ResourceConflict {
     given Eq[ResourceConflict] =
-      Eq.by(_.sidName)
+      Eq.by(_.obsId)
   }
 
   // Notification that user tried to select a sequence for an instrument for which a sequence was already running
-  final case class InstrumentInUse(sidName: Observation.IdName, ins: Instrument)
-      extends Notification
+  final case class InstrumentInUse(obsId: Observation.Id, ins: Instrument) extends Notification
 
   object InstrumentInUse {
     given Eq[InstrumentInUse] =
-      Eq.by(x => (x.sidName, x.ins))
+      Eq.by(x => (x.obsId, x.ins))
   }
 
   // Notification that a request to the backend failed
@@ -46,11 +44,11 @@ object Notification {
   }
 
   // Notification that a resource configuration failed as the resource was busy
-  final case class SubsystemBusy(sidName: Observation.IdName, stepId: StepId, resource: Resource)
+  final case class SubsystemBusy(obsId: Observation.Id, stepId: StepId, resource: Resource)
       extends Notification
 
   object SubsystemBusy {
     given Eq[SubsystemBusy] =
-      Eq.by(x => (x.sidName, x.stepId, x.resource))
+      Eq.by(x => (x.obsId, x.stepId, x.resource))
   }
 }

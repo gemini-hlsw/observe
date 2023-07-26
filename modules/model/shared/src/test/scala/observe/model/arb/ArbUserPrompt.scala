@@ -87,7 +87,7 @@ trait ArbUserPrompt {
 
   given checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
     for {
-      sid   <- arbitrary[Observation.IdName]
+      sid   <- arbitrary[Observation.Id]
       stid  <- arbitrary[StepId]
       stidx <- Gen.posNum[Int]
       chks  <- checksGen
@@ -95,8 +95,8 @@ trait ArbUserPrompt {
   }
 
   given checksOverrideCogen: Cogen[ChecksOverride] =
-    Cogen[(Observation.IdName, StepId, NonEmptyList[SeqCheck])].contramap(x =>
-      (x.sidName, x.stepId, x.checks)
+    Cogen[(Observation.Id, StepId, NonEmptyList[SeqCheck])].contramap(x =>
+      (x.obsId, x.stepId, x.checks)
     )
 
   given userPromptArb: Arbitrary[UserPrompt] = Arbitrary[UserPrompt] {

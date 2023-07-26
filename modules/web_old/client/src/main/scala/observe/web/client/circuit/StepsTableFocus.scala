@@ -3,7 +3,7 @@
 
 package observe.web.client.circuit
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import monocle.Getter
 import observe.model.Observation
@@ -15,7 +15,7 @@ import observe.web.client.model.*
 import web.client.table.*
 
 final case class StepsTableFocus(
-  idName:              Observation.IdName,
+  obsId:              Observation.Id,
   instrument:          Instrument,
   state:               SequenceState,
   steps:               List[Step],
@@ -31,7 +31,7 @@ final case class StepsTableFocus(
 object StepsTableFocus {
   given Eq[StepsTableFocus] =
     Eq.by(x =>
-      (x.idName,
+      (x.obsId,
        x.instrument,
        x.state,
        x.steps,
@@ -54,7 +54,7 @@ object StepsTableFocus {
       case (Some(ObserveTabActive(tab, _)), ts) =>
         val sequence = tab.sequence
         StepsTableFocus(
-          sequence.idName,
+          sequence.obsId,
           sequence.metadata.instrument,
           sequence.status,
           sequence.steps,

@@ -11,6 +11,7 @@ import cats.effect.std.Queue
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+
 import java.util.UUID
 import org.scalatest.Inside.*
 import observe.engine.TestUtil.TestState
@@ -21,16 +22,20 @@ import observe.model.{ClientId, SequenceState, StepState}
 import observe.model.enums.Resource
 import observe.model.{ActionType, UserDetails}
 import observe.common.test.*
+
 import scala.Function.const
 import scala.concurrent.duration.*
 import cats.effect.Ref
+import eu.timepit.refined.types.all.PosLong
+import lucuma.core.model.sequence.Atom
 
 class StepSpec extends CatsEffectSuite {
 
   private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
 
-  private val seqId = observationId(1)
-  private val user  = UserDetails("telops", "Telops")
+  private val seqId  = observationId(1)
+  private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
+  private val user   = UserDetails("telops", "Telops")
 
   private val executionEngine = new Engine[IO, TestState, Unit](TestState)
 
@@ -205,8 +210,9 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
+             Sequence.sequence(
                id = seqId,
+               atomId = atomId,
                steps = List(
                  Step.init(
                    id = stepId(1),
@@ -260,6 +266,7 @@ class StepSpec extends CatsEffectSuite {
            Sequence.State.Zipper(
              Sequence.Zipper(
                id = observationId(1),
+               atomId = atomId.some,
                pending = Nil,
                focus = Step.Zipper(
                  id = stepId(2),
@@ -308,6 +315,7 @@ class StepSpec extends CatsEffectSuite {
            Sequence.State.Zipper(
              Sequence.Zipper(
                id = observationId(1),
+               atomId = atomId.some,
                pending = Nil,
                focus = Step.Zipper(
                  id = stepId(2),
@@ -351,8 +359,9 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
+             Sequence.sequence(
                id = seqId,
+               atomId = atomId,
                steps = List(
                  Step.init(
                    id = stepId(1),
@@ -397,8 +406,9 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
+             Sequence.sequence(
                id = seqId,
+               atomId = atomId,
                steps = List(
                  Step.init(
                    id = stepId(1),
@@ -453,8 +463,9 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
+             Sequence.sequence(
                id = seqId,
+               atomId = atomId,
                steps = List(
                  Step.init(
                    id = stepId(1),
@@ -501,15 +512,16 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(
-                        Step.init(
-                          id = stepId(1),
-                          executions = List(
-                            NonEmptyList.one(action)
-                          )
-                        )
-                      )
+             Sequence.sequence(id = seqId,
+                               atomId = atomId,
+                               steps = List(
+                                 Step.init(
+                                   id = stepId(1),
+                                   executions = List(
+                                     NonEmptyList.one(action)
+                                   )
+                                 )
+                               )
              )
            )
           )
@@ -533,15 +545,16 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(
-                        Step.init(
-                          id = stepId(1),
-                          executions = List(
-                            NonEmptyList.one(aborted)
-                          )
-                        )
-                      )
+             Sequence.sequence(id = seqId,
+                               atomId = atomId,
+                               steps = List(
+                                 Step.init(
+                                   id = stepId(1),
+                                   executions = List(
+                                     NonEmptyList.one(aborted)
+                                   )
+                                 )
+                               )
              )
            )
           )
@@ -565,15 +578,16 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(
-                        Step.init(
-                          id = stepId(1),
-                          executions = List(
-                            NonEmptyList.one(errorSet2(errMsg))
-                          )
-                        )
-                      )
+             Sequence.sequence(id = seqId,
+                               atomId = atomId,
+                               steps = List(
+                                 Step.init(
+                                   id = stepId(1),
+                                   executions = List(
+                                     NonEmptyList.one(errorSet2(errMsg))
+                                   )
+                                 )
+                               )
              )
            )
           )
@@ -598,15 +612,16 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(
-                        Step.init(
-                          id = stepId(1),
-                          executions = List(
-                            NonEmptyList.one(fatalError(errMsg))
-                          )
-                        )
-                      )
+             Sequence.sequence(id = seqId,
+                               atomId = atomId,
+                               steps = List(
+                                 Step.init(
+                                   id = stepId(1),
+                                   executions = List(
+                                     NonEmptyList.one(fatalError(errMsg))
+                                   )
+                                 )
+                               )
              )
            )
           )
@@ -628,8 +643,9 @@ class StepSpec extends CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(
+             Sequence.sequence(
                id = seqId,
+               atomId = atomId,
                steps = List(
                  Step.init(
                    id = stepId(1),

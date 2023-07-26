@@ -6,7 +6,7 @@ package observe.server
 import edu.gemini.spModel.config2.{DefaultConfig, ItemEntry, ItemKey}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.flatspec.AnyFlatSpec
-import ConfigUtilOps._
+import ConfigUtilOps.*
 
 class CleanConfigSpec extends AnyFlatSpec with Matchers {
 

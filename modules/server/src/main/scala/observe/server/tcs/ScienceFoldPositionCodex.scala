@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import atto.Atto.*
-import atto._
+import atto.*
 import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
 import observe.server.EpicsCodex.DecodeEpicsValue

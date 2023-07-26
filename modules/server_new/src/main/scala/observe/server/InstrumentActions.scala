@@ -1,18 +1,16 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
 import cats.data.NonEmptyList
+import cats.effect.Temporal
 import fs2.Stream
-import org.typelevel.log4cats.Logger
-import observe.engine.Action
 import observe.engine.Action.ActionState
-import observe.engine.ParallelActions
-import observe.engine.Result
+import observe.engine.{Action, ParallelActions, Result}
 import observe.model.ActionType
 import observe.model.dhs.ImageFileId
-import cats.effect.Temporal
+import org.typelevel.log4cats.Logger
 
 /**
  * Algebra to generate actions for an observation. Most instruments behave the same but in some

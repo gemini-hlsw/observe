@@ -1,20 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
-
 import cats.data.StateT
+import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
 import observe.model.ObserveStage
-import squants.time.Milliseconds
-import squants.time.Seconds
-import squants.time.Time
-import squants.time.TimeConversions.*
-import cats.effect.Temporal
+
+import scala.concurrent.duration.{Duration, FiniteDuration, SECONDS}
 
 object ProgressUtil {
   private val PollPeriod = FiniteDuration(1, SECONDS)
@@ -47,40 +42,38 @@ object ProgressUtil {
   /**
    * Simple simulated countdown
    */
-  def countdown[F[_]: Temporal](total: Time, elapsed: Time): Stream[F, Progress] =
+  def countdown[F[_]: Temporal](total: Duration, elapsed: Duration): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] {
-        t: FiniteDuration =>
-          val progress  = Milliseconds(t.toMillis) + elapsed
-          val remaining = total - progress
-          val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
-          ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
+      .fromF[F] { (t: FiniteDuration) =>
+        val progress  = t + elapsed
+        val remaining = total - progress
+        val clipped   = if (remaining.toMillis >= 0) remaining else Duration.Zero
+        ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
       }
-      .takeThrough(_.remaining.self.value > 0.0)
+      .takeThrough(_.remaining.self > Duration.Zero)
 
   /**
    * Simulated countdown with simulated observation stage
    */
-  def obsCountdown[F[_]: Temporal](total: Time, elapsed: Time): Stream[F, Progress] =
+  def obsCountdown[F[_]: Temporal](total: Duration, elapsed: Duration): Stream[F, Progress] =
     Stream.emit(ObsProgress(total, RemainingTime(total), ObserveStage.Preparing)) ++
       countdown[F](total, elapsed) ++
-      Stream.emit(ObsProgress(total, RemainingTime(0.0.seconds), ObserveStage.ReadingOut))
+      Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
 
   /**
    * Simulated countdown with observation stage provided by instrument
    */
   def obsCountdownWithObsStage[F[_]: Temporal](
-    total:   Time,
-    elapsed: Time,
+    total:   Duration,
+    elapsed: Duration,
     stage:   F[ObserveStage]
   ): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] {
-        t: FiniteDuration =>
-          val progress  = Milliseconds(t.toMillis) + elapsed
-          val remaining = total - progress
-          val clipped   = if (remaining.value >= 0.0) remaining else Seconds(0.0)
-          stage.map(v => ObsProgress(total, RemainingTime(clipped), v)).widen[Progress]
+      .fromF[F] { (t: FiniteDuration) =>
+        val progress  = t + elapsed
+        val remaining = total - progress
+        val clipped   = if (remaining >= Duration.Zero) remaining else Duration.Zero
+        stage.map(v => ObsProgress(total, RemainingTime(clipped), v)).widen[Progress]
       }
-      .takeThrough(x => x.remaining.self.value > 0.0 || x.stage === ObserveStage.Acquiring)
+      .takeThrough(x => x.remaining.self > Duration.Zero || x.stage === ObserveStage.Acquiring)
 }

@@ -36,7 +36,7 @@ object TabContentFocus {
           SequenceTabContentFocus(
             o,
             tab.instrument,
-            tab.sequence.idName.id,
+            tab.sequence.obsId,
             TabSelected.fromBoolean(active),
             StepsTableTypeSelection.fromStepId(tab.stepConfigDisplayed),
             log,

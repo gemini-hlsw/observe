@@ -5,6 +5,7 @@ package observe.engine
 
 import cats.effect.IO
 import cats.data.NonEmptyList
+import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
@@ -14,7 +15,8 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers.*
-import lucuma.core.model.{Observation => LObservation}
+import lucuma.core.model.Observation as LObservation
+import lucuma.core.model.sequence.Atom
 import observe.model.{ActionType, ClientId, SequenceState, StepId, UserDetails}
 import observe.engine.TestUtil.TestState
 import observe.common.test.*
@@ -27,6 +29,8 @@ class SequenceSpec extends AnyFlatSpec {
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
   private val seqId = LObservation.Id(PosLong.unsafeFrom(1))
+
+  private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
 
   // All tests check the output of running a sequence against the expected sequence of updates.
 
@@ -91,10 +95,11 @@ class SequenceSpec extends AnyFlatSpec {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(simpleStep(stepId(1), breakpoint = false),
-                                   simpleStep(stepId(2), breakpoint = true)
-                      )
+             Sequence.sequence(seqId,
+                               atomId,
+                               List(simpleStep(stepId(1), breakpoint = false),
+                                    simpleStep(stepId(2), breakpoint = true)
+                               )
              )
            )
           )
@@ -117,11 +122,12 @@ class SequenceSpec extends AnyFlatSpec {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence(id = seqId,
-                      steps = List(simpleStep(stepId(1), breakpoint = false),
-                                   simpleStep(stepId(2), breakpoint = true),
-                                   simpleStep(stepId(3), breakpoint = false)
-                      )
+             Sequence.sequence(id = seqId,
+                               atomId,
+                               steps = List(simpleStep(stepId(1), breakpoint = false),
+                                            simpleStep(stepId(2), breakpoint = true),
+                                            simpleStep(stepId(3), breakpoint = false)
+                               )
              )
            )
           )
@@ -195,7 +201,7 @@ class SequenceSpec extends AnyFlatSpec {
   )
 
   def simpleSequenceZipper(focus: Step.Zipper[IO]): Sequence.Zipper[IO] =
-    Sequence.Zipper(seqId, Nil, focus, Nil)
+    Sequence.Zipper(seqId, atomId.some, Nil, focus, Nil)
   val seqz0: Sequence.Zipper[IO]                                        = simpleSequenceZipper(stepz0)
   val seqza0: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepza0)
   val seqza1: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepza1)
@@ -218,10 +224,11 @@ class SequenceSpec extends AnyFlatSpec {
 
   "startSingle" should "mark a single Action as started" in {
     val seq = Sequence.State.init(
-      Sequence(id = seqId,
-               steps = List(simpleStep(stepId(1), breakpoint = false),
-                            simpleStep(stepId(2), breakpoint = false)
-               )
+      Sequence.sequence(id = seqId,
+                        atomId,
+                        steps = List(simpleStep(stepId(1), breakpoint = false),
+                                     simpleStep(stepId(2), breakpoint = false)
+                        )
       )
     )
 
@@ -233,8 +240,9 @@ class SequenceSpec extends AnyFlatSpec {
 
   it should "not start single Action from completed Step" in {
     val seq1 = Sequence.State.init(
-      Sequence(
+      Sequence.sequence(
         id = seqId,
+        atomId,
         steps = List(
           Step.init(
             id = stepId(1),
@@ -254,8 +262,9 @@ class SequenceSpec extends AnyFlatSpec {
       )
     )
     val seq2 = Sequence.State.Final(
-      Sequence(
+      Sequence.sequence(
         id = seqId,
+        atomId,
         steps = List(
           Step.init(
             id = stepId(1),
@@ -279,16 +288,17 @@ class SequenceSpec extends AnyFlatSpec {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence(id = seqId,
-                 steps = List(
-                   Step.init(
-                     id = stepId(1),
-                     executions = List(
-                       NonEmptyList.of(action, action), // Execution
-                       NonEmptyList.one(action)         // Execution
-                     )
-                   )
-                 )
+        Sequence.sequence(id = seqId,
+                          atomId,
+                          steps = List(
+                            Step.init(
+                              id = stepId(1),
+                              executions = List(
+                                NonEmptyList.of(action, action), // Execution
+                                NonEmptyList.one(action)         // Execution
+                              )
+                            )
+                          )
         )
       )
       .startSingle(c)
@@ -302,16 +312,17 @@ class SequenceSpec extends AnyFlatSpec {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence(id = seqId,
-                 steps = List(
-                   Step.init(
-                     id = stepId(1),
-                     executions = List(
-                       NonEmptyList.of(action, action), // Execution
-                       NonEmptyList.one(action)         // Execution
-                     )
-                   )
-                 )
+        Sequence.sequence(id = seqId,
+                          atomId,
+                          steps = List(
+                            Step.init(
+                              id = stepId(1),
+                              executions = List(
+                                NonEmptyList.of(action, action), // Execution
+                                NonEmptyList.one(action)         // Execution
+                              )
+                            )
+                          )
         )
       )
       .startSingle(c)

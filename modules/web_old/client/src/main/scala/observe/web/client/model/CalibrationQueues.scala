@@ -4,7 +4,7 @@
 package observe.web.client.model
 
 import scala.collection.immutable.SortedMap
-import cats._
+import cats.*
 import cats.implicits.*
 import monocle.Optional
 import monocle.Traversal

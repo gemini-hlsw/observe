@@ -3,7 +3,7 @@
 
 package observe.server.gws
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import lucuma.core.enums.KeywordName

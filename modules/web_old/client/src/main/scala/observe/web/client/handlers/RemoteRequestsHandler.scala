@@ -182,8 +182,8 @@ class RemoteRequestsHandler[M](modelRW: ModelRW[M, ClientStatus])
     )
   }
 
-  def handleSync: PartialFunction[Any, ActionResult[M]] = { case RequestSync(idName) =>
-    effectOnly(requestEffect(idName, ObserveWebClient.sync, RunSync.apply, RunSyncFailed.apply))
+  def handleSync: PartialFunction[Any, ActionResult[M]] = { case RequestSync(obsId) =>
+    effectOnly(requestEffect(obsId, ObserveWebClient.sync, RunSync.apply, RunSyncFailed.apply))
   }
 
   def handleResourceRun: PartialFunction[Any, ActionResult[M]] = {

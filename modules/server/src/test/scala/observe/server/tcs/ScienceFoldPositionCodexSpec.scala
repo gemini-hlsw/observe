@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import org.scalatest.matchers.should.Matchers.*
-import ScienceFoldPositionCodex._
+import ScienceFoldPositionCodex.*
 import observe.server.EpicsCodex.*
 import lucuma.core.enums.LightSinkName.{F2, Gmos, Gsaoi, Nifs, Niri_f32}
 import observe.server.tcs.TcsController.LightSource.{AO, GCAL, Sky}

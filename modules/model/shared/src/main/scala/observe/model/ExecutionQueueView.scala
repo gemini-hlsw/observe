@@ -5,7 +5,6 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
-import observe.model.Observation
 import observe.model.enums.BatchExecState
 
 final case class ExecutionQueueView(

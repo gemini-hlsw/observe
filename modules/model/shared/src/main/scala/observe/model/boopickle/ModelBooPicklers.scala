@@ -38,6 +38,7 @@ import observe.model.events.*
 import squants.time.Time
 import squants.time.TimeConversions.*
 
+import scala.concurrent.duration.{Duration, MILLISECONDS}
 import java.util.UUID
 
 /**
@@ -84,6 +85,9 @@ trait ModelBooPicklers extends BooPicklerSyntax {
 
   given Pickler[Time] =
     transformPickler((t: Double) => t.milliseconds)(_.toMilliseconds)
+
+  given Pickler[Duration] =
+    transformPickler((t: Double) => Duration(t, MILLISECONDS))(_.toMilliseconds)
 
   given Pickler[Instrument] = enumeratedPickler[Instrument]
   given Pickler[Resource]   = enumeratedPickler[Resource]

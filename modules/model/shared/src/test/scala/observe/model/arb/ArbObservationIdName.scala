@@ -10,14 +10,14 @@ import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 
 trait ArbObservationIdName {
-  given arbObservationIdName: Arbitrary[Observation.IdName] = Arbitrary[Observation.IdName] {
+  given arbObservationIdName: Arbitrary[Observation.Id] = Arbitrary[Observation.Id] {
     for {
       id   <- arbitrary[lucuma.core.model.Observation.Id]
       name <- arbitrary[Observation.Name]
-    } yield Observation.IdName(id, name)
+    } yield Observation.Id(id, name)
   }
 
-  given cogenObservationIdName: Cogen[Observation.IdName] =
+  given cogenObservationIdName: Cogen[Observation.Id] =
     Cogen[(Observation.Id, Observation.Name)].contramap(x => (x.id, x.name))
 }
 

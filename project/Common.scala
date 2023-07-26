@@ -1,6 +1,6 @@
 import Settings.Libraries.*
 import sbt.Keys.*
-import sbt._
+import sbt.*
 import com.timushev.sbt.updates.UpdatesPlugin.autoImport.*
 
 /**

@@ -1,25 +1,19 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
+import cats.Order.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import cats.Order.*
 import observe.engine
-import observe.engine.Action
 import observe.engine.Action.ActionState
-import observe.engine.ParallelActions
-import observe.model.ActionType
+import observe.engine.{Action, ParallelActions}
 import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model.StandardStep
-import observe.model.Step
-import observe.model.StepState
 import observe.model.dhs.ImageFileId
-import observe.model.enums.ActionStatus
-import observe.model.enums.Instrument
 import observe.model.enums.Instrument.*
-import observe.model.enums.Resource
+import observe.model.enums.{ActionStatus, Instrument, Resource}
+import observe.model.{ActionType, StandardStep, Step, StepState}
 import observe.server.gmos.GmosStepsView
 
 trait StepsView[F[_]] {
@@ -143,14 +137,13 @@ object StepsView {
 
       StandardStep(
         id = step.id,
-        config = stepg.config.toStepConfig,
         status = status,
         breakpoint = step.breakpoint.self,
         skip = step.skipMark.self,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {
-          case SequenceGen.CompletedStepGen(_, _, _, fileId) => fileId
+          case SequenceGen.CompletedStepGen(_, _, fileId, _) => fileId
         }.flatten)
       )
     }

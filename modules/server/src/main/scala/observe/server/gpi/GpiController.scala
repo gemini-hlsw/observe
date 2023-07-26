@@ -5,7 +5,7 @@ package observe.server.gpi
 
 import scala.concurrent.duration.*
 
-import cats._
+import cats.*
 import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response

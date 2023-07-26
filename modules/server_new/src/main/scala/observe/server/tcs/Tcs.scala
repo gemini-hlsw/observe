@@ -1,23 +1,18 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
 
 import cats.syntax.all.*
-import edu.gemini.spModel.guide.StandardGuideOptions
+import lucuma.core.enums.GuideState
 import mouse.all.*
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
-import observe.model.TelescopeGuideConfig
-import observe.model.enums.M1Source
-import observe.model.enums.NodAndShuffleStage
-import observe.model.enums.TipTiltSource
-import observe.server.ConfigResult
-import observe.server.System
+import observe.model.enums.{M1Source, NodAndShuffleStage, TipTiltSource}
+import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
 import observe.server.tcs.TcsController.*
+import observe.server.{ConfigResult, System}
 
 trait Tcs[F[_]] extends System[F] {
-  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult]
+  def nod(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[ConfigResult[F]]
 }
 
 object Tcs {
@@ -25,23 +20,23 @@ object Tcs {
   val defaultGuiderConf = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[StandardGuideOptions.Value]
+    guideWith: Option[GuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
       .getOrElse(defaultGuiderConf)
 
   // Conversions from ODB model values to TCS configuration values
-  implicit class GuideWithOps(guideWith: StandardGuideOptions.Value) {
-    val toProbeTracking: ProbeTrackingConfig = guideWith match {
-      case StandardGuideOptions.Value.park   => ProbeTrackingConfig.Parked
-      case StandardGuideOptions.Value.freeze => ProbeTrackingConfig.Frozen
-      case StandardGuideOptions.Value.guide  => ProbeTrackingConfig.On(NodChopTrackingConfig.Normal)
+  extension (guideWith: GuideState) {
+    def toProbeTracking: ProbeTrackingConfig = guideWith match {
+      case GuideState.Disabled => ProbeTrackingConfig.Frozen
+      case GuideState.Enabled  => ProbeTrackingConfig.On(NodChopTrackingConfig.Normal)
     }
 
-    val toGuideSensorOption: GuiderSensorOption =
-      if (guideWith.isActive) GuiderSensorOn
-      else GuiderSensorOff
+    def toGuideSensorOption: GuiderSensorOption = guideWith match {
+      case GuideState.Disabled => GuiderSensorOff
+      case GuideState.Enabled  => GuiderSensorOff
+    }
   }
 
   def calcGuiderInUse(

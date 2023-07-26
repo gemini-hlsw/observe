@@ -11,7 +11,7 @@ import scala.collection.immutable.SortedMap
 import scala.math.max
 import scala.scalajs.js
 
-import cats._
+import cats.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.Order.*

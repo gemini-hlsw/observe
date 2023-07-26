@@ -1,39 +1,33 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
+import cats.effect.{Ref, Temporal}
 import cats.syntax.all.*
 import fs2.Stream
-import org.typelevel.log4cats.Logger
-import observe.engine.ParallelActions
-import observe.engine.Result
+import observe.engine.{ParallelActions, Result}
 import observe.model.NSSubexposure
 import observe.model.dhs.*
-import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage.*
-import observe.model.enums.ObserveCommandResult
+import observe.model.enums.{Guiding, ObserveCommandResult}
+import observe.server.*
 import observe.server.InstrumentActions.*
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObserveActions.*
-import observe.server.*
 import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.NSObserveCommand.*
 import observe.server.gmos.NSPartial.*
-import observe.server.tcs.TcsController.InstrumentOffset
-import observe.server.tcs.TcsController.OffsetP
-import observe.server.tcs.TcsController.OffsetQ
-import shapeless.tag
+import observe.server.tcs.TcsController.{InstrumentOffset, OffsetP, OffsetQ}
+import org.typelevel.log4cats.Logger
 import squants.space.AngleConversions.*
-import cats.effect.{Ref, Temporal}
-import observe.common.ObsQueriesGQL.ObsQuery.{GmosInstrumentConfig, GmosSite, GmosStatic}
 
 import scala.concurrent.duration.Duration
 
 /**
  * Gmos needs different actions for N&S
  */
-class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
+class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite](
   inst: Gmos[F, A]
 ) extends InstrumentActions[F] {
   override def observationProgressStream(
@@ -56,7 +50,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.ctx.visitId, env.obsIdName, fileId)
+        abortTail(env.odb, env.ctx.visitId, env.obsId, fileId)
       case ObserveCommandResult.Paused  =>
         Result
           .Paused(
@@ -175,8 +169,8 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
             .nod(
               sub.stage,
               InstrumentOffset(
-                tag[OffsetP](nsPos.offset.p.toSignedDoubleRadians.radians),
-                tag[OffsetQ](nsPos.offset.q.toSignedDoubleRadians.radians)
+                OffsetP(nsPos.offset.p.toSignedDoubleRadians.radians),
+                OffsetQ(nsPos.offset.q.toSignedDoubleRadians.radians)
               ),
               nsPos.guide === Guiding.Guide
             )
@@ -205,18 +199,18 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
     fileId: ImageFileId,
     env:    ObserveEnvironment[F]
   ): Stream[F, Result] =
-    inst.nsConfig match {
+    inst.config.ns match {
       case NSConfig.NoNodAndShuffle                            =>
         Stream.empty
       case c @ NSConfig.NodAndShuffle(cycles, _, positions, _) =>
         val nsZero =
           NSSubexposure
-            .subexposures(cycles)
+            .subexposures(cycles.value)
             .headOption
             .getOrElse(NSSubexposure.Zero)
         val nsLast =
           NSSubexposure
-            .subexposures(cycles)
+            .subexposures(cycles.value)
             .lastOption
             .getOrElse(NSSubexposure.Zero)
 
@@ -226,7 +220,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
           Stream.emit(Result.Partial(NSStart(nsZero))) ++
           // each subexposure actions
           NSSubexposure
-            .subexposures(cycles)
+            .subexposures(cycles.value)
             .map {
               oneSubExposure(fileId, _, positions, env, c, inst.nsCmdRef)
             }
@@ -244,14 +238,14 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosSite](
 
     val nsLast =
       NSSubexposure
-        .subexposures(nsConfig.cycles)
+        .subexposures(nsConfig.cycles.value)
         .lastOption
         .getOrElse(NSSubexposure.Zero)
 
     Stream.eval(inst.nsCount).flatMap { cnt =>
       Stream.eval(inst.nsCmdRef.set(none)) *>
         NSSubexposure
-          .subexposures(nsConfig.cycles)
+          .subexposures(nsConfig.cycles.value)
           .map {
             oneSubExposure(fileId, _, nsConfig.positions, env, nsConfig, inst.nsCmdRef)
           }

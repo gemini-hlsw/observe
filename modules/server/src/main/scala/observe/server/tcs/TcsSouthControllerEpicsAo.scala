@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import java.time.Duration
-import cats._
+import cats.*
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all.*
@@ -40,7 +40,7 @@ import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.tcs.TcsSouthController.TcsSouthAoConfig
 import squants.time.TimeConversions.*
-import TcsSouthController._
+import TcsSouthController.*
 import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 
 /**

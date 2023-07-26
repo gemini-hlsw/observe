@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import java.time.Duration
-import cats._
+import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.implicits.*
@@ -28,7 +28,7 @@ import shapeless.tag.@@
 import squants.Length
 import squants.space.Area
 import squants.time.TimeConversions.*
-import TcsNorthController._
+import TcsNorthController.*
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.tcs.TcsControllerEpicsCommon.{calcMoveDistanceSquared, offsetNear}
 

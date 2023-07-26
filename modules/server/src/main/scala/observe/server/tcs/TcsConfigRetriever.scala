@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import cats._
+import cats.*
 import cats.data.OneAnd
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryYesNo

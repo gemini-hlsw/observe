@@ -3,7 +3,7 @@
 
 package observe.server.gpi
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import giapi.client.GiapiStatusDb
 import giapi.client.StatusValue

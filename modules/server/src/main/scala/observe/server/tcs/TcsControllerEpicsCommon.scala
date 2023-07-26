@@ -6,7 +6,7 @@ package observe.server.tcs
 import java.time.Duration
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
-import cats._
+import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.effect.Sync

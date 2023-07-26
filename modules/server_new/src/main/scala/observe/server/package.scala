@@ -7,57 +7,90 @@ import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import cats.{Applicative, ApplicativeThrow, Endo, Eq, Functor, MonadError, MonadThrow}
+import cats.{Applicative, ApplicativeThrow, Endo, Eq, MonadError, MonadThrow, Order}
 import clue.ErrorPolicy
 import fs2.Stream
-import monocle.function.At.*
-import monocle.function.Index.*
-import monocle.Focus
-import monocle.{Lens, Optional}
+import monocle.{Focus, Getter, Optional}
+import monocle.syntax.all.*
 import observe.engine.Result.PauseContext
-import observe.engine.{Engine, Result, _}
+import observe.engine.{Engine, Result, *}
 import observe.model.enums.*
-import observe.model.{Observation, _}
+import observe.model.{Observation, *}
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import lucuma.schemas.ObservationDB.Scalars.VisitId
 
-package server {
+import scala.concurrent.duration.Duration
+import server.InstrumentSystem.ElapsedTime
+import squants.Length
+import squants.space.Angle
 
-  import lucuma.schemas.ObservationDB.Scalars.VisitId
+package object server {
 
-  import scala.concurrent.duration.Duration
+  case class Selected[F[_]](
+    gmosSouth: Option[SequenceData[F]],
+    gmosNorth: Option[SequenceData[F]]
+  )
 
   final case class EngineState[F[_]](
     queues:     ExecutionQueues,
-    selected:   Map[Instrument, Observation.Id],
+    selected:   Selected[F],
     conditions: Conditions,
-    operator:   Option[Operator],
-    sequences:  Map[Observation.Id, SequenceData[F]]
-  )
+    operator:   Option[Operator]
+  ) {
+    lazy val sequences: Map[Observation.Id, SequenceData[F]] =
+      List(selected.gmosNorth, selected.gmosSouth).flattenOption.map(x => x.id -> x).toMap
+  }
 
   object EngineState     {
     def default[F[_]]: EngineState[F] =
       EngineState[F](
         Map(CalibrationQueueId -> ExecutionQueue.init(CalibrationQueueName)),
-        Map.empty,
+        Selected(none, none),
         Conditions.Default,
-        None,
-        Map.empty
+        None
       )
 
-    def instrumentLoadedL[F[_]](
+    def instrumentLoadedG[F[_]](
       instrument: Instrument
-    ): Lens[EngineState[F], Option[Observation.Id]] =
-      Focus[EngineState[F]](_.selected).andThen(
-        at[Map[Instrument, Observation.Id], Instrument, Option[Observation.Id]](instrument)
-      )
+    ): Getter[EngineState[F], Option[Observation.Id]] = Getter { s =>
+      instrument match {
+        case Instrument.GmosN => s.selected.gmosNorth.map(_.id)
+        case Instrument.GmosS => s.selected.gmosSouth.map(_.id)
+        case _                => none
+      }
+    }
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
-      Focus[EngineState[F]](_.sequences)
-        .andThen(mapIndex[Observation.Id, SequenceData[F]].index(sid))
+      Focus[EngineState[F]](_.selected)
+        .andThen(
+          Optional[Selected[F], SequenceData[F]] { s =>
+            s.gmosNorth.find(_.id === sid).orElse(s.gmosSouth.find(_.id === sid))
+          } { d => s =>
+            if (s.gmosNorth.exists(_.id === sid)) s.focus(_.gmosNorth).replace(d.some)
+            else if (s.gmosSouth.exists(_.id === sid)) s.focus(_.gmosSouth).replace(d.some)
+            else s
+          }
+        )
 
     def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
-      atSequence[F](sid).andThen(Focus[SequenceData[F]](_.seq))
+      Optional[EngineState[F], Sequence.State[F]](s =>
+        s.selected.gmosSouth
+          .filter(_.id === sid)
+          .orElse(s.selected.gmosNorth.filter(_.id === sid))
+          .map(_.seq)
+      )(ss =>
+        es =>
+          if (es.selected.gmosSouth.exists(_.id === sid))
+            es.copy(selected =
+              es.selected.copy(gmosSouth = es.selected.gmosSouth.map(_.copy(seq = ss)))
+            )
+          else if (es.selected.gmosNorth.exists(_.id === sid))
+            es.copy(selected =
+              es.selected.copy(gmosNorth = es.selected.gmosNorth.map(_.copy(seq = ss)))
+            )
+          else es
+      )
 
     def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
       EngineState.sequenceStateIndex(sid)
@@ -77,18 +110,17 @@ package server {
     val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None)
   }
 
-//  final case class ObserveContext[F[_]](
-//    resumePaused: Duration => Stream[F, Result],
-//    progress:     ElapsedTime => Stream[F, Result],
-//    stopPaused:   Stream[F, Result],
-//    abortPaused:  Stream[F, Result],
-//    expTime:      Duration
-//  ) extends PauseContext[F]
+  final case class ObserveContext[F[_]](
+    resumePaused: Duration => Stream[F, Result],
+    progress:     ElapsedTime => Stream[F, Result],
+    stopPaused:   Stream[F, Result],
+    abortPaused:  Stream[F, Result],
+    expTime:      Duration
+  ) extends PauseContext
 
-}
-
-package object server {
-  given DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
+//}
+//
+//package object server    {
 
   type ExecutionQueues = Map[QueueId, ExecutionQueue]
 
@@ -117,23 +149,16 @@ package object server {
   }
 
   // This assumes that there is only one instance of e in l
-  private def moveElement[T](l: List[T], e: T, delta: Int)(using eq: Eq[T]): List[T] = {
-    val idx = l.indexOf(e)
-
-    if (delta === 0 || idx < 0) {
-      l
-    } else {
-      val (h, t) = l.filterNot(_ === e).splitAt(idx + delta)
-      (h :+ e) ++ t
-    }
-  }
+  private def moveElement[T](l: List[T], e: T => Boolean, delta: Int)(using eq: Eq[T]): List[T] =
+    (l.indexWhere(e), l.find(e)) match
+      case (idx, Some(v)) if delta =!= 0 =>
+        val (h, t) = l.filterNot(e).splitAt(idx + delta)
+        (h :+ v) ++ t
+      case _                             => l
 
   extension [F[_]](q: ExecutionQueue) {
     def status(st: EngineState[F]): BatchExecState = {
-      val statuses: Seq[SequenceState] = q.queue
-        .map(sid => st.sequences.get(sid))
-        .collect { case Some(x) => x }
-        .map(_.seq.status)
+      val statuses: Seq[SequenceState] = q.queue.map(_.state)
 
       q.cmdState match {
         case BatchCommandState.Idle         => BatchExecState.Idle
@@ -147,17 +172,21 @@ package object server {
       }
     }
 
-    def addSeq(sid:    Observation.Id): ExecutionQueue       = q.copy(queue = q.queue :+ sid)
-    def addSeqs(sids:  List[Observation.Id]): ExecutionQueue = q.copy(queue = q.queue ++ sids)
-    def removeSeq(sid: Observation.Id): ExecutionQueue       = q.copy(queue = q.queue.filter(_ =!= sid))
-    def moveSeq(sid: Observation.Id, delta: Int): ExecutionQueue =
-      q.copy(queue = moveElement(q.queue, sid, delta))
-    def clear: ExecutionQueue                                    = q.copy(queue = List.empty)
+    def addSeq(s: ExecutionQueue.SequenceInQueue): ExecutionQueue = q.copy(queue = q.queue :+ s)
+    def addSeqs(ss: List[ExecutionQueue.SequenceInQueue]): ExecutionQueue =
+      q.copy(queue = q.queue ++ ss)
+    def removeSeq(sid: Observation.Id): ExecutionQueue                    =
+      q.copy(queue = q.queue.filter(_.obsId =!= sid))
+    def moveSeq(sid: Observation.Id, delta: Int): ExecutionQueue          =
+      q.copy(queue =
+        moveElement(q.queue, (x: ExecutionQueue.SequenceInQueue) => x.obsId === sid, delta)
+      )
+    def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
   }
 
   implicit final class ToHandle[F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
     import Handle.toHandle
-    def toHandle: HandleType[F, A] =
+    def toHandle: HandlerType[F, A] =
       StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
   }
 
@@ -216,10 +245,15 @@ package object server {
 
   // Some types defined to avoid repeating long type definitions everywhere
   type EventType[F[_]]      = Event[F, EngineState[F], SeqEvent]
-  type HandleType[F[_], A]  = Handle[F, EngineState[F], EventType[F], A]
+  type HandlerType[F[_], A] = Handle[F, EngineState[F], EventType[F], A]
   type ExecEngineType[F[_]] = Engine[F, EngineState[F], SeqEvent]
 
   def overrideLogMessage[F[_]: Logger](systemName: String, op: String): F[Unit] =
     Logger[F].info(s"System $systemName overridden. Operation $op skipped.")
+
+  given DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
+
+  given Order[Length] = Order.by(_.value)
+  given Order[Angle]  = Order.by(_.value)
 
 }

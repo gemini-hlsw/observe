@@ -1,23 +1,21 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
-import java.lang.{Double => JDouble}
-import scala.concurrent.duration.*
-import cats.effect.Async
-import cats.effect.IO
-import cats.effect.Sync
+import cats.effect.{Async, IO, Sync}
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import mouse.all.*
 import observe.model.enums.ApplyCommandResult
-import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsUtil.*
 import observe.server.ObserveFailure.*
-import observe.server.gmos.GmosEpics.RoiParameters
-import observe.server.gmos.GmosEpics.RoiStatus
+import observe.server.gmos.GmosEpics.{RoiParameters, RoiStatus}
+import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
+
+import java.lang.Double as JDouble
+import scala.concurrent.duration.*
 
 class GmosEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]) {
   val sysName: String = "GMOS"

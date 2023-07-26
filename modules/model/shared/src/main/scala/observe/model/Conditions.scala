@@ -3,50 +3,51 @@
 
 package observe.model
 
-import cats._
-import observe.model.enums.*
+import cats.Eq
+import cats.syntax.all.*
+import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
 
 final case class Conditions(
-  cc: CloudCover,
-  iq: ImageQuality,
-  sb: SkyBackground,
-  wv: WaterVapor
+  cc: Option[CloudExtinction],
+  iq: Option[ImageQuality],
+  sb: Option[SkyBackground],
+  wv: Option[WaterVapor]
 )
 
 object Conditions {
 
   val Unknown: Conditions =
     Conditions(
-      CloudCover.Unknown,
-      ImageQuality.Unknown,
-      SkyBackground.Unknown,
-      WaterVapor.Unknown
+      none,
+      none,
+      none,
+      none
     )
 
   val Worst: Conditions =
     Conditions(
-      CloudCover.Any,
-      ImageQuality.Any,
-      SkyBackground.Any,
-      WaterVapor.Any
+      CloudExtinction.ThreePointZero.some,
+      ImageQuality.TwoPointZero.some,
+      SkyBackground.Bright.some,
+      WaterVapor.Wet.some
     )
 
   val Nominal: Conditions =
     Conditions(
-      CloudCover.Percent50,
-      ImageQuality.Percent70,
-      SkyBackground.Percent50,
-      WaterVapor.Any
+      CloudExtinction.OnePointFive.some,
+      ImageQuality.OnePointZero.some,
+      SkyBackground.Gray.some,
+      WaterVapor.Wet.some
     )
 
   val Best: Conditions =
     Conditions(
       // In the ODB model it's 20% but that value it's marked as obsolete
       // so I took the non-obsolete lowest value.
-      CloudCover.Percent50,
-      ImageQuality.Percent20,
-      SkyBackground.Percent20,
-      WaterVapor.Percent20
+      CloudExtinction.PointOne.some,
+      ImageQuality.PointOne.some,
+      SkyBackground.Darkest.some,
+      WaterVapor.VeryDry.some
     )
 
   val Default: Conditions =

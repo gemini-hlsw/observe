@@ -3,7 +3,7 @@
 
 package observe.model.enums
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 

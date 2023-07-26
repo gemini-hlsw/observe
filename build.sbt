@@ -115,6 +115,18 @@ lazy val root = tlCrossRootProject.aggregate(
   observe_engine
 )
 
+lazy val stateengine = project
+  .in(file("modules/stateengine"))
+  .settings(
+    name := "stateengine",
+    libraryDependencies ++= Seq(
+      Cats.value,
+      CatsEffect.value,
+      Mouse.value,
+      Fs2.value
+    ) ++ MUnit.value
+  )
+
 lazy val giapi = project
   .in(file("modules/giapi"))
   .enablePlugins(GitBranchPrompt)

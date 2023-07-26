@@ -3,7 +3,7 @@
 
 package observe.model.config
 
-import cats._
+import cats.*
 
 /**
  * Indicates how each subsystems is treated, e.g. full connection or simulated

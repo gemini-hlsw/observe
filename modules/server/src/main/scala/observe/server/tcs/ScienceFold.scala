@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
 import observe.server.tcs.TcsController.*

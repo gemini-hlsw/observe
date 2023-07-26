@@ -5,7 +5,7 @@ package observe.web.client.model
 
 import scala.collection.immutable.SortedMap
 import scala.scalajs.js.timers.*
-import cats._
+import cats.*
 import cats.syntax.all.*
 import lucuma.core.enums.Site
 import monocle.Getter

@@ -11,6 +11,7 @@ import observe.model.SystemOverrides
 import observe.model.Observation
 
 final case class SequenceData[F[_]](
+  id:            Observation.Id,
   name:          Observation.Name,
   observer:      Option[Observer],
   visitId:       Option[VisitId],

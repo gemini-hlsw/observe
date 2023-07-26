@@ -13,7 +13,7 @@ import observe.model.enums.Instrument
 import observe.model.SystemOverrides
 import observe.engine
 import observe.engine.{Action, ParallelActions}
-import SequenceGen._
+import SequenceGen.*
 import cats.effect.IO
 import observe.common.test.observationId
 

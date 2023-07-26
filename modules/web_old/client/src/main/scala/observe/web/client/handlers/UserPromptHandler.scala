@@ -26,7 +26,7 @@ class UserPromptHandler[M](modelRW: ModelRW[M, UserPromptState])
     case ServerMessage(UserPromptNotification(not, _)) =>
       // Update the model as load failed
       val modelUpdateE = not match {
-        case UserPrompt.ChecksOverride(idName, _, _, _) => Effect(Future(RunStartFailed(idName.id)))
+        case UserPrompt.ChecksOverride(obsId, _, _, _) => Effect(Future(RunStartFailed(obsId)))
       }
       updatedLE(lens.replace(not.some), modelUpdateE)
   }

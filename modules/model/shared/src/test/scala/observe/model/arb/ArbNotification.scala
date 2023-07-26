@@ -22,12 +22,12 @@ trait ArbNotification {
 
   given rcArb: Arbitrary[ResourceConflict] = Arbitrary[ResourceConflict] {
     for {
-      idName <- arbitrary[Observation.IdName]
-    } yield ResourceConflict(idName)
+      obsId <- arbitrary[Observation.Id]
+    } yield ResourceConflict(obsId)
   }
 
   given rcCogen: Cogen[ResourceConflict] =
-    Cogen[Observation.IdName].contramap(_.sidName)
+    Cogen[Observation.Id].contramap(_.obsId)
 
   given rfArb: Arbitrary[RequestFailed] = Arbitrary[RequestFailed] {
     arbitrary[List[String]].map(RequestFailed.apply)
@@ -38,24 +38,24 @@ trait ArbNotification {
 
   given inArb: Arbitrary[InstrumentInUse] = Arbitrary[InstrumentInUse] {
     for {
-      id <- arbitrary[Observation.IdName]
+      id <- arbitrary[Observation.Id]
       i  <- arbitrary[Instrument]
     } yield InstrumentInUse(id, i)
   }
 
   given inCogen: Cogen[InstrumentInUse] =
-    Cogen[(Observation.IdName, Instrument)].contramap(x => (x.sidName, x.ins))
+    Cogen[(Observation.Id, Instrument)].contramap(x => (x.obsId, x.ins))
 
   given subsArb: Arbitrary[SubsystemBusy] = Arbitrary[SubsystemBusy] {
     for {
-      id <- arbitrary[Observation.IdName]
+      id <- arbitrary[Observation.Id]
       i  <- arbitrary[StepId]
       r  <- arbitrary[Resource]
     } yield SubsystemBusy(id, i, r)
   }
 
   given subsCogen: Cogen[SubsystemBusy] =
-    Cogen[(Observation.IdName, StepId, Resource)].contramap(x => (x.sidName, x.stepId, x.resource))
+    Cogen[(Observation.Id, StepId, Resource)].contramap(x => (x.obsId, x.stepId, x.resource))
 
   given notArb: Arbitrary[Notification] = Arbitrary[Notification] {
     for {

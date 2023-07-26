@@ -188,7 +188,7 @@ trait Columns {
 
 // ScalaJS defined trait
 trait SessionQueueRow extends js.Object {
-  var obsId: Observation.IdName
+  var obsId: Observation.Id
   var status: SequenceState
   var instrument: Instrument
   var targetName: Option[String]
@@ -205,7 +205,7 @@ trait SessionQueueRow extends js.Object {
 object SessionQueueRow {
 
   def apply(
-    obsIdName:     Observation.IdName,
+    obsIdName:     Observation.Id,
     status:        SequenceState,
     instrument:    Instrument,
     targetName:    Option[String],
@@ -236,7 +236,7 @@ object SessionQueueRow {
 
   def unapply(l: SessionQueueRow): Option[
     (
-      Observation.IdName,
+      Observation.Id,
       SequenceState,
       Instrument,
       Option[String],
@@ -267,8 +267,8 @@ object SessionQueueRow {
     )
 
   object Empty extends SessionQueueRow {
-    override var obsId: Observation.IdName        =
-      Observation.IdName(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
+    override var obsId: Observation.Id        =
+      Observation.Id(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
     override var status: SequenceState            = SequenceState.Idle
     override var instrument: Instrument           = Instrument.F2
     override var targetName: Option[String]       = None
@@ -293,13 +293,13 @@ final case class SessionQueueTable(
   val sequencesList: List[SequenceInSessionQueue] =
     sequences.queueFilter.filter(sequences.sequences)
 
-  val obsIds: List[Observation.Id] = sequencesList.map(_.idName.id)
+  val obsIds: List[Observation.Id] = sequencesList.map(_.obsId)
 
   def rowGetter(i: Int): SessionQueueRow =
     sequencesList
       .lift(i)
       .map { s =>
-        SessionQueueRow(s.idName,
+        SessionQueueRow(s.obsId,
                         s.status,
                         s.instrument,
                         s.targetName,
@@ -324,7 +324,7 @@ final case class SessionQueueTable(
   val user: Option[UserDetails] = sequences.status.user
 
   val extractors = List[(TableColumn, SequenceInSessionQueue => String)](
-    (ObsIdColumn, _.idName.name),
+    (ObsIdColumn, _.obsId.name),
     (StateColumn, s => statusText(s.status, s.runningStep)),
     (InstrumentColumn, _.instrument.show),
     (TargetNameColumn, _.targetName.orEmpty),
@@ -422,9 +422,9 @@ object SessionQueueTable extends Columns {
 
   private def pageOf(row: SessionQueueRow): ObservePages =
     if (row.loaded) {
-      SequencePage(row.instrument, row.obsId.id, StepIdDisplayed(row.nextStepToRun))
+      SequencePage(row.instrument, row.obsId, StepIdDisplayed(row.nextStepToRun))
     } else {
-      PreviewPage(row.instrument, row.obsId.id, StepIdDisplayed(row.nextStepToRun))
+      PreviewPage(row.instrument, row.obsId, StepIdDisplayed(row.nextStepToRun))
     }
 
   private def linkedTextRenderer(p: Props)(
@@ -466,15 +466,15 @@ object SessionQueueTable extends Columns {
       )
     }
 
-  def addToQueueE(idName: Observation.IdName)(e: ReactEvent): Callback =
+  def addToQueueE(obsId: Observation.Id)(e: ReactEvent): Callback =
     e.stopPropagationCB *>
       e.preventDefaultCB *>
-      ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, idName.id))
+      ObserveCircuit.dispatchCB(RequestAddSeqCal(CalibrationQueueId, obsId))
 
-  def removeFromQueueE(idName: Observation.IdName)(e: ReactEvent): Callback =
+  def removeFromQueueE(obsId: Observation.Id)(e: ReactEvent): Callback =
     e.stopPropagationCB *>
       e.preventDefaultCB *>
-      ObserveCircuit.dispatchCB(RequestRemoveSeqCal(CalibrationQueueId, idName))
+      ObserveCircuit.dispatchCB(RequestRemoveSeqCal(CalibrationQueueId, obsId))
 
   private def addToQueueRenderer(
     b: Backend
@@ -666,7 +666,7 @@ object SessionQueueTable extends Columns {
     if (r.loaded) {
       // If already loaded switch tabs
       b.props.ctl.dispatchAndSetUrlCB(
-        SelectIdToDisplay(r.instrument, r.obsId.id, StepIdDisplayed(r.nextStepToRun))
+        SelectIdToDisplay(r.instrument, r.obsId, StepIdDisplayed(r.nextStepToRun))
       )
     } else { // Try to load it
       b.props.user
@@ -741,7 +741,7 @@ object SessionQueueTable extends Columns {
         ^.draggable := b.props.canOperate,
         ^.key       := key,
         ^.role      := "row",
-        ^.onDragStart ==> dragStart(b, rowData.obsId.id),
+        ^.onDragStart ==> dragStart(b, rowData.obsId),
         ^.style     := style.toJsObject,
         ^.onClick -->? onRowClick.map(h => h(index)),
         ^.onDoubleClick -->? onRowDoubleClick.map(h => h(index)),
