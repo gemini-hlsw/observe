@@ -200,7 +200,8 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(
       Cats.value,
       Kittens.value,
-      CatsTime.value
+      CatsTime.value,
+      LucumaSchemas.value
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
@@ -229,8 +230,7 @@ lazy val observe_web_client = project
       ClueJs.value,
       Crystal.value,
       Fs2.value,
-      LucumaUI.value,
-      LucumaSchemas.value
+      LucumaUI.value
     ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")

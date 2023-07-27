@@ -71,9 +71,9 @@ object Main:
         case Some(StandardUser(_, role, other, _)) =>
           (role +: other)
             .collectFirst { case StandardRole.Staff(roleId) => roleId }
-            .fold(IO.none)(ctx.ssoClient.switchRole)
-            .map(_.orElse(throw new Exception("User is not staff")))
-        case _                                     => IO.none
+            .fold(IO(userVault))(ctx.ssoClient.switchRole)
+        // .map(_.orElse(throw new Exception("User is not staff")))
+        case _                                     => IO(userVault)
     )
 
   private def buildPage(ctx: AppContext[IO]): IO[Unit] =
