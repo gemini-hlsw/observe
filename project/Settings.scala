@@ -29,7 +29,7 @@ object Settings {
     val catsVersion         = "2.9.0"
     val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
-    val fs2Version          = "3.7.0"
+    val fs2Version          = "3.8.0"
     val shapelessVersion    = "2.3.10"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
