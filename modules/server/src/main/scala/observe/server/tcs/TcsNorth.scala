@@ -47,9 +47,9 @@ class TcsNorth[F[_]: Sync: Logger] private (
     (subsystem match {
       case Subsystem.M1     => pprint.apply(tcs.gc.m1Guide)
       case Subsystem.M2     => pprint.apply(tcs.gc.m2Guide)
-      case Subsystem.OIWFS  => pprint.apply(tcs.gds.oiwfs)
-      case Subsystem.PWFS1  => pprint.apply(tcs.gds.pwfs1)
-      case Subsystem.PWFS2  => pprint.apply(tcs.gds.pwfs2)
+      case Subsystem.OIWFS  => pprint.apply(tcs.gds.oiwfs.value)
+      case Subsystem.PWFS1  => pprint.apply(tcs.gds.pwfs1.value)
+      case Subsystem.PWFS2  => pprint.apply(tcs.gds.pwfs2.value)
       case Subsystem.Mount  => pprint.apply(tcs.tc)
       case Subsystem.AGUnit => pprint.apply(List(tcs.agc.sfPos, tcs.agc.hrwfs))
       case Subsystem.Gaos   =>
@@ -134,7 +134,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
                 config.guideWithP1
               )
             ),
-            tag[AoGuide](aoGuiderConfig),
+            AoGuide(aoGuiderConfig),
             tag[OIConfig](
               calcGuiderConfig(
                 calcGuiderInUse(gc.tcsGuide, TipTiltSource.OIWFS, M1Source.OIWFS) | ao.usesOI(aog),
@@ -210,13 +210,13 @@ object TcsNorth {
       .toOption
       .flatMap(_.parseDoubleOption)
       .map(Arcseconds(_): Angle)
-      .map(tag[OffsetP](_))
+      .map(OffsetP(_))
     val offsetq = config
       .extractTelescopeAs[String](Q_OFFSET_PROP)
       .toOption
       .flatMap(_.parseDoubleOption)
       .map(Arcseconds(_): Angle)
-      .map(tag[OffsetQ](_))
+      .map(OffsetQ(_))
 
     val tcsSeqCfg = TcsSeqConfig[F](
       gwp1,

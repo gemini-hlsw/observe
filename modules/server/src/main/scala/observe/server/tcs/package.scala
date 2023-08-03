@@ -79,7 +79,7 @@ package object tcs {
   given Eq[BinaryEnabledDisabled] =
     Eq[Int].contramap(_.ordinal())
 
-  def tagIso[B, T]: Iso[B @@ T, B] = Iso.apply[B @@ T, B](x => x)(tag[T](_))
+  def tagIso[B, T]: Iso[B @@ T, B] = Iso.apply[B @@ T, B](x => x)(T(_))
 
   extension [A](v: A) {
     def withDebug(msg: String): WithDebug[A] = WithDebug(v, msg)

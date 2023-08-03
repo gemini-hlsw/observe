@@ -278,13 +278,13 @@ object TcsSouth {
       .toOption
       .flatMap(_.parseDoubleOption)
       .map(Arcseconds(_): Angle)
-      .map(tag[OffsetP](_))
+      .map(OffsetP(_))
     val offsetq = config
       .extractTelescopeAs[String](Q_OFFSET_PROP)
       .toOption
       .flatMap(_.parseDoubleOption)
       .map(Arcseconds(_): Angle)
-      .map(tag[OffsetQ](_))
+      .map(OffsetQ(_))
 
     val tcsSeqCfg = TcsSeqConfig[F](
       gwp1,

@@ -160,9 +160,9 @@ object GmosController {
 
     object NSConfig {
       case object NoNodAndShuffle extends NSConfig {
-        val nsPairs: GmosParameters.NsPairs                   = tag[NsPairsI][Int](0)
-        val nsRows: GmosParameters.NsRows                     = tag[NsRowsI][Int](0)
-        val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](1)
+        val nsPairs: GmosParameters.NsPairs                   = NsPairsI(0)
+        val nsRows: GmosParameters.NsRows                     = NsRowsI(0)
+        val exposureDivider: GmosParameters.NsExposureDivider = NsExposureDividerI(1)
         val nsState: NodAndShuffleState                       = NodAndShuffleState.Classic
       }
 
@@ -173,10 +173,10 @@ object GmosController {
         exposureTime: Duration
       ) extends NSConfig {
         val nsPairs: GmosParameters.NsPairs                   =
-          tag[NsPairsI][Int](cycles * NodAndShuffleStage.NsSequence.length / 2)
+          NsPairsI(cycles * NodAndShuffleStage.NsSequence.length / 2)
         val nsRows: GmosParameters.NsRows                     =
-          tag[NsRowsI][Int](Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
-        val exposureDivider: GmosParameters.NsExposureDivider = tag[NsExposureDividerI][Int](2)
+          NsRowsI(Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
+        val exposureDivider: GmosParameters.NsExposureDivider = NsExposureDividerI(2)
         val nsState: NodAndShuffleState                       = NodAndShuffleState.NodShuffle
         val totalExposureTime: Duration                       =
           cycles * exposureTime / exposureDivider.toDouble

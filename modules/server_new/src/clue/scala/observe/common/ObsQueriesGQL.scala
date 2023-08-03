@@ -13,8 +13,7 @@ import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 
 // gql: import io.circe.refined.*
-// gql: import lucuma.odb.json.sequence.given
-// gql: import lucuma.odb.json.gmos.given
+// gql: import lucuma.odb.json.all.{*, given}
 
 object ObsQueriesGQL {
 
@@ -46,6 +45,10 @@ object ObsQueriesGQL {
               microseconds
             }
           }
+          program {
+            id
+            name
+          }
           targetEnvironment {
             firstScienceTarget {
               targetId: id
@@ -57,6 +60,32 @@ object ObsQueriesGQL {
             cloudExtinction
             skyBackground
             waterVapor
+            elevationRange {
+              airMass {
+                min
+                max
+              }
+              hourAngle {
+                minHours
+                maxHours
+              }
+            }
+          }
+          timingWindows {
+            inclusion
+            startUtc
+            end {
+              ... on TimingWindowEndAt {
+                atUtc
+              }
+              ... on TimingWindowEndAfter {
+                after
+                repeat {
+                  period
+                  times
+                }
+              }
+            }
           }
           execution {
             config:executionConfig {
@@ -99,11 +128,8 @@ object ObsQueriesGQL {
 
       fragment northAtomFields on GmosNorthAtom {
         id
+        observeClass
         steps {
-          id
-          stepConfig {
-            ...stepConfig
-          }
           instrumentConfig {
             exposure {
               microseconds
@@ -129,16 +155,19 @@ object ObsQueriesGQL {
               }
             }
           }
+          id
+          breakpoint
+          stepConfig {
+            ...stepConfig
+          }
+          observeClass
         }
       }
 
       fragment southAtomFields on GmosSouthAtom {
         id
+        observeClass
         steps {
-          id
-          stepConfig {
-            ...stepConfig
-          }
           instrumentConfig {
             exposure {
               microseconds
@@ -164,6 +193,12 @@ object ObsQueriesGQL {
               }
             }
           }
+          id
+          breakpoint
+          stepConfig {
+            ...stepConfig
+          }
+          observeClass
         }
       }
 
@@ -258,6 +293,8 @@ object ObsQueriesGQL {
 
     object Data {
       object Observation {
+        type ConstraintSet = lucuma.core.model.ConstraintSet
+        type TimingWindows = lucuma.core.model.TimingWindow
         object Execution {
           object Config {
             object GmosNorthExecutionConfig {

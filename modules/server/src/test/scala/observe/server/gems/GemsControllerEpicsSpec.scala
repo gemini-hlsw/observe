@@ -53,10 +53,10 @@ class GemsControllerEpicsSpec extends CatsEffectSuite {
   )
 
   private val baseOffset =
-    FocalPlaneOffset(tag[OffsetX](0.0.millimeters), tag[OffsetY](0.0.millimeters))
+    FocalPlaneOffset(OffsetX(0.0.millimeters), OffsetY(0.0.millimeters))
 
   private val ditherOffset =
-    FocalPlaneOffset(tag[OffsetX](3.0.millimeters), tag[OffsetY](-3.0.millimeters))
+    FocalPlaneOffset(OffsetX(3.0.millimeters), OffsetY(-3.0.millimeters))
 
   test("GemsControlerEpics should do nothing if there is no change in configuration") {
     val gemsEpicsF = TestGemsEpics.build[IO](guidingState)

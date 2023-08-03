@@ -3,28 +3,25 @@
 
 package observe.server
 
-import cats.*
+import cats.{Applicative, Endo}
+import cats.data.NonEmptyList
 import cats.effect.kernel.Sync
 import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all.*
 import fs2.{Pipe, Stream}
 import lucuma.core.enums.{CloudExtinction, ImageQuality, Site, SkyBackground, WaterVapor}
+import lucuma.core.model.ConstraintSet
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
 import monocle.{Focus, Optional}
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.engine.EventResult.*
 import observe.engine.Result.Partial
-import observe.engine.{Handle, Step as _, SystemEvent, UserEvent, *}
+import observe.engine.{Handle, SystemEvent, UserEvent, Step as _, *}
 import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
 import observe.model.Notification.*
 import observe.model.given
-import observe.model.UserPrompt.{
-  Discrepancy,
-  ObsConditionsCheckOverride,
-  SeqCheck,
-  TargetCheckOverride
-}
+import observe.model.UserPrompt.{Discrepancy, ObsConditionsCheckOverride, SeqCheck, TargetCheckOverride}
 import observe.model.{Observation, StepId, UserDetails, *}
 import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, ServerLogLevel}
 import observe.model.config.*
@@ -251,28 +248,28 @@ object ObserveEngine {
     override def sync(q: EventQueue[F], seqId: Observation.Id): F[Unit] = Applicative[F].unit
     //      odbLoader.loadEvents(seqId).flatMap(_.map(q.offer).sequence.void)
     //
-    //    /**
-    //     * Check if the resources to run a sequence are available
-    //     * @return
-    //     *   true if resources are available
-    //     */
-    //    private def checkResources(seqId: Observation.Id)(st: EngineState[F]): Boolean = {
-    //      // Resources used by running sequences
-    //      val used = resourcesInUse(st)
-    //
-    //      // Resources that will be used by sequences in running queues
-    //      val reservedByQueues = resourcesReserved(st)
-    //
-    //      st.sequences
-    //        .get(seqId)
-    //        .exists(x =>
-    //          x.seqGen.resources.intersect(used).isEmpty && (
-    //            st.queues.values.filter(_.status(st).running).exists(_.queue.contains(seqId)) ||
-    //              x.seqGen.resources.intersect(reservedByQueues).isEmpty
-    //          )
-    //        )
-    //    }
-    //
+    /**
+     * Check if the resources to run a sequence are available
+     * @return
+     *   true if resources are available
+     */
+    private def checkResources(seqId: Observation.Id)(st: EngineState[F]): Boolean = {
+      // Resources used by running sequences
+      val used = resourcesInUse(st)
+
+      // Resources that will be used by sequences in running queues
+      val reservedByQueues = resourcesReserved(st)
+
+      st.sequences
+        .get(seqId)
+        .exists(x =>
+          x.seqGen.resources.intersect(used).isEmpty && (
+            st.queues.values.filter(_.status(st).running).exists(_.queue.contains(seqId)) ||
+              x.seqGen.resources.intersect(reservedByQueues).isEmpty
+          )
+        )
+    }
+
     // Starting step is either the one given, or the first one not run
     private def findStartingStep(
       obs:    SequenceData[F],
@@ -281,31 +278,30 @@ object ObserveEngine {
       stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
       stpGen <- obs.seqGen.steps.find(_.id === stp)
     } yield stpGen
-    //
-    //    private def findFirstCheckRequiredStep(
-    //      obs:    SequenceData[F],
-    //      stepId: StepId
-    //    ): Option[SequenceGen.StepGen[F]] =
-    //      obs.seqGen.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
-    //
-    //    /**
-    //     * Check if the target on the TCS matches the Observe target
-    //     * @return
-    //     *   an F that returns an optional TargetMatchResult if the targets don't match
-    //     */
-    //    private def sequenceTcsTargetMatch(
-    //      step: SequenceGen.StepGen[F]
-    //    ): F[Option[TargetCheckOverride]] =
-    //      extractTargetName(step.config)
-    //        .map { seqTarget =>
-    //          systems.tcsKeywordReader.sourceATarget.objectName.map { tcsTarget =>
-    //            (seqTarget =!= tcsTarget).option(
-    //              TargetCheckOverride(UserPrompt.Discrepancy(tcsTarget, seqTarget))
-    //            )
-    //          }
-    //        }
-    //        .getOrElse(none.pure[F])
-    //
+
+    private def findFirstCheckRequiredStep(
+      obs:    SequenceData[F],
+      stepId: StepId
+    ): Option[SequenceGen.StepGen[F]] =
+      obs.seqGen.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
+
+    /**
+     * Check if the target on the TCS matches the Observe target
+     * @return
+     *   an F that returns an optional TargetMatchResult if the targets don't match
+     */
+    private def sequenceTcsTargetMatch(
+      seqData: SequenceData[F]
+    ): F[Option[TargetCheckOverride]] =
+      seqData.targetName
+        .map { seqTarget =>
+          systems.tcsKeywordReader.sourceATarget.objectName.map { tcsTarget =>
+            (seqTarget =!= tcsTarget).option(
+              TargetCheckOverride(UserPrompt.Discrepancy(tcsTarget, seqTarget))
+            )
+          }
+        }
+        .getOrElse(none.pure[F])
 
     /**
      * Extract the target name from a step configuration. Some processing is necessary to get the
@@ -355,15 +351,15 @@ object ObserveEngine {
       obs.constraintSet.waterVapor
 
     private def observingConditionsMatch(
-      actualObsConditions: Conditions,
-      obs:                 ObsQueriesGQL.ObsQuery.Data.Observation
+      actualObsConditions:   Conditions,
+      requiredObsConditions: ConstraintSet
     ): Option[ObsConditionsCheckOverride] = {
 
       val UnknownStr: String = "Unknown"
-      val reqCC              = extractCloudCover(obs)
-      val reqIQ              = extractImageQuality(obs)
-      val reqSB              = extractSkyBackground(obs)
-      val reqWV              = extractWaterVapor(obs)
+      val reqCC              = requiredObsConditions.cloudExtinction
+      val reqIQ              = requiredObsConditions.imageQuality
+      val reqSB              = requiredObsConditions.skyBackground
+      val reqWV              = requiredObsConditions.waterVapor
 
       val ccCmp = (!checkCloudCover(actualObsConditions.cc, reqCC))
         .option(Discrepancy(actualObsConditions.cc.fold(UnknownStr)(_.label), reqCC.label))
@@ -401,108 +397,108 @@ object ObserveEngine {
         )
     }.toHandle
 
-//    // Produce a Handle that will send a SequenceStart notification to the ODB, and produces the (sequenceId, stepId)
-//    // if there is a valid sequence with a valid current step.
-//    private def sequenceStart(id: Observation.Id): HandleType[F, Option[(Observation.Id, StepId)]] =
-//      executeEngine.get.flatMap { s =>
-//        EngineState
-//          .atSequence(id)
-//          .getOption(s)
-//          .flatMap { seq =>
-//            seq.seq.currentStep.flatMap { step =>
-//              seq.visitId match {
-//                case Some(_) => none
-//                case None    =>
-//                  Handle
-//                    .fromStream[F, EngineState[F], EventType[F]](
-//                      Stream.eval[F, EventType[F]](
-//                        systems.odb
-//                          .sequenceStart(Observation.Id(id, seq.name))
-//                          .map { i =>
-//                            Event.modifyState {
-//                              executeEngine
-//                                .modify(
-//                                  EngineState.atSequence(id).modify(Focus[SequenceData](_.visitId).replace(i))
-//                                )
-//                                .as[SeqEvent](SeqEvent.NullSeqEvent)
-//                            }
-//                          }
-//                      )
-//                    )
-//                    .as((id, step.id).some)
-//                    .some
-//              }
-//            }
-//          }
-//          .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))
-//      }
-//
-//    private def startAfterCheck(
-//      startAction: HandleType[F, Unit],
-//      id:          Observation.Id
-//    ): HandleType[F, SeqEvent] =
-//      startAction.reversedStreamFlatMap(_ =>
-//        sequenceStart(id).map(
-//          _.map { case (sid, stepId) => SequenceStart(sid, stepId) }.getOrElse(NullSeqEvent)
-//        )
-//      )
-//
-//    private def startChecks(
-//      startAction: HandleType[F, Unit],
-//      id:          Observation.Id,
-//      clientId:    ClientId,
-//      stepId:      Option[StepId],
-//      runOverride: RunOverride
-//    ): HandleType[F, SeqEvent] =
-//      executeEngine.get.flatMap { st =>
-//        atSequence(id)
-//          .getOption(st)
-//          .map { seq =>
-//            executeEngine
-//              .liftF {
-//                (for {
-//                  ststp  <- findStartingStep(seq, stepId)
-//                  stpidx <- seq.seqGen.stepIndex(ststp.id)
-//                  sp     <- findFirstCheckRequiredStep(seq, ststp.id)
-//                } yield sequenceTcsTargetMatch(sp).map { tchk =>
-//                  (ststp.some,
-//                   stpidx,
-//                   List(tchk, observingConditionsMatch(st.conditions, sp))
-//                     .collect { case Some(x) => x }
-//                     .widen[SeqCheck]
-//                  )
-//                })
-//                  .getOrElse((none[SequenceGen.StepGen[F]], 0, List.empty[SeqCheck]).pure[F])
-//              }
-//              .flatMap { case (stpg, stpidx, checks) =>
-//                (checkResources(id)(st), stpg, checks, runOverride) match {
-//                  // Resource check fails
-//                  case (false, _, _, _)                             =>
-//                    executeEngine.unit.as[SeqEvent](
-//                      Busy(Observation.Id(id, seq.name), clientId)
-//                    )
-//                  // Target check fails and no override
-//                  case (_, Some(stp), x :: xs, RunOverride.Default) =>
-//                    executeEngine.unit.as[SeqEvent](
-//                      RequestConfirmation(
-//                        UserPrompt.ChecksOverride(Observation.Id(id, seq.name),
-//                                                  stp.id,
-//                                                  stpidx,
-//                                                  NonEmptyList(x, xs)
-//                        ),
-//                        clientId
-//                      )
-//                    )
-//                  // Allowed to run
-//                  case _                                            => startAfterCheck(startAction, id)
-//                }
-//              }
-//          }
-//          .getOrElse(
-//            executeEngine.unit.as[SeqEvent](NullSeqEvent)
-//          ) // Trying to run a sequence that does not exists. This should never happen.
-//      }
-//
+    // Produce a Handle that will send a SequenceStart notification to the ODB, and produces the (sequenceId, stepId)
+    // if there is a valid sequence with a valid current step.
+    private def sequenceStart(id: Observation.Id): HandlerType[F, Option[(Observation.Id, StepId)]] =
+      executeEngine.get.flatMap { s =>
+        EngineState
+          .atSequence(id)
+          .getOption(s)
+          .flatMap { seq =>
+            seq.seq.currentStep.flatMap { step =>
+              seq.visitId match {
+                case Some(_) => none
+                case None    =>
+                  Handle
+                    .fromStream[F, EngineState[F], EventType[F]](
+                      Stream.eval[F, EventType[F]](
+                        systems.odb
+                          .sequenceStart(id, seq.seqGen.staticCfg)
+                          .map { i =>
+                            Event.modifyState {
+                              executeEngine
+                                .modify(
+                                  EngineState.atSequence(id).modify(Focus[SequenceData[F]](_.visitId).replace(i.some))
+                                )
+                                .as[SeqEvent](SeqEvent.NullSeqEvent)
+                            }
+                          }
+                      )
+                    )
+                    .as((id, step.id).some)
+                    .some
+              }
+            }
+          }
+          .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))
+      }
+
+    private def startAfterCheck(
+      startAction: HandlerType[F, Unit],
+      id:          Observation.Id
+    ): HandlerType[F, SeqEvent] =
+      startAction.reversedStreamFlatMap(_ =>
+        sequenceStart(id).map(
+          _.map { case (sid, stepId) => SequenceStart(sid, stepId) }.getOrElse(NullSeqEvent)
+        )
+      )
+
+    private def startChecks(
+      startAction: HandlerType[F, Unit],
+      id:          Observation.Id,
+      clientId:    ClientId,
+      stepId:      Option[StepId],
+      runOverride: RunOverride
+    ): HandlerType[F, SeqEvent] =
+      executeEngine.get.flatMap { st =>
+        EngineState.atSequence(id)
+          .getOption(st)
+          .map { seq =>
+            executeEngine
+              .liftF {
+                (for {
+                  ststp  <- findStartingStep(seq, stepId)
+                  stpidx <- seq.seqGen.stepIndex(ststp.id)
+                  sp     <- findFirstCheckRequiredStep(seq, ststp.id)
+                } yield sequenceTcsTargetMatch(seq).map { tchk =>
+                  (ststp.some,
+                   stpidx,
+                   List(tchk, observingConditionsMatch(st.conditions, seq.conditions))
+                     .collect { case Some(x) => x }
+                     .widen[SeqCheck]
+                  )
+                })
+                  .getOrElse((none[SequenceGen.StepGen[F]], 0, List.empty[SeqCheck]).pure[F])
+              }
+              .flatMap { case (stpg, stpidx, checks) =>
+                (checkResources(id)(st), stpg, checks, runOverride) match {
+                  // Resource check fails
+                  case (false, _, _, _)                             =>
+                    executeEngine.unit.as[SeqEvent](
+                      Busy(id, clientId)
+                    )
+                  // Target check fails and no override
+                  case (_, Some(stp), x :: xs, RunOverride.Default) =>
+                    executeEngine.unit.as[SeqEvent](
+                      RequestConfirmation(
+                        UserPrompt.ChecksOverride(id,
+                                                  stp.id,
+                                                  stpidx,
+                                                  NonEmptyList(x, xs)
+                        ),
+                        clientId
+                      )
+                    )
+                  // Allowed to run
+                  case _                                            => startAfterCheck(startAction, id)
+                }
+              }
+          }
+          .getOrElse(
+            executeEngine.unit.as[SeqEvent](NullSeqEvent)
+          ) // Trying to run a sequence that does not exists. This should never happen.
+      }
+
     // Stars a sequence from the first non executed step. The method checks for resources conflict.
     override def start(
       q:           EventQueue[F],
@@ -511,15 +507,14 @@ object ObserveEngine {
       observer:    Observer,
       clientId:    ClientId,
       runOverride: RunOverride
-    ): F[Unit] = Applicative[F].unit
-//      q.offer(
-//        Event.modifyState[F, EngineState[F], SeqEvent](
-//          setObserver(id, observer) *>
-//            clearObsCmd(id) *>
-//            startChecks(executeEngine.start(id), id, clientId, none, runOverride)
-//        )
-//      )
-//
+    ): F[Unit] = q.offer(
+      Event.modifyState[F, EngineState[F], SeqEvent](
+        setObserver(id, observer) *>
+          clearObsCmd(id) *>
+          startChecks(executeEngine.start(id), id, clientId, none, runOverride)
+      )
+    )
+
     // Stars a sequence from an arbitrary step. All previous non executed steps are skipped.
     // The method checks for resources conflict.
     override def startFrom(
@@ -578,19 +573,17 @@ object ObserveEngine {
 //          )
 //        )
 //
-//    private def setObserver(
-//      id:       Observation.Id,
-//      observer: Observer,
-//      event:    SeqEvent = SeqEvent.NullSeqEvent
-//    ): HandleType[F, SeqEvent] = { (s: EngineState[F]) =>
-//      (EngineState
-//         .sequences[F]
-//         .index(id)
-//         .modify(Focus[SequenceData](_.observer).replace(observer.some))(s),
-//       event
-//      )
-//    }.toHandle
-//
+    private def setObserver(
+      id:       Observation.Id,
+      observer: Observer,
+      event:    SeqEvent = SeqEvent.NullSeqEvent
+    ): HandlerType[F, SeqEvent] = { (s: EngineState[F]) =>
+      (EngineState.atSequence[F](id)
+         .modify(Focus[SequenceData[F]](_.observer).replace(observer.some))(s),
+       event
+      )
+    }.toHandle
+
     override def setObserver(
       q:     EventQueue[F],
       seqId: Observation.Id,
@@ -879,7 +872,7 @@ object ObserveEngine {
 //    private def addSeqs(
 //      qid:    QueueId,
 //      seqIds: List[Observation.Id]
-//    ): HandleType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
@@ -937,7 +930,7 @@ object ObserveEngine {
 //    private def removeSeq(
 //      qid:   QueueId,
 //      seqId: Observation.Id
-//    ): HandleType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
@@ -1029,7 +1022,7 @@ object ObserveEngine {
 //      observer: Observer,
 //      user:     UserDetails,
 //      clientId: ClientId
-//    ): HandleType[F, Unit] = Handle(
+//    ): HandlerType[F, Unit] = Handle(
 //      StateT[F, EngineState[F], (Unit, Option[Stream[F, EventType[F]]])] { st: EngineState[F] =>
 //        EngineState
 //          .sequences[F]
@@ -1070,7 +1063,7 @@ object ObserveEngine {
 //      observer: Observer,
 //      user:     UserDetails,
 //      clientId: ClientId
-//    ): HandleType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      ss.map(sid =>
 //        setObserverAndSelect(sid, observer, user, clientId) *>
 //          executeEngine.start(sid).reversedStreamFlatMap(_ => sequenceStart(sid))
@@ -1086,7 +1079,7 @@ object ObserveEngine {
 //      observer: Observer,
 //      user:     UserDetails,
 //      clientId: ClientId
-//    ): HandleType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      executeEngine.get
 //        .map(findRunnableObservations(qid))
 //        .flatMap(runSequences(_, observer, user, clientId))
@@ -1106,7 +1099,7 @@ object ObserveEngine {
 //      user:     UserDetails,
 //      clientId: ClientId,
 //      freed:    Set[Resource]
-//    ): HandleType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      executeEngine.get
 //        .map(nextRunnableObservations(qid, freed))
 //        .flatMap(runSequences(_, observer, user, clientId))
@@ -1142,7 +1135,7 @@ object ObserveEngine {
 //      })
 //    )
 //
-//    private def stopSequencesInQueue(qid: QueueId): HandleType[F, Unit] =
+//    private def stopSequencesInQueue(qid: QueueId): HandlerType[F, Unit] =
 //      executeEngine.get
 //        .map(st =>
 //          queueO(qid)
@@ -1231,7 +1224,7 @@ object ObserveEngine {
 //      stepId:   StepId,
 //      sys:      Resource,
 //      clientID: ClientId
-//    ): HandleType[F, SeqEvent] =
+//    ): HandlerType[F, SeqEvent] =
 //      executeEngine.get.flatMap { st =>
 //        if (configSystemCheck(sid, sys)(st)) {
 //          st.sequences

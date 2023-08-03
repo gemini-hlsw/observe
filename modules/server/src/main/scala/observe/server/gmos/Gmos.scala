@@ -182,8 +182,8 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   def nsConfig: NSConfig = staticCfg.nodAndShuffle
     .map { n =>
       NSConfig.NodAndShuffle(
-        tag[NsCyclesI][Int](n.shuffleCycles),
-        tag[NsRowsI][Int](n.shuffleOffset),
+        NsCyclesI(n.shuffleCycles),
+        NsRowsI(n.shuffleOffset),
         Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide),
                NSPosition(NodAndShuffleStage.StageB, n.posB, Guiding.Guide)
         ),

@@ -2,8 +2,12 @@ package observe.server
 
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
-
+import cats.Eq
 import cats.syntax.all.*
+import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
+import edu.gemini.observe.server.tcs.ParkState
 import squants.Angle
 import squants.Length
 import squants.Ratio
@@ -60,6 +64,14 @@ package object tcs {
   val pwfs2OffsetThreshold: Length = Arcseconds(0.01) / FOCAL_PLANE_SCALE
 
   val AoOffsetThreshold: Length = Arcseconds(0.01) / FOCAL_PLANE_SCALE
+
+  implicit val ooEq: Eq[BinaryOnOff] = Eq.by[BinaryOnOff, Int](_.ordinal())
+//    //Eq[Int].contramap(_.ordinal())
+  implicit val ynEq: Eq[BinaryYesNo] = Eq.by[BinaryYesNo, Int](_.ordinal())
+    //Eq[Int].contramap(_.ordinal())
+  implicit val endisEq: Eq[BinaryEnabledDisabled] = Eq.by[BinaryEnabledDisabled, Int](_.ordinal())
+//    //Eq[Int].contramap(_.ordinal())
+//  implicit val parkEq: Eq[ParkState] = Eq.by[ParkState, Int](_.ordinal()) //Eq[Int].contramap(_.ordinal())
 
   extension [A](v: A) {
     def withDebug(msg: String): WithDebug[A] = WithDebug(v, msg)

@@ -57,7 +57,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
     Arcseconds(33.8),
-    FocalPlaneOffset(tag[OffsetX](Millimeters(0.0)), tag[OffsetY](Millimeters(0.0))),
+    FocalPlaneOffset(OffsetX(Millimeters(0.0)), OffsetY(Millimeters(0.0))),
     Wavelength.fromMicrometers(400).get,
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
@@ -90,9 +90,9 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     ),
     TelescopeConfig(None, None),
     BasicGuidersConfig(
-      tag[P1Config](GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff)),
-      tag[P2Config](GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff)),
-      tag[OIConfig](GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
+      P1Config(GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff)),
+      P2Config(GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff)),
+      OIConfig(GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
     ),
     AGConfig(LightPath(Sky, Gmos), None),
     DummyInstrument(Instrument.GmosS, 1.millimeters.some)
@@ -112,8 +112,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
         .andThen(TelescopeConfig.offsetA)
         .replace(
           InstrumentOffset(
-            tag[OffsetP](pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
-            tag[OffsetQ](Arcseconds(0.0))
+            OffsetP(pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
+            OffsetQ(Arcseconds(0.0))
           ).some
         )(baseConfig)
     ) shouldBe false
@@ -128,8 +128,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -157,8 +157,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -187,8 +187,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -219,8 +219,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -248,8 +248,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -278,8 +278,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -313,8 +313,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](threshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -343,8 +343,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](threshold * 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -374,8 +374,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
           .andThen(TelescopeConfig.offsetA)
           .replace(
             InstrumentOffset(
-              tag[OffsetP](threshold / 2.0 * FOCAL_PLANE_SCALE),
-              tag[OffsetQ](Arcseconds(0.0))
+              OffsetP(threshold / 2.0 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
             ).some
           ) >>>
           Focus[BasicTcsConfig](_.gc)
@@ -480,7 +480,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
     val config = baseConfig.copy(
       tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](0.arcseconds)).some
+        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
       ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
@@ -632,7 +632,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
     val config = baseConfig.copy(
       tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](0.arcseconds)).some
+        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
       ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
@@ -785,7 +785,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
     val config = baseConfig.copy(
       tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](0.arcseconds)).some
+        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
       ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
@@ -874,9 +874,9 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   it should "apply an offset if it is not at the right position" in {
 
-    val offsetDemand  = InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](-5.arcseconds))
+    val offsetDemand  = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val offsetCurrent =
-      InstrumentOffset(tag[OffsetP](10.00001.arcseconds), tag[OffsetQ](-5.arcseconds))
+      InstrumentOffset(OffsetP(10.00001.arcseconds), OffsetQ(-5.arcseconds))
     val iaa           = 33.degrees
     val wavelength    = Wavelength.fromNanometers(440).get
     val recordPrec    = 14
@@ -918,7 +918,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   it should "not reapply an offset if it is already at the right position" in {
 
-    val offset     = InstrumentOffset(tag[OffsetP](10.arcseconds), tag[OffsetQ](-5.arcseconds))
+    val offset     = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val iaa        = 33.degrees
     val wavelength = Wavelength.fromNanometers(440).get
     val recordPrec = 14
@@ -926,9 +926,9 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
         xoffsetPoA1 =
-          tag[OffsetX](epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).x.toMillimeters)),
+          OffsetX(epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).x.toMillimeters)),
         yoffsetPoA1 =
-          tag[OffsetX](epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).y.toMillimeters)),
+          OffsetX(epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).y.toMillimeters)),
         instrAA = epicsTransform(recordPrec)(iaa.toDegrees),
         sourceAWavelength = epicsTransform(recordPrec)(wavelength.angstrom.value.toDouble)
       )

@@ -118,10 +118,6 @@ package object server {
     expTime:      Duration
   ) extends PauseContext
 
-//}
-//
-//package object server    {
-
   type ExecutionQueues = Map[QueueId, ExecutionQueue]
 
   // This is far from ideal but we'll address this in another refactoring
@@ -133,7 +129,7 @@ package object server {
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 
-  implicit class EitherTFailureOps[F[_]: MonadThrow, A](
+  extension [F[_]: MonadThrow, A] (
     s: EitherT[F, ObserveFailure, A]
   ) {
     def liftF: F[A] =

@@ -5,6 +5,8 @@ package observe.server
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
 import mouse.all.*
 import observe.engine.Action
 import observe.engine.ActionCoordsInSeq
@@ -30,6 +32,7 @@ final case class SequenceGen[F[_]](
   name:       Observation.Name,
   title:      String,
   instrument: Instrument,
+  staticCfg:  StaticConfig,
   steps:      List[SequenceGen.StepGen[F]]
 ) {
   val resources: Set[Resource] = steps
@@ -66,6 +69,7 @@ object SequenceGen {
     val id: StepId
     val dataId: DataId
     val genData: StepStatusGen
+    val config: StepConfig
   }
 
   object StepGen {
@@ -77,9 +81,9 @@ object SequenceGen {
       stepGen match {
         case p: PendingStepGen[F]          =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
-        case SkippedStepGen(id, _, _)      =>
+        case SkippedStepGen(id, _, _, _)      =>
           EngineStep.skippedL[F].replace(true)(EngineStep.init[F](id, Nil))
-        case CompletedStepGen(id, _, _, _) => EngineStep.init[F](id, Nil)
+        case CompletedStepGen(id, _, _, _, _) => EngineStep.init[F](id, Nil)
       }
   }
 
@@ -107,15 +111,17 @@ object SequenceGen {
     override val id:      StepId,
     override val dataId:  DataId,
     resources:            Set[Resource],
-    // obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
+    obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:            StepActionsGen[F],
-    override val genData: StepStatusGen = StepStatusGen.Null
+    override val genData: StepStatusGen = StepStatusGen.Null,
+    override val config: StepConfig
   ) extends StepGen[F]
 
   final case class SkippedStepGen[F[_]](
     override val id:      StepId,
     override val dataId:  DataId,
-    override val genData: StepStatusGen = StepStatusGen.Null
+    override val genData: StepStatusGen = StepStatusGen.Null,
+    override val config: StepConfig
   ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
@@ -124,7 +130,8 @@ object SequenceGen {
     override val id:      StepId,
     override val dataId:  DataId,
     fileId:               Option[ImageFileId],
-    override val genData: StepStatusGen = StepStatusGen.Null
+    override val genData: StepStatusGen = StepStatusGen.Null,
+    override val config: StepConfig
   ) extends StepGen[F]
 
   def stepIndex[F[_]](
