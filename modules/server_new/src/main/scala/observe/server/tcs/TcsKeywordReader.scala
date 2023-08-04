@@ -550,7 +550,7 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
         xoff <- OptionT(xOffsetOption)
         yoff <- OptionT(yOffsetOption)
         iaa  <- OptionT.liftF(sys.instrAA.map(Degrees(_)))
-      } yield xoff * iaa.sin * (-1.0) - yoff * iaa.cos
+      } yield xoff * iaa.sin * -1.0 - yoff * iaa.cos
     ).value
       .handleError(_ => none)
 
@@ -570,7 +570,7 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
         p   <- OptionT(pOffsetOption)
         q   <- OptionT(qOffsetOption)
         ipa <- OptionT.liftF(sys.instrPA.map(Degrees(_)))
-      } yield p * ipa.sin * (-1.0) + q * ipa.cos
+      } yield p * ipa.sin * -1.0 + q * ipa.cos
     ).map(_.toArcseconds).value.safeValOrDefault
   }
 }

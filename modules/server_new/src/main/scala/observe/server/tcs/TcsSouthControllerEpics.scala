@@ -11,14 +11,15 @@ import observe.server.ObserveFailure
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsSouthController.{*, given}
+import observe.server.tcs.TcsSouthController.*
 import org.typelevel.log4cats.Logger
+import lucuma.core.enums.Site
 
 final case class TcsSouthControllerEpics[F[_]: Async: Logger](
   epicsSys:      TcsEpics[F],
   guideConfigDb: GuideConfigDb[F]
 ) extends TcsSouthController[F] {
-  private val commonController = TcsControllerEpicsCommon(epicsSys)
+  private val commonController = TcsControllerEpicsCommon[F, Site.GS.type](epicsSys)
   private val aoController     = TcsSouthControllerEpicsAo(epicsSys)
 
   override def applyConfig(
@@ -27,8 +28,8 @@ final case class TcsSouthControllerEpics[F[_]: Async: Logger](
     tcs:        TcsSouthConfig
   ): F[Unit] =
     tcs match {
-      case c: BasicTcsConfig   => commonController.applyBasicConfig(subsystems, c)
-      case d: TcsSouthAoConfig =>
+      case c: BasicTcsConfig[Site.GS.type] => commonController.applyBasicConfig(subsystems, c)
+      case d: TcsSouthAoConfig             =>
         for {
           oc <- guideConfigDb.value
           gc <- oc.gaosGuide
@@ -59,8 +60,8 @@ final case class TcsSouthControllerEpics[F[_]: Async: Logger](
     tcsConfig:  TcsSouthConfig
   )(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[Unit] =
     tcsConfig match {
-      case c: BasicTcsConfig   => commonController.nod(subsystems, offset, guided, c)
-      case _: TcsSouthAoConfig =>
+      case c: BasicTcsConfig[Site.GS.type] => commonController.nod(subsystems, offset, guided, c)
+      case _: TcsSouthAoConfig             =>
         ObserveFailure.Execution("N&S not supported when using GeMS").raiseError[F, Unit]
     }
 }

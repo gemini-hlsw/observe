@@ -24,7 +24,13 @@ import observe.server.gems.GemsController.Odgw3Usage
 import observe.server.gems.GemsController.Odgw4Usage
 import observe.server.gems.GemsController.P1Usage
 import observe.server.tcs.{Gaos, GuideConfig, GuideConfigDb, Tcs}
-import observe.server.tcs.Gaos.{PauseCondition, PauseConditionSet, PauseResume, ResumeCondition, ResumeConditionSet}
+import observe.server.tcs.Gaos.{
+  PauseCondition,
+  PauseConditionSet,
+  PauseResume,
+  ResumeCondition,
+  ResumeConditionSet
+}
 import squants.Time
 
 trait Gems[F[_]] extends Gaos[F] {
@@ -134,7 +140,7 @@ object Gems {
   def fromConfig[F[_]: MonadThrow: Logger](
     guideConfigDb: GuideConfigDb[F],
     obsCfg:        Observation
-  ): F[GemsController[F] => Gems[F]] = {
+  ): F[GemsController[F] => Gems[F]] =
     for {
       p1    <- none[GuideState].pure[F]
       oi    <- none[GuideState].pure[F]
@@ -162,7 +168,6 @@ object Gems {
         guideConfigDb
       ): Gems[F]
     }
-  }
 
   trait DetectorStateOps[T] {
     val trueVal: T

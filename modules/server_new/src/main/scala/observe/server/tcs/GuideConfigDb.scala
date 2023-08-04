@@ -159,10 +159,11 @@ object GuideConfigDb {
 
   given Decoder[M2GuideConfig] = Decoder.instance[M2GuideConfig] { c =>
     c.downField("on").as[Boolean].flatMap {
-      if (_) for {
-        srcs <- c.downField("sources").as[Set[TipTiltSource]]
-        coma <- c.downField("comaOn").as[ComaOption]//(comaDecoder)
-      } yield M2GuideOn(coma, srcs)
+      if (_)
+        for {
+          srcs <- c.downField("sources").as[Set[TipTiltSource]]
+          coma <- c.downField("comaOn").as[ComaOption] // (comaDecoder)
+        } yield M2GuideOn(coma, srcs)
       else Right(M2GuideOff)
     }
   }
@@ -172,9 +173,13 @@ object GuideConfigDb {
       "mountGuideOn",
       "m1Guide",
       "m2Guide"
-    )(TelescopeGuideConfig(_, _, _))//(mountGuideDecoder, m1GuideDecoder, m2GuideDecoder)
+    )(TelescopeGuideConfig(_, _, _)) // (mountGuideDecoder, m1GuideDecoder, m2GuideDecoder)
 
   given Decoder[GuideConfig] =
-    Decoder.forProduct2[GuideConfig, TelescopeGuideConfig, Option[Either[AltairConfig, GemsConfig]]]("tcsGuide", "gaosGuide")(GuideConfig(_, _, false))
+    Decoder
+      .forProduct2[GuideConfig, TelescopeGuideConfig, Option[Either[AltairConfig, GemsConfig]]](
+        "tcsGuide",
+        "gaosGuide"
+      )(GuideConfig(_, _, false))
 
 }

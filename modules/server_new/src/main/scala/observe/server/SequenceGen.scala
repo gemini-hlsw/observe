@@ -79,7 +79,7 @@ object SequenceGen {
       ctx:             HeaderExtraData
     ): EngineStep[F] =
       stepGen match {
-        case p: PendingStepGen[F]          =>
+        case p: PendingStepGen[F]             =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
         case SkippedStepGen(id, _, _, _)      =>
           EngineStep.skippedL[F].replace(true)(EngineStep.init[F](id, Nil))
@@ -111,17 +111,17 @@ object SequenceGen {
     override val id:      StepId,
     override val dataId:  DataId,
     resources:            Set[Resource],
-    obsControl:          SystemOverrides => InstrumentSystem.ObserveControl[F],
+    obsControl:           SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:            StepActionsGen[F],
     override val genData: StepStatusGen = StepStatusGen.Null,
-    override val config: StepConfig
+    override val config:  StepConfig
   ) extends StepGen[F]
 
   final case class SkippedStepGen[F[_]](
     override val id:      StepId,
     override val dataId:  DataId,
     override val genData: StepStatusGen = StepStatusGen.Null,
-    override val config: StepConfig
+    override val config:  StepConfig
   ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
@@ -131,7 +131,7 @@ object SequenceGen {
     override val dataId:  DataId,
     fileId:               Option[ImageFileId],
     override val genData: StepStatusGen = StepStatusGen.Null,
-    override val config: StepConfig
+    override val config:  StepConfig
   ) extends StepGen[F]
 
   def stepIndex[F[_]](

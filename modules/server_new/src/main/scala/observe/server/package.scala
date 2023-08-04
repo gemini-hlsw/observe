@@ -129,7 +129,7 @@ package object server {
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 
-  extension [F[_]: MonadThrow, A] (
+  extension [F[_]: MonadThrow, A](
     s: EitherT[F, ObserveFailure, A]
   ) {
     def liftF: F[A] =

@@ -561,7 +561,8 @@ object AltairControllerEpics {
       offset: PauseCondition.OffsetMove,
       inst:   Instrument
     ): Boolean = {
-      val deltas = (offset.to.x.value - offset.from.x.value, offset.to.y.value - offset.from.y.value)
+      val deltas =
+        (offset.to.x.value - offset.from.x.value, offset.to.y.value - offset.from.y.value)
       aoOffsetThreshold(inst).exists(h => deltas._1 * deltas._1 + deltas._2 * deltas._2 < h * h)
     }
 

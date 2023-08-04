@@ -9,7 +9,7 @@ import cats.effect.{Ref, Sync, Temporal}
 import cats.syntax.all.*
 import io.circe.syntax.*
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
-import lucuma.core.enums.DhsKeywordName
+import observe.model.enums.DhsKeywordName
 import observe.model.dhs.*
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
@@ -38,13 +38,12 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F
   private val clientWithRetry = {
     val max             = 4
     var attemptsCounter = 1
-    val policy          = RetryPolicy[F] {
-      (attempts: Int) =>
-        if (attempts >= max) None
-        else {
-          attemptsCounter = attemptsCounter + 1
-          10.milliseconds.some
-        }
+    val policy          = RetryPolicy[F] { (attempts: Int) =>
+      if (attempts >= max) None
+      else {
+        attemptsCounter = attemptsCounter + 1
+        10.milliseconds.some
+      }
     }
     Retry[F](policy)(base)
   }
@@ -177,7 +176,7 @@ object DhsClientHttp {
  * Implementation of the Dhs client that simulates a dhs without external dependencies
  */
 private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[F, Int])
-  extends DhsClient[F] {
+    extends DhsClient[F] {
 
   val format: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
 

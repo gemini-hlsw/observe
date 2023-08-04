@@ -10,12 +10,13 @@ import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsNorthController.{*, given}
+import observe.server.tcs.TcsNorthController.*
 import org.typelevel.log4cats.Logger
+import lucuma.core.enums.Site
 
 final case class TcsNorthControllerEpics[F[_]: Async: Logger](epicsSys: TcsEpics[F])
     extends TcsNorthController[F] {
-  private val commonController = TcsControllerEpicsCommon(epicsSys)
+  private val commonController = TcsControllerEpicsCommon[F, Site.GN.type](epicsSys)
   private val aoController     = TcsNorthControllerEpicsAo(epicsSys)
 
   override def applyConfig(
@@ -24,8 +25,8 @@ final case class TcsNorthControllerEpics[F[_]: Async: Logger](epicsSys: TcsEpics
     tcs:        TcsNorthConfig
   ): F[Unit] =
     tcs match {
-      case c: BasicTcsConfig   => commonController.applyBasicConfig(subsystems, c)
-      case d: TcsNorthAoConfig =>
+      case c: BasicTcsConfig[Site.GN.type] => commonController.applyBasicConfig(subsystems, c)
+      case d: TcsNorthAoConfig             =>
         gaos
           .map(aoController.applyAoConfig(subsystems, _, d))
           .getOrElse(
@@ -42,8 +43,8 @@ final case class TcsNorthControllerEpics[F[_]: Async: Logger](epicsSys: TcsEpics
     tcsConfig:  TcsNorthConfig
   )(stage: NodAndShuffleStage, offset: InstrumentOffset, guided: Boolean): F[Unit] =
     tcsConfig match {
-      case c: BasicTcsConfig   => commonController.nod(subsystems, offset, guided, c)
-      case _: TcsNorthAoConfig =>
+      case c: BasicTcsConfig[Site.GN.type] => commonController.nod(subsystems, offset, guided, c)
+      case _: TcsNorthAoConfig             =>
         ObserveFailure.Execution("N&S not supported when using Altair").raiseError[F, Unit]
     }
 }

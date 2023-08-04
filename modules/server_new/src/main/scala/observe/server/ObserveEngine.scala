@@ -10,19 +10,24 @@ import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all.*
 import fs2.{Pipe, Stream}
 import lucuma.core.enums.{CloudExtinction, ImageQuality, Site, SkyBackground, WaterVapor}
-import lucuma.core.model.ConstraintSet
+import lucuma.core.model.{ConstraintSet, Observation}
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
 import monocle.{Focus, Optional}
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.engine.EventResult.*
 import observe.engine.Result.Partial
-import observe.engine.{Handle, SystemEvent, UserEvent, Step as _, *}
+import observe.engine.{Handle, Step as _, SystemEvent, UserEvent, *}
 import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
 import observe.model.Notification.*
 import observe.model.given
-import observe.model.UserPrompt.{Discrepancy, ObsConditionsCheckOverride, SeqCheck, TargetCheckOverride}
-import observe.model.{Observation, StepId, UserDetails, *}
+import observe.model.UserPrompt.{
+  Discrepancy,
+  ObsConditionsCheckOverride,
+  SeqCheck,
+  TargetCheckOverride
+}
+import observe.model.{StepId, UserDetails, *}
 import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, ServerLogLevel}
 import observe.model.config.*
 //import observe.model.enums.{ImageQuality as _, *}
@@ -338,18 +343,6 @@ object ObserveEngine {
     private def checkWaterVapor(actual: Option[WaterVapor], requested: WaterVapor): Boolean =
       actual.forall(_ <= requested)
 
-    private def extractCloudCover(obs: ObsQueriesGQL.ObsQuery.Data.Observation): CloudExtinction =
-      obs.constraintSet.cloudExtinction
-
-    private def extractImageQuality(obs: ObsQueriesGQL.ObsQuery.Data.Observation): ImageQuality =
-      obs.constraintSet.imageQuality
-
-    private def extractSkyBackground(obs: ObsQueriesGQL.ObsQuery.Data.Observation): SkyBackground =
-      obs.constraintSet.skyBackground
-
-    private def extractWaterVapor(obs: ObsQueriesGQL.ObsQuery.Data.Observation): WaterVapor =
-      obs.constraintSet.waterVapor
-
     private def observingConditionsMatch(
       actualObsConditions:   Conditions,
       requiredObsConditions: ConstraintSet
@@ -399,7 +392,9 @@ object ObserveEngine {
 
     // Produce a Handle that will send a SequenceStart notification to the ODB, and produces the (sequenceId, stepId)
     // if there is a valid sequence with a valid current step.
-    private def sequenceStart(id: Observation.Id): HandlerType[F, Option[(Observation.Id, StepId)]] =
+    private def sequenceStart(
+      id: Observation.Id
+    ): HandlerType[F, Option[(Observation.Id, StepId)]] =
       executeEngine.get.flatMap { s =>
         EngineState
           .atSequence(id)
@@ -418,7 +413,9 @@ object ObserveEngine {
                             Event.modifyState {
                               executeEngine
                                 .modify(
-                                  EngineState.atSequence(id).modify(Focus[SequenceData[F]](_.visitId).replace(i.some))
+                                  EngineState
+                                    .atSequence(id)
+                                    .modify(Focus[SequenceData[F]](_.visitId).replace(i.some))
                                 )
                                 .as[SeqEvent](SeqEvent.NullSeqEvent)
                             }
@@ -451,7 +448,8 @@ object ObserveEngine {
       runOverride: RunOverride
     ): HandlerType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
-        EngineState.atSequence(id)
+        EngineState
+          .atSequence(id)
           .getOption(st)
           .map { seq =>
             executeEngine
@@ -481,11 +479,7 @@ object ObserveEngine {
                   case (_, Some(stp), x :: xs, RunOverride.Default) =>
                     executeEngine.unit.as[SeqEvent](
                       RequestConfirmation(
-                        UserPrompt.ChecksOverride(id,
-                                                  stp.id,
-                                                  stpidx,
-                                                  NonEmptyList(x, xs)
-                        ),
+                        UserPrompt.ChecksOverride(id, stp.id, stpidx, NonEmptyList(x, xs)),
                         clientId
                       )
                     )
@@ -578,7 +572,8 @@ object ObserveEngine {
       observer: Observer,
       event:    SeqEvent = SeqEvent.NullSeqEvent
     ): HandlerType[F, SeqEvent] = { (s: EngineState[F]) =>
-      (EngineState.atSequence[F](id)
+      (EngineState
+         .atSequence[F](id)
          .modify(Focus[SequenceData[F]](_.observer).replace(observer.some))(s),
        event
       )
