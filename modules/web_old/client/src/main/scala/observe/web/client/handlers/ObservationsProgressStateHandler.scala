@@ -77,7 +77,7 @@ class ObservationsProgressStateHandler[M](modelRW: ModelRW[M, AllObservationsPro
   ): ActionResult[M] = {
     val upd =
       for {
-        obs     <- sequenceViewT.find(_.idName.id === obsId)(e)
+        obs     <- sequenceViewT.find(_.obsId === obsId)(e)
         curSId  <- obs.runningStep.flatMap(_.id)
         curStep <- sequenceStepT.find(_.id === curSId)(obs)
       } yield

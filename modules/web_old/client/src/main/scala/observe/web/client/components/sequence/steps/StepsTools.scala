@@ -26,7 +26,7 @@ final case class StepToolsCell(
   secondRowHeight:   Int,
   isPreview:         Boolean,
   nextStepToRun:     Option[StepId],
-  obsIdName:         Observation.IdName,
+  obsIdName:         Observation.Id,
   canSetBreakpoint:  Boolean,
   breakPointEnterCB: StepId => Callback,
   breakPointLeaveCB: StepId => Callback,

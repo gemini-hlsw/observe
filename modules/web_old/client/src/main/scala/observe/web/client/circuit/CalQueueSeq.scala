@@ -3,7 +3,7 @@
 
 package observe.web.client.circuit
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import monocle.Getter
 import monocle.std
@@ -14,27 +14,27 @@ import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.enums.Instrument
 
-final case class CalQueueSeq(idName: Observation.IdName, i: Instrument, status: SequenceState)
+final case class CalQueueSeq(obsId: Observation.Id, i: Instrument, status: SequenceState)
 
 object CalQueueSeq {
   given Eq[CalQueueSeq] =
-    Eq.by(x => (x.idName, x.i, x.status))
+    Eq.by(x => (x.obsId, x.i, x.status))
 
   def calQueueSeqG(
     id: Observation.Id
   ): Getter[SequencesQueue[SequenceView], Option[CalQueueSeq]] = {
     val seqO =
       SequencesQueue
-        .queueItemG[SequenceView](_.idName.id === id)
+        .queueItemG[SequenceView](_.obsId === id)
         .andThen(std.option.some[SequenceView])
 
-    val sidO = seqO.andThen(SequenceView.idName)
+    val sidO = seqO.andThen(SequenceView.obsId)
     val siO  = seqO.andThen(SequenceView.metadata).andThen(SequenceMetadata.instrument)
     val siS  = seqO.andThen(SequenceView.status)
 
     (Getter(sidO.headOption)
       .zip(Getter(siO.headOption).zip(Getter(siS.headOption)))) >>> {
-      case (Some(idName), (Some(i), Some(s))) => CalQueueSeq(idName, i, s).some
+      case (Some(obsId), (Some(i), Some(s))) => CalQueueSeq(obsId, i, s).some
       case _                                  => none
     }
   }

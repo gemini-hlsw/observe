@@ -141,7 +141,7 @@ trait SequenceEventsArbitraries {
   given Arbitrary[LoadSequenceUpdated]         = Arbitrary[LoadSequenceUpdated] {
     for {
       i <- arbitrary[Instrument]
-      o <- arbitrary[Observation.IdName]
+      o <- arbitrary[Observation.Id]
       s <- arbitrary[SequencesQueue[SequenceView]]
       c <- arbitrary[ClientId]
     } yield LoadSequenceUpdated(i, o, s, c)

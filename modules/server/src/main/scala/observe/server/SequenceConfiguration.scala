@@ -12,7 +12,7 @@ import edu.gemini.spModel.obscomp.InstConstants.*
 import observe.model.StepState
 import observe.model.enums.Instrument
 import CleanConfig.extractItem
-import ConfigUtilOps._
+import ConfigUtilOps.*
 import ObserveFailure.Unexpected
 import ObserveFailure.UnrecognizedInstrument
 import observe.server.flamingos2.Flamingos2

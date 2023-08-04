@@ -37,7 +37,7 @@ object SeqEvent {
   final case class UnloadSequence(id: Observation.Id)                               extends SeqEvent
   final case class AddLoadedSequence(
     instrument: Instrument,
-    sidName:    Observation.IdName,
+    obsId:      Observation.Id,
     user:       UserDetails,
     clientId:   ClientId
   ) extends SeqEvent
@@ -47,7 +47,7 @@ object SeqEvent {
   final case class SetSkyBackground(wv: SkyBackground, user: Option[UserDetails])   extends SeqEvent
   final case class SetCloudCover(cc: CloudCover, user: Option[UserDetails])         extends SeqEvent
   final case class NotifyUser(memo: Notification, clientID: ClientId)               extends SeqEvent
-  final case class RequestConfirmation(propm: UserPrompt, cid: ClientId)            extends SeqEvent
+  final case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)           extends SeqEvent
   final case class StartQueue(
     qid:         QueueId,
     clientID:    ClientId,
@@ -64,13 +64,13 @@ object SeqEvent {
   final case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
       extends SeqEvent
   final case class UpdateQueueClear(qid: QueueId)                                   extends SeqEvent
-  final case class StartSysConfig(sidName: Observation.IdName, stepId: StepId, res: Resource)
+  final case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource)
       extends SeqEvent
-  final case class Busy(sidName: Observation.IdName, cid: ClientId)                 extends SeqEvent
+  final case class Busy(obsId: Observation.Id, cid: ClientId)                       extends SeqEvent
   final case class SequenceStart(sid: Observation.Id, stepId: StepId)               extends SeqEvent
   final case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])      extends SeqEvent
   final case class ResourceBusy(
-    sidName:  Observation.IdName,
+    obsId:    Observation.Id,
     stepId:   StepId,
     res:      Resource,
     clientID: ClientId

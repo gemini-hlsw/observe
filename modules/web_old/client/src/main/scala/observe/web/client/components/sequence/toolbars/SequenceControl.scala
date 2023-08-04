@@ -78,19 +78,19 @@ object SequenceControl {
   def requestRun(s: Observation.Id): Callback =
     ObserveCircuit.dispatchCB(RequestRun(s, RunOptions.Normal))
 
-  def requestSync(idName: Observation.IdName): Callback =
-    ObserveCircuit.dispatchCB(RequestSync(idName))
+  def requestSync(obsId: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestSync(obsId))
 
-  def requestPause(idName: Observation.IdName): Callback =
-    ObserveCircuit.dispatchCB(RequestPause(idName))
+  def requestPause(obsId: Observation.Id): Callback =
+    ObserveCircuit.dispatchCB(RequestPause(obsId))
 
   def requestCancelPause(id: Observation.Id): Callback =
     ObserveCircuit.dispatchCB(RequestCancelPause(id))
 
-  private def syncButton(idName: Observation.IdName, canSync: Boolean) =
+  private def syncButton(obsId: Observation.Id, canSync: Boolean) =
     controlButton(icon = IconRefresh,
                   color = Purple,
-                  onClick = requestSync(idName),
+                  onClick = requestSync(obsId),
                   disabled = !canSync,
                   tooltip = "Sync sequence",
                   text = "Sync"
@@ -125,11 +125,11 @@ object SequenceControl {
       text = "Cancel Pause"
     )
 
-  private def pauseButton(idName: Observation.IdName, canPause: Boolean) =
+  private def pauseButton(obsId: Observation.Id, canPause: Boolean) =
     controlButton(
       icon = IconPause,
       color = Teal,
-      onClick = requestPause(idName),
+      onClick = requestPause(obsId),
       disabled = !canPause,
       tooltip = "Pause the sequence after the current step completes",
       text = "Pause"
@@ -177,23 +177,23 @@ object SequenceControl {
       .builder[Props]
       .renderP { ($, p) =>
         val SequenceControlFocus(_, _, overrides, _, _, control)  = p.p
-        val ControlModel(idName, partial, nextStepIdx, status, _) = control
+        val ControlModel(obsId, partial, nextStepIdx, status, _) = control
         val nextStepToRunIdx                                      = nextStepIdx.foldMap(_ + 1)
 
         <.div(
           ObserveStyles.SequenceControlForm,
           List(
             // Sync button
-            syncButton(idName, p.canSync)
+            syncButton(obsId, p.canSync)
               .when(status.isIdle || status.isError),
             // Run button
-            runButton(idName.id, partial, nextStepToRunIdx, p.canRun)
+            runButton(obsId, partial, nextStepToRunIdx, p.canRun)
               .when(status.isIdle || status.isError),
             // Cancel pause button
-            cancelPauseButton(idName.id, p.canCancelPause)
+            cancelPauseButton(obsId, p.canCancelPause)
               .when(status.userStopRequested),
             // Pause button
-            pauseButton(idName, p.canPause)
+            pauseButton(obsId, p.canPause)
               .when(status.isRunning && !status.userStopRequested)
           ).toTagMod,
           subsystemsButton($, overrides).when(status.isIdle || status.isError)

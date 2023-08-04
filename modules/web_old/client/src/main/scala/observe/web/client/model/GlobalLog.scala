@@ -3,7 +3,7 @@
 
 package observe.web.client.model
 
-import cats._
+import cats.*
 import observe.common.FixedLengthBuffer
 import observe.model.events.*
 

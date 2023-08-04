@@ -8,8 +8,8 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
 import observe.engine.SystemEvent.Null
-import SystemEvent._
-import UserEvent._
+import SystemEvent.*
+import UserEvent.*
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.StepId

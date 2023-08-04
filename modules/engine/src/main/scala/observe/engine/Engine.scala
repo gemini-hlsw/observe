@@ -3,23 +3,23 @@
 
 package observe.engine
 
-import cats._
+import cats.*
 import cats.data.StateT
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import monocle.{Focus, Optional}
+import monocle.Optional
 import mouse.boolean.*
 import observe.engine.SystemEvent.Null
-import Event._
+import Event.*
 import EventResult.Outcome
 import EventResult.SystemUpdate
 import EventResult.UserCommandResponse
 import Result.PartialVal
 import Result.RetVal
-import SystemEvent._
-import UserEvent._
+import SystemEvent.*
+import UserEvent.*
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.StepId
@@ -482,10 +482,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
       (si, (r, si), p)
     }
 
-  def process(userReact: PartialFunction[SystemEvent, HandleType[Unit]])(
-    input: Stream[F, EventType]
-  )(qs: S)(using ev: Concurrent[F]): Stream[F, (ResultType, S)] =
-    mapEvalState[EventType, (ResultType, S)](input, qs, runE(userReact)(_, _))
+  def process(userReact: PartialFunction[SystemEvent, Handle[F, S, Event[F, S, U], Unit]])(
+    input: Stream[F, Event[F, S, U]]
+  )(qs: S)(using ev: Concurrent[F]): Stream[F, (EventResult[U], S)] =
+    mapEvalState[EventType, (EventResult[U], S)](input, qs, runE(userReact)(_, _))
 
   // Functions for type bureaucracy
 

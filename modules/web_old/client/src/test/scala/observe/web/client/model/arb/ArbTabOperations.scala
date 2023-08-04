@@ -3,7 +3,7 @@
 
 package observe.web.client.model.arb
 
-import cats._
+import cats.*
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.*
 

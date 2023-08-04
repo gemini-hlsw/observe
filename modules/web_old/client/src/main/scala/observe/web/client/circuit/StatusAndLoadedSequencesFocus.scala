@@ -18,7 +18,7 @@ import observe.web.client.model.lenses.obsClassT
 import web.client.table.*
 
 final case class SequenceInSessionQueue(
-  idName:        Observation.IdName,
+  obsId:        Observation.Id,
   status:        SequenceState,
   instrument:    Instrument,
   active:        Boolean,
@@ -35,7 +35,7 @@ final case class SequenceInSessionQueue(
 object SequenceInSessionQueue {
   given Eq[SequenceInSessionQueue] =
     Eq.by(x =>
-      (x.idName,
+      (x.obsId,
        x.status,
        x.instrument,
        x.active,
@@ -56,15 +56,15 @@ object SequenceInSessionQueue {
     dayCal: List[Observation.Id]
   ): List[SequenceInSessionQueue] =
     queue.map { s =>
-      val active     = sod.idDisplayed(s.idName.id)
-      val loaded     = sod.loadedIds.contains(s.idName)
+      val active     = sod.idDisplayed(s.obsId)
+      val loaded     = sod.loadedIds.contains(s.obsId)
       val targetName = firstScienceStepTargetNameT.headOption(s)
       val obsClass   = obsClassT
         .headOption(s)
         .map(ObsClass.fromString)
         .getOrElse(ObsClass.Nighttime)
       SequenceInSessionQueue(
-        s.idName,
+        s.obsId,
         s.status,
         s.metadata.instrument,
         active,
@@ -75,7 +75,7 @@ object SequenceInSessionQueue {
         s.metadata.observer,
         s.runningStep,
         s.nextStepToRun,
-        dayCal.contains(s.idName.id)
+        dayCal.contains(s.obsId)
       )
     }
 
@@ -109,7 +109,7 @@ object StatusAndLoadedSequencesFocus {
       StatusAndLoadedSequencesFocus(s,
                                     SequenceInSessionQueue
                                       .toSequenceInSessionQueue(sod, queue, dayCal.foldMap(_.queue))
-                                      .sortBy(_.idName.name),
+                                      .sortBy(_.obsId.name),
                                     queueTable,
                                     filter
       )

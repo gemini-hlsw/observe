@@ -7,7 +7,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters.*
 
-import cats._
+import cats.*
 import cats.effect.*
 import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.Activity

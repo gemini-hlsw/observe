@@ -3,7 +3,7 @@
 
 package observe.model
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import observe.model.enums.ComaOption
 import observe.model.enums.TipTiltSource

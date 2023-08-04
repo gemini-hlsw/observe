@@ -3,7 +3,7 @@
 
 package observe.server
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import observe.model.enums.Instrument
 

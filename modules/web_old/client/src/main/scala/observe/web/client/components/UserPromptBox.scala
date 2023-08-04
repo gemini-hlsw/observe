@@ -31,11 +31,11 @@ object UserPromptBox {
 
   def title(n: UserPrompt): String =
     n match {
-      case ChecksOverride(sidName, _, _, checks) =>
+      case ChecksOverride(obsId, _, _, checks) =>
         if (checks.length > 1)
-          s"Warning! There are problems running sequence ${sidName.name}:"
+          s"Warning! There are problems running sequence ${obsId.name}:"
         else
-          s"Warning! There is a problem running sequence ${sidName.name}:"
+          s"Warning! There is a problem running sequence ${obsId.name}:"
     }
 
   def okButton(n: UserPrompt): String =

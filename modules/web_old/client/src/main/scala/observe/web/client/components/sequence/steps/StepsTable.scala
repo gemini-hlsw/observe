@@ -303,7 +303,7 @@ final case class StepsTable(
   val steps: Option[StepsTableFocus]        = stepsTable.stepsTable
   val instrument: Option[Instrument]        = steps.map(_.instrument)
   val runningStep: Option[RunningStep]      = steps.flatMap(_.runningStep)
-  val obsIdName: Option[Observation.IdName] = steps.map(_.idName)
+  val obsIdName: Option[Observation.Id] = steps.map(_.obsId)
   val tableState: TableState[TableColumn]   =
     steps.map(_.tableState).getOrElse(State.InitialTableState)
   val stepsList: List[Step]                 = steps.foldMap(_.steps)
@@ -576,7 +576,7 @@ object StepsTable extends Columns {
         $.props.rowDetailsHeight(row.step, $.state.selected),
         f.isPreview,
         f.nextStepToRun,
-        f.idName,
+        f.obsId,
         canSetBreakpoint(row.step, f.steps),
         rowBreakpointHoverOnCB,
         rowBreakpointHoverOffCB,
@@ -591,7 +591,7 @@ object StepsTable extends Columns {
     f: StepsTableFocus
   ): CellRenderer[js.Object, js.Object, StepRow] =
     (_, _, _, stepRow, _) =>
-      SettingsCell(p.router, f.instrument, f.idName.id, stepRow.step.id, p.isPreview)
+      SettingsCell(p.router, f.instrument, f.obsId, stepRow.step.id, p.isPreview)
 
   def stepProgressRenderer(
     f:  StepsTableFocus,
@@ -602,7 +602,7 @@ object StepsTable extends Columns {
         $.props.status,
         StepStateSummary(row.step,
                          index,
-                         f.idName.id,
+                         f.obsId,
                          f.instrument,
                          $.props.tabOperations,
                          f.state
@@ -875,7 +875,7 @@ object StepsTable extends Columns {
       modMod *>
       // And silently update the model
       $.props.obsIdName
-        .map(idName => ObserveCircuit.dispatchCB(UpdateStepTableState(idName.id, newTs.tableState)))
+        .map(obsId => ObserveCircuit.dispatchCB(UpdateStepTableState(obsId, newTs.tableState)))
         .getOrEmpty)
       .when_(posDiff > 1) // Only update the state if the change is significant
   }
@@ -900,11 +900,11 @@ object StepsTable extends Columns {
   // Single click puts the row as selected
   def singleClick($ : Scope)(i: Int): Callback =
     ($.props.obsIdName, $.props.steps.flatMap(_.steps.lift(i)).map(_.id)).mapN {
-      case (idName, stepId) =>
+      case (obsId, stepId) =>
         (ObserveCircuit
-          .dispatchCB(UpdateSelectedStep(idName.id, stepId)) *>
+          .dispatchCB(UpdateSelectedStep(obsId, stepId)) *>
           ObserveCircuit
-            .dispatchCB(ClearAllResourceOperations(idName.id)) *>
+            .dispatchCB(ClearAllResourceOperations(obsId)) *>
           $.modState(Focus[State](_.selected).replace(Some(stepId))) *>
           recomputeRowHeightsCB($.props)(stepId))
           .when_(

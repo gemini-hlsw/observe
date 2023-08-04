@@ -5,7 +5,7 @@ package observe.model
 
 import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
-import events._
+import events.*
 
 /**
  * Tests Event typeclasses

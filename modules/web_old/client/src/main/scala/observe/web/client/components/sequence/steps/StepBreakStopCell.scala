@@ -24,7 +24,7 @@ final case class StepBreakStopCell(
   clientStatus:      ClientStatus,
   step:              Step,
   rowHeight:         Int,
-  obsIdName:         Observation.IdName,
+  obsIdName:         Observation.Id,
   canSetBreakpoint:  Boolean,
   breakPointEnterCB: StepId => Callback,
   breakPointLeaveCB: StepId => Callback,

@@ -5,7 +5,7 @@ package observe.web.client.model
 
 import scala.scalajs.js.timers.SetIntervalHandle
 
-import cats._
+import cats.*
 import diode.data.Pot
 import org.scalajs.dom.WebSocket
 

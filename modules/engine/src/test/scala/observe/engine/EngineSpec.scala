@@ -5,6 +5,7 @@ package observe.engine
 
 import cats.Eq
 import cats.effect.IO
+import lucuma.core.model.sequence.Atom
 import observe.model.Observation
 import monocle.law.discipline.OptionalTests
 import org.scalacheck.{Arbitrary, Cogen}
@@ -22,8 +23,9 @@ final class EngineSpec extends munit.DisciplineSuite {
 
   given Arbitrary[Sequence[IO]] = Arbitrary {
     for {
-      id <- arbitrary[Observation.Id]
-    } yield Sequence(id, List())
+      id  <- arbitrary[Observation.Id]
+      aid <- arbitrary[Atom.Id]
+    } yield Sequence.sequence(id, aid, List())
   }
 
   given Arbitrary[Sequence.State[IO]] = Arbitrary {

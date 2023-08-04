@@ -9,14 +9,13 @@ import lucuma.core.util.Enumerated
 import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
-import observe.model.Observation
-import squants.Time
+import scala.concurrent.duration.Duration
 
 sealed trait Progress extends Product with Serializable {
-  val obsIdName: Observation.IdName
+  val obsId: Observation.Id
   val stepId: StepId
-  val total: Time
-  val remaining: Time
+  val total: Duration
+  val remaining: Duration
   val stage: ObserveStage
 }
 
@@ -40,25 +39,25 @@ object Progress {
 }
 
 final case class ObservationProgress(
-  obsIdName: Observation.IdName,
+  obsId:     Observation.Id,
   stepId:    StepId,
-  total:     Time,
-  remaining: Time,
+  total:     Duration,
+  remaining: Duration,
   stage:     ObserveStage
 ) extends Progress
 
 object ObservationProgress {
 
   given Eq[ObservationProgress] =
-    Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
+    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
 
 }
 
 final case class NSObservationProgress(
-  obsIdName: Observation.IdName,
+  obsId:     Observation.Id,
   stepId:    StepId,
-  total:     Time,
-  remaining: Time,
+  total:     Duration,
+  remaining: Duration,
   stage:     ObserveStage,
   sub:       NSSubexposure
 ) extends Progress
@@ -66,7 +65,7 @@ final case class NSObservationProgress(
 object NSObservationProgress {
 
   given Eq[NSObservationProgress] =
-    Eq.by(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
+    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
 }
 

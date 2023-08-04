@@ -5,7 +5,7 @@ package observe.web.client.circuit
 
 import scala.collection.immutable.SortedMap
 
-import cats._
+import cats.*
 import cats.Order.*
 import lucuma.core.enums.Site
 import monocle.Lens

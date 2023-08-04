@@ -32,7 +32,7 @@ import org.http4s.server.Server
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.server.middleware.Metrics
 import org.http4s.server.middleware.{Logger => Http4sLogger}
-import pureconfig._
+import pureconfig.*
 import observe.model.config.*
 import observe.model.events.*
 import observe.server

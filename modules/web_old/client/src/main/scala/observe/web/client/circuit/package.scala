@@ -6,7 +6,7 @@ package observe.web.client
 import cats.Eq
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import diode._
+import diode.*
 import monocle.Getter
 import monocle.Lens
 import observe.model.Observation
@@ -179,7 +179,7 @@ package circuit {
   }
 
   final case class ControlModel(
-    idName:              Observation.IdName,
+    obsId:              Observation.Id,
     isPartiallyExecuted: Boolean,
     nextStepToRunIndex:  Option[Int],
     status:              SequenceState,
@@ -188,7 +188,7 @@ package circuit {
 
   object ControlModel {
     given Eq[ControlModel] =
-      Eq.by(x => (x.idName, x.isPartiallyExecuted, x.nextStepToRunIndex, x.status, x.tabOperations))
+      Eq.by(x => (x.obsId, x.isPartiallyExecuted, x.nextStepToRunIndex, x.status, x.tabOperations))
 
     val controlModelG: Getter[SequenceTab, ControlModel] =
       Getter[SequenceTab, ControlModel](t =>

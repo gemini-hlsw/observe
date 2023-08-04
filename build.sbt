@@ -33,8 +33,8 @@ inThisBuild(
   ) ++ lucumaPublishSettings
 )
 
-ThisBuild / scalaVersion       := "3.3.0"
-ThisBuild / crossScalaVersions := Seq("3.3.0")
+ThisBuild / scalaVersion       := "3.3.1-RC4"
+ThisBuild / crossScalaVersions := Seq("3.3.1-RC4")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 
 // Gemini repository
@@ -114,6 +114,18 @@ lazy val root = tlCrossRootProject.aggregate(
   observe_model,
   observe_engine
 )
+
+lazy val stateengine = project
+  .in(file("modules/stateengine"))
+  .settings(
+    name := "stateengine",
+    libraryDependencies ++= Seq(
+      Cats.value,
+      CatsEffect.value,
+      Mouse.value,
+      Fs2.value
+    ) ++ MUnit.value
+  )
 
 lazy val giapi = project
   .in(file("modules/giapi"))

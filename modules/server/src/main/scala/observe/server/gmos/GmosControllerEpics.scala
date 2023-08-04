@@ -552,7 +552,7 @@ object GmosControllerEpics extends GmosEncoders {
           (total, cycle, aCount, bCount) =>
             val stageIndex = (aCount + bCount) % NsSequence.length
             val sub        =
-              NSSubexposure(tag[NsCyclesI][Int](total / 2), tag[NsCyclesI][Int](cycle), stageIndex)
+              NSSubexposure(NsCyclesI(total / 2), NsCyclesI(cycle), stageIndex)
             sub.getOrElse(NSSubexposure.Zero)
         }
 

@@ -3,7 +3,7 @@
 
 package observe.web.client.components
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*

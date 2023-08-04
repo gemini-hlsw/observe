@@ -64,8 +64,8 @@ object actions {
 
   // Action to select a sequenc
   final case class RequestRun(s: Observation.Id, options: RunOptions)        extends Action
-  final case class RequestSync(s: Observation.IdName)                        extends Action
-  final case class RequestPause(s: Observation.IdName)                       extends Action
+  final case class RequestSync(s: Observation.Id)                        extends Action
+  final case class RequestPause(s: Observation.Id)                       extends Action
   final case class RequestCancelPause(s: Observation.Id)                     extends Action
   final case class RequestAbort(id: Observation.Id, step: StepId)            extends Action
   final case class RequestStop(id: Observation.Id, step: StepId)             extends Action
@@ -89,7 +89,7 @@ object actions {
     msg:      String
   ) extends Action
   final case class OverrideRunFrom(
-    qid:      Observation.IdName,
+    qid:      Observation.Id,
     observer: Observer,
     step:     StepId,
     options:  RunOptions
@@ -100,13 +100,13 @@ object actions {
   final case class RunFromFailed(id: Observation.Id, step: StepId)                   extends Action
 
   final case class RunStarted(s: Observation.Id)                extends Action
-  final case class RunPaused(s: Observation.IdName)             extends Action
+  final case class RunPaused(s: Observation.Id)             extends Action
   final case class RunCancelPaused(s: Observation.Id)           extends Action
-  final case class RunSync(s: Observation.IdName)               extends Action
+  final case class RunSync(s: Observation.Id)               extends Action
   final case class RunStartFailed(s: Observation.Id)            extends Action
-  final case class RunPauseFailed(s: Observation.IdName)        extends Action
+  final case class RunPauseFailed(s: Observation.Id)        extends Action
   final case class RunCancelPauseFailed(s: Observation.Id)      extends Action
-  final case class RunSyncFailed(s: Observation.IdName)         extends Action
+  final case class RunSyncFailed(s: Observation.Id)         extends Action
   final case class RunStop(s: Observation.Id)                   extends Action
   final case class RunGracefulStop(s: Observation.Id)           extends Action
   final case class RunStopCompleted(s: Observation.Id)          extends Action
@@ -142,13 +142,13 @@ object actions {
   final case class RequestStopCal(qid: QueueId)                                   extends Action
   final case class StopCalCompleted(qid: QueueId)                                 extends Action
   final case class StopCalFailed(qid: QueueId)                                    extends Action
-  final case class RequestRemoveSeqCal(qid: QueueId, id: Observation.IdName)      extends Action
+  final case class RequestRemoveSeqCal(qid: QueueId, id: Observation.Id)      extends Action
   final case class RequestAddSeqCal(qid: QueueId, id: Observation.Id)             extends Action
   final case class RemoveSeqCalCompleted(qid: QueueId)                            extends Action
-  final case class RemoveSeqCalFailed(qid: QueueId, id: Observation.IdName)       extends Action
-  final case class RequestMoveCal(qid: QueueId, id: Observation.IdName, pos: Int) extends Action
+  final case class RemoveSeqCalFailed(qid: QueueId, id: Observation.Id)       extends Action
+  final case class RequestMoveCal(qid: QueueId, id: Observation.Id, pos: Int) extends Action
   final case class MoveCalCompleted(qid: QueueId)                                 extends Action
-  final case class MoveCalFailed(qid: QueueId, id: Observation.IdName)            extends Action
+  final case class MoveCalFailed(qid: QueueId, id: Observation.Id)            extends Action
   final case class ClearLastQueueOp(qid: QueueId)                                 extends Action
 
   final case class AppendToLog(l: ServerLogMessage) extends Action
@@ -166,8 +166,8 @@ object actions {
 
   final case class FlipSubystemsControls(id: Observation.Id, state: SectionVisibilityState)
       extends Action
-  final case class FlipSkipStep(id: Observation.IdName, step: Step)       extends Action
-  final case class FlipBreakpointStep(id: Observation.IdName, step: Step) extends Action
+  final case class FlipSkipStep(id: Observation.Id, step: Step)       extends Action
+  final case class FlipBreakpointStep(id: Observation.Id, step: Step) extends Action
 
   final case object FlipSoundOnOff extends Action
 
@@ -189,9 +189,9 @@ object actions {
   final case class UpdateSelectedStepForce(id: Observation.Id, step: StepId) extends Action
   final case class UpdateCalTableState(id: QueueId, s: TableState[CalQueueTable.TableColumn])
       extends Action
-  final case class LoadSequence(observer: Observer, i: Instrument, id: Observation.IdName)
+  final case class LoadSequence(observer: Observer, i: Instrument, id: Observation.Id)
       extends Action
-  final case class SequenceLoadFailed(id: Observation.IdName)                extends Action
+  final case class SequenceLoadFailed(id: Observation.Id)                extends Action
   final case class RequestFailedNotification(r: RequestFailed)               extends Action
   case object CleanSequences                                                 extends Action
 
@@ -222,7 +222,7 @@ object actions {
       s"FlipSkipStep(${oid.name}, ${st.id})"
     case s @ ServerMessage(u @ ObserveModelUpdate(view)) =>
       val someSteps   = view.sessionQueue.map(s =>
-        (s"id: ${s.idName.name}",
+        (s"id: ${s.obsId.name}",
          s"steps: ${s.steps.length}",
          s"state: ${s.status}",
          s.steps

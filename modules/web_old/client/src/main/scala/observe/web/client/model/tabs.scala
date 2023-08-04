@@ -5,7 +5,7 @@ package observe.web.client.model
 
 import scala.collection.immutable.SortedMap
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 import monocle.Lens
@@ -25,7 +25,7 @@ import observe.web.client.model.ModelOps.*
 import shapeless.tag.@@
 
 final case class AvailableTab(
-  idName:             Observation.IdName,
+  obsId:             Observation.Id,
   status:             SequenceState,
   instrument:         Instrument,
   runningStep:        Option[RunningStep],
@@ -41,7 +41,7 @@ final case class AvailableTab(
 object AvailableTab {
   given Eq[AvailableTab] =
     Eq.by(x =>
-      (x.idName,
+      (x.obsId,
        x.status,
        x.instrument,
        x.runningStep,
@@ -145,7 +145,7 @@ sealed trait SequenceTab extends ObserveTab {
       case i: PreviewSequenceTab    => i.currentSequence
     }
 
-  def obsIdName: Observation.IdName = sequence.idName
+  def obsIdName: Observation.Id = sequence.obsId
 
   def stepConfigDisplayed: Option[StepId] =
     this match {

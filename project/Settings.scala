@@ -1,4 +1,4 @@
-import sbt._
+import sbt.*
 import java.lang.{Runtime => JRuntime}
 import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport.*
 

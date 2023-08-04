@@ -7,8 +7,6 @@ import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
 import lucuma.core.util.NewType
 
-import cats.Eq
-
 trait GmosParameters {
 
   object NsPairs extends NewType[Int]

@@ -353,7 +353,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
   given Arbitrary[AvailableTab] =
     Arbitrary {
       for {
-        d <- arbitrary[Observation.IdName]
+        d <- arbitrary[Observation.Id]
         s <- arbitrary[SequenceState]
         i <- arbitrary[Instrument]
         n <- arbitrary[Option[StepId]]
@@ -370,7 +370,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
   given Cogen[AvailableTab] =
     Cogen[
       (
-        Observation.IdName,
+        Observation.Id,
         SequenceState,
         Instrument,
         Option[StepId],
@@ -382,7 +382,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
       )
     ]
       .contramap(x =>
-        (x.idName,
+        (x.obsId,
          x.status,
          x.instrument,
          x.nextStepToRun,
@@ -415,7 +415,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
   given Arbitrary[StepsTableFocus] =
     Arbitrary {
       for {
-        id <- arbitrary[Observation.IdName]
+        id <- arbitrary[Observation.Id]
         i  <- arbitrary[Instrument]
         ss <- arbitrary[SequenceState]
         s  <- arbitrary[List[Step]]
@@ -442,7 +442,7 @@ trait ArbitrariesWebClient extends TableArbitraries with ArbTabOperations {
         TableState[StepsTable.TableColumn]
       )
     ].contramap { x =>
-      (x.idName.id,
+      (x.obsId,
        x.instrument,
        x.state,
        x.steps,

@@ -5,7 +5,7 @@ package observe.web.server.security
 
 import observe.model.UserDetails
 import observe.model.UserDetails.*
-import cats._
+import cats.*
 import cats.tests.CatsSuite
 
 class FreeLDAPAuthenticationServiceSpec extends CatsSuite {

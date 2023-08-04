@@ -5,7 +5,6 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
-import observe.model.Observation
 
 sealed trait QueueManipulationOp extends Product with Serializable {
   val qid: QueueId

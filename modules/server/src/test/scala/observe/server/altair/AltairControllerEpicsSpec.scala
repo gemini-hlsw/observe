@@ -36,7 +36,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
   )
 
   private val baseOffset =
-    FocalPlaneOffset(tag[OffsetX](0.0.millimeters), tag[OffsetY](0.0.millimeters))
+    FocalPlaneOffset(OffsetX(0.0.millimeters), OffsetY(0.0.millimeters))
 
   test("AltairControllerEpics should not pause nor resume NGS AO guiding if nothing has changed") {
     val altairEpics = TestAltairEpics.build[IO](
@@ -94,7 +94,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
 
     val altairCfg = AltairController.Ngs(blend = false, (0.0.millimeters, 0.0.millimeters))
 
-    val offset = FocalPlaneOffset(tag[OffsetX](10.0.millimeters), tag[OffsetY](10.0.millimeters))
+    val offset = FocalPlaneOffset(OffsetX(10.0.millimeters), OffsetY(10.0.millimeters))
 
     for {
       ao   <- altairEpics
@@ -140,7 +140,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
 
     val altairCfg = AltairController.Ngs(blend = false, (0.0.millimeters, 0.0.millimeters))
 
-    val offset = InstrumentOffset(tag[OffsetP](1.0.arcseconds), tag[OffsetQ](1.0.arcseconds))
+    val offset = InstrumentOffset(OffsetP(1.0.arcseconds), OffsetQ(1.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     for {
@@ -170,7 +170,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -213,7 +213,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset0 = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset0 = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -225,7 +225,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
     val altairCfg  =
       AltairController.Lgs(strap = true, sfo = true, (skyOffset0.x, skyOffset0.y))
     val skyOffset1 =
-      InstrumentOffset(tag[OffsetP](-30.0.arcseconds), tag[OffsetQ](-30.0.arcseconds))
+      InstrumentOffset(OffsetP(-30.0.arcseconds), OffsetQ(-30.0.arcseconds))
         .toFocalPlaneOffset(0.0.arcseconds)
 
     for {
@@ -259,7 +259,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -298,7 +298,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -339,7 +339,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -426,7 +426,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
 
     val altairCfg = AltairController.Ngs(blend = false, (0.0.millimeters, 0.0.millimeters))
 
-    val offset = FocalPlaneOffset(tag[OffsetX](10.0.millimeters), tag[OffsetY](10.0.millimeters))
+    val offset = FocalPlaneOffset(OffsetX(10.0.millimeters), OffsetY(10.0.millimeters))
 
     for {
       ao   <- altairEpics
@@ -482,7 +482,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
     val altairCfg =
       AltairController.Lgs(strap = true, sfo = true, (0.0.millimeters, 0.0.millimeters))
 
-    val offset = FocalPlaneOffset(tag[OffsetX](10.0.millimeters), tag[OffsetY](10.0.millimeters))
+    val offset = FocalPlaneOffset(OffsetX(10.0.millimeters), OffsetY(10.0.millimeters))
 
     for {
       ao  <- altairEpics
@@ -537,7 +537,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -585,7 +585,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset0 = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset0 = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -598,7 +598,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       AltairController.Lgs(strap = true, sfo = true, (skyOffset0.x, skyOffset0.y))
 
     val skyOffset1 =
-      InstrumentOffset(tag[OffsetP](-30.0.arcseconds), tag[OffsetQ](-30.0.arcseconds))
+      InstrumentOffset(OffsetP(-30.0.arcseconds), OffsetQ(-30.0.arcseconds))
         .toFocalPlaneOffset(0.0.arcseconds)
 
     for {
@@ -636,7 +636,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
       )
     )
 
-    val skyOffset = InstrumentOffset(tag[OffsetP](30.0.arcseconds), tag[OffsetQ](30.0.arcseconds))
+    val skyOffset = InstrumentOffset(OffsetP(30.0.arcseconds), OffsetQ(30.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     val tcsEpics = TestTcsEpics.build[IO](
@@ -688,7 +688,7 @@ class AltairControllerEpicsSpec extends munit.CatsEffectSuite {
     val altairCfg =
       AltairController.Lgs(strap = true, sfo = true, (0.0.millimeters, 0.0.millimeters))
 
-    val offset = InstrumentOffset(tag[OffsetP](1.0.arcseconds), tag[OffsetQ](1.0.arcseconds))
+    val offset = InstrumentOffset(OffsetP(1.0.arcseconds), OffsetQ(1.0.arcseconds))
       .toFocalPlaneOffset(0.0.arcseconds)
 
     for {

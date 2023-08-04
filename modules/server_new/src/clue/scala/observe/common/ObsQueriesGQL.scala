@@ -6,23 +6,13 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import lucuma.core.enums.Site
-import io.circe.{Decoder, Encoder}
-import io.circe.generic.auto.*
-import lucuma.core.math
-import lucuma.core.enums
 import lucuma.core.model
-import cats.syntax.functor.*
-import lucuma.core.model.sequence.{Atom, ExecutionSequence, Step}
-import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosGratingConfig, StaticConfig}
+import lucuma.core.model.sequence.ExecutionSequence
+import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 
-import java.time
-import lucuma.core.model.{ExecutionEvent, Observation, Target}
-
-// gql: import lucuma.schemas.decoders.given
 // gql: import io.circe.refined.*
-// gql: import lucuma.odb.json.sequence.given
-// gql: import lucuma.odb.json.gmos.given
+// gql: import lucuma.schemas.decoders.given
+// gql: import lucuma.odb.json.all.query.given
 
 object ObsQueriesGQL {
 
@@ -54,6 +44,10 @@ object ObsQueriesGQL {
               microseconds
             }
           }
+          program {
+            id
+            name
+          }
           targetEnvironment {
             firstScienceTarget {
               targetId: id
@@ -65,10 +59,39 @@ object ObsQueriesGQL {
             cloudExtinction
             skyBackground
             waterVapor
+            elevationRange {
+              airMass {
+                min
+                max
+              }
+              hourAngle {
+                minHours
+                maxHours
+              }
+            }
+          }
+          timingWindows {
+            inclusion
+            startUtc
+            end {
+              ... on TimingWindowEndAt {
+                atUtc
+              }
+              ... on TimingWindowEndAfter {
+                after{
+                  milliseconds
+                }
+                repeat {
+                  period {
+                    milliseconds
+                  }
+                  times
+                }
+              }
+            }
           }
           execution {
             config:executionConfig {
-              instrument
               ... on GmosNorthExecutionConfig {
                 staticN:static {
                   stageMode
@@ -108,11 +131,8 @@ object ObsQueriesGQL {
 
       fragment northAtomFields on GmosNorthAtom {
         id
+        observeClass
         steps {
-          id
-          stepConfig {
-            ...stepConfig
-          }
           instrumentConfig {
             exposure {
               microseconds
@@ -138,16 +158,19 @@ object ObsQueriesGQL {
               }
             }
           }
+          id
+          breakpoint
+          stepConfig {
+            ...stepConfig
+          }
+          observeClass
         }
       }
 
       fragment southAtomFields on GmosSouthAtom {
         id
+        observeClass
         steps {
-          id
-          stepConfig {
-            ...stepConfig
-          }
           instrumentConfig {
             exposure {
               microseconds
@@ -173,6 +196,12 @@ object ObsQueriesGQL {
               }
             }
           }
+          id
+          breakpoint
+          stepConfig {
+            ...stepConfig
+          }
+          observeClass
         }
       }
 
@@ -247,26 +276,10 @@ object ObsQueriesGQL {
 
     """
 
-    given [T]: Decoder[math.Offset.Component[T]] =
-      Decoder.instance(c =>
-        c.downField("microarcseconds")
-          .as[Long]
-          .map(
-            math.Angle.signedMicroarcseconds.reverse
-              .andThen(math.Offset.Component.angle[T].reverse)
-              .get
-          )
-      )
-
-    given Decoder[math.Offset] = Decoder.instance(c =>
-      for {
-        p <- c.downField("p").as[math.Offset.P]
-        q <- c.downField("q").as[math.Offset.Q]
-      } yield math.Offset(p, q)
-    )
-
     object Data {
       object Observation {
+        type ConstraintSet = model.ConstraintSet
+        type TimingWindows = model.TimingWindow
         object Execution {
           object Config {
             object GmosNorthExecutionConfig {
@@ -346,6 +359,33 @@ object ObsQueriesGQL {
         addDatasetEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId, index: $dtIdx }, payload: { datasetStage: $stg, filename: $flName } } ) {
           event {
             received
+          }
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB] {
+    val document = """
+      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
+        recordGmosNorthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+          visit {
+            id
+          }
+        }
+      }
+      """
+  }
+
+  @GraphQL
+  trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB] {
+    val document =
+      """
+      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
+        recordGmosSouthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+          visit {
+            id
           }
         }
       }

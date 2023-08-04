@@ -116,7 +116,7 @@ object SeqTranslate {
 //    private val overriddenSystems = new OverriddenSystems[F](systemss)
 //
 ////    private def step(
-////      obsIdName:   Observation.IdName,
+////      obsIdName:   Observation.Id,
 ////      dataIdx:     PosInt,
 //////      config:      CleanConfig,
 ////      imageFileId: Option[ImageFileId],
@@ -124,7 +124,7 @@ object SeqTranslate {
 ////    ): F[StepGen[F]] = {
 //
 //      protected def buildStep(
-//        obsIdName: Observation.IdName,
+//        obsIdName: Observation.Id,
 //        stepId:       StepId,
 //        dataId:       DataId,
 //        index:        PosInt,
@@ -263,7 +263,7 @@ object SeqTranslate {
 ////      val steps = configs.zipWithIndex
 ////        .map { case (c, i) =>
 ////          step(
-////            Observation.IdName(obsId, obsName),
+////            Observation.Id(obsId, obsName),
 ////            PosInt.unsafeFrom(i + 1),
 ////            c,
 ////            sequence.datasets.get(i).map(x => toImageFileId(x.filename)),

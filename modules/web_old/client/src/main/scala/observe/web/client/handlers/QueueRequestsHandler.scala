@@ -24,7 +24,7 @@ class QueueRequestsHandler[M](modelRW: ModelRW[M, QueueRequestsFocus])
 
   def handleAddAllDayCal: PartialFunction[Any, ActionResult[M]] = {
     case RequestAllSelectedSequences(qid) =>
-      val ids = value.seqFilter.filterS(value.sequences.sessionQueue).map(_.idName.id)
+      val ids = value.seqFilter.filterS(value.sequences.sessionQueue).map(_.obsId)
       effectOnly(
         requestEffect(qid,
                       ObserveWebClient.addSequencesToQueue(ids, _),

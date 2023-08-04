@@ -3,7 +3,7 @@
 
 package observe.web.client.model
 
-import cats._
+import cats.*
 import cats.syntax.all.*
 import diode.Action
 import japgolly.scalajs.react.Callback

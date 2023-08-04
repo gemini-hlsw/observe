@@ -39,7 +39,7 @@ trait GwsKeywordReader[F[_]] {
 
 trait GwsDefaults {
   def toDewPoint(t: Temperature): Temperature @@ DewPoint =
-    tag[DewPoint][Temperature](t)
+    DewPoint(t)
 
   // Default value for quantities
   given DefaultHeaderValue[Temperature] =
@@ -85,7 +85,7 @@ object GwsKeywordsReaderEpics extends GwsDefaults {
       sys.ambientT
 
     override def dewPoint: F[Temperature @@ DewPoint] =
-      sys.dewPoint.map(tag[DewPoint][Temperature](_))
+      sys.dewPoint.map(DewPoint(_))
 
     override def airPressure: F[Pressure] =
       sys.airPressure

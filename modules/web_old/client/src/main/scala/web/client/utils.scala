@@ -8,7 +8,7 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.facade.JsNumber
 import org.scalajs.dom
 import org.scalajs.dom.html
-import JsNumberOps._
+import JsNumberOps.*
 
 trait utils {
   type Canvas = html.Canvas

@@ -3,18 +3,10 @@
 
 package observe.model
 
-import cats.Eq
-
 object Observation {
 
   type Id = lucuma.core.model.Observation.Id
 
   type Name = String
-
-  sealed case class IdName(id: Id, name: Name)
-
-  object IdName {
-    given Eq[IdName] = Eq.by(x => (x.id, x.name))
-  }
 
 }

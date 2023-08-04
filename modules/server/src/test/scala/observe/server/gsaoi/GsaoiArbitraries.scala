@@ -31,9 +31,9 @@ trait GsaoiArbitraries {
         numberOfFowSamples <- arbitrary[Int]
       } yield DCConfig(readMode,
                        roi,
-                       tag[CoaddsI][Int](coadds),
+                       CoaddsI(coadds),
                        exposureTime,
-                       tag[NumberOfFowSamplesI][Int](numberOfFowSamples)
+                       NumberOfFowSamplesI(numberOfFowSamples)
       )
     }
 

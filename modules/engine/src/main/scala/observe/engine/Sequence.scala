@@ -10,25 +10,33 @@ import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Step.{Id => StepId}
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.Step.Id as StepId
 
 /**
  * A list of `Step`s grouped by target and instrument.
  */
-final case class Sequence[F[_]](
-  id:    Observation.Id,
-  steps: List[Step[F]]
+final case class Sequence[F[_]] private (
+  id:     Observation.Id,
+  atomId: Option[Atom.Id],
+  steps:  List[Step[F]]
 )
 
 object Sequence {
 
-  def empty[F[_]](id: Observation.Id): Sequence[F] = Sequence(id, Nil)
+  def empty[F[_]](id: Observation.Id): Sequence[F] = Sequence(id, none, List.empty)
+  def sequence[F[_]](
+    id:     Observation.Id,
+    atomId: Atom.Id,
+    steps:  List[Step[F]]
+  ): Sequence[F] = Sequence(id, atomId.some, steps)
 
   /**
    * Sequence Zipper. This structure is optimized for the actual `Sequence` execution.
    */
   final case class Zipper[F[_]](
     id:      Observation.Id,
+    atomId:  Option[Atom.Id],
     pending: List[Step[F]],
     focus:   Step.Zipper[F],
     done:    List[Step[F]]
@@ -57,6 +65,7 @@ object Sequence {
             case stepp :: stepps =>
               (Step.Zipper.currentify(stepp), focus.uncurrentify).mapN((curr, stepd) =>
                 Zipper(id,
+                       atomId,
                        stepps,
                        curr,
                        (done :+ stepd) ::: toSkip.map(_.copy(skipped = Step.Skipped(true)))
@@ -64,7 +73,7 @@ object Sequence {
               )
           }
         // Current step ongoing
-        case Some(stz) => Some(Zipper(id, pending, stz, done))
+        case Some(stz) => Some(Zipper(id, atomId, pending, stz, done))
       }
 
     def rollback: Zipper[F] = this.copy(focus = focus.rollback)
@@ -77,6 +86,7 @@ object Sequence {
           case stepp :: stepps =>
             (Step.Zipper.currentify(stepp), focus.skip.some).mapN((curr, stepd) =>
               Zipper(id,
+                     atomId,
                      stepps,
                      curr,
                      (done :+ stepd) ::: toSkip.map(_.copy(skipped = Step.Skipped(true)))
@@ -93,11 +103,12 @@ object Sequence {
       if (remaining.isEmpty)
         if (focus.skipMark.self)
           Sequence(id,
+                   atomId,
                    (done :+ focus.skip) ::: toSkip.map(_.copy(skipped = Step.Skipped(true)))
           ).some
         else
           focus.uncurrentify.map(x =>
-            Sequence(id, (done :+ x) ::: toSkip.map(_.copy(skipped = Step.Skipped(true))))
+            Sequence(id, atomId, (done :+ x) ::: toSkip.map(_.copy(skipped = Step.Skipped(true))))
           )
       else None
 
@@ -106,7 +117,7 @@ object Sequence {
      * `Step`s.
      */
     val toSequence: Sequence[F] =
-      Sequence(id, done ++ List(focus.toStep) ++ pending)
+      Sequence(id, atomId, done ++ List(focus.toStep) ++ pending)
   }
 
   object Zipper {
@@ -122,7 +133,7 @@ object Sequence {
           Step.Zipper
             .currentify(step)
             .map(
-              Zipper(seq.id, steps, _, Nil)
+              Zipper(seq.id, seq.atomId, steps, _, Nil)
             )
       }
 
@@ -134,7 +145,7 @@ object Sequence {
             Step.Zipper
               .currentify(s)
               .map(
-                Zipper(seq.id, ss, _, done)
+                Zipper(seq.id, seq.atomId, ss, _, done)
               )
         }
       }
@@ -391,7 +402,7 @@ object Sequence {
       override val toSequence: Sequence[F] = zipper.toSequence
 
       override def startSingle(c: ActionCoordsInSeq): State[F] =
-        if (zipper.done.find(_.id === c.stepId).isDefined)
+        if (zipper.done.exists(_.id === c.stepId))
           self
         else self.copy(singleRuns = singleRuns + (c -> ActionState.Started))
 

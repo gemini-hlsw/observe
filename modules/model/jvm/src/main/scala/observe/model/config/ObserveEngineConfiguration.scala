@@ -6,7 +6,6 @@ package observe.model.config
 import scala.concurrent.duration.FiniteDuration
 import cats.Eq
 import org.http4s.Uri
-import SystemsControlConfiguration.given
 import lucuma.core.util.NewType
 
 object GpiUriSettings extends NewType[Uri]

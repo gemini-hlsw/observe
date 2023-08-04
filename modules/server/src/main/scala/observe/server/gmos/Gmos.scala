@@ -4,7 +4,7 @@
 package observe.server.gmos
 
 import scala.concurrent.duration.*
-import cats._
+import cats.*
 import cats.data.Kleisli
 import cats.effect.Sync
 import cats.syntax.all.*
@@ -26,7 +26,7 @@ import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
 import shapeless.tag
 import cats.effect.{Ref, Temporal}
-import lucuma.core.model.sequence.DynamicConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution.{Config => OdbConfig}
 import observe.common.ObsQueriesGQL.ObsQuery.{
   Data,
@@ -182,8 +182,8 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   def nsConfig: NSConfig = staticCfg.nodAndShuffle
     .map { n =>
       NSConfig.NodAndShuffle(
-        tag[NsCyclesI][Int](n.shuffleCycles),
-        tag[NsRowsI][Int](n.shuffleOffset),
+        NsCyclesI(n.shuffleCycles),
+        NsRowsI(n.shuffleOffset),
         Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide),
                NSPosition(NodAndShuffleStage.StageB, n.posB, Guiding.Guide)
         ),

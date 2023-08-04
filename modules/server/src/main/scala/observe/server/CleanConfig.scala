@@ -19,7 +19,7 @@ import edu.gemini.spModel.seqcomp.SeqConfigNames.TELESCOPE_KEY
 import edu.gemini.spModel.target.obsComp.TargetObsCompConstants.GUIDE_WITH_OIWFS_PROP
 import observe.model.StepConfig
 import observe.model.enums.SystemName
-import ConfigUtilOps._
+import ConfigUtilOps.*
 
 /*
  * CleanConfig is a wrapper over Config that allows to override some of the Config parameters. It allows to change some

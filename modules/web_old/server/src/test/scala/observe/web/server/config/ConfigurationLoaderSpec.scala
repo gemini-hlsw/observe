@@ -8,7 +8,7 @@ import lucuma.core.enums.Site
 import java.nio.file.Paths
 import org.http4s.Uri
 import org.http4s.implicits.*
-import pureconfig._
+import pureconfig.*
 import scala.concurrent.duration.*
 import observe.model.config.*
 import shapeless.tag

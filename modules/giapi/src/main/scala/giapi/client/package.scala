@@ -5,7 +5,7 @@ package giapi
 
 import scala.concurrent.duration.*
 
-import cats._
+import cats.*
 import cats.effect.*
 import cats.effect.std.Queue
 import cats.effect.implicits.*

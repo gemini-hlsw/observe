@@ -67,10 +67,10 @@ object ObserveWebClient extends ModelBooPicklers {
       .void
 
   @nowarn
-  def sync(idName: Observation.IdName): Future[Unit] =
+  def sync(obsId: Observation.Id): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(idName.id.toString)}/sync"
+        url = s"$baseUrl/commands/${encodeURI(obsId.toString)}/sync"
       )
       .void
 
@@ -275,10 +275,10 @@ object ObserveWebClient extends ModelBooPicklers {
    * Requests the backend to pause a sequence
    */
   @nowarn
-  def pause(idName: Observation.IdName, name: Observer): Future[Unit] =
+  def pause(obsId: Observation.Id, name: Observer): Future[Unit] =
     Ajax
       .post(
-        url = s"$baseUrl/commands/${encodeURI(idName.id.toString)}/pause"
+        url = s"$baseUrl/commands/${encodeURI(obsId.toString)}/pause"
       )
       .void
 
@@ -362,11 +362,11 @@ object ObserveWebClient extends ModelBooPicklers {
    * Add a sequence from a queue
    */
   @nowarn
-  def removeSequenceFromQueue(queueId: QueueId, idName: Observation.IdName): Future[Unit] =
+  def removeSequenceFromQueue(queueId: QueueId, obsId: Observation.Id): Future[Unit] =
     Ajax
       .post(
         url =
-          s"$baseUrl/commands/queue/${encodeURI(queueId.self.show)}/remove/${encodeURI(idName.id.toString)}"
+          s"$baseUrl/commands/queue/${encodeURI(queueId.self.show)}/remove/${encodeURI(obsId.toString)}"
       )
       .void
 

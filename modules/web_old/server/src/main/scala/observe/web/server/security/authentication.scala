@@ -3,7 +3,7 @@
 
 package observe.web.server.security
 
-import cats._
+import cats.*
 import cats.effect.*
 import cats.syntax.all.*
 import com.unboundid.ldap.sdk.LDAPURL

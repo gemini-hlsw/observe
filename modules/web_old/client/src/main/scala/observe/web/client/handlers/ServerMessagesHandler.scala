@@ -128,7 +128,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
     case ServerMessage(e @ StepExecuted(obsId, sv)) =>
       val curStep =
         for {
-          obs           <- sequenceViewT.find(_.idName.id === obsId)(e)
+          obs           <- sequenceViewT.find(_.obsId === obsId)(e)
           curSId        <- obs.runningStep.flatMap(_.id)
           curStep       <- sequenceStepT.find(_.id === curSId)(obs)
           observeStatus <- Step.observeStatus.getOption(curStep)
@@ -139,7 +139,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
         } yield curStep
 
       val doneStep =
-        sequenceViewT.find(_.idName.id === obsId)(e).forall(_.runningStep.isEmpty)
+        sequenceViewT.find(_.obsId === obsId)(e).forall(_.runningStep.isEmpty)
 
       val audioEffect = curStep
         .filter(ifLoggedIn)
@@ -161,7 +161,7 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
 
   val sequenceUnloadedMessage: PartialFunction[Any, ActionResult[M]] = {
     case ServerMessage(SequenceUnloaded(id, sv))
-        if value.sequences.sessionQueue.map(_.idName).contains(id) =>
+        if value.sequences.sessionQueue.map(_.obsId).contains(id) =>
       updated(value.copy(sequences = filterSequences(sv)), Effect(Future(NavigateTo(Root))))
   }
 
@@ -249,8 +249,8 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
           .sessionQueueT[SequenceView]
           .getAll(sequences)
           .collect {
-            case view if value.resourceRunRequested.keySet.contains(view.idName.id) =>
-              view.idName.id ->
+            case view if value.resourceRunRequested.keySet.contains(view.obsId) =>
+              view.obsId ->
                 (for {
                   step               <- SequenceView.stepT.getAll(view)
                   (resource, status) <- Step.configStatus.getOption(step).orEmpty
@@ -273,26 +273,26 @@ class ServerMessagesHandler[M](modelRW: ModelRW[M, WebSocketsFocus])
   val InstRegex: Regex = "Sequence execution failed with error: (.*)".r
 
   val singleRunCompleteMessage: PartialFunction[Any, ActionResult[M]] = {
-    case ServerMessage(SingleActionEvent(SingleActionOp.Completed(sidName, stepId, r))) =>
-      effectOnly(Effect.action(RunResourceComplete(sidName.id, stepId, r)))
+    case ServerMessage(SingleActionEvent(SingleActionOp.Completed(obsId, stepId, r))) =>
+      effectOnly(Effect.action(RunResourceComplete(obsId, stepId, r)))
 
-    case ServerMessage(SingleActionEvent(SingleActionOp.Started(sidName, stepId, r))) =>
+    case ServerMessage(SingleActionEvent(SingleActionOp.Started(obsId, stepId, r))) =>
       effectOnly(
         Effect.action(
-          ActionBatch(ClearAllResourceOperationsOnStepChange(sidName.id, stepId),
-                      RunResourceRemote(sidName.id, stepId, r)
+          ActionBatch(ClearAllResourceOperationsOnStepChange(obsId, stepId),
+                      RunResourceRemote(obsId, stepId, r)
           )
         )
       )
 
-    case ServerMessage(SingleActionEvent(SingleActionOp.Error(sidName, stepId, r, msg))) =>
+    case ServerMessage(SingleActionEvent(SingleActionOp.Error(obsId, stepId, r, msg))) =>
       // Unbundle the underlying exception message
       val actualMsg = msg match {
         case MsgRegex(m)  => m
         case InstRegex(m) => m
         case m            => m
       }
-      effectOnly(Effect(Future(RunResourceFailed(sidName.id, stepId, r, actualMsg))))
+      effectOnly(Effect(Future(RunResourceFailed(obsId, stepId, r, actualMsg))))
   }
 
   val guideConfigMessage: PartialFunction[Any, ActionResult[M]] = {

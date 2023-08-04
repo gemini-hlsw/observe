@@ -3,7 +3,7 @@
 
 package observe.model
 
-import cats._
+import cats.*
 
 case class SystemOverrides(
   isTcsEnabled:        Boolean,
