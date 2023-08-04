@@ -6,14 +6,13 @@ package observe.common
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import io.circe.Decoder
-import lucuma.core.math
 import lucuma.core.model
 import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 
 // gql: import io.circe.refined.*
-// gql: import lucuma.odb.json.all.{*, given}
+// gql: import lucuma.schemas.decoders.given
+// gql: import lucuma.odb.json.all.query.given
 
 object ObsQueriesGQL {
 
@@ -79,9 +78,13 @@ object ObsQueriesGQL {
                 atUtc
               }
               ... on TimingWindowEndAfter {
-                after
+                after{
+                  milliseconds
+                }
                 repeat {
-                  period
+                  period {
+                    milliseconds
+                  }
                   times
                 }
               }
@@ -273,28 +276,10 @@ object ObsQueriesGQL {
 
     """
 
-    given [T]: Decoder[math.Offset.Component[T]] =
-      Decoder.instance(c =>
-        c.downField("microarcseconds")
-          .as[Long]
-          .map(
-            math.Angle.signedMicroarcseconds.reverse
-              .andThen(math.Offset.Component.angle[T].reverse)
-              .get
-          )
-      )
-
-    given Decoder[math.Offset] = Decoder.instance(c =>
-      for {
-        p <- c.downField("p").as[math.Offset.P]
-        q <- c.downField("q").as[math.Offset.Q]
-      } yield math.Offset(p, q)
-    )
-
     object Data {
       object Observation {
-        type ConstraintSet = lucuma.core.model.ConstraintSet
-        type TimingWindows = lucuma.core.model.TimingWindow
+        type ConstraintSet = model.ConstraintSet
+        type TimingWindows = model.TimingWindow
         object Execution {
           object Config {
             object GmosNorthExecutionConfig {

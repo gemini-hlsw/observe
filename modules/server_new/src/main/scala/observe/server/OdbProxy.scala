@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.all.*
 import clue.FetchClient
-import clue.data.syntax.{*, given}
+import clue.data.syntax.*
 import clue.ClientAppliedF.*
 import eu.timepit.refined.types.numeric.{PosInt, PosLong}
 import lucuma.core.enums.{DatasetStage, SequenceCommand, StepStage}
@@ -17,7 +17,6 @@ import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.common.ObsQueriesGQL.*
-//import observe.common.ObsQueriesGQL.ObsQuery.*
 import observe.model.dhs.*
 import observe.model.{Observation, StepId}
 import org.typelevel.log4cats.Logger

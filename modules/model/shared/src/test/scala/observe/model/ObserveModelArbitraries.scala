@@ -24,15 +24,6 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[Operator] = Arbitrary[Operator](Gen.alphaStr.map(Operator.apply))
 
-  given Arbitrary[Conditions] = Arbitrary[Conditions] {
-    for {
-      cc <- arbitrary[CloudCover]
-      iq <- arbitrary[ImageQuality]
-      sb <- arbitrary[SkyBackground]
-      wv <- arbitrary[WaterVapor]
-    } yield Conditions(cc, iq, sb, wv)
-  }
-
   // N.B. We don't want to auto derive this to limit the size of the lists for performance reasons
   implicit def sequencesQueueArb[A](using arb: Arbitrary[A]): Arbitrary[SequencesQueue[A]] =
     Arbitrary {

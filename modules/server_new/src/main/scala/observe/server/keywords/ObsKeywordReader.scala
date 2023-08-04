@@ -12,6 +12,7 @@ import lucuma.core.model.sequence.{StepConfig, Step as OcsStep}
 import lucuma.core.enums.GuideState.{Disabled, Enabled}
 import lucuma.core.model.{ElevationRange, TimingWindowEnd, TimingWindowRepeat}
 import lucuma.core.syntax.string.*
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.tcs.Tcs
@@ -126,10 +127,23 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def timingWindows: F[List[(Int, TimingWindowKeywords)]] = obsCfg.timingWindows.zipWithIndex.map{
         case (w, i) => i -> TimingWindowKeywords(
+//          w.startUtc.toString,
+//          w.end.flatMap {
+//            case TimingWindowEnd.At(ts) => TimeSpan.between(w.startUtc, ts)
+//            case TimingWindowEnd.After(d, _) => d.some
+//          }.map(_.toSeconds.toDouble).getOrElse(0.0),
+//          w.end.flatMap {
+//            case TimingWindowEnd.After(_, r) => r.flatMap(_.times).map(_.value)
+//            case _ => None
+//          }.getOrElse(1),
+//          w.end.flatMap {
+//            case TimingWindowEnd.After(_, r) => r.map(_.period.toSeconds.toDouble)
+//            case _ => None
+//          }.getOrElse(0.0)
           w.start.toString,
           w.duration.map(_.toSeconds.toDouble).getOrElse(0.0),
           w.end.flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption).flatten.flatMap(_.times).map(_.value).getOrElse(1),
-          w.end.flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption).flatten.map(_.period.toSeconds.toDouble).getOrElse(0.0),
+          w.end.flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption).flatten.map(_.period.toSeconds.toDouble).getOrElse(0.0)
         )
       }.pure[F]
 

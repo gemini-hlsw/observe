@@ -10,7 +10,7 @@ import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Atom as OcsAtom
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step.Id as StepId
 
 /**
@@ -18,7 +18,7 @@ import lucuma.core.model.sequence.Step.Id as StepId
  */
 final case class Sequence[F[_]] private (
   id:     Observation.Id,
-  atomId: Option[OcsAtom.Id],
+  atomId: Option[Atom.Id],
   steps:  List[Step[F]]
 )
 
@@ -27,7 +27,7 @@ object Sequence {
   def empty[F[_]](id: Observation.Id): Sequence[F] = Sequence(id, none, List.empty)
   def sequence[F[_]](
     id:     Observation.Id,
-    atomId: OcsAtom.Id,
+    atomId: Atom.Id,
     steps:  List[Step[F]]
   ): Sequence[F] = Sequence(id, atomId.some, steps)
 
@@ -36,7 +36,7 @@ object Sequence {
    */
   final case class Zipper[F[_]](
     id:      Observation.Id,
-    atomId:  Option[OcsAtom.Id],
+    atomId:  Option[Atom.Id],
     pending: List[Step[F]],
     focus:   Step.Zipper[F],
     done:    List[Step[F]]
