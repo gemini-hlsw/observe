@@ -146,7 +146,7 @@ object ControlButtons:
           //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
           //     )(stopGracefullyIcon)
           //   )("Stop the current exposure at the end of the cycle")
-          case _                => <.div
+          case _                => EmptyVdom
         }
         .toTagMod
     )

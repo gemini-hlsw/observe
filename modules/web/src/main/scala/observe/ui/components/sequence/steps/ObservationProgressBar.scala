@@ -11,11 +11,11 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import lucuma.typed.primereact.components.*
 import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage
 import observe.ui.ObserveStyles
+import _root_.react.primereact.ProgressBar
 
 import java.time.Duration
 import java.util.UUID
@@ -65,9 +65,11 @@ object ObservationProgressBar extends ProgressLabel:
             val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 
             React.Fragment(
-              ProgressBar(ObserveStyles.ObservationProgressBar)
-                .value(progress.toInt)
-                .showValue(false),
+              ProgressBar(
+                value = progress.toInt,
+                showValue = false,
+                clazz = ObserveStyles.ObservationProgressBar
+              ),
               <.div(ObserveStyles.ObservationProgressLabel)(
                 renderLabel(props.fileId, remainingMillis.some, props.stopping, props.paused, stage)
               )
@@ -85,9 +87,11 @@ object ObservationProgressBar extends ProgressLabel:
             val msg = if (props.paused) s"${props.fileId.value} - Paused" else props.fileId.value
 
             React.Fragment(
-              ProgressBar(ObserveStyles.ObservationProgressBar)
-                .value(100)
-                .showValue(false),
+              ProgressBar(
+                value = 100,
+                showValue = false,
+                clazz = ObserveStyles.ObservationProgressBar
+              ),
               <.div(ObserveStyles.ObservationProgressLabel)(
                 msg
               )

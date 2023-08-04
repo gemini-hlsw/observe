@@ -54,13 +54,11 @@ enum SequenceStep[D](
         false
       )
 
-  def offset: Option[Offset] = stepConfig match
-    case Science(offset, _) => offset.some
-    case _                  => none
+  def science: Option[StepConfig.Science] = StepConfig.science.getOption(stepConfig)
 
-  def guiding: Option[GuideState] = stepConfig match
-    case Science(_, guiding) => guiding.some
-    case _                   => none
+  def offset: Option[Offset] = science.map(_.offset)
+
+  def guiding: Option[GuideState] = science.map(_.guiding)
 
   def hasBreakpoint: Boolean = breakpoint === Breakpoint.Enabled
 

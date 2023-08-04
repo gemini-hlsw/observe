@@ -145,9 +145,7 @@ case class GmosSouthStepsTable(
 //   // Find out if offsets should be displayed
 //   val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
 
-private sealed trait StepsTableBuilder[S: Eq, D: Eq](
-  offsetDisplayCell: (OffsetsDisplay, SequenceStep[D], Option[GmosNodAndShuffle]) => VdomNode
-):
+private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
   private type Props = StepsTable[S, D]
 
   // protected val offsetDisplayCell: (
@@ -446,7 +444,8 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq](
             column(
               OffsetsColumnId,
               "Offsets",
-              cell => offsetDisplayCell(offsetsDisplay, cell.row.original, nodAndShuffle)
+              cell =>
+                cell.row.original.science.map(OffsetsDisplayCell(offsetsDisplay, _, nodAndShuffle))
             ),
             column(ObsModeColumnId, "Observing Mode"),
             column(
@@ -575,11 +574,7 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq](
         )
 
 object GmosNorthStepsTable
-    extends StepsTableBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-      GmosNorthOffsetsDisplayCell.apply
-    )
+    extends StepsTableBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
 
 object GmosSouthStepsTable
-    extends StepsTableBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
-      GmosSouthOffsetsDisplayCell.apply
-    )
+    extends StepsTableBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]
