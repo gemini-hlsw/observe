@@ -4,6 +4,8 @@
 package observe.model
 
 import cats.syntax.all.*
+import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
+
 import java.util.UUID
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
@@ -12,11 +14,12 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import org.scalacheck.Arbitrary.*
+
 import scala.collection.immutable.SortedMap
 import squants.time.*
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
-import observe.model.arb.all.{*, given}
+import observe.model.arb.all.given
 
 trait ObserveModelArbitraries {
 
@@ -24,8 +27,17 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[Operator] = Arbitrary[Operator](Gen.alphaStr.map(Operator.apply))
 
+  given Arbitrary[Conditions] = Arbitrary[Conditions] {
+    for {
+      cc <- arbitrary[Option[CloudExtinction]]
+      iq <- arbitrary[Option[ImageQuality]]
+      sb <- arbitrary[Option[SkyBackground]]
+      wv <- arbitrary[Option[WaterVapor]]
+    } yield Conditions(cc, iq, sb, wv)
+  }
+
   // N.B. We don't want to auto derive this to limit the size of the lists for performance reasons
-  implicit def sequencesQueueArb[A](using arb: Arbitrary[A]): Arbitrary[SequencesQueue[A]] =
+  given sequencesQueueArb[A](using arb: Arbitrary[A]): Arbitrary[SequencesQueue[A]] =
     Arbitrary {
       for {
         b <- Gen.listOfN[A](maxListSize, arb.arbitrary)
@@ -146,9 +158,9 @@ trait ObserveModelArbitraries {
     )
 
   given Cogen[Conditions] =
-    Cogen[(CloudCover, ImageQuality, SkyBackground, WaterVapor)].contramap(c =>
-      (c.cc, c.iq, c.sb, c.wv)
-    )
+    Cogen[
+      (Option[CloudExtinction], Option[ImageQuality], Option[SkyBackground], Option[WaterVapor])
+    ].contramap(c => (c.cc, c.iq, c.sb, c.wv))
 
   given Arbitrary[BatchCommandState.Run] = Arbitrary {
     for {

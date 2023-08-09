@@ -15,13 +15,6 @@ import observe.server.EpicsCodex.decode
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.gems.Gems.*
-import observe.server.gems.Gems.Cwfs1DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Cwfs2DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Cwfs3DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Odgw1DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Odgw2DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Odgw3DetectorState.{Off as _, On as _, *}
-import observe.server.gems.Gems.Odgw4DetectorState.{Off as _, On as _, *}
 import observe.server.tcs.GemsSource.*
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.FollowOption.{FollowOff, FollowOn}

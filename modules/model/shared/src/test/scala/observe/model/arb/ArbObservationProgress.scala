@@ -11,45 +11,43 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.arb.ArbTime.{*, given}
-import observe.model.arb.ArbNSSubexposure.{*, given}
+import observe.model.arb.ArbNSSubexposure.given
 import observe.model.*
 import observe.model.ObserveStage.given
-import squants.time.*
+import scala.concurrent.duration.FiniteDuration
 
 trait ArbObservationProgress {
-  import ArbObservationIdName.{*, given}
 
   given arbObservationProgress: Arbitrary[ObservationProgress] =
     Arbitrary {
       for {
         o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
-        t <- arbitrary[Time]
-        r <- arbitrary[Time]
+        t <- arbitrary[FiniteDuration]
+        r <- arbitrary[FiniteDuration]
         v <- arbitrary[ObserveStage]
       } yield ObservationProgress(o, s, t, r, v)
     }
 
   given observationInProgressCogen: Cogen[ObservationProgress] =
-    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage)]
-      .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage))
+    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage)]
+      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
 
   given arbNSObservationProgress: Arbitrary[NSObservationProgress] =
     Arbitrary {
       for {
         o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
-        t <- arbitrary[Time]
-        r <- arbitrary[Time]
+        t <- arbitrary[FiniteDuration]
+        r <- arbitrary[FiniteDuration]
         v <- arbitrary[ObserveStage]
         u <- arbitrary[NSSubexposure]
       } yield NSObservationProgress(o, s, t, r, v, u)
     }
 
   given nsObservationInProgressCogen: Cogen[NSObservationProgress] =
-    Cogen[(Observation.Id, StepId, Time, Time, ObserveStage, NSSubexposure)]
-      .contramap(x => (x.obsIdName, x.stepId, x.total, x.remaining, x.stage, x.sub))
+    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage, NSSubexposure)]
+      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
   given arbProgress: Arbitrary[Progress] =
     Arbitrary {

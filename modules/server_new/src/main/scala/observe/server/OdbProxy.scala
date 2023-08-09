@@ -11,14 +11,14 @@ import clue.data.syntax.*
 import clue.ClientAppliedF.*
 import eu.timepit.refined.types.numeric.{PosInt, PosLong}
 import lucuma.core.enums.{DatasetStage, SequenceCommand, StepStage}
-import lucuma.core.model.Visit
+import lucuma.core.model.{Observation, Visit}
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
-import observe.model.{Observation, StepId}
+import observe.model.StepId
 import org.typelevel.log4cats.Logger
 import observe.server.given
 import observe.server.ObsQueryInput.*

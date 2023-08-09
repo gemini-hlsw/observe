@@ -4,9 +4,7 @@
 package observe.model.arb
 
 import org.scalacheck.Arbitrary.*
-import org.scalacheck.Cogen
 import org.scalacheck.*
-import org.scalacheck.Cogen.*
 import lucuma.core.arb.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.math.Angle
@@ -33,13 +31,6 @@ trait ArbStepConfig {
       a <- arbitrary[SystemName]
       b <- parametersGen
     } yield (a, b)
-
-  val stepConfigGen: Gen[StepConfig] = Gen
-    .chooseNum(0, 3)
-    .flatMap(s => Gen.mapOfN[SystemName, Parameters](s, stepConfigG))
-
-  given stParams: Cogen[StepConfig] =
-    Cogen[String].contramap(_.mkString(","))
 
   private val perturbations: List[String => Gen[String]] =
     List(s => if (s.startsWith("-")) Gen.const(s) else Gen.const(s"00%s") // insert leading 0s

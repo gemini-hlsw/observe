@@ -14,6 +14,7 @@ import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserPrompt
 import observe.model.enums.*
+import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
 
 sealed trait SeqEvent extends Product with Serializable
 
@@ -45,7 +46,7 @@ object SeqEvent {
   final case class SetImageQuality(iq: ImageQuality, user: Option[UserDetails])     extends SeqEvent
   final case class SetWaterVapor(wv: WaterVapor, user: Option[UserDetails])         extends SeqEvent
   final case class SetSkyBackground(wv: SkyBackground, user: Option[UserDetails])   extends SeqEvent
-  final case class SetCloudCover(cc: CloudCover, user: Option[UserDetails])         extends SeqEvent
+  final case class SetCloudCover(cc: CloudExtinction, user: Option[UserDetails])    extends SeqEvent
   final case class NotifyUser(memo: Notification, clientID: ClientId)               extends SeqEvent
   final case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)           extends SeqEvent
   final case class StartQueue(

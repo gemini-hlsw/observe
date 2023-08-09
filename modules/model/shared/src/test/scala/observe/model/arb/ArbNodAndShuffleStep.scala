@@ -3,37 +3,40 @@
 
 package observe.model.arb
 
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
+import lucuma.core.model.sequence.arb.ArbStepConfig.*
+import lucuma.core.model.sequence.StepConfig
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary.*
 import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.TimeSpan
+import lucuma.core.util.arb.ArbTimeSpan.given
 import observe.model.*
 import observe.model.GmosParameters.*
 import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
 import observe.model.enums.*
-import observe.model.arb.ArbStepConfig.{*, given}
-import observe.model.arb.ArbStepState.{*, given}
-import observe.model.arb.ArbDhsTypes.{*, given}
-import observe.model.arb.ArbTime.{*, given}
-import observe.model.arb.ArbGmosParameters.{*, given}
-import observe.model.arb.ArbNSRunningState.{*, given}
-import squants.*
+import observe.model.arb.ArbStepState.given
+import observe.model.arb.ArbDhsTypes.given
+import observe.model.arb.ArbGmosParameters.given
+import observe.model.arb.ArbNSRunningState.given
 
 trait ArbNodAndShuffleStep {
+
   given nssArb: Arbitrary[NodAndShuffleStatus] = Arbitrary[NodAndShuffleStatus] {
     for {
       as <- arbitrary[ActionStatus]
-      t  <- arbitrary[Time]
-      n  <- arbitrary[Time]
+      t  <- arbitrary[TimeSpan]
+      n  <- arbitrary[TimeSpan]
       c  <- arbitrary[NsCycles]
       s  <- arbitrary[Option[NSRunningState]]
     } yield NodAndShuffleStatus(as, t, n, c, s)
   }
 
   given nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
-    Cogen[(ActionStatus, Time, Time, NsCycles)].contramap { x =>
-      (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles)
+    Cogen[(ActionStatus, TimeSpan, TimeSpan, NsCycles, Option[NSRunningState])].contramap { x =>
+      (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles, x.state)
     }
 
   given nodAndShufflePendingCmdArb: Arbitrary[PendingObserveCmd] =
@@ -44,7 +47,8 @@ trait ArbNodAndShuffleStep {
   given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
     for {
       id <- arbitrary[StepId]
-      c  <- stepConfigGen
+      d  <- arbitrary[DynamicConfig]
+      t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
       b  <- arbitrary[Boolean]
       k  <- arbitrary[Boolean]
@@ -53,7 +57,8 @@ trait ArbNodAndShuffleStep {
       os <- arbitrary[NodAndShuffleStatus]
       oc <- arbitrary[Option[PendingObserveCmd]]
     } yield new NodAndShuffleStep(id = id,
-                                  config = c,
+                                  instConfig = d,
+                                  stepConfig = t,
                                   status = s,
                                   breakpoint = b,
                                   skip = k,
@@ -68,7 +73,8 @@ trait ArbNodAndShuffleStep {
     Cogen[
       (
         StepId,
-        Map[SystemName, Map[String, String]],
+        DynamicConfig,
+        StepConfig,
         StepState,
         Boolean,
         Boolean,
@@ -77,7 +83,16 @@ trait ArbNodAndShuffleStep {
         NodAndShuffleStatus
       )
     ].contramap(s =>
-      (s.id, s.config, s.status, s.breakpoint, s.skip, s.fileId, s.configStatus, s.nsStatus)
+      (s.id,
+       s.instConfig,
+       s.stepConfig,
+       s.status,
+       s.breakpoint,
+       s.skip,
+       s.fileId,
+       s.configStatus,
+       s.nsStatus
+      )
     )
 
 }

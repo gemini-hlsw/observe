@@ -7,10 +7,10 @@ import cats.*
 import cats.data.*
 import cats.effect.{Async, Sync}
 import cats.syntax.all.*
-import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.{LightSinkName, Site}
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
-import monocle.{Iso, Lens, Focus}
+import monocle.{Focus, Iso, Lens}
 import mouse.boolean.*
 import observe.model.enums.*
 import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
@@ -31,11 +31,11 @@ import scala.concurrent.duration.FiniteDuration
  * Base implementation of an Epics TcsController Type parameter BaseEpicsTcsConfig is the class used
  * to hold the current configuration
  */
-sealed trait TcsControllerEpicsCommon[F[_]] {
+sealed trait TcsControllerEpicsCommon[F[_], S <: Site] {
 
   def applyBasicConfig(
     subsystems: NonEmptySet[Subsystem],
-    tcs:        BasicTcsConfig
+    tcs:        BasicTcsConfig[S]
   ): F[Unit]
 
   def notifyObserveStart: F[Unit]
@@ -46,7 +46,7 @@ sealed trait TcsControllerEpicsCommon[F[_]] {
     subsystems: NonEmptySet[Subsystem],
     offset:     InstrumentOffset,
     guided:     Boolean,
-    tcs:        BasicTcsConfig
+    tcs:        BasicTcsConfig[S]
   ): F[Unit]
 
   def setMountGuide[C](l: Lens[C, BaseEpicsTcsConfig])(
@@ -133,9 +133,9 @@ sealed trait TcsControllerEpicsCommon[F[_]] {
  * Type parameter BaseEpicsTcsConfig is the class used to hold the current configuration
  */
 object TcsControllerEpicsCommon {
-  private[tcs] def mustPauseWhileOffsetting(
+  private[tcs] def mustPauseWhileOffsetting[S <: Site](
     current: BaseEpicsTcsConfig,
-    demand:  BasicTcsConfig
+    demand:  BasicTcsConfig[S]
   ): Boolean = {
     val distanceSquared = calcMoveDistanceSquared(current, demand.tc)
 
@@ -163,8 +163,8 @@ object TcsControllerEpicsCommon {
   }
 
   // Disable M1 guiding if source is off
-  private def normalizeM1Guiding(gaosEnabled: Boolean): Endo[BasicTcsConfig] = cfg =>
-    Focus[BasicTcsConfig](_.gc)
+  private def normalizeM1Guiding[S <: Site](gaosEnabled: Boolean): Endo[BasicTcsConfig[S]] = cfg =>
+    Focus[BasicTcsConfig[S]](_.gc)
       .andThen(Focus[TelescopeGuideConfig](_.m1Guide))
       .modify {
         case g @ M1GuideConfig.M1GuideOn(src) =>
@@ -179,8 +179,8 @@ object TcsControllerEpicsCommon {
       }(cfg)
 
   // Disable M2 sources if they are off, disable M2 guiding if all are off
-  private def normalizeM2Guiding(gaosEnabled: Boolean): Endo[BasicTcsConfig] = cfg =>
-    Focus[BasicTcsConfig](_.gc)
+  private def normalizeM2Guiding[S <: Site](gaosEnabled: Boolean): Endo[BasicTcsConfig[S]] = cfg =>
+    Focus[BasicTcsConfig[S]](_.gc)
       .andThen(Focus[TelescopeGuideConfig](_.m2Guide))
       .modify {
         case M2GuideConfig.M2GuideOn(coma, srcs) =>
@@ -201,8 +201,8 @@ object TcsControllerEpicsCommon {
       }(cfg)
 
   // Disable Mount guiding if M2 guiding is disabled
-  private val normalizeMountGuiding: Endo[BasicTcsConfig] = cfg =>
-    Focus[BasicTcsConfig](_.gc)
+  private def normalizeMountGuiding[S <: Site]: Endo[BasicTcsConfig[S]] = cfg =>
+    Focus[BasicTcsConfig[S]](_.gc)
       .andThen(Focus[TelescopeGuideConfig](_.mountGuide))
       .modify { m =>
         (m, cfg.gc.m2Guide) match {
@@ -212,13 +212,16 @@ object TcsControllerEpicsCommon {
         }
       }(cfg)
 
-  private def calcGuideOff(current: BaseEpicsTcsConfig, demand: BasicTcsConfig): BasicTcsConfig = {
+  private def calcGuideOff[S <: Site](
+    current: BaseEpicsTcsConfig,
+    demand:  BasicTcsConfig[S]
+  ): BasicTcsConfig[S] = {
     val mustOff                                            = mustPauseWhileOffsetting(current, demand)
     // Only turn things off here. Things that must be turned on will be turned on in GuideOn.
     def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
       (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
 
-    (Focus[BasicTcsConfig](_.gds).modify(
+    (Focus[BasicTcsConfig[S]](_.gds).modify(
       Focus[BasicGuidersConfig](_.pwfs1)
         .andThen(TcsController.P1Config.value)
         .andThen(Focus[GuiderConfig](_.detector))
@@ -231,7 +234,7 @@ object TcsControllerEpicsCommon {
           .andThen(TcsController.OIConfig.value)
           .andThen(Focus[GuiderConfig](_.detector))
           .replace(calc(current.oiwfs.detector, demand.gds.oiwfs.value.detector))
-    ) >>> Focus[BasicTcsConfig](_.gc).modify(
+    ) >>> Focus[BasicTcsConfig[S]](_.gc).modify(
       Focus[TelescopeGuideConfig](_.mountGuide).replace(
         (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
           .fold(MountGuideOption.MountGuideOff, current.telescopeGuideConfig.mountGuide)
@@ -270,9 +273,9 @@ object TcsControllerEpicsCommon {
       .option((c: C) => act(demand) *> lens.replace(demand)(c).pure[F])
       .map(_.withDebug(s"$name($current =!= $demand"))
 
-  private class TcsControllerEpicsCommonImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
+  private class TcsControllerEpicsCommonImpl[F[_]: Async, S <: Site](epicsSys: TcsEpics[F])(using
     L: Logger[F]
-  ) extends TcsControllerEpicsCommon[F]
+  ) extends TcsControllerEpicsCommon[F, S]
       with TcsControllerEncoders
       with ScienceFoldPositionCodex {
     private val tcsConfigRetriever = TcsConfigRetriever[F](epicsSys)
@@ -288,7 +291,8 @@ object TcsControllerEpicsCommon {
       c,
       d,
       (x: MountGuideOption) => epicsSys.mountGuideCmd.setMode(encode(x)),
-      l.andThen(Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig)).andThen(Focus[TelescopeGuideConfig](_.mountGuide))
+      l.andThen(Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig))
+        .andThen(Focus[TelescopeGuideConfig](_.mountGuide))
     )("MountGuide")
 
     override def setM1Guide[C](l: Lens[C, BaseEpicsTcsConfig])(
@@ -300,7 +304,8 @@ object TcsControllerEpicsCommon {
       c,
       d,
       (x: M1GuideConfig) => epicsSys.m1GuideCmd.setState(encode(x)),
-      l.andThen(Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig)).andThen(Focus[TelescopeGuideConfig](_.m1Guide))
+      l.andThen(Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig))
+        .andThen(Focus[TelescopeGuideConfig](_.m1Guide))
     )("M1Guide")
 
     override def setM2Guide[C](l: Lens[C, BaseEpicsTcsConfig])(
@@ -393,7 +398,7 @@ object TcsControllerEpicsCommon {
     private def guideParams(
       subsystems: NonEmptySet[Subsystem],
       current:    BaseEpicsTcsConfig,
-      demand:     BasicTcsConfig
+      demand:     BasicTcsConfig[S]
     ): List[WithDebug[BaseEpicsTcsConfig => F[BaseEpicsTcsConfig]]] = List(
       setMountGuide(Iso.id)(subsystems,
                             current.telescopeGuideConfig.mountGuide,
@@ -458,7 +463,9 @@ object TcsControllerEpicsCommon {
               .option {
                 { (x: C) =>
                   setHRPickupConfig(a) *> Sync[F]
-                    .delay(l.andThen(Focus[BaseEpicsTcsConfig](_.hrwfsPickupPosition)).replace(a)(x))
+                    .delay(
+                      l.andThen(Focus[BaseEpicsTcsConfig](_.hrwfsPickupPosition)).replace(a)(x)
+                    )
                 }.withDebug(s"HrPickup(b =!= a")
               }
           },
@@ -469,7 +476,7 @@ object TcsControllerEpicsCommon {
     private def guideOff(
       subsystems: NonEmptySet[Subsystem],
       current:    BaseEpicsTcsConfig,
-      demand:     BasicTcsConfig
+      demand:     BasicTcsConfig[S]
     ): F[BaseEpicsTcsConfig] = {
       val paramList = guideParams(subsystems, current, calcGuideOff(current, demand))
 
@@ -564,7 +571,9 @@ object TcsControllerEpicsCommon {
       c: ProbeTrackingConfig
     ): Option[WithDebug[C => F[C]]] =
       setGuideProbe(pwfs1GuiderControl,
-                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs1)).andThen(Focus[GuiderConfig](_.tracking)).replace
+                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs1))
+                      .andThen(Focus[GuiderConfig](_.tracking))
+                      .replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS1: $d"))
 
     private def pwfs2GuiderControl: GuideControl[F] =
@@ -580,7 +589,9 @@ object TcsControllerEpicsCommon {
       c: ProbeTrackingConfig
     ): Option[WithDebug[C => F[C]]] =
       setGuideProbe(pwfs2GuiderControl,
-                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs2)).andThen(Focus[GuiderConfig](_.tracking)).replace
+                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs2))
+                      .andThen(Focus[GuiderConfig](_.tracking))
+                      .replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS2: $d"))
 
     private def oiwfsGuiderControl: GuideControl[F] =
@@ -599,7 +610,9 @@ object TcsControllerEpicsCommon {
     ): Option[WithDebug[C => F[C]]] = oiSelectionName(inst).flatMap { x =>
       if (x === oiName)
         setGuideProbe(oiwfsGuiderControl,
-                      l.andThen(Focus[BaseEpicsTcsConfig](_.oiwfs)).andThen(Focus[GuiderConfig](_.tracking)).replace
+                      l.andThen(Focus[BaseEpicsTcsConfig](_.oiwfs))
+                        .andThen(Focus[GuiderConfig](_.tracking))
+                        .replace
         )(a, b, c).map(_.mapDebug(d => s"OIWFS: $d"))
       else none
     }
@@ -658,7 +671,7 @@ object TcsControllerEpicsCommon {
     private def configBaseParams(
       subsystems: NonEmptySet[Subsystem],
       current:    BaseEpicsTcsConfig,
-      tcs:        BasicTcsConfig
+      tcs:        BasicTcsConfig[S]
     ): List[WithDebug[BaseEpicsTcsConfig => F[BaseEpicsTcsConfig]]] = List(
       setPwfs1Probe(Iso.id)(subsystems, current.pwfs1.tracking, tcs.gds.pwfs1.value.tracking),
       setPwfs2Probe(Iso.id)(subsystems, current.pwfs2.tracking, tcs.gds.pwfs2.value.tracking),
@@ -678,7 +691,7 @@ object TcsControllerEpicsCommon {
     def guideOn(
       subsystems: NonEmptySet[Subsystem],
       current:    BaseEpicsTcsConfig,
-      demand:     BasicTcsConfig
+      demand:     BasicTcsConfig[S]
     ): F[BaseEpicsTcsConfig] = {
 
       // If the demand turned off any WFS, normalize will turn off the corresponding processing
@@ -703,7 +716,7 @@ object TcsControllerEpicsCommon {
 
     override def applyBasicConfig(
       subsystems: NonEmptySet[Subsystem],
-      tcs:        BasicTcsConfig
+      tcs:        BasicTcsConfig[S]
     ): F[Unit] = {
       def sysConfig(current: BaseEpicsTcsConfig): F[BaseEpicsTcsConfig] = {
         val mountPosParams      = configMountPos(subsystems, current, tcs.tc, Iso.id)
@@ -745,10 +758,11 @@ object TcsControllerEpicsCommon {
 
       for {
         s0 <- tcsConfigRetriever.retrieveBaseConfiguration
-        _  <- ObserveFailure
-                .Execution("Found useAo set for non AO step using PWFS2.")
-                .raiseError[F, Unit]
-                .whenA(s0.useAo && subsystems.contains(Subsystem.PWFS2) && tcs.gds.pwfs2.value.isActive)
+        _  <-
+          ObserveFailure
+            .Execution("Found useAo set for non AO step using PWFS2.")
+            .raiseError[F, Unit]
+            .whenA(s0.useAo && subsystems.contains(Subsystem.PWFS2) && tcs.gds.pwfs2.value.isActive)
         s1 <- guideOff(subsystems, s0, tcs)
         s2 <- sysConfig(s1)
         _  <- guideOn(subsystems, s2, tcs)
@@ -771,15 +785,17 @@ object TcsControllerEpicsCommon {
       subsystems: NonEmptySet[Subsystem],
       offset:     InstrumentOffset,
       guided:     Boolean,
-      tcs:        BasicTcsConfig
+      tcs:        BasicTcsConfig[S]
     ): F[Unit] = {
 
-      val offsetConfig: BasicTcsConfig =
-        Focus[BasicTcsConfig](_.tc).andThen(Focus[TelescopeConfig](_.offsetA)).replace(offset.some)(tcs)
-      val noddedConfig: BasicTcsConfig =
+      val offsetConfig: BasicTcsConfig[S] =
+        Focus[BasicTcsConfig[S]](_.tc)
+          .andThen(Focus[TelescopeConfig](_.offsetA))
+          .replace(offset.some)(tcs)
+      val noddedConfig: BasicTcsConfig[S] =
         if (guided) offsetConfig
         else
-          Focus[BasicTcsConfig](_.gds).modify(
+          Focus[BasicTcsConfig[S]](_.gds).modify(
             Focus[BasicGuidersConfig](_.pwfs1)
               .andThen(TcsController.P1Config.value)
               .modify(
@@ -811,7 +827,7 @@ object TcsControllerEpicsCommon {
 
   }
 
-  def apply[F[_]: Async: Logger](epicsSys: TcsEpics[F]): TcsControllerEpicsCommon[F] =
+  def apply[F[_]: Async: Logger, S <: Site](epicsSys: TcsEpics[F]): TcsControllerEpicsCommon[F, S] =
     new TcsControllerEpicsCommonImpl(epicsSys)
 
   val DefaultTimeout: FiniteDuration = FiniteDuration(10, SECONDS)

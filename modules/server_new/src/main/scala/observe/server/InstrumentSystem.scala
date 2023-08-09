@@ -21,13 +21,16 @@ trait InstrumentSystem[F[_]] extends System[F] with InstrumentSpecifics {
   def observe: Kleisli[F, ImageFileId, ObserveCommandResult]
 
   // Expected total observe lapse, used to calculate timeout
-  def calcObserveTime: Duration
+  def calcObserveTime: FiniteDuration
 
   def observeTimeout: FiniteDuration = 1.minute
 
   def keywordsClient: KeywordsClient[F]
 
-  def observeProgress(total: Duration, elapsed: InstrumentSystem.ElapsedTime): Stream[F, Progress]
+  def observeProgress(
+    total:   FiniteDuration,
+    elapsed: InstrumentSystem.ElapsedTime
+  ): Stream[F, Progress]
 
   def instrumentActions: InstrumentActions[F]
 
@@ -40,7 +43,7 @@ object InstrumentSystem {
   final case class AbortObserveCmd[F[_]](self: F[Unit])
   final case class PauseObserveCmd[F[_]](self: Boolean => F[Unit])
 
-  final case class ContinuePausedCmd[F[_]](self: Duration => F[ObserveCommandResult])
+  final case class ContinuePausedCmd[F[_]](self: FiniteDuration => F[ObserveCommandResult])
   final case class StopPausedCmd[F[_]](self: F[ObserveCommandResult])
   final case class AbortPausedCmd[F[_]](self: F[ObserveCommandResult])
 
@@ -58,5 +61,5 @@ object InstrumentSystem {
   final case class UnpausableControl[F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
       extends ObserveControl[F]
 
-  final case class ElapsedTime(self: Duration) extends AnyVal
+  final case class ElapsedTime(self: FiniteDuration) extends AnyVal
 }

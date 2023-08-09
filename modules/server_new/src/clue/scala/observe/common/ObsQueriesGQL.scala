@@ -7,8 +7,7 @@ import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
 import lucuma.core.model
-import lucuma.core.model.sequence.ExecutionSequence
-import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
+import lucuma.core.model.sequence.InstrumentExecutionConfig
 
 // gql: import io.circe.refined.*
 // gql: import lucuma.schemas.decoders.given
@@ -39,11 +38,6 @@ object ObsQueriesGQL {
           title
           status
           activeStatus
-          plannedTime {
-            execution {
-              microseconds
-            }
-          }
           program {
             id
             name
@@ -91,37 +85,38 @@ object ObsQueriesGQL {
             }
           }
           execution {
-            config:executionConfig {
+            config(futureLimit: 100) {
+              instrument
               ... on GmosNorthExecutionConfig {
-                staticN:static {
+                static {
                   stageMode
                   detector
                   mosPreImaging
                   nodAndShuffle {
-                    ...nodAndShuffle
+                    ...nodAndShuffleFields
                   }
                 }
-                acquisitionN:acquisition {
-                  ...gmosNorthExecutionSequence
+                acquisition {
+                  ...gmosNorthSequenceFields
                 }
-                scienceN:science {
-                  ...gmosNorthExecutionSequence
+                science {
+                  ...gmosNorthSequenceFields
                 }
               }
               ... on GmosSouthExecutionConfig {
-                staticS:static {
+                static {
                   stageMode
                   detector
                   mosPreImaging
                   nodAndShuffle {
-                    ...nodAndShuffle
+                    ...nodAndShuffleFields
                   }
                 }
-                acquisitionS: acquisition {
-                  ...gmosSouthExecutionSequence
+                acquisition {
+                  ...gmosSouthSequenceFields
                 }
-                scienceS:science {
-                  ...gmosSouthExecutionSequence
+                science {
+                  ...gmosSouthSequenceFields
                 }
               }
             }
@@ -129,151 +124,154 @@ object ObsQueriesGQL {
         }
       }
 
-      fragment northAtomFields on GmosNorthAtom {
-        id
-        observeClass
-        steps {
-          instrumentConfig {
-            exposure {
-              microseconds
-            }
-            readout {
-              ...gmosCcdMode
-            }
-            dtax
-            roi
-            gratingConfig {
-              grating
-              order
-              wavelength {
-                picometers
-              }
-            }
-            filter
-            fpu {
-              builtin
-              customMask {
-                filename
-                slitWidth
-              }
-            }
-          }
-          id
-          breakpoint
-          stepConfig {
-            ...stepConfig
-          }
-          observeClass
-        }
-      }
-
-      fragment southAtomFields on GmosSouthAtom {
-        id
-        observeClass
-        steps {
-          instrumentConfig {
-            exposure {
-              microseconds
-            }
-            readout {
-              ...gmosCcdMode
-            }
-            dtax
-            roi
-            gratingConfig {
-              grating
-              order
-              wavelength {
-                picometers
-              }
-            }
-            filter
-            fpu {
-              builtin
-              customMask {
-                filename
-                slitWidth
-              }
-            }
-          }
-          id
-          breakpoint
-          stepConfig {
-            ...stepConfig
-          }
-          observeClass
-        }
-      }
-
-      fragment offset on Offset {
-        p {
-          microarcseconds
-        }
-        q {
-          microarcseconds
-        }
-      }
-
-      fragment nodAndShuffle on GmosNodAndShuffle {
-        posA {
-          ...offset
-        }
-        posB {
-          ...offset
-        }
+      fragment nodAndShuffleFields on GmosNodAndShuffle {
+        posA { ...offsetFields }
+        posB { ...offsetFields }
         eOffset
         shuffleOffset
         shuffleCycles
       }
 
-      fragment gmosNorthExecutionSequence on GmosNorthExecutionSequence {
-        nextAtom {
-          ...northAtomFields
-        }
-        possibleFuture {
-          ...northAtomFields
-        }
-      }
-
-      fragment gmosSouthExecutionSequence on GmosSouthExecutionSequence {
-        nextAtom {
-          ...southAtomFields
-        }
-        possibleFuture {
-          ...southAtomFields
-        }
-      }
-
-      fragment gmosCcdMode on GmosCcdMode {
-        xBin
-        yBin
-        ampCount
-        ampGain
-        ampReadMode
-      }
-
-      fragment gcal on Gcal {
-        filter
-        diffuser
-        shutter
-      }
-
-      fragment stepConfig on StepConfig {
+      fragment stepConfigFields on StepConfig {
         stepType
         ... on Gcal {
-          ...gcal
+          continuum
+          arcs
+          filter
+          diffuser
+          shutter
         }
         ... on Science {
-          offset {
-            ...offset
-          }
+          offset { ...offsetFields }
+          guiding
         }
-        ... on Bias {
-        }
-        ... on Dark {
+        ... on SmartGcal {
+          smartGcalType
         }
       }
 
+      fragment stepEstimateFields on StepEstimate {
+        configChange {
+          all {
+            name
+            description
+            estimate { microseconds }
+          }
+          index
+        }
+        detector {
+          all {
+            name
+            description
+            dataset {
+              exposure { microseconds }
+              readout { microseconds }
+              write { microseconds }
+            }
+            count
+          }
+          index
+        }
+      }
+
+      fragment gmosNorthAtomFields on GmosNorthAtom {
+        id
+        description
+        steps {
+          id
+          instrumentConfig {
+            exposure { microseconds }
+            readout {
+              xBin
+              yBin
+              ampCount
+              ampGain
+              ampReadMode
+            }
+            dtax
+            roi
+            gratingConfig {
+              grating
+              order
+              wavelength { picometers }
+            }
+            filter
+            fpu {
+              builtin
+            }
+          }
+          stepConfig {
+            ...stepConfigFields
+          }
+          estimate {
+            ...stepEstimateFields
+          }
+          observeClass
+          breakpoint
+        }
+      }
+
+      fragment gmosNorthSequenceFields on GmosNorthExecutionSequence {
+        nextAtom {
+          ...gmosNorthAtomFields
+        }
+        possibleFuture {
+          ...gmosNorthAtomFields
+        }
+        hasMore
+      }
+
+      fragment gmosSouthAtomFields on GmosSouthAtom {
+        id
+        description
+        steps {
+          id
+          instrumentConfig {
+            exposure { microseconds }
+            readout {
+              xBin
+              yBin
+              ampCount
+              ampGain
+              ampReadMode
+            }
+            dtax
+            roi
+            gratingConfig {
+              grating
+              order
+              wavelength { picometers }
+            }
+            filter
+            fpu {
+              builtin
+            }
+          }
+          stepConfig {
+            ...stepConfigFields
+          }
+          estimate {
+            ...stepEstimateFields
+          }
+          observeClass
+          breakpoint
+        }
+      }
+
+      fragment gmosSouthSequenceFields on GmosSouthExecutionSequence {
+        nextAtom {
+          ...gmosSouthAtomFields
+        }
+        possibleFuture {
+          ...gmosSouthAtomFields
+        }
+        hasMore
+      }
+
+      fragment offsetFields on Offset {
+        p { microarcseconds }
+        q { microarcseconds }
+      }
     """
 
     object Data {
@@ -281,23 +279,7 @@ object ObsQueriesGQL {
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
         object Execution {
-          object Config {
-            object GmosNorthExecutionConfig {
-              type StaticN = StaticConfig.GmosNorth
-
-              type AcquisitionN = ExecutionSequence[DynamicConfig.GmosNorth]
-
-              type ScienceN = ExecutionSequence[DynamicConfig.GmosNorth]
-            }
-
-            object GmosSouthExecutionConfig {
-              type StaticS = StaticConfig.GmosSouth
-
-              type AcquisitionS = ExecutionSequence[DynamicConfig.GmosSouth]
-
-              type ScienceS = ExecutionSequence[DynamicConfig.GmosSouth]
-            }
-          }
+          type Config = InstrumentExecutionConfig
         }
       }
     }

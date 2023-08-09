@@ -7,20 +7,23 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.arb.ArbStepConfig.*
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
 import observe.model.*
 import observe.model.enums.*
-import observe.model.arb.ArbStepConfig.{*, given}
-import observe.model.arb.ArbStepState.{*, given}
-import observe.model.arb.ArbDhsTypes.{*, given}
+import observe.model.arb.ArbStepState.given
+import observe.model.arb.ArbDhsTypes.given
 
 trait ArbStandardStep {
 
   given stsArb: Arbitrary[StandardStep] = Arbitrary[StandardStep] {
     for {
       id <- arbitrary[StepId]
-      c  <- stepConfigGen
+      d  <- arbitrary[DynamicConfig]
+      t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
       b  <- arbitrary[Boolean]
       k  <- arbitrary[Boolean]
@@ -28,7 +31,8 @@ trait ArbStandardStep {
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
     } yield new StandardStep(id = id,
-                             config = c,
+                             instConfig = d,
+                             stepConfig = t,
                              status = s,
                              breakpoint = b,
                              skip = k,
@@ -42,7 +46,8 @@ trait ArbStandardStep {
     Cogen[
       (
         StepId,
-        Map[SystemName, Map[String, String]],
+        DynamicConfig,
+        StepConfig,
         StepState,
         Boolean,
         Boolean,
@@ -51,7 +56,16 @@ trait ArbStandardStep {
         ActionStatus
       )
     ].contramap(s =>
-      (s.id, s.config, s.status, s.breakpoint, s.skip, s.fileId, s.configStatus, s.observeStatus)
+      (s.id,
+       s.instConfig,
+       s.stepConfig,
+       s.status,
+       s.breakpoint,
+       s.skip,
+       s.fileId,
+       s.configStatus,
+       s.observeStatus
+      )
     )
 
 }

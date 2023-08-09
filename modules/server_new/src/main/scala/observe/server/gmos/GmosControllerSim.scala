@@ -22,10 +22,8 @@ import observe.server.gmos.GmosController.Config.NSConfig
 import observe.server.gmos.GmosController.GmosConfig
 import observe.server.{InstrumentControllerSim, ObsProgress, Progress}
 import org.typelevel.log4cats.Logger
-import squants.Time
-import squants.time.TimeConversions.*
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /**
  * Keep track of the current execution state
@@ -34,7 +32,7 @@ final case class NSCurrent(
   fileId:        ImageFileId,
   totalCycles:   Int,
   exposureCount: Int,
-  expTime:       Time
+  expTime:       FiniteDuration
 ) {
   def lastSubexposure: Boolean =
     (exposureCount + 1) === totalCycles * NsSequence.length
@@ -71,7 +69,7 @@ object NSObsState {
   val exposureCount: Optional[NSObsState, Int] =
     Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(Focus[NSCurrent](_.exposureCount))
 
-  val expTime: Optional[NSObsState, Time] =
+  val expTime: Optional[NSObsState, FiniteDuration] =
     Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(Focus[NSCurrent](_.expTime))
 
 }
@@ -84,7 +82,7 @@ object GmosControllerSim {
     new GmosController[F, T] {
       override def observe(
         fileId:  ImageFileId,
-        expTime: Duration
+        expTime: FiniteDuration
       ): F[ObserveCommandResult] =
         nsConfig.modify {
           case s @ NSObsState(NSConfig.NoNodAndShuffle, _)                =>
@@ -115,7 +113,7 @@ object GmosControllerSim {
 
       override def pauseObserve: F[Unit] = sim.pauseObserve
 
-      override def resumePaused(expTime: Duration): F[ObserveCommandResult] =
+      override def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult] =
         nsConfig.modify {
           case s @ NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr))
               if !curr.lastSubexposure =>
@@ -143,12 +141,12 @@ object GmosControllerSim {
       override def abortPaused: F[ObserveCommandResult] = sim.abortPaused
 
       private def classicObserveProgress(
-        total:   Time,
+        total:   FiniteDuration,
         elapsed: ElapsedTime
       ): Stream[F, Progress] = sim.observeCountdown(total, elapsed)
 
       private def nsObserveProgress(
-        total:   Time,
+        total:   FiniteDuration,
         elapsed: ElapsedTime,
         curr:    NSCurrent
       ): Stream[F, Progress] = (
@@ -157,7 +155,7 @@ object GmosControllerSim {
             countdown[F](total, elapsed.self)
         else if (curr.lastSubexposure)
           countdown[F](total, elapsed.self) ++
-            Stream.emit(ObsProgress(total, RemainingTime(0.0.seconds), ObserveStage.ReadingOut))
+            Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
         else countdown[F](total, elapsed.self)
       ).map { p =>
         val sub = NSSubexposure(NsCycles(curr.totalCycles), NsCycles(curr.cycle), curr.stageIndex)
@@ -165,7 +163,7 @@ object GmosControllerSim {
       }
 
       override def observeProgress(
-        total:   Duration,
+        total:   FiniteDuration,
         elapsed: ElapsedTime
       ): Stream[F, Progress] =
         Stream.eval(nsConfig.get).flatMap {

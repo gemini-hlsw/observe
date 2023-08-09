@@ -11,6 +11,7 @@ import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController.*
+import lucuma.core.enums.Site
 
 trait TcsSouthController[F[_]] {
   import TcsSouthController.*
@@ -52,16 +53,16 @@ object TcsSouthController {
     odgw4: ODGW4Config.Type
   )
 
-  type TcsSouthConfig   = TcsConfig[GemsGuiders, GemsConfig]
-  type TcsSouthAoConfig = AoTcsConfig[GemsGuiders, GemsConfig]
+  type TcsSouthConfig   = TcsConfig[Site.GS.type]
+  type TcsSouthAoConfig = AoTcsConfig[Site.GS.type]
 
   given Show[GemsGuiders] = Show.show { x =>
-    s"(cwfs1 = ${(x.cwfs1.value).show}, cwfs2 = ${(x.cwfs2.value).show}, cwfs3 = ${(x.cwfs3.value).show}, odgw1 = ${(x.odgw1.value).show}, odgw2 = ${(x.odgw2.value).show}, odgw3 = ${(x.odgw3.value).show}, odgw4 = ${(x.odgw4.value).show})"
+    s"(cwfs1 = ${x.cwfs1.value.show}, cwfs2 = ${x.cwfs2.value.show}, cwfs3 = ${x.cwfs3.value.show}, odgw1 = ${x.odgw1.value.show}, odgw2 = ${x.odgw2.value.show}, odgw3 = ${x.odgw3.value.show}, odgw4 = ${x.odgw4.value.show})"
   }
 
   given Show[TcsSouthConfig] = Show.show {
-    case x: BasicTcsConfig   => x.show
-    case x: TcsSouthAoConfig => x.show
+    case x: BasicTcsConfig[Site.GS.type] => x.show
+    case x: TcsSouthAoConfig             => x.show
   }
 
 }
