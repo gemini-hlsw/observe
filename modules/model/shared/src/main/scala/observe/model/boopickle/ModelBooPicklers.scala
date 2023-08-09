@@ -8,7 +8,6 @@ import scala.collection.immutable.SortedSet
 import boopickle.Pickler
 import boopickle.CompositePickler
 import boopickle.Default.*
-import boopickle.DefaultBasic.*
 import cats.*
 import cats.implicits.catsKernelOrderingForOrder
 import cats.data.NonEmptySet
@@ -51,10 +50,7 @@ import observe.model.{*, given}
 import squants.time.Time
 import squants.time.TimeConversions.*
 
-import java.time.*
 import java.util.UUID
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.MILLISECONDS
 
 /**
  * Contains boopickle implicit picklers of model objects Boopickle can auto derive encoders but it
