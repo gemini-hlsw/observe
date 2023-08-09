@@ -113,6 +113,14 @@ pull_request_rules:
       add:
       - server_new-clue
       remove: []
+- name: Label stateengine PRs
+  conditions:
+  - files~=^modules/stateengine/
+  actions:
+    label:
+      add:
+      - stateengine
+      remove: []
 - name: Label web PRs
   conditions:
   - files~=^modules/web/

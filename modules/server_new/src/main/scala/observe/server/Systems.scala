@@ -4,8 +4,7 @@
 package observe.server
 
 //import cats.Monad
-import cats.effect.{Resource, IO, Async}
-import cats.effect.syntax.all.*
+import cats.effect.{Async, IO, Resource}
 import cats.syntax.all.*
 import edu.gemini.epics.acm.CaService
 //import giapi.client.ghost.GhostClient
@@ -19,7 +18,7 @@ import observe.model.config.*
 import observe.server.altair.*
 //import observe.server.flamingos2.*
 //import observe.server.gcal.*
-import observe.server.gems.*
+//import observe.server.gems.*
 //import observe.server.ghost.*
 //import observe.server.gmos.*
 //import observe.server.gnirs.*
@@ -44,8 +43,8 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 final case class Systems[F[_]](
-  odb:                 OdbProxy[F],
-  dhs: DhsClient[F],/*
+  odb:              OdbProxy[F],
+  dhs:              DhsClient[F], /*
   tcsSouth:            TcsSouthController[F],
   tcsNorth:            TcsNorthController[F],
   gcal:                GcalController[F],
@@ -61,7 +60,7 @@ final case class Systems[F[_]](
   altair:              AltairController[F],
   gems:                GemsController[F],
   guideDb:             GuideConfigDb[F],*/
-  tcsKeywordReader:    TcsKeywordsReader[F]/*,
+  tcsKeywordReader: TcsKeywordsReader[F] /*,
   gcalKeywordReader:   GcalKeywordReader[F],
   gmosKeywordReader:   GmosKeywordReader[F],
   gnirsKeywordReader:  GnirsKeywordReader[F],
@@ -91,7 +90,7 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
-    def odbProxy[F[_] : Async : Logger : Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
+    def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
       sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       _  <- sk.connect()
       _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
@@ -104,7 +103,7 @@ object Systems {
       )
     }
 
-    def dhs[F[_] : Async : Logger](httpClient: Client[F]): F[DhsClient[F]] =
+    def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClient[F]] =
       if (settings.systemControl.dhs.command)
         DhsClientHttp[F](httpClient, settings.dhsServer).pure[F]
       else
@@ -125,10 +124,10 @@ object Systems {
     //      else (GcalControllerSim[IO], DummyGcalKeywordsReader[IO]).pure[IO]
     //
     def tcsSouth(
-                  tcsEpicsO: => Option[TcsEpics[IO]],
-                  site: Site,
-                  gcdb: GuideConfigDb[IO]
-                ): TcsSouthController[IO] =
+      tcsEpicsO: => Option[TcsEpics[IO]],
+      site:      Site,
+      gcdb:      GuideConfigDb[IO]
+    ): TcsSouthController[IO] =
       tcsEpicsO
         .map { tcsEpics =>
           if (settings.systemControl.tcs.command && site === Site.GS)
@@ -147,8 +146,8 @@ object Systems {
         .getOrElse(TcsNorthControllerSim[IO])
 
     def altair(
-                tcsEpicsO: => Option[TcsEpics[IO]]
-              ): IO[(AltairController[IO], AltairKeywordReader[IO])] =
+      tcsEpicsO: => Option[TcsEpics[IO]]
+    ): IO[(AltairController[IO], AltairKeywordReader[IO])] =
       if (settings.systemControl.altair.realKeywords)
         AltairEpics.instance[IO](service, tops).map { altairEpics =>
           tcsEpicsO
@@ -167,21 +166,21 @@ object Systems {
     def tcsObjects(gcdb: GuideConfigDb[IO], site: Site): IO[
       (
         TcsNorthController[IO],
-          TcsSouthController[IO],
-          TcsKeywordsReader[IO],
-          AltairController[IO],
-          AltairKeywordReader[IO]
-        )
+        TcsSouthController[IO],
+        TcsKeywordsReader[IO],
+        AltairController[IO],
+        AltairKeywordReader[IO]
+      )
     ] =
       for {
-        tcsEpicsO <- settings.systemControl.tcs.realKeywords
-          .option(TcsEpics.instance[IO](service, tops))
-          .sequence
-        a <- altair(tcsEpicsO)
+        tcsEpicsO            <- settings.systemControl.tcs.realKeywords
+                                  .option(TcsEpics.instance[IO](service, tops))
+                                  .sequence
+        a                    <- altair(tcsEpicsO)
         (altairCtr, altairKR) = a
-        tcsNCtr = tcsNorth(tcsEpicsO, site)
-        tcsSCtr = tcsSouth(tcsEpicsO, site, gcdb)
-        tcsKR = tcsEpicsO.map(TcsKeywordsReaderEpics[IO]).getOrElse(DummyTcsKeywordsReader[IO])
+        tcsNCtr               = tcsNorth(tcsEpicsO, site)
+        tcsSCtr               = tcsSouth(tcsEpicsO, site, gcdb)
+        tcsKR                 = tcsEpicsO.map(TcsKeywordsReaderEpics[IO]).getOrElse(DummyTcsKeywordsReader[IO])
       } yield (
         tcsNCtr,
         tcsSCtr,
@@ -365,14 +364,14 @@ object Systems {
     //
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        clt                                        <- Resource.eval(JdkWSClient.simple[IO])
-        webSocketBackend                            = clue.http4s.Http4sWebSocketBackend[IO](clt)
-        odbProxy                                   <-
+        clt                                       <- Resource.eval(JdkWSClient.simple[IO])
+        webSocketBackend                           = clue.http4s.Http4sWebSocketBackend[IO](clt)
+        odbProxy                                  <-
           Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
-        dhsClient <- Resource.eval(dhs[IO](httpClient))
-        gcdb <- Resource.eval(GuideConfigDb.newDb[IO])
+        dhsClient                                 <- Resource.eval(dhs[IO](httpClient))
+        gcdb                                      <- Resource.eval(GuideConfigDb.newDb[IO])
         //        (gcalCtr, gcalKR)                          <- Resource.eval(gcal)
-        v <- Resource.eval(tcsObjects(gcdb, site))
+        v                                         <- Resource.eval(tcsObjects(gcdb, site))
         (tcsGN, tcsGS, tcsKR, altairCtr, altairKR) = v
         //        (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)       <- Resource.eval(gemsObjects)
         //        (gnirsCtr, gnirsKR)                        <- Resource.eval(gnirs)

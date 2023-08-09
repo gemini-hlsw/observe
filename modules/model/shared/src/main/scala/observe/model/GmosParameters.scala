@@ -3,6 +3,8 @@
 
 package observe.model
 
+import lucuma.core.refined.numeric.NonZeroInt
+
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
 import lucuma.core.util.NewType
@@ -18,7 +20,7 @@ trait GmosParameters {
   object NsCycles extends NewType[Int]
   type NsCycles = NsCycles.Type
 
-  object NsExposureDivider extends NewType[Int]
+  object NsExposureDivider extends NewType[NonZeroInt]
   type NsExposureDivider = NsExposureDivider.Type
 
   // Remaining time when it is not safe to stop, pause or abort

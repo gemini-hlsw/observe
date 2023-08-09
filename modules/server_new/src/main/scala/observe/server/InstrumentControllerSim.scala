@@ -23,7 +23,7 @@ import scala.concurrent.duration.*
 sealed trait InstrumentControllerSim[F[_]] {
   def log(msg: => String): F[Unit]
 
-  def observe(fileId: ImageFileId, expTime: Duration): F[ObserveCommandResult]
+  def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult]
 
   def applyConfig[C: Show](config: C): F[Unit]
 
@@ -41,7 +41,7 @@ sealed trait InstrumentControllerSim[F[_]] {
 
   def abortPaused: F[ObserveCommandResult]
 
-  def observeCountdown(total: Duration, elapsed: ElapsedTime): Stream[F, Progress]
+  def observeCountdown(total: FiniteDuration, elapsed: ElapsedTime): Stream[F, Progress]
 
 }
 
@@ -107,7 +107,7 @@ object InstrumentControllerSim {
       }
     }
 
-    def observe(fileId: ImageFileId, expTime: Duration): F[ObserveCommandResult] = {
+    def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult] = {
       val totalTime = expTime + readOutDelay
       log(s"Simulate taking $name observation with label $fileId") *> {
         val upd = { (s: ObserveState) => s.focus(_.stopFlag).replace(false) } >>> {
@@ -164,7 +164,7 @@ object InstrumentControllerSim {
       } *> observeTic(none)
 
     def observeCountdown(
-      total:   Duration,
+      total:   FiniteDuration,
       elapsed: ElapsedTime
     ): Stream[F, Progress] =
       ProgressUtil.obsCountdown[F](total, elapsed.self)

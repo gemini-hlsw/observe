@@ -15,9 +15,9 @@ import lucuma.core.arb.ArbTime.*
 import java.time.Instant
 import observe.model.enums.*
 import observe.model.dhs.*
-import observe.model.QueueManipulationOp.{*, given}
-import observe.model.ObserveModelArbitraries.{*, given}
-import observe.model.arb.all.{*, given}
+import observe.model.QueueManipulationOp.*
+import observe.model.ObserveModelArbitraries.given
+import observe.model.arb.all.given
 
 trait SequenceEventsArbitraries {
 

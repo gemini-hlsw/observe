@@ -10,6 +10,7 @@ import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.{Altair, AltairController}
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.GuiderConfig.given
+import lucuma.core.enums.Site
 
 trait TcsNorthController[F[_]] {
   import TcsNorthController.*
@@ -33,15 +34,15 @@ trait TcsNorthController[F[_]] {
 
 object TcsNorthController {
 
-  type TcsNorthConfig   = TcsConfig[AoGuide, AltairController.AltairConfig]
-  type TcsNorthAoConfig = AoTcsConfig[AoGuide, AltairController.AltairConfig]
+  type TcsNorthConfig   = TcsConfig[Site.GN.type]
+  type TcsNorthAoConfig = AoTcsConfig[Site.GN.type]
 
   given Show[AoGuide] =
     Show.show(_.value.show)
 
   given Show[TcsNorthConfig] = Show.show {
-    case x: BasicTcsConfig   => x.show
-    case x: TcsNorthAoConfig => x.show
+    case x: BasicTcsConfig[Site.GN.type] => x.show
+    case x: TcsNorthAoConfig             => x.show
   }
 
 }

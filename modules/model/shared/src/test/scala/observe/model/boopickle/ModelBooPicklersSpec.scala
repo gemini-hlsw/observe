@@ -5,25 +5,23 @@ package observe.model.boopickle
 
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
 import observe.model.enums.*
 import observe.model.{*, given}
 import observe.model.events.*
-import observe.model.ObserveModelArbitraries.{*, given}
-import observe.model.SequenceEventsArbitraries.{*, given}
-import observe.model.arb.all.{*, given}
+import observe.model.ObserveModelArbitraries.given
+import observe.model.SequenceEventsArbitraries.given
+import observe.model.arb.all.given
 import squants.time.Time
-import java.time.*
 import io.chrisdavenport.cats.time.instances.all.*
-import io.chrisdavenport.cats.time.instances.TimeArbitraries.*
 import lucuma.core.math.Index
 import lucuma.core.math.arb.ArbIndex.*
-import observe.model.arb.{*, given}
+
+import java.time.{LocalDate, Year}
 
 /**
  * Tests Serialization/Deserialization using BooPickle
  */
-final class BoopicklingSuite extends munit.DisciplineSuite with ModelBooPicklers {
+final class ModelBooPicklersSpec extends munit.DisciplineSuite with ModelBooPicklers {
 
   checkAll("Pickler[Year]", PicklerTests[Year].pickler)
   checkAll("Pickler[LocalDate]", PicklerTests[LocalDate].pickler)
@@ -63,10 +61,6 @@ final class BoopicklingSuite extends munit.DisciplineSuite with ModelBooPicklers
   checkAll("Pickler[SequencesQueue[Observation.Id]]",
            PicklerTests[SequencesQueue[Observation.Id]].pickler
   )
-  checkAll("Pickler[ImageQuality]", PicklerTests[ImageQuality].pickler)
-  checkAll("Pickler[WaterVapor]", PicklerTests[WaterVapor].pickler)
-  checkAll("Pickler[SkyBackground]", PicklerTests[SkyBackground].pickler)
-  checkAll("Pickler[CloudCover]", PicklerTests[CloudCover].pickler)
   checkAll("Pickler[Conditions]", PicklerTests[Conditions].pickler)
   checkAll("Pickler[Notification]", PicklerTests[Notification].pickler)
   checkAll("Pickler[Notification.ResourceConflict]",

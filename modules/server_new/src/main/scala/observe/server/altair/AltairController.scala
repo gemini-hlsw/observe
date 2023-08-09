@@ -41,7 +41,7 @@ object AltairController {
 
   sealed trait FieldLens extends Product with Serializable
   object FieldLens {
-    case object In extends FieldLens
+    case object In  extends FieldLens
     case object Out extends FieldLens
 
     given Eq[FieldLens] = Eq.instance {

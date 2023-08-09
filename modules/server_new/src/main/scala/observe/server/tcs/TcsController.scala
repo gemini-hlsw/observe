@@ -11,6 +11,9 @@ import lucuma.core.math.Wavelength
 import lucuma.core.util.NewType
 import observe.model.TelescopeGuideConfig
 import observe.server.InstrumentGuide
+import observe.server.altair.AltairController
+import observe.server.gems.GemsController
+import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.given
 import squants.{Angle, Length}
 
@@ -352,7 +355,7 @@ object TcsController {
     given Eq[Subsystem]   = Eq.fromUniversalEquals
   }
 
-  sealed trait GuidersConfig[+C] {
+  sealed trait GuidersConfig {
     val pwfs1: P1Config
     val pwfs2: P2Config
     val oiwfs: OIConfig
@@ -362,13 +365,13 @@ object TcsController {
     pwfs1: P1Config,
     pwfs2: P2Config,
     oiwfs: OIConfig
-  ) extends GuidersConfig[Nothing]
+  ) extends GuidersConfig
 
   final case class AoGuidersConfig[C](
     pwfs1:   P1Config,
     aoguide: C,
     oiwfs:   OIConfig
-  ) extends GuidersConfig[C] {
+  ) extends GuidersConfig {
     override val pwfs2: P2Config =
       P2Config(GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff))
   }
@@ -393,38 +396,54 @@ object TcsController {
     }
   }
 
-  sealed trait TcsConfig[+C, +G] {
+  sealed trait TcsConfig[S <: Site] {
     val gc: TelescopeGuideConfig
     val tc: TelescopeConfig
-    val gds: GuidersConfig[C]
+    val gds: GuidersConfig
     val agc: AGConfig
     val inst: InstrumentGuide
   }
 
-  final case class BasicTcsConfig(
+  final case class BasicTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
     gds:  BasicGuidersConfig,
     agc:  AGConfig,
     inst: InstrumentGuide
-  ) extends TcsConfig[Nothing, Nothing]
+  ) extends TcsConfig[S]
 
-  final case class AoTcsConfig[C, G](
+  final case class AoTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
-    gds:  AoGuidersConfig[C],
+    gds:  AoGuidersConfig[SiteSpecifics.AoGuidersConfig[S]],
     agc:  AGConfig,
-    gaos: G,
+    gaos: SiteSpecifics.AoConfig[S],
     inst: InstrumentGuide
-  ) extends TcsConfig[C, G]
+  ) extends TcsConfig[S]
+
+  object SiteSpecifics {
+
+    type AoGuidersConfig[S <: Site] = S match {
+      case Site.GN.type => AoGuide
+      case Site.GS.type => GemsGuiders
+    }
+
+    type AoConfig[S <: Site] = S match {
+      case Site.GN.type => AltairController.AltairConfig
+      case Site.GS.type => GemsController.GemsConfig
+    }
+  }
 
   object TcsConfig {
 
-    given Show[BasicTcsConfig] = Show.show { x =>
+    given [S <: Site]: Show[BasicTcsConfig[S]] = Show.show { x =>
       s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show})"
     }
 
-    given [C: Show, G: Show]: Show[AoTcsConfig[C, G]] = Show.show { x =>
+    given [S <: Site](using
+      x: Show[SiteSpecifics.AoGuidersConfig[S]],
+      y: Show[SiteSpecifics.AoConfig[S]]
+    ): Show[AoTcsConfig[S]] = Show.show { x =>
       s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show}, gaos = ${x.gaos.show})"
     }
 

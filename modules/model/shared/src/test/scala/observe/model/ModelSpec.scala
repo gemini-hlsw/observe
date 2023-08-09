@@ -5,13 +5,13 @@ package observe.model
 
 import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
-import lucuma.core.util.arb.ArbEnumerated.{*, given}
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.enums.*
 import observe.model.GmosParameters.*
 import observe.model.dhs.*
-import observe.model.ObserveModelArbitraries.{*, given}
+import observe.model.ObserveModelArbitraries.given
 import observe.model.events.SingleActionEvent
-import observe.model.arb.all.{*, given}
+import observe.model.arb.all.given
 import squants.time.Time
 import squants.time.TimeUnit
 
@@ -22,7 +22,6 @@ final class ModelSpec extends CatsSuite {
 
   checkAll("Eq[UserDetails]", EqTests[UserDetails].eqv)
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
-  checkAll("Eq[StepConfig]", EqTests[StepConfig].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)
   checkAll("Eq[List]", EqTests[List[(Resource, ActionStatus)]].eqv)
@@ -43,10 +42,6 @@ final class ModelSpec extends CatsSuite {
   checkAll("Eq[StepType]", EqTests[StepType].eqv)
   checkAll("Eq[Guiding]", EqTests[Guiding].eqv)
   checkAll("Eq[FPUMode]", EqTests[FPUMode].eqv)
-  checkAll("Eq[CloudCover]", EqTests[CloudCover].eqv)
-  checkAll("Eq[WaterVapor]", EqTests[WaterVapor].eqv)
-  checkAll("Eq[ImageQuality]", EqTests[ImageQuality].eqv)
-  checkAll("Eq[SkyBackground]", EqTests[SkyBackground].eqv)
   checkAll("Eq[Conditions]", EqTests[Conditions].eqv)
   checkAll("Eq[ClientId]", EqTests[ClientId].eqv)
   checkAll("Order[ClientId]", OrderTests[ClientId].eqv)

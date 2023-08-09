@@ -9,7 +9,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.spModel.guide.StandardGuideOptions
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.KeywordName
+import observe.model.enums.KeywordName
 import observe.model.Conditions
 import observe.model.Observation
 import observe.model.Observer

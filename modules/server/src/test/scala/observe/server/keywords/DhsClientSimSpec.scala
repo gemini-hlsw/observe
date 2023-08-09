@@ -4,7 +4,7 @@
 package observe.server.keywords
 
 import cats.effect.IO
-import lucuma.core.enums.KeywordName
+import observe.model.enums.KeywordName
 import org.typelevel.log4cats.noop.NoOpLogger
 import java.time.LocalDate
 import observe.server.keywords.DhsClient.Permanent

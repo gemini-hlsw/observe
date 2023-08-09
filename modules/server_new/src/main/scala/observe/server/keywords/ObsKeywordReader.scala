@@ -3,22 +3,17 @@
 
 package observe.server.keywords
 
-import cats.Eq
-import cats.data.{EitherT, Nested}
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.{GuideState, ObserveClass, Site}
-import lucuma.core.model.sequence.{StepConfig, Step as OcsStep}
+import lucuma.core.enums.{GuideState, Site}
+import lucuma.core.model.sequence.{Step as OcsStep, StepConfig}
 import lucuma.core.enums.GuideState.{Disabled, Enabled}
 import lucuma.core.model.{ElevationRange, TimingWindowEnd, TimingWindowRepeat}
-import lucuma.core.syntax.string.*
 import lucuma.core.util.TimeSpan
-import mouse.boolean.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import observe.server.tcs.Tcs
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.time.{LocalDate, ZoneId}
 
 sealed trait ObsKeywordsReader[F[_]] {
   def obsType: F[String]
@@ -83,7 +78,11 @@ final case class TimingWindowKeywords(
 )
 
 object ObsKeywordReader extends ObsKeywordsReaderConstants {
-  def apply[F[_]: Sync, D <: Dynamic](obsCfg: Observation, step: OcsStep[D], site: Site): ObsKeywordsReader[F] =
+  def apply[F[_]: Sync, D <: Dynamic](
+    obsCfg: Observation,
+    step:   OcsStep[D],
+    site:   Site
+  ): ObsKeywordsReader[F] =
     new ObsKeywordsReader[F] {
       // Format used on FITS keywords
       val telescopeName: String = site match {
@@ -93,11 +92,11 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def obsType: F[String] = (
         step.stepConfig match {
-          case StepConfig.Bias => "BIAS"
-          case StepConfig.Dark => "DARK"
+          case StepConfig.Bias                                  => "BIAS"
+          case StepConfig.Dark                                  => "DARK"
           case StepConfig.Gcal(lamp, filter, diffuser, shutter) => "FLAT"
-          case StepConfig.Science(offset, guiding) => "OBJECT"
-          case StepConfig.SmartGcal(smartGcalType) => "FLAT"
+          case StepConfig.Science(offset, guiding)              => "OBJECT"
+          case StepConfig.SmartGcal(smartGcalType)              => "FLAT"
         }
       ).pure[F]
 
@@ -107,16 +106,19 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def obsId: F[String] = obsCfg.title.pure[F]
 
-      override def requestedAirMassAngle: F[Map[String, Double]] = obsCfg.constraintSet.elevationRange match {
-        case ElevationRange.AirMass(min, max) => Map(
-          MAX_AIRMASS -> max.value.toDouble,
-          MIN_AIRMASS -> min.value.toDouble
-        ).pure[F]
-        case ElevationRange.HourAngle(minHours, maxHours) => Map(
-          MAX_HOUR_ANGLE -> maxHours.value.toDouble,
-          MIN_HOUR_ANGLE -> minHours.value.toDouble
-        ).pure[F]
-      }
+      override def requestedAirMassAngle: F[Map[String, Double]] =
+        obsCfg.constraintSet.elevationRange match {
+          case ElevationRange.AirMass(min, max)             =>
+            Map(
+              MAX_AIRMASS -> max.value.toDouble,
+              MIN_AIRMASS -> min.value.toDouble
+            ).pure[F]
+          case ElevationRange.HourAngle(minHours, maxHours) =>
+            Map(
+              MAX_HOUR_ANGLE -> maxHours.value.toDouble,
+              MIN_HOUR_ANGLE -> minHours.value.toDouble
+            ).pure[F]
+        }
 
       override def requestedConditions: F[Map[String, String]] = Map(
         SB -> obsCfg.constraintSet.skyBackground.label,
@@ -125,27 +127,26 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
         WV -> obsCfg.constraintSet.waterVapor.label
       ).pure[F]
 
-      override def timingWindows: F[List[(Int, TimingWindowKeywords)]] = obsCfg.timingWindows.zipWithIndex.map{
-        case (w, i) => i -> TimingWindowKeywords(
-//          w.startUtc.toString,
-//          w.end.flatMap {
-//            case TimingWindowEnd.At(ts) => TimeSpan.between(w.startUtc, ts)
-//            case TimingWindowEnd.After(d, _) => d.some
-//          }.map(_.toSeconds.toDouble).getOrElse(0.0),
-//          w.end.flatMap {
-//            case TimingWindowEnd.After(_, r) => r.flatMap(_.times).map(_.value)
-//            case _ => None
-//          }.getOrElse(1),
-//          w.end.flatMap {
-//            case TimingWindowEnd.After(_, r) => r.map(_.period.toSeconds.toDouble)
-//            case _ => None
-//          }.getOrElse(0.0)
-          w.start.toString,
-          w.duration.map(_.toSeconds.toDouble).getOrElse(0.0),
-          w.end.flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption).flatten.flatMap(_.times).map(_.value).getOrElse(1),
-          w.end.flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption).flatten.map(_.period.toSeconds.toDouble).getOrElse(0.0)
-        )
-      }.pure[F]
+      override def timingWindows: F[List[(Int, TimingWindowKeywords)]] =
+        obsCfg.timingWindows.zipWithIndex
+          .map { case (w, i) =>
+            i -> TimingWindowKeywords(
+              w.start.toString,
+              w.duration.map(_.toSeconds.toDouble).getOrElse(0.0),
+              w.end
+                .flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption)
+                .flatten
+                .flatMap(_.times)
+                .map(_.value)
+                .getOrElse(1),
+              w.end
+                .flatMap(TimingWindowEnd.after.andThen(TimingWindowEnd.After.repeat).getOption)
+                .flatten
+                .map(_.period.toSeconds.toDouble)
+                .getOrElse(0.0)
+            )
+          }
+          .pure[F]
 
       override def dataLabel: F[String] = s"${obsCfg.id}-${step.id}".pure[F]
 
@@ -153,10 +154,12 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def telescope: F[String] = telescopeName.pure[F]
 
-      private def decodeGuide(v: Option[GuideState]): String = v.map{
-        case Enabled => "guiding"
-        case Disabled => "frozen"
-      }.getOrElse("frozen")
+      private def decodeGuide(v: Option[GuideState]): String = v
+        .map {
+          case Enabled  => "guiding"
+          case Disabled => "frozen"
+        }
+        .getOrElse("frozen")
 
       override def pwfs1Guide: F[Option[GuideState]] = none.pure[F]
 
@@ -170,7 +173,7 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
         pwfs2Guide
           .map(decodeGuide)
 
-      override def oiwfsGuide: F[Option[GuideState]] =  none.pure[F]
+      override def oiwfsGuide: F[Option[GuideState]] = none.pure[F]
 
       override def oiwfsGuideS: F[String] =
         oiwfsGuide
@@ -206,7 +209,7 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def releaseDate: F[String] = calcReleaseDate
 
-      private val manualDarkValue = "Manual Dark"
+      private val manualDarkValue    = "Manual Dark"
       private val manualDarkOverride = "Dark"
 
       override def obsObject: F[String] = "".pure[F]

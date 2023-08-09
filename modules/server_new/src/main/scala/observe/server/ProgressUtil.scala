@@ -42,7 +42,10 @@ object ProgressUtil {
   /**
    * Simple simulated countdown
    */
-  def countdown[F[_]: Temporal](total: Duration, elapsed: Duration): Stream[F, Progress] =
+  def countdown[F[_]: Temporal](
+    total:   FiniteDuration,
+    elapsed: FiniteDuration
+  ): Stream[F, Progress] =
     ProgressUtil
       .fromF[F] { (t: FiniteDuration) =>
         val progress  = t + elapsed
@@ -55,7 +58,10 @@ object ProgressUtil {
   /**
    * Simulated countdown with simulated observation stage
    */
-  def obsCountdown[F[_]: Temporal](total: Duration, elapsed: Duration): Stream[F, Progress] =
+  def obsCountdown[F[_]: Temporal](
+    total:   FiniteDuration,
+    elapsed: FiniteDuration
+  ): Stream[F, Progress] =
     Stream.emit(ObsProgress(total, RemainingTime(total), ObserveStage.Preparing)) ++
       countdown[F](total, elapsed) ++
       Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
@@ -64,8 +70,8 @@ object ProgressUtil {
    * Simulated countdown with observation stage provided by instrument
    */
   def obsCountdownWithObsStage[F[_]: Temporal](
-    total:   Duration,
-    elapsed: Duration,
+    total:   FiniteDuration,
+    elapsed: FiniteDuration,
     stage:   F[ObserveStage]
   ): Stream[F, Progress] =
     ProgressUtil

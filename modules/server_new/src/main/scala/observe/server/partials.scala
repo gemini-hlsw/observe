@@ -7,18 +7,18 @@ import observe.engine.Result.PartialVal
 import observe.model.dhs.ImageFileId
 import observe.model.{NSSubexposure, ObserveStage}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 // Marker trait for partials that won't result on a client message
 trait InternalPartialVal extends PartialVal
 
 final case class FileIdAllocated(fileId: ImageFileId) extends PartialVal
-final case class RemainingTime(self: Duration)        extends AnyVal
+final case class RemainingTime(self: FiniteDuration)  extends AnyVal
 
 sealed trait Progress extends PartialVal with Product with Serializable {
-  val total: Duration
+  val total: FiniteDuration
   val remaining: RemainingTime
-  def progress: Duration
+  def progress: FiniteDuration
   val stage: ObserveStage
 }
 
@@ -29,18 +29,18 @@ object Progress {
   }
 }
 
-final case class ObsProgress(total: Duration, remaining: RemainingTime, stage: ObserveStage)
+final case class ObsProgress(total: FiniteDuration, remaining: RemainingTime, stage: ObserveStage)
     extends Progress {
-  val progress: Duration = total - remaining.self
+  val progress: FiniteDuration = total - remaining.self
 }
 
 final case class NSProgress(
-  total:     Duration,
+  total:     FiniteDuration,
   remaining: RemainingTime,
   stage:     ObserveStage,
   sub:       NSSubexposure
 ) extends Progress {
-  val progress: Duration = total - remaining.self
+  val progress: FiniteDuration = total - remaining.self
 }
 
 object NSProgress {

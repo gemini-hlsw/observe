@@ -106,9 +106,13 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
       .applyConfig(config)
       .as(ConfigResult(this))
 
-  override def calcObserveTime: Duration = config.dc.t / config.ns.exposureDivider.value
+  override def calcObserveTime: FiniteDuration =
+    (config.dc.t /| config.ns.exposureDivider.value).toDuration.toScala
 
-  override def observeProgress(total: Duration, elapsed: ElapsedTime): fs2.Stream[F, Progress] =
+  override def observeProgress(
+    total:   FiniteDuration,
+    elapsed: ElapsedTime
+  ): fs2.Stream[F, Progress] =
     controller
       .observeProgress(total, elapsed)
 
@@ -222,9 +226,9 @@ object Gmos {
       .orElse(m.map(GmosController.Config.CustomMaskFPU[T].apply))
 
   def exposureTime(
-    exp:      Duration,
+    exp:      TimeSpan,
     nsConfig: NSConfig
-  ): Duration = exp / nsConfig.exposureDivider.value.toDouble
+  ): TimeSpan = exp /| nsConfig.exposureDivider.value
 
   def shutterStateObserveType(obsType: StepType): ShutterState = obsType match {
     case StepType.DarkOrBias(_) | StepType.ExclusiveDarkOrBias(_) | StepType.DarkOrBiasNS(_) =>
@@ -279,7 +283,7 @@ object Gmos {
       t:        StepType,
       nsConfig: NSConfig
     ): DCConfig = DCConfig(
-      exposureTime(getters.exposure.get(dynamicCfg).toDuration.toScala, nsConfig),
+      exposureTime(getters.exposure.get(dynamicCfg), nsConfig),
       shutterStateObserveType(t),
       CCDReadout(
         getters.readout.get(dynamicCfg).ampReadMode,
@@ -311,7 +315,7 @@ object Gmos {
           Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide),
                  NSPosition(NodAndShuffleStage.StageB, n.posB, Guiding.Guide)
           ),
-          getters.exposure.get(dynamicCfg).toDuration.toScala
+          getters.exposure.get(dynamicCfg)
         )
       }
       .getOrElse(NSConfig.NoNodAndShuffle)

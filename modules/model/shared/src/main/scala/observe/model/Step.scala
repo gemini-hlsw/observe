@@ -5,6 +5,8 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.util.Enumerated
 import monocle.{Focus, Lens, Optional, Prism}
 import monocle.macros.GenPrism
@@ -14,6 +16,8 @@ import observe.model.dhs.*
 
 sealed trait Step extends Product with Serializable {
   def id: StepId
+  def instConfig: DynamicConfig
+  def stepConfig: StepConfig
   def status: StepState
   def breakpoint: Boolean
   def skip: Boolean
@@ -24,13 +28,13 @@ object Step {
   extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
   }
-  val standardStepP: Prism[Step, StandardStep] =
+  def standardStepP: Prism[Step, StandardStep] =
     GenPrism[Step, StandardStep]
 
-  val nsStepP: Prism[Step, NodAndShuffleStep] =
+  def nsStepP: Prism[Step, NodAndShuffleStep] =
     GenPrism[Step, NodAndShuffleStep]
 
-  val status: Lens[Step, StepState] =
+  def status: Lens[Step, StepState] =
     Lens[Step, StepState] {
       _.status
     } { n =>
@@ -40,7 +44,7 @@ object Step {
       }
     }
 
-  val id: Lens[Step, StepId] =
+  def id: Lens[Step, StepId] =
     Lens[Step, StepId] {
       _.id
     } { n =>
@@ -50,7 +54,27 @@ object Step {
       }
     }
 
-  val skip: Lens[Step, Boolean] =
+  def instConfig: Lens[Step, DynamicConfig] =
+    Lens[Step, DynamicConfig] {
+      _.instConfig
+    } { d =>
+      {
+        case s: StandardStep      => s.focus(_.instConfig).replace(d)
+        case s: NodAndShuffleStep => s.focus(_.instConfig).replace(d)
+      }
+    }
+
+  def stepConfig: Lens[Step, StepConfig] =
+    Lens[Step, StepConfig] {
+      _.stepConfig
+    } { d =>
+      {
+        case s: StandardStep      => s.focus(_.stepConfig).replace(d)
+        case s: NodAndShuffleStep => s.focus(_.stepConfig).replace(d)
+      }
+    }
+
+  def skip: Lens[Step, Boolean] =
     Lens[Step, Boolean] {
       _.skip
     } { n =>
@@ -60,7 +84,7 @@ object Step {
       }
     }
 
-  val breakpoint: Lens[Step, Boolean] =
+  def breakpoint: Lens[Step, Boolean] =
     Lens[Step, Boolean] {
       _.breakpoint
     } { n =>
@@ -70,7 +94,7 @@ object Step {
       }
     }
 
-  val observeStatus: Optional[Step, ActionStatus] =
+  def observeStatus: Optional[Step, ActionStatus] =
     Optional[Step, ActionStatus] {
       case s: StandardStep      => s.observeStatus.some
       case s: NodAndShuffleStep => s.nsStatus.observing.some
@@ -81,7 +105,7 @@ object Step {
       }
     }
 
-  val configStatus: Lens[Step, List[(Resource, ActionStatus)]] =
+  def configStatus: Lens[Step, List[(Resource, ActionStatus)]] =
     Lens[Step, List[(Resource, ActionStatus)]] {
       case s: StandardStep      => s.configStatus
       case s: NodAndShuffleStep => s.configStatus
@@ -165,6 +189,8 @@ object Step {
 
 final case class StandardStep(
   override val id:         StepId,
+  override val instConfig: DynamicConfig,
+  override val stepConfig: lucuma.core.model.sequence.StepConfig,
   override val status:     StepState,
   override val breakpoint: Boolean,
   override val skip:       Boolean,
@@ -175,12 +201,25 @@ final case class StandardStep(
 
 object StandardStep {
   given Eq[StandardStep] =
-    Eq.by(x => (x.id, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.observeStatus))
+    Eq.by(x =>
+      (x.id,
+       x.instConfig,
+       x.stepConfig,
+       x.status,
+       x.breakpoint,
+       x.skip,
+       x.fileId,
+       x.configStatus,
+       x.observeStatus
+      )
+    )
 }
 
 // Other kinds of Steps to be defined.
 final case class NodAndShuffleStep(
   override val id:         StepId,
+  override val instConfig: DynamicConfig,
+  override val stepConfig: lucuma.core.model.sequence.StepConfig,
   override val status:     StepState,
   override val breakpoint: Boolean,
   override val skip:       Boolean,
@@ -192,7 +231,18 @@ final case class NodAndShuffleStep(
 
 object NodAndShuffleStep {
   given Eq[NodAndShuffleStep] =
-    Eq.by(x => (x.id, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus, x.nsStatus))
+    Eq.by(x =>
+      (x.id,
+       x.instConfig,
+       x.stepConfig,
+       x.status,
+       x.breakpoint,
+       x.skip,
+       x.fileId,
+       x.configStatus,
+       x.nsStatus
+      )
+    )
 
   sealed abstract class PendingObserveCmd(val tag: String) extends Product with Serializable
   case object PauseGracefully                              extends PendingObserveCmd("PauseGracefully")

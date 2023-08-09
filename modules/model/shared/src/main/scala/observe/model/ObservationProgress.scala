@@ -9,13 +9,13 @@ import lucuma.core.util.Enumerated
 import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 sealed trait Progress extends Product with Serializable {
   val obsId: Observation.Id
   val stepId: StepId
-  val total: Duration
-  val remaining: Duration
+  val total: FiniteDuration
+  val remaining: FiniteDuration
   val stage: ObserveStage
 }
 
@@ -41,8 +41,8 @@ object Progress {
 final case class ObservationProgress(
   obsId:     Observation.Id,
   stepId:    StepId,
-  total:     Duration,
-  remaining: Duration,
+  total:     FiniteDuration,
+  remaining: FiniteDuration,
   stage:     ObserveStage
 ) extends Progress
 
@@ -56,8 +56,8 @@ object ObservationProgress {
 final case class NSObservationProgress(
   obsId:     Observation.Id,
   stepId:    StepId,
-  total:     Duration,
-  remaining: Duration,
+  total:     FiniteDuration,
+  remaining: FiniteDuration,
   stage:     ObserveStage,
   sub:       NSSubexposure
 ) extends Progress

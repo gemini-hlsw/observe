@@ -88,7 +88,7 @@ object Altair {
     case object Ngs extends GuideStarType
     case object Lgs extends GuideStarType
 
-    given Eq[GuideStarType] = Eq.instance{
+    given Eq[GuideStarType] = Eq.instance {
       case (Ngs, Ngs) => true
       case (Lgs, Lgs) => true
       case _          => false

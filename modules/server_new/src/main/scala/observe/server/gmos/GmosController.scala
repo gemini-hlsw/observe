@@ -3,12 +3,14 @@
 
 package observe.server.gmos
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import cats.Show
 import cats.syntax.all.*
+import fs2.Stream
 import lucuma.core.enums.{GmosEOffsetting, GmosRoi, GmosXBinning, GmosYBinning}
 import lucuma.core.math.{Offset, Wavelength}
-import lucuma.core.util.Enumerated
+import lucuma.core.util.{Enumerated, TimeSpan}
+import lucuma.core.util.TimeSpan.*
 import observe.model.GmosParameters
 import observe.model.GmosParameters.*
 import observe.model.dhs.ImageFileId
@@ -19,13 +21,14 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.*
 import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NSConfig}
 import GmosController.*
+import lucuma.core.refined.numeric.NonZeroInt
 
 trait GmosController[F[_], T <: GmosSite] {
   import GmosController._
 
   def applyConfig(config: GmosConfig[T]): F[Unit]
 
-  def observe(fileId: ImageFileId, expTime: Duration): F[ObserveCommandResult]
+  def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult]
 
   // endObserve is to notify the completion of the observation, not to cause its end.
   def endObserve: F[Unit]
@@ -36,13 +39,13 @@ trait GmosController[F[_], T <: GmosSite] {
 
   def pauseObserve: F[Unit]
 
-  def resumePaused(expTime: Duration): F[ObserveCommandResult]
+  def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult]
 
   def stopPaused: F[ObserveCommandResult]
 
   def abortPaused: F[ObserveCommandResult]
 
-  def observeProgress(total: Duration, elapsed: ElapsedTime): fs2.Stream[F, Progress]
+  def observeProgress(total: FiniteDuration, elapsed: ElapsedTime): Stream[F, Progress]
 
   def nsCount: F[Int]
 
@@ -61,7 +64,7 @@ object GmosController {
     type AmpCount     = lucuma.core.enums.GmosAmpCount
     type BuiltinROI   = lucuma.core.enums.GmosRoi
     type ROI          = ROIDescription
-    type ExposureTime = Duration
+    type ExposureTime = TimeSpan
     type PosAngle     = lucuma.core.math.Angle
 
     sealed trait CCConfig[T <: GmosSite]
@@ -165,7 +168,8 @@ object GmosController {
       case object NoNodAndShuffle extends NSConfig {
         val nsPairs: GmosParameters.NsPairs                   = GmosParameters.NsPairs(0)
         val nsRows: GmosParameters.NsRows                     = GmosParameters.NsRows(0)
-        val exposureDivider: GmosParameters.NsExposureDivider = GmosParameters.NsExposureDivider(1)
+        val exposureDivider: GmosParameters.NsExposureDivider =
+          GmosParameters.NsExposureDivider(NonZeroInt.unsafeFrom(1))
         val nsState: NodAndShuffleState                       = NodAndShuffleState.Classic
       }
 
@@ -173,18 +177,19 @@ object GmosController {
         cycles:       NsCycles,
         rows:         NsRows,
         positions:    Vector[NSPosition],
-        exposureTime: Duration
+        exposureTime: TimeSpan
       ) extends NSConfig {
         val nsPairs: GmosParameters.NsPairs                   =
           GmosParameters.NsPairs(cycles.value * NodAndShuffleStage.NsSequence.length / 2)
         val nsRows: GmosParameters.NsRows                     =
           GmosParameters.NsRows(Gmos.rowsToShuffle(NodAndShuffleStage.NsSequence.head, rows))
-        val exposureDivider: GmosParameters.NsExposureDivider = GmosParameters.NsExposureDivider(2)
+        val exposureDivider: GmosParameters.NsExposureDivider =
+          GmosParameters.NsExposureDivider(NonZeroInt.unsafeFrom(2))
         val nsState: NodAndShuffleState                       = NodAndShuffleState.NodShuffle
-        val totalExposureTime: Duration                       =
-          cycles.value * exposureTime / exposureDivider.value.toDouble
-        val nodExposureTime: Duration                         =
-          exposureTime / exposureDivider.value.toDouble
+        val totalExposureTime: TimeSpan                       =
+          exposureTime.*|(cycles.value) /| exposureDivider.value
+        val nodExposureTime: TimeSpan                         =
+          exposureTime /| exposureDivider.value
       }
     }
 
