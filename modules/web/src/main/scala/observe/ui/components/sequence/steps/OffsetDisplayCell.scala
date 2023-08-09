@@ -6,6 +6,8 @@ package observe.ui.components.sequence.steps
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.GuideState
+import lucuma.core.math.Offset
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
 import observe.ui.Icons
 import observe.ui.ObserveStyles
@@ -13,8 +15,6 @@ import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.formatting.*
 import react.common.*
 import react.fa.IconSize
-import lucuma.core.math.Offset
-import lucuma.core.model.sequence.StepConfig
 
 /**
  * Component to display the offsets

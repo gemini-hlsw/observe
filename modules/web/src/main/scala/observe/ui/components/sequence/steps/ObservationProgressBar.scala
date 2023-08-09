@@ -4,6 +4,7 @@
 package observe.ui.components.sequence.steps
 
 import _root_.react.common.*
+import _root_.react.primereact.ProgressBar
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.*
@@ -15,7 +16,6 @@ import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage
 import observe.ui.ObserveStyles
-import _root_.react.primereact.ProgressBar
 
 import java.time.Duration
 import java.util.UUID

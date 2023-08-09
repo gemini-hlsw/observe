@@ -4,20 +4,17 @@
 package observe.ui.components.sequence.steps
 
 import cats.syntax.all.*
-// import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-// import lucuma.core.syntax.display.*
 import observe.model.ClientStatus
 import observe.model.ImageFileId
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
 import observe.model.enums.ExecutionStepType
 import observe.model.enums.SequenceState
-// import observe.model.enums.StepState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations

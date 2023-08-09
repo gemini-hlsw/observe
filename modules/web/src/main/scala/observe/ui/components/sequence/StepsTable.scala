@@ -20,6 +20,7 @@ import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import monocle.Focus
 import monocle.Lens
+import observe.model.SequenceStep
 import observe.model.*
 import observe.model.enums.SequenceState
 import observe.ui.Icons
@@ -34,7 +35,6 @@ import react.resizeDetector.hooks.*
 import scala.annotation.tailrec
 
 import scalajs.js
-import observe.model.SequenceStep
 
 sealed trait StepsTable[S, D](
   protected[sequence] val instrument:    Instrument,
