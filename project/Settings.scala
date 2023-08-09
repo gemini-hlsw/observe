@@ -97,7 +97,7 @@ object Settings {
     // Clue
     val clue = "0.32.0"
 
-    val sttp = "3.8.16"
+    val sttp = "3.9.0"
 
     val atto = "0.9.5"
   }
