@@ -3,14 +3,12 @@
 
 package giapi
 
-import scala.concurrent.duration.*
-
 import cats.*
+import cats.effect.Temporal
 import cats.effect.*
-import cats.effect.std.Queue
 import cats.effect.implicits.*
+import cats.effect.std.Queue
 import cats.syntax.all.*
-import scala.util.Try
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
 import edu.gemini.aspen.giapi.commands.SequenceCommand
 import edu.gemini.aspen.giapi.status.StatusHandler
@@ -24,7 +22,9 @@ import fs2.Stream
 import giapi.client.commands.Command
 import giapi.client.commands.CommandResultException
 import giapi.client.commands.{*, given}
-import cats.effect.Temporal
+
+import scala.concurrent.duration.*
+import scala.util.Try
 
 package object client {
 

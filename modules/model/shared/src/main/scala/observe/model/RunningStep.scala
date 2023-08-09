@@ -3,8 +3,8 @@
 
 package observe.model
 
-import cats.Show
 import cats.Eq
+import cats.Show
 import cats.syntax.option.*
 
 sealed trait RunningStep {

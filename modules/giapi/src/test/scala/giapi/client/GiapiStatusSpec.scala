@@ -3,8 +3,8 @@
 
 package giapi.client
 
-import cats.effect.{IO, Resource}
-import munit.CatsEffectSuite
+import cats.effect.IO
+import cats.effect.Resource
 import edu.gemini.aspen.giapi.status.impl.BasicStatus
 import edu.gemini.aspen.giapi.util.jms.JmsKeys
 import edu.gemini.aspen.gmp.statusdb.StatusDatabase
@@ -15,6 +15,7 @@ import edu.gemini.jms.api.BaseMessageConsumer
 import edu.gemini.jms.api.DestinationData
 import edu.gemini.jms.api.DestinationType
 import edu.gemini.jms.api.JmsSimpleMessageSelector
+import munit.CatsEffectSuite
 import org.scalatest.matchers.must.Matchers.matchPattern
 
 final case class GmpStatus(

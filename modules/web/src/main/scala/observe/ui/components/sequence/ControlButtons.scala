@@ -7,7 +7,6 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import observe.model.NodAndShuffleStep
 import observe.model.enums.SequenceState
 import observe.model.operations.Operations.*
 import observe.model.operations.*
@@ -23,13 +22,13 @@ import react.primereact.*
  * Contains a set of control buttons like stop/abort
  */
 case class ControlButtons(
-  obsId:               Observation.Id,
-  operations:          List[Operations],
-  sequenceState:       SequenceState,
-  stepId:              Step.Id,
-  isObservePaused:     Boolean,
-  tabOperations:       TabOperations,
-  nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = None
+  obsId:           Observation.Id,
+  operations:      List[Operations],
+  sequenceState:   SequenceState,
+  stepId:          Step.Id,
+  isObservePaused: Boolean,
+  tabOperations:   TabOperations
+  // nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = None
 ) extends ReactFnProps(ControlButtons.component):
 
   val requestInFlight: Boolean = tabOperations.stepRequestInFlight
@@ -147,7 +146,7 @@ object ControlButtons:
           //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
           //     )(stopGracefullyIcon)
           //   )("Stop the current exposure at the end of the cycle")
-          case _                => <.div
+          case _                => EmptyVdom
         }
         .toTagMod
     )

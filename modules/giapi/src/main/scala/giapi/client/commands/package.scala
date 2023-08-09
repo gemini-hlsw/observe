@@ -3,10 +3,6 @@
 
 package giapi.client
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters.*
-
 import cats.*
 import cats.effect.*
 import cats.syntax.all.*
@@ -20,6 +16,10 @@ import edu.gemini.aspen.giapi.commands.{Command => GiapiCommand}
 import edu.gemini.aspen.giapi.commands.{Configuration => GiapiConfiguration}
 import edu.gemini.aspen.gmp.commands.jms.client.CommandSenderClient
 import giapi.client.syntax.giapiconfig.*
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
+import scala.jdk.CollectionConverters.*
 
 package commands {
 

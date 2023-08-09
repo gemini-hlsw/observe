@@ -6,8 +6,8 @@ package giapi.client
 import cats.syntax.all.*
 import giapi.client.commands.*
 import org.scalacheck.Arbitrary
-import org.scalacheck.Cogen
 import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
 
 trait GiapiArbitraries {
   given configurationArb: Arbitrary[Configuration] = Arbitrary {

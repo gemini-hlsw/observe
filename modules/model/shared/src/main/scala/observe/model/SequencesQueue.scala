@@ -3,14 +3,14 @@
 
 package observe.model
 
-import scala.collection.immutable.SortedMap
-
 import cats.*
+import monocle.Focus
 import monocle.Getter
 import monocle.Traversal
 import monocle.function.Each.*
-import monocle.Focus
 import observe.model.enums.Instrument
+
+import scala.collection.immutable.SortedMap
 
 /**
  * Represents a queue with different levels of details. E.g. it could be a list of Ids Or a list of

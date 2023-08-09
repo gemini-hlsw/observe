@@ -4,10 +4,12 @@
 package observe.engine
 
 import fs2.Stream
-import monocle.{Focus, Lens}
-import Result.{Error, PartialVal, PauseContext, RetVal}
+import monocle.Focus
+import monocle.Lens
 import observe.model.ActionType
 import observe.model.enums.ActionStatus
+
+import Result.{Error, PartialVal, PauseContext, RetVal}
 
 final case class Action[F[_]](
   kind:  ActionType,

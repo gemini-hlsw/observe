@@ -3,23 +3,23 @@
 
 package giapi.client
 
-import cats.effect.{IO, Resource}
-import munit.CatsEffectSuite
-import giapi.client.commands.*
-import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
-import edu.gemini.aspen.giapi.commands.{
-  Activity,
-  Command => JCommand,
-  CompletionListener,
-  HandlerResponse,
-  SequenceCommand
-}
+import cats.effect.IO
+import cats.effect.Resource
+import edu.gemini.aspen.giapi.commands.Activity
+import edu.gemini.aspen.giapi.commands.CommandSender
+import edu.gemini.aspen.giapi.commands.CompletionListener
+import edu.gemini.aspen.giapi.commands.HandlerResponse
 import edu.gemini.aspen.giapi.commands.HandlerResponse.Response
+import edu.gemini.aspen.giapi.commands.SequenceCommand
+import edu.gemini.aspen.giapi.commands.{Command => JCommand}
 import edu.gemini.aspen.gmp.commands.jms.clientbridge.CommandMessagesBridgeImpl
 import edu.gemini.aspen.gmp.commands.jms.clientbridge.CommandMessagesConsumer
-import edu.gemini.aspen.giapi.commands.CommandSender
-import scala.concurrent.duration.*
+import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
+import giapi.client.commands.*
+import munit.CatsEffectSuite
 import org.scalatest.EitherValues
+
+import scala.concurrent.duration.*
 
 final case class GmpCommands(amq: ActiveMQJmsProvider, cmc: CommandMessagesConsumer)
 

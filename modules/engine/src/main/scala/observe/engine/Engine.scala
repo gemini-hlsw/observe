@@ -8,10 +8,14 @@ import cats.data.StateT
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
-import org.typelevel.log4cats.Logger
 import monocle.Optional
 import mouse.boolean.*
 import observe.engine.SystemEvent.Null
+import observe.model.Observation
+import observe.model.SequenceState
+import observe.model.StepId
+import org.typelevel.log4cats.Logger
+
 import Event.*
 import EventResult.Outcome
 import EventResult.SystemUpdate
@@ -20,9 +24,6 @@ import Result.PartialVal
 import Result.RetVal
 import SystemEvent.*
 import UserEvent.*
-import observe.model.Observation
-import observe.model.SequenceState
-import observe.model.StepId
 import Handle.given
 
 class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {

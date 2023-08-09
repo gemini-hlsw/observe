@@ -4,12 +4,15 @@
 package observe.ui.components.queue
 
 import cats.syntax.all.*
+import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.model.Observation
 import lucuma.core.syntax.display.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
+import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
@@ -24,28 +27,38 @@ import react.fa.FontAwesomeIcon
 import react.fa.IconSize
 import react.primereact.*
 
-case class SessionQueue(queue: List[SessionQueueRow]) extends ReactFnProps(SessionQueue.component)
+case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
+    extends ReactFnProps(SessionQueue.component)
 
 object SessionQueue:
   private type Props = SessionQueue
 
   private val ColDef = ColumnDef[SessionQueueRow]
 
-  private def rowClass( /*index: Int,*/ row: SessionQueueRow): Css =
+  private def rowClass(
+    /*index: Int,*/ row: SessionQueueRow,
+    selectedObsId:       Option[Observation.Id]
+  ): Css =
+    val isFocused = selectedObsId.contains_(row.obsId)
+
     if (row.status === SequenceState.Completed)
       ObserveStyles.RowPositive
     else if (row.status.isRunning)
       ObserveStyles.RowWarning
     else if (row.status.isError)
       ObserveStyles.RowNegative
-    else if (row.active && !row.status.isInProcess)
+    else if (isFocused && !row.status.isInProcess)
       ObserveStyles.RowActive
     else
       Css.Empty
 
-  private def statusIconRenderer(row: SessionQueueRow): VdomNode =
+  private def statusIconRenderer(
+    row:           SessionQueueRow,
+    selectedObsId: Option[Observation.Id]
+  ): VdomNode =
     // <.div
-    val isFocused      = row.active
+    val isFocused      = // row.active
+      selectedObsId.contains_(row.obsId)
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
@@ -58,7 +71,8 @@ object SessionQueue:
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused              => EmptyVdom
+        case _ if isFocused              =>             // EmptyVdom
+          Icons.CircleCheck.copy(size = IconSize.LG)
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
         case _                           => EmptyVdom
 
@@ -126,23 +140,25 @@ object SessionQueue:
   private val ObsNameColumnId: ColumnId    = ColumnId("obsName")
   private val ObserverColumnId: ColumnId   = ColumnId("observer")
 
-  private val columns = List(
+  private def columns(selectedObsId: Option[Observation.Id]) = List(
     ColDef(
       IconColumnId,
-      cell = cell => renderCendered(statusIconRenderer(cell.row.original)), // Tooltip: Control
+      cell =
+        cell =>
+          renderCendered(statusIconRenderer(cell.row.original, selectedObsId)), // Tooltip: Control
       size = 25.toPx,
       enableResizing = false
     ),
     ColDef(
       AddQueueColumnId,
-      header = _ => renderCendered(Icons.CalendarDays),                     // Tooltip: Add all to queue
+      header = _ => renderCendered(Icons.CalendarDays),                         // Tooltip: Add all to queue
       cell = cell => renderCendered(addToQueueRenderer(cell.row.original)),
       size = 30.toPx,
       enableResizing = false
     ),
     ColDef(
       ClassColumnId,
-      header = _ => renderCendered(Icons.Clock),                            // Tooltip: "Obs. class"
+      header = _ => renderCendered(Icons.Clock),                                // Tooltip: "Obs. class"
       cell = cell => renderCendered(classIconRenderer(cell.row.original)),
       size = 26.toPx,
       enableResizing = false
@@ -190,25 +206,27 @@ object SessionQueue:
     ScalaFnComponent
       .withHooks[Props]
       .useState(SessionQueueFilter.All)
-      .useMemo(())(_ => columns)
-      .useMemoBy((props, filter, _) => (props.queue, filter))((_, _, _) =>
+      .useMemoBy((props, _) => props.selectedObsId.get)((_, _) => columns(_))
+      .useMemoBy((props, filter, _) => (props.queue, filter)): (_, _, _) =>
         (queue, filter) => filter.value.filter(queue)
-      )
-      .useReactTableBy((_, _, cols, rows) =>
+      .useReactTableBy: (_, _, cols, rows) =>
         TableOptions(
           cols,
           rows,
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange
         )
-      )
-      .render((props, filter, _, _, table) =>
+      .render: (props, filter, _, _, table) =>
         <.div(ObserveStyles.SessionQueue)(
           PrimeAutoHeightVirtualizedTable(
             table,
             estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
-            rowMod = row => rowClass( /*row.index.toInt,*/ row.original),
+            rowMod = row =>
+              TagMod(
+                rowClass( /*row.index.toInt,*/ row.original, props.selectedObsId.get),
+                ^.onClick --> props.selectedObsId.set(row.original.obsId.some)
+              ),
             overscan = 5
           ),
           SelectButtonOptional(
@@ -222,4 +240,3 @@ object SessionQueue:
             onChange = value => filter.setState(SessionQueueFilter(value))
           )
         )
-      )

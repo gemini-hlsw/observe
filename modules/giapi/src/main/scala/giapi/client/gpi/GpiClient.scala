@@ -3,8 +3,9 @@
 
 package giapi.client.gpi
 
-import scala.concurrent.duration.*
 import cats.effect.Resource
+import cats.effect.Temporal
+import cats.effect.kernel.Async
 import cats.syntax.all.*
 import edu.gemini.aspen.giapi.commands.Activity
 import edu.gemini.aspen.giapi.commands.SequenceCommand
@@ -17,8 +18,8 @@ import giapi.client.commands.CommandResult
 import giapi.client.commands.Configuration
 import giapi.client.given
 import mouse.boolean.*
-import cats.effect.Temporal
-import cats.effect.kernel.Async
+
+import scala.concurrent.duration.*
 
 sealed trait GpiClient[F[_]] extends GiapiClient[F] {
 

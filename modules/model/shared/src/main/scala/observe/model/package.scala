@@ -3,11 +3,12 @@
 
 package observe
 
-import java.util.UUID
 import cats.*
 import observe.model.enums.*
 import squants.time.Time
 import squants.time.TimeUnit
+
+import java.util.UUID
 
 package model {
   final case class QueueId(self: UUID)  extends AnyVal

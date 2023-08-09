@@ -7,7 +7,6 @@ import java.time.*
 import scala.collection.immutable.SortedSet
 import boopickle.Pickler
 import boopickle.CompositePickler
-import boopickle.Default.UUIDPickler
 import boopickle.Default.*
 import cats.*
 import cats.implicits.catsKernelOrderingForOrder
@@ -44,10 +43,10 @@ import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observation
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.SeqCheck
-import observe.model.{*, given}
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.*
+import observe.model.{*, given}
 import squants.time.Time
 import squants.time.TimeConversions.*
 

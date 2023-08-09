@@ -6,10 +6,12 @@ package observe.ui.components
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.typed.primereact.components.*
 import observe.model.*
 import observe.ui.ObserveStyles
 import react.common.*
+import react.primereact.Card
+import react.primereact.Dropdown
+import react.primereact.InputText
 
 case class HeadersSideBar(
   status:     ClientStatus,
@@ -22,31 +24,31 @@ private object HeadersSideBar:
   private type Props = HeadersSideBar
 
   private val component = ScalaFnComponent[Props](props =>
-    Card(ObserveStyles.HeaderSideBarCard)(
+    Card(clazz = ObserveStyles.HeaderSideBarCard)(
       <.div(ObserveStyles.HeaderSideBar)(
         <.div(ObserveStyles.ObserverArea)(
           <.label(^.htmlFor := "observer")("Observer Name"),
-          InputText.id("observer")
+          InputText("observer")
         ),
         <.div(ObserveStyles.OperatorArea)(
           <.label(^.htmlFor := "operator")("Operator"),
-          InputText.id("operator")
+          InputText("operator")
         ),
         <.div(ObserveStyles.ImageQualityArea)(
           <.label(^.htmlFor := "imageQuality")("Image Quality"),
-          Dropdown.id("operator")("fefefe")
+          Dropdown("", List.empty, id = "imageQuality")
         ),
         <.div(ObserveStyles.CloudCoverArea)(
           <.label(^.htmlFor := "cloudCover")("Cloud Cover"),
-          Dropdown.id("cloudCover")
+          Dropdown("", List.empty, id = "cloudCover")
         ),
         <.div(ObserveStyles.WaterVaporArea)(
           <.label(^.htmlFor := "waterVapor")("Water Vapor"),
-          Dropdown.id("waterVapor")
+          Dropdown("", List.empty, id = "waterVapor")
         ),
         <.div(ObserveStyles.SkyBackgroundArea)(
           <.label(^.htmlFor := "skyBackground")("Sky Background"),
-          Dropdown.id("skyBackground")
+          Dropdown("", List.empty, id = "skyBackground")
         )
       )
     )

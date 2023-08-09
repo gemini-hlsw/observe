@@ -3,12 +3,12 @@
 
 package observe.model
 
-import java.time.Instant
-
 import cats.*
 import cats.syntax.all.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
+
+import java.time.Instant
 
 object events {
   given Eq[Instant] = Eq.fromUniversalEquals

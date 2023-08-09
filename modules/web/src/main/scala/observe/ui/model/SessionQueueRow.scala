@@ -23,7 +23,7 @@ case class SessionQueueRow(
   observer:      Option[Observer],
   name:          String,
   obsClass:      ObsClass,
-  active:        Boolean,
+  // active:        Boolean,
   loaded:        Boolean,
   nextStepToRun: Option[Step.Id],
   runningStep:   Option[RunningStep],

@@ -63,30 +63,21 @@ object CalibrationQueueTabActive {
     Eq.by(x => (x.calibrationTab, x.active))
 }
 
-sealed abstract class TabSelected(val tag: String) extends Product with Serializable
-object TabSelected {
-  case object Selected   extends TabSelected("Selected")
-  case object Background extends TabSelected("Background")
+enum TabSelected(val tag: String) derives Enumerated:
+  case Selected   extends TabSelected("Selected")
+  case Background extends TabSelected("Background")
 
+object TabSelected:
   def fromBoolean(b: Boolean): TabSelected = if (b) Selected else Background
-
-  /** @group Typeclass Instances */
-  given Enumerated[TabSelected] =
-    Enumerated.from(Selected, Background).withTag(_.tag)
-
-}
 
 final case class ObserveTabActive(tab: SequenceTab, active: TabSelected)
 
-object ObserveTabActive {
+object ObserveTabActive:
   given Eq[ObserveTabActive] =
     Eq.by(x => (x.tab, x.active))
 
-}
-
-sealed trait ObserveTab {
+sealed trait ObserveTab:
   def isPreview: Boolean
-}
 
 object ObserveTab {
   given Eq[ObserveTab] =

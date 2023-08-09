@@ -3,11 +3,14 @@
 
 package observe.ui.components.sequence
 
+import cats.Eq
 import cats.syntax.all.*
-import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.model.sequence.Step
+import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.*
+import lucuma.core.model.sequence.gmos.*
 import lucuma.react.SizePx
 import lucuma.react.syntax.*
 import lucuma.react.table.*
@@ -15,18 +18,16 @@ import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.reusability.given
 import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
-import lucuma.ui.utils.*
 import monocle.Focus
 import monocle.Lens
+import observe.model.SequenceStep
 import observe.model.*
-import observe.model.enums.StepState
+import observe.model.enums.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.components.sequence.steps.StepSkipCell
 import observe.ui.components.sequence.steps.*
-import observe.ui.model.Execution
+import observe.ui.model.TabOperations
 import observe.ui.model.enums.OffsetsDisplay
-import observe.ui.model.extensions.*
 import observe.ui.model.reusability.given
 import react.common.*
 import react.resizeDetector.hooks.*
@@ -35,39 +36,139 @@ import scala.annotation.tailrec
 
 import scalajs.js
 
-case class StepsTable(
-  clientStatus: ClientStatus,
-  execution:    View[Option[Execution]]
+sealed trait StepsTable[S, D](
+  protected[sequence] val instrument:    Instrument,
+  protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
+):
+  def clientStatus: ClientStatus // TODO Switch to UserVault
+  def obsId: Observation.Id
+  def config: ExecutionConfig[S, D]
+  def tabOperations: TabOperations
+  def sequenceState: SequenceState
+  def runningStep: Option[RunningStep]
+  def nsStatus: Option[NodAndShuffleStatus]
+  def isPreview: Boolean
+
+  private def buildSequence(sequence: ExecutionSequence[D]): List[SequenceStep[D]] =
+    (sequence.nextAtom +: sequence.possibleFuture)
+      .flatMap(_.steps.toList)
+      .map(step => SequenceStep.FutureStep(step))
+
+  protected[sequence] lazy val steps: List[SequenceStep[D]] =
+    config.acquisition.map(buildSequence).orEmpty ++ config.science.map(buildSequence).orEmpty
+
+  // TODO: Move the next methods to some extension?
+  import lucuma.core.math.Angle
+  import observe.ui.utils.*
+  import observe.ui.model.formatting.*
+
+  private def maxWidth(angles: Angle*): Double =
+    angles.map(angle => tableTextWidth(offsetAngle(angle))).maximumOption.orEmpty
+
+  // Calculate the widest offset step, widest axis label and widest NS nod label
+  private def sequenceOffsetMaxWidth: (Double, Double, Double) =
+    nodAndShuffle.fold(
+      steps
+        .map(_.offset)
+        .flattenOption
+        .map { offset =>
+          (
+            maxWidth(offset.p.toAngle, offset.q.toAngle),
+            math.max(tableTextWidth("p"), tableTextWidth("q")),
+            0.0
+          )
+        }
+        .foldLeft((0.0, 0.0, 0.0)) { case ((ow1, aw1, nw1), (ow2, aw2, nw2)) =>
+          ((ow1.max(ow2), aw1.max(aw2), nw1.max(nw2)))
+        }
+    )(nsConfig =>
+      (
+        maxWidth(
+          nsConfig.posB.p.toAngle,
+          nsConfig.posB.q.toAngle,
+          nsConfig.posA.p.toAngle,
+          nsConfig.posA.q.toAngle
+        ),
+        math.max(tableTextWidth("p"), tableTextWidth("q")),
+        math.max(tableTextWidth("B"), tableTextWidth("A"))
+      )
+    )
+
+  protected[sequence] lazy val offsetsDisplay: OffsetsDisplay =
+    (OffsetsDisplay.DisplayOffsets.apply _).tupled(sequenceOffsetMaxWidth)
+
+case class GmosNorthStepsTable(
+  clientStatus:  ClientStatus,
+  obsId:         Observation.Id,
+  config:        ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
+  tabOperations: TabOperations,
+  sequenceState: SequenceState,
+  runningStep:   Option[RunningStep],
+  nsStatus:      Option[NodAndShuffleStatus],
+  isPreview:     Boolean
+) extends ReactFnProps(GmosNorthStepsTable.component)
+    with StepsTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+      Instrument.GmosNorth,
+      config.static.nodAndShuffle
+    )
+
+case class GmosSouthStepsTable(
+  clientStatus:  ClientStatus,
+  obsId:         Observation.Id,
+  config:        ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
+  tabOperations: TabOperations,
+  sequenceState: SequenceState,
+  runningStep:   Option[RunningStep],
+  nsStatus:      Option[NodAndShuffleStatus],
+  isPreview:     Boolean
+) extends ReactFnProps(GmosSouthStepsTable.component)
+    with StepsTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
+      Instrument.GmosSouth,
+      config.static.nodAndShuffle
+    )
+
+// case class StepsTable(
+//   clientStatus: ClientStatus,
+//   obsId:        Observation.Id,
+//   config:       ExecutionConfig[S, D]
+// execution:    View[Option[Execution[D]]]
 //  tableState:       TableState[StepsTable.TableColumn],
 //  configTableState: TableState[StepConfigTable.TableColumn]
-) extends ReactFnProps(StepsTable.component):
-  val stepViewList: List[View[ExecutionStep]] =
-    execution
-      .mapValue((e: View[Execution]) => e.zoom(Execution.steps).toListOfViews)
-      .orEmpty
+// ) extends ReactFnProps(StepsTable.component) //:
+//   val stepViewList: List[View[ExecutionStep]] =
+//     execution
+//       .mapValue((e: View[Execution[D]]) => e.zoom(Execution.steps).toListOfViews)
+//       .orEmpty
 
-  val steps: List[ExecutionStep] = stepViewList.map(_.get)
+//   val steps: List[ExecutionStep] = stepViewList.map(_.get)
 
-  // Find out if offsets should be displayed
-  val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
+//   // Find out if offsets should be displayed
+//   val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
 
-object StepsTable:
-  private type Props = StepsTable
+private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
+  private type Props = StepsTable[S, D]
 
-  private val ColDef = ColumnDef[View[ExecutionStep]]
+  // protected val offsetDisplayCell: (
+  //   OffsetsDisplay,
+  //   SequenceStep[D],
+  //   Option[GmosNodAndShuffle]
+  // ) => VdomNode
+
+  // private def ColDef = ColumnDef[View[StepTableRow[D]]]
+  private def ColDef = ColumnDef[SequenceStep[D]]
 
   private def renderStringCell(value: Option[String]): VdomNode =
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
 
   private val BreakpointColumnId: ColumnId    = ColumnId("breakpoint")
-  private val SkipColumnId: ColumnId          = ColumnId("skip")
+  // private val SkipColumnId: ColumnId          = ColumnId("skip")
   private val IconColumnId: ColumnId          = ColumnId("icon")
   private val IndexColumnId: ColumnId         = ColumnId("index")
   private val StateColumnId: ColumnId         = ColumnId("state")
   private val OffsetsColumnId: ColumnId       = ColumnId("offsets")
   private val ObsModeColumnId: ColumnId       = ColumnId("obsMode")
   private val ExposureColumnId: ColumnId      = ColumnId("exposure")
-  private val DisperserColumnId: ColumnId     = ColumnId("disperser")
+  private val GratingColumnId: ColumnId       = ColumnId("grating")
   private val FilterColumnId: ColumnId        = ColumnId("filter")
   private val FPUColumnId: ColumnId           = ColumnId("fpu")
   private val CameraColumnId: ColumnId        = ColumnId("camera")
@@ -79,14 +180,14 @@ object StepsTable:
 
   private val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
     BreakpointColumnId    -> FixedSize(0.toPx),
-    SkipColumnId          -> FixedSize(43.toPx),
+    // SkipColumnId          -> FixedSize(43.toPx),
     IconColumnId          -> FixedSize(0.toPx),
     IndexColumnId         -> FixedSize(60.toPx),
     StateColumnId         -> Resizable(380.toPx, min = 380.toPx.some),
     OffsetsColumnId       -> FixedSize(90.toPx),
     ObsModeColumnId       -> Resizable(130.toPx),
     ExposureColumnId      -> Resizable(84.toPx, min = 75.toPx.some),
-    DisperserColumnId     -> Resizable(120.toPx, min = 120.toPx.some),
+    GratingColumnId       -> Resizable(120.toPx, min = 120.toPx.some),
     FilterColumnId        -> Resizable(100.toPx, min = 90.toPx.some),
     FPUColumnId           -> Resizable(47.toPx, min = 75.toPx.some),
     CameraColumnId        -> Resizable(10.toPx),
@@ -103,7 +204,7 @@ object StepsTable:
     OffsetsColumnId,
     ObsModeColumnId,
     ExposureColumnId,
-    DisperserColumnId,
+    GratingColumnId,
     FilterColumnId,
     FPUColumnId,
     CameraColumnId,
@@ -117,14 +218,14 @@ object StepsTable:
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[raw.buildLibCoreCellMod.CellContext[View[ExecutionStep], V] => VdomNode] =
+    cell:   js.UndefOr[raw.buildLibCoreCellMod.CellContext[SequenceStep[D], V] => VdomNode] =
       js.undefined
-  ): ColumnDef[View[ExecutionStep], V] =
+  ): ColumnDef[SequenceStep[D], V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
-  extension (step: View[ExecutionStep])
-    def flipBreakpoint: Callback =
-      step.zoom(ExecutionStep.breakpoint).mod(!_) >> Callback.log("TODO: Flip breakpoint")
+//   extension (step: View[ExecutionStep])
+//     def flipBreakpoint: Callback =
+//       step.zoom(ExecutionStep.breakpoint).mod(!_) >> Callback.log("TODO: Flip breakpoint")
 
   // START: Column computations - We could abstract this away
   case class ColState(
@@ -231,126 +332,146 @@ object StepsTable:
   }
   // END: Column computations
 
-  private val component =
+  protected[sequence] val component =
     ScalaFnComponent
       .withHooks[Props]
       .useState(none[Step.Id]) // selectedStep
       .useResizeDetector()
-      // .useRef(0.0)            // tableWidth, set after table is defined
+//       // .useRef(0.0)            // tableWidth, set after table is defined
       .useMemoBy((props, selectedStep, resize) =>
         (props.clientStatus,
-         props.execution.get,
+         props.instrument,
+         //  props.config,
+         props.obsId,
+         props.sequenceState,
+         props.runningStep,
+         props.nsStatus,
+         props.tabOperations,
+         props.nodAndShuffle,
          props.offsetsDisplay,
-         selectedStep.value,
-         resize.width
+         props.isPreview,
+         selectedStep.value
+         //  resize.width
         )
-      )((_, _, _) => // cols
-        (clientStatus, execution, offsetsDisplay, selectedStep, _) =>
+      ): (_, _, _) => // cols
+        // (clientStatus, config, isPreview, nodAndShuffle, offsetsDisplay, selectedStep, _) =>
+        (
+          clientStatus,
+          instrument,
+          obsId,
+          sequenceState,
+          runningStep,
+          nsStatus,
+          tabOperations,
+          nodAndShuffle,
+          offsetsDisplay,
+          isPreview,
+          selectedStep
+        ) =>
           List(
             column(
               BreakpointColumnId,
               "",
               cell =>
-                val step             = cell.row.original
-                val canSetBreakpoint =
-                  clientStatus.canOperate && step.get.canSetBreakpoint(
-                    execution.map(_.steps).orEmpty
-                  )
+                val step = cell.row.original
+                // val canSetBreakpoint =
+                //   clientStatus.canOperate && step.get.canSetBreakpoint(
+                //     execution.map(_.steps).orEmpty
+                //   )
 
                 <.div(
                   <.div(
-                    ObserveStyles.BreakpointHandle,
-                    ^.onClick --> step.flipBreakpoint
+                    ObserveStyles.BreakpointHandle
+                      // ^.onClick --> step.flipBreakpoint
                   )(
                     Icons.XMark
                       .withFixedWidth()
                       .withClass(ObserveStyles.BreakpointIcon)
-                      .when(step.get.breakpoint),
+                      .when(step.hasBreakpoint),
                     Icons.CaretDown
                       .withFixedWidth()
                       .withClass(ObserveStyles.BreakpointIcon)
-                      .unless(step.get.breakpoint)
-                  ).when(canSetBreakpoint)
+                      .unless(step.hasBreakpoint)
+                  ) // .when(canSetBreakpoint)
                 )
             ),
-            column(
-              SkipColumnId,
-              Icons.Gears,
-              cell =>
-                <.div(
-                  execution
-                    .map(e =>
-                      StepSkipCell(clientStatus, cell.row.original)
-                        .when(clientStatus.isLogged)
-                        .unless(e.isPreview)
-                    )
-                    .whenDefined
-                )
-            ),
-            column(
-              IconColumnId,
-              "",
-              cell =>
-                execution.map(e =>
-                  val step = cell.row.original.get
-                  StepIconCell(step.status, step.skip, e.nextStepToRun.forall(_ === step.id))
-                )
-            ),
+            // NO MORE SKIP THEN?
+            // column(
+            //   SkipColumnId,
+            //   Icons.Gears,
+            //   cell =>
+            //     <.div(
+            //       execution
+            //         .map(e =>
+            //           StepSkipCell(clientStatus, cell.row.original)
+            //             .when(clientStatus.isLogged)
+            //             .unless(e.isPreview)
+            //         )
+            //         .whenDefined
+            //     )
+            // ),
+            // column(
+            //   IconColumnId,
+            //   "",
+            //   cell =>
+            //     execution.map(e =>
+            //       val step = cell.row.original.get
+            //       StepIconCell(step.status, step.skip, e.nextStepToRun.forall(_ === step.id))
+            //     )
+            // ),
             column(IndexColumnId, "Step", _.row.index.toInt + 1),
             column(
               StateColumnId,
               "Execution Progress",
               cell =>
-                execution.map(e =>
-                  StepProgressCell(
-                    clientStatus = clientStatus,
-                    step = cell.row.original,
-                    stepIndex = cell.row.index.toInt,
-                    obsId = e.obsId,
-                    instrument = e.instrument,
-                    tabOperations = e.tabOperations,
-                    sequenceState = e.sequenceState,
-                    selectedStep = selectedStep,
-                    isPreview = e.isPreview
-                  )
+                val step = cell.row.original
+                StepProgressCell(
+                  clientStatus = clientStatus,
+                  instrument = instrument,
+                  stepId = step.id,
+                  stepType = step.stepType(nodAndShuffle.isDefined),
+                  isFinished = step.isFinished,
+                  stepIndex = cell.row.index.toInt,
+                  obsId = obsId,
+                  tabOperations = tabOperations,
+                  sequenceState = sequenceState,
+                  runningStep = runningStep,
+                  nsStatus = nsStatus,
+                  selectedStep = selectedStep,
+                  isPreview = isPreview
                 )
             ),
             column(
               OffsetsColumnId,
               "Offsets",
-              cell => OffsetsDisplayCell(offsetsDisplay, cell.row.original.get)
+              cell =>
+                cell.row.original.science.map(OffsetsDisplayCell(offsetsDisplay, _, nodAndShuffle))
             ),
             column(ObsModeColumnId, "Observing Mode"),
             column(
               ExposureColumnId,
               "Exposure",
-              cell => execution.map(e => ExposureTimeCell(cell.row.original.get, e.instrument))
+              cell =>
+                ExposureTimeCell(
+                  instrument,
+                  cell.row.original.exposureTime,
+                  cell.row.original.stepEstimate
+                )
             ),
             column(
-              DisperserColumnId,
-              "Disperser",
-              cell =>
-                execution.map(e => renderStringCell(cell.row.original.get.disperser(e.instrument))),
+              GratingColumnId,
+              "Grating",
+              cell => renderStringCell(cell.row.original.gratingName)
             ),
             column(
               FilterColumnId,
               "Filter",
-              cell =>
-                execution.map(e => renderStringCell(cell.row.original.get.filter(e.instrument)))
+              cell => renderStringCell(cell.row.original.filterName)
             ),
             column(
               FPUColumnId,
               "FPU",
-              cell =>
-                val step = cell.row.original.get
-
-                execution.map(e =>
-                  renderStringCell(
-                    step
-                      .fpu(e.instrument)
-                      .orElse(step.fpuOrMask(e.instrument).map(_.toLowerCase.capitalize))
-                  )
-                )
+              cell => renderStringCell(cell.row.original.fpuName)
             ),
             column(CameraColumnId, "Camera"),
             column(DeckerColumnId, "Decker"),
@@ -359,19 +480,19 @@ object StepsTable:
             column(
               TypeColumnId,
               "Type",
-              cell => execution.map(e => ObjectTypeCell(e.instrument, cell.row.original.get))
+              cell =>
+                ObjectTypeCell(
+                  cell.row.original.stepType(nodAndShuffle.isDefined),
+                  cell.row.original.isFinished
+                )
             ),
             column(
               SettingsColumnId,
               Icons.RectangleList,
-              cell =>
-                execution.map(e =>
-                  SettingsCell(e.instrument, e.obsId, cell.row.original.get.id, e.isPreview)
-                )
+              cell => SettingsCell() // TODO
             )
           )
-      )
-      .useState(
+      .useState:
         ColState(
           resized = ColumnSizing(),
           visibility = ColumnVisibility(
@@ -382,13 +503,13 @@ object StepsTable:
             ImagingMirrorColumnId -> Visibility.Hidden
           )
         )
-      )
-      .useReactTableBy((props, _, resize, cols, colState) =>
+      .useReactTableBy: (props, _, resize, cols, colState) =>
         val viewportWidth = resize.width.filterNot(_.isEmpty).orEmpty
 
         TableOptions(
           cols,
-          Reusable.never(props.stepViewList),
+          Reusable.implicitly(props.steps),
+          // Reusable.never(props.stepViewList),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
           state = PartialTableState(
@@ -401,31 +522,29 @@ object StepsTable:
             case Updater.Mod(fn) =>
               colState.modState(s => adjustColSizes(viewportWidth)(ColState.resized.modify(fn)(s)))
         )
-      )
       .useEffectWithDepsBy((_, _, resize, _, _, table) => // Recompute columns upon viewport resize
         resize.width.filterNot(_.isEmpty).orEmpty
       )((_, _, _, _, colState, table) =>
         viewportWidth => colState.modState(s => adjustColSizes(viewportWidth)(s))
       )
-      .render((props, _, resize, _, _, table) =>
-
-        def rowClass(index: Int, step: ExecutionStep): Css =
+      .render: (props, _, resize, _, _, table) =>
+        def rowClass(index: Int, step: SequenceStep[D]): Css =
           step match
-            case s if s.hasError                       => ObserveStyles.StepRowError
-            case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
-            case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
-            case s if s.status === StepState.Completed => ObserveStyles.StepRowDone
+            // case s if s.hasError                       => ObserveStyles.StepRowError
+            // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
+            // case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
+            // case s if s.status === StepState.Completed => ObserveStyles.StepRowDone
             // case s if s.status === StepState.Skipped   => ObserveStyles.RowActive
             // case s if s.status === StepState.Aborted   => ObserveStyles.RowError
-            // case s if s.isFinished                     => ObserveStyles.RowDone
-            // case _                                     => ObserveStyles.StepRow
-            case _                                     => Css.Empty
+            case s if s.isFinished => ObserveStyles.RowDone
+            // case _                 => ObserveStyles.StepRow
+            case _                 => Css.Empty
 
-        // val allColumnsWidth = table.getTotalSize().value
-        // val ratio           =
-        //   resize.width
-        //     .map(width => width.toDouble / allColumnsWidth)
-        //     .orEmpty
+//         // val allColumnsWidth = table.getTotalSize().value
+//         // val ratio           =
+//         //   resize.width
+//         //     .map(width => width.toDouble / allColumnsWidth)
+//         //     .orEmpty
 
         PrimeAutoHeightVirtualizedTable(
           table,
@@ -434,23 +553,28 @@ object StepsTable:
           containerRef = resize.ref,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.StepTable,
           rowMod = row =>
-            rowClass(row.index.toInt, row.original.get) |+|
-              ObserveStyles.StepRowWithBreakpoint.when_(row.original.get.breakpoint),
+            rowClass(row.index.toInt, row.original) |+|
+              ObserveStyles.StepRowWithBreakpoint.when_(row.original.hasBreakpoint),
           innerContainerMod = TagMod(^.width := "100%"),
           headerCellMod = { headerCell =>
             TagMod(
               headerCell.column.id match
                 case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
-                case id if id == SkipColumnId.value       => ^.colSpan := 2
+                // case id if id == SkipColumnId.value       => ^.colSpan := 2
                 case id if id == IconColumnId.value       => ^.display.none
                 case _                                    => TagMod.empty
             )
           },
           cellMod = _.column.id match
             case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableCell
-            case id if id == SkipColumnId.value       => ObserveStyles.SkipTableCell
+            // case id if id == SkipColumnId.value       => ObserveStyles.SkipTableCell
             case _                                    => TagMod.empty
           ,
           overscan = 5
         )
-      )
+
+object GmosNorthStepsTable
+    extends StepsTableBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
+
+object GmosSouthStepsTable
+    extends StepsTableBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]

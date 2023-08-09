@@ -4,7 +4,8 @@
 package observe.engine
 
 import cats.syntax.all.*
-import monocle.{Focus, Lens}
+import monocle.Focus
+import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
 import observe.model.StepId

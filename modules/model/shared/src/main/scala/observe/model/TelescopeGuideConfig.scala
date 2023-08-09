@@ -3,7 +3,8 @@
 
 package observe.model
 
-import cats.{Eq, Show}
+import cats.Eq
+import cats.Show
 import observe.model.enums.MountGuideOption
 
 /** Data type for guide config. */

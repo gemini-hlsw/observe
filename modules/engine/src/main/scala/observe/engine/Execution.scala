@@ -4,10 +4,11 @@
 package observe.engine
 
 import cats.data.NonEmptyList
+import monocle.Focus
 import monocle.function.Index.listIndex
 import monocle.syntax.all.*
-import monocle.Focus
 import mouse.boolean.*
+
 import Action.ActionState
 
 /**
