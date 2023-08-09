@@ -5,7 +5,10 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
-import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 
 final case class Conditions(
   cc: Option[CloudExtinction],

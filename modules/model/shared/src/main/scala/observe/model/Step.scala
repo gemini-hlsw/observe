@@ -8,11 +8,14 @@ import cats.syntax.all.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.util.Enumerated
-import monocle.{Focus, Lens, Optional, Prism}
+import monocle.Focus
+import monocle.Lens
+import monocle.Optional
+import monocle.Prism
 import monocle.macros.GenPrism
 import monocle.syntax.all.*
-import observe.model.enums.*
 import observe.model.dhs.*
+import observe.model.enums.*
 
 sealed trait Step extends Product with Serializable {
   def id: StepId

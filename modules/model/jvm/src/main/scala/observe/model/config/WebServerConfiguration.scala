@@ -3,9 +3,9 @@
 
 package observe.model.config
 
-import java.nio.file.Path
-
 import cats.Eq
+
+import java.nio.file.Path
 
 /**
  * Configuration for the TLS server

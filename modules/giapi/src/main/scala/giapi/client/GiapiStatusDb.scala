@@ -3,11 +3,14 @@
 
 package giapi.client
 
-import scala.jdk.CollectionConverters.*
-import cats.{Applicative, ApplicativeThrow}
-import cats.effect.{Async, Resource, Sync}
+import cats.Applicative
+import cats.ApplicativeThrow
+import cats.effect.Async
+import cats.effect.Resource
+import cats.effect.Sync
 import cats.effect.implicits.*
-import cats.effect.std.{Dispatcher, Queue}
+import cats.effect.std.Dispatcher
+import cats.effect.std.Queue
 import cats.syntax.all.*
 import edu.gemini.aspen.giapi.status.StatusHandler
 import edu.gemini.aspen.giapi.status.StatusItem
@@ -15,6 +18,8 @@ import edu.gemini.aspen.giapi.statusservice.StatusHandlerAggregate
 import edu.gemini.aspen.giapi.util.jms.status.StatusGetter
 import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
 import fs2.Stream
+
+import scala.jdk.CollectionConverters.*
 
 /////////////////////////////////////////////////////////////////
 // Links status streaming with the giapi db

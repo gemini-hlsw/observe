@@ -4,14 +4,14 @@
 package observe.engine
 
 import cats.syntax.all.*
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.Step.Id as StepId
 import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
-import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.Step.Id as StepId
 
 /**
  * A list of `Step`s grouped by target and instrument.

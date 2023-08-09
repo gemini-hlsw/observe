@@ -5,8 +5,8 @@ package observe.model.enums
 
 /* TODO: Remove this file after updating dependency on lucuma-core > 0.9.0 */
 
-import lucuma.core.util.Enumerated
 import lucuma.core.util.Display
+import lucuma.core.util.Enumerated
 import monocle.Iso
 
 /**

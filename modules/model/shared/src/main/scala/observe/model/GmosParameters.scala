@@ -4,10 +4,10 @@
 package observe.model
 
 import lucuma.core.refined.numeric.NonZeroInt
+import lucuma.core.util.NewType
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.SECONDS
-import lucuma.core.util.NewType
 
 trait GmosParameters {
 

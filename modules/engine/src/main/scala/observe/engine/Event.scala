@@ -3,17 +3,19 @@
 
 package observe.engine
 
-import java.time.Instant
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
 import observe.engine.SystemEvent.Null
-import SystemEvent.*
-import UserEvent.*
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.StepId
 import observe.model.UserDetails
+
+import java.time.Instant
+
+import SystemEvent.*
+import UserEvent.*
 
 /**
  * Anything that can go through the Event Queue.

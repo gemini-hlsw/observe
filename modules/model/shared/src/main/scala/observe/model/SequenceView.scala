@@ -5,7 +5,8 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
-import monocle.{Focus, Traversal}
+import monocle.Focus
+import monocle.Traversal
 import monocle.function.Each.*
 
 final case class SequenceView(
