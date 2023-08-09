@@ -4,7 +4,6 @@
 package observe.model.arb
 
 import cats.data.NonEmptyList
-import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.{Observation, StepId, UserPrompt}
@@ -19,7 +18,6 @@ import observe.model.UserPrompt.{
 }
 
 trait ArbUserPrompt {
-  import ArbObservationIdName.{*, given}
 
   given discrepancyArb[A: Arbitrary]: Arbitrary[Discrepancy[A]] =
     Arbitrary[Discrepancy[A]] {

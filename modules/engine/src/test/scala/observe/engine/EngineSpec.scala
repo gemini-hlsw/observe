@@ -11,7 +11,7 @@ import monocle.law.discipline.OptionalTests
 import org.scalacheck.{Arbitrary, Cogen}
 import org.scalacheck.Arbitrary.*
 import observe.engine.TestUtil.TestState
-import observe.model.ObserveModelArbitraries.{*, given}
+import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceState
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*

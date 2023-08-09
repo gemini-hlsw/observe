@@ -6,8 +6,7 @@ package observe.model
 import cats.*
 import observe.model.GmosParameters.*
 import observe.model.enums.*
-
-import scala.concurrent.duration.Duration
+import lucuma.core.util.TimeSpan
 
 final case class NSRunningState(action: NSAction, sub: NSSubexposure)
 
@@ -18,8 +17,8 @@ object NSRunningState {
 
 final case class NodAndShuffleStatus(
   observing:         ActionStatus,
-  totalExposureTime: Duration,
-  nodExposureTime:   Duration,
+  totalExposureTime: TimeSpan,
+  nodExposureTime:   TimeSpan,
   cycles:            NsCycles,
   state:             Option[NSRunningState]
 )

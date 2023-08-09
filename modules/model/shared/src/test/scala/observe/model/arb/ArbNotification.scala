@@ -12,13 +12,12 @@ import org.scalacheck.Gen
 import org.scalacheck.Cogen
 import observe.model.StepId
 import observe.model.Notification
-import observe.model.Notification.{*, given}
+import observe.model.Notification.*
 import observe.model.Observation
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
 
 trait ArbNotification {
-  import ArbObservationIdName.given
 
   given rcArb: Arbitrary[ResourceConflict] = Arbitrary[ResourceConflict] {
     for {

@@ -51,6 +51,8 @@ final class GmosStepsView[F[_]] extends StepsView[F] {
 
         NodAndShuffleStep(
           id = step.id,
+          instConfig = stepg.instConfig,
+          stepConfig = stepg.config,
           status = status,
           breakpoint = step.breakpoint.self,
           skip = step.skipMark.self,
@@ -64,7 +66,7 @@ final class GmosStepsView[F[_]] extends StepsView[F] {
           ),
           fileId = StepsView
             .fileId(step.executions)
-            .orElse(stepg.some.collect { case SequenceGen.CompletedStepGen(_, _, fileId, _, _) =>
+            .orElse(stepg.some.collect { case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _) =>
               fileId
             }.flatten),
           pendingObserveCmd =

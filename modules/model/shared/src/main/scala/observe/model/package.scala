@@ -4,7 +4,6 @@
 package observe
 
 import java.util.UUID
-
 import cats.*
 import observe.model.enums.*
 import squants.time.Time
@@ -19,7 +18,6 @@ package object model {
   type ParamName       = String
   type ParamValue      = String
   type Parameters      = Map[ParamName, ParamValue]
-  type StepConfig      = Map[SystemName, Parameters]
   type StepId          = lucuma.core.model.sequence.Step.Id
   type ObservationName = String
   type TargetName      = String
@@ -31,7 +29,6 @@ package object model {
   given scala.math.Ordering[QueueId] =
     Order[QueueId].toOrdering
 
-  given Eq[StepConfig]                = Eq.fromUniversalEquals
   given Eq[ClientId]                  = Eq.by(x => x.self)
   given Show[ClientId]                = Show.fromToString
   given Order[ClientId]               =

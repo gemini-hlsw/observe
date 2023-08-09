@@ -26,7 +26,6 @@ import observe.common.test.*
 import scala.Function.const
 import scala.concurrent.duration.*
 import cats.effect.Ref
-import eu.timepit.refined.types.all.PosLong
 import lucuma.core.model.sequence.Atom
 
 class StepSpec extends CatsEffectSuite {

@@ -6,7 +6,7 @@ package observe.model.config
 import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
 import lucuma.core.util.arb.ArbEnumerated.*
-import observe.model.config.arb.ArbSystemsControlConfiguration.{*, given}
+import observe.model.config.arb.ArbSystemsControlConfiguration.given
 
 /**
  * Tests config classes

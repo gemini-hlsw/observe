@@ -20,7 +20,7 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import server.InstrumentSystem.ElapsedTime
 import squants.Length
 import squants.space.Angle
@@ -111,11 +111,11 @@ package object server {
   }
 
   final case class ObserveContext[F[_]](
-    resumePaused: Duration => Stream[F, Result],
+    resumePaused: FiniteDuration => Stream[F, Result],
     progress:     ElapsedTime => Stream[F, Result],
     stopPaused:   Stream[F, Result],
     abortPaused:  Stream[F, Result],
-    expTime:      Duration
+    expTime:      FiniteDuration
   ) extends PauseContext
 
   type ExecutionQueues = Map[QueueId, ExecutionQueue]

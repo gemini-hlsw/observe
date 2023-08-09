@@ -4,28 +4,41 @@
 package observe.model.boopickle
 
 import java.time.*
+import scala.collection.immutable.SortedSet
 import boopickle.Pickler
 import boopickle.CompositePickler
 import boopickle.Default.UUIDPickler
-import boopickle.Default.booleanPickler
-import boopickle.Default.compositePickler
-import boopickle.Default.doublePickler
-import boopickle.Default.generatePickler
-import boopickle.Default.intPickler
-import boopickle.Default.longPickler
-import boopickle.Default.optionPickler
-import boopickle.Default.shortPickler
-import boopickle.Default.stringPickler
-import boopickle.Default.transformPickler
-import boopickle.DefaultBasic.iterablePickler
-import boopickle.DefaultBasic.mapPickler
+import boopickle.Default.*
 import cats.*
+import cats.implicits.catsKernelOrderingForOrder
+import cats.data.NonEmptySet
 import cats.syntax.all.*
 import eu.timepit.refined.api.RefType
 import eu.timepit.refined.types.numeric.PosLong
-import lucuma.core.math.Index
+import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.enums.{
+  CloudExtinction,
+  GcalArc,
+  GcalContinuum,
+  GmosCustomSlitWidth,
+  GmosGratingOrder,
+  GmosNorthFpu,
+  GmosNorthGrating,
+  GmosSouthFpu,
+  GmosSouthGrating,
+  GuideState,
+  ImageQuality,
+  SkyBackground,
+  SmartGcalType,
+  WaterVapor
+}
+import lucuma.core.math.{Angle, Index, Offset, Wavelength}
+import lucuma.core.util.TimeSpan
 import lucuma.core.model.Program
 import lucuma.core.util.Enumerated
+import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosFpuMask, GmosGratingConfig}
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.StepConfig.Gcal.Lamp
 import observe.model.GmosParameters.*
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observation
@@ -38,7 +51,6 @@ import observe.model.events.*
 import squants.time.Time
 import squants.time.TimeConversions.*
 
-import scala.concurrent.duration.{Duration, MILLISECONDS}
 import java.util.UUID
 
 /**
@@ -65,6 +77,11 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   given Pickler[StepId] =
     transformPickler[StepId, UUID](lucuma.core.model.sequence.Step.Id.apply)(_.toUuid)
 
+  given [T: Order: Pickler]: Pickler[NonEmptySet[T]] =
+    transformPickler[NonEmptySet[T], (T, List[T])] { case (a, as) =>
+      NonEmptySet(a, SortedSet.from(as))
+    }(s => (s.head, s.tail.toList))
+
   def valuesMap[F[_]: Traverse, A, B](c: F[A], f: A => B): Map[B, A] =
     c.fproduct(f).map(_.swap).toList.toMap
 
@@ -86,9 +103,6 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   given Pickler[Time] =
     transformPickler((t: Double) => t.milliseconds)(_.toMilliseconds)
 
-  given Pickler[Duration] =
-    transformPickler((t: Double) => Duration(t, MILLISECONDS))(_.toMilliseconds)
-
   given Pickler[Instrument] = enumeratedPickler[Instrument]
   given Pickler[Resource]   = enumeratedPickler[Resource]
 
@@ -104,11 +118,11 @@ trait ModelBooPicklers extends BooPicklerSyntax {
   given Pickler[Instant] =
     transformPickler((t: Long) => Instant.ofEpochMilli(t))(_.toEpochMilli)
 
-  given Pickler[CloudCover]    = enumeratedPickler[CloudCover]
-  given Pickler[ImageQuality]  = enumeratedPickler[ImageQuality]
-  given Pickler[SkyBackground] = enumeratedPickler[SkyBackground]
-  given Pickler[WaterVapor]    = enumeratedPickler[WaterVapor]
-  given Pickler[Conditions]    = generatePickler[Conditions]
+  given Pickler[CloudExtinction] = enumeratedPickler[CloudExtinction]
+  given Pickler[ImageQuality]    = enumeratedPickler[ImageQuality]
+  given Pickler[SkyBackground]   = enumeratedPickler[SkyBackground]
+  given Pickler[WaterVapor]      = enumeratedPickler[WaterVapor]
+  given Pickler[Conditions]      = generatePickler[Conditions]
 
   given Pickler[SequenceState.Completed.type] =
     generatePickler[SequenceState.Completed.type]
@@ -156,11 +170,65 @@ trait ModelBooPicklers extends BooPicklerSyntax {
 
   given imageIdPickler: Pickler[ImageFileId] =
     transformPickler(ImageFileId.apply(_))(_.value)
-  given Pickler[StandardStep]                = generatePickler[StandardStep]
-  given Pickler[NodAndShuffleStage]          = enumeratedPickler[NodAndShuffleStage]
-  given Pickler[NSAction]                    = enumeratedPickler[NSAction]
-  given Pickler[NsCycles]                    = transformPickler(NsCycles.apply(_))(_.value)
-  given Pickler[NSSubexposure]               =
+
+  given Pickler[TimeSpan]                             =
+    transformPickler[TimeSpan, Long](TimeSpan.unsafeFromMicroseconds)(_.toMicroseconds)
+  given Pickler[GmosCcdMode]                          = generatePickler[GmosCcdMode]
+  given Pickler[GmosNorthGrating]                     = enumeratedPickler[GmosNorthGrating]
+  given Pickler[GmosSouthGrating]                     = enumeratedPickler[GmosSouthGrating]
+  given Pickler[GmosGratingOrder]                     = enumeratedPickler[GmosGratingOrder]
+  given Pickler[Wavelength]                           = transformPickler[Wavelength, Int](Wavelength.unsafeFromIntPicometers)(
+    Wavelength.intPicometers.reverseGet
+  )
+  given Pickler[GmosGratingConfig.North]              = generatePickler[GmosGratingConfig.North]
+  given Pickler[GmosGratingConfig.South]              = generatePickler[GmosGratingConfig.South]
+  given Pickler[GmosNorthFpu]                         = enumeratedPickler[GmosNorthFpu]
+  given Pickler[GmosSouthFpu]                         = enumeratedPickler[GmosSouthFpu]
+  given Pickler[NonEmptyString]                       =
+    transformPickler[NonEmptyString, String](NonEmptyString.unsafeFrom)(_.toString)
+  given Pickler[GmosCustomSlitWidth]                  = enumeratedPickler[GmosCustomSlitWidth]
+  given [T: Pickler]: Pickler[GmosFpuMask.Builtin[T]] = generatePickler[GmosFpuMask.Builtin[T]]
+  given Pickler[GmosFpuMask.Custom]                   = generatePickler[GmosFpuMask.Custom]
+  given [T: Pickler]: Pickler[GmosFpuMask[T]]         = compositePickler[GmosFpuMask[T]]
+    .addConcreteType[GmosFpuMask.Custom]
+    .addConcreteType[GmosFpuMask.Builtin[T]]
+  given Pickler[DynamicConfig.GmosNorth]              = generatePickler[DynamicConfig.GmosNorth]
+  given Pickler[DynamicConfig.GmosSouth]              = generatePickler[DynamicConfig.GmosSouth]
+  given Pickler[DynamicConfig]                        = compositePickler[DynamicConfig]
+    .addConcreteType[DynamicConfig.GmosNorth]
+    .addConcreteType[DynamicConfig.GmosSouth]
+
+  given Pickler[StepConfig.Bias.type]     = generatePickler[StepConfig.Bias.type]
+  given Pickler[StepConfig.Dark.type]     = generatePickler[StepConfig.Dark.type]
+  given Pickler[GcalContinuum]            = enumeratedPickler[GcalContinuum]
+  given Pickler[GcalArc]                  = enumeratedPickler[GcalArc]
+  given Pickler[Lamp]                     = {
+    import Lamp.*
+    transformPickler[Lamp, Either[GcalContinuum, NonEmptySet[GcalArc]]](Lamp.fromEither)(_.toEither)
+  }
+  given Pickler[StepConfig.Gcal]          = generatePickler[StepConfig.Gcal]
+  given Pickler[SmartGcalType]            = enumeratedPickler[SmartGcalType]
+  given Pickler[StepConfig.SmartGcal]     = generatePickler[StepConfig.SmartGcal]
+  given Pickler[Angle]                    =
+    transformPickler[Angle, Long](Angle.fromMicroarcseconds)(_.toMicroarcseconds)
+  given [A]: Pickler[Offset.Component[A]] =
+    transformPickler[Offset.Component[A], Angle](Offset.Component.apply(_))(_.toAngle)
+  given Pickler[Offset]                   = generatePickler[Offset]
+  given Pickler[GuideState]               = enumeratedPickler[GuideState]
+  given Pickler[StepConfig.Science]       = generatePickler[StepConfig.Science]
+
+  given Pickler[StepConfig] = compositePickler[StepConfig]
+    .addConcreteType[StepConfig.Bias.type]
+    .addConcreteType[StepConfig.Dark.type]
+    .addConcreteType[StepConfig.Gcal]
+    .addConcreteType[StepConfig.SmartGcal]
+    .addConcreteType[StepConfig.Science]
+
+  given Pickler[StandardStep]        = generatePickler[StandardStep]
+  given Pickler[NodAndShuffleStage]  = enumeratedPickler[NodAndShuffleStage]
+  given Pickler[NSAction]            = enumeratedPickler[NSAction]
+  given Pickler[NsCycles]            = transformPickler(NsCycles.apply(_))(_.value)
+  given Pickler[NSSubexposure]       =
     transformPickler[NSSubexposure, (NsCycles, NsCycles, Int)] {
       case (t: NsCycles, c: NsCycles, i: Int) =>
         NSSubexposure
@@ -170,11 +238,11 @@ trait ModelBooPicklers extends BooPicklerSyntax {
           )
       case null                               => throw new RuntimeException("Failed to decode ns subexposure")
     }((ns: NSSubexposure) => (ns.totalCycles, ns.cycle, ns.stageIndex))
-  given Pickler[NSRunningState]              = generatePickler[NSRunningState]
-  given Pickler[NodAndShuffleStatus]         = generatePickler[NodAndShuffleStatus]
-  given Pickler[PendingObserveCmd]           =
+  given Pickler[NSRunningState]      = generatePickler[NSRunningState]
+  given Pickler[NodAndShuffleStatus] = generatePickler[NodAndShuffleStatus]
+  given Pickler[PendingObserveCmd]   =
     enumeratedPickler[PendingObserveCmd]
-  given Pickler[NodAndShuffleStep]           = generatePickler[NodAndShuffleStep]
+  given Pickler[NodAndShuffleStep]   = generatePickler[NodAndShuffleStep]
 
   given CompositePickler[Step] = compositePickler[Step]
     .addConcreteType[StandardStep]

@@ -411,18 +411,18 @@ object EpicsUtil {
     get.map(areValuesDifferentEnough(relTolerance, _, v).option(set))
 
   def defaultProgress[F[_]: Applicative](
-    time:      Duration,
+    time:      FiniteDuration,
     remaining: RemainingTime,
     stage:     ObserveStage
   ): F[Progress] =
     ObsProgress(time, remaining, stage).pure[F].widen[Progress]
 
   def countdown[F[_]: Temporal](
-    total:    Duration,
-    rem:      F[Duration],
+    total:    FiniteDuration,
+    rem:      F[FiniteDuration],
     obsState: F[CarStateGeneric],
     obsStage: F[ObserveStage],
-    p:        (Duration, RemainingTime, ObserveStage) => F[Progress]
+    p:        (FiniteDuration, RemainingTime, ObserveStage) => F[Progress]
   ): Stream[F, Progress] =
     ProgressUtil
       .fromFOption[F](_ =>

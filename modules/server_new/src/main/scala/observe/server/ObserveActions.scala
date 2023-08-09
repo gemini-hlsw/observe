@@ -174,27 +174,27 @@ trait ObserveActions {
         val totalTime = env.inst.calcObserveTime
         env.inst.observeControl match {
           case c: CompleteControl[F] =>
-            val resumePaused: Duration => Stream[F, Result] =
-              (remaining: Duration) =>
+            val resumePaused: FiniteDuration => Stream[F, Result] =
+              (remaining: FiniteDuration) =>
                 Stream
                   .eval {
                     c.continue
                       .self(remaining)
                   }
                   .flatMap(observeTail(fileId, env))
-            val progress: ElapsedTime => Stream[F, Result]  =
+            val progress: ElapsedTime => Stream[F, Result]        =
               (elapsed: ElapsedTime) =>
                 env.inst
                   .observeProgress(totalTime, elapsed)
                   .map(Result.Partial(_))
                   .widen[Result]
-            val stopPaused: Stream[F, Result]               =
+            val stopPaused: Stream[F, Result]                     =
               Stream
                 .eval {
                   c.stopPaused.self
                 }
                 .flatMap(observeTail(fileId, env))
-            val abortPaused: Stream[F, Result]              =
+            val abortPaused: Stream[F, Result]                    =
               Stream
                 .eval {
                   c.abortPaused.self

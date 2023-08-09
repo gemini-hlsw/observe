@@ -137,13 +137,15 @@ object StepsView {
 
       StandardStep(
         id = step.id,
+        instConfig = stepg.instConfig,
+        stepConfig = stepg.config,
         status = status,
         breakpoint = step.breakpoint.self,
         skip = step.skipMark.self,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {
-          case SequenceGen.CompletedStepGen(_, _, fileId, _, _) => fileId
+          case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _) => fileId
         }.flatten)
       )
     }
