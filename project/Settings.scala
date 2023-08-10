@@ -11,10 +11,10 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val booPickle               = "1.4.0"
-    val crystal                 = "0.34.0"
+    val crystal                 = "0.34.1"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
-    val lucumaReact             = "0.40.0"
+    val lucumaReact             = "0.41.0"
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
@@ -29,13 +29,13 @@ object Settings {
     val catsVersion         = "2.9.0"
     val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
-    val fs2Version          = "3.7.0"
+    val fs2Version          = "3.8.0"
     val shapelessVersion    = "2.3.10"
     val scalaParsersVersion = "1.1.2"
     val scalaXml            = "1.2.0"
     val catsTime            = "0.4.0"
 
-    val http4sVersion                  = "0.23.22"
+    val http4sVersion                  = "0.23.23"
     val http4sBlazeVersion             = "0.23.15"
     val http4sJdkHttpClientVersion     = "0.9.1"
     val http4sBoopickleVersion         = "0.23.11"
@@ -50,7 +50,7 @@ object Settings {
     val log4s            = "1.10.0"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
-    val logback          = "1.4.8"
+    val logback          = "1.4.10"
     val janino           = "3.1.10"
     val logstash         = "7.0"
     val pureConfig       = "0.17.4"
@@ -91,13 +91,13 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.83.0"
-    val lucumaUI      = "0.75.1"
-    val lucumaSchemas = "0.58.0"
+    val lucumaUI      = "0.76.1"
+    val lucumaSchemas = "0.59.0"
 
     // Clue
     val clue = "0.32.0"
 
-    val sttp = "3.8.16"
+    val sttp = "3.9.0"
 
     val atto = "0.9.5"
   }

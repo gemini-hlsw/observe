@@ -3,7 +3,7 @@
 
 package observe.web.client
 
-import react.semanticui.elements.icon.Icon
+import lucuma.react.semanticui.elements.icon.Icon
 
 object icons {
   val IconUpload: Icon            = Icon("upload")

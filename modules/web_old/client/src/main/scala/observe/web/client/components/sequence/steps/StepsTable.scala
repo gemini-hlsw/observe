@@ -19,11 +19,11 @@ import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
 import mouse.boolean.*
 import org.scalajs.dom.HTMLElement
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.sizes.*
-import react.semanticui.{SemanticSize => SSize}
-import react.virtualized.*
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.sizes.*
+import lucuma.react.semanticui.{SemanticSize => SSize}
+import lucuma.react.virtualized.*
 import observe.model.Observation
 import observe.model.RunningStep
 import observe.model.SequenceState
@@ -299,35 +299,35 @@ final case class StepsTable(
 
   import StepsTable._ // Import static members from Columns
 
-  val status: ClientStatus                  = stepsTable.status
-  val steps: Option[StepsTableFocus]        = stepsTable.stepsTable
-  val instrument: Option[Instrument]        = steps.map(_.instrument)
-  val runningStep: Option[RunningStep]      = steps.flatMap(_.runningStep)
-  val obsIdName: Option[Observation.Id] = steps.map(_.obsId)
-  val tableState: TableState[TableColumn]   =
+  val status: ClientStatus                = stepsTable.status
+  val steps: Option[StepsTableFocus]      = stepsTable.stepsTable
+  val instrument: Option[Instrument]      = steps.map(_.instrument)
+  val runningStep: Option[RunningStep]    = steps.flatMap(_.runningStep)
+  val obsIdName: Option[Observation.Id]   = steps.map(_.obsId)
+  val tableState: TableState[TableColumn] =
     steps.map(_.tableState).getOrElse(State.InitialTableState)
-  val stepsList: List[Step]                 = steps.foldMap(_.steps)
-  val selectedStep: Option[StepId]          = steps.flatMap(_.selectedStep)
-  val rowCount: Int                         = stepsList.length
-  val nextStepToRun: Option[StepId]         = steps.flatMap(_.nextStepToRun)
-  def tabOperations: TabOperations          =
+  val stepsList: List[Step]               = steps.foldMap(_.steps)
+  val selectedStep: Option[StepId]        = steps.flatMap(_.selectedStep)
+  val rowCount: Int                       = stepsList.length
+  val nextStepToRun: Option[StepId]       = steps.flatMap(_.nextStepToRun)
+  def tabOperations: TabOperations        =
     steps.map(_.tabOperations).getOrElse(TabOperations.Default)
-  val showDisperser: Boolean                = showProp(InstrumentProperties.Disperser)
-  val showExposure: Boolean                 = showProp(InstrumentProperties.Exposure)
-  val showFilter: Boolean                   = showProp(InstrumentProperties.Filter)
-  val showFPU: Boolean                      = showProp(InstrumentProperties.FPU)
-  val showCamera: Boolean                   = showProp(InstrumentProperties.Camera)
-  val showDecker: Boolean                   = showProp(InstrumentProperties.Decker)
-  val showImagingMirror: Boolean            = showProp(
+  val showDisperser: Boolean              = showProp(InstrumentProperties.Disperser)
+  val showExposure: Boolean               = showProp(InstrumentProperties.Exposure)
+  val showFilter: Boolean                 = showProp(InstrumentProperties.Filter)
+  val showFPU: Boolean                    = showProp(InstrumentProperties.FPU)
+  val showCamera: Boolean                 = showProp(InstrumentProperties.Camera)
+  val showDecker: Boolean                 = showProp(InstrumentProperties.Decker)
+  val showImagingMirror: Boolean          = showProp(
     InstrumentProperties.ImagingMirror
   )
-  val isPreview: Boolean                    = steps.exists(_.isPreview)
-  val hasControls: Boolean                  = canOperate && !isPreview
-  val canSetBreakpoint: Boolean             = canOperate && !isPreview
-  val showObservingMode: Boolean            = showProp(
+  val isPreview: Boolean                  = steps.exists(_.isPreview)
+  val hasControls: Boolean                = canOperate && !isPreview
+  val canSetBreakpoint: Boolean           = canOperate && !isPreview
+  val showObservingMode: Boolean          = showProp(
     InstrumentProperties.ObservingMode
   )
-  val showReadMode: Boolean                 = showProp(InstrumentProperties.ReadMode)
+  val showReadMode: Boolean               = showProp(InstrumentProperties.ReadMode)
 
   val sequenceState: Option[SequenceState] = steps.map(_.state)
 
@@ -600,13 +600,7 @@ object StepsTable extends Columns {
     (_, _, _, row: StepRow, index) =>
       StepProgressCell(
         $.props.status,
-        StepStateSummary(row.step,
-                         index,
-                         f.obsId,
-                         f.instrument,
-                         $.props.tabOperations,
-                         f.state
-        ),
+        StepStateSummary(row.step, index, f.obsId, f.instrument, $.props.tabOperations, f.state),
         $.state.selected,
         $.props.isPreview
       )

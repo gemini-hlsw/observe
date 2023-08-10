@@ -34,9 +34,9 @@ import observe.ui.model.RootModel
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
 import observe.ui.model.enums.ObsClass
-import react.common.ReactFnProps
-import react.common.given
-import react.primereact.*
+import lucuma.react.common.ReactFnProps
+import lucuma.react.common.given
+import lucuma.react.primereact.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 

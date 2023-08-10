@@ -6,10 +6,10 @@ package observe.web.client.components.sequence.toolbars
 import cats.syntax.all.*
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.label.Label
-import react.semanticui.sizes.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.label.Label
+import lucuma.react.semanticui.sizes.*
 import observe.model.SequenceState
 import observe.model.UnknownTargetName
 import observe.web.client.circuit.SequenceInfoFocus

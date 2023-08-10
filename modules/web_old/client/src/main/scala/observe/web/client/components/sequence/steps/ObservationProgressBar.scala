@@ -9,9 +9,9 @@ import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.modules.progress.Progress
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.modules.progress.Progress
 import observe.model.Observation
 import observe.model.ObservationProgress
 import observe.model.ObserveStage

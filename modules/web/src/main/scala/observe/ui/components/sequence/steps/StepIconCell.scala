@@ -9,9 +9,9 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import observe.model.enums.StepState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import react.common.*
-import react.fa.FontAwesomeIcon
-import react.fa.Rotation
+import lucuma.react.common.*
+import lucuma.react.fa.FontAwesomeIcon
+import lucuma.react.fa.Rotation
 
 /**
  * Component to display an icon for the state

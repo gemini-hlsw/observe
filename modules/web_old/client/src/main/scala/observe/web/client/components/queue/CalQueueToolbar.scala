@@ -8,8 +8,8 @@ import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
 import observe.model.QueueId
 import observe.web.client.actions.RequestAllSelectedSequences
 import observe.web.client.actions.RequestClearAllCal

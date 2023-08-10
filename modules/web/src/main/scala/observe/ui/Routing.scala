@@ -8,7 +8,7 @@ import japgolly.scalajs.react.extra.router.*
 import observe.ui.Page.*
 import observe.ui.components.Home
 import observe.ui.model.RootModel
-import react.common.*
+import lucuma.react.common.*
 
 object Routing {
 

@@ -7,7 +7,7 @@ import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
+import lucuma.react.common.*
 import observe.model.Observation
 import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles

@@ -13,10 +13,10 @@ import observe.model.operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.TabOperations
-import react.common.*
-import react.fa.FontAwesomeIcon
-import react.fa.IconSize
-import react.primereact.*
+import lucuma.react.common.*
+import lucuma.react.fa.FontAwesomeIcon
+import lucuma.react.fa.IconSize
+import lucuma.react.primereact.*
 
 /**
  * Contains a set of control buttons like stop/abort

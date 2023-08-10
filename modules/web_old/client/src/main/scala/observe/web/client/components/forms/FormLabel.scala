@@ -6,7 +6,7 @@ package observe.web.client.components.forms
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.ReactPropsWithChildren
+import lucuma.react.common.ReactPropsWithChildren
 
 final case class FormLabel(
   text:    String,

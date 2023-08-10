@@ -13,8 +13,8 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.formatting.*
-import react.common.*
-import react.fa.IconSize
+import lucuma.react.common.*
+import lucuma.react.fa.IconSize
 
 /**
  * Component to display the offsets

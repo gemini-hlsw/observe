@@ -12,7 +12,7 @@ import observe.model.enums.SequenceState
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
 import observe.ui.model.TabOperations
-import react.common.*
+import lucuma.react.common.*
 
 /**
  * Contains the control buttons like stop/abort at the row level

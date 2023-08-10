@@ -11,12 +11,12 @@ import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import mouse.boolean.*
-import react.common.*
-import react.semanticui.elements.button.Button
-import react.semanticui.elements.button.ButtonGroup
-import react.semanticui.elements.button.LabelPosition
-import react.semanticui.elements.label.Label
-import react.semanticui.sizes.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.elements.button.ButtonGroup
+import lucuma.react.semanticui.elements.button.LabelPosition
+import lucuma.react.semanticui.elements.label.Label
+import lucuma.react.semanticui.sizes.*
 import observe.model.{Observation, RunningStep, StepId}
 import observe.model.enums.Instrument
 import observe.web.client.circuit.ObserveCircuit

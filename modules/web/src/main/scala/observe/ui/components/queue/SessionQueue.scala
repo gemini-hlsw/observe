@@ -22,10 +22,10 @@ import observe.ui.model.SessionQueueFilter
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
-import react.common.*
-import react.fa.FontAwesomeIcon
-import react.fa.IconSize
-import react.primereact.*
+import lucuma.react.common.*
+import lucuma.react.fa.FontAwesomeIcon
+import lucuma.react.fa.IconSize
+import lucuma.react.primereact.*
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)

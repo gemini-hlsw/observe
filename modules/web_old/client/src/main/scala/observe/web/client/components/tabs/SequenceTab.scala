@@ -10,13 +10,13 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.{Size => _, _}
-import react.semanticui.colors.*
-import react.semanticui.elements.button.Button
-import react.semanticui.elements.icon.*
-import react.semanticui.elements.label.Label
-import react.semanticui.modules.popup.Popup
-import react.semanticui.sizes.*
+import lucuma.react.common.{Size => _, _}
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.elements.icon.*
+import lucuma.react.semanticui.elements.label.Label
+import lucuma.react.semanticui.modules.popup.Popup
+import lucuma.react.semanticui.sizes.*
 import observe.model.Observation
 import observe.model.Observer
 import observe.model.RunningStep
@@ -56,8 +56,8 @@ object SequenceTab {
   type Backend = RenderScope[Props, State, Unit]
 
   def load(
-    b:      Backend,
-    inst:   Instrument,
+    b:     Backend,
+    inst:  Instrument,
     obsId: Observation.Id
   ): (ReactMouseEvent, Button.ButtonProps) => Callback =
     (e: ReactMouseEvent, _: Button.ButtonProps) =>

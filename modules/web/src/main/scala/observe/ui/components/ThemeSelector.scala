@@ -10,8 +10,8 @@ import japgolly.scalajs.react.callback.CallbackCatsEffect.given
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.ui.enums.Theme
 import lucuma.ui.syntax.all.*
-import react.common.*
-import react.primereact.*
+import lucuma.react.common.*
+import lucuma.react.primereact.*
 
 val DefaultPendingRender: VdomNode = ProgressSpinner()
 

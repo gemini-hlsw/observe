@@ -11,9 +11,9 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.util.Enumerated
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.modules.progress.Progress
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.modules.progress.Progress
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.ObserveStyles
 import observe.web.client.model.AlignAndCalibStep
