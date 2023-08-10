@@ -10,8 +10,8 @@
 // import observe.model.ExecutionStep
 // import observe.ui.Icons
 // import observe.ui.ObserveStyles
-// import react.common.*
-// import react.fa.FontAwesomeIcon
+// import lucuma.react.common.*
+// import lucuma.react.fa.FontAwesomeIcon
 
 // /**
 //  * Component to display an icon for the state

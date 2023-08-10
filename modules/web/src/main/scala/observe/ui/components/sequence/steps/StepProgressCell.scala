@@ -18,7 +18,7 @@ import observe.model.enums.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
-import react.common.*
+import lucuma.react.common.*
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,

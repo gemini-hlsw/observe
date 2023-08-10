@@ -7,9 +7,9 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.math.Axis
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.sizes.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.sizes.*
 import observe.model.NodAndShuffleStep
 import observe.model.OffsetType
 import observe.model.StandardStep

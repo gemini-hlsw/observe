@@ -7,8 +7,8 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.elements.icon.IconRotated
+import lucuma.react.common.*
+import lucuma.react.semanticui.elements.icon.IconRotated
 import observe.model.{Observation, Step, StepId, StepState}
 import observe.web.client.components.ObserveStyles
 import observe.web.client.icons.*

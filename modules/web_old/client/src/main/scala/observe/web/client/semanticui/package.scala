@@ -5,14 +5,14 @@ package observe.web.client
 
 import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.vdom.html_<^._
-import react.semanticui.elements.button.*
-import react.semanticui.elements.icon.Icon
+import lucuma.react.semanticui.elements.button.*
+import lucuma.react.semanticui.elements.icon.Icon
 
 package object semanticui {
 
-  import react.semanticui.SemanticColor
+  import lucuma.react.semanticui.SemanticColor
 
-  import react.semanticui.modules.popup.Popup
+  import lucuma.react.semanticui.modules.popup.Popup
 
   // Custom attributes used by SemanticUI
   val dataTab: VdomAttr[String]      = VdomAttr("data-tab")

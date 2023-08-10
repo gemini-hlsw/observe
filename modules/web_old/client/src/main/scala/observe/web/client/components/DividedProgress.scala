@@ -8,10 +8,10 @@ import scala.scalajs.js.JSConverters.*
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.SemanticColor
-import react.semanticui.modules.progress.Progress
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.SemanticColor
+import lucuma.react.semanticui.modules.progress.Progress
 import observe.web.client.reusability.*
 
 /**

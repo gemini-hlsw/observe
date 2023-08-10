@@ -6,10 +6,10 @@ package observe.web.client.components
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.ReactProps
-import react.semanticui.elements.button.Button
-import react.semanticui.elements.icon.Icon
-import react.semanticui.sizes.*
+import lucuma.react.common.ReactProps
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.elements.icon.Icon
+import lucuma.react.semanticui.sizes.*
 import observe.web.client.actions.FlipSoundOnOff
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.model.SoundSelection

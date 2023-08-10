@@ -7,9 +7,9 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.elements.header.Header
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.elements.header.Header
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.model.ClientStatus
 import observe.web.client.reusability.*

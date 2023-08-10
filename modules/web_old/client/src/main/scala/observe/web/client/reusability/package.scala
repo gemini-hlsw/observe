@@ -9,9 +9,9 @@ import diode.data.PotState
 import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import lucuma.core.util.Enumerated
-import react.common.*
-import react.semanticui.SemanticColor
-import react.semanticui.SemanticSize
+import lucuma.react.common.*
+import lucuma.react.semanticui.SemanticColor
+import lucuma.react.semanticui.SemanticSize
 import observe.model.Observation
 import observe.model.*
 import observe.model.dhs.*
@@ -41,7 +41,7 @@ package object reusability {
   given Reusability[ImageFileId]                               = Reusability.byEq
   given Reusability[StepState]                                 = Reusability.byEq
   given Reusability[Observation.Id]                            = Reusability.byEq
-  given Reusability[Observation.Id]                        = Reusability.byEq
+  given Reusability[Observation.Id]                            = Reusability.byEq
   given Reusability[Observer]                                  = Reusability.byEq
   given Reusability[Operator]                                  = Reusability.byEq
   given Reusability[SemanticColor]                             = Reusability.by(_.toJs)

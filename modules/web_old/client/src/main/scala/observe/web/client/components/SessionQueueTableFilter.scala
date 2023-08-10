@@ -7,11 +7,11 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.collections.menu.MenuIcon
-import react.semanticui.collections.menu.*
-import react.semanticui.sizes.*
-import react.semanticui.views.item.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.collections.menu.MenuIcon
+import lucuma.react.semanticui.collections.menu.*
+import lucuma.react.semanticui.sizes.*
+import lucuma.react.semanticui.views.item.*
 import observe.web.client.actions.UpdateSessionFilter
 import observe.web.client.circuit.*
 import observe.web.client.icons.*

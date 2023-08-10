@@ -9,7 +9,7 @@ import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import react.common.*
+import lucuma.react.common.*
 import observe.web.client.circuit.*
 import observe.web.client.components.queue.CalQueueTabContent
 import observe.web.client.model.Pages.ObservePages

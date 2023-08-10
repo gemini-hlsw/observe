@@ -13,11 +13,11 @@ import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.vdom.html_<^._
 import mouse.all.*
-import react.common.*
-import react.semanticui.collections.form.FormCheckbox
-import react.semanticui.colors.*
-import react.semanticui.elements.button.Button
-import react.semanticui.modules.popup.Popup
+import lucuma.react.common.*
+import lucuma.react.semanticui.collections.form.FormCheckbox
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.modules.popup.Popup
 import observe.model.{Observation, SystemOverrides}
 import observe.web.client.actions.*
 import observe.web.client.actions.RunOptions
@@ -176,9 +176,9 @@ object SequenceControl {
     ScalaComponent
       .builder[Props]
       .renderP { ($, p) =>
-        val SequenceControlFocus(_, _, overrides, _, _, control)  = p.p
+        val SequenceControlFocus(_, _, overrides, _, _, control) = p.p
         val ControlModel(obsId, partial, nextStepIdx, status, _) = control
-        val nextStepToRunIdx                                      = nextStepIdx.foldMap(_ + 1)
+        val nextStepToRunIdx                                     = nextStepIdx.foldMap(_ + 1)
 
         <.div(
           ObserveStyles.SequenceControlForm,

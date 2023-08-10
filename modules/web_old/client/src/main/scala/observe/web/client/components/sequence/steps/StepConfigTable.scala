@@ -14,9 +14,9 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.common.implicits.*
-import react.virtualized.*
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.virtualized.*
 import observe.model.Step
 import observe.model.enums.SystemName
 import observe.web.client.actions.UpdateStepsConfigTableState

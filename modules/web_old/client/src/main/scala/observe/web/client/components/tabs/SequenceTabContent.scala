@@ -9,11 +9,11 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.As
-import react.semanticui.elements.segment.Segment
-import react.semanticui.elements.segment.SegmentAttached
-import react.semanticui.modules.tab.TabPane
+import lucuma.react.common.*
+import lucuma.react.semanticui.As
+import lucuma.react.semanticui.elements.segment.Segment
+import lucuma.react.semanticui.elements.segment.SegmentAttached
+import lucuma.react.semanticui.modules.tab.TabPane
 import observe.web.client.circuit.*
 import observe.web.client.components.ObserveStyles
 import observe.web.client.components.sequence.steps.StepConfigTable

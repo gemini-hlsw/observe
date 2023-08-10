@@ -8,12 +8,12 @@ import diode.react.ReactConnectProxy
 import japgolly.scalajs.react.{Callback, CtorType, Reusability, ScalaComponent}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.button.Button
-import react.semanticui.elements.icon.*
-import react.semanticui.modules.popup.Popup
-import react.semanticui.modules.popup.PopupPosition
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.elements.icon.*
+import lucuma.react.semanticui.modules.popup.Popup
+import lucuma.react.semanticui.modules.popup.PopupPosition
 import observe.model.Observation
 import observe.model.*
 import observe.model.enums.*
