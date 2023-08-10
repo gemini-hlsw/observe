@@ -16,10 +16,10 @@ import lucuma.core.util.Display
 import lucuma.ui.forms.*
 import lucuma.ui.input.InputFormat
 import observe.web.client.circuit.ObserveCircuit
-import react.common.*
-import react.semanticui.collections.form.*
-import react.semanticui.elements.segment.Segment
-import react.semanticui.widths.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.collections.form.*
+import lucuma.react.semanticui.elements.segment.Segment
+import lucuma.react.semanticui.widths.*
 import observe.model.Operator
 import observe.model.enums.CloudCover
 import observe.model.enums.ImageQuality

@@ -7,9 +7,9 @@ import diode.react.ReactPot.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.header.Header
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.header.Header
 import observe.web.client.icons.*
 import observe.web.client.model.WebSocketConnection
 import observe.web.client.reusability.*

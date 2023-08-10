@@ -29,8 +29,8 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.TabOperations
 import observe.ui.model.enums.OffsetsDisplay
 import observe.ui.model.reusability.given
-import react.common.*
-import react.resizeDetector.hooks.*
+import lucuma.react.common.*
+import lucuma.react.resizeDetector.hooks.*
 
 import scala.annotation.tailrec
 

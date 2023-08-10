@@ -8,11 +8,11 @@ import cats.syntax.all.*
 import cats.Order.*
 import japgolly.scalajs.react.vdom.html_<^._
 import japgolly.scalajs.react.*
-import react.common.*
-import react.semanticui.SemanticColor
-import react.semanticui.colors.*
-import react.semanticui.elements.label.Label
-import react.semanticui.modules.popup.Popup
+import lucuma.react.common.*
+import lucuma.react.semanticui.SemanticColor
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.label.Label
+import lucuma.react.semanticui.modules.popup.Popup
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.Step

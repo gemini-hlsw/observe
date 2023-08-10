@@ -8,10 +8,10 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import observe.model.*
 import observe.ui.ObserveStyles
-import react.common.*
-import react.primereact.Card
-import react.primereact.Dropdown
-import react.primereact.InputText
+import lucuma.react.common.*
+import lucuma.react.primereact.Card
+import lucuma.react.primereact.Dropdown
+import lucuma.react.primereact.InputText
 
 case class HeadersSideBar(
   status:     ClientStatus,

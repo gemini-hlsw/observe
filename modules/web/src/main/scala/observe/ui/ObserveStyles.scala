@@ -3,7 +3,7 @@
 
 package observe.ui
 
-import react.common.style.Css
+import lucuma.react.common.style.Css
 
 object ObserveStyles {
   val MainUI: Css = Css("ObserveStyles-mainUI")

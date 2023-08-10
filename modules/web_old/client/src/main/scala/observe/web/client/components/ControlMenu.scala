@@ -9,11 +9,11 @@ import japgolly.scalajs.react.CallbackTo
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.collections.menu.*
-import react.semanticui.elements.button.Button
-import react.semanticui.sizes.*
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.collections.menu.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.sizes.*
 import observe.web.client.actions.Logout
 import observe.web.client.actions.OpenLoginBox
 import observe.web.client.circuit.ObserveCircuit

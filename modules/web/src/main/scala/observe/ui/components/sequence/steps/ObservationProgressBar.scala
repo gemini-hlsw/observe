@@ -3,8 +3,8 @@
 
 package observe.ui.components.sequence.steps
 
-import _root_.react.common.*
-import _root_.react.primereact.ProgressBar
+import lucuma.react.common.*
+import lucuma.react.primereact.ProgressBar
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.*

@@ -15,7 +15,7 @@ import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.extra.TimerSupport
-import react.common.*
+import lucuma.react.common.*
 
 abstract class SmoothProgressBarProps[A](
   override val component: Scala.Component[A, _, _, CtorType.Props]

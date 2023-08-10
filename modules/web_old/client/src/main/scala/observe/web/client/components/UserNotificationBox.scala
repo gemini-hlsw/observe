@@ -7,11 +7,11 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.button.Button
-import react.semanticui.modules.modal.ModalSize
-import react.semanticui.modules.modal.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.modules.modal.ModalSize
+import lucuma.react.semanticui.modules.modal.*
 import observe.model.Notification
 import observe.model.Notification.*
 import observe.web.client.actions.CloseUserNotificationBox
@@ -48,7 +48,7 @@ object UserNotificationBox {
           s"Cannot select sequence '${obsId.name}' for instrument '${ins.label}'",
           "Possibly another sequence is being executed on the same instrument"
         )
-      case RequestFailed(msgs)           =>
+      case RequestFailed(msgs)         =>
         s"Request to the observe server failed:" :: msgs
 
       case SubsystemBusy(_, _, resource) =>

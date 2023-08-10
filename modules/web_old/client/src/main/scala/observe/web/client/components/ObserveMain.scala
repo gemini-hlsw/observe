@@ -11,9 +11,9 @@ import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Site
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.elements.divider.Divider
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.elements.divider.Divider
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.components.tabs.TabsArea
 import observe.web.client.model.Pages.*

@@ -10,9 +10,9 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.label.Label
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.label.Label
 import observe.model.CalibrationQueueId
 import observe.model.enums.BatchExecState
 import observe.web.client.actions.RequestAddSeqCal

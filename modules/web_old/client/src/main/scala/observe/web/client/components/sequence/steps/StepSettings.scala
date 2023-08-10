@@ -9,10 +9,10 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.SemanticSize
-import react.semanticui.colors.*
-import react.semanticui.elements.label.Label
+import lucuma.react.common.*
+import lucuma.react.semanticui.SemanticSize
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.label.Label
 import observe.model.{Observation, Step, StepId, StepState}
 import observe.model.enums.Instrument
 import observe.model.enums.StepType

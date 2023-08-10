@@ -6,8 +6,8 @@ package observe.web.client.components.sequence.steps
 import japgolly.scalajs.react.{CtorType, Reusability, _}
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
 import observe.model.{Observation, Step, StepId}
 import observe.web.client.actions.FlipBreakpointStep
 import observe.web.client.actions.FlipSkipStep

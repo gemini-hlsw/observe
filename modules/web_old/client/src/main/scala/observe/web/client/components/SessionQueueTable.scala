@@ -18,12 +18,12 @@ import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.facade.JsNumber
 import japgolly.scalajs.react.vdom.html_<^._
 import monocle.Lens
-import react.common.*
-import react.common.implicits.*
-import react.semanticui.colors.*
-import react.semanticui.elements.icon.Icon
-import react.semanticui.sizes.*
-import react.virtualized.*
+import lucuma.react.common.*
+import lucuma.react.common.implicits.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.icon.Icon
+import lucuma.react.semanticui.sizes.*
+import lucuma.react.virtualized.*
 import observe.model.{
   CalibrationQueueId,
   Observation,
@@ -267,7 +267,7 @@ object SessionQueueRow {
     )
 
   object Empty extends SessionQueueRow {
-    override var obsId: Observation.Id        =
+    override var obsId: Observation.Id            =
       Observation.Id(lucuma.core.model.Observation.Id(PosLong.MaxValue), "Zero-1")
     override var status: SequenceState            = SequenceState.Idle
     override var instrument: Instrument           = Instrument.F2

@@ -7,7 +7,7 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
+import lucuma.react.common.*
 import observe.web.client.circuit.*
 import observe.web.client.model.Pages.*
 

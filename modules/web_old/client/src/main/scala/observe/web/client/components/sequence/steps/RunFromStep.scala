@@ -9,10 +9,10 @@ import japgolly.scalajs.react.ReactMouseEvent
 import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.colors.*
-import react.semanticui.elements.button.Button
-import react.semanticui.modules.popup.Popup
+import lucuma.react.common.*
+import lucuma.react.semanticui.colors.*
+import lucuma.react.semanticui.elements.button.Button
+import lucuma.react.semanticui.modules.popup.Popup
 import observe.model.{Observation, StepId}
 import observe.web.client.actions.RequestRunFrom
 import observe.web.client.actions.RunOptions
@@ -26,7 +26,7 @@ import observe.web.client.reusability.*
  * Contains the control to start a step from an arbitrary point
  */
 final case class RunFromStep(
-  obsId:           Observation.Id,
+  obsId:            Observation.Id,
   stepId:           StepId,
   stepIdx:          Int,
   resourceInFlight: Boolean,

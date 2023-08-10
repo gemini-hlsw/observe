@@ -7,10 +7,10 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.collections.menu.Menu
-import react.semanticui.collections.menu.MenuAttached
-import react.semanticui.collections.menu.MenuTabular
+import lucuma.react.common.*
+import lucuma.react.semanticui.collections.menu.Menu
+import lucuma.react.semanticui.collections.menu.MenuAttached
+import lucuma.react.semanticui.collections.menu.MenuTabular
 import observe.model.SequenceState
 import observe.web.client.circuit.ObserveCircuit
 import observe.web.client.model.AvailableTab

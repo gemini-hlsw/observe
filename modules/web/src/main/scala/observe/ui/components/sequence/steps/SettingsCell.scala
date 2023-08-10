@@ -7,7 +7,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import react.common.*
+import lucuma.react.common.*
 
 case class SettingsCell(
   // ctl:        RouterCtl[Pages.ObservePages],

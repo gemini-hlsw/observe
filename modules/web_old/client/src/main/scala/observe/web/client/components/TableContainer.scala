@@ -8,8 +8,8 @@ import japgolly.scalajs.react.Reusability
 import japgolly.scalajs.react.ScalaComponent
 import japgolly.scalajs.react.component.Scala.Unmounted
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.virtualized.*
+import lucuma.react.common.*
+import lucuma.react.virtualized.*
 
 final case class TableContainer(
   hasControls: Boolean,

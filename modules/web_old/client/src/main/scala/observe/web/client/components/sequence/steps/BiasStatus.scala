@@ -5,7 +5,7 @@ package observe.web.client.components.sequence.steps
 
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
+import lucuma.react.common.*
 import observe.model.Observation
 import observe.model.ObservationProgress
 import observe.model.StepId

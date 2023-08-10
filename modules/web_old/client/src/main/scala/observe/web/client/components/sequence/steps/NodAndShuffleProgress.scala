@@ -11,9 +11,9 @@ import japgolly.scalajs.react.component.Scala
 import japgolly.scalajs.react.component.Scala.Component
 import japgolly.scalajs.react.extra.TimerSupport
 import japgolly.scalajs.react.vdom.html_<^._
-import react.common.*
-import react.semanticui.SemanticColor
-import react.semanticui.colors.*
+import lucuma.react.common.*
+import lucuma.react.semanticui.SemanticColor
+import lucuma.react.semanticui.colors.*
 import observe.model.NSObservationProgress
 import observe.model.NodAndShuffleStatus
 import observe.model.Observation

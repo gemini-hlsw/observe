@@ -16,8 +16,8 @@ import monocle.Lens
 import monocle.Optional
 import monocle.function.Each.*
 import monocle.function.Index.*
-import react.common.*
-import react.virtualized.*
+import lucuma.react.common.*
+import lucuma.react.virtualized.*
 import web.client.JsNumberOps.*
 
 /**

@@ -11,7 +11,7 @@ import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.util.TimeSpan
 import observe.ui.ObserveStyles
 import observe.ui.model.formatting.*
-import react.common.*
+import lucuma.react.common.*
 
 case class ExposureTimeCell(
   instrument:   Instrument,
