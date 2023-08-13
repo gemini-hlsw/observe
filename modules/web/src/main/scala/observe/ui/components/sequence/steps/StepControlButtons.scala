@@ -8,11 +8,11 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.common.*
 import observe.model.enums.SequenceState
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
 import observe.ui.model.TabOperations
-import lucuma.react.common.*
 
 /**
  * Contains the control buttons like stop/abort at the row level

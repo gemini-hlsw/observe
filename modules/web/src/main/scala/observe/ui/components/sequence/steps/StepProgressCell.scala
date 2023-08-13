@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.common.*
 import observe.model.ClientStatus
 import observe.model.ImageFileId
 import observe.model.NodAndShuffleStatus
@@ -18,7 +19,6 @@ import observe.model.enums.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
-import lucuma.react.common.*
 
 case class StepProgressCell(
   clientStatus:  ClientStatus,

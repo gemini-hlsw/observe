@@ -7,16 +7,16 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.common.*
+import lucuma.react.fa.FontAwesomeIcon
+import lucuma.react.fa.IconSize
+import lucuma.react.primereact.*
 import observe.model.enums.SequenceState
 import observe.model.operations.Operations.*
 import observe.model.operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.TabOperations
-import lucuma.react.common.*
-import lucuma.react.fa.FontAwesomeIcon
-import lucuma.react.fa.IconSize
-import lucuma.react.primereact.*
 
 /**
  * Contains a set of control buttons like stop/abort

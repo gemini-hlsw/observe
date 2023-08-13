@@ -7,10 +7,10 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.syntax.display.*
-import observe.model.enums.ExecutionStepType
-import observe.ui.ObserveStyles
 import lucuma.react.common.*
 import lucuma.react.primereact.*
+import observe.model.enums.ExecutionStepType
+import observe.ui.ObserveStyles
 
 case class ObjectTypeCell(stepType: ExecutionStepType, isFinished: Boolean)
     extends ReactFnProps(ObjectTypeCell.component)

@@ -6,12 +6,12 @@ package observe.ui.components.sequence.steps
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.model.enums.StepState
-import observe.ui.Icons
-import observe.ui.ObserveStyles
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.Rotation
+import observe.model.enums.StepState
+import observe.ui.Icons
+import observe.ui.ObserveStyles
 
 /**
  * Component to display an icon for the state

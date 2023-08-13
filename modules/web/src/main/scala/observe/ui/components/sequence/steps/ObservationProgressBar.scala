@@ -3,8 +3,6 @@
 
 package observe.ui.components.sequence.steps
 
-import lucuma.react.common.*
-import lucuma.react.primereact.ProgressBar
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.*
@@ -12,6 +10,8 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.react.common.*
+import lucuma.react.primereact.ProgressBar
 import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage

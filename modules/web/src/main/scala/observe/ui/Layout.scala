@@ -8,13 +8,13 @@ import cats.syntax.all.*
 import crystal.react.View
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.extra.router._
+import lucuma.react.common.Css
+import lucuma.react.common.ReactFnProps
+import lucuma.react.common.given
 import lucuma.refined.*
 import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
-import lucuma.react.common.Css
-import lucuma.react.common.ReactFnProps
-import lucuma.react.common.given
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
   val rootModel: View[RootModel]
