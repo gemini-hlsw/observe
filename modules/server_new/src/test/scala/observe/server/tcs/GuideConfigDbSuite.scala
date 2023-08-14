@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
@@ -9,7 +9,7 @@ import observe.model.enums.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.server.tcs.GuideConfigDb.*
+import observe.server.tcs.GuideConfigDb.given
 import observe.server.altair.AltairController.Lgs
 import observe.server.gems.GemsController.GemsOn
 import observe.server.gems.GemsController.OIUsage

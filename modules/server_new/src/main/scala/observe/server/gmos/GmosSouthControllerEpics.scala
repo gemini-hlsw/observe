@@ -1,37 +1,29 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
 import cats.effect.*
-import lucuma.core.enums.{
-  GmosAmpGain,
-  GmosAmpReadMode,
-  GmosRoi,
-  GmosSouthFilter,
-  GmosSouthFpu,
-  GmosSouthGrating,
-  GmosSouthStageMode
-}
-import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.*
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.gmos.GmosController.Config.BuiltinROI
-import observe.server.gmos.GmosController.southConfigTypes
 import observe.server.gmos.GmosControllerEpics.ROIValues
+import org.typelevel.log4cats.Logger
 
-object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
-  override val disperser: EncodeEpicsValue[GmosSite.South#Grating, String] = EncodeEpicsValue {
-    case GmosSouthGrating.B1200_G5321 => "B1200+_G5321"
-    case GmosSouthGrating.R831_G5322  => "R831+_G5322"
-    case GmosSouthGrating.B600_G5323  => "B600+_G5323"
-    case GmosSouthGrating.R600_G5324  => "R600+_G5324"
-    case GmosSouthGrating.R400_G5325  => "R400+_G5325"
-    case GmosSouthGrating.R150_G5326  => "R150+_G5326"
-    case GmosSouthGrating.B480_G5327  => "B480+_G5327"
-  }
+object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South.type] {
+  override val disperser: EncodeEpicsValue[GmosSite.Grating[GmosSite.South.type], String] =
+    EncodeEpicsValue {
+      case GmosSouthGrating.B1200_G5321 => "B1200+_G5321"
+      case GmosSouthGrating.R831_G5322  => "R831+_G5322"
+      case GmosSouthGrating.B600_G5323  => "B600+_G5323"
+      case GmosSouthGrating.R600_G5324  => "R600+_G5324"
+      case GmosSouthGrating.R400_G5325  => "R400+_G5325"
+      case GmosSouthGrating.R150_G5326  => "R150+_G5326"
+      case GmosSouthGrating.B480_G5327  => "B480+_G5327"
+    }
 
-  override val fpu: EncodeEpicsValue[GmosSite.South#BuiltInFpu, String] =
+  override val fpu: EncodeEpicsValue[GmosSite.FPU[GmosSite.South.type], String] =
     EncodeEpicsValue {
       case GmosSouthFpu.LongSlit_0_25 => "0.25arcsec"
       case GmosSouthFpu.LongSlit_0_50 => "0.5arcsec"
@@ -54,7 +46,8 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
       case GmosSouthFpu.Ns5           => "NS2.0arcsec"
     }
 
-  override val filter: EncodeEpicsValue[Option[GmosSite.South#Filter], (String, String)] =
+  override val filter
+    : EncodeEpicsValue[Option[GmosSite.Filter[GmosSite.South.type]], (String, String)] =
     EncodeEpicsValue {
       _.map {
         case GmosSouthFilter.Z                => ("Z_G0343", "open2-8")
@@ -66,6 +59,8 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
         case GmosSouthFilter.HaC              => ("open1-6", "HaC_G0337")
         case GmosSouthFilter.OIII             => ("open1-6", "OIII_G0338")
         case GmosSouthFilter.OIIIC            => ("open1-6", "OIIIC_G0339")
+        case GmosSouthFilter.OVI              => ("OVI_G0347", "open2-8")
+        case GmosSouthFilter.OVIC             => ("OVIC_G0348", "open2-8")
         case GmosSouthFilter.UPrime           => ("open1-6", "u_G0332")
         case GmosSouthFilter.GPrime           => ("open1-6", "g_G0325")
         case GmosSouthFilter.RPrime           => ("open1-6", "r_G0326")
@@ -89,12 +84,13 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
         .getOrElse(("open1-6", "open2-8"))
     }
 
-  override val stageMode: EncodeEpicsValue[GmosSite.South#StageMode, String] = EncodeEpicsValue {
-    case GmosSouthStageMode.NoFollow  => "MOVE"
-    case GmosSouthStageMode.FollowXyz => "FOLLOW"
-    case GmosSouthStageMode.FollowXy  => "FOLLOW-XY"
-    case GmosSouthStageMode.FollowZ   => "FOLLOW-Z"
-  }
+  override val stageMode: EncodeEpicsValue[GmosSite.StageMode[GmosSite.South.type], String] =
+    EncodeEpicsValue {
+      case GmosSouthStageMode.NoFollow  => "MOVE"
+      case GmosSouthStageMode.FollowXyz => "FOLLOW"
+      case GmosSouthStageMode.FollowXy  => "FOLLOW-XY"
+      case GmosSouthStageMode.FollowZ   => "FOLLOW-Z"
+    }
 
   override val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]] = EncodeEpicsValue {
     case GmosRoi.FullFrame       =>
@@ -117,8 +113,8 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South] {
 }
 
 object GmosSouthControllerEpics {
-  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.South] = {
+  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.South.type] = {
     implicit val encoders = GmosSouthEncoders
-    GmosControllerEpics[F, GmosSite.South](sys, southConfigTypes)
+    GmosControllerEpics[F, GmosSite.South.type](sys)
   }
 }

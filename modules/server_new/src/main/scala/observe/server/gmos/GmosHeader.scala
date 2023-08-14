@@ -1,21 +1,23 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
 import cats.effect.Sync
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
-import observe.model.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.keywords.*
+import org.typelevel.log4cats.Logger
+import lucuma.core.model.sequence.gmos
 import observe.server.tcs.TcsKeywordsReader
 
 object GmosHeader {
-  def header[F[_]: Sync: Logger](
+  def header[F[_]: Sync: Logger, T <: GmosSite, S <: gmos.StaticConfig, D <: gmos.DynamicConfig](
     kwClient:          KeywordsClient[F],
-    gmosObsReader:     GmosObsKeywordsReader[F],
+    gmosObsReader:     GmosObsKeywordsReader[F, T, S, D],
     gmosReader:        GmosKeywordReader[F],
     tcsKeywordsReader: TcsKeywordsReader[F]
   ): Header[F] =

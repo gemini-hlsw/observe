@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
@@ -7,27 +7,18 @@ import cats.data.NonEmptySet
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.math.Wavelength
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.{GuideState, Site}
+import lucuma.core.model.sequence.StepConfig
 import mouse.all.*
-import observe.model.enums.M1Source
-import observe.model.enums.NodAndShuffleStage
-import observe.model.enums.Resource
-import observe.model.enums.TipTiltSource
-import observe.server.CleanConfig
-import observe.server.CleanConfig.extractItem
-import observe.server.ConfigResult
-import observe.server.ConfigUtilOps.*
-import observe.server.InstrumentGuide
-import observe.server.ObserveFailure
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import observe.model.enums.{M1Source, NodAndShuffleStage, Resource, TipTiltSource}
 import observe.server.altair.Altair
-import observe.server.altair.AltairController.AltairConfig
-import observe.server.tcs.TcsController.*
+import observe.server.tcs.TcsController._
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
-import shapeless.tag
-import shapeless.tag.@@
-import squants.Angle
-import squants.space.Arcseconds
+import observe.server.{ConfigResult, InstrumentGuide, ObserveFailure}
+import org.typelevel.log4cats.Logger
+import squants.space.AngleConversions.*
 
 class TcsNorth[F[_]: Sync: Logger] private (
   tcsController: TcsNorthController[F],
@@ -36,7 +27,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   guideDb:       GuideConfigDb[F]
 )(config: TcsNorth.TcsSeqConfig[F])
     extends Tcs[F] {
-  import Tcs.{GuideWithOps, calcGuiderInUse}
+  import Tcs.*
 
   val Log: Logger[F] = Logger[F]
 
@@ -59,7 +50,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
         }
     }).plainText
 
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure: F[ConfigResult[F]] =
     buildTcsConfig.flatMap { cfg =>
       subsystems.traverse_(s =>
         Log.debug(s"Applying TCS/$s configuration/config: ${subsystemConfig(cfg, s)}")
@@ -74,7 +65,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   val defaultGuiderConf: GuiderConfig = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[StandardGuideOptions.Value]
+    guideWith: Option[GuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
@@ -90,17 +81,17 @@ class TcsNorth[F[_]: Sync: Logger] private (
       gc.tcsGuide,
       TelescopeConfig(config.offsetA, config.wavelA),
       BasicGuidersConfig(
-        tag[P1Config](
+        P1Config(
           calcGuiderConfig(calcGuiderInUse(gc.tcsGuide, TipTiltSource.PWFS1, M1Source.PWFS1),
                            config.guideWithP1
           )
         ),
-        tag[P2Config](
+        P2Config(
           calcGuiderConfig(calcGuiderInUse(gc.tcsGuide, TipTiltSource.PWFS2, M1Source.PWFS2),
                            config.guideWithP2
           )
         ),
-        tag[OIConfig](
+        OIConfig(
           calcGuiderConfig(calcGuiderInUse(gc.tcsGuide, TipTiltSource.OIWFS, M1Source.OIWFS),
                            config.guideWithOI
           )
@@ -124,18 +115,18 @@ class TcsNorth[F[_]: Sync: Logger] private (
             )
           )
 
-        AoTcsConfig[GuiderConfig @@ AoGuide, AltairConfig](
+        AoTcsConfig[Site.GN.type](
           gc.tcsGuide,
           TelescopeConfig(config.offsetA, config.wavelA),
-          AoGuidersConfig[GuiderConfig @@ AoGuide](
-            tag[P1Config](
+          AoGuidersConfig[AoGuide](
+            P1Config(
               calcGuiderConfig(
                 calcGuiderInUse(gc.tcsGuide, TipTiltSource.PWFS1, M1Source.PWFS1) | ao.usesP1(aog),
                 config.guideWithP1
               )
             ),
             AoGuide(aoGuiderConfig),
-            tag[OIConfig](
+            OIConfig(
               calcGuiderConfig(
                 calcGuiderInUse(gc.tcsGuide, TipTiltSource.OIWFS, M1Source.OIWFS) | ao.usesOI(aog),
                 config.guideWithOI
@@ -165,7 +156,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
     stage:  NodAndShuffleStage,
     offset: InstrumentOffset,
     guided: Boolean
-  ): F[ConfigResult] =
+  ): F[ConfigResult[F]] =
     buildTcsConfig
       .flatMap { cfg =>
         Log.debug(s"Moving to nod ${stage.symbol}") *>
@@ -176,13 +167,13 @@ class TcsNorth[F[_]: Sync: Logger] private (
 
 object TcsNorth {
 
-  import Tcs._
+  import Tcs.*
 
   final case class TcsSeqConfig[F[_]](
-    guideWithP1: Option[StandardGuideOptions.Value],
-    guideWithP2: Option[StandardGuideOptions.Value],
-    guideWithOI: Option[StandardGuideOptions.Value],
-    guideWithAO: Option[StandardGuideOptions.Value],
+    guideWithP1: Option[GuideState],
+    guideWithP2: Option[GuideState],
+    guideWithOI: Option[GuideState],
+    guideWithAO: Option[GuideState],
     offsetA:     Option[InstrumentOffset],
     wavelA:      Option[Wavelength],
     lightPath:   LightPath,
@@ -196,34 +187,38 @@ object TcsNorth {
     instrument:          InstrumentGuide,
     guideConfigDb:       GuideConfigDb[F]
   )(
-    config:              CleanConfig,
+    targets:             TargetEnvironment,
+    stepConfig:          StepConfig,
     lightPath:           LightPath,
     observingWavelength: Option[Wavelength]
   ): TcsNorth[F] = {
 
-    val gwp1    = config.extractTelescopeAs[StandardGuideOptions.Value](GUIDE_WITH_PWFS1_PROP).toOption
-    val gwp2    = config.extractTelescopeAs[StandardGuideOptions.Value](GUIDE_WITH_PWFS2_PROP).toOption
-    val gwoi    = config.extractTelescopeAs[StandardGuideOptions.Value](GUIDE_WITH_OIWFS_PROP).toOption
-    val gwao    = config.extractTelescopeAs[StandardGuideOptions.Value](GUIDE_WITH_AOWFS_PROP).toOption
-    val offsetp = config
-      .extractTelescopeAs[String](P_OFFSET_PROP)
-      .toOption
-      .flatMap(_.parseDoubleOption)
-      .map(Arcseconds(_): Angle)
-      .map(OffsetP(_))
-    val offsetq = config
-      .extractTelescopeAs[String](Q_OFFSET_PROP)
-      .toOption
-      .flatMap(_.parseDoubleOption)
-      .map(Arcseconds(_): Angle)
-      .map(OffsetQ(_))
+    val gwp1   = none.flatMap(_ =>
+      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
+    )
+    val gwp2   = none.flatMap(_ =>
+      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
+    )
+    val gwoi   = none.flatMap(_ =>
+      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
+    )
+    val gwao   = none.flatMap(_ =>
+      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
+    )
+    val offset =
+      StepConfig.science.andThen(StepConfig.Science.offset).getOption(stepConfig).map { o =>
+        InstrumentOffset(
+          OffsetP(o.p.toAngle.toDoubleDegrees.degrees),
+          OffsetQ(o.q.toAngle.toDoubleDegrees.degrees)
+        )
+      }
 
     val tcsSeqCfg = TcsSeqConfig[F](
       gwp1,
       gwp2,
       gwoi,
       gwao,
-      (offsetp, offsetq).mapN(InstrumentOffset(_, _)),
+      offset,
       observingWavelength,
       lightPath,
       instrument

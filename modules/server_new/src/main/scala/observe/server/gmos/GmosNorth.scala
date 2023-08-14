@@ -3,9 +3,10 @@
 
 package observe.server.gmos
 
+import cats.MonadThrow
 import cats.effect.{Ref, Temporal}
 import cats.syntax.all.*
-import lucuma.core.enums.{GmosRoi, LightSinkName}
+import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging}
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
 import lucuma.core.util.TimeSpan
@@ -15,8 +16,8 @@ import observe.server.gmos.GmosController.Config.{DTAX, GratingOrder}
 import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosController.GmosSite.{FPU, Filter, Grating, StageMode}
 import observe.server.keywords.{DhsClient, DhsClientProvider}
-import observe.server.tcs.FOCAL_PLANE_SCALE
 import observe.server.{ObserveFailure, StepType}
+import observe.server.tcs.FOCAL_PLANE_SCALE
 import org.typelevel.log4cats.Logger
 import squants.Length
 import squants.space.Arcseconds
@@ -50,7 +51,7 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
 object GmosNorth {
 
   given Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth] =
-    new Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth]:
+    new Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth] {
       override val exposure: Getter[DynamicConfig.GmosNorth, TimeSpan]                            =
         DynamicConfig.GmosNorth.exposure.asGetter
       override val filter: Getter[DynamicConfig.GmosNorth, Option[Filter[GmosSite.North.type]]]   =
@@ -75,6 +76,9 @@ object GmosNorth {
         DynamicConfig.GmosNorth.roi.asGetter
       override val readout: Getter[DynamicConfig.GmosNorth, GmosCcdMode]                          =
         DynamicConfig.GmosNorth.readout.asGetter
+      override val isMosPreimaging: Getter[StaticConfig.GmosNorth, MosPreImaging]                 =
+        StaticConfig.GmosNorth.mosPreImaging.asGetter
+    }
 
   def build[F[_]: Temporal: Logger](
     controller:        GmosController[F, GmosSite.North.type],
@@ -95,4 +99,15 @@ object GmosNorth {
         GmosNorth(controller, dhsClientProvider, nsCmdR, t, config)
       }
 
+  def obsKeywordsReader[F[_]: MonadThrow](
+    staticConfig:  StaticConfig.GmosNorth,
+    dynamicConfig: DynamicConfig.GmosNorth
+  )(using
+    getters:       Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
+  ): GmosObsKeywordsReader[F,
+                           GmosSite.North.type,
+                           StaticConfig.GmosNorth,
+                           DynamicConfig.GmosNorth
+  ] =
+    GmosObsKeywordsReader(staticConfig, dynamicConfig)
 }

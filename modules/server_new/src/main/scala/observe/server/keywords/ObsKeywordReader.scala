@@ -209,9 +209,6 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def releaseDate: F[String] = calcReleaseDate
 
-      private val manualDarkValue    = "Manual Dark"
-      private val manualDarkOverride = "Dark"
-
       override def obsObject: F[String] = "".pure[F]
 
       override def geminiQA: F[String] = "UNKNOWN".pure[F]

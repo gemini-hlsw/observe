@@ -1,13 +1,14 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
 
 import cats.data.NonEmptySet
-import org.typelevel.log4cats.Logger
 import observe.model.enums.NodAndShuffleStage
-import observe.server.overrideLogMessage
 import observe.server.gems.Gems
+import observe.server.overrideLogMessage
+import org.typelevel.log4cats.Logger
+import observe.server.tcs.TcsController
 import observe.server.tcs.TcsSouthController.TcsSouthConfig
 
 class TcsSouthControllerDisabled[F[_]: Logger] extends TcsSouthController[F] {

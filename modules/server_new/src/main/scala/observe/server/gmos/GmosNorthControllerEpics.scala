@@ -1,28 +1,19 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
 import cats.effect.*
-import lucuma.core.enums.{
-  GmosAmpGain,
-  GmosAmpReadMode,
-  GmosNorthFilter,
-  GmosNorthFpu,
-  GmosNorthGrating,
-  GmosNorthStageMode,
-  GmosRoi
-}
-import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.*
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.EpicsCodex
 import observe.server.EpicsCodex.EncodeEpicsValue
-import observe.server.gmos.GmosController.northConfigTypes
 import observe.server.gmos.GmosControllerEpics.ROIValues
+import org.typelevel.log4cats.Logger
 
-object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
+object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North.type] {
   override val filter
-    : EpicsCodex.EncodeEpicsValue[Option[GmosSite.North#Filter], (String, String)] =
+    : EpicsCodex.EncodeEpicsValue[Option[GmosSite.Filter[GmosSite.North.type]], (String, String)] =
     EncodeEpicsValue {
       _.map {
         case GmosNorthFilter.GPrime           => ("open1-6", "g_G0301")
@@ -41,6 +32,8 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
         case GmosNorthFilter.SII              => ("SII_G0317", "open2-8")
         case GmosNorthFilter.OIII             => ("OIII_G0318", "open2-8")
         case GmosNorthFilter.OIIIC            => ("OIIIC_G0319", "open2-8")
+        case GmosNorthFilter.OVI              => ("open1-6", "OVI_G0345")
+        case GmosNorthFilter.OVIC             => ("open1-6", "OVIC_G0346")
         case GmosNorthFilter.HeII             => ("open1-6", "HeII_G0320")
         case GmosNorthFilter.HeIIC            => ("open1-6", "HeIIC_G0321")
         case GmosNorthFilter.HartmannA_RPrime => ("HartmannA_G0313", "r_G0303")
@@ -51,11 +44,13 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
         case GmosNorthFilter.IPrime_CaT       => ("CaT_G0309", "i_G0302")
         case GmosNorthFilter.ZPrime_CaT       => ("CaT_G0309", "z_G0304")
         case GmosNorthFilter.UPrime           => ("open1-6", "open2-8")
+        case GmosNorthFilter.Ri               => ("open1-6", "ri_G0349")
+
       }
         .getOrElse(("open1-6", "open2-8"))
     }
 
-  override val fpu: EpicsCodex.EncodeEpicsValue[GmosSite.North#BuiltInFpu, String] =
+  override val fpu: EpicsCodex.EncodeEpicsValue[GmosSite.FPU[GmosSite.North.type], String] =
     EncodeEpicsValue {
       case GmosNorthFpu.LongSlit_0_25 => "0.25arcsec"
       case GmosNorthFpu.LongSlit_0_50 => "0.5arcsec"
@@ -75,7 +70,8 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
       case GmosNorthFpu.Ns5           => "NS2.0arcsec"
     }
 
-  override val stageMode: EpicsCodex.EncodeEpicsValue[GmosSite.North#StageMode, String] =
+  override val stageMode
+    : EpicsCodex.EncodeEpicsValue[GmosSite.StageMode[GmosSite.North.type], String] =
     EncodeEpicsValue {
       case GmosNorthStageMode.NoFollow  => "MOVE"
       case GmosNorthStageMode.FollowXyz => "FOLLOW"
@@ -83,7 +79,8 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
       case GmosNorthStageMode.FollowZ   => "FOLLOW-Z"
     }
 
-  override val disperser: EpicsCodex.EncodeEpicsValue[GmosSite.North#Grating, String] =
+  override val disperser
+    : EpicsCodex.EncodeEpicsValue[GmosSite.Grating[GmosSite.North.type], String] =
     EncodeEpicsValue {
       case GmosNorthGrating.B1200_G5301 => "B1200+_G5301"
       case GmosNorthGrating.R831_G5302  => "R831+_G5302"
@@ -118,8 +115,8 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North] {
 }
 
 object GmosNorthControllerEpics {
-  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.North] = {
-    given GmosControllerEpics.Encoders[GmosSite.North] = GmosNorthEncoders
-    GmosControllerEpics[F, GmosSite.North](sys, northConfigTypes)
+  def apply[F[_]: Async: Logger](sys: => GmosEpics[F]): GmosController[F, GmosSite.North.type] = {
+    given GmosControllerEpics.Encoders[GmosSite.North.type] = GmosNorthEncoders
+    GmosControllerEpics[F, GmosSite.North.type](sys)
   }
 }

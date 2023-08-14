@@ -66,7 +66,7 @@ final case class Gnirs[F[_]: Logger: Async](
 
   override val resource: Instrument = Instrument.Gnirs
 
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

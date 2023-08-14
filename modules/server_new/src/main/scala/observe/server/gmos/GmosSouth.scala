@@ -3,9 +3,10 @@
 
 package observe.server.gmos
 
+import cats.MonadThrow
 import cats.effect.{Ref, Temporal}
 import cats.syntax.all.*
-import lucuma.core.enums.{GmosRoi, LightSinkName}
+import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging}
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
 import lucuma.core.util.TimeSpan
@@ -49,7 +50,7 @@ final case class GmosSouth[F[_]: Temporal: Logger](
 object GmosSouth {
 
   given Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth] =
-    new Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
+    new Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth] {
       override val exposure: Getter[DynamicConfig.GmosSouth, TimeSpan]                            =
         DynamicConfig.GmosSouth.exposure.asGetter
       override val filter: Getter[DynamicConfig.GmosSouth, Option[Filter[GmosSite.South.type]]]   =
@@ -74,6 +75,9 @@ object GmosSouth {
         DynamicConfig.GmosSouth.roi.asGetter
       override val readout: Getter[DynamicConfig.GmosSouth, GmosCcdMode]                          =
         DynamicConfig.GmosSouth.readout.asGetter
+      override val isMosPreimaging: Getter[StaticConfig.GmosSouth, MosPreImaging]                 =
+        StaticConfig.GmosSouth.mosPreImaging.asGetter
+    }
 
   def build[F[_]: Temporal: Logger](
     controller:        GmosController[F, GmosSite.South.type],
@@ -93,4 +97,16 @@ object GmosSouth {
       .map { case (t, config) =>
         GmosSouth(controller, dhsClientProvider, nsCmdR, t, config)
       }
+
+  def obsKeywordsReader[F[_]: MonadThrow](
+    staticConfig:  StaticConfig.GmosSouth,
+    dynamicConfig: DynamicConfig.GmosSouth
+  )(using
+    getters:       Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth]
+  ): GmosObsKeywordsReader[F,
+                           GmosSite.South.type,
+                           StaticConfig.GmosSouth,
+                           DynamicConfig.GmosSouth
+  ] =
+    GmosObsKeywordsReader(staticConfig, dynamicConfig)
 }

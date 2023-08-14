@@ -35,9 +35,9 @@ final case class Gcal[F[_]: Sync] private (controller: GcalController[F], cfg: G
   override val resource: Resource = Resource.Gcal
 
   /**
-   * Called to configure a system, returns a F[ConfigResult]
+   * Called to configure a system, returns a F[ConfigResult[F]]
    */
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     controller.applyConfig(cfg).map(const(ConfigResult(this)))
 
   override def notifyObserveStart: F[Unit] = Sync[F].unit

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.keywords
@@ -7,15 +7,12 @@ import cats.Applicative
 import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all.*
-import edu.gemini.spModel.guide.StandardGuideOptions
-import org.typelevel.log4cats.Logger
-import observe.model.enums.KeywordName
-import observe.model.Conditions
-import observe.model.Observation
-import observe.model.Observer
-import observe.model.Operator
+import lucuma.core.enums.GuideState
 import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
+import observe.model.{Conditions, Observation, Observer, Operator}
 import observe.server.OcsBuildInfo
+import org.typelevel.log4cats.Logger
 import observe.server.tcs.TargetKeywordsReader
 import observe.server.tcs.TcsController
 import observe.server.tcs.TcsKeywordsReader
@@ -25,16 +22,14 @@ final case class StateKeywordsReader[F[_]: Applicative](
   operator:   Option[Operator],
   observer:   Option[Observer]
 ) {
-  private def encodeCondition(c: Option[Int]): F[String] =
-    c.map(c => if (c === 100) "Any" else s"$c-percentile").getOrElse("UNKNOWN").pure[F]
 
   def observerName: F[String]       =
     observer.map(_.value).filter(_.nonEmpty).getOrElse("observer").pure[F]
   def operatorName: F[String]       = operator.map(_.value).filter(_.nonEmpty).getOrElse("ssa").pure[F]
-  def rawImageQuality: F[String]    = encodeCondition(conditions.iq.toInt)
-  def rawCloudCover: F[String]      = encodeCondition(conditions.cc.toInt)
-  def rawWaterVapor: F[String]      = encodeCondition(conditions.wv.toInt)
-  def rawBackgroundLight: F[String] = encodeCondition(conditions.sb.toInt)
+  def rawImageQuality: F[String]    = conditions.iq.map(_.label).getOrElse("Any").pure[F]
+  def rawCloudCover: F[String]      = conditions.cc.map(_.label).getOrElse("Any").pure[F]
+  def rawWaterVapor: F[String]      = conditions.wv.map(_.label).getOrElse("Any").pure[F]
+  def rawBackgroundLight: F[String] = conditions.sb.map(_.label).getOrElse("Any").pure[F]
 }
 
 class StandardHeader[F[_]: Sync: Logger](
@@ -185,7 +180,7 @@ class StandardHeader[F[_]: Sync: Logger](
 
   def guiderKeywords(
     id:        ImageFileId,
-    guideWith: F[StandardGuideOptions.Value],
+    guideWith: F[Option[GuideState]],
     baseName:  String,
     target:    TargetKeywordsReader[F],
     extras:    List[KeywordBag => F[KeywordBag]]
@@ -205,13 +200,14 @@ class StandardHeader[F[_]: Sync: Logger](
         KeywordName.fromTag(s"${baseName}APARAL").map(buildDouble(target.parallax, _))
       ).mapFilter(identity)
 
-      sendKeywords[F](id, kwClient, keywords ++ extras).whenA(g.isActive)
+      sendKeywords[F](id, kwClient, keywords ++ extras).whenA(g.exists(_ === GuideState.Enabled))
+
     }
     .handleError(_ => ()) // Errors on guideWith are caught here
 
   def standardGuiderKeywords(
     id:        ImageFileId,
-    guideWith: F[StandardGuideOptions.Value],
+    guideWith: F[Option[GuideState]],
     baseName:  String,
     target:    TargetKeywordsReader[F],
     extras:    List[KeywordBag => F[KeywordBag]]

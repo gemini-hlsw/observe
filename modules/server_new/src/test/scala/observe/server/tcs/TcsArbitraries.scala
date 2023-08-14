@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
@@ -8,8 +8,6 @@ import org.scalacheck.Arbitrary.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import shapeless.tag
-import shapeless.tag.@@
 import squants.Angle
 import squants.space.AngleConversions.*
 import squants.space.Degrees
@@ -34,26 +32,24 @@ trait TcsArbitraries {
 
   private val offsetLimit: Angle = 120.arcseconds
 
-  given Arbitrary[Angle @@ TcsController.OffsetP] = Arbitrary(
-    rangedAngleGen(-offsetLimit, offsetLimit).map(tag[TcsController.OffsetP].apply)
+  given Arbitrary[TcsController.OffsetP]          = Arbitrary(
+    rangedAngleGen(-offsetLimit, offsetLimit).map(TcsController.OffsetP.apply(_))
   )
-  given Cogen[Angle @@ TcsController.OffsetP]     =
-    Cogen[Double].contramap(_.value)
-  given Arbitrary[Angle @@ TcsController.OffsetQ] = Arbitrary(
-    rangedAngleGen(-offsetLimit, offsetLimit).map(tag[TcsController.OffsetQ].apply)
+  given Cogen[TcsController.OffsetP]              =
+    Cogen[Double].contramap(_.value.value)
+  given Arbitrary[TcsController.OffsetQ]          = Arbitrary(
+    rangedAngleGen(-offsetLimit, offsetLimit).map(TcsController.OffsetQ.apply(_))
   )
-  given Cogen[Angle @@ TcsController.OffsetQ]     =
-    Cogen[Double].contramap(_.value)
+  given Cogen[TcsController.OffsetQ]              =
+    Cogen[Double].contramap(_.value.value)
   given Arbitrary[TcsController.InstrumentOffset] = Arbitrary {
     for {
-      p <- arbitrary[Angle @@ TcsController.OffsetP]
-      q <- arbitrary[Angle @@ TcsController.OffsetQ]
+      p <- arbitrary[TcsController.OffsetP]
+      q <- arbitrary[TcsController.OffsetQ]
     } yield TcsController.InstrumentOffset(p, q)
   }
   given Cogen[TcsController.InstrumentOffset]     =
-    Cogen[(Angle @@ TcsController.OffsetP, Angle @@ TcsController.OffsetQ)].contramap(x =>
-      (x.p, x.q)
-    )
+    Cogen[(TcsController.OffsetP, TcsController.OffsetQ)].contramap(x => (x.p, x.q))
 
   given Arbitrary[Angle] = Arbitrary(rangedAngleGen(-90.degrees, 270.degrees))
   given Cogen[Angle]     = Cogen[Double].contramap(_.toDegrees)

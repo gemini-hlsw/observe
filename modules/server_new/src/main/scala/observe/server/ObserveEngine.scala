@@ -415,7 +415,8 @@ object ObserveEngine {
                                 .modify(
                                   EngineState
                                     .atSequence(id)
-                                    .modify(Focus[SequenceData[F]](_.visitId).replace(i.some))
+                                    .andThen(Focus[SequenceData[F]](_.visitId))
+                                    .replace(i.some)
                                 )
                                 .as[SeqEvent](SeqEvent.NullSeqEvent)
                             }

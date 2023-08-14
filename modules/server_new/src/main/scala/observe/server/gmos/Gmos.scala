@@ -8,7 +8,7 @@ import cats.*
 import cats.data.Kleisli
 import cats.syntax.all.*
 import eu.timepit.refined.api.Refined.*
-import lucuma.core.enums.{GmosAdc, GmosEOffsetting, GmosGratingOrder, GmosRoi}
+import lucuma.core.enums.{GmosAdc, GmosEOffsetting, GmosGratingOrder, GmosRoi, MosPreImaging}
 import org.typelevel.log4cats.Logger
 import lucuma.core.math.Wavelength
 import lucuma.core.util.TimeSpan
@@ -199,6 +199,7 @@ object Gmos {
     val nodAndShuffle: Getter[S, Option[GmosNodAndShuffle]]
     val roi: Getter[D, GmosRoi]
     val readout: Getter[D, GmosCcdMode]
+    val isMosPreimaging: Getter[S, MosPreImaging]
   }
 
   def calcDisperser[T <: GmosSite](
@@ -216,7 +217,7 @@ object Gmos {
         else
           wl.map(w => GmosController.Config.GmosGrating.OrderN[T](disp, o, w))
       }
-      .getOrElse(GmosController.Config.GmosGrating.Mirror)
+      .getOrElse(GmosController.Config.GmosGrating.Mirror())
 
   def fpuFromFPUnit[T <: GmosSite](
     n: Option[GmosController.GmosSite.FPU[T]],

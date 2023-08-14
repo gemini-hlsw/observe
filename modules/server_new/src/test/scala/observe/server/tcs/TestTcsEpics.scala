@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
@@ -7,7 +7,7 @@ import cats.{Applicative, Eq}
 import cats.effect.Async
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import monocle.{Getter, Lens}
+import monocle.{Focus, Getter, Lens}
 import observe.model.enums.ApplyCommandResult
 import observe.server.TestEpicsCommand.*
 import observe.server.EpicsCommand
@@ -198,28 +198,28 @@ case class TestTcsEpics[F[_]: Async](
     State.pwfs1ProbeFollowCmd,
     State.p1FollowS,
     State.p1Parked,
-    TestTcsEvent.Pwfs1ProbeFollowCmd
+    TestTcsEvent.Pwfs1ProbeFollowCmd.apply
   )
 
   override val pwfs2ProbeFollowCmd: ProbeFollowCmd[F] = probeFollowCmd(
     State.pwfs2ProbeFollowCmd,
     State.p2FollowS,
     State.p2Parked,
-    TestTcsEvent.Pwfs2ProbeFollowCmd
+    TestTcsEvent.Pwfs2ProbeFollowCmd.apply
   )
 
   override val oiwfsProbeFollowCmd: ProbeFollowCmd[F] = probeFollowCmd(
     State.oiwfsProbeFollowCmd,
     State.oiFollowS,
     State.oiParked,
-    TestTcsEvent.OiwfsProbeFollowCmd
+    TestTcsEvent.OiwfsProbeFollowCmd.apply
   )
 
   override val aoProbeFollowCmd: ProbeFollowCmd[F] = probeFollowCmd(
     State.aoProbeFollowCmd,
     State.aoFollowS,
     State.aoParked,
-    TestTcsEvent.AoProbeFollowCmd
+    TestTcsEvent.AoProbeFollowCmd.apply
   )
 
   override val pwfs1Park: EpicsCommand[F] =
@@ -918,6 +918,176 @@ object TestTcsEpics {
     aoCorrectCmd:              TestEpicsCommand2.State[String, Int],
     aoPrepareControlMatrixCmd: TestEpicsCommand2.State[Double, Double]
   )
+  object State {
+    val absorbTipTilt: Lens[State, Int]                                                 = Focus[State](_.absorbTipTilt)
+    val m1GuideSource: Lens[State, String]                                              = Focus[State](_.m1GuideSource)
+    val m1Guide: Lens[State, BinaryOnOff]                                               = Focus[State](_.m1Guide)
+    val m2p1Guide: Lens[State, String]                                                  = Focus[State](_.m2p1Guide)
+    val m2p2Guide: Lens[State, String]                                                  = Focus[State](_.m2p2Guide)
+    val m2oiGuide: Lens[State, String]                                                  = Focus[State](_.m2oiGuide)
+    val m2aoGuide: Lens[State, String]                                                  = Focus[State](_.m2aoGuide)
+    val comaCorrect: Lens[State, String]                                                = Focus[State](_.comaCorrect)
+    val m2GuideState: Lens[State, BinaryOnOff]                                          = Focus[State](_.m2GuideState)
+    val xoffsetPoA1: Lens[State, Double]                                                = Focus[State](_.xoffsetPoA1)
+    val yoffsetPoA1: Lens[State, Double]                                                = Focus[State](_.yoffsetPoA1)
+    val xoffsetPoB1: Lens[State, Double]                                                = Focus[State](_.xoffsetPoB1)
+    val yoffsetPoB1: Lens[State, Double]                                                = Focus[State](_.yoffsetPoB1)
+    val xoffsetPoC1: Lens[State, Double]                                                = Focus[State](_.xoffsetPoC1)
+    val yoffsetPoC1: Lens[State, Double]                                                = Focus[State](_.yoffsetPoC1)
+    val sourceAWavelength: Lens[State, Double]                                          = Focus[State](_.sourceAWavelength)
+    val sourceBWavelength: Lens[State, Double]                                          = Focus[State](_.sourceBWavelength)
+    val sourceCWavelength: Lens[State, Double]                                          = Focus[State](_.sourceCWavelength)
+    val chopBeam: Lens[State, String]                                                   = Focus[State](_.chopBeam)
+    val p1FollowS: Lens[State, String]                                                  = Focus[State](_.p1FollowS)
+    val p2FollowS: Lens[State, String]                                                  = Focus[State](_.p2FollowS)
+    val oiFollowS: Lens[State, String]                                                  = Focus[State](_.oiFollowS)
+    val aoFollowS: Lens[State, String]                                                  = Focus[State](_.aoFollowS)
+    val p1Parked: Lens[State, Boolean]                                                  = Focus[State](_.p1Parked)
+    val p2Parked: Lens[State, Boolean]                                                  = Focus[State](_.p2Parked)
+    val oiParked: Lens[State, Boolean]                                                  = Focus[State](_.oiParked)
+    val aoParked: Lens[State, Boolean]                                                  = Focus[State](_.aoParked)
+    val oiName: Lens[State, String]                                                     = Focus[State](_.oiName)
+    val pwfs1On: Lens[State, BinaryYesNo]                                               = Focus[State](_.pwfs1On)
+    val pwfs2On: Lens[State, BinaryYesNo]                                               = Focus[State](_.pwfs2On)
+    val oiwfsOn: Lens[State, BinaryYesNo]                                               = Focus[State](_.oiwfsOn)
+    val sfName: Lens[State, String]                                                     = Focus[State](_.sfName)
+    val sfParked: Lens[State, Int]                                                      = Focus[State](_.sfParked)
+    val agHwName: Lens[State, String]                                                   = Focus[State](_.agHwName)
+    val agHwParked: Lens[State, Int]                                                    = Focus[State](_.agHwParked)
+    val instrAA: Lens[State, Double]                                                    = Focus[State](_.instrAA)
+    val inPosition: Lens[State, String]                                                 = Focus[State](_.inPosition)
+    val agInPosition: Lens[State, Double]                                               = Focus[State](_.agInPosition)
+    val pwfs1ProbeGuideConfig: Lens[State, ProbeGuideConfigVals]                        =
+      Focus[State](_.pwfs1ProbeGuideConfig)
+    val pwfs2ProbeGuideConfig: Lens[State, ProbeGuideConfigVals]                        =
+      Focus[State](_.pwfs2ProbeGuideConfig)
+    val oiwfsProbeGuideConfig: Lens[State, ProbeGuideConfigVals]                        =
+      Focus[State](_.oiwfsProbeGuideConfig)
+    val hourAngle: Lens[State, String]                                                  = Focus[State](_.hourAngle)
+    val localTime: Lens[State, String]                                                  = Focus[State](_.localTime)
+    val trackingFrame: Lens[State, String]                                              = Focus[State](_.trackingFrame)
+    val trackingEpoch: Lens[State, Double]                                              = Focus[State](_.trackingEpoch)
+    val equinox: Lens[State, Double]                                                    = Focus[State](_.equinox)
+    val trackingEquinox: Lens[State, String]                                            = Focus[State](_.trackingEquinox)
+    val trackingDec: Lens[State, Double]                                                = Focus[State](_.trackingDec)
+    val trackingRA: Lens[State, Double]                                                 = Focus[State](_.trackingRA)
+    val elevation: Lens[State, Double]                                                  = Focus[State](_.elevation)
+    val azimuth: Lens[State, Double]                                                    = Focus[State](_.azimuth)
+    val crPositionAngle: Lens[State, Double]                                            = Focus[State](_.crPositionAngle)
+    val ut: Lens[State, String]                                                         = Focus[State](_.ut)
+    val date: Lens[State, String]                                                       = Focus[State](_.date)
+    val m2Baffle: Lens[State, String]                                                   = Focus[State](_.m2Baffle)
+    val m2CentralBaffle: Lens[State, String]                                            = Focus[State](_.m2CentralBaffle)
+    val st: Lens[State, String]                                                         = Focus[State](_.st)
+    val sfRotation: Lens[State, Double]                                                 = Focus[State](_.sfRotation)
+    val sfTilt: Lens[State, Double]                                                     = Focus[State](_.sfTilt)
+    val sfLinear: Lens[State, Double]                                                   = Focus[State](_.sfLinear)
+    val instrPA: Lens[State, Double]                                                    = Focus[State](_.instrPA)
+    val targetA: Lens[State, List[Double]]                                              = Focus[State](_.targetA)
+    val aoFoldPosition: Lens[State, String]                                             = Focus[State](_.aoFoldPosition)
+    val useAo: Lens[State, BinaryYesNo]                                                 = Focus[State](_.useAo)
+    val airmass: Lens[State, Double]                                                    = Focus[State](_.airmass)
+    val airmassStart: Lens[State, Double]                                               = Focus[State](_.airmassStart)
+    val airmassEnd: Lens[State, Double]                                                 = Focus[State](_.airmassEnd)
+    val carouselMode: Lens[State, String]                                               = Focus[State](_.carouselMode)
+    val crFollow: Lens[State, Int]                                                      = Focus[State](_.crFollow)
+    val crTrackingFrame: Lens[State, String]                                            = Focus[State](_.crTrackingFrame)
+    val sourceATarget: Lens[State, TargetVals]                                          = Focus[State](_.sourceATarget)
+    val pwfs1Target: Lens[State, TargetVals]                                            = Focus[State](_.pwfs1Target)
+    val pwfs2Target: Lens[State, TargetVals]                                            = Focus[State](_.pwfs2Target)
+    val oiwfsTarget: Lens[State, TargetVals]                                            = Focus[State](_.oiwfsTarget)
+    val parallacticAngle: Lens[State, Angle]                                            = Focus[State](_.parallacticAngle)
+    val m2UserFocusOffset: Lens[State, Double]                                          = Focus[State](_.m2UserFocusOffset)
+    val pwfs1IntegrationTime: Lens[State, Double]                                       = Focus[State](_.pwfs1IntegrationTime)
+    val pwfs2IntegrationTime: Lens[State, Double]                                       = Focus[State](_.pwfs2IntegrationTime)
+    val oiwfsIntegrationTime: Lens[State, Double]                                       = Focus[State](_.oiwfsIntegrationTime)
+    val gsaoiPort: Lens[State, Int]                                                     = Focus[State](_.gsaoiPort)
+    val gpiPort: Lens[State, Int]                                                       = Focus[State](_.gpiPort)
+    val f2Port: Lens[State, Int]                                                        = Focus[State](_.f2Port)
+    val niriPort: Lens[State, Int]                                                      = Focus[State](_.niriPort)
+    val gnirsPort: Lens[State, Int]                                                     = Focus[State](_.gnirsPort)
+    val nifsPort: Lens[State, Int]                                                      = Focus[State](_.nifsPort)
+    val gmosPort: Lens[State, Int]                                                      = Focus[State](_.gmosPort)
+    val ghostPort: Lens[State, Int]                                                     = Focus[State](_.ghostPort)
+    val aoGuideStarX: Lens[State, Double]                                               = Focus[State](_.aoGuideStarX)
+    val aoGuideStarY: Lens[State, Double]                                               = Focus[State](_.aoGuideStarY)
+    val aoPreparedCMX: Lens[State, Double]                                              = Focus[State](_.aoPreparedCMX)
+    val aoPreparedCMY: Lens[State, Double]                                              = Focus[State](_.aoPreparedCMY)
+    val gwfs1Target: Lens[State, TargetVals]                                            = Focus[State](_.gwfs1Target)
+    val gwfs2Target: Lens[State, TargetVals]                                            = Focus[State](_.gwfs2Target)
+    val gwfs3Target: Lens[State, TargetVals]                                            = Focus[State](_.gwfs3Target)
+    val gwfs4Target: Lens[State, TargetVals]                                            = Focus[State](_.gwfs4Target)
+    val cwfs1Follow: Lens[State, Boolean]                                               = Focus[State](_.cwfs1Follow)
+    val cwfs2Follow: Lens[State, Boolean]                                               = Focus[State](_.cwfs2Follow)
+    val cwfs3Follow: Lens[State, Boolean]                                               = Focus[State](_.cwfs3Follow)
+    val odgw1Follow: Lens[State, Boolean]                                               = Focus[State](_.odgw1Follow)
+    val odgw2Follow: Lens[State, Boolean]                                               = Focus[State](_.odgw2Follow)
+    val odgw3Follow: Lens[State, Boolean]                                               = Focus[State](_.odgw3Follow)
+    val odgw4Follow: Lens[State, Boolean]                                               = Focus[State](_.odgw4Follow)
+    val odgw1Parked: Lens[State, Boolean]                                               = Focus[State](_.odgw1Parked)
+    val odgw2Parked: Lens[State, Boolean]                                               = Focus[State](_.odgw2Parked)
+    val odgw3Parked: Lens[State, Boolean]                                               = Focus[State](_.odgw3Parked)
+    val odgw4Parked: Lens[State, Boolean]                                               = Focus[State](_.odgw4Parked)
+    val g1MapName: Lens[State, Option[GemsSource]]                                      = Focus[State](_.g1MapName)
+    val g2MapName: Lens[State, Option[GemsSource]]                                      = Focus[State](_.g2MapName)
+    val g3MapName: Lens[State, Option[GemsSource]]                                      = Focus[State](_.g3MapName)
+    val g4MapName: Lens[State, Option[GemsSource]]                                      = Focus[State](_.g4MapName)
+    val g1Wavelength: Lens[State, Double]                                               = Focus[State](_.g1Wavelength)
+    val g2Wavelength: Lens[State, Double]                                               = Focus[State](_.g2Wavelength)
+    val g3Wavelength: Lens[State, Double]                                               = Focus[State](_.g3Wavelength)
+    val g4Wavelength: Lens[State, Double]                                               = Focus[State](_.g4Wavelength)
+    val g1GuideConfig: Lens[State, ProbeGuideConfigVals]                                = Focus[State](_.g1GuideConfig)
+    val g2GuideConfig: Lens[State, ProbeGuideConfigVals]                                = Focus[State](_.g2GuideConfig)
+    val g3GuideConfig: Lens[State, ProbeGuideConfigVals]                                = Focus[State](_.g3GuideConfig)
+    val g4GuideConfig: Lens[State, ProbeGuideConfigVals]                                = Focus[State](_.g4GuideConfig)
+    val aoCorrect: Lens[State, String]                                                  = Focus[State](_.aoCorrect)
+    val aoGains: Lens[State, Int]                                                       = Focus[State](_.aoGains)
+    val m1GuideCmd: Lens[State, TestEpicsCommand1.State[String]]                        = Focus[State](_.m1GuideCmd)
+    val m2GuideCmd: Lens[State, TestEpicsCommand1.State[String]]                        = Focus[State](_.m2GuideCmd)
+    val m2GuideModeCmd: Lens[State, TestEpicsCommand1.State[String]]                    =
+      Focus[State](_.m2GuideModeCmd)
+    val m2GuideConfigCmd: Lens[State, TestEpicsCommand3.State[String, String, String]]  =
+      Focus[State](_.m2GuideConfigCmd)
+    val mountGuideCmd: Lens[State, TestEpicsCommand2.State[String, String]]             =
+      Focus[State](_.mountGuideCmd)
+    val pwfs1ProbeGuideConfigCmd
+      : Lens[State, TestEpicsCommand4.State[String, String, String, String]] =
+      Focus[State](_.pwfs1ProbeGuideConfigCmd)
+    val pwfs2ProbeGuideConfigCmd
+      : Lens[State, TestEpicsCommand4.State[String, String, String, String]] =
+      Focus[State](_.pwfs2ProbeGuideConfigCmd)
+    val oiwfsProbeGuideConfigCmd
+      : Lens[State, TestEpicsCommand4.State[String, String, String, String]] =
+      Focus[State](_.oiwfsProbeGuideConfigCmd)
+    val pwfs1ProbeFollowCmd: Lens[State, TestEpicsCommand1.State[String]]               =
+      Focus[State](_.pwfs1ProbeFollowCmd)
+    val pwfs2ProbeFollowCmd: Lens[State, TestEpicsCommand1.State[String]]               =
+      Focus[State](_.pwfs2ProbeFollowCmd)
+    val oiwfsProbeFollowCmd: Lens[State, TestEpicsCommand1.State[String]]               =
+      Focus[State](_.oiwfsProbeFollowCmd)
+    val offsetACmd: Lens[State, TestEpicsCommand2.State[Double, Double]]                =
+      Focus[State](_.offsetACmd)
+    val wavelSourceACmd: Lens[State, TestEpicsCommand1.State[Double]]                   =
+      Focus[State](_.wavelSourceACmd)
+    val pwfs1ParkCmd: Lens[State, TestEpicsCommand0.State]                              = Focus[State](_.pwfs1ParkCmd)
+    val pwfs2ParkCmd: Lens[State, TestEpicsCommand0.State]                              = Focus[State](_.pwfs2ParkCmd)
+    val oiwfsParkCmd: Lens[State, TestEpicsCommand0.State]                              = Focus[State](_.oiwfsParkCmd)
+    val pwfs1ObserveCmd: Lens[State, TestEpicsCommand1.State[Int]]                      = Focus[State](_.pwfs1ObserveCmd)
+    val pwfs2ObserveCmd: Lens[State, TestEpicsCommand1.State[Int]]                      = Focus[State](_.pwfs2ObserveCmd)
+    val oiwfsObserveCmd: Lens[State, TestEpicsCommand1.State[Int]]                      = Focus[State](_.oiwfsObserveCmd)
+    val pwfs1StopObserveCmd: Lens[State, TestEpicsCommand0.State]                       =
+      Focus[State](_.pwfs1StopObserveCmd)
+    val pwfs2StopObserveCmd: Lens[State, TestEpicsCommand0.State]                       =
+      Focus[State](_.pwfs2StopObserveCmd)
+    val oiwfsStopObserveCmd: Lens[State, TestEpicsCommand0.State]                       =
+      Focus[State](_.oiwfsStopObserveCmd)
+    val aoProbeFollowCmd: Lens[State, TestEpicsCommand1.State[String]]                  =
+      Focus[State](_.aoProbeFollowCmd)
+    val aoCorrectCmd: Lens[State, TestEpicsCommand2.State[String, Int]]                 =
+      Focus[State](_.aoCorrectCmd)
+    val aoPrepareControlMatrixCmd: Lens[State, TestEpicsCommand2.State[Double, Double]] =
+      Focus[State](_.aoPrepareControlMatrixCmd)
+  }
 
   final case class ProbeGuideConfigVals(
     nodachopa: Int,
@@ -928,6 +1098,11 @@ object TestTcsEpics {
 
   object ProbeGuideConfigVals {
     val default: ProbeGuideConfigVals = ProbeGuideConfigVals(0, 0, 0, 0)
+
+    val nodachopa: Lens[ProbeGuideConfigVals, Int] = Focus[ProbeGuideConfigVals](_.nodachopa)
+    val nodachopb: Lens[ProbeGuideConfigVals, Int] = Focus[ProbeGuideConfigVals](_.nodachopb)
+    val nodbchopa: Lens[ProbeGuideConfigVals, Int] = Focus[ProbeGuideConfigVals](_.nodbchopa)
+    val nodbchopb: Lens[ProbeGuideConfigVals, Int] = Focus[ProbeGuideConfigVals](_.nodbchopb)
   }
 
   final case class TargetVals(
@@ -958,6 +1133,18 @@ object TestTcsEpics {
       parallax = 0.0,
       radialVelocity = 0.0
     )
+
+    val objectName: Lens[TargetVals, String]        = Focus[TargetVals](_.objectName)
+    val ra: Lens[TargetVals, Double]                = Focus[TargetVals](_.ra)
+    val dec: Lens[TargetVals, Double]               = Focus[TargetVals](_.dec)
+    val frame: Lens[TargetVals, String]             = Focus[TargetVals](_.frame)
+    val equinox: Lens[TargetVals, String]           = Focus[TargetVals](_.equinox)
+    val epoch: Lens[TargetVals, String]             = Focus[TargetVals](_.epoch)
+    val properMotionRA: Lens[TargetVals, Double]    = Focus[TargetVals](_.properMotionRA)
+    val properMotionDec: Lens[TargetVals, Double]   = Focus[TargetVals](_.properMotionDec)
+    val centralWavelenght: Lens[TargetVals, Double] = Focus[TargetVals](_.centralWavelenght)
+    val parallax: Lens[TargetVals, Double]          = Focus[TargetVals](_.parallax)
+    val radialVelocity: Lens[TargetVals, Double]    = Focus[TargetVals](_.radialVelocity)
   }
 
   def probeGuideConfigGetters[F[_]: Applicative](

@@ -1,96 +1,86 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
-import cats.Applicative
-import cats.MonadError
 import cats.data.EitherT
 import cats.effect.Sync
 import cats.syntax.all.*
-import edu.gemini.spModel.data.YesNoType
-import edu.gemini.spModel.gemini.gmos.InstGmosCommon.IS_MOS_PREIMAGING_PROP
-import edu.gemini.spModel.gemini.gmos.InstGmosCommon.USE_NS_PROP
-import lucuma.core.math.Angle
-import lucuma.core.math.Offset
-import monocle.Getter
+import cats.{Applicative, MonadThrow}
+import lucuma.core.enums.MosPreImaging
+import lucuma.core.math.{Angle, Offset}
+import lucuma.core.model.sequence
+import lucuma.core.model.sequence.gmos
+import lucuma.core.model.sequence.gmos.StaticConfig
+import monocle.{Focus, Getter}
 import observe.model.enums.NodAndShuffleStage
-import observe.model.enums.NodAndShuffleStage.StageA
-import observe.model.enums.NodAndShuffleStage.StageB
-import observe.server.CleanConfig
-import observe.server.CleanConfig.extractItem
-import observe.server.ConfigUtilOps
-import observe.server.ConfigUtilOps.*
+import observe.model.enums.NodAndShuffleStage.{StageA, StageB}
 import observe.server.ObserveFailure
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosEpics.RoiStatus
 import observe.server.keywords.*
 
 final case class RoiValues(xStart: Int, xSize: Int, yStart: Int, ySize: Int)
 
-final case class GmosObsKeywordsReader[F[_]: MonadThrow](config: CleanConfig) {
-  import GmosObsKeywordsReader._
+final case class GmosObsKeywordsReader[F[
+  _
+]: MonadThrow, T <: GmosSite, S <: gmos.StaticConfig, D <: gmos.DynamicConfig](
+  staticConfig:  S,
+  dynamicConfig: D
+)(using getters: Gmos.ParamGetters[T, S, D]) {
+  import GmosObsKeywordsReader.*
 
   private implicit val BooleanDefaultValue: DefaultHeaderValue[Boolean] =
     DefaultHeaderValue.FalseDefaultValue
 
-  def preimage: F[Boolean] = MonadError[F, Throwable]
-    .catchNonFatal(
-      config
-        .extractInstAs[YesNoType](IS_MOS_PREIMAGING_PROP)
-        .getOrElse(YesNoType.NO)
-        .toBoolean
-    )
-    .safeValOrDefault
+  def preimage: F[Boolean] =
+    (getters.isMosPreimaging.get(staticConfig) === MosPreImaging.IsMosPreImaging).pure[F]
 
   def nodMode: F[String] = "STANDARD".pure[F]
 
-  def nodPix: F[Int] = Gmos.nodAndShuffle(config).map(_.rows: Int).explainExtractError[F]
+  def nodPix: F[Int] = getters.nodAndShuffle
+    .get(staticConfig)
+    .map(_.shuffleOffset.value.pure[F])
+    .getOrElse(ObserveFailure.Unexpected("Cannot find N&S shuffle parameter.").raiseError[F, Int])
 
-  def nodCount: F[Int] = Gmos.nodAndShuffle(config).map(_.cycles: Int).explainExtractError[F]
+  def nodCount: F[Int] = getters.nodAndShuffle
+    .get(staticConfig)
+    .map(_.shuffleCycles.value.pure[F])
+    .getOrElse(
+      ObserveFailure.Unexpected("Cannot find N&S number of cycles parameter.").raiseError[F, Int]
+    )
 
   private def extractOffset(stage: NodAndShuffleStage, l: Getter[Offset, Angle]): F[Double] =
-    Gmos
-      .nodAndShuffle(config)
-      .explainExtractError[F]
-      .flatMap(
-        _.positions
-          .find(_.stage === stage)
-          .map(x => Angle.signedDecimalArcseconds.get(l.get(x.offset)).toDouble.pure[F])
-          .getOrElse(
-            ObserveFailure
-              .Unexpected(s"Cannot find stage ${stage.symbol} parameters in step configuration.")
-              .raiseError[F, Double]
-          )
+    getters.nodAndShuffle
+      .get(staticConfig)
+      .map { x =>
+        stage match {
+          case NodAndShuffleStage.StageA => x.posA
+          case NodAndShuffleStage.StageB => x.posB
+        }
+      }
+      .map(x => Angle.signedDecimalArcseconds.get(l.get(x)).toDouble.pure[F])
+      .getOrElse(
+        ObserveFailure
+          .Unexpected(s"Cannot find stage ${stage.symbol} parameters in step configuration.")
+          .raiseError[F, Double]
       )
 
   def nodAxOff: F[Double] =
-    extractOffset(StageA, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
+    extractOffset(StageA, Focus[Offset](_.p).asGetter.andThen(Offset.P.angle))
 
   def nodAyOff: F[Double] =
-    extractOffset(StageA, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
+    extractOffset(StageA, Focus[Offset](_.q).asGetter.andThen(Offset.Q.angle))
 
   def nodBxOff: F[Double] =
-    extractOffset(StageB, Focus[Offset.p](_.asGetter).andThen(Offset.P.angle))
+    extractOffset(StageB, Focus[Offset](_.p).asGetter.andThen(Offset.P.angle))
 
   def nodByOff: F[Double] =
-    extractOffset(StageB, Focus[Offset.q](_.asGetter).andThen(Offset.Q.angle))
+    extractOffset(StageB, Focus[Offset](_.q).asGetter.andThen(Offset.Q.angle))
 
-  def isNS: F[Boolean] =
-    config.extractInstAs[java.lang.Boolean](USE_NS_PROP).map(_.booleanValue).explainExtractError[F]
+  def isNS: F[Boolean] = getters.nodAndShuffle.get(staticConfig).isDefined.pure[F]
 
-  def numberOfROI: F[Int] =
-    Gmos.extractROIs(config).map(_.rois.map(_.length).getOrElse(1)).explainExtractError
-
-}
-
-object GmosObsKeywordsReader {
-
-  privateextension[A](v: Either[ExtractFailure, A]) {
-    def explainExtractError[F[_]: MonadThrow]: F[A] =
-      EitherT(v.pure[F])
-        .leftMap(e => ObserveFailure.Unexpected(ConfigUtilOps.explain(e)))
-        .widenRethrowT[Throwable]
-  }
+  def numberOfROI: F[Int] = 1.pure[F]
 
 }
 

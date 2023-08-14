@@ -44,7 +44,8 @@ class GmosEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
                    false
       )
     )
-    def setElectronicOffsetting(v: Integer): F[Unit] = setParameter(useElectronicOffsetting, v)
+    def setElectronicOffsetting(v: Int): F[Unit]              =
+      setParameter(useElectronicOffsetting, Integer.valueOf(v))
 
     val filter1: Option[CaParameter[String]] = cs.map(_.getString("filter1"))
     def setFilter1(v: String): F[Unit] = setParameter(filter1, v)
@@ -185,11 +186,11 @@ class GmosEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
 
     private val nsPairs: Option[CaParameter[Integer]] =
       cs.map(_.getInteger("nsPairs"))
-    def setNsPairs(v: Integer): F[Unit] = setParameter(nsPairs, v)
+    def setNsPairs(v: Int): F[Unit] = setParameter(nsPairs, Integer.valueOf(v))
 
     private val nsRows: Option[CaParameter[Integer]] =
       cs.map(_.getInteger("nsRows"))
-    def setNsRows(v: Integer): F[Unit] = setParameter(nsRows, v)
+    def setNsRows(v: Int): F[Unit] = setParameter(nsRows, Integer.valueOf(v))
 
     private val nsState: Option[CaParameter[String]] =
       cs.map(_.getString("ns_state"))
@@ -366,16 +367,16 @@ object GmosEpics extends EpicsSystem[GmosEpics[IO]] {
 
   final case class RoiParameters[F[_]: Sync](cs: Option[CaCommandSender], i: Int) {
     val ccdXstart: Option[CaParameter[Integer]] = cs.map(_.getInteger(s"ccdXstart$i"))
-    def setCcdXstart1(v: Integer): F[Unit] = setParameter(ccdXstart, v)
+    def setCcdXstart1(v: Int): F[Unit] = setParameter(ccdXstart, Integer.valueOf(v))
 
     val ccdYstart: Option[CaParameter[Integer]] = cs.map(_.getInteger(s"ccdYstart$i"))
-    def setCcdYstart1(v: Integer): F[Unit] = setParameter(ccdYstart, v)
+    def setCcdYstart1(v: Int): F[Unit] = setParameter(ccdYstart, Integer.valueOf(v))
 
     val ccdXsize: Option[CaParameter[Integer]] = cs.map(_.getInteger(s"ccdXsize$i"))
-    def setCcdXsize1(v: Integer): F[Unit] = setParameter(ccdXsize, v)
+    def setCcdXsize1(v: Int): F[Unit] = setParameter(ccdXsize, Integer.valueOf(v))
 
     val ccdYsize: Option[CaParameter[Integer]] = cs.map(_.getInteger(s"ccdYsize$i"))
-    def setCcdYsize1(v: Integer): F[Unit] = setParameter(ccdYsize, v)
+    def setCcdYsize1(v: Int): F[Unit] = setParameter(ccdYsize, Integer.valueOf(v))
   }
 
   final case class RoiStatus[F[_]: Sync](sa: CaStatusAcceptor, i: Int) {

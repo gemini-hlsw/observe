@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import cats.{Applicative, Monad}
+import cats.effect.Ref
 import cats.syntax.all.*
-import monocle.Lens
+import cats.{Applicative, Monad}
+import monocle.{Focus, Lens}
 import observe.model.enums.ApplyCommandResult
 
 import scala.concurrent.duration.FiniteDuration
-import cats.effect.Ref
 
 object TestEpicsCommand {
 
@@ -59,6 +59,12 @@ object TestEpicsCommand {
 
   object TestEpicsCommand1 {
     final case class State[U](mark: Boolean, param1: U)
+
+    object State {
+      def mark[U]: Lens[State[U], Boolean] = Focus[State[U]](_.mark)
+
+      def param1[U]: Lens[State[U], U] = Focus[State[U]](_.param1)
+    }
   }
 
   abstract class TestEpicsCommand2[F[_]: Monad, S, A, U, V](
@@ -74,6 +80,14 @@ object TestEpicsCommand {
 
   object TestEpicsCommand2 {
     final case class State[U, V](mark: Boolean, param1: U, param2: V)
+
+    object State {
+      def mark[U, V]: Lens[State[U, V], Boolean] = Focus[State[U, V]](_.mark)
+
+      def param1[U, V]: Lens[State[U, V], U] = Focus[State[U, V]](_.param1)
+
+      def param2[U, V]: Lens[State[U, V], V] = Focus[State[U, V]](_.param2)
+    }
   }
 
   abstract class TestEpicsCommand3[F[_]: Monad, S, A, U, V, W](
@@ -91,6 +105,16 @@ object TestEpicsCommand {
 
   object TestEpicsCommand3 {
     final case class State[U, V, W](mark: Boolean, param1: U, param2: V, param3: W)
+
+    object State {
+      def mark[U, V, W]: Lens[State[U, V, W], Boolean] = Focus[State[U, V, W]](_.mark)
+
+      def param1[U, V, W]: Lens[State[U, V, W], U] = Focus[State[U, V, W]](_.param1)
+
+      def param2[U, V, W]: Lens[State[U, V, W], V] = Focus[State[U, V, W]](_.param2)
+
+      def param3[U, V, W]: Lens[State[U, V, W], W] = Focus[State[U, V, W]](_.param3)
+    }
   }
 
   abstract class TestEpicsCommand4[F[_]: Monad, S, A, U, V, W, X](
@@ -121,6 +145,18 @@ object TestEpicsCommand {
 
   object TestEpicsCommand4 {
     final case class State[U, V, W, X](mark: Boolean, param1: U, param2: V, param3: W, param4: X)
+
+    object State {
+      def mark[U, V, W, X]: Lens[State[U, V, W, X], Boolean] = Focus[State[U, V, W, X]](_.mark)
+
+      def param1[U, V, W, X]: Lens[State[U, V, W, X], U] = Focus[State[U, V, W, X]](_.param1)
+
+      def param2[U, V, W, X]: Lens[State[U, V, W, X], V] = Focus[State[U, V, W, X]](_.param2)
+
+      def param3[U, V, W, X]: Lens[State[U, V, W, X], W] = Focus[State[U, V, W, X]](_.param3)
+
+      def param4[U, V, W, X]: Lens[State[U, V, W, X], X] = Focus[State[U, V, W, X]](_.param4)
+    }
   }
 
   class DummyCmd[F[_]: Applicative] extends EpicsCommand[F] {

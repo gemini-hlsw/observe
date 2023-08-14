@@ -1,43 +1,39 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gmos
 
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
-import cats.Applicative
-import cats.ApplicativeError
 import cats.effect.Async
 import cats.syntax.all.*
+import cats.{Applicative, ApplicativeError}
 import edu.gemini.epics.acm.CarStateGeneric
 import fs2.Stream
-import lucuma.core.enums.{GmosAmpCount, GmosAmpReadMode, GmosGratingOrder}
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.{GmosAmpCount, GmosAmpReadMode, GmosEOffsetting, GmosGratingOrder}
+import lucuma.core.math.Wavelength
 import mouse.all.*
-import observe.common.ObsQueriesGQL.ObsQuery.GmosSite
 import observe.model.GmosParameters.*
-import observe.model.NSSubexposure
-import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.server.EpicsCodex.EncodeEpicsValue
+import observe.model.{NSSubexposure, ObserveStage}
 import observe.server.EpicsCodex.*
-import observe.server.EpicsCommandBase
-import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.NSProgress
-import observe.server.Progress
-import observe.server.RemainingTime
-import observe.server.ObserveFailure
-import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.GmosController.*
-import shapeless.tag
-import squants.Length
-import squants.Time
-import squants.time.TimeConversions.*
+import observe.server.gmos.GmosController.Config.*
+import observe.server.{
+  EpicsCommandBase,
+  EpicsUtil,
+  NSProgress,
+  ObserveFailure,
+  Progress,
+  RemainingTime
+}
+import org.typelevel.log4cats.Logger
+
+import java.util.concurrent.TimeUnit.{MILLISECONDS, SECONDS}
+import scala.concurrent.duration.FiniteDuration
+import scala.jdk.DurationConverters.*
 
 trait GmosEncoders {
   given EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {
@@ -62,11 +58,11 @@ trait GmosEncoders {
 
   given EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
 
-  given EncodeEpicsValue[DisperserOrder, String] = EncodeEpicsValue(
+  given disperserOrderEncoder: EncodeEpicsValue[GratingOrder, String] = EncodeEpicsValue(
     _.longName
   )
 
-  given EncodeEpicsValue[DisperserOrder, Int] = EncodeEpicsValue(
+  given disperserOrderEncoderInt: EncodeEpicsValue[GratingOrder, Int] = EncodeEpicsValue(
     _.count
   )
 
@@ -86,18 +82,18 @@ trait GmosEncoders {
     _.toSeconds.toInt
   )
 
-  given EncodeEpicsValue[Length, Double] =
-    EncodeEpicsValue((l: Length) => l.toNanometers)
+  given EncodeEpicsValue[Wavelength, Double] =
+    EncodeEpicsValue((l: Wavelength) => l.toNanometers.value.value.toDouble)
 
   given EncodeEpicsValue[ElectronicOffset, Int] =
     EncodeEpicsValue {
-      case ElectronicOffset.On  => 1
-      case ElectronicOffset.Off => 0
+      case GmosEOffsetting.On  => 1
+      case GmosEOffsetting.Off => 0
     }
 
-  val InBeamVal: String                = "IN-BEAM"
-  val OutOfBeamVal: String             = "OUT-OF-BEAM"
-  given EncodeEpicsValue[Beam, String] = EncodeEpicsValue {
+  val InBeamVal: String                             = "IN-BEAM"
+  val OutOfBeamVal: String                          = "OUT-OF-BEAM"
+  given beamEncoder: EncodeEpicsValue[Beam, String] = EncodeEpicsValue {
     case Beam.OutOfBeam => OutOfBeamVal
     case Beam.InBeam    => InBeamVal
   }
@@ -160,8 +156,7 @@ object GmosControllerEpics extends GmosEncoders {
   val DhsConnected: String = "CONNECTED"
 
   def apply[F[_]: Async, T <: GmosSite](
-    sys: => GmosEpics[F],
-    cfg: GmosController.Config[T]
+    sys: => GmosEpics[F]
   )(using
     e:   Encoders[T],
     L:   Logger[F]
@@ -179,7 +174,7 @@ object GmosControllerEpics extends GmosEncoders {
         } yield GmosEpicsState(dc, cc, ns)
 
       private def retrieveNSState: F[GmosNSEpicsState] =
-        (sys.nsPairs.map(tag[NsPairsI][Int]), sys.nsRows.map(tag[NsRowsI][Int]), sys.nsState)
+        (sys.nsPairs.map(NsPairs.apply(_)), sys.nsRows.map(NsRows.apply(_)), sys.nsState)
           .mapN(GmosNSEpicsState.apply)
 
       private def retrieveDCState: F[GmosDCEpicsState] =
@@ -274,7 +269,7 @@ object GmosControllerEpics extends GmosEncoders {
 
       private def setFilters(
         state: GmosCCEpicsState,
-        f:     Option[T#Filter]
+        f:     Option[GmosSite.Filter[T]]
       ): List[Option[F[Unit]]] = {
         val (filter1, filter2) = Encoders[T].filter.encode(f)
 
@@ -285,7 +280,7 @@ object GmosControllerEpics extends GmosEncoders {
 
       val mirrorEncodedVal: String = "mirror"
 
-      def setDisperser(state: GmosCCEpicsState, d: Option[T#Grating]): Option[F[Unit]] = {
+      def setDisperser(state: GmosCCEpicsState, d: Option[GmosSite.Grating[T]]): Option[F[Unit]] = {
         val encodedVal = d.map(Encoders[T].disperser.encode).getOrElse(mirrorEncodedVal)
         val s          = applyParam(state.disperser.toUpperCase,
                            encodedVal.toUpperCase,
@@ -295,30 +290,29 @@ object GmosControllerEpics extends GmosEncoders {
         s.orElse(state.disperserParked.option(CC.setDisperser(encodedVal)))
       }
 
-      def setOrder(state: GmosCCEpicsState, o: DisperserOrder): Option[F[Unit]] =
+      def setOrder(state: GmosCCEpicsState, o: GratingOrder): Option[F[Unit]] =
         applyParam(state.disperserOrder,
                    disperserOrderEncoderInt.encode(o),
                    (_: Int) => CC.setDisperserOrder(disperserOrderEncoder.encode(o))
         )
 
-      def setWavelength(state: GmosCCEpicsState, w: Length): Option[F[Unit]] =
+      def setWavelength(state: GmosCCEpicsState, w: Wavelength): Option[F[Unit]] =
         applyParam(state.disperserWavel, encode(w), CC.setDisperserLambda)
 
       def setDisperserParams(
         state: GmosCCEpicsState,
-        cfg:   GmosController.Config[T],
-        g:     GmosController.Config[T]#GmosDisperser
+        g:     GmosController.Config.GmosGrating[T]
       ): List[Option[F[Unit]]] = {
         val params: List[Option[F[Unit]]] = g match {
-          case cfg.GmosDisperser.Mirror          => List(setDisperser(state, none))
-          case cfg.GmosDisperser.Order0(d)       =>
+          case GmosGrating.Mirror()        => List(setDisperser(state, none))
+          case GmosGrating.Order0(d)       =>
             val s0: Option[F[Unit]] = setDisperser(state, d.some)
             // If disperser is set, force order configuration
             if (s0.isEmpty) List(setOrder(state, GmosGratingOrder.Zero))
             else
               CC.setDisperserOrder(disperserOrderEncoder.encode(GmosGratingOrder.Zero))
                 .some :: List(s0)
-          case cfg.GmosDisperser.OrderN(d, o, w) =>
+          case GmosGrating.OrderN(d, o, w) =>
             val s0: Option[F[Unit]] =
               setDisperser(state, d.some) // None means disperser is already in the right position
             // If disperser is set, the order has to be set regardless of current value.
@@ -334,10 +328,6 @@ object GmosControllerEpics extends GmosEncoders {
                 setWavelength(state, w)
               )
             }
-
-          // TODO Improve data model to remove this case. It is here because search includes types of
-          // both sites.
-          case _                                 => List.empty
         }
 
         // If disperser, order or wavelength are set, force mode configuration. If not, check if it needs to be set anyways
@@ -353,10 +343,9 @@ object GmosControllerEpics extends GmosEncoders {
 
       def setFPU(
         state: GmosCCEpicsState,
-        cfg:   GmosController.Config[T],
-        cc:    Option[GmosFPU]
+        cc:    Option[GmosFPU[T]]
       ): List[Option[F[Unit]]] = {
-        def builtInFPU(fpu: T#BuiltInFpu): String = Encoders[T].fpu.encode(fpu)
+        def builtInFPU(fpu: GmosSite.FPU[T]): String = Encoders[T].fpu.encode(fpu)
 
         def setFPUParams(p: Option[String]): List[Option[F[Unit]]] = p
           .map(g =>
@@ -376,20 +365,16 @@ object GmosControllerEpics extends GmosEncoders {
           )
 
         cc.map {
-          case cfg.BuiltInFPU(fpu) =>
+          case BuiltInFPU[T](fpu)  =>
             L.debug(s"Set GMOS built in fpu $fpu").some +: setFPUParams(builtInFPU(fpu).some)
           case CustomMaskFPU(name) =>
             L.debug(s"Set GMOS custom fpu $name").some +: setFPUParams(name.some)
-          case UnknownFPU          => List.empty
-          // TODO Improve data model to remove this case. It is here because the BuiltInFPU of the
-          // other site is also a type of GmosFPU, even if it never will appear here.
-          case _                   => List.empty
         }.getOrElse(
           L.debug(s"Set GMOS fpu to None").some +: setFPUParams(none)
         )
       }
 
-      private def setStage(state: GmosCCEpicsState, v: T#StageMode): Option[F[Unit]] = {
+      private def setStage(state: GmosCCEpicsState, v: GmosSite.StageMode[T]): Option[F[Unit]] = {
         val stage = Encoders[T].stageMode.encode(v)
 
         applyParam(state.stageMode, stage, CC.setStageMode)
@@ -429,7 +414,9 @@ object GmosControllerEpics extends GmosEncoders {
             state.exposureTime,
             encode(config.t),
             (_: Int) =>
-              L.debug(s"Set GMOS expTime ${config.t}") *> sys.configDCCmd.setExposureTime(config.t)
+              L.debug(s"Set GMOS expTime ${config.t}") *> sys.configDCCmd.setExposureTime(
+                config.t.toDuration.toScala
+              )
           ),
           setShutterState(state, config),
           applyParam(state.ampReadMode,
@@ -449,25 +436,27 @@ object GmosControllerEpics extends GmosEncoders {
 
       private def nsParams(state: GmosNSEpicsState, config: NSConfig): List[F[Unit]] =
         List(
-          applyParam(state.nsPairs, config.nsPairs, (x: Int) => DC.setNsPairs(x)),
-          applyParam(state.nsRows, config.nsRows, (x: Int) => DC.setNsRows(x)),
+          applyParam(state.nsPairs.value, config.nsPairs.value, (x: Int) => DC.setNsPairs(x)),
+          applyParam(state.nsRows.value, config.nsRows.value, (x: Int) => DC.setNsRows(x)),
           applyParam(state.nsState, encode(config.nsState), DC.setNsState)
         ).flattenOption
 
       // Don't set CC if Dark or Bias
-      private def ccParams(state: GmosCCEpicsState, config: Config[T]#CCConfig): List[F[Unit]] =
-        if (config.isDarkOrBias) List.empty
-        else
-          (
-            setFilters(state, config.filter) ++
-              setDisperserParams(state, cfg, config.disperser) ++
-              setFPU(state, cfg, config.fpu) ++
-              List(
-                setStage(state, config.stage),
-                setDtaXOffset(state, config.dtaX),
-                setElectronicOffset(state, config.useElectronicOffset)
-              )
-          ).flattenOption
+      private def ccParams(state: GmosCCEpicsState, config: Config.CCConfig[T]): List[F[Unit]] =
+        config match {
+          case StandardCCConfig(filter, disperser, fpu, stage, dtaX, adc, useElectronicOffset) =>
+            (
+              setFilters(state, filter) ++
+                setDisperserParams(state, disperser) ++
+                setFPU(state, fpu) ++
+                List(
+                  setStage(state, stage),
+                  setDtaXOffset(state, dtaX),
+                  setElectronicOffset(state, useElectronicOffset)
+                )
+            ).flattenOption
+          case DarkOrBias()                                                                    => List.empty
+        }
 
       override def applyConfig(config: GmosController.GmosConfig[T]): F[Unit] =
         retrieveState.flatMap { state =>
@@ -483,9 +472,9 @@ object GmosControllerEpics extends GmosEncoders {
             L.debug("Completed Gmos configuration")
         }
 
-      override def observe(fileId: ImageFileId, expTime: Time): F[ObserveCommandResult] =
+      override def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult] =
         failOnDHSNotConected *>
-          sys.observeCmd.setLabel(fileId) *>
+          sys.observeCmd.setLabel(fileId.value) *>
           sys.observeCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
 
       private def failOnDHSNotConected: F[Unit] =
@@ -525,7 +514,7 @@ object GmosControllerEpics extends GmosEncoders {
 
       override def pauseObserve: F[Unit] = protectedObserveCommand("Pause", sys.pauseCmd)
 
-      override def resumePaused(expTime: Time): F[ObserveCommandResult] = for {
+      override def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult] = for {
         _   <- L.debug("Resume Gmos observation")
         _   <- sys.continueCmd.mark
         ret <- sys.continueCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
@@ -552,22 +541,25 @@ object GmosControllerEpics extends GmosEncoders {
           (total, cycle, aCount, bCount) =>
             val stageIndex = (aCount + bCount) % NsSequence.length
             val sub        =
-              NSSubexposure(NsCyclesI(total / 2), NsCyclesI(cycle), stageIndex)
+              NSSubexposure(NsCycles(total / 2), NsCycles(cycle), stageIndex)
             sub.getOrElse(NSSubexposure.Zero)
         }
 
       // Different progress results for classic and NS
-      def gmosProgress: (Time, RemainingTime, ObserveStage) => F[Progress] =
+      def gmosProgress: (FiniteDuration, RemainingTime, ObserveStage) => F[Progress] =
         (time, remaining, stage) =>
           sys.nsState.flatMap {
             case "CLASSIC" => EpicsUtil.defaultProgress[F](time, remaining, stage)
             case _         => nsSubExposure.map(s => NSProgress(time, remaining, stage, s))
           }
 
-      override def observeProgress(total: Time, elapsed: ElapsedTime): Stream[F, Progress] =
+      override def observeProgress(
+        total:   FiniteDuration,
+        elapsed: ElapsedTime
+      ): Stream[F, Progress] =
         EpicsUtil.countdown[F](
           total,
-          sys.countdown.map(_.seconds),
+          sys.countdown.map(x => FiniteDuration((x * 1000.0).toLong, MILLISECONDS)),
           sys.observeState.widen[CarStateGeneric],
           (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut)
             .mapN(ObserveStage.fromBooleans),
@@ -623,10 +615,10 @@ object GmosControllerEpics extends GmosEncoders {
   }
 
   trait Encoders[T <: GmosSite] {
-    val filter: EncodeEpicsValue[Option[T#Filter], (String, String)]
-    val fpu: EncodeEpicsValue[T#BuiltInFpu, String]
-    val stageMode: EncodeEpicsValue[T#StageMode, String]
-    val disperser: EncodeEpicsValue[T#Grating, String]
+    val filter: EncodeEpicsValue[Option[GmosSite.Filter[T]], (String, String)]
+    val fpu: EncodeEpicsValue[GmosSite.FPU[T], String]
+    val stageMode: EncodeEpicsValue[GmosSite.StageMode[T], String]
+    val disperser: EncodeEpicsValue[GmosSite.Grating[T], String]
     val builtInROI: EncodeEpicsValue[BuiltinROI, Option[ROIValues]]
     val autoGain: EncodeEpicsValue[(AmpReadMode, AmpGain), Int]
   }
@@ -639,5 +631,10 @@ object GmosControllerEpics extends GmosEncoders {
   val DefaultTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
   val ReadoutTimeout: FiniteDuration = FiniteDuration(120, SECONDS)
   val ConfigTimeout: FiniteDuration  = FiniteDuration(600, SECONDS)
+
+  def dummy[A](v: Option[A]): String = v match {
+    case Some(value) => value.toString
+    case None        => "None"
+  }
 
 }

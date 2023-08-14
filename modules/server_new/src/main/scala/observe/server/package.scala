@@ -234,7 +234,7 @@ package object server {
 //    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
 //  }
 //
-//extension [F[_]: Functor]( x: F[ConfigResult]) {
+//extension [F[_]: Functor]( x: F[ConfigResult[F]]) {
 //    def toAction(kind: ActionType): Action[F] =
 //      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
 //  }

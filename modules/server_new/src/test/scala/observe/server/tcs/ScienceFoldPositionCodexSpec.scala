@@ -1,10 +1,10 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.tcs
 
 import org.scalatest.matchers.should.Matchers.*
-import ScienceFoldPositionCodex.*
+import ScienceFoldPositionCodex.given
 import observe.server.EpicsCodex.*
 import lucuma.core.enums.LightSinkName.{F2, Gmos, Gsaoi, Nifs, Niri_f32}
 import observe.server.tcs.TcsController.LightSource.{AO, GCAL, Sky}

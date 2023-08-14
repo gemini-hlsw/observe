@@ -164,8 +164,7 @@ object TcsControllerEpicsCommon {
 
   // Disable M1 guiding if source is off
   private def normalizeM1Guiding[S <: Site](gaosEnabled: Boolean): Endo[BasicTcsConfig[S]] = cfg =>
-    Focus[BasicTcsConfig[S]](_.gc)
-      .andThen(Focus[TelescopeGuideConfig](_.m1Guide))
+    Focus[BasicTcsConfig[S]](_.gc.m1Guide)
       .modify {
         case g @ M1GuideConfig.M1GuideOn(src) =>
           src match {
@@ -180,8 +179,7 @@ object TcsControllerEpicsCommon {
 
   // Disable M2 sources if they are off, disable M2 guiding if all are off
   private def normalizeM2Guiding[S <: Site](gaosEnabled: Boolean): Endo[BasicTcsConfig[S]] = cfg =>
-    Focus[BasicTcsConfig[S]](_.gc)
-      .andThen(Focus[TelescopeGuideConfig](_.m2Guide))
+    Focus[BasicTcsConfig[S]](_.gc.m2Guide)
       .modify {
         case M2GuideConfig.M2GuideOn(coma, srcs) =>
           val ss = srcs.filter {
@@ -189,7 +187,6 @@ object TcsControllerEpicsCommon {
             case TipTiltSource.PWFS2 => cfg.gds.pwfs2.value.isActive
             case TipTiltSource.OIWFS => cfg.gds.oiwfs.value.isActive
             case TipTiltSource.GAOS  => gaosEnabled
-            case _                   => true
           }
           if (ss.isEmpty) M2GuideConfig.M2GuideOff
           else
@@ -202,8 +199,7 @@ object TcsControllerEpicsCommon {
 
   // Disable Mount guiding if M2 guiding is disabled
   private def normalizeMountGuiding[S <: Site]: Endo[BasicTcsConfig[S]] = cfg =>
-    Focus[BasicTcsConfig[S]](_.gc)
-      .andThen(Focus[TelescopeGuideConfig](_.mountGuide))
+    Focus[BasicTcsConfig[S]](_.gc.mountGuide)
       .modify { m =>
         (m, cfg.gc.m2Guide) match {
           case (MountGuideOption.MountGuideOn, M2GuideConfig.M2GuideOn(_, _)) =>
