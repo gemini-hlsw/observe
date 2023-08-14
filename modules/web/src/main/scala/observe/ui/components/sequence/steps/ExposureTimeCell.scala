@@ -10,8 +10,8 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.util.TimeSpan
 import observe.ui.ObserveStyles
-import observe.ui.model.formatting.*
 import lucuma.react.common.*
+import lucuma.ui.sequence.SequenceRowFormatters.*
 
 case class ExposureTimeCell(
   instrument:   Instrument,
@@ -46,7 +46,7 @@ object ExposureTimeCell:
     <.div(ObserveStyles.Centered)(
       // TODO Tooltip with estimate details
       props.exposureTime.map(time =>
-        React.Fragment(formatExposureTime(props.instrument)(time), secondsUnits)
+        React.Fragment(FormatExposureTime(props.instrument)(time).value, secondsUnits)
       )
     )
   )
