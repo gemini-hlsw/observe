@@ -91,7 +91,7 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.83.0"
-    val lucumaUI      = "0.76.1"
+    val lucumaUI      = "0.77.0"
     val lucumaSchemas = "0.59.0"
 
     // Clue

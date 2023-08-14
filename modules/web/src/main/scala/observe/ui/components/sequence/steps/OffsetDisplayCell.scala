@@ -5,14 +5,12 @@ package observe.ui.components.sequence.steps
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
-import lucuma.core.enums.GuideState
 import lucuma.core.math.Offset
-import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.enums.OffsetsDisplay
-import observe.ui.model.formatting.*
+import lucuma.ui.sequence.SequenceRowFormatters.*
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 
@@ -21,7 +19,8 @@ import lucuma.react.fa.IconSize
  */
 case class OffsetsDisplayCell(
   offsetsDisplay: OffsetsDisplay,
-  science:        StepConfig.Science,
+  offset:         Offset,
+  hasGuiding:     Boolean,
   nodAndShuffle:  Option[GmosNodAndShuffle]
 ) extends ReactFnProps(OffsetsDisplayCell.component)
 
@@ -40,11 +39,11 @@ object OffsetsDisplayCell:
       <.div(
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("p"),
-          <.div(^.width := offsetWidth.px)(offsetAngle(offset.p.toAngle))
+          <.div(^.width := offsetWidth.px)(FormatOffsetP(offset.p).value)
         ),
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("q"),
-          <.div(^.width := offsetWidth.px)(offsetAngle(offset.q.toAngle))
+          <.div(^.width := offsetWidth.px)(FormatOffsetQ(offset.q).value)
         )
       )
     )
@@ -60,22 +59,22 @@ object OffsetsDisplayCell:
       <.div(
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("p"),
-          <.div(^.width := width.px)(offsetAngle(nodAndShuffle.posB.p.toAngle))
+          <.div(^.width := width.px)(FormatOffsetP(nodAndShuffle.posB.p).value)
         ),
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("q"),
-          <.div(^.width := width.px)(offsetAngle(nodAndShuffle.posB.q.toAngle))
+          <.div(^.width := width.px)(FormatOffsetQ(nodAndShuffle.posB.q).value)
         )
       ),
       <.div(ObserveStyles.OffsetsNodLabel, ^.width := nsNodLabelWidth.px)("A"),
       <.div(
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("p"),
-          <.div(^.width := width.px)(offsetAngle(nodAndShuffle.posA.p.toAngle))
+          <.div(^.width := width.px)(FormatOffsetP(nodAndShuffle.posA.p).value)
         ),
         <.div(ObserveStyles.OffsetComponent)(
           <.div(^.width := axisLabelWidth.px)("q"),
-          <.div(^.width := width.px)(offsetAngle(nodAndShuffle.posA.q.toAngle))
+          <.div(^.width := width.px)(FormatOffsetQ(nodAndShuffle.posA.q).value)
         )
       )
     )
@@ -84,13 +83,11 @@ object OffsetsDisplayCell:
     ScalaFnComponent[Props]: props =>
       props.offsetsDisplay match
         case OffsetsDisplay.DisplayOffsets(offsetWidth, axisLabelWidth, nsNodLabelWidth) =>
-          val guiding = props.science.guiding == GuideState.Enabled
-
           <.div(ObserveStyles.GuidingCell)(
-            GuidingIcon.when(guiding),
-            NoGuidingIcon.unless(guiding),
+            GuidingIcon.when(props.hasGuiding),
+            NoGuidingIcon.unless(props.hasGuiding),
             props.nodAndShuffle.fold(
-              standardOffsetsRender(props.science.offset, offsetWidth, axisLabelWidth)
+              standardOffsetsRender(props.offset, offsetWidth, axisLabelWidth)
             )(
               nodAndShuffleOffsetsRender(_, offsetWidth, axisLabelWidth, nsNodLabelWidth)
             )

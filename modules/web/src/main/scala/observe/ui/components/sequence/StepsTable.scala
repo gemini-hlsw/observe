@@ -16,11 +16,12 @@ import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.reusability.given
+import lucuma.ui.sequence.SequenceRow
+import lucuma.ui.sequence.SequenceRowFormatters.*
 import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import monocle.Focus
 import monocle.Lens
-import observe.model.SequenceStep
 import observe.model.*
 import observe.model.enums.SequenceState
 import observe.ui.Icons
@@ -49,21 +50,17 @@ sealed trait StepsTable[S, D](
   def nsStatus: Option[NodAndShuffleStatus]
   def isPreview: Boolean
 
-  private def buildSequence(sequence: ExecutionSequence[D]): List[SequenceStep[D]] =
-    (sequence.nextAtom +: sequence.possibleFuture)
-      .flatMap(_.steps.toList)
-      .map(step => SequenceStep.FutureStep(step))
+  private def buildSequence(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
+    SequenceRow.FutureStep.fromAtoms(sequence.nextAtom +: sequence.possibleFuture)
 
-  protected[sequence] lazy val steps: List[SequenceStep[D]] =
+  protected[sequence] lazy val steps: List[SequenceRow.FutureStep[D]] =
     config.acquisition.map(buildSequence).orEmpty ++ config.science.map(buildSequence).orEmpty
 
   // TODO: Move the next methods to some extension?
-  import lucuma.core.math.Angle
   import observe.ui.utils.*
-  import observe.ui.model.formatting.*
 
-  private def maxWidth(angles: Angle*): Double =
-    angles.map(angle => tableTextWidth(offsetAngle(angle))).maximumOption.orEmpty
+  private def maxWidth(strings: String*): Double =
+    strings.map(tableTextWidth).maximumOption.orEmpty
 
   // Calculate the widest offset step, widest axis label and widest NS nod label
   private def sequenceOffsetMaxWidth: (Double, Double, Double) =
@@ -73,8 +70,8 @@ sealed trait StepsTable[S, D](
         .flattenOption
         .map { offset =>
           (
-            maxWidth(offset.p.toAngle, offset.q.toAngle),
-            math.max(tableTextWidth("p"), tableTextWidth("q")),
+            maxWidth(FormatOffsetP(offset.p).value, FormatOffsetQ(offset.q).value),
+            maxWidth("p", "q"),
             0.0
           )
         }
@@ -84,13 +81,13 @@ sealed trait StepsTable[S, D](
     )(nsConfig =>
       (
         maxWidth(
-          nsConfig.posB.p.toAngle,
-          nsConfig.posB.q.toAngle,
-          nsConfig.posA.p.toAngle,
-          nsConfig.posA.q.toAngle
+          FormatOffsetP(nsConfig.posB.p).value,
+          FormatOffsetQ(nsConfig.posB.q).value,
+          FormatOffsetP(nsConfig.posA.p).value,
+          FormatOffsetQ(nsConfig.posA.q).value
         ),
-        math.max(tableTextWidth("p"), tableTextWidth("q")),
-        math.max(tableTextWidth("B"), tableTextWidth("A"))
+        maxWidth("p", "q"),
+        maxWidth("B", "A")
       )
     )
 
@@ -127,35 +124,10 @@ case class GmosSouthStepsTable(
       config.static.nodAndShuffle
     )
 
-// case class StepsTable(
-//   clientStatus: ClientStatus,
-//   obsId:        Observation.Id,
-//   config:       ExecutionConfig[S, D]
-// execution:    View[Option[Execution[D]]]
-//  tableState:       TableState[StepsTable.TableColumn],
-//  configTableState: TableState[StepConfigTable.TableColumn]
-// ) extends ReactFnProps(StepsTable.component) //:
-//   val stepViewList: List[View[ExecutionStep]] =
-//     execution
-//       .mapValue((e: View[Execution[D]]) => e.zoom(Execution.steps).toListOfViews)
-//       .orEmpty
-
-//   val steps: List[ExecutionStep] = stepViewList.map(_.get)
-
-//   // Find out if offsets should be displayed
-//   val offsetsDisplay: OffsetsDisplay = steps.offsetsDisplay
-
 private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
   private type Props = StepsTable[S, D]
 
-  // protected val offsetDisplayCell: (
-  //   OffsetsDisplay,
-  //   SequenceStep[D],
-  //   Option[GmosNodAndShuffle]
-  // ) => VdomNode
-
-  // private def ColDef = ColumnDef[View[StepTableRow[D]]]
-  private def ColDef = ColumnDef[SequenceStep[D]]
+  private def ColDef = ColumnDef[SequenceRow.FutureStep[D]]
 
   private def renderStringCell(value: Option[String]): VdomNode =
     <.div(ObserveStyles.ComponentLabel |+| ObserveStyles.Centered)(value.getOrElse("Unknown"))
@@ -218,9 +190,10 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[raw.buildLibCoreCellMod.CellContext[SequenceStep[D], V] => VdomNode] =
-      js.undefined
-  ): ColumnDef[SequenceStep[D], V] =
+    cell:   js.UndefOr[
+      raw.buildLibCoreCellMod.CellContext[SequenceRow.FutureStep[D], V] => VdomNode
+    ] = js.undefined
+  ): ColumnDef[SequenceRow.FutureStep[D], V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
 //   extension (step: View[ExecutionStep])
@@ -425,27 +398,36 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
               "Execution Progress",
               cell =>
                 val step = cell.row.original
-                StepProgressCell(
-                  clientStatus = clientStatus,
-                  instrument = instrument,
-                  stepId = step.id,
-                  stepType = step.stepType(nodAndShuffle.isDefined),
-                  isFinished = step.isFinished,
-                  stepIndex = cell.row.index.toInt,
-                  obsId = obsId,
-                  tabOperations = tabOperations,
-                  sequenceState = sequenceState,
-                  runningStep = runningStep,
-                  nsStatus = nsStatus,
-                  selectedStep = selectedStep,
-                  isPreview = isPreview
-                )
+                step
+                  .stepType(nodAndShuffle.isDefined)
+                  .map: stepType =>
+                    StepProgressCell(
+                      clientStatus = clientStatus,
+                      instrument = instrument,
+                      stepId = step.stepId,
+                      stepType = stepType,
+                      isFinished = step.isFinished,
+                      stepIndex = cell.row.index.toInt,
+                      obsId = obsId,
+                      tabOperations = tabOperations,
+                      sequenceState = sequenceState,
+                      runningStep = runningStep,
+                      nsStatus = nsStatus,
+                      selectedStep = selectedStep,
+                      isPreview = isPreview
+                    )
             ),
             column(
               OffsetsColumnId,
               "Offsets",
               cell =>
-                cell.row.original.science.map(OffsetsDisplayCell(offsetsDisplay, _, nodAndShuffle))
+                cell.row.original.offset.map: offset =>
+                  OffsetsDisplayCell(
+                    offsetsDisplay,
+                    offset,
+                    cell.row.original.hasGuiding,
+                    nodAndShuffle
+                  )
             ),
             column(ObsModeColumnId, "Observing Mode"),
             column(
@@ -481,10 +463,13 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
               TypeColumnId,
               "Type",
               cell =>
-                ObjectTypeCell(
-                  cell.row.original.stepType(nodAndShuffle.isDefined),
-                  cell.row.original.isFinished
-                )
+                cell.row.original
+                  .stepType(nodAndShuffle.isDefined)
+                  .map: stepType =>
+                    ObjectTypeCell(
+                      stepType,
+                      cell.row.original.isFinished
+                    )
             ),
             column(
               SettingsColumnId,
@@ -528,7 +513,7 @@ private sealed trait StepsTableBuilder[S: Eq, D: Eq]:
         viewportWidth => colState.modState(s => adjustColSizes(viewportWidth)(s))
       )
       .render: (props, _, resize, _, _, table) =>
-        def rowClass(index: Int, step: SequenceStep[D]): Css =
+        def rowClass(index: Int, step: SequenceRow.FutureStep[D]): Css =
           step match
             // case s if s.hasError                       => ObserveStyles.StepRowError
             // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
