@@ -6,12 +6,12 @@ package observe.ui.components
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import observe.model.*
-import observe.ui.ObserveStyles
 import lucuma.react.common.*
 import lucuma.react.primereact.Card
 import lucuma.react.primereact.Dropdown
 import lucuma.react.primereact.InputText
+import observe.model.*
+import observe.ui.ObserveStyles
 
 case class HeadersSideBar(
   status:     ClientStatus,

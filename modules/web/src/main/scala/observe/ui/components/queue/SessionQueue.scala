@@ -9,6 +9,10 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.syntax.display.*
+import lucuma.react.common.*
+import lucuma.react.fa.FontAwesomeIcon
+import lucuma.react.fa.IconSize
+import lucuma.react.primereact.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
@@ -22,10 +26,6 @@ import observe.ui.model.SessionQueueFilter
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
-import lucuma.react.common.*
-import lucuma.react.fa.FontAwesomeIcon
-import lucuma.react.fa.IconSize
-import lucuma.react.primereact.*
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)
