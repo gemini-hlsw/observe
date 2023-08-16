@@ -15,6 +15,9 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.syntax.display.*
+import lucuma.react.common.ReactFnProps
+import lucuma.react.common.given
+import lucuma.react.primereact.*
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
@@ -34,9 +37,6 @@ import observe.ui.model.RootModel
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
 import observe.ui.model.enums.ObsClass
-import lucuma.react.common.ReactFnProps
-import lucuma.react.common.given
-import lucuma.react.primereact.*
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 

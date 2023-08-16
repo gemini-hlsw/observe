@@ -5,10 +5,10 @@ package observe.ui
 
 import crystal.react.View
 import japgolly.scalajs.react.extra.router.*
+import lucuma.react.common.*
 import observe.ui.Page.*
 import observe.ui.components.Home
 import observe.ui.model.RootModel
-import lucuma.react.common.*
 
 object Routing {
 

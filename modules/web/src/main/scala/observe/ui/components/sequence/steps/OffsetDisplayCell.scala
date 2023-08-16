@@ -7,12 +7,12 @@ import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.math.Offset
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
+import lucuma.react.common.*
+import lucuma.react.fa.IconSize
+import lucuma.ui.sequence.SequenceRowFormatters.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.enums.OffsetsDisplay
-import lucuma.ui.sequence.SequenceRowFormatters.*
-import lucuma.react.common.*
-import lucuma.react.fa.IconSize
 
 /**
  * Component to display the offsets

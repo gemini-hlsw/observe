@@ -3,11 +3,11 @@
 
 package observe.ui.components.sequence.steps
 
+import cats.syntax.option.*
+import lucuma.core.enums.SmartGcalType
+import lucuma.core.model.sequence.StepConfig
 import lucuma.ui.sequence.SequenceRow
 import observe.model.enums.ExecutionStepType
-import lucuma.core.model.sequence.StepConfig
-import lucuma.core.enums.SmartGcalType
-import cats.syntax.option.*
 
 extension [D](row: SequenceRow[D])
   def stepType(isNodAndShuffle: Boolean): Option[ExecutionStepType] =
