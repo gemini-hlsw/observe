@@ -16,3 +16,5 @@ given Display[CloudCover]    = conditionDisplay(_.toInt, _.label)
 given Display[ImageQuality]  = conditionDisplay(_.toInt, _.label)
 given Display[SkyBackground] = conditionDisplay(_.toInt, _.label)
 given Display[WaterVapor]    = conditionDisplay(_.toInt, _.label)
+
+given Display[Resource] = Display.byShortName(_.label)

@@ -4,8 +4,8 @@
 package observe.model.enums
 
 import cats.syntax.eq.*
-import observe.model.ParamName
 import lucuma.core.util.Enumerated
+import observe.model.ParamName
 
 enum SystemName(val tag: String) derives Enumerated:
   case Ocs            extends SystemName("ocs")

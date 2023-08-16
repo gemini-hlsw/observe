@@ -3,9 +3,7 @@
 
 package observe.ui
 
-import lucuma.react.fa.FAIcon
-import lucuma.react.fa.FontAwesomeIcon
-import lucuma.react.fa.IconLibrary
+import lucuma.react.fa.*
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.*
@@ -22,10 +20,6 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCaretRight")
   private val faCaretRight: FAIcon = js.native
-
-  @js.native
-  @JSImport("@fortawesome/pro-solid-svg-icons", "faCaretDown")
-  private val faCaretDown: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCheck")
@@ -58,6 +52,10 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleNotch")
   private val faCircleNotch: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCircle")
+  private val faCircleSolid: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faClock")
@@ -104,21 +102,17 @@ object Icons:
   private val faSun: FAIcon = js.native
 
   @js.native
-  @JSImport("@fortawesome/pro-solid-svg-icons", "faTrash")
-  private val faTrash: FAIcon = js.native
-
-  @js.native
-  // @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark") // FIXME Can't get sharp to work
-  @JSImport("@fortawesome/pro-solid-svg-icons", "faXmark")
+  @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark")
   private val faXMark: FAIcon = js.native
 
+  org.scalajs.dom.console.log(faXMark)
+
   // This is tedious but lets us do proper tree-shaking
-  IconLibrary.add(
+  FontAwesome.library.add(
     faBan,
     faCalendarDays,
     faCaretRight,
     faCheck,
-    faCaretDown,
     faChevronRight,
     faCircle,
     faCircleCheck,
@@ -126,6 +120,7 @@ object Icons:
     faCircleExclamation,
     faCircleMinus,
     faCircleNotch,
+    faCircleSolid,
     faClock,
     faCrosshairs,
     faGears,
@@ -137,13 +132,11 @@ object Icons:
     faSquarePlus,
     faStop,
     faSun,
-    faTrash,
     faXMark
   )
 
   inline def Ban               = FontAwesomeIcon(faBan)
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
-  inline def CaretDown         = FontAwesomeIcon(faCaretDown)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
   inline def ChevronRight      = FontAwesomeIcon(faChevronRight)
@@ -152,7 +145,8 @@ object Icons:
   inline def CircleDot         = FontAwesomeIcon(faCircleDot)
   inline def CircleExclamation = FontAwesomeIcon(faCircleExclamation)
   inline def CircleMinus       = FontAwesomeIcon(faCircleMinus)
-  inline def CircleNotch       = FontAwesomeIcon(faCircleNotch)
+  inline def CircleNotch       = FontAwesomeIcon(faCircleNotch).withSpin()
+  inline def CircleSolid       = FontAwesomeIcon(faCircleSolid)
   inline def Clock             = FontAwesomeIcon(faClock)
   inline def Crosshairs        = FontAwesomeIcon(faCrosshairs)
   inline def Gears             = FontAwesomeIcon(faGears)
@@ -164,5 +158,4 @@ object Icons:
   inline def SquarePlus        = FontAwesomeIcon(faSquarePlus)
   inline def Stop              = FontAwesomeIcon(faStop)
   inline def Sun               = FontAwesomeIcon(faSun)
-  inline def Trash             = FontAwesomeIcon(faTrash)
   inline def XMark             = FontAwesomeIcon(faXMark)
