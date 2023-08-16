@@ -33,8 +33,8 @@ inThisBuild(
   ) ++ lucumaPublishSettings
 )
 
-ThisBuild / scalaVersion       := "3.3.1-RC4"
-ThisBuild / crossScalaVersions := Seq("3.3.1-RC4")
+ThisBuild / scalaVersion       := "3.3.1-RC5"
+ThisBuild / crossScalaVersions := Seq("3.3.1-RC5")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 
 // Gemini repository

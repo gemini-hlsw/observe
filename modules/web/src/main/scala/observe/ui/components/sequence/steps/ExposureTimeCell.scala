@@ -9,9 +9,9 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.util.TimeSpan
-import observe.ui.ObserveStyles
 import lucuma.react.common.*
 import lucuma.ui.sequence.SequenceRowFormatters.*
+import observe.ui.ObserveStyles
 
 case class ExposureTimeCell(
   instrument:   Instrument,

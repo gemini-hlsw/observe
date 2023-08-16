@@ -26,7 +26,7 @@ object Settings {
 
     // Scala libraries
     val catsEffectVersion   = "3.4.10"
-    val catsVersion         = "2.9.0"
+    val catsVersion         = "2.10.0"
     val kittens             = "3.0.0"
     val mouseVersion        = "1.2.1"
     val fs2Version          = "3.8.0"
@@ -90,7 +90,7 @@ object Settings {
     val jaxb                = "2.3.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.83.0"
+    val lucumaCore    = "0.84.0"
     val lucumaUI      = "0.78.0"
     val lucumaSchemas = "0.59.0"
 

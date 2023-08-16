@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -51,7 +50,7 @@ const pathExists = async (path) => {
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
-  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.3.0');
+  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.3.1-RC4');
   const isProduction = mode == 'production';
   const sjs = isProduction
     ? path.resolve(scalaClassesDir, 'observe_web_client-opt')
