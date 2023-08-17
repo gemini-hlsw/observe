@@ -49,7 +49,7 @@ jobs:
 
       - name: sbt update
         if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
-        run: sbt -v -J-Xmx6g 'project ${{ matrix.project }}' '++ ${{ matrix.scala }}' reload +update
+        run: sbt -v -J-Xmx6g +update
 
       - name: Check that workflows are up to date
         run: sbt -v -J-Xmx6g githubWorkflowCheck
