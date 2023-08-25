@@ -97,6 +97,6 @@ object Altair {
 
   def guideStarType[F[_]: ApplicativeThrow](
     obsCfg: Observation
-  ): F[GuideStarType] = GuideStarType.Ngs.pure[F]
+  ): GuideStarType = GuideStarType.Ngs
 
 }

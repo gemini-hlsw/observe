@@ -7,7 +7,7 @@ import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import cats.{Applicative, ApplicativeThrow, Endo, Eq, MonadError, MonadThrow, Order}
+import cats.{Applicative, ApplicativeThrow, Endo, Eq, Functor, MonadError, MonadThrow, Order}
 import clue.ErrorPolicy
 import fs2.Stream
 import monocle.{Focus, Getter, Optional}
@@ -227,17 +227,14 @@ package object server {
         Stream.emit(Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e))))
   }
 
-//  implicit class ActionResponseToAction[F[_]: Functor: ApplicativeError[
-//    *[_],
-//    Throwable
-//  ], A <: Response](val x: F[A]) {
-//    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
-//  }
-//
-//extension [F[_]: Functor]( x: F[ConfigResult[F]]) {
-//    def toAction(kind: ActionType): Action[F] =
-//      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
-//  }
+  extension [F[_]: ApplicativeThrow, A <: Response](x: F[A]) {
+    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
+  }
+
+  extension [F[_]: Functor](x: F[ConfigResult[F]]) {
+    def toAction(kind: ActionType): Action[F] =
+      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
+  }
 
   // Some types defined to avoid repeating long type definitions everywhere
   type EventType[F[_]]      = Event[F, EngineState[F], SeqEvent]

@@ -6,8 +6,9 @@ package observe.server.gmos
 import cats.MonadThrow
 import cats.effect.{Ref, Temporal}
 import cats.syntax.all.*
-import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging}
+import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging, ObserveClass}
 import lucuma.core.math.Wavelength
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
 import lucuma.core.util.TimeSpan
 import monocle.Getter
@@ -16,7 +17,7 @@ import observe.server.gmos.GmosController.Config.{DTAX, GratingOrder}
 import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosController.GmosSite.{FPU, Filter, Grating, StageMode}
 import observe.server.keywords.{DhsClient, DhsClientProvider}
-import observe.server.{ObserveFailure, StepType}
+import observe.server.{InstrumentSpecifics, ObserveFailure, StepType}
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import org.typelevel.log4cats.Logger
 import squants.Length
@@ -38,19 +39,12 @@ final case class GmosNorth[F[_]: Temporal: Logger] private (
   override val dhsInstrumentName: String = "GMOS-N"
   override val dhsClient: DhsClient[F]   = dhsClientProvider.dhsClient(dhsInstrumentName)
 
-  override val instrument: Instrument = Instrument.GmosN
-
-  override def sfName: LightSinkName = LightSinkName.Gmos
-
-  // TODO Use different value if using electronic offsets
-  override val oiOffsetGuideThreshold: Option[Length] =
-    (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
-
 }
 
 object GmosNorth {
 
-  given Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth] =
+  given gnParamGetters
+    : Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth] =
     new Gmos.ParamGetters[GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth] {
       override val exposure: Getter[DynamicConfig.GmosNorth, TimeSpan]                            =
         DynamicConfig.GmosNorth.exposure.asGetter
@@ -84,20 +78,21 @@ object GmosNorth {
     controller:        GmosController[F, GmosSite.North.type],
     dhsClientProvider: DhsClientProvider[F],
     nsCmdR:            Ref[F, Option[NSObserveCommand]],
-    obsType:           StepType,
+    stepType:          StepType,
     staticCfg:         StaticConfig.GmosNorth,
     dynamicCfg:        DynamicConfig.GmosNorth
-  ): Either[ObserveFailure, GmosNorth[F]] =
-    Gmos
-      .buildConfig[F, GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-        Instrument.GmosS,
-        obsType,
-        staticCfg,
-        dynamicCfg
-      )
-      .map { case (t, config) =>
-        GmosNorth(controller, dhsClientProvider, nsCmdR, t, config)
-      }
+  ): GmosNorth[F] = GmosNorth(
+    controller,
+    dhsClientProvider,
+    nsCmdR,
+    stepType,
+    Gmos.buildConfig[F, GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+      Instrument.GmosS,
+      stepType,
+      staticCfg,
+      dynamicCfg
+    )
+  )
 
   def obsKeywordsReader[F[_]: MonadThrow](
     staticConfig:  StaticConfig.GmosNorth,
@@ -110,4 +105,27 @@ object GmosNorth {
                            DynamicConfig.GmosNorth
   ] =
     GmosObsKeywordsReader(staticConfig, dynamicConfig)
+
+  object specifics extends InstrumentSpecifics[StaticConfig.GmosNorth, DynamicConfig.GmosNorth] {
+    override val instrument: Instrument = Instrument.GmosN
+
+    override def calcStepType(
+      stepConfig:   StepConfig,
+      staticConfig: StaticConfig.GmosNorth,
+      instConfig:   DynamicConfig.GmosNorth,
+      obsClass:     ObserveClass
+    ): Either[ObserveFailure, StepType] =
+      Gmos.calcStepType(instrument,
+                        stepConfig,
+                        staticConfig,
+                        obsClass,
+                        gnParamGetters.nodAndShuffle
+      )
+
+    override def sfName(config: DynamicConfig.GmosNorth): LightSinkName = LightSinkName.Gmos
+
+    // TODO Use different value if using electronic offsets
+    override val oiOffsetGuideThreshold: Option[Length] =
+      (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
+  }
 }

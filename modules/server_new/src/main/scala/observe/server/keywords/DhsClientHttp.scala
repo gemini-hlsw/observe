@@ -30,8 +30,9 @@ import scala.concurrent.duration.*
 /**
  * Implementation of DhsClient that interfaces with the real DHS over the http interface
  */
-class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F])
-    extends DhsClient[F]
+class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri, maxKeywords: Int, instrumentName: String)(
+  using timer: Temporal[F]
+) extends DhsClient[F]
     with Http4sClientDsl[F] {
   import DhsClientHttp.*
 
@@ -166,10 +167,10 @@ object DhsClientHttp {
     override def toString = s"(${t.str}) $msg"
   }
 
-  def apply[F[_]](client: Client[F], uri: Uri)(using
+  def apply[F[_]](client: Client[F], uri: Uri, maxKeywords: Int, instrumentName: String)(implicit
     timer: Temporal[F]
   ): DhsClient[F] =
-    new DhsClientHttp[F](client, uri)
+    new DhsClientHttp[F](client, uri, maxKeywords, instrumentName)
 }
 
 /**

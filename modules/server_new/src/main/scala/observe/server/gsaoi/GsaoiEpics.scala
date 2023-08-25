@@ -1,29 +1,19 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gsaoi
 
-import java.lang.{Double => JDouble}
+import cats.effect.{Async, IO, Sync}
+import cats.syntax.all.*
+import edu.gemini.epics.acm.*
+import edu.gemini.observe.server.gsaoi.DhsConnected
+import observe.server.EpicsCommandBase.setParameter
+import observe.server.EpicsUtil.{safeAttributeF, safeAttributeSDoubleF, safeAttributeSIntF}
+import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase}
+
+import java.lang.Double as JDouble
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
-import cats.effect.Async
-import cats.effect.IO
-import cats.effect.Sync
-import cats.syntax.all.*
-import edu.gemini.epics.acm.CaApplySender
-import edu.gemini.epics.acm.CaAttribute
-import edu.gemini.epics.acm.CaCommandSender
-import edu.gemini.epics.acm.CaParameter
-import edu.gemini.epics.acm.CaService
-import edu.gemini.epics.acm.CaStatusAcceptor
-import edu.gemini.epics.acm.CaWindowStabilizer
-import edu.gemini.epics.acm.CarState
-import edu.gemini.observe.server.gsaoi.DhsConnected
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase}
-import observe.server.EpicsCommandBase.setParameter
-import observe.server.EpicsUtil.safeAttributeF
-import observe.server.EpicsUtil.safeAttributeSDoubleF
-import observe.server.EpicsUtil.safeAttributeSIntF
 
 class GsaoiEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]) {
 

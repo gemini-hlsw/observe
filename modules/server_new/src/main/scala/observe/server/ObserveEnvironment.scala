@@ -4,6 +4,7 @@
 package observe.server
 
 import eu.timepit.refined.types.numeric.PosInt
+import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.StepId
 import observe.model.Observation
@@ -15,14 +16,12 @@ import observe.server.tcs.Tcs
  */
 final case class ObserveEnvironment[F[_]](
   odb:          OdbProxy[F],
-  dhs:          DhsClient[F],
+  dhs:          DhsClientProvider[F],
   stepType:     StepType,
   obsId:        Observation.Id,
   stepId:       StepId,
   datasetIndex: PosInt,
-  sequenceType: SequenceType,
   inst:         InstrumentSystem[F],
-//  insSpecs:     InstrumentSpecifics,
   otherSys:     List[System[F]],
   headers:      HeaderExtraData => List[Header[F]],
   ctx:          HeaderExtraData

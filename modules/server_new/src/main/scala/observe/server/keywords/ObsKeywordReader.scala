@@ -8,6 +8,7 @@ import cats.syntax.all.*
 import lucuma.core.enums.{GuideState, Site}
 import lucuma.core.model.sequence.{Step as OcsStep, StepConfig}
 import lucuma.core.enums.GuideState.{Disabled, Enabled}
+import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.{ElevationRange, TimingWindowEnd, TimingWindowRepeat}
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
@@ -78,7 +79,7 @@ final case class TimingWindowKeywords(
 )
 
 object ObsKeywordReader extends ObsKeywordsReaderConstants {
-  def apply[F[_]: Sync, D <: Dynamic](
+  def apply[F[_]: Sync, D <: DynamicConfig](
     obsCfg: Observation,
     step:   OcsStep[D],
     site:   Site

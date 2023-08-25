@@ -151,7 +151,8 @@ object TestCommon {
     Some("127.0.0.1"),
     0,
     3.seconds,
-    10.seconds
+    10.seconds,
+    32
   )
 
   def configure[F[_]: Applicative](resource: Resource): F[Result] =

@@ -138,36 +138,36 @@ object Gems {
     )
 
   def fromConfig[F[_]: MonadThrow: Logger](
+    c:             GemsController[F],
     guideConfigDb: GuideConfigDb[F],
     obsCfg:        Observation
-  ): F[GemsController[F] => Gems[F]] =
-    for {
-      p1    <- none[GuideState].pure[F]
-      oi    <- none[GuideState].pure[F]
-      cwfs1 <- none[GuideState].pure[F]
-      cwfs2 <- none[GuideState].pure[F]
-      cwfs3 <- none[GuideState].pure[F]
-      odgw1 <- none[GuideState].pure[F]
-      odgw2 <- none[GuideState].pure[F]
-      odgw3 <- none[GuideState].pure[F]
-      odgw4 <- none[GuideState].pure[F]
-    } yield { (c: GemsController[F]) =>
-      new GemsImpl[F](
-        c,
-        GemsController.GemsOn(
-          Cwfs1Usage.fromBoolean(cwfs1.exists(_ === GuideState.Enabled)),
-          Cwfs2Usage.fromBoolean(cwfs2.exists(_ === GuideState.Enabled)),
-          Cwfs3Usage.fromBoolean(cwfs3.exists(_ === GuideState.Enabled)),
-          Odgw1Usage.fromBoolean(odgw1.exists(_ === GuideState.Enabled)),
-          Odgw2Usage.fromBoolean(odgw2.exists(_ === GuideState.Enabled)),
-          Odgw3Usage.fromBoolean(odgw3.exists(_ === GuideState.Enabled)),
-          Odgw4Usage.fromBoolean(odgw4.exists(_ === GuideState.Enabled)),
-          P1Usage.fromBoolean(p1.exists(_ === GuideState.Enabled)),
-          OIUsage.fromBoolean(oi.exists(_ === GuideState.Enabled))
-        ),
-        guideConfigDb
-      ): Gems[F]
-    }
+  ): Gems[F] = {
+    val p1    = none[GuideState]
+    val oi    = none[GuideState]
+    val cwfs1 = none[GuideState]
+    val cwfs2 = none[GuideState]
+    val cwfs3 = none[GuideState]
+    val odgw1 = none[GuideState]
+    val odgw2 = none[GuideState]
+    val odgw3 = none[GuideState]
+    val odgw4 = none[GuideState]
+
+    new GemsImpl[F](
+      c,
+      GemsController.GemsOn(
+        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === GuideState.Enabled)),
+        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === GuideState.Enabled)),
+        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === GuideState.Enabled)),
+        Odgw1Usage.fromBoolean(odgw1.exists(_ === GuideState.Enabled)),
+        Odgw2Usage.fromBoolean(odgw2.exists(_ === GuideState.Enabled)),
+        Odgw3Usage.fromBoolean(odgw3.exists(_ === GuideState.Enabled)),
+        Odgw4Usage.fromBoolean(odgw4.exists(_ === GuideState.Enabled)),
+        P1Usage.fromBoolean(p1.exists(_ === GuideState.Enabled)),
+        OIUsage.fromBoolean(oi.exists(_ === GuideState.Enabled))
+      ),
+      guideConfigDb
+    ): Gems[F]
+  }
 
   trait DetectorStateOps[T] {
     val trueVal: T

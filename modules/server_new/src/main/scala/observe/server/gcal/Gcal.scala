@@ -41,26 +41,56 @@ object Gcal {
     config: StepConfig.Gcal
   ): GcalController[F] => Gcal[F] = {
 
-    val arLamp     = ArLampState(if(config.lamp.arcs.exists(_.contains(GcalArc.ArArc))) LampState.On else LampState.Off)
-    val cuarLamp   = CuArLampState(if(config.lamp.arcs.exists(_.contains(GcalArc.CuArArc))) LampState.On else LampState.Off)
-    val tharLamp   = ThArLampState(if(config.lamp.arcs.exists(_.contains(GcalArc.ThArArc))) LampState.On else LampState.Off)
-    val xeLamp     = XeLampState(if(config.lamp.arcs.exists(_.contains(GcalArc.XeArc))) LampState.On else LampState.Off)
-    val qh5WLamp   = QH5WLampState(if(config.lamp.continuum.exists(_ === GcalContinuum.QuartzHalogen5W)) LampState.On else LampState.Off)
-    val qh100WLamp = QH100WLampState(if(config.lamp.continuum.exists(_ === GcalContinuum.QuartzHalogen100W)) LampState.On else LampState.Off)
-    val irLampCP   = config.lamp.continuum.filter(x => x === GcalContinuum.IrGreyBodyHigh || x === GcalContinuum.IrGreyBodyLow).as(LampState.On)
-    val irLampMK   = config.lamp.continuum.collect{
-      case GcalContinuum.IrGreyBodyLow => LampState.Off
+    val arLamp     = ArLampState(
+      if (config.lamp.arcs.exists(_.contains(GcalArc.ArArc))) LampState.On else LampState.Off
+    )
+    val cuarLamp   = CuArLampState(
+      if (config.lamp.arcs.exists(_.contains(GcalArc.CuArArc))) LampState.On else LampState.Off
+    )
+    val tharLamp   = ThArLampState(
+      if (config.lamp.arcs.exists(_.contains(GcalArc.ThArArc))) LampState.On else LampState.Off
+    )
+    val xeLamp     = XeLampState(
+      if (config.lamp.arcs.exists(_.contains(GcalArc.XeArc))) LampState.On else LampState.Off
+    )
+    val qh5WLamp   = QH5WLampState(
+      if (config.lamp.continuum.exists(_ === GcalContinuum.QuartzHalogen5W)) LampState.On
+      else LampState.Off
+    )
+    val qh100WLamp = QH100WLampState(
+      if (config.lamp.continuum.exists(_ === GcalContinuum.QuartzHalogen100W)) LampState.On
+      else LampState.Off
+    )
+    val irLampCP   = config.lamp.continuum
+      .filter(x => x === GcalContinuum.IrGreyBodyHigh || x === GcalContinuum.IrGreyBodyLow)
+      .as(LampState.On)
+    val irLampMK   = config.lamp.continuum.collect {
+      case GcalContinuum.IrGreyBodyLow  => LampState.Off
       case GcalContinuum.IrGreyBodyHigh => LampState.On
     }
-    val irLamp = (if (isCP) irLampCP else irLampMK).map(IrLampState.apply)
+    val irLamp     = (if (isCP) irLampCP else irLampMK).map(IrLampState.apply)
     val shutter    = config.shutter
     val filter     = config.filter
     val diffuser   = config.diffuser
 
     (controller: GcalController[F]) =>
-      new Gcal[F](controller,
-                  if (config.lamp.continuum.isEmpty && config.lamp.arcs.isEmpty && shutter === GcalShutter.Closed) GcalConfig.GcalOff
-                  else GcalConfig.GcalOn(arLamp, cuarLamp, qh5WLamp, qh100WLamp, tharLamp, xeLamp, irLamp, shutter, filter, diffuser)
+      new Gcal[F](
+        controller,
+        if (
+          config.lamp.continuum.isEmpty && config.lamp.arcs.isEmpty && shutter === GcalShutter.Closed
+        ) GcalConfig.GcalOff
+        else
+          GcalConfig.GcalOn(arLamp,
+                            cuarLamp,
+                            qh5WLamp,
+                            qh100WLamp,
+                            tharLamp,
+                            xeLamp,
+                            irLamp,
+                            shutter,
+                            filter,
+                            diffuser
+          )
       )
   }
 

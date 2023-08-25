@@ -29,7 +29,6 @@ import observe.model.enums.Resource
  */
 final case class SequenceGen[F[_]](
   id:         Observation.Id,
-  name:       Observation.Name,
   title:      String,
   instrument: Instrument,
   staticCfg:  StaticConfig,

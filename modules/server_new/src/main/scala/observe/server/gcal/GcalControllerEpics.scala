@@ -25,7 +25,6 @@ object GcalControllerEpics {
     EncodeEpicsValue {
       case LampState.Off => BinaryOnOff.OFF
       case LampState.On  => BinaryOnOff.ON
-      case _             => sys.error("Cannot happen")
     }
 
   implicit private val encodeShutter: EncodeEpicsValue[Shutter, String] = EncodeEpicsValue {

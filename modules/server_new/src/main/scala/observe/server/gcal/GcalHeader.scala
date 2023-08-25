@@ -12,7 +12,7 @@ import observe.model.dhs.ImageFileId
 import observe.server.keywords.*
 
 object GcalHeader {
-  def header[F[_]:Sync: Logger](
+  def header[F[_]: Sync: Logger](
     kwClient:   KeywordsClient[F],
     gcalReader: GcalKeywordReader[F]
   ): Header[F] =

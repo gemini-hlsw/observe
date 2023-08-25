@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gsaoi
@@ -6,16 +6,16 @@ package observe.server.gsaoi
 import cats.Applicative
 import cats.effect.Async
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
-import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.Progress
-import observe.server.gsaoi.GsaoiController.DCConfig
-import observe.server.gsaoi.GsaoiController.GsaoiConfig
+import observe.server.{InstrumentControllerSim, Progress}
+import observe.server.gsaoi.GsaoiController.{DCConfig, GsaoiConfig}
+import org.typelevel.log4cats.Logger
 import squants.Time
 import squants.time.TimeConversions.*
+
+import scala.concurrent.duration.*
 
 object GsaoiControllerSim {
   def apply[F[_]: Logger: Async]: F[GsaoiFullHandler[F]] =
@@ -23,9 +23,7 @@ object GsaoiControllerSim {
       new GsaoiFullHandler[F] {
 
         override def observe(fileId: ImageFileId, cfg: DCConfig): F[ObserveCommandResult] =
-          calcTotalExposureTime(cfg).flatMap {
-            sim.observe(fileId, _)
-          }
+          sim.observe(fileId, calcTotalExposureTime(cfg))
 
         override def applyConfig(config: GsaoiConfig): F[Unit] =
           sim.applyConfig(config)
@@ -36,8 +34,8 @@ object GsaoiControllerSim {
 
         override def endObserve: F[Unit] = sim.endObserve
 
-        override def observeProgress(total: Time): fs2.Stream[F, Progress] =
-          sim.observeCountdown(total, ElapsedTime(0.seconds))
+        override def observeProgress(total: FiniteDuration): fs2.Stream[F, Progress] =
+          sim.observeCountdown(total, ElapsedTime(Duration.Zero))
 
         override def currentState: F[GsaoiGuider.GuideState] = (new GsaoiGuider.GuideState {
           override def isGuideActive: Boolean = false
