@@ -479,9 +479,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val config = baseConfig.copy(
-      tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
-      ),
+      tc = baseConfig.tc
+        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
@@ -631,9 +630,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
     val config = baseConfig.copy(
-      tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
-      ),
+      tc = baseConfig.tc
+        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
@@ -784,9 +782,8 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
     val config = baseConfig.copy(
-      tc = baseConfig.tc.copy(offsetA =
-        InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some
-      ),
+      tc = baseConfig.tc
+        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),

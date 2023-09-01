@@ -64,8 +64,8 @@ object actions {
 
   // Action to select a sequenc
   final case class RequestRun(s: Observation.Id, options: RunOptions)        extends Action
-  final case class RequestSync(s: Observation.Id)                        extends Action
-  final case class RequestPause(s: Observation.Id)                       extends Action
+  final case class RequestSync(s: Observation.Id)                            extends Action
+  final case class RequestPause(s: Observation.Id)                           extends Action
   final case class RequestCancelPause(s: Observation.Id)                     extends Action
   final case class RequestAbort(id: Observation.Id, step: StepId)            extends Action
   final case class RequestStop(id: Observation.Id, step: StepId)             extends Action
@@ -100,13 +100,13 @@ object actions {
   final case class RunFromFailed(id: Observation.Id, step: StepId)                   extends Action
 
   final case class RunStarted(s: Observation.Id)                extends Action
-  final case class RunPaused(s: Observation.Id)             extends Action
+  final case class RunPaused(s: Observation.Id)                 extends Action
   final case class RunCancelPaused(s: Observation.Id)           extends Action
-  final case class RunSync(s: Observation.Id)               extends Action
+  final case class RunSync(s: Observation.Id)                   extends Action
   final case class RunStartFailed(s: Observation.Id)            extends Action
-  final case class RunPauseFailed(s: Observation.Id)        extends Action
+  final case class RunPauseFailed(s: Observation.Id)            extends Action
   final case class RunCancelPauseFailed(s: Observation.Id)      extends Action
-  final case class RunSyncFailed(s: Observation.Id)         extends Action
+  final case class RunSyncFailed(s: Observation.Id)             extends Action
   final case class RunStop(s: Observation.Id)                   extends Action
   final case class RunGracefulStop(s: Observation.Id)           extends Action
   final case class RunStopCompleted(s: Observation.Id)          extends Action
@@ -130,26 +130,26 @@ object actions {
   final case class ClearResourceOperations(s: Observation.Id, r: Resource) extends Action
 
   // Queue actions
-  final case class RequestAllSelectedSequences(qid: QueueId)                      extends Action
-  final case class AllDayCalCompleted(qid: QueueId)                               extends Action
-  final case class AllDayCalFailed(qid: QueueId)                                  extends Action
-  final case class RequestClearAllCal(qid: QueueId)                               extends Action
-  final case class ClearAllCalCompleted(qid: QueueId)                             extends Action
-  final case class ClearAllCalFailed(qid: QueueId)                                extends Action
-  final case class RequestRunCal(qid: QueueId)                                    extends Action
-  final case class RunCalCompleted(qid: QueueId)                                  extends Action
-  final case class RunCalFailed(qid: QueueId)                                     extends Action
-  final case class RequestStopCal(qid: QueueId)                                   extends Action
-  final case class StopCalCompleted(qid: QueueId)                                 extends Action
-  final case class StopCalFailed(qid: QueueId)                                    extends Action
+  final case class RequestAllSelectedSequences(qid: QueueId)                  extends Action
+  final case class AllDayCalCompleted(qid: QueueId)                           extends Action
+  final case class AllDayCalFailed(qid: QueueId)                              extends Action
+  final case class RequestClearAllCal(qid: QueueId)                           extends Action
+  final case class ClearAllCalCompleted(qid: QueueId)                         extends Action
+  final case class ClearAllCalFailed(qid: QueueId)                            extends Action
+  final case class RequestRunCal(qid: QueueId)                                extends Action
+  final case class RunCalCompleted(qid: QueueId)                              extends Action
+  final case class RunCalFailed(qid: QueueId)                                 extends Action
+  final case class RequestStopCal(qid: QueueId)                               extends Action
+  final case class StopCalCompleted(qid: QueueId)                             extends Action
+  final case class StopCalFailed(qid: QueueId)                                extends Action
   final case class RequestRemoveSeqCal(qid: QueueId, id: Observation.Id)      extends Action
-  final case class RequestAddSeqCal(qid: QueueId, id: Observation.Id)             extends Action
-  final case class RemoveSeqCalCompleted(qid: QueueId)                            extends Action
+  final case class RequestAddSeqCal(qid: QueueId, id: Observation.Id)         extends Action
+  final case class RemoveSeqCalCompleted(qid: QueueId)                        extends Action
   final case class RemoveSeqCalFailed(qid: QueueId, id: Observation.Id)       extends Action
   final case class RequestMoveCal(qid: QueueId, id: Observation.Id, pos: Int) extends Action
-  final case class MoveCalCompleted(qid: QueueId)                                 extends Action
+  final case class MoveCalCompleted(qid: QueueId)                             extends Action
   final case class MoveCalFailed(qid: QueueId, id: Observation.Id)            extends Action
-  final case class ClearLastQueueOp(qid: QueueId)                                 extends Action
+  final case class ClearLastQueueOp(qid: QueueId)                             extends Action
 
   final case class AppendToLog(l: ServerLogMessage) extends Action
   final case object ToggleLogArea                   extends Action
@@ -191,7 +191,7 @@ object actions {
       extends Action
   final case class LoadSequence(observer: Observer, i: Instrument, id: Observation.Id)
       extends Action
-  final case class SequenceLoadFailed(id: Observation.Id)                extends Action
+  final case class SequenceLoadFailed(id: Observation.Id)                    extends Action
   final case class RequestFailedNotification(r: RequestFailed)               extends Action
   case object CleanSequences                                                 extends Action
 

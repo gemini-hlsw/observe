@@ -33,7 +33,7 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueueFocus])
       )
       updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
                   case s if s.obsId === sequenceId.id => s.flipSkipMarkAtStep(step)
-                  case s                                  => s
+                  case s                              => s
                 }),
                 skipRequest
       )
@@ -46,7 +46,7 @@ class SequenceExecutionHandler[M](modelRW: ModelRW[M, SequencesQueueFocus])
       )
       updatedLE(SequencesQueueFocus.sessionQueue.modify(_.collect {
                   case s if s.obsId === sequenceId.id => s.flipBreakpointAtStep(step)
-                  case s                                  => s
+                  case s                              => s
                 }),
                 breakpointRequest
       )

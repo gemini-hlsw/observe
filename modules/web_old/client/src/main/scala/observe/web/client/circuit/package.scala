@@ -179,7 +179,7 @@ package circuit {
   }
 
   final case class ControlModel(
-    obsId:              Observation.Id,
+    obsId:               Observation.Id,
     isPartiallyExecuted: Boolean,
     nextStepToRunIndex:  Option[Int],
     status:              SequenceState,

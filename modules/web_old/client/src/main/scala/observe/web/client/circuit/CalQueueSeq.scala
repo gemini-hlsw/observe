@@ -35,7 +35,7 @@ object CalQueueSeq {
     (Getter(sidO.headOption)
       .zip(Getter(siO.headOption).zip(Getter(siS.headOption)))) >>> {
       case (Some(obsId), (Some(i), Some(s))) => CalQueueSeq(obsId, i, s).some
-      case _                                  => none
+      case _                                 => none
     }
   }
 }
