@@ -62,19 +62,19 @@ object SessionQueue:
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
-        case SequenceState.Completed     => Icons.Check // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _) => Icons.CircleNotch.withSpin(true)
+        case SequenceState.Completed           => Icons.Check // clazz = selectedIconStyle)
+        case SequenceState.Running(_, _, _, _) => Icons.CircleNotch.withSpin(true)
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
-        case SequenceState.Failed(_)     => EmptyVdom
+        case SequenceState.Failed(_)           => EmptyVdom
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused              =>             // EmptyVdom
+        case _ if isFocused                    =>             // EmptyVdom
           Icons.CircleCheck.copy(size = IconSize.LG)
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
-        case _                           => EmptyVdom
+        case _                                 => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,

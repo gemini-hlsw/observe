@@ -5,7 +5,7 @@ package observe.ui
 
 import lucuma.react.common.style.Css
 
-object ObserveStyles {
+object ObserveStyles:
   val MainUI: Css = Css("ObserveStyles-mainUI")
 
   val Centered: Css       = Css("ObserveStyles-centered")
@@ -27,6 +27,8 @@ object ObserveStyles {
 
   val ObserveTable: Css = Css("ObserveStyles-observeTable")
 
+  val RowIdle: Css     = Css("ObserveStyles-rowIdle")
+  val RowRunning: Css  = Css("ObserveStyles-rowRunning")
   val RowPositive: Css = Css("ObserveStyles-rowPositive")
   val RowWarning: Css  = Css("ObserveStyles-rowWarning")
   val RowActive: Css   = Css("ObserveStyles-rowActive")
@@ -34,7 +36,6 @@ object ObserveStyles {
   val RowError: Css    = Css("ObserveStyles-rowError")
   val RowDisabled: Css = Css("ObserveStyles-rowDisabled")
   val RowDone: Css     = Css("ObserveStyles-rowDone")
-  val RowNone: Css     = Css.Empty
 
   val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
   val SessionTable: Css   = Css("ObserveStyles-sessionTable")
@@ -60,14 +61,12 @@ object ObserveStyles {
   val StepRowDone: Css           = Css("ObserveStyles-stepRowDone")
   val StepRowWithBreakpoint: Css = Css("ObserveStyles-stepRowWithBreakpoint")
 
-  val ObservationProgressBarAndLabel: Css = Css("ObserveStyles-observationProgressBarAndLabel")
-  val ObservationProgressBar: Css         = Css("ObserveStyles-observationProgressBar")
-  val ObservationProgressLabel: Css       = Css("ObserveStyles-observationProgressLabel")
-  val ControlButtonStrip: Css             = Css("ObserveStyles-controlButtonStrip")
-  val PauseButton: Css                    = Css("ObserveStyles-pauseButton")
-  val StopButton: Css                     = Css("ObserveStyles-stopButton")
-  val PlayButton: Css                     = Css("ObserveStyles-playButton")
-  val AbortButton: Css                    = Css("ObserveStyles-abortButton")
+  val ObservationProgressBar: Css = Css("ObserveStyles-observationProgressBar")
+  val ControlButtonStrip: Css     = Css("ObserveStyles-controlButtonStrip")
+  val PauseButton: Css            = Css("ObserveStyles-pauseButton")
+  val StopButton: Css             = Css("ObserveStyles-stopButton")
+  val PlayButton: Css             = Css("ObserveStyles-playButton")
+  val AbortButton: Css            = Css("ObserveStyles-abortButton")
 
   val GuidingCell: Css     = Css("ObserveStyles-guidingCell")
   val OffsetsBlock: Css    = Css("ObserveStyles-offsetsBlock")
@@ -87,14 +86,17 @@ object ObserveStyles {
   val StepTypeNodAndShuffle: Css     = Css("ObserveStyles-stepTypeNodAndShuffle")
   val StepTypeNodAndShuffleDark: Css = Css("ObserveStyles-stepTypeNodAndShuffleDark")
 
-  val BreakpointTableHeader: Css = Css("ObserveStyles-breakpointTableHeader")
-  val BreakpointTableCell: Css   = Css("ObserveStyles-breakpointTableCell")
-  val SkipTableCell: Css         = Css("ObserveStyles-skipTableCell")
-  val SkippedIconCell: Css       = Css("ObserveStyles-skippedIconCell")
-  val IconCell: Css              = Css("ObserveStyles-iconCell")
+  val BreakpointTableHeader: Css      = Css("ObserveStyles-breakpointTableHeader")
+  val RunningStateTableHeader: Css    = Css("ObserveStyles-runningStateTableHeader")
+  val BreakpointTableCell: Css        = Css("ObserveStyles-breakpointTableCell")
+  val RunningStateTableCellShown: Css = Css("ObserveStyles-runningStateTableCell-shown")
 
   val BreakpointHandle: Css = Css("ObserveStyles-breakpointHandle")
   val BreakpointIcon: Css   = Css("ObserveStyles-breakpointIcon")
+  val ActiveBreakpoint: Css = Css("ObserveStyles-activeBreakpoint")
   val SkipHandle: Css       = Css("ObserveStyles-skipHandle")
   val SkipIconSet: Css      = Css("ObserveStyles-skipIconSet")
-}
+
+  val DefaultCursor: Css     = Css("ObserveStyles-defaultCursor")
+  val ConfigButtonStrip: Css = Css("ObserveStyles-configButtonStrip")
+  val ConfigButton: Css      = Css("ObserveStyles-configButton")

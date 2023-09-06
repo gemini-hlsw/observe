@@ -16,9 +16,12 @@ trait ProgressLabel:
     stage:           ObservationStage
   ): String = {
     val durationStr = remainingMillis.foldMap { millis =>
+      // s"mm:ss (s s) Remaining"
+
       val remainingSecs = millis / 1000
-      val remainingStr  = if (remainingSecs > 1) s"$remainingSecs seconds" else "1 second"
-      s" - $remainingStr left"
+      val remainingMins = remainingSecs / 60
+      val secsRemainder = remainingSecs % 60
+      f"$remainingMins:$secsRemainder%02d ($remainingSecs s) Remaining"
     }
     val stageStr    =
       stage match {

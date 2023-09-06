@@ -45,56 +45,60 @@ object ObservationProgressBar extends ProgressLabel:
           obsId = Observation.Id.fromLong(133742).get,
           obsName = "Test observation",
           stepId = Step.Id.fromUuid(UUID.randomUUID),
-          total = Duration.ofSeconds(300),
-          remaining = Duration.ofSeconds(210),
+          total = Duration.ofSeconds(1200),
+          remaining = Duration.ofSeconds(932),
           stage = ObservationStage.Acquiring
         )
         .ready
     )
     .render((props, progress) =>
-      <.div(ObserveStyles.ObservationProgressBarAndLabel)(
-        // ObserveStyles.ObservationProgressRow,
-        progress.value.toOption match
-          case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
-            // TODO Smooth Progress Bar
-            // val remainingMillis = p.maxValue - s.value
+      progress.value.toOption match
+        case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
+          // TODO Smooth Progress Bar
+          // val remainingMillis = p.maxValue - s.value
 
-            val totalMillis     = total.toMillis.toInt
-            val remainingMillis = remaining.toMillis.toInt
+          val totalMillis     = total.toMillis.toInt
+          val remainingMillis = remaining.toMillis.toInt
 
-            val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
+          val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 
-            React.Fragment(
-              ProgressBar(
-                value = progress.toInt,
-                showValue = false,
-                clazz = ObserveStyles.ObservationProgressBar
-              ),
-              <.div(ObserveStyles.ObservationProgressLabel)(
-                renderLabel(props.fileId, remainingMillis.some, props.stopping, props.paused, stage)
+          ProgressBar(
+            value = progress.toInt,
+            clazz = ObserveStyles.ObservationProgressBar,
+            displayValueTemplate = _ =>
+              // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
+              // Achieved by rendering the 3 divs inside a space-between flexbox.
+              React.Fragment(
+                <.div,
+                <.div(
+                  renderLabel(
+                    props.fileId,
+                    remainingMillis.some,
+                    props.stopping,
+                    props.paused,
+                    stage
+                  )
+                ),
+                <.div
               )
-            )
+          )
 
-          // SmoothObservationProgressBar(
-          //   p.fileId,
-          //   total.toMilliseconds.toInt,
-          //   total.toMilliseconds.toInt - max(0, remaining.toMilliseconds.toInt),
-          //   p.stopping,
-          //   p.paused,
-          //   stage
-          // )
-          case _ =>
-            val msg = if (props.paused) s"${props.fileId.value} - Paused" else props.fileId.value
+        // SmoothObservationProgressBar(
+        //   p.fileId,
+        //   total.toMilliseconds.toInt,
+        //   total.toMilliseconds.toInt - max(0, remaining.toMilliseconds.toInt),
+        //   p.stopping,
+        //   p.paused,
+        //   stage
+        // )
+        case _ =>
+          val msg = if (props.paused) s"${props.fileId.value} - Paused" else props.fileId.value
 
-            React.Fragment(
-              ProgressBar(
-                value = 100,
-                showValue = false,
-                clazz = ObserveStyles.ObservationProgressBar
-              ),
-              <.div(ObserveStyles.ObservationProgressLabel)(
-                msg
-              )
+          React.Fragment(
+            ProgressBar(
+              value = 100,
+              clazz = ObserveStyles.ObservationProgressBar,
+              displayValueTemplate = _ => msg
             )
-      )
+          )
     )
