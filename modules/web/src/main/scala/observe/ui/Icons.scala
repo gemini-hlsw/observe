@@ -46,6 +46,10 @@ object Icons:
   private val faCircleExclamation: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleInfo")
+  val faCircleInfo: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleMinus")
   private val faCircleMinus: FAIcon = js.native
 
@@ -118,6 +122,7 @@ object Icons:
     faCircleCheck,
     faCircleDot,
     faCircleExclamation,
+    faCircleInfo,
     faCircleMinus,
     faCircleNotch,
     faCircleSolid,
@@ -144,6 +149,7 @@ object Icons:
   inline def CircleCheck       = FontAwesomeIcon(faCircleCheck)
   inline def CircleDot         = FontAwesomeIcon(faCircleDot)
   inline def CircleExclamation = FontAwesomeIcon(faCircleExclamation)
+  inline def CircleInfo        = FontAwesomeIcon(faCircleInfo)
   inline def CircleMinus       = FontAwesomeIcon(faCircleMinus)
   inline def CircleNotch       = FontAwesomeIcon(faCircleNotch).withSpin()
   inline def CircleSolid       = FontAwesomeIcon(faCircleSolid)

@@ -14,8 +14,9 @@ import japgolly.scalajs.react.feature.Context
 import lucuma.schemas.ObservationDB
 import lucuma.ui.sso.SSOClient
 import org.typelevel.log4cats.Logger
+import eu.timepit.refined.types.string.NonEmptyString
 
-case class AppContext[F[_]: FlatMap](ssoClient: SSOClient[F])(using
+case class AppContext[F[_]: FlatMap](version: NonEmptyString, ssoClient: SSOClient[F])(using
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
@@ -27,3 +28,26 @@ case class AppContext[F[_]: FlatMap](ssoClient: SSOClient[F])(using
 
 object AppContext:
   val ctx: Context[AppContext[IO]] = React.createContext(null) // No default value
+
+  import lucuma.ui.utils.versionDateTimeFormatter
+  import lucuma.ui.utils.versionDateFormatter
+  import lucuma.ui.enums.ExecutionEnvironment
+  import java.time.Instant
+
+  val gitHash = BuildInfo.gitHeadCommit
+
+  def version(environment: ExecutionEnvironment): NonEmptyString = {
+    val instant = Instant.ofEpochMilli(BuildInfo.buildDateTime)
+    NonEmptyString.unsafeFrom(
+      (environment match
+        case ExecutionEnvironment.Development =>
+          versionDateTimeFormatter.format(instant)
+        case _                                =>
+          versionDateFormatter.format(instant) +
+            "-" + gitHash.map(_.take(7)).getOrElse("NONE")
+      )
+        + environment.suffix
+          .map(suffix => s"-$suffix")
+          .orEmpty
+    )
+  }

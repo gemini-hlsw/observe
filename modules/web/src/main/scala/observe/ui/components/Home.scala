@@ -27,6 +27,7 @@ import lucuma.react.primereact.*
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
+import lucuma.ui.hooks.*
 import observe.model.ClientStatus
 import observe.model.ExecutionState
 import observe.model.Observer
@@ -49,6 +50,7 @@ import observe.ui.model.enums.ObsClass
 import scala.collection.immutable.SortedMap
 
 import sequence.{GmosNorthSequenceTables, GmosSouthSequenceTables}
+import lucuma.ui.sso.UserVault
 
 case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 
@@ -146,7 +148,8 @@ object Home:
 
           executionState.set(ExecutionState(sequenceState, configState, initialBreakpoints))
       )
-      .render: (props, ctx, observations, selectedObsId, config, executionState) =>
+      .useTheme()
+      .render: (props, ctx, observations, selectedObsId, config, executionState, theme) =>
         import ctx.given
 
         // TODO: Notify server of breakpoint changes
@@ -166,122 +169,126 @@ object Home:
                 ResourceRunOperation.fromActionStatus(stepId)(status).map(resource -> _)
             )
 
-        props.rootModel.get.userVault.map: userVault =>
-          <.div(ObserveStyles.MainUI)(
-            Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
-              "Observe GS"
-            ),
-            Splitter(
-              layout = Layout.Vertical,
-              stateKey = "main-splitter",
-              stateStorage = StateStorage.Local,
-              clazz = ObserveStyles.Shrinkable
-            )(
-              SplitterPanel():
-                Splitter(
-                  stateKey = "top-splitter",
-                  stateStorage = StateStorage.Local,
-                  clazz = ObserveStyles.TopPanel
-                )(
-                  SplitterPanel(size = 80)(
-                    observations.toPot.renderPot(SessionQueue(_, selectedObsId))
-                  ),
-                  SplitterPanel()(
-                    HeadersSideBar(
-                      props.rootModel.get.status,
-                      props.rootModel.get.operator,
-                      props.rootModel.zoom(RootModel.conditions)
+        props.rootModel
+          .zoom(RootModel.userVault)
+          .mapValue: (userVault: View[UserVault]) =>
+            // props.rootModel.get.userVault.map: userVault =>
+            <.div(ObserveStyles.MainUI)(
+              TopBar(userVault, theme, IO.unit),
+              // Divider(position = Divider.Position.HorizontalCenter, clazz = ObserveStyles.Divider)(
+              //   "Observe GS"
+              // ),
+              Splitter(
+                layout = Layout.Vertical,
+                stateKey = "main-splitter",
+                stateStorage = StateStorage.Local,
+                clazz = ObserveStyles.Shrinkable
+              )(
+                SplitterPanel():
+                  Splitter(
+                    stateKey = "top-splitter",
+                    stateStorage = StateStorage.Local,
+                    clazz = ObserveStyles.TopPanel
+                  )(
+                    SplitterPanel(size = 80)(
+                      observations.toPot.renderPot(SessionQueue(_, selectedObsId))
+                    ),
+                    SplitterPanel()(
+                      HeadersSideBar(
+                        props.rootModel.get.status,
+                        props.rootModel.get.operator,
+                        props.rootModel.zoom(RootModel.conditions)
+                      )
                     )
                   )
-                )
-              ,
-              SplitterPanel():
-                TabView(
-                  clazz = ObserveStyles.SequenceTabView,
-                  activeIndex = 1,
-                  panels = List(
-                    TabPanel(
-                      clazz = ObserveStyles.SequenceTabPanel,
-                      header = React.Fragment(
-                        <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
-                        Tag(
-                          clazz = ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag,
-                          icon = Icons.CircleDot,
-                          value = "Idle"
-                        )
-                      )
-                    )(
-                    )
-                  ) ++
-                    (observations.toOption, selectedObsId.get).flatMapN: (obsRows, obsId) =>
-                      obsRows
-                        .find(_.obsId === obsId)
-                        .map(obs =>
-                          TabPanel(
-                            clazz = ObserveStyles.SequenceTabPanel,
-                            header = React.Fragment(
-                              <.span(
-                                ObserveStyles.ActiveInstrumentLabel,
-                                obs.instrument.shortName
-                              ),
-                              Tag(
-                                clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
-                                icon = Icons.CircleNotch.withSpin(true),
-                                value = obsId.shortName
-                                // s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
-                              )
-                            )
-                          )(
-                            config
-                              .map(_.toPot)
-                              .flatten
-                              .renderPot:
-                                case InstrumentExecutionConfig.GmosNorth(config) =>
-                                  GmosNorthSequenceTables(
-                                    clientStatus,
-                                    obsId,
-                                    config,
-                                    executionState.get,
-                                    tabOperations(config),
-                                    isPreview = false,
-                                    flipBreakPoint
-                                  ) // TODO isPreview
-                                    .withKey(obsId.toString)
-                                case InstrumentExecutionConfig.GmosSouth(config) =>
-                                  GmosSouthSequenceTables(
-                                    clientStatus,
-                                    obsId,
-                                    config,
-                                    executionState.get,
-                                    tabOperations(config),
-                                    isPreview = false,
-                                    flipBreakPoint
-                                  )
-                                    .withKey(obsId.toString)
+                ,
+                SplitterPanel():
+                  TabView(
+                    clazz = ObserveStyles.SequenceTabView,
+                    activeIndex = 1,
+                    panels = List(
+                      TabPanel(
+                        clazz = ObserveStyles.SequenceTabPanel,
+                        header = React.Fragment(
+                          <.span(ObserveStyles.ActiveInstrumentLabel, "Daytime Queue"),
+                          Tag(
+                            clazz = ObserveStyles.LabelPointer |+| ObserveStyles.IdleTag,
+                            icon = Icons.CircleDot,
+                            value = "Idle"
                           )
                         )
-                )
-            ),
-            Accordion(tabs =
-              List(
-                AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
-                  <.div(^.height := "200px")
-                )
-              )
-            ),
-            Toolbar(
-              clazz = ObserveStyles.Footer,
-              left = "Observe - GS",
-              right = React
-                .Fragment(
-                  userVault.user.displayName,
-                  ThemeSelector(),
-                  Button(
-                    "Logout",
-                    onClick = ctx.ssoClient.logout.runAsync >>
-                      props.rootModel.zoom(RootModel.userVault).set(none)
+                      )(
+                      )
+                    ) ++
+                      (observations.toOption, selectedObsId.get).flatMapN: (obsRows, obsId) =>
+                        obsRows
+                          .find(_.obsId === obsId)
+                          .map(obs =>
+                            TabPanel(
+                              clazz = ObserveStyles.SequenceTabPanel,
+                              header = React.Fragment(
+                                <.span(
+                                  ObserveStyles.ActiveInstrumentLabel,
+                                  obs.instrument.shortName
+                                ),
+                                Tag(
+                                  clazz = ObserveStyles.LabelPointer |+| ObserveStyles.RunningTag,
+                                  icon = Icons.CircleNotch.withSpin(true),
+                                  value = obsId.shortName
+                                  // s"${Observation.Id.fromLong(133742).get.shortName} - 3/${observe.demo.DemoExecutionSteps.length}"
+                                )
+                              )
+                            )(
+                              config
+                                .map(_.toPot)
+                                .flatten
+                                .renderPot:
+                                  case InstrumentExecutionConfig.GmosNorth(config) =>
+                                    GmosNorthSequenceTables(
+                                      clientStatus,
+                                      obsId,
+                                      config,
+                                      executionState.get,
+                                      tabOperations(config),
+                                      isPreview = false,
+                                      flipBreakPoint
+                                    ) // TODO isPreview
+                                      .withKey(obsId.toString)
+                                  case InstrumentExecutionConfig.GmosSouth(config) =>
+                                    GmosSouthSequenceTables(
+                                      clientStatus,
+                                      obsId,
+                                      config,
+                                      executionState.get,
+                                      tabOperations(config),
+                                      isPreview = false,
+                                      flipBreakPoint
+                                    )
+                                      .withKey(obsId.toString)
+                            )
+                          )
+                  )
+              ),
+              Accordion(tabs =
+                List(
+                  AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
+                    <.div(^.height := "200px")
                   )
                 )
-                .rawElement
+              )
+              // Toolbar(
+              //   clazz = ObserveStyles.Footer,
+              //   left = "Observe - GS",
+              //   right = React
+              //     .Fragment(
+              //       userVault.user.displayName,
+              //       ThemeSelector(),
+              //       Button(
+              //         "Logout",
+              //         onClick = ctx.ssoClient.logout.runAsync >>
+              //           props.rootModel.zoom(RootModel.userVault).set(none)
+              //       )
+              //     )
+              //     .rawElement
+              // )
             )
-          )

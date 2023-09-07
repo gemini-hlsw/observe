@@ -20,7 +20,6 @@ import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.schemas.ObservationDB
-import lucuma.ui.enums.Theme
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
@@ -132,7 +131,6 @@ object Main:
 
   private def run: IO[Unit] =
     (for
-      _   <- Resource.eval(Theme.Light.setup[IO]) // Theme.init[IO] (starts in Dark mode)
       ctx <- buildContext
       _   <- Resource.eval(buildPage(ctx))
     yield ()).useForever
