@@ -8,15 +8,28 @@ import cats.effect.IO
 import cats.syntax.all.*
 import clue.js.WebSocketJSClient
 import clue.websocket.CloseParams
+import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Json
+import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.React
+import japgolly.scalajs.react.extra.router.SetRouteVia
 import japgolly.scalajs.react.feature.Context
 import lucuma.schemas.ObservationDB
+import lucuma.ui.enums.ExecutionEnvironment
 import lucuma.ui.sso.SSOClient
+import lucuma.ui.utils.versionDateFormatter
+import lucuma.ui.utils.versionDateTimeFormatter
+import observe.ui.model.enums.AppTab
 import org.typelevel.log4cats.Logger
-import eu.timepit.refined.types.string.NonEmptyString
 
-case class AppContext[F[_]: FlatMap](version: NonEmptyString, ssoClient: SSOClient[F])(using
+import java.time.Instant
+
+case class AppContext[F[_]: FlatMap](
+  version:       NonEmptyString,
+  ssoClient:     SSOClient[F],
+  pageUrl:       AppTab => String,
+  setPageVia:    (AppTab, SetRouteVia) => Callback
+)(using
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
@@ -26,13 +39,12 @@ case class AppContext[F[_]: FlatMap](version: NonEmptyString, ssoClient: SSOClie
   val closeODBClient: F[Unit] =
     odbClient.terminate() >> odbClient.disconnect(CloseParams(code = 1000))
 
+  def pushPage(appTab: AppTab): Callback = setPageVia(appTab, SetRouteVia.HistoryPush)
+
+  def replacePage(appTab: AppTab): Callback = setPageVia(appTab, SetRouteVia.HistoryReplace)
+
 object AppContext:
   val ctx: Context[AppContext[IO]] = React.createContext(null) // No default value
-
-  import lucuma.ui.utils.versionDateTimeFormatter
-  import lucuma.ui.utils.versionDateFormatter
-  import lucuma.ui.enums.ExecutionEnvironment
-  import java.time.Instant
 
   val gitHash = BuildInfo.gitHeadCommit
 

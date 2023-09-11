@@ -20,9 +20,11 @@ import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.schemas.ObservationDB
+import lucuma.ui.enums.ExecutionEnvironment
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
+import observe.ui.model.enums.AppTab
 import org.http4s.circe.*
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.syntax.all.*
@@ -54,7 +56,7 @@ object Main:
       dom.document.body.appendChild(elem)
       elem
 
-  private val (router, _ /*routerCtl*/ ) =
+  private val (router, routerCtl) =
     RouterWithProps.componentAndCtl(BaseUrl.fromWindowOrigin, Routing.config)
 
   private val mainApp =
@@ -127,7 +129,12 @@ object Main:
               reconnectionStrategy
             )
           )
-    yield AppContext[IO](SSOClient(appConfig.sso))
+    yield AppContext[IO](
+      AppContext.version(ExecutionEnvironment.Development),
+      SSOClient(appConfig.sso),
+      (tab: AppTab) => routerCtl.urlFor(tab.getPage).value,
+      (tab: AppTab, via: SetRouteVia) => routerCtl.set(tab.getPage, via)
+    )
 
   private def run: IO[Unit] =
     (for

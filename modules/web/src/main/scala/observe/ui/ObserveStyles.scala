@@ -6,17 +6,18 @@ package observe.ui
 import lucuma.react.common.style.Css
 
 object ObserveStyles:
-  val MainUI: Css = Css("ObserveStyles-mainUI")
+
+  val LoginTitle: Css = Css("ObserveStyles-login-title")
 
   val Centered: Css       = Css("ObserveStyles-centered")
   val ComponentLabel: Css = Css("ObserveStyles-componentLabel")
   val Shrinkable: Css     = Css("ObserveStyles-shrinkable")
 
   // Prime components restyling
-  val Divider: Css          = Css("ObserveStyles-divider")
   val SequenceTabPanel: Css = Css("ObserveStyles-sequenceTabPanel")
 
   val TopPanel: Css              = Css("ObserveStyles-topPanel")
+  val MainPanel: Css             = Css("ObserveStyles-main-panel")
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
   val IdleTag: Css               = Css("ObserveStyles-idleTag")

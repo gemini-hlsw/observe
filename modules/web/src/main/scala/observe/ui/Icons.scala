@@ -14,6 +14,10 @@ object Icons:
   private val faBan: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-light-svg-icons", "faBars")
+  val faBars: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faCalendarDays")
   private val faCalendarDays: FAIcon = js.native
 
@@ -109,11 +113,10 @@ object Icons:
   @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark")
   private val faXMark: FAIcon = js.native
 
-  org.scalajs.dom.console.log(faXMark)
-
   // This is tedious but lets us do proper tree-shaking
   FontAwesome.library.add(
     faBan,
+    faBars,
     faCalendarDays,
     faCaretRight,
     faCheck,
@@ -141,6 +144,7 @@ object Icons:
   )
 
   inline def Ban               = FontAwesomeIcon(faBan)
+  inline def Bars              = FontAwesomeIcon(faBars)
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
