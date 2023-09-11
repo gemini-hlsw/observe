@@ -14,6 +14,10 @@ object Icons:
   private val faBan: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-light-svg-icons", "faBars")
+  val faBars: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faCalendarDays")
   private val faCalendarDays: FAIcon = js.native
 
@@ -44,6 +48,10 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleExclamation")
   private val faCircleExclamation: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleInfo")
+  val faCircleInfo: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleMinus")
@@ -105,11 +113,10 @@ object Icons:
   @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark")
   private val faXMark: FAIcon = js.native
 
-  org.scalajs.dom.console.log(faXMark)
-
   // This is tedious but lets us do proper tree-shaking
   FontAwesome.library.add(
     faBan,
+    faBars,
     faCalendarDays,
     faCaretRight,
     faCheck,
@@ -118,6 +125,7 @@ object Icons:
     faCircleCheck,
     faCircleDot,
     faCircleExclamation,
+    faCircleInfo,
     faCircleMinus,
     faCircleNotch,
     faCircleSolid,
@@ -136,6 +144,7 @@ object Icons:
   )
 
   inline def Ban               = FontAwesomeIcon(faBan)
+  inline def Bars              = FontAwesomeIcon(faBars)
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
@@ -144,6 +153,7 @@ object Icons:
   inline def CircleCheck       = FontAwesomeIcon(faCircleCheck)
   inline def CircleDot         = FontAwesomeIcon(faCircleDot)
   inline def CircleExclamation = FontAwesomeIcon(faCircleExclamation)
+  inline def CircleInfo        = FontAwesomeIcon(faCircleInfo)
   inline def CircleMinus       = FontAwesomeIcon(faCircleMinus)
   inline def CircleNotch       = FontAwesomeIcon(faCircleNotch).withSpin()
   inline def CircleSolid       = FontAwesomeIcon(faCircleSolid)

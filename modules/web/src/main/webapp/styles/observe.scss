@@ -1,23 +1,17 @@
+@use '/lucuma-css/lucuma-ui-common.scss' as lucumaUICommon;
+
 html {
   font-size: 14px;
   overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
-.ObserveStyles-mainUI {
-  height: 100vh;
-  width: 100vw;
-  margin-bottom: 0px;
-  margin-top: 0px;
+.ObserveStyles-main-panel {
   display: flex;
   flex-direction: column;
 }
 
-.p-divider.p-divider-horizontal {
-  &.ObserveStyles-divider {
-    margin: 0;
-    font-weight: bold;
-    font-size: 1.1rem;
-  }
+.ObserveStyles-login-title {
+  border-bottom-color: var(--yellow-300);
 }
 
 .p-tabview.ObserveStyles-sequenceTabView .p-tabview-panels {
