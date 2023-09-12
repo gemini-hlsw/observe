@@ -12,7 +12,6 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
-import lucuma.react.primereact.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
@@ -22,10 +21,8 @@ import observe.model.RunningStep
 import observe.model.enums.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.model.SessionQueueFilter
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
-import observe.ui.model.reusability.given
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)
@@ -62,19 +59,19 @@ object SessionQueue:
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
-        case SequenceState.Completed     => Icons.Check // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _) => Icons.CircleNotch.withSpin(true)
+        case SequenceState.Completed           => Icons.Check // clazz = selectedIconStyle)
+        case SequenceState.Running(_, _, _, _) => Icons.CircleNotch.withSpin(true)
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
-        case SequenceState.Failed(_)     => EmptyVdom
+        case SequenceState.Failed(_)           => EmptyVdom
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused              =>             // EmptyVdom
+        case _ if isFocused                    =>             // EmptyVdom
           Icons.CircleCheck.copy(size = IconSize.LG)
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
-        case _                           => EmptyVdom
+        case _                                 => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,
@@ -205,18 +202,15 @@ object SessionQueue:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState(SessionQueueFilter.All)
-      .useMemoBy((props, _) => props.selectedObsId.get)((_, _) => columns(_))
-      .useMemoBy((props, filter, _) => (props.queue, filter)): (_, _, _) =>
-        (queue, filter) => filter.value.filter(queue)
-      .useReactTableBy: (_, _, cols, rows) =>
+      .useMemoBy(props => props.selectedObsId.get)(_ => columns(_))
+      .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,
-          rows,
+          Reusable.implicitly(props.queue),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange
         )
-      .render: (props, filter, _, _, table) =>
+      .render: (props, _, table) =>
         <.div(ObserveStyles.SessionQueue)(
           PrimeAutoHeightVirtualizedTable(
             table,
@@ -228,15 +222,5 @@ object SessionQueue:
                 ^.onClick --> props.selectedObsId.set(row.original.obsId.some)
               ),
             overscan = 5
-          ),
-          SelectButtonOptional(
-            clazz = ObserveStyles.ObsClassSelect,
-            value = filter.value.value,
-            options = ObsClass.values.toList.map(v => SelectItem(v)),
-            itemTemplate = _.value match
-              case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
-              case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
-            ,
-            onChange = value => filter.setState(SessionQueueFilter(value))
           )
         )

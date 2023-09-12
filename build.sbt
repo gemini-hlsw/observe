@@ -33,8 +33,8 @@ inThisBuild(
   ) ++ lucumaPublishSettings
 )
 
-ThisBuild / scalaVersion       := "3.3.1-RC6"
-ThisBuild / crossScalaVersions := Seq("3.3.1-RC6")
+ThisBuild / scalaVersion       := "3.3.1"
+ThisBuild / crossScalaVersions := Seq("3.3.1")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 
 // Gemini repository
@@ -218,7 +218,7 @@ lazy val observe_web_client = project
   .in(file("modules/web"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
-  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin)
+  .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin, BuildInfoPlugin)
   .settings(
     Test / test                             := {},
     coverageEnabled                         := false,
@@ -235,7 +235,14 @@ lazy val observe_web_client = project
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
-    scalacOptions ~= (_.filterNot(Set("-Vtype-diffs")))
+    scalacOptions ~= (_.filterNot(Set("-Vtype-diffs"))),
+    buildInfoKeys    := Seq[BuildInfoKey](
+      scalaVersion,
+      sbtVersion,
+      git.gitHeadCommit,
+      "buildDateTime" -> System.currentTimeMillis()
+    ),
+    buildInfoPackage := "observe.ui"
   )
   .dependsOn(new_model.js)
 

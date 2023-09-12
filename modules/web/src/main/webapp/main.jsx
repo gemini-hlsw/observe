@@ -1,6 +1,11 @@
 import "./styles/style.scss";
+import '/lucuma-css/lucuma-ui-layout.scss';
 import '/lucuma-css/lucuma-ui-login.scss';
+import '/lucuma-css/lucuma-ui-sequence.scss';
+import '/lucuma-css/lucuma-ui-side-tabs.scss';
 import '/lucuma-css/lucuma-ui-table.scss';
+import '/lucuma-css/lucuma-ui-variables-dark.scss';
+import '/lucuma-css/lucuma-ui-variables-light.scss';
 import "primereact/resources/primereact.min.css";     // core css
 import "primeicons/primeicons.css";                   // icons
 

@@ -1,23 +1,17 @@
+@use '/lucuma-css/lucuma-ui-common.scss' as lucumaUICommon;
+
 html {
   font-size: 14px;
   overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
-.ObserveStyles-mainUI {
-  height: 100vh;
-  width: 100vw;
-  margin-bottom: 0px;
-  margin-top: 0px;
+.ObserveStyles-main-panel {
   display: flex;
   flex-direction: column;
 }
 
-.p-divider.p-divider-horizontal {
-  &.ObserveStyles-divider {
-    margin: 0;
-    font-weight: bold;
-    font-size: 1.1rem;
-  }
+.ObserveStyles-login-title {
+  border-bottom-color: var(--yellow-300);
 }
 
 .p-tabview.ObserveStyles-sequenceTabView .p-tabview-panels {
@@ -152,6 +146,23 @@ html {
   }
 }
 
+.pl-react-table.p-datatable.lucuma-sequence-table {
+  tbody {
+    .ObserveStyles-rowIdle {
+      height: 25px;
+    }
+
+    tr.ObserveStyles-rowRunning {
+      height: 60px;
+      vertical-align: top;
+
+      td:not(.ObserveStyles-breakpointTableCell){
+        padding-top: 6px;
+      }
+    }
+  }
+}
+
 // .ObserveStyles-rowPositive {
 //   background-color: @positiveBackgroundColor;
 //   color: @positiveTextColor;
@@ -279,8 +290,8 @@ html {
 
 .ObserveStyles-configuringRow {
   display: flex;
-  flex-grow: 1;
-  width: 100%;
+  padding-left: 10px;
+  padding-right: 20px;
 }
 
 // .ObserveStyles-observationProgressRow {
@@ -323,6 +334,10 @@ html {
   border-bottom-style: solid;
   border-bottom-color: var(--surface-border);
   border-bottom-width: 1px;
+
+  .ObserveStyles-stepRowWithBreakpoint {
+    border-bottom-color: var(--red-500);
+  }
 }
 
 @mixin borderAll {
@@ -335,7 +350,7 @@ html {
 .pl-react-table.p-datatable {
   &.ObserveStyles-observeTable {
     width: 100%;
-    border-collapse: separate; // Needed for header borders to behave correctly with sticky.
+    border-collapse: collapse;
 
     thead {
       z-index: 1;
@@ -377,24 +392,8 @@ html {
       // max-height: 40px !important;
       padding-top: 0;
       padding-bottom: 0;
+      // border: none;
     }
-
-    // This will go away once we have more dynamic row heights with breakpoints, etc.
-    tr.ObserveStyles-stepRowRunning {
-      height: 60px;
-      background-color: var(--active-row-background);
-    }
-
-    tr.ObserveStyles-stepRowWarning {
-      background-color: var(--active-row-background);
-    }
-
-    tr.ObserveStyles-stepRowError {
-      background-color: var(--negative-row-background);
-      color: var(--negative-row-color);
-      box-shadow: var(--negative-row-boxshadow);
-    }
-
 
     tr.ObserveStyles-stepRowDone {
       pointer-events: none;
@@ -403,8 +402,9 @@ html {
     }
 
     @mixin stepRowWithBreakpointCell {
-      border-top-color: #a5673f;
-      border-top-width: 4px;
+      border-top-color: var(--red-500);
+      border-top-width: 2px;
+      // transform: translate(0, -1px);
     }
 
     tr.ObserveStyles-stepRowWithBreakpoint {
@@ -490,40 +490,47 @@ html {
       border: 0;
     }
 
+    th.ObserveStyles-runningStateTableHeader {
+      padding: 0;
+      border: 0;
+    }
 
     // The actual cell is translated.
     td.ObserveStyles-breakpointTableCell {
       vertical-align: top;
-      transform: translate(2px, -9px);
+      transform: translate(4px, -8px);
       overflow: visible; // This shows the breakpoint markers, even with width 0.
       padding: 0;
     }
 
-    td.ObserveStyles-skipTableCell {
+    td.ObserveStyles-runningStateTableCell-shown {
+      display: inline-block;
+      position: relative;
+      top: 24px;
       padding: 0;
-      text-align: center;
+      border: 0;
     }
-  }
-}
 
-.ObserveStyles-observationProgressBarAndLabel {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 2;
-  margin-right: 0.5em;
+  }
 }
 
 .p-progressbar {
   &.ObserveStyles-observationProgressBar {
     margin: 0;
-    height: 1em;
-  }
-}
+    flex-grow: 2;
 
-.ObserveStyles-observationProgressLabel {
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
+    .p-progressbar-value {
+      overflow: visible;
+      justify-content: flex-start;
+
+      .p-progressbar-label {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        font-weight: bold;
+      }
+    }
+  }
 }
 
 .p-inputgroup {
@@ -535,7 +542,7 @@ html {
 @mixin controlButton {
   color: var(--primary-50);
   border: 0;
-  padding: 10px;
+  padding: 0;
 }
 
 .p-button.p-button-icon-only {
@@ -568,8 +575,6 @@ html {
 
   &.ObserveStyles-abortButton {
     @include controlButton();
-    padding-left: 12.45px; // We don't use a large icon here, so we need more padding.
-    padding-right: 12.45px; // We don't use a large icon here, so we need more padding.
     background-color: var(--red-500);
 
     &:enabled:hover {
@@ -656,42 +661,6 @@ html {
   &.ObserveStyles-stepTypeCompleted {
     background-color: var(--gray-500);
   }
-
-  &.ObserveStyles-stepTypeObject {
-    background-color: var(--green-500);
-  }
-
-  &.ObserveStyles-stepTypeArc {
-    background-color: var(--purple-600);
-  }
-
-  &.ObserveStyles-stepTypeFlat {
-    background-color: var(--gray-600);
-  }
-
-  &.ObserveStyles-stepTypeBias {
-    background-color: var(--teal-400);
-  }
-
-  &.ObserveStyles-stepTypeDark {
-    background-color: var(--gray-900);
-  }
-
-  &.ObserveStyles-stepTypeCalibration {
-    background-color: var(--blue-600);
-  }
-
-  &.ObserveStyles-stepTypeAlignAndCalib {
-    background-color: var(--orange-700);
-  }
-
-  &.ObserveStyles-stepTypeNodAndShuffle {
-    background-color: var(--yellow-600);
-  }
-
-  &.ObserveStyles-stepTypeNodAndShuffleDark {
-    background-color: var(--grey-800);
-  }
 }
 
 .ObserveStyles-controlCell {
@@ -699,30 +668,11 @@ html {
   justify-content: space-around;
   align-items: center;
   min-width: 42.3px;
-  // max-width: 42.3px;
-  // width: 42.3px;
   align-self: flex-start;
   position: absolute;
   top: 0;
   height: 100%;
 }
-
-// .ObserveStyles-skipCell {
-//   // background-image: linear-gradient(to bottom,
-//   //     rgba(249, 0, 1, 0) 0%,
-//   //     rgba(249, 0, 1, 0) 0%),
-//   //   linear-gradient(to right, @borderColor 0px, @gutter_end_color 19px) !important;
-//   background-clip: padding-box;
-//   // background-color: @white;
-//   width: 21px;
-//   min-width: 21px;
-//   border-right-style: solid;
-//   border-right-color: var(--surface-border);
-//   border-right-width: 1.5px;
-//   position: relative;
-//   z-index: 0;
-//   height: 100%;
-// }
 
 .ObserveStyles-iconCell {
   justify-content: center;
@@ -738,19 +688,18 @@ html {
 
 .ObserveStyles-breakpointHandle {
   cursor: pointer;
-  opacity: 0.8;
   transition: all 0.1s ease-in-out;
 
   &:hover {
-    transform: scale(2) translateX(-4px);
+    transform: scale(1.5) translateX(-3px);
   }
 }
 
 .ObserveStyles-breakpointIcon {
   color: var(--muted-color);
 
-  &:hover {
-    color: var(--text-color);
+  &.ObserveStyles-activeBreakpoint {
+    color: var(--red-500);
   }
 }
 
@@ -766,4 +715,18 @@ html {
   .ObserveStyles-skipIconSet {
     color: var(--orange-500);
   }
+}
+
+.ObserveStyles-defaultCursor {
+  cursor: default !important;
+}
+
+.ObserveStyles-configButtonStrip {
+  padding: 0 0.5em;
+}
+
+.p-component.p-button.p-button-sm.ObserveStyles-configButton {
+  border: 0;
+  padding: 0 0.5em;
+  height: 100%;
 }

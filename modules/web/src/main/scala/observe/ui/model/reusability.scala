@@ -9,6 +9,7 @@ import japgolly.scalajs.react.Reusability
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
 import observe.model.ClientStatus
+import observe.model.ExecutionState
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
 import observe.model.enums.SequenceState
@@ -25,3 +26,4 @@ object reusability:
   given Reusability[GmosNodAndShuffle]                     = Reusability.byEq
   given Reusability[RunningStep]                           = Reusability.byEq
   given Reusability[NodAndShuffleStatus]                   = Reusability.byEq
+  given Reusability[ExecutionState]                        = Reusability.byEq
