@@ -12,7 +12,6 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
-import lucuma.react.primereact.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
@@ -22,10 +21,8 @@ import observe.model.RunningStep
 import observe.model.enums.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.model.SessionQueueFilter
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
-import observe.ui.model.reusability.given
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)
@@ -205,18 +202,15 @@ object SessionQueue:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState(SessionQueueFilter.All)
-      .useMemoBy((props, _) => props.selectedObsId.get)((_, _) => columns(_))
-      .useMemoBy((props, filter, _) => (props.queue, filter)): (_, _, _) =>
-        (queue, filter) => filter.value.filter(queue)
-      .useReactTableBy: (_, _, cols, rows) =>
+      .useMemoBy(props => props.selectedObsId.get)(_ => columns(_))
+      .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,
-          rows,
+          Reusable.implicitly(props.queue),
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange
         )
-      .render: (props, filter, _, _, table) =>
+      .render: (props, _, table) =>
         <.div(ObserveStyles.SessionQueue)(
           PrimeAutoHeightVirtualizedTable(
             table,
@@ -228,15 +222,5 @@ object SessionQueue:
                 ^.onClick --> props.selectedObsId.set(row.original.obsId.some)
               ),
             overscan = 5
-          ),
-          SelectButtonOptional(
-            clazz = ObserveStyles.ObsClassSelect,
-            value = filter.value.value,
-            options = ObsClass.values.toList.map(v => SelectItem(v)),
-            itemTemplate = _.value match
-              case ObsClass.Daytime   => React.Fragment(Icons.Sun, "Daytime").rawElement
-              case ObsClass.Nighttime => React.Fragment(Icons.Moon, "Nighttime").rawElement
-            ,
-            onChange = value => filter.setState(SessionQueueFilter(value))
           )
         )
