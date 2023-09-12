@@ -44,7 +44,6 @@ import scala.jdk.DurationConverters.*
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   val controller: GmosController[F, T],
   nsCmdR:         Ref[F, Option[NSObserveCommand]],
-  obsType:        StepType,
   val config:     GmosController.GmosConfig[T]
 ) extends DhsInstrument[F]
     with InstrumentSystem[F] {

@@ -3,10 +3,7 @@
 
 package observe.server
 
-import scala.concurrent.duration.*
-import cats.MonadThrow
-import observe.model.dhs.ImageFileId
-import cats.data.EitherT
+import cats.Applicative
 import cats.data.NonEmptySet
 import cats.effect.{Async, Ref, Sync, Temporal}
 import cats.syntax.all.*
@@ -22,7 +19,7 @@ import lucuma.core.math.Wavelength
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.{ObserveClass, SequenceType, Site}
+import lucuma.core.enums.{ObserveClass, Site}
 import mouse.all.*
 import observe.engine.Action.ActionState
 import observe.engine.*
@@ -40,8 +37,8 @@ import observe.server.SequenceGen.StepGen
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.altair.AltairControllerDisabled
-import observe.server.altair.AltairHeader
-import observe.server.altair.AltairLgsHeader
+//import observe.server.altair.AltairHeader
+//import observe.server.altair.AltairLgsHeader
 //import observe.server.flamingos2.Flamingos2
 //import observe.server.flamingos2.Flamingos2Controller
 //import observe.server.flamingos2.Flamingos2ControllerDisabled
@@ -50,7 +47,7 @@ import observe.server.gcal.*
 import observe.server.gems.Gems
 import observe.server.gems.GemsController
 import observe.server.gems.GemsControllerDisabled
-import observe.server.gems.GemsHeader
+//import observe.server.gems.GemsHeader
 //import observe.server.ghost.Ghost
 //import observe.server.ghost.GhostController
 //import observe.server.ghost.GhostControllerDisabled
@@ -83,6 +80,7 @@ import observe.server.tcs.*
 //import squants.time.TimeConversions._
 //import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
 import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
+import scala.concurrent.duration.{*, given}
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
@@ -125,7 +123,6 @@ object SeqTranslate {
 
     private def step[S <: StaticConfig, D <: DynamicConfig](
       obsCfg:     OdbObservation,
-      staticCfg:  S,
       step:       OdbStep[D],
       dataIdx:    PosInt,
       stepType:   StepType,
@@ -206,50 +203,46 @@ object SeqTranslate {
       instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
       instHeader: D => KeywordsClient[F] => Header[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = {
-      val steps            = data.acquisition.map(_.nextAtom.steps).orElse(data.science.map(_.nextAtom.steps))
+      val nextAtom         = data.acquisition.map(_.nextAtom).orElse(data.science.map(_.nextAtom))
       val startIdx: PosInt = PosInt.unsafeFrom(1)
 
-      steps
-        .map(
-          _.toList.zipWithIndex
-            .map { case (x, i) =>
-              insSpec
-                .calcStepType(
-                  x.stepConfig,
-                  data.static,
-                  x.instrumentConfig,
-                  x.observeClass
+      nextAtom
+        .map(atom =>
+          val (a, b) = atom.steps.toList.zipWithIndex.map { case (x, i) =>
+            insSpec
+              .calcStepType(
+                x.stepConfig,
+                data.static,
+                x.instrumentConfig,
+                x.observeClass
+              )
+              .map { t =>
+                step(
+                  sequence,
+                  x,
+                  PosInt.unsafeFrom(startIdx.value + i),
+                  t,
+                  insSpec,
+                  (ov: SystemOverrides) => instf(ov, t, x.instrumentConfig),
+                  instHeader(x.instrumentConfig)
                 )
-                .map { t =>
-                  step(
-                    sequence,
-                    data.static,
-                    x,
-                    PosInt.unsafeFrom(startIdx.value + i),
-                    t,
-                    insSpec,
-                    (ov: SystemOverrides) => instf(ov, t, x.instrumentConfig),
-                    instHeader(x.instrumentConfig)
-                  )
-                }
-            }
-            .separate
-        )
-        .map { case (a, b) =>
+              }
+          }.separate
+
           (a,
            b.nonEmpty
              .option(b)
              .map(
                SequenceGen(
-                 sequence.id,
-                 sequence.title,
+                 sequence,
                  Instrument.GmosN,
                  data.static,
+                 atom.id,
                  _
                )
              )
           )
-        }
+        )
         .getOrElse((List.empty, none))
         .pure[F]
     }
@@ -308,261 +301,136 @@ object SeqTranslate {
             )
       )
 
-//          sequence.id,
-//          sequence.title,
-//          sequence.status,
-//          sequence.activeStatus,
-//          sequence.plannedTime,
-//          sequence.targetEnvironment,
-//          sequence.constraintSet,
-//          c
-//        ).some).pure[F]
-//        case c => (List(ObserveFailure.UnrecognizedInstrument(c.instrument.longName)), none).pure[F]
-//      }
-//    }
-//
-//    protected def buildSequence(sequence: Data.Observation, inst: Instrument, staticCfg: S, acquisition: OdbSequence[I], science: OdbSequence[I]): Either[List[Throwable], SequenceGen[F]] = {
-//
-//      val steps = (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture).flatMap(_.steps).map(x => buildStep(staticCfg, x))
-//
-//      SequenceGen(sequence.id, sequence.id.toString(), sequence.title, inst, steps).asRight
-//    }
-//
-////      val configss = sequence.config.getAllSteps.toList.map(CleanConfig(_))
-////
-////      val isNightSeq: Boolean = configs.exists(
-////        _.extractObsAs[String](OBSERVE_TYPE_PROP).exists(_ === SCIENCE_OBSERVE_TYPE)
-////      )
-////
-////      // TODO: Retrieve step ids from the config
-////      val steps = configs.zipWithIndex
-////        .map { case (c, i) =>
-////          step(
-////            Observation.Id(obsId, obsName),
-////            PosInt.unsafeFrom(i + 1),
-////            c,
-////            sequence.datasets.get(i).map(x => toImageFileId(x.filename)),
-////            isNightSeq
-////          ).attempt
-////        }
-////        .sequence
-////        .map(_.separate)
-////
-////      val instName = configs.headOption
-////        .map(extractInstrument)
-////        .getOrElse(Either.left(ObserveFailure.UnrecognizedInstrument("UNKNOWN")))
-////
-////      steps.map { sts =>
-////        instName.fold(e => (List(e), none),
-////                      i =>
-////                        sts match {
-////                          case (errs, ss) =>
-////                            (
-////                              errs,
-////                              ss.headOption.map { _ =>
-////                                SequenceGen(
-////                                  obsId,
-////                                  obsName,
-////                                  sequence.title,
-////                                  i,
-////                                  ss
-////                                )
-////                              }
-////                            )
-////                        }
-////        )
-////      }
-////    }
-//
-//    private def deliverObserveCmd(seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
-//      st:                                EngineState[F]
-//    ): Option[Stream[F, EventType[F]]] = {
-//
-//      def isObserving(v: Action[F]): Boolean =
-//        v.kind === ActionType.Observe && v.state.runState.started
-//
-//      for {
-//        obsSeq <- st.sequences.get(seqId)
-//        if obsSeq.seq.current.execution
-//          .exists(isObserving)
-//        stId   <- obsSeq.seq.currentStep.map(_.id)
-//        curStp <- obsSeq.seqGen.steps.find(_.id === stId)
-//        obsCtr <- curStp.some.collect {
-//                    case SequenceGen.PendingStepGen(_, _, _, _, obsControl, _) => obsControl
-//                  }
-//      } yield Stream.eval(
-//        f(obsCtr(obsSeq.overrides)).attempt
-//          .flatMap(handleError)
-//      )
-//    }
-//
-//    private def handleError: Either[Throwable, Unit] => F[EventType[F]] = {
-//      case Left(e: ObserveFailure) => Event.logErrorMsgF(ObserveFailure.explain(e))
-//      case Left(e: Throwable)      =>
-//        Event.logErrorMsgF(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
-//      case _                       => Event.nullEvent[F].pure[F].widen[EventType[F]]
-//    }
-//
-//    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-//      tio:                          Temporal[F]
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
-//      def f(oc: ObserveControl[F]): F[Unit] = oc match {
-//        case CompleteControl(StopObserveCmd(stop), _, _, _, _, _) => stop(graceful)
-//        case UnpausableControl(StopObserveCmd(stop), _)           => stop(graceful)
-//        case _                                                    => Applicative[F].unit
-//      }
-//      deliverObserveCmd(seqId, f)(st).orElse(stopPaused(seqId).apply(st))
-//    }
-//
-//    override def abortObserve(seqId: Observation.Id)(using
-//      tio:                           Temporal[F]
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
-//      def f(oc: ObserveControl[F]): F[Unit] = oc match {
-//        case CompleteControl(_, AbortObserveCmd(abort), _, _, _, _) => abort
-//        case UnpausableControl(_, AbortObserveCmd(abort))           => abort
-//        case _                                                      => Applicative[F].unit
-//      }
-//
-//      deliverObserveCmd(seqId, f)(st).orElse(abortPaused(seqId).apply(st))
-//    }
-//
-//    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-//      tio:                           Temporal[F]
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] = {
-//      def f(oc: ObserveControl[F]): F[Unit] = oc match {
-//        case CompleteControl(_, _, PauseObserveCmd(pause), _, _, _) => pause(graceful)
-//        case _                                                      => Applicative[F].unit
-//      }
-//      deliverObserveCmd(seqId, f)
-//    }
-//
-//    override def resumePaused(seqId: Observation.Id)(using
-//      tio:                           Temporal[F]
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
-//      val observeIndex: Option[(ObserveContext[F], Option[Time], Int)] =
-//        st.sequences
-//          .get(seqId)
-//          .flatMap(
-//            _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
-//              case (a, i) =>
-//                a.state.runState match {
-//                  case ActionState.Paused(c: ObserveContext[F]) =>
-//                    (c,
-//                     a.state.partials.collectFirst { case x: Progress =>
-//                       x.progress
-//                     },
-//                     i
-//                    ).some
-//                  case _                                        => none
-//                }
-//            }
-//          )
-//
-//      observeIndex.map { case (obCtx, t, i) =>
-//        Stream.emit[F, EventType[F]](
-//          Event.actionResume[F, EngineState[F], SeqEvent](
-//            seqId,
-//            i,
-//            obCtx
-//              .progress(ElapsedTime(t.getOrElse(0.0.seconds)))
-//              .mergeHaltR(obCtx.resumePaused(obCtx.expTime))
-//              .handleErrorWith(catchObsErrors[F])
-//          )
-//        )
-//      }
-//    }
-//
-//    private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
-//      st:                        EngineState[F]
-//    ): Option[Stream[F, EventType[F]]] =
-//      st.sequences
-//        .get(seqId)
-//        .flatMap(
-//          _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
-//            case (a, i) =>
-//              a.state.runState match {
-//                case ActionState.Paused(c: ObserveContext[F]) =>
-//                  Stream
-//                    .eval(
-//                      Event.actionResume(seqId, i, l(c).handleErrorWith(catchObsErrors[F])).pure[F]
-//                    )
-//                    .some
-//                case _                                        => none
-//              }
-//          }
-//        )
-//
-//    private def stopPaused(
-//      seqId: Observation.Id
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
-//      endPaused(seqId, _.stopPaused)
-//
-//    private def abortPaused(
-//      seqId: Observation.Id
-//    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
-//      endPaused(seqId, _.abortPaused)
-//
-//    def toInstrumentSys(inst: Instrument): SystemOverrides => InstrumentSystem[F] = inst match {
-//      case Instrument.F2    =>
-//        ov: SystemOverrides =>
-//          Flamingos2(overriddenSystems.flamingos2(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
-//      case Instrument.GmosS =>
-//        ov: SystemOverrides =>
-//          GmosSouth(overriddenSystems.gmosSouth(ov),
-//                    overriddenSystems.dhs(ov),
-//                    gmosNsCmd
-//          ): InstrumentSystem[F]
-//      case Instrument.GmosN =>
-//        ov: SystemOverrides =>
-//          GmosNorth(overriddenSystems.gmosNorth(ov),
-//                    overriddenSystems.dhs(ov),
-//                    gmosNsCmd
-//          ): InstrumentSystem[F]
-//      case Instrument.Gnirs =>
-//        ov: SystemOverrides =>
-//          Gnirs(overriddenSystems.gnirs(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
-//      case Instrument.Gpi   =>
-//        ov: SystemOverrides => Gpi(overriddenSystems.gpi(ov)): InstrumentSystem[F]
-//      case Instrument.Ghost =>
-//        ov: SystemOverrides => Ghost(overriddenSystems.ghost(ov)): InstrumentSystem[F]
-//      case Instrument.Niri  =>
-//        ov: SystemOverrides =>
-//          Niri(overriddenSystems.niri(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
-//      case Instrument.Nifs  =>
-//        ov: SystemOverrides =>
-//          Nifs(overriddenSystems.nifs(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
-//      case Instrument.Gsaoi =>
-//        ov: SystemOverrides =>
-//          Gsaoi(overriddenSystems.gsaoi(ov), overriddenSystems.dhs(ov)): InstrumentSystem[F]
-//    }
-//
-//    def instrumentSpecs(instrument: Instrument): InstrumentSpecifics = instrument match {
-//      case Instrument.F2    => Flamingos2.specifics
-//      case Instrument.GmosS => GmosSouth.specifics
-//      case Instrument.GmosN => GmosNorth.specifics
-//      case Instrument.Gnirs => Gnirs.specifics
-//      case Instrument.Gpi   => Gpi.specifics
-//      case Instrument.Ghost => Ghost.specifics
-//      case Instrument.Niri  => Niri.specifics
-//      case Instrument.Nifs  => Nifs.specifics
-//      case Instrument.Gsaoi => Gsaoi.specifics
-//    }
-//
+    private def deliverObserveCmd(seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
+      st: EngineState[F]
+    ): Option[Stream[F, EventType[F]]] = {
+
+      def isObserving(v: Action[F]): Boolean =
+        v.kind === ActionType.Observe && v.state.runState.started
+
+      for {
+        obsSeq <- st.sequences.get(seqId)
+        if obsSeq.seq.current.execution
+          .exists(isObserving)
+        stId   <- obsSeq.seq.currentStep.map(_.id)
+        curStp <- obsSeq.seqGen.steps.find(_.id === stId)
+        obsCtr <- curStp.some.collect { case x: SequenceGen.PendingStepGen[F] =>
+                    x.obsControl
+                  }
+      } yield Stream.eval(
+        f(obsCtr(obsSeq.overrides)).attempt
+          .flatMap(handleError)
+      )
+    }
+
+    private def handleError: Either[Throwable, Unit] => F[EventType[F]] = {
+      case Left(e: ObserveFailure) => Event.logErrorMsgF(ObserveFailure.explain(e))
+      case Left(e: Throwable)      =>
+        Event.logErrorMsgF(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
+      case _                       => Event.nullEvent[F, EngineState[F], SeqEvent].pure[F].widen[EventType[F]]
+    }
+
+    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
+      def f(oc: ObserveControl[F]): F[Unit] = oc match {
+        case CompleteControl(StopObserveCmd(stop), _, _, _, _, _) => stop(graceful)
+        case UnpausableControl(StopObserveCmd(stop), _)           => stop(graceful)
+      }
+      deliverObserveCmd(seqId, f)(st).orElse(stopPaused(seqId).apply(st))
+    }
+
+    override def abortObserve(seqId: Observation.Id)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
+      def f(oc: ObserveControl[F]): F[Unit] = oc match {
+        case CompleteControl(_, AbortObserveCmd(abort), _, _, _, _) => abort
+        case UnpausableControl(_, AbortObserveCmd(abort))           => abort
+      }
+
+      deliverObserveCmd(seqId, f)(st).orElse(abortPaused(seqId).apply(st))
+    }
+
+    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = {
+      def f(oc: ObserveControl[F]): F[Unit] = oc match {
+        case CompleteControl(_, _, PauseObserveCmd(pause), _, _, _) => pause(graceful)
+        case _                                                      => Applicative[F].unit
+      }
+      deliverObserveCmd(seqId, f)
+    }
+
+    override def resumePaused(seqId: Observation.Id)(using
+      tio: Temporal[F]
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
+      val observeIndex: Option[(ObserveContext[F], Option[FiniteDuration], Int)] =
+        st.sequences
+          .get(seqId)
+          .flatMap(
+            _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
+              case (a, i) =>
+                a.state.runState match {
+                  case ActionState.Paused(c: ObserveContext[F]) =>
+                    (c,
+                     a.state.partials.collectFirst { case x: Progress =>
+                       x.progress
+                     },
+                     i
+                    ).some
+                  case _                                        => none
+                }
+            }
+          )
+
+      observeIndex.map { case (obCtx, t, i) =>
+        Stream.emit[F, EventType[F]](
+          Event.actionResume[F, EngineState[F], SeqEvent](
+            seqId,
+            i,
+            obCtx
+              .progress(ElapsedTime(t.getOrElse(0.0.seconds)))
+              .mergeHaltR(obCtx.resumePaused(obCtx.expTime))
+              .handleErrorWith(catchObsErrors[F])
+          )
+        )
+      }
+    }
+
+    private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
+      st: EngineState[F]
+    ): Option[Stream[F, EventType[F]]] =
+      st.sequences
+        .get(seqId)
+        .flatMap(
+          _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
+            case (a, i) =>
+              a.state.runState match {
+                case ActionState.Paused(c: ObserveContext[F]) =>
+                  Stream
+                    .eval(
+                      Event.actionResume(seqId, i, l(c).handleErrorWith(catchObsErrors[F])).pure[F]
+                    )
+                    .some
+                case _                                        => none
+              }
+          }
+        )
+
+    private def stopPaused(
+      seqId: Observation.Id
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
+      endPaused(seqId, _.stopPaused)
+
+    private def abortPaused(
+      seqId: Observation.Id
+    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
+      endPaused(seqId, _.abortPaused)
+
     import TcsController.Subsystem.*
 
     private def flatOrArcTcsSubsystems(inst: Instrument): NonEmptySet[TcsController.Subsystem] =
       NonEmptySet.of(AGUnit, (if (inst.hasOI) List(OIWFS) else List.empty): _*)
-
-//    private def tryWavelength(inst: Instrument, config: CleanConfig): F[Option[Wavelength]] =
-//      extractWavelength(config) match {
-//        case Left(x)  =>
-//          Logger[F]
-//            .error(s"Cannot decode the wavelength for ${inst.label}") *> MonadError[F, Throwable]
-//            .raiseError(
-//              ObserveFailure.Execution(s"Cannot decode the wavelength from the sequence $x")
-//            )
-//        case Right(w) => w.pure[F]
-//      }
 
     private def extractWavelength(s: DynamicConfig): Option[Wavelength] = s match {
       case DynamicConfig.GmosNorth(_, _, _, _, gratingConfig, filter, _) =>
@@ -886,30 +754,7 @@ object SeqTranslate {
               instHeader(kwClient)
             )
     }
-
-    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-      tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
-
-    override def abortObserve(seqId: Observation.Id)(using
-      tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
-
-    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-      tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
-
-    override def resumePaused(seqId: Observation.Id)(using
-      tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = _ => None
   }
-
-//  def calcStepType(a: SeqStepConfig, i: Instrument): StepType = a match {
-//
-//    case SeqStepConfig.SeqScienceStep(_) => StepType.CelestialObject(i)
-//    case SeqStepConfig.Gcal(_, _, _) => StepType.FlatOrArc(i)
-//    case SeqStepConfig.Bias || SeqStepConfig.Dark => StepType.DarkOrBias(i)
-//  }
 
   def apply[F[_]: Async: Logger](
     site:          Site,

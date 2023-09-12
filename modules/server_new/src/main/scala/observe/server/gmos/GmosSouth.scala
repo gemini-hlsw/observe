@@ -27,12 +27,10 @@ final case class GmosSouth[F[_]: Temporal: Logger](
   c:                 GmosSouthController[F],
   dhsClientProvider: DhsClientProvider[F],
   nsCmdR:            Ref[F, Option[NSObserveCommand]],
-  obsType:           StepType,
   cfg:               GmosController.GmosConfig[GmosSite.South.type]
 ) extends Gmos[F, GmosSite.South.type](
       c,
       nsCmdR,
-      obsType,
       cfg
     ) {
   override val resource: Instrument      = Instrument.GmosS
@@ -85,7 +83,6 @@ object GmosSouth {
     controller,
     dhsClientProvider,
     nsCmdR,
-    stepType,
     Gmos.buildConfig[F, GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosS,
       stepType,

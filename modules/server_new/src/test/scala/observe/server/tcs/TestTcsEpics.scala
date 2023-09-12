@@ -7,7 +7,8 @@ import cats.{Applicative, Eq}
 import cats.effect.Async
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import monocle.{Focus, Getter, Lens}
+import monocle.{Getter, Lens}
+import monocle.Focus
 import observe.model.enums.ApplyCommandResult
 import observe.server.TestEpicsCommand.*
 import observe.server.EpicsCommand

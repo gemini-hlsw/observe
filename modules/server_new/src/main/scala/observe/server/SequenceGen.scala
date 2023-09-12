@@ -5,7 +5,7 @@ package observe.server
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.{Atom, StepConfig}
 import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 import mouse.all.*
 import observe.engine.Action
@@ -21,6 +21,7 @@ import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.
@@ -28,10 +29,10 @@ import observe.model.enums.Resource
  * engine sequence whenever any of those parameters change.
  */
 final case class SequenceGen[F[_]](
-  id:         Observation.Id,
-  title:      String,
+  obsData:    OdbObservation,
   instrument: Instrument,
   staticCfg:  StaticConfig,
+  atomId:     Atom.Id,
   steps:      List[SequenceGen.StepGen[F]]
 ) {
   val resources: Set[Resource] = steps

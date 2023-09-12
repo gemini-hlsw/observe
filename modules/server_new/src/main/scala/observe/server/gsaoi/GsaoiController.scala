@@ -3,7 +3,6 @@
 
 package observe.server.gsaoi
 
-import cats.syntax.all.*
 import cats.{Applicative, Eq, Show}
 import lucuma.core.util.NewType
 import observe.model.dhs.ImageFileId

@@ -12,7 +12,8 @@ import lucuma.core.math.{Angle, Offset}
 import lucuma.core.model.sequence
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.StaticConfig
-import monocle.{Focus, Getter}
+import monocle.Getter
+import monocle.Focus
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.NodAndShuffleStage.{StageA, StageB}
 import observe.server.ObserveFailure

@@ -23,7 +23,7 @@ import observe.server.gems.GemsController.Odgw2Usage
 import observe.server.gems.GemsController.Odgw3Usage
 import observe.server.gems.GemsController.Odgw4Usage
 import observe.server.gems.GemsController.P1Usage
-import observe.server.tcs.{Gaos, GuideConfig, GuideConfigDb, Tcs}
+import observe.server.tcs.{Gaos, GuideConfig, GuideConfigDb}
 import observe.server.tcs.Gaos.{
   PauseCondition,
   PauseConditionSet,
@@ -80,14 +80,14 @@ object Gems {
                   x.pause.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(Focus[GuideConfig](_.gemsSkyPaused).replace(true))
+                        .update(GuideConfig.gemsSkyPaused.replace(true))
                         .whenA(filteredPauseReasons.contains(PauseCondition.GaosGuideOff))
                     )
                   ),
                   x.resume.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(Focus[GuideConfig](_.gemsSkyPaused).replace(false))
+                        .update(GuideConfig.gemsSkyPaused.replace(false))
                         .whenA(filteredResumeReasons.contains(ResumeCondition.GaosGuideOn))
                     )
                   )

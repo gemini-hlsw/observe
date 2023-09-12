@@ -9,6 +9,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.circe.{Decoder, DecodingFailure}
+import monocle.{Focus, Lens}
 import mouse.boolean.*
 import observe.model.M1GuideConfig.*
 import observe.model.M2GuideConfig.*
@@ -25,6 +26,21 @@ final case class GuideConfig(
   gaosGuide:     Option[Either[AltairConfig, GemsConfig]],
   gemsSkyPaused: Boolean
 )
+
+object GuideConfig {
+  val tcsGuide: Lens[GuideConfig, TelescopeGuideConfig]                      = Focus[GuideConfig](_.tcsGuide)
+  val gaosGuide: Lens[GuideConfig, Option[Either[AltairConfig, GemsConfig]]] =
+    Focus[GuideConfig](_.gaosGuide)
+  val gemsSkyPaused: Lens[GuideConfig, Boolean]                              = Focus[GuideConfig](_.gemsSkyPaused)
+  val altairGuide: Lens[GuideConfig, Option[AltairConfig]]                   =
+    gaosGuide.andThen(Lens[Option[Either[AltairConfig, GemsConfig]], Option[AltairConfig]] {
+      _.flatMap(_.left.toOption)
+    }(a => _ => a.map(_.asLeft)))
+  val gemsGuide: Lens[GuideConfig, Option[GemsConfig]]                       =
+    gaosGuide.andThen(Lens[Option[Either[AltairConfig, GemsConfig]], Option[GemsConfig]] {
+      _.flatMap(_.toOption)
+    }(a => _ => a.map(_.asRight)))
+}
 
 sealed trait GuideConfigDb[F[_]] {
   def value: F[GuideConfig]

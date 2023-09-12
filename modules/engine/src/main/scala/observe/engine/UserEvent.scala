@@ -91,4 +91,8 @@ object UserEvent {
       extends UserEvent[F, S, U] {
     val user: Option[UserDetails] = None
   }
+
+  final case class Pure[F[_], S, U](ev: U) extends UserEvent[F, S, U] {
+    val user: Option[UserDetails] = None
+  }
 }

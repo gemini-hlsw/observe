@@ -8,7 +8,6 @@ import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
 import observe.server.overrideLogMessage
 import org.typelevel.log4cats.Logger
-import observe.server.tcs.TcsController
 import observe.server.tcs.TcsSouthController.TcsSouthConfig
 
 class TcsSouthControllerDisabled[F[_]: Logger] extends TcsSouthController[F] {

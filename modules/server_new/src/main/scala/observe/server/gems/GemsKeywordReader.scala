@@ -7,7 +7,6 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.all.*
 import observe.server.gsaoi.GsaoiEpics
-import observe.server.gsaoi.GsaoiEpics
 import observe.server.keywords.*
 
 trait GemsKeywordReader[F[_]] {

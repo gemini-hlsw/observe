@@ -6,7 +6,8 @@ package observe.server
 import cats.effect.Ref
 import cats.syntax.all.*
 import cats.{Applicative, Monad}
-import monocle.{Focus, Lens}
+import monocle.Lens
+import monocle.Focus
 import observe.model.enums.ApplyCommandResult
 
 import scala.concurrent.duration.FiniteDuration

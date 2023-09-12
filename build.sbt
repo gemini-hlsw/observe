@@ -35,7 +35,9 @@ inThisBuild(
 
 ThisBuild / scalaVersion       := "3.3.1"
 ThisBuild / crossScalaVersions := Seq("3.3.1")
-ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
+ThisBuild / scalacOptions ++= Seq(
+  "-language:implicitConversions"
+)
 
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
@@ -149,19 +151,6 @@ lazy val giapi = project
     ) ++ MUnit.value
   )
 
-//lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
-//  .crossType(CrossType.Pure)
-//  .in(file("modules/ocs2_api"))
-//  .settings(commonSettings)
-//  .settings(
-//    name := "ocs2-api",
-//    libraryDependencies ++= Seq(CatsTime.value) ++
-//      LucumaCore.value
-//  )
-//  .jsSettings(coverageEnabled := false)
-//  .dependsOn(observe_model)
-
-// Project for the server side application
 lazy val observe_web_server = project
   .in(file("modules/web/server"))
   .enablePlugins(BuildInfoPlugin)

@@ -12,8 +12,6 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.{InstrumentControllerSim, Progress}
 import observe.server.gsaoi.GsaoiController.{DCConfig, GsaoiConfig}
 import org.typelevel.log4cats.Logger
-import squants.Time
-import squants.time.TimeConversions.*
 
 import scala.concurrent.duration.*
 

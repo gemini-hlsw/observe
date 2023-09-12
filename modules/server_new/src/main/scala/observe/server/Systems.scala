@@ -224,7 +224,8 @@ object Systems {
       gsaoiEpicsO
         .map { gsaoiEpics =>
           /*if (settings.systemControl.gsaoi.command) GsaoiControllerEpics(gsaoiEpics).pure[IO]
-            else*/ GsaoiControllerSim[IO]
+            else*/
+          GsaoiControllerSim[IO]
             .map((_, GsaoiKeywordReaderEpics(gsaoiEpics)))
         }
         .getOrElse(GsaoiControllerSim[IO].map((_, GsaoiKeywordReaderDummy[IO])))

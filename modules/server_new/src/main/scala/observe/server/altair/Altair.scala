@@ -4,7 +4,6 @@
 package observe.server.altair
 
 import cats.{ApplicativeThrow, Eq}
-import cats.syntax.all.*
 import cats.effect.Sync
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
