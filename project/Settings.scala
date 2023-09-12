@@ -11,7 +11,7 @@ object Settings {
   object LibraryVersions {
     // ScalaJS libraries
     val booPickle               = "1.4.0"
-    val crystal                 = "0.34.1"
+    val crystal                 = "0.34.2"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
     val lucumaReact             = "0.41.0"
