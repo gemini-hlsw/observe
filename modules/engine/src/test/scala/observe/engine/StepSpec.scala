@@ -7,7 +7,6 @@ import cats.effect.IO
 import cats.data.NonEmptyList
 import cats.implicits.*
 import munit.CatsEffectSuite
-import cats.effect.std.Queue
 import fs2.Stream
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -36,7 +35,7 @@ class StepSpec extends CatsEffectSuite {
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
   private val user   = UserDetails("telops", "Telops")
 
-  private val executionEngine = new Engine[IO, TestState, Unit](TestState)
+  private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
   private object DummyResult extends Result.RetVal with Serializable
   private val result                      = Result.OK(DummyResult)
@@ -157,20 +156,20 @@ class StepSpec extends CatsEffectSuite {
   def fatalError(errMsg: String): Action[IO] =
     fromF[IO](ActionType.Undefined, IO.raiseError(new RuntimeException(errMsg)))
 
-  def triggerPause(q: Queue[IO, executionEngine.EventType]): Action[IO] = fromF[IO](
+  def triggerPause(eng: Engine[IO, TestState, Unit]): Action[IO] = fromF[IO](
     ActionType.Undefined,
     for {
-      _ <- q.offer(Event.pause(seqId, user))
+      _ <- eng.offer(Event.pause(seqId, user))
       // There is not a distinct result for Pause because the Pause action is a
       // trick for testing but we don't need to support it in real life, the pause
       // input event is enough.
     } yield Result.OK(DummyResult)
   )
 
-  def triggerStart(q: IO[Queue[IO, executionEngine.EventType]]): Action[IO] = fromF[IO](
+  def triggerStart(eng: Engine[IO, TestState, Unit]): Action[IO] = fromF[IO](
     ActionType.Undefined,
     for {
-      _ <- q.map(_.offer(Event.start(seqId, user, clientId)))
+      _ <- eng.offer(Event.start(seqId, user, clientId))
       // Same case that the pause action
     } yield Result.OK(DummyResult)
   )
@@ -183,28 +182,28 @@ class StepSpec extends CatsEffectSuite {
     case _                       => false
   }
 
-  private def runToCompletioIO(s0: TestState) =
-    executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
-      )(s0)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .map(_._2)
-      .compile
+  private def runToCompletioIO(s0: TestState) = for {
+    eng <- executionEngine
+    _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+  } yield eng
+    .process(PartialFunction.empty)(s0)
+    .drop(1)
+    .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+    .map(_._2)
+    .compile
 
-  def runToCompletionLastIO(s0: TestState): IO[Option[TestState]] = runToCompletioIO(s0).last
+  def runToCompletionLastIO(s0: TestState): IO[Option[TestState]] =
+    runToCompletioIO(s0).flatMap(_.last)
 
-  def runToCompletionAllIO(s0: TestState): IO[List[TestState]] = runToCompletioIO(s0).toList
+  def runToCompletionAllIO(s0: TestState): IO[List[TestState]] =
+    runToCompletioIO(s0).flatMap(_.toList)
 
   // This test must have a simple step definition and the known sequence of updates that running that step creates.
   // The test will just run step and compare the output with the predefined sequence of updates.
 
   // The difficult part is to set the pause command to interrupts the step execution in the middle.
   test("pause should stop execution in response to a pause command") {
-    val q: Stream[IO, Queue[IO, executionEngine.EventType]]     =
-      Stream.eval(Queue.bounded[IO, executionEngine.EventType](10))
-    def qs0(q: Queue[IO, executionEngine.EventType]): TestState =
+    def qs0(eng: Engine[IO, TestState, Unit]): TestState =
       TestState(
         sequences = Map(
           (seqId,
@@ -216,8 +215,8 @@ class StepSpec extends CatsEffectSuite {
                  Step.init(
                    id = stepId(1),
                    executions = List(
-                     NonEmptyList.of(configureTcs, configureInst, triggerPause(q)), // Execution
-                     NonEmptyList.one(observe)                                      // Execution
+                     NonEmptyList.of(configureTcs, configureInst, triggerPause(eng)), // Execution
+                     NonEmptyList.one(observe)                                        // Execution
                    )
                  )
                )
@@ -227,18 +226,17 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    def notFinished(v: (executionEngine.ResultType, TestState)): Boolean =
+    def notFinished(v: (EventResult[Unit], TestState)): Boolean =
       !isFinished(v._2.sequences(seqId).status)
 
     val m = for {
-      k <- q
-      o <- Stream.apply(qs0(k))
-      _ <- Stream.eval(k.offer(startEvent))
-      u <- executionEngine
-             .process(PartialFunction.empty)(Stream.fromQueueUnterminated(k))(o)
-             .drop(1)
-             .takeThrough(notFinished)
-             .map(_._2)
+      eng <- Stream.eval(executionEngine)
+      _   <- Stream.eval(eng.offer(startEvent))
+      u   <- eng
+               .process(PartialFunction.empty)(qs0(eng))
+               .drop(1)
+               .takeThrough(notFinished)
+               .map(_._2)
     } yield u.sequences(seqId)
 
     m.compile.last.map {
@@ -286,15 +284,19 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1: Stream[IO, Option[Sequence.State[IO]]] =
+    val qs1 =
       for {
-        u <- executionEngine
-               .process(PartialFunction.empty)(Stream.eval(IO.pure(startEvent)))(qs0)
-               .take(1)
-      } yield u._2.sequences.get(seqId)
+        eng <- executionEngine
+        _   <- eng.offer(startEvent)
+        u   <- eng
+                 .process(PartialFunction.empty)(qs0)
+                 .take(1)
+                 .compile
+                 .last
+      } yield u.flatMap(_._2.sequences.get(seqId))
 
-    qs1.compile.last.map {
-      inside(_) { case Some(Some(Sequence.State.Zipper(zipper, status, _))) =>
+    qs1.map {
+      inside(_) { case Some(Sequence.State.Zipper(zipper, status, _)) =>
         inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
           assert(
             Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
@@ -335,14 +337,16 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qs1 = executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(IO.pure(Event.cancelPause[IO, TestState, Unit](seqId, user)))
-      )(qs0)
-      .take(1)
-      .compile
-      .last
-      .map(_.map(_._2))
+    val qs1 = for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.cancelPause[IO, TestState, Unit](seqId, user))
+      v   <- eng
+               .process(PartialFunction.empty)(qs0)
+               .take(1)
+               .compile
+               .last
+               .map(_.map(_._2))
+    } yield v
 
     qs1.map(x =>
       inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
@@ -375,14 +379,16 @@ class StepSpec extends CatsEffectSuite {
           )
         )
       )
-    val qss            = executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(IO.pure(Event.pause[IO, TestState, Unit](seqId, user)))
-      )(qs0)
-      .take(1)
-      .compile
-      .last
-      .map(_.map(_._2))
+    val qss            = for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.pause[IO, TestState, Unit](seqId, user))
+      v   <- eng
+               .process(PartialFunction.empty)(qs0)
+               .take(1)
+               .compile
+               .last
+               .map(_.map(_._2))
+    } yield v
 
     qss.map { x =>
       inside(x.flatMap(_.sequences.get(seqId))) {
@@ -399,8 +405,7 @@ class StepSpec extends CatsEffectSuite {
 
   // Be careful that start command doesn't run an already running sequence.
   test("engine test start command if step is already running.") {
-    val q              = Queue.bounded[IO, executionEngine.EventType](10)
-    val qs0: TestState =
+    def qs0(eng: Engine[IO, TestState, Unit]): TestState =
       TestState(
         sequences = Map(
           (seqId,
@@ -413,7 +418,7 @@ class StepSpec extends CatsEffectSuite {
                    id = stepId(1),
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
-                     NonEmptyList.one(triggerStart(q)),            // Execution
+                     NonEmptyList.one(triggerStart(eng)),          // Execution
                      NonEmptyList.one(observe)                     // Execution
                    )
                  )
@@ -424,18 +429,16 @@ class StepSpec extends CatsEffectSuite {
         )
       )
 
-    val qss = q
-      .flatMap { k =>
-        k.offer(Event.start(seqId, user, clientId))
-          .flatMap(_ =>
-            executionEngine
-              .process(PartialFunction.empty)(Stream.fromQueueUnterminated(k))(qs0)
-              .drop(1)
-              .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-              .compile
-              .toVector
-          )
-      }
+    val qss = for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.start(seqId, user, clientId))
+      v   <- eng
+               .process(PartialFunction.empty)(qs0(eng))
+               .drop(1)
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .compile
+               .toVector
+    } yield v
 
     qss.map { x =>
       val actionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Completed[?], _) => x }

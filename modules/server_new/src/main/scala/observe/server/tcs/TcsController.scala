@@ -309,8 +309,8 @@ object TcsController {
 
     given Eq[GuiderConfig] = Eq.by(x => (x.tracking, x.detector))
 
-    val tracking: Lens[GuiderConfig, ProbeTrackingConfig] = GuiderConfig.tracking
-    val detector: Lens[GuiderConfig, GuiderSensorOption]  = GuiderConfig.detector
+    val tracking: Lens[GuiderConfig, ProbeTrackingConfig] = Focus[GuiderConfig](_.tracking)
+    val detector: Lens[GuiderConfig, GuiderSensorOption]  = Focus[GuiderConfig](_.detector)
   }
 
   final case class AGConfig(sfPos: LightPath, hrwfs: Option[HrwfsConfig])
