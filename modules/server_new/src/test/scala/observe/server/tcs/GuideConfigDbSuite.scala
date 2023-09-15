@@ -5,11 +5,18 @@ package observe.server.tcs
 
 import io.circe.parser.*
 import cats.effect.IO
+import cats.tests.CatsSuite
+import monocle.law.discipline.{LensTests, OptionalTests}
+import org.scalacheck.Arbitrary.*
 import observe.model.enums.*
+import observe.model.arb.all.given
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
 import observe.server.tcs.GuideConfigDb.given
+import observe.server.tcs.GuideConfig.given
+import observe.server.altair.ArbAltairConfig.given
+import observe.server.altair.AltairController
 import observe.server.altair.AltairController.Lgs
 import observe.server.gems.GemsController.GemsOn
 import observe.server.gems.GemsController.OIUsage
@@ -21,9 +28,10 @@ import observe.server.gems.GemsController.P1Usage
 import observe.server.gems.GemsController.Cwfs1Usage
 import observe.server.gems.GemsController.Cwfs2Usage
 import observe.server.gems.GemsController.Cwfs3Usage
+import observe.server.gems.ArbGemsConfig.given
 import squants.space.Millimeters
 
-final class GuideConfigDbSuite extends munit.CatsEffectSuite {
+final class GuideConfigDbSuite extends munit.CatsEffectSuite with CatsSuite with TcsArbitraries {
 
   val rawJson1: String          = """
   {
@@ -154,5 +162,11 @@ final class GuideConfigDbSuite extends munit.CatsEffectSuite {
 
     db.flatMap(x => x.set(guideConfig1) *> x.value).map(assertEquals(_, guideConfig1))
   }
+
+  checkAll("TCS guide lens", LensTests(GuideConfig.tcsGuide))
+  checkAll("TCS GAOS configuration lens", LensTests(GuideConfig.gaosGuide))
+  checkAll("TCS GeMS guide lens", OptionalTests(GuideConfig.gemsGuide))
+  checkAll("TCS Altair guide lens", OptionalTests(GuideConfig.altairGuide))
+  checkAll("TCS GeMS sky flag lens", LensTests(GuideConfig.gemsSkyPaused))
 
 }

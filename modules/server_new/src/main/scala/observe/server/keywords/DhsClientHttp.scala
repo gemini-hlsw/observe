@@ -133,9 +133,8 @@ object DhsClientHttp {
   object DhsError            extends ErrorType("DHS_ERROR")
   object InternalServerError extends ErrorType("INTERNAL_SERVER_ERROR")
 
-  given errorTypeDecode: Decoder[ErrorType] = Decoder.instance[ErrorType](c =>
-    c
-      .as[String]
+  given Decoder[ErrorType] = Decoder.instance[ErrorType](
+    _.as[String]
       .map {
         case BadRequest.str          => BadRequest
         case DhsError.str            => DhsError
@@ -144,7 +143,7 @@ object DhsClientHttp {
       }
   )
 
-  given errorDecode: Decoder[Error] = Decoder.instance[Error](c =>
+  given Decoder[Error] = Decoder.instance[Error](c =>
     for {
       t   <- c.downField("type").as[ErrorType]
       msg <- c.downField("message").as[String]

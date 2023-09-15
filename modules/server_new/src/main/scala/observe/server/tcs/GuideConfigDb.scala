@@ -3,13 +3,14 @@
 
 package observe.server.tcs
 
-import cats.Applicative
+import cats.{Applicative, Eq}
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.circe.{Decoder, DecodingFailure}
-import monocle.{Focus, Lens}
+import monocle.{Focus, Lens, Optional}
+import monocle.std.{either, option}
 import mouse.boolean.*
 import observe.model.M1GuideConfig.*
 import observe.model.M2GuideConfig.*
@@ -17,7 +18,9 @@ import observe.model.enums.ComaOption.*
 import observe.model.enums.MountGuideOption.*
 import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
 import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
-import observe.server.altair.AltairController.*
+import observe.model.TelescopeGuideConfig.given
+import observe.server.gems.GemsController.GemsConfig.given
+import observe.server.altair.AltairController.{*, given}
 import observe.server.gems.GemsController.*
 import squants.space.Millimeters
 
@@ -32,14 +35,12 @@ object GuideConfig {
   val gaosGuide: Lens[GuideConfig, Option[Either[AltairConfig, GemsConfig]]] =
     Focus[GuideConfig](_.gaosGuide)
   val gemsSkyPaused: Lens[GuideConfig, Boolean]                              = Focus[GuideConfig](_.gemsSkyPaused)
-  val altairGuide: Lens[GuideConfig, Option[AltairConfig]]                   =
-    gaosGuide.andThen(Lens[Option[Either[AltairConfig, GemsConfig]], Option[AltairConfig]] {
-      _.flatMap(_.left.toOption)
-    }(a => _ => a.map(_.asLeft)))
-  val gemsGuide: Lens[GuideConfig, Option[GemsConfig]]                       =
-    gaosGuide.andThen(Lens[Option[Either[AltairConfig, GemsConfig]], Option[GemsConfig]] {
-      _.flatMap(_.toOption)
-    }(a => _ => a.map(_.asRight)))
+  val altairGuide: Optional[GuideConfig, AltairConfig]                       =
+    gaosGuide.andThen(option.some).andThen(either.stdLeft)
+  val gemsGuide: Optional[GuideConfig, GemsConfig]                           =
+    gaosGuide.andThen(option.some).andThen(either.stdRight)
+
+  given Eq[GuideConfig] = Eq.by(x => (x.tcsGuide, x.gaosGuide, x.gemsSkyPaused))
 }
 
 sealed trait GuideConfigDb[F[_]] {

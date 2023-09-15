@@ -11,6 +11,12 @@ import org.scalacheck.Gen
 import squants.Angle
 import squants.space.AngleConversions.*
 import squants.space.Degrees
+import observe.model.TelescopeGuideConfig
+import observe.server.gems.GemsController.GemsConfig
+import observe.server.gems.ArbGemsConfig.given
+import observe.server.altair.AltairController.AltairConfig
+import observe.server.altair.ArbAltairConfig.given
+import observe.model.arb.ArbTelescopeGuideConfig.given
 
 trait TcsArbitraries {
   given Arbitrary[TcsController.Beam]    = Arbitrary(
@@ -70,4 +76,12 @@ trait TcsArbitraries {
   )
   given Cogen[BinaryOnOff]     =
     Cogen[String].contramap(_.name)
+
+  given Arbitrary[GuideConfig] = Arbitrary {
+    for {
+      tg <- arbitrary[TelescopeGuideConfig]
+      gc <- arbitrary[Option[Either[AltairConfig, GemsConfig]]]
+      p  <- arbitrary[Boolean]
+    } yield GuideConfig(tg, gc, p)
+  }
 }
