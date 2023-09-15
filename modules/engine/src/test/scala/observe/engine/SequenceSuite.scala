@@ -6,14 +6,11 @@ package observe.engine
 import cats.effect.IO
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import cats.effect.unsafe.implicits.global
 import eu.timepit.refined.types.numeric.PosLong
 
 import java.util.UUID
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
-import org.scalatest.Inside.inside
-import org.scalatest.matchers.should.Matchers.*
 import lucuma.core.model.Observation as LObservation
 import lucuma.core.model.sequence.Atom
 import observe.model.{ActionType, ClientId, SequenceState, StepId, UserDetails}
@@ -21,34 +18,17 @@ import observe.engine.TestUtil.TestState
 import observe.common.test.*
 
 import scala.Function.const
-import org.scalatest.flatspec.AnyFlatSpec
+import cats.data.OptionT
 
-class SequenceSpec extends AnyFlatSpec {
+class SequenceSuite extends munit.CatsEffectSuite {
 
-  private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
+  private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
   private val seqId = LObservation.Id(PosLong.unsafeFrom(1))
 
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
 
   // All tests check the output of running a sequence against the expected sequence of updates.
-
-  // Use a small sequence and the list of expected updates.
-  ignore should "run and generate the predicted sequence of updates." in {}
-
-  // The hard part will be to make sure the sequence stops in a known point.
-  ignore should "stop execution in response to a pause command" in {}
-
-  // It should reuse code from the previous test to set the initial state for the test.
-  ignore should "resume execution from the non-running state in response to a resume command." in {}
-
-  ignore should "ignore pause command if sequence is not running." in {}
-
-  // Be careful that resume command really arrives while sequence is running.
-  ignore should "ignore resume command if sequence is already running." in {}
-
-  // For this test, an action in one of the steps in the sequence must return an error.
-  ignore should "stop execution and propagate error when an Action ends in error." in {}
 
   private val user            = UserDetails("telops", "Telops")
   private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
@@ -71,7 +51,7 @@ class SequenceSpec extends AnyFlatSpec {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): Option[TestState] = (
+  def runToCompletion(s0: TestState): IO[Option[TestState]] =
     for {
       eng <- executionEngine
       _   <-
@@ -83,9 +63,8 @@ class SequenceSpec extends AnyFlatSpec {
                .compile
                .last
     } yield v.map(_._2)
-  ).unsafeRunSync()
 
-  it should "stop on breakpoints" in {
+  test("stop on breakpoints") {
 
     val qs0: TestState =
       TestState(
@@ -105,14 +84,18 @@ class SequenceSpec extends AnyFlatSpec {
 
     val qs1 = runToCompletion(qs0)
 
-    inside(qs1.map(_.sequences(seqId))) { case Some(Sequence.State.Zipper(zipper, status, _)) =>
-      assert(zipper.done.length == 1 && zipper.pending.isEmpty)
-      status should be(SequenceState.Idle)
-    }
-
+    (for {
+      s <- OptionT(qs1)
+      t <- OptionT.pure(s.sequences(seqId))
+      r <- OptionT.pure(t match {
+             case Sequence.State.Zipper(zipper, status, _) =>
+               zipper.done.length === 1 && zipper.pending.isEmpty && status === SequenceState.Idle
+             case _                                        => false
+           })
+    } yield r).value.map(_.getOrElse(fail("Sequence not found"))).assert
   }
 
-  it should "resume execution to completion after a breakpoint" in {
+  test("resume execution to completion after a breakpoint") {
 
     val qs0: TestState =
       TestState(
@@ -133,17 +116,28 @@ class SequenceSpec extends AnyFlatSpec {
 
     val qs1 = runToCompletion(qs0)
 
-    // Check that there is something left to run
-    inside(qs1.map(_.sequences(seqId))) { case Some(Sequence.State.Zipper(zipper, _, _)) =>
-      assert(zipper.pending.nonEmpty)
-    }
+    val c1: IO[Boolean] = (for {
+      s <- OptionT(qs1)
+      t <- OptionT.pure(s.sequences(seqId))
+      r <- OptionT.pure(t match {
+             case Sequence.State.Zipper(zipper, _, _) =>
+               zipper.pending.nonEmpty
+             case _                                   => false
+           })
+    } yield r).value.map(_.getOrElse(fail("Sequence not found")))
 
-    val qs2 = qs1.flatMap(runToCompletion)
+    val c2: IO[Boolean] = (for {
+      qs2 <- OptionT(qs1)
+      s   <- OptionT(runToCompletion(qs2))
+      t   <- OptionT.pure(s.sequences(seqId))
+      r   <- OptionT.pure(t match {
+               case f @ Sequence.State.Final(_, status) =>
+                 f.done.length === 3 && status === SequenceState.Completed
+               case _                                   => false
+             })
+    } yield r: Boolean).value.map(_.getOrElse(fail("Sequence not found")))
 
-    inside(qs2.map(_.sequences(seqId))) { case Some(f @ Sequence.State.Final(_, status)) =>
-      assert(f.done.length == 3)
-      status should be(SequenceState.Completed)
-    }
+    (c1, c2).mapN((a, b) => a && b).assert
 
   }
 
@@ -153,6 +147,7 @@ class SequenceSpec extends AnyFlatSpec {
   private val action: Action[IO]          = fromF[IO](ActionType.Undefined, IO(result))
   private val completedAction: Action[IO] =
     action.copy(state = Action.State(Action.ActionState.Completed(DummyResult), Nil))
+
   def simpleStep2(
     pending: List[ParallelActions[IO]],
     focus:   Execution[IO],
@@ -179,6 +174,7 @@ class SequenceSpec extends AnyFlatSpec {
       }),
       rolledback = rollback
     )
+
   }
   val stepz0: Step.Zipper[IO]             = simpleStep2(Nil, Execution.empty, Nil)
   val stepza0: Step.Zipper[IO]            = simpleStep2(List(NonEmptyList.one(action)), Execution.empty, Nil)
@@ -208,7 +204,7 @@ class SequenceSpec extends AnyFlatSpec {
   val seqzar0: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar0)
   val seqzar1: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar1)
 
-  "next" should "be None when there are no more pending executions" in {
+  test("be None when there are no more pending executions") {
     assert(seqz0.next.isEmpty)
     assert(seqza0.next.isEmpty)
     assert(seqza1.next.nonEmpty)
@@ -219,7 +215,7 @@ class SequenceSpec extends AnyFlatSpec {
     assert(seqzar1.next.nonEmpty)
   }
 
-  "startSingle" should "mark a single Action as started" in {
+  test("mark a single Action as started") {
     val seq = Sequence.State.init(
       Sequence.sequence(id = seqId,
                         atomId,
@@ -231,11 +227,10 @@ class SequenceSpec extends AnyFlatSpec {
 
     val c = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(1))
 
-    assert(seq.startSingle(c).getSingleState(c) === Action.ActionState.Started)
-
+    assert(seq.startSingle(c).getSingleState(c) == Action.ActionState.Started)
   }
 
-  it should "not start single Action from completed Step" in {
+  test("not start single Action from completed Step") {
     val seq1 = Sequence.State.init(
       Sequence.sequence(
         id = seqId,
@@ -281,7 +276,7 @@ class SequenceSpec extends AnyFlatSpec {
 
   }
 
-  "failSingle" should "mark a single running Action as failed" in {
+  test("mark a single running Action as failed") {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
@@ -305,7 +300,7 @@ class SequenceSpec extends AnyFlatSpec {
     assert(seq.failSingle(c2, Result.Error("")).getSingleState(c2).isIdle)
   }
 
-  "completeSingle" should "mark a single running Action as completed" in {
+  test("mark a single running Action as completed") {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(

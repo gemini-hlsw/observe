@@ -27,9 +27,9 @@ import scala.concurrent.duration.*
 import cats.effect.Ref
 import lucuma.core.model.sequence.Atom
 
-class StepSpec extends CatsEffectSuite {
+class StepSuite extends CatsEffectSuite {
 
-  private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
+  private given L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
 
   private val seqId  = observationId(1)
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
