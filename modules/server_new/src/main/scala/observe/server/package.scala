@@ -7,15 +7,16 @@ import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import cats.{Applicative, ApplicativeThrow, Endo, Eq, MonadError, MonadThrow, Order}
+import cats.{Applicative, ApplicativeThrow, Endo, Eq, Functor, MonadError, MonadThrow, Order}
 import clue.ErrorPolicy
 import fs2.Stream
-import monocle.{Focus, Getter, Optional}
+import monocle.{Focus, Lens, Optional}
 import monocle.syntax.all.*
 import observe.engine.Result.PauseContext
 import observe.engine.{Engine, Result, *}
 import observe.model.enums.*
 import observe.model.{Observation, *}
+import observe.server.SequenceGen.StepGen
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import lucuma.schemas.ObservationDB.Scalars.VisitId
@@ -39,10 +40,12 @@ package object server {
     operator:   Option[Operator]
   ) {
     lazy val sequences: Map[Observation.Id, SequenceData[F]] =
-      List(selected.gmosNorth, selected.gmosSouth).flattenOption.map(x => x.id -> x).toMap
+      List(selected.gmosNorth, selected.gmosSouth).flattenOption
+        .map(x => x.seqGen.obsData.id -> x)
+        .toMap
   }
 
-  object EngineState     {
+  object EngineState {
     def default[F[_]]: EngineState[F] =
       EngineState[F](
         Map(CalibrationQueueId -> ExecutionQueue.init(CalibrationQueueName)),
@@ -51,41 +54,57 @@ package object server {
         None
       )
 
-    def instrumentLoadedG[F[_]](
+    def instrumentLoaded[F[_]](
       instrument: Instrument
-    ): Getter[EngineState[F], Option[Observation.Id]] = Getter { s =>
-      instrument match {
-        case Instrument.GmosN => s.selected.gmosNorth.map(_.id)
-        case Instrument.GmosS => s.selected.gmosSouth.map(_.id)
-        case _                => none
-      }
+    ): Option[Lens[EngineState[F], Option[SequenceData[F]]]] = instrument match {
+      case Instrument.GmosS => Some(Focus[EngineState[F]](_.selected.gmosSouth))
+      case Instrument.GmosN => Some(Focus[EngineState[F]](_.selected.gmosNorth))
+      case _                => none
     }
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
       Focus[EngineState[F]](_.selected)
         .andThen(
           Optional[Selected[F], SequenceData[F]] { s =>
-            s.gmosNorth.find(_.id === sid).orElse(s.gmosSouth.find(_.id === sid))
+            s.gmosNorth
+              .find(_.seqGen.obsData.id === sid)
+              .orElse(s.gmosSouth.find(_.seqGen.obsData.id === sid))
           } { d => s =>
-            if (s.gmosNorth.exists(_.id === sid)) s.focus(_.gmosNorth).replace(d.some)
-            else if (s.gmosSouth.exists(_.id === sid)) s.focus(_.gmosSouth).replace(d.some)
+            if (s.gmosNorth.exists(_.seqGen.obsData.id === sid))
+              s.focus(_.gmosNorth).replace(d.some)
+            else if (s.gmosSouth.exists(_.seqGen.obsData.id === sid))
+              s.focus(_.gmosSouth).replace(d.some)
             else s
           }
         )
 
+    def gmosNorthSequence[F[_]]: Optional[EngineState[F], SequenceData[F]] =
+      Optional[EngineState[F], SequenceData[F]] {
+        _.selected.gmosNorth
+      } { d => s =>
+        s.focus(_.selected.gmosNorth).replace(d.some)
+      }
+
+    def gmosSouthSequence[F[_]]: Optional[EngineState[F], SequenceData[F]] =
+      Optional[EngineState[F], SequenceData[F]] {
+        _.selected.gmosSouth
+      } { d => s =>
+        s.focus(_.selected.gmosSouth).replace(d.some)
+      }
+
     def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
       Optional[EngineState[F], Sequence.State[F]](s =>
         s.selected.gmosSouth
-          .filter(_.id === sid)
-          .orElse(s.selected.gmosNorth.filter(_.id === sid))
+          .filter(_.seqGen.obsData.id === sid)
+          .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === sid))
           .map(_.seq)
       )(ss =>
         es =>
-          if (es.selected.gmosSouth.exists(_.id === sid))
+          if (es.selected.gmosSouth.exists(_.seqGen.obsData.id === sid))
             es.copy(selected =
               es.selected.copy(gmosSouth = es.selected.gmosSouth.map(_.copy(seq = ss)))
             )
-          else if (es.selected.gmosNorth.exists(_.id === sid))
+          else if (es.selected.gmosNorth.exists(_.seqGen.obsData.id === sid))
             es.copy(selected =
               es.selected.copy(gmosNorth = es.selected.gmosNorth.map(_.copy(seq = ss)))
             )
@@ -98,6 +117,15 @@ package object server {
     implicit final class WithEventOps[F[_]](val f: Endo[EngineState[F]]) extends AnyVal {
       def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }
     }
+
+    def queues[F[_]]: Lens[EngineState[F], ExecutionQueues] = Focus[EngineState[F]](_.queues)
+
+    def selected[F[_]]: Lens[EngineState[F], Selected[F]] = Focus[EngineState[F]](_.selected)
+
+    def conditions[F[_]]: Lens[EngineState[F], Conditions] = Focus[EngineState[F]](_.conditions)
+
+    def operator[F[_]]: Lens[EngineState[F], Option[Operator]] = Focus[EngineState[F]](_.operator)
+
   }
 
   final case class HeaderExtraData(
@@ -122,10 +150,6 @@ package object server {
 
   // This is far from ideal but we'll address this in another refactoring
   private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
-
-  // TODO move this out of being a global. This act as an anchor to the rest of the code
-  given executeEngine: Engine[IO, EngineState[IO], SeqEvent] =
-    new Engine[IO, EngineState[IO], SeqEvent](EngineState.engineState[IO])
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 
@@ -186,12 +210,12 @@ package object server {
       StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
   }
 
-//  def toStepList[F[_]](
-//    seq:       SequenceGen[F],
-//    overrides: SystemOverrides,
-//    d:         HeaderExtraData
-//  ): List[engine.Step[F]] =
-//    seq.steps.map(StepGen.generate(_, overrides, d))
+  def toStepList[F[_]](
+    seq:       SequenceGen[F],
+    overrides: SystemOverrides,
+    d:         HeaderExtraData
+  ): List[engine.Step[F]] =
+    seq.steps.map(StepGen.generate(_, overrides, d))
 
   // If f is true continue, otherwise fail
   def failUnlessM[F[_]: MonadThrow](f: F[Boolean], err: Exception): F[Unit] =
@@ -227,17 +251,14 @@ package object server {
         Stream.emit(Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e))))
   }
 
-//  implicit class ActionResponseToAction[F[_]: Functor: ApplicativeError[
-//    *[_],
-//    Throwable
-//  ], A <: Response](val x: F[A]) {
-//    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
-//  }
-//
-//extension [F[_]: Functor]( x: F[ConfigResult]) {
-//    def toAction(kind: ActionType): Action[F] =
-//      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
-//  }
+  extension [F[_]: ApplicativeThrow, A <: Response](x: F[A]) {
+    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
+  }
+
+  extension [F[_]: Functor](x: F[ConfigResult[F]]) {
+    def toAction(kind: ActionType): Action[F] =
+      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
+  }
 
   // Some types defined to avoid repeating long type definitions everywhere
   type EventType[F[_]]      = Event[F, EngineState[F], SeqEvent]

@@ -73,6 +73,8 @@ object Event {
   def logErrorMsgF[F[_]: Sync, S, U](msg: String): F[Event[F, S, U]]                               =
     Sync[F].delay(Instant.now).map(t => EventUser[F, S, U](LogError(msg, t)))
 
+  def pure[F[_]: Sync, S, U](v: U): Event[F, S, U] = EventUser[F, S, U](Pure(v))
+
   def failed[F[_], S, U](id: Observation.Id, i: Int, e: Result.Error): Event[F, S, U]  =
     EventSystem[F, S, U](Failed(id, i, e))
   def completed[F[_], R <: Result.RetVal, S, U](

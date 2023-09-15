@@ -104,7 +104,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-  private val executionEngine = new Engine[IO, TestState, Unit](TestState)
+  private def executionEngine = Engine.build[IO, TestState, Unit](TestState)
   private val user            = UserDetails("telops", "Telops")
 
   def isFinished(status: SequenceState): Boolean = status match {
@@ -114,29 +114,32 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): Option[TestState] =
-    executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(
-          IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId))
-        )
-      )(s0)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+  def runToCompletion(s0: TestState): Option[TestState] = (
+    for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+      v   <- eng
+               .process(PartialFunction.empty)(s0)
+               .drop(1)
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .compile
+               .last
+    } yield v.map(_._2)
+  ).unsafeRunSync()
 
   it should "be in Running status after starting" in {
-    val p  = Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
-    val qs = executionEngine
-      .process(PartialFunction.empty)(p)(qs1)
-      .take(1)
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+    val qs = (
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+        v   <- eng
+                 .process(PartialFunction.empty)(qs1)
+                 .take(1)
+                 .compile
+                 .last
+      } yield v.map(_._2)
+    ).unsafeRunSync()
+
     assert(qs.exists(s => Sequence.State.isRunning(s.sequences(seqId))))
   }
 
@@ -171,16 +174,20 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
         )
       )
     )
-    val p             = Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
 
     // take(3): Start, Executing, Paused
-    executionEngine
-      .process(PartialFunction.empty)(p)(s0)
-      .take(3)
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+    (
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+        v   <- eng
+                 .process(PartialFunction.empty)(s0)
+                 .take(3)
+                 .compile
+                 .last
+      } yield v.map(_._2)
+    ).unsafeRunSync()
+
   }
 
   "sequence state" should "stay as running when action pauses itself" in {
@@ -193,23 +200,27 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
   }
 
   "engine" should "run sequence to completion after resuming a paused action" in {
-    val p: Stream[IO, executionEngine.EventType] =
-      Stream.eval(
-        IO.pure(
-          Event.actionResume[IO, TestState, Unit](seqId, 0, Stream.eval(IO(Result.OK(DummyResult))))
-        )
-      )
-
-    val result = actionPause.flatMap(
-      executionEngine
-        .process(PartialFunction.empty)(p)(_)
-        .drop(1)
-        .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-        .compile
-        .last
-        .unsafeRunTimed(5.seconds)
+    val result = actionPause.flatMap(s =>
+      (
+        for {
+          eng <- executionEngine
+          _   <- eng.offer(
+                   Event.actionResume[IO, TestState, Unit](seqId,
+                                                           0,
+                                                           Stream.eval(IO(Result.OK(DummyResult)))
+                   )
+                 )
+          r   <- eng
+                   .process(PartialFunction.empty)(s)
+                   .drop(1)
+                   .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+                   .compile
+                   .last
+        } yield r
+      ).unsafeRunTimed(5.seconds)
     )
-    val qso    = result.flatMap(_.map(_._2))
+
+    val qso = result.flatMap(_.map(_._2))
 
     assert(
       qso.forall(x =>
@@ -223,9 +234,9 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
 
   "engine" should "keep processing input messages regardless of how long ParallelActions take" in {
     val result = (for {
-      q           <- Stream.eval(cats.effect.std.Queue.bounded[IO, executionEngine.EventType](1))
-      startedFlag <- Stream.eval(Semaphore.apply[IO](0))
-      finishFlag  <- Stream.eval(Semaphore.apply[IO](0))
+      startedFlag <- Semaphore.apply[IO](0)
+      finishFlag  <- Semaphore.apply[IO](0)
+      eng         <- executionEngine
       r           <- {
         val qs = TestState(
           Map(
@@ -251,26 +262,24 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
             )
           )
         )
-        Stream.eval(
-          List(
-            List[IO[Unit]](
-              q.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
-              startedFlag.acquire,
-              q.offer(Event.nullEvent),
-              q.offer(Event.getState[IO, TestState, Unit] { _ =>
-                Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
-              })
-            ).sequence,
-            executionEngine
-              .process(PartialFunction.empty)(Stream.fromQueueUnterminated(q))(qs)
-              .drop(1)
-              .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-              .compile
-              .drain
-          ).parSequence
-        )
+        List(
+          List[IO[Unit]](
+            eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
+            startedFlag.acquire,
+            eng.offer(Event.nullEvent),
+            eng.offer(Event.getState[IO, TestState, Unit] { _ =>
+              Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
+            })
+          ).sequence,
+          eng
+            .process(PartialFunction.empty)(qs)
+            .drop(1)
+            .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+            .compile
+            .drain
+        ).parSequence
       }
-    } yield r).compile.last.unsafeRunTimed(5.seconds).flatten
+    } yield r).unsafeRunTimed(5.seconds)
 
     assert(result.isDefined)
   }
@@ -585,17 +594,22 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val c     = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
-    val event = Event.modifyState[IO, TestState, Unit](
-      executionEngine.startSingle(ActionCoords(seqId, c)).void
+    val c                                       = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
+    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
+      eng.startSingle(ActionCoords(seqId, c)).void
     )
-    val sfs   = executionEngine
-      .process(PartialFunction.empty)(Stream.eval(IO.pure(event)))(s0)
-      .map(_._2)
-      .take(2)
-      .compile
-      .toList
-      .unsafeRunSync()
+    val sfs                                     = (
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(event(eng))
+        v   <- eng
+                 .process(PartialFunction.empty)(s0)
+                 .map(_._2)
+                 .take(2)
+                 .compile
+                 .toList
+      } yield v
+    ).unsafeRunSync()
 
     /**
      * First state update must have the action started. Second state update must have the action
@@ -648,20 +662,24 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
     )
 
   it should "be able to start sequence from arbitrary step" in {
-    val event = Event.modifyState[IO, TestState, Unit](
-      executionEngine
+    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
+      eng
         .startFrom(seqId, stepId(3))
         .void
     )
 
-    val sf = executionEngine
-      .process(PartialFunction.empty)(Stream.eval(IO.pure(event)))(qs2)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+    val sf = (
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(event(eng))
+        r   <- eng
+                 .process(PartialFunction.empty)(qs2)
+                 .drop(1)
+                 .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+                 .compile
+                 .last
+      } yield r.map(_._2)
+    ).unsafeRunSync()
 
     inside(sf.flatMap(_.sequences.get(seqId).map(_.toSequence))) { case Some(seq) =>
       assertResult(Some(StepState.Completed))(seq.steps.get(0).map(_.status))

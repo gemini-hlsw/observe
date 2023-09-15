@@ -90,7 +90,7 @@ final case class Gsaoi[F[_]: Logger: Async](
   /**
    * Called to configure a system
    */
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

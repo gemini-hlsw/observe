@@ -6,6 +6,7 @@ package observe.engine
 import cats.*
 import cats.data.StateT
 import cats.effect.Concurrent
+import cats.effect.std.Queue
 import cats.syntax.all.*
 import fs2.Stream
 import monocle.Optional
@@ -26,7 +27,11 @@ import SystemEvent.*
 import UserEvent.*
 import Handle.given
 
-class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
+class Engine[F[_]: MonadThrow: Logger, S, U] private (
+  stateL:      Engine.State[F, S],
+  streamQueue: Queue[F, Stream[F, Event[F, S, U]]],
+  inputQueue:  Queue[F, Event[F, S, U]]
+) {
   val L: Logger[F] = Logger[F]
 
   type EventType     = Event[F, S, U]
@@ -134,7 +139,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
    * Tells if a sequence can be safely removed
    */
   def canUnload(id: Observation.Id)(st: S): Boolean =
-    stateL.sequenceStateIndex(id).getOption(st).forall(!Sequence.State.isRunning(_))
+    stateL.sequenceStateIndex(id).getOption(st).forall(canUnload)
+
+  def canUnload(seq: Sequence.State[F]): Boolean = !Sequence.State.isRunning(seq)
 
   /**
    * Refresh the steps executions of an existing sequence. Does not add nor remove steps.
@@ -146,6 +153,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
    */
   def update(id: Observation.Id, steps: List[Step[F]]): Endo[S] =
     stateL.sequenceStateIndex(id).modify(_.update(steps.map(_.executions)))
+
+  def updateSteps(steps: List[Step[F]]): Endo[Sequence.State[F]] = _.update(steps.map(_.executions))
 
   /**
    * Adds the current `Execution` to the completed `Queue`, makes the next pending `Execution` the
@@ -383,6 +392,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
     case LogInfo(msg, _)            => info(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case LogWarning(msg, _)         => warning(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case LogError(msg, _)           => error(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case Pure(v)                    => pure(UserCommandResponse(ue, Outcome.Ok, v.some))
   }
 
   private def handleSystemEvent(
@@ -455,24 +465,21 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
   // input, stream of events
   // initalState: state
   // f takes an event and the current state, it produces a new state, a new value B and more actions
-  def mapEvalState[A, B](
-    input:        Stream[F, A],
+  def mapEvalState(
     initialState: S,
-    f:            (A, S) => F[(S, B, Option[Stream[F, A]])]
-  )(using ev: Concurrent[F]): Stream[F, B] =
-    Stream.eval(cats.effect.std.Queue.unbounded[F, Stream[F, A]]).flatMap { q =>
-      Stream.exec(q.offer(input)) ++
-        Stream
-          .fromQueueUnterminated(q)
-          .parJoinUnbounded
-          .evalMapAccumulate(initialState) { (s, a) =>
-            f(a, s).flatMap {
-              case (ns, b, None)     => (ns, b).pure[F]
-              case (ns, b, Some(st)) => q.offer(st) >> (ns, b).pure[F]
-            }
+    f:            (EventType, S) => F[(S, (ResultType, S), Option[Stream[F, EventType]])]
+  )(using ev: Concurrent[F]): Stream[F, (ResultType, S)] =
+    Stream.exec(streamQueue.offer(Stream.fromQueueUnterminated(inputQueue))) ++
+      Stream
+        .fromQueueUnterminated(streamQueue)
+        .parJoinUnbounded
+        .evalMapAccumulate(initialState) { (s, a) =>
+          f(a, s).flatMap {
+            case (ns, b, None)     => (ns, b).pure[F]
+            case (ns, b, Some(st)) => streamQueue.offer(st) >> (ns, b).pure[F]
           }
-          .map(_._2)
-    }
+        }
+        .map(_._2)
 
   private def runE(
     userReact: PartialFunction[SystemEvent, HandleType[Unit]]
@@ -483,10 +490,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
       (si, (r, si), p)
     }
 
-  def process(userReact: PartialFunction[SystemEvent, Handle[F, S, Event[F, S, U], Unit]])(
-    input: Stream[F, Event[F, S, U]]
-  )(qs: S)(using ev: Concurrent[F]): Stream[F, (EventResult[U], S)] =
-    mapEvalState[EventType, (EventResult[U], S)](input, qs, runE(userReact)(_, _))
+  def process(userReact: PartialFunction[SystemEvent, Handle[F, S, Event[F, S, U], Unit]])(s0: S)(
+    using ev: Concurrent[F]
+  ): Stream[F, (EventResult[U], S)] =
+    mapEvalState(s0, runE(userReact)(_, _))
 
   // Functions for type bureaucracy
 
@@ -524,6 +531,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U](stateL: Engine.State[F, S]) {
   def printSequenceState(id: Observation.Id): HandleType[Unit] =
     getSs(id)((qs: Sequence.State[F]) => StateT.liftF(L.debug(s"$qs"))).void
 
+  def offer(in: Event[F, S, U]): F[Unit] = inputQueue.offer(in)
+
+  def inject(f: F[Event[F, S, U]]): F[Unit] = streamQueue.offer(Stream.eval(f))
+
 }
 
 object Engine {
@@ -536,5 +547,12 @@ object Engine {
     type StateType = S
     type EventData = E
   }
+
+  def build[F[_]: MonadThrow: Logger: Concurrent, S, U](
+    stateL: State[F, S]
+  ): F[Engine[F, S, U]] = for {
+    sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
+    iq <- Queue.unbounded[F, Event[F, S, U]]
+  } yield new Engine(stateL, sq, iq)
 
 }

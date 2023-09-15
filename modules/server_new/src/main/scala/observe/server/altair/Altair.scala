@@ -4,7 +4,6 @@
 package observe.server.altair
 
 import cats.{ApplicativeThrow, Eq}
-import cats.syntax.all.*
 import cats.effect.Sync
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
@@ -97,6 +96,6 @@ object Altair {
 
   def guideStarType[F[_]: ApplicativeThrow](
     obsCfg: Observation
-  ): F[GuideStarType] = GuideStarType.Ngs.pure[F]
+  ): GuideStarType = GuideStarType.Ngs
 
 }

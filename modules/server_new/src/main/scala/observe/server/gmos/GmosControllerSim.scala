@@ -7,7 +7,8 @@ import cats.Show
 import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all.*
 import fs2.Stream
-import monocle.{Focus, Optional}
+import monocle.Optional
+import monocle.Focus
 import monocle.syntax.all.*
 import monocle.std.option.some
 import observe.model.GmosParameters.NsCycles

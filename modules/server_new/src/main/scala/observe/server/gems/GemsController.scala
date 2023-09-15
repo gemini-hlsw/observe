@@ -69,6 +69,26 @@ object GemsController {
       ).collect { case Some(x) => x }
         .mkString("(", ", ", ")")
     }
+
+    given Eq[GemsOn] = Eq.by(x =>
+      (
+        x.cwfs1,
+        x.cwfs2,
+        x.cwfs3,
+        x.odgw1,
+        x.odgw2,
+        x.odgw3,
+        x.odgw4,
+        x.useP1,
+        x.useOI
+      )
+    )
+
+    given Eq[GemsConfig] = Eq.instance {
+      case (a: GemsOn, b: GemsOn) => a === b
+      case (GemsOff, GemsOff)     => true
+      case _                      => false
+    }
   }
 
   case object GemsOff extends GemsConfig {

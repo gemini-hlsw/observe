@@ -67,7 +67,12 @@ object GmosController {
     type ExposureTime = TimeSpan
     type PosAngle     = lucuma.core.math.Angle
 
-    sealed trait CCConfig[T <: GmosSite]
+    sealed trait CCConfig[T <: GmosSite] { self =>
+      val isDarkOrBias: Boolean = self match {
+        case StandardCCConfig(_, _, _, _, _, _, _) => false
+        case DarkOrBias()                          => true
+      }
+    }
 
     // TODO: Replace by lucuma type when it exists.
     sealed case class ROIDescription(getXStart: Int, getYStart: Int, xSize: Int, ySize: Int) {
@@ -118,10 +123,10 @@ object GmosController {
 
     final case class BuiltInFPU[T <: GmosSite](fpu: GmosSite.FPU[T]) extends GmosFPU[T]
 
-    sealed trait GmosGrating[+T <: GmosSite] extends Product with Serializable
+    sealed trait GmosGrating[T <: GmosSite] extends Product with Serializable
 
     object GmosGrating {
-      case object Mirror extends GmosGrating[Nothing]
+      case class Mirror[T <: GmosSite]() extends GmosGrating[T]
 
       case class Order0[T <: GmosSite](disperser: GmosSite.Grating[T]) extends GmosGrating[T]
 

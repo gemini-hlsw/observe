@@ -66,7 +66,8 @@ final case class ObserveEngineConfiguration(
   epicsCaAddrList:         Option[String],
   readRetries:             Int,
   ioTimeout:               FiniteDuration,
-  dhsTimeout:              FiniteDuration
+  dhsTimeout:              FiniteDuration,
+  dhsMaxSize:              Int
 )
 
 object ObserveEngineConfiguration {
@@ -89,7 +90,8 @@ object ObserveEngineConfiguration {
        x.epicsCaAddrList,
        x.readRetries,
        x.ioTimeout,
-       x.dhsTimeout
+       x.dhsTimeout,
+       x.dhsMaxSize
       )
     )
 

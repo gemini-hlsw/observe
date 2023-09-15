@@ -9,6 +9,7 @@ import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.enums.{Instrument, Resource}
 import observe.server.ExecutionQueue.SequenceInQueue
+import monocle.{Focus, Lens}
 
 final case class ExecutionQueue(
   name:     String,
@@ -32,4 +33,6 @@ object ExecutionQueue {
 
   given Eq[ExecutionQueue] =
     Eq.by(x => (x.name, x.cmdState, x.queue))
+
+  val cmdState: Lens[ExecutionQueue, BatchCommandState] = Focus[ExecutionQueue](_.cmdState)
 }

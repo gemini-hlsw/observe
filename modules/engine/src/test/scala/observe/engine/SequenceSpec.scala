@@ -8,7 +8,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
 import eu.timepit.refined.types.numeric.PosLong
-import fs2.Stream
 
 import java.util.UUID
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -52,7 +51,7 @@ class SequenceSpec extends AnyFlatSpec {
   ignore should "stop execution and propagate error when an Action ends in error." in {}
 
   private val user            = UserDetails("telops", "Telops")
-  private val executionEngine = new Engine[IO, TestState, Unit](TestState)
+  private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
   def simpleStep(id: StepId, breakpoint: Boolean): Step[IO] =
     Step
@@ -72,21 +71,19 @@ class SequenceSpec extends AnyFlatSpec {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): Option[TestState] =
-    executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(
-          IO.pure(
-            Event.start[IO, TestUtil.TestState, Unit](seqId, user, ClientId(UUID.randomUUID))
-          )
-        )
-      )(s0)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+  def runToCompletion(s0: TestState): Option[TestState] = (
+    for {
+      eng <- executionEngine
+      _   <-
+        eng.offer(Event.start[IO, TestUtil.TestState, Unit](seqId, user, ClientId(UUID.randomUUID)))
+      v   <- eng
+               .process(PartialFunction.empty)(s0)
+               .drop(1)
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .compile
+               .last
+    } yield v.map(_._2)
+  ).unsafeRunSync()
 
   it should "stop on breakpoints" in {
 

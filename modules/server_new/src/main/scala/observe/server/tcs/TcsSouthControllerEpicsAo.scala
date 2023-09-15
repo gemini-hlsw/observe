@@ -7,10 +7,11 @@ import cats.*
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all.*
-import monocle.{Focus, Lens}
+import monocle.Lens
 import monocle.syntax.all.*
 import mouse.boolean.*
 import lucuma.core.enums.Site
+import monocle.Focus
 import observe.model.M1GuideConfig.M1GuideOn
 import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
 import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
@@ -59,6 +60,10 @@ object TcsSouthControllerEpicsAo {
     odgw4:   GuiderConfig
   )
 
+  object EpicsTcsAoConfig {
+    val base: Lens[EpicsTcsAoConfig, BaseEpicsTcsConfig] = EpicsTcsAoConfig.base
+  }
+
   private final class TcsSouthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
     L: Logger[F]
   ) extends TcsSouthControllerEpicsAo[F]
@@ -96,7 +101,7 @@ object TcsSouthControllerEpicsAo {
 
         actions.map { r =>
           { (x: EpicsTcsAoConfig) =>
-            r.self.as(l.andThen(Focus[GuiderConfig](_.tracking)).replace(demand)(x))
+            r.self.as(l.andThen(GuiderConfig.tracking).replace(demand)(x))
           }.withDebug(s"$name tracking set because ${r.debug}")
         }
       } else none
@@ -373,28 +378,31 @@ object TcsSouthControllerEpicsAo {
       def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
         (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
 
-      (Focus[TcsSouthAoConfig](_.gds)
+      (AoTcsConfig
+        .gds[Site.GS.type]
         .modify(
-          Focus[AoGuidersConfig[GemsGuiders]](_.pwfs1)
+          AoGuidersConfig
+            .pwfs1[GemsGuiders]
             .andThen(TcsController.P1Config.value)
-            .andThen(Focus[GuiderConfig](_.detector))
+            .andThen(GuiderConfig.detector)
             .replace(calc(current.base.pwfs1.detector, demand.gds.pwfs1.value.detector)) >>>
-            Focus[AoGuidersConfig[GemsGuiders]](_.oiwfs)
+            AoGuidersConfig
+              .oiwfs[GemsGuiders]
               .andThen(TcsController.OIConfig.value)
-              .andThen(Focus[GuiderConfig](_.detector))
+              .andThen(GuiderConfig.detector)
               .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.value.detector))
         ) >>>
-        Focus[TcsSouthAoConfig](_.gc)
+        AoTcsConfig.gc
           .modify(
-            Focus[TelescopeGuideConfig](_.mountGuide).replace(
+            TelescopeGuideConfig.mountGuide.replace(
               (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
                 .fold(MountGuideOption.MountGuideOff, current.base.telescopeGuideConfig.mountGuide)
             ) >>>
-              Focus[TelescopeGuideConfig](_.m1Guide).replace(
+              TelescopeGuideConfig.m1Guide.replace(
                 (mustOff || demand.gc.m1Guide === M1GuideConfig.M1GuideOff)
                   .fold(M1GuideConfig.M1GuideOff, current.base.telescopeGuideConfig.m1Guide)
               ) >>>
-              Focus[TelescopeGuideConfig](_.m2Guide).replace(
+              TelescopeGuideConfig.m2Guide.replace(
                 (mustOff || demand.gc.m2Guide === M2GuideConfig.M2GuideOff)
                   .fold(M2GuideConfig.M2GuideOff, current.base.telescopeGuideConfig.m2Guide)
               )
@@ -409,28 +417,28 @@ object TcsSouthControllerEpicsAo {
       current:    EpicsTcsAoConfig,
       demand:     TcsSouthAoConfig
     ): List[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] = List(
-      commonController.setMountGuide(Focus[EpicsTcsAoConfig](_.base))(
+      commonController.setMountGuide(EpicsTcsAoConfig.base)(
         subsystems,
         current.base.telescopeGuideConfig.mountGuide,
         demand.gc.mountGuide
       ),
-      commonController.setM1Guide(Focus[EpicsTcsAoConfig](_.base))(
+      commonController.setM1Guide(EpicsTcsAoConfig.base)(
         subsystems,
         current.base.telescopeGuideConfig.m1Guide,
         demand.gc.m1Guide
       ),
-      commonController.setM2Guide(Focus[EpicsTcsAoConfig](_.base))(
+      commonController.setM2Guide(EpicsTcsAoConfig.base)(
         subsystems,
         current.base.telescopeGuideConfig.m2Guide,
         demand.gc.m2Guide
       ),
-      commonController.setPwfs1(Focus[EpicsTcsAoConfig](_.base))(subsystems,
-                                                                 current.base.pwfs1.detector,
-                                                                 demand.gds.pwfs1.value.detector
+      commonController.setPwfs1(EpicsTcsAoConfig.base)(subsystems,
+                                                       current.base.pwfs1.detector,
+                                                       demand.gds.pwfs1.value.detector
       ),
-      commonController.setOiwfs(Focus[EpicsTcsAoConfig](_.base))(subsystems,
-                                                                 current.base.oiwfs.detector,
-                                                                 demand.gds.oiwfs.value.detector
+      commonController.setOiwfs(EpicsTcsAoConfig.base)(subsystems,
+                                                       current.base.oiwfs.detector,
+                                                       demand.gds.oiwfs.value.detector
       )
     ).flattenOption
 
@@ -493,12 +501,12 @@ object TcsSouthControllerEpicsAo {
         current: EpicsTcsAoConfig
       ): List[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
         List(
-          commonController.setPwfs1Probe(Focus[EpicsTcsAoConfig](_.base))(
+          commonController.setPwfs1Probe(EpicsTcsAoConfig.base)(
             subsystems,
             current.base.pwfs1.tracking,
             tcs.gds.pwfs1.value.tracking
           ),
-          commonController.setOiwfsProbe(Focus[EpicsTcsAoConfig](_.base))(
+          commonController.setOiwfsProbe(EpicsTcsAoConfig.base)(
             subsystems,
             current.base.oiwfs.tracking,
             tcs.gds.oiwfs.value.tracking,
@@ -506,20 +514,13 @@ object TcsSouthControllerEpicsAo {
             tcs.inst.instrument
           ),
           commonController
-            .setScienceFold(Focus[EpicsTcsAoConfig](_.base))(subsystems, current, tcs.agc.sfPos),
-          commonController.setHrPickup(Focus[EpicsTcsAoConfig](_.base))(subsystems,
-                                                                        current,
-                                                                        tcs.agc
-          )
+            .setScienceFold(EpicsTcsAoConfig.base)(subsystems, current, tcs.agc.sfPos),
+          commonController.setHrPickup(EpicsTcsAoConfig.base)(subsystems, current, tcs.agc)
         ).flattenOption ++ setGemsProbes(subsystems, current, tcs.gds.aoguide)
 
       def sysConfig(current: EpicsTcsAoConfig): F[EpicsTcsAoConfig] = {
         val mountConfigParams   =
-          commonController.configMountPos(subsystems,
-                                          current,
-                                          tcs.tc,
-                                          Focus[EpicsTcsAoConfig](_.base)
-          )
+          commonController.configMountPos(subsystems, current, tcs.tc, EpicsTcsAoConfig.base)
         val paramList           = configParams(current) ++ mountConfigParams
         val mountMoves: Boolean = mountConfigParams.nonEmpty
         val stabilizationTime   = tcs.tc.offsetA

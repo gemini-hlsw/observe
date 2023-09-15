@@ -1,33 +1,26 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server
 
-import cats.{Applicative, Monoid}
-import cats.effect.IO
-import cats.syntax.all.*
 import cats.data.NonEmptyList
+import cats.effect.IO
 import cats.effect.unsafe.IORuntime
+import cats.syntax.all.*
+import cats.{Applicative, Monoid}
 import fs2.Stream
-import io.prometheus.client.CollectorRegistry
-import org.typelevel.log4cats.noop.NoOpLogger
-import org.typelevel.log4cats.Logger
-
-import java.util.UUID
-import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
-import lucuma.core.enums.Site
 import giapi.client.ghost.GhostClient
 import giapi.client.gpi.GpiClient
-import org.http4s.Uri
-import org.http4s.implicits.*
-import observe.engine
-import observe.engine.{Action, Result}
-import observe.engine.Result.PauseContext
-import observe.engine.Result.PartialVal
-import observe.model.enums.{Instrument, Resource}
-import observe.model.dhs.*
-import observe.model.config.*
+import io.prometheus.client.CollectorRegistry
+import lucuma.core.enums.Site
 import observe.common.test.*
+import observe.engine
+import observe.engine.Result.{PartialVal, PauseContext}
+import observe.engine.{Action, Result}
+import observe.model.config.*
+import observe.model.dhs.*
+import observe.model.enums.{Instrument, Resource}
+import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
 import observe.server.OdbProxy.TestOdbProxy
 import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
 import observe.server.flamingos2.Flamingos2ControllerSim
@@ -42,19 +35,19 @@ import observe.server.gws.DummyGwsKeywordsReader
 import observe.server.keywords.{DhsClientSim, GdsClient}
 import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
 import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
-import observe.server.tcs.{
-  DummyTcsKeywordsReader,
-  GuideConfigDb,
-  TcsNorthControllerSim,
-  TcsSouthControllerSim
-}
+import observe.server.tcs.{DummyTcsKeywordsReader, GuideConfigDb, TcsNorthControllerSim, TcsSouthControllerSim}
+import org.http4s.Uri
+import org.http4s.implicits.*
 import org.scalatest.flatspec.AnyFlatSpec
-import shapeless.tag
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
 
+import java.util.UUID
+import scala.collection.immutable.Stream
 import scala.concurrent.duration.*
 
 class TestCommon(using ioRuntime: IORuntime) extends AnyFlatSpec {
-  import TestCommon._
+  import TestCommon.*
 
   val defaultSystems: Systems[IO] = (DhsClientSim[IO],
                                      Flamingos2ControllerSim[IO],
@@ -158,7 +151,8 @@ object TestCommon {
     Some("127.0.0.1"),
     0,
     3.seconds,
-    10.seconds
+    10.seconds,
+    32
   )
 
   def configure[F[_]: Applicative](resource: Resource): F[Result] =

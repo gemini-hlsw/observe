@@ -5,6 +5,7 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
+import monocle.{Focus, Lens}
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
@@ -58,5 +59,10 @@ object Conditions {
 
   given Eq[Conditions] =
     Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
+
+  val cc: Lens[Conditions, Option[CloudExtinction]] = Focus[Conditions](_.cc)
+  val iq: Lens[Conditions, Option[ImageQuality]]    = Focus[Conditions](_.iq)
+  val sb: Lens[Conditions, Option[SkyBackground]]   = Focus[Conditions](_.sb)
+  val wv: Lens[Conditions, Option[WaterVapor]]      = Focus[Conditions](_.wv)
 
 }
