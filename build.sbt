@@ -74,31 +74,6 @@ lazy val esModule = Seq(
   ))
 )
 
-// Custom commands to facilitate web development
-val startObserveAllCommands   = List(
-  "observe_web_server/reStart",
-  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
-  "~observe_web_client/fastOptJS"
-)
-val restartObserveWDSCommands = List(
-  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer",
-  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
-  "~observe_web_client/fastOptJS"
-)
-val stopObserveAllCommands    = List(
-  "observe_web_server/reStop",
-  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer"
-)
-
-addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""))
-addCommandAlias("restartObserveWDS", restartObserveWDSCommands.mkString(";", ";", ""))
-addCommandAlias("stopObserveAll", stopObserveAllCommands.mkString(";", ";", ""))
-
-ThisBuild / resolvers ++=
-  Resolver.sonatypeOssRepos("snapshots")
-
-ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
-
 //////////////
 // Projects
 //////////////
@@ -109,7 +84,6 @@ ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
 
 lazy val root = tlCrossRootProject.aggregate(
   giapi,
-//  ocs2_api,
   observe_web_server,
   observe_web_client,
   observe_server,

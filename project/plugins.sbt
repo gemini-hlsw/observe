@@ -14,9 +14,6 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 // Support making distributions
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 
-// Use NPM modules rather than webjars
-addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.21.1")
-
 // Generate code for GraphQL queries
 addSbtPlugin("edu.gemini" % "sbt-clue" % "0.32.0")
 
