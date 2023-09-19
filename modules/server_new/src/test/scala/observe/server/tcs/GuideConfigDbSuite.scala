@@ -5,7 +5,6 @@ package observe.server.tcs
 
 import io.circe.parser.*
 import cats.effect.IO
-import cats.tests.CatsSuite
 import monocle.law.discipline.{LensTests, OptionalTests}
 import org.scalacheck.Arbitrary.*
 import observe.model.enums.*
@@ -31,7 +30,10 @@ import observe.server.gems.GemsController.Cwfs3Usage
 import observe.server.gems.ArbGemsConfig.given
 import squants.space.Millimeters
 
-final class GuideConfigDbSuite extends munit.CatsEffectSuite with CatsSuite with TcsArbitraries {
+final class GuideConfigDbSuite
+    extends munit.CatsEffectSuite
+    with munit.DisciplineSuite
+    with TcsArbitraries {
 
   val rawJson1: String          = """
   {

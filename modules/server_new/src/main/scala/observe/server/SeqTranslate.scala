@@ -80,7 +80,7 @@ import observe.server.tcs.*
 //import squants.time.TimeConversions._
 //import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
 import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
-import scala.concurrent.duration.{*, given}
+import scala.concurrent.duration.*
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {

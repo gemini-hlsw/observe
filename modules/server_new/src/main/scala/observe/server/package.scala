@@ -46,6 +46,12 @@ package object server {
   }
 
   object EngineState {
+    def selectedGmosSouth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
+      Focus[EngineState[F]](_.selected.gmosSouth)
+
+    def selectedGmosNorth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
+      Focus[EngineState[F]](_.selected.gmosNorth)
+
     def default[F[_]]: EngineState[F] =
       EngineState[F](
         Map(CalibrationQueueId -> ExecutionQueue.init(CalibrationQueueName)),
@@ -57,8 +63,8 @@ package object server {
     def instrumentLoaded[F[_]](
       instrument: Instrument
     ): Option[Lens[EngineState[F], Option[SequenceData[F]]]] = instrument match {
-      case Instrument.GmosS => Some(Focus[EngineState[F]](_.selected.gmosSouth))
-      case Instrument.GmosN => Some(Focus[EngineState[F]](_.selected.gmosNorth))
+      case Instrument.GmosS => Some(EngineState.selectedGmosSouth)
+      case Instrument.GmosN => Some(EngineState.selectedGmosNorth)
       case _                => none
     }
 

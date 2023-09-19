@@ -61,7 +61,18 @@ object TcsSouthControllerEpicsAo {
   )
 
   object EpicsTcsAoConfig {
-    val base: Lens[EpicsTcsAoConfig, BaseEpicsTcsConfig] = EpicsTcsAoConfig.base
+    val base: Lens[EpicsTcsAoConfig, BaseEpicsTcsConfig]           = EpicsTcsAoConfig.base
+    val cwfs1: Lens[EpicsTcsAoConfig, GuiderConfig]                = Focus[EpicsTcsAoConfig](_.cwfs1)
+    val cwfs2: Lens[EpicsTcsAoConfig, GuiderConfig]                = Focus[EpicsTcsAoConfig](_.cwfs2)
+    val cwfs3: Lens[EpicsTcsAoConfig, GuiderConfig]                = Focus[EpicsTcsAoConfig](_.cwfs3)
+    val odgw1Tracking: Lens[EpicsTcsAoConfig, ProbeTrackingConfig] =
+      Focus[EpicsTcsAoConfig](_.odgw1.tracking)
+    val odgw2Tracking: Lens[EpicsTcsAoConfig, ProbeTrackingConfig] =
+      Focus[EpicsTcsAoConfig](_.odgw2.tracking)
+    val odgw3Tracking: Lens[EpicsTcsAoConfig, ProbeTrackingConfig] =
+      Focus[EpicsTcsAoConfig](_.odgw3.tracking)
+    val odgw4Tracking: Lens[EpicsTcsAoConfig, ProbeTrackingConfig] =
+      Focus[EpicsTcsAoConfig](_.odgw4.tracking)
   }
 
   private final class TcsSouthControllerEpicsAoImpl[F[_]: Async](epicsSys: TcsEpics[F])(using
@@ -112,7 +123,7 @@ object TcsSouthControllerEpicsAo {
       ProbeTrackingConfig,
       ProbeTrackingConfig
     ) => Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
-      setNgsGuide(epicsSys.cwfs1ProbeFollowCmd, Focus[EpicsTcsAoConfig](_.cwfs1))("C1")
+      setNgsGuide(epicsSys.cwfs1ProbeFollowCmd, EpicsTcsAoConfig.cwfs1)("C1")
 
     val setCwfs2Guide: (
       VirtualGemsTelescope,
@@ -120,7 +131,7 @@ object TcsSouthControllerEpicsAo {
       ProbeTrackingConfig,
       ProbeTrackingConfig
     ) => Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
-      setNgsGuide(epicsSys.cwfs2ProbeFollowCmd, Focus[EpicsTcsAoConfig](_.cwfs2))("C2")
+      setNgsGuide(epicsSys.cwfs2ProbeFollowCmd, EpicsTcsAoConfig.cwfs2)("C2")
 
     val setCwfs3Guide: (
       VirtualGemsTelescope,
@@ -128,7 +139,7 @@ object TcsSouthControllerEpicsAo {
       ProbeTrackingConfig,
       ProbeTrackingConfig
     ) => Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
-      setNgsGuide(epicsSys.cwfs3ProbeFollowCmd, Focus[EpicsTcsAoConfig](_.cwfs3))("C3")
+      setNgsGuide(epicsSys.cwfs3ProbeFollowCmd, EpicsTcsAoConfig.cwfs3)("C3")
 
     private def odgw1GuiderControl(g: VirtualGemsTelescope): GuideControl[F] =
       GuideControl(Subsystem.Gaos,
@@ -143,10 +154,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw1GuiderControl(g), Focus[EpicsTcsAoConfig](_.odgw1.tracking).replace)(a,
-                                                                                                 b,
-                                                                                                 c
-        )
+        .setGuideProbe(odgw1GuiderControl(g), EpicsTcsAoConfig.odgw1Tracking.replace)(a, b, c)
         .map(_.mapDebug(m => s"ODGW1: $m"))
 
     private def odgw2GuiderControl(g: VirtualGemsTelescope): GuideControl[F] =
@@ -162,7 +170,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw2GuiderControl(g), Focus[EpicsTcsAoConfig](_.odgw2.tracking).replace)(a,
+        .setGuideProbe(odgw2GuiderControl(g), EpicsTcsAoConfig.odgw2Tracking.replace)(a,
                                                                                                  b,
                                                                                                  c
         )
@@ -181,7 +189,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw3GuiderControl(g), Focus[EpicsTcsAoConfig](_.odgw3.tracking).replace)(a,
+        .setGuideProbe(odgw3GuiderControl(g), EpicsTcsAoConfig.odgw3Tracking.replace)(a,
                                                                                                  b,
                                                                                                  c
         )
@@ -200,7 +208,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw4GuiderControl(g), Focus[EpicsTcsAoConfig](_.odgw4.tracking).replace)(a,
+        .setGuideProbe(odgw4GuiderControl(g), EpicsTcsAoConfig.odgw4Tracking.replace)(a,
                                                                                                  b,
                                                                                                  c
         )

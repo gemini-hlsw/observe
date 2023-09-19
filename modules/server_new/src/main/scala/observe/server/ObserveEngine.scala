@@ -4,7 +4,7 @@
 package observe.server
 
 import cats.{Applicative, Endo, MonoidK}
-import cats.data.{NonEmptyList, StateT}
+import cats.data.NonEmptyList
 import cats.effect.kernel.Sync
 import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all.*
@@ -33,10 +33,9 @@ import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, S
 import observe.model.config.*
 //import observe.model.enums.{ImageQuality as _, *}
 import observe.model.events.{SequenceStart as ClientSequenceStart, *}
-import observe.common.ObsQueriesGQL
+// import observe.common.ObsQueriesGQL
 import org.typelevel.log4cats.Logger
 
-import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.*
@@ -222,15 +221,15 @@ trait ObserveEngine[F[_]] {
 object ObserveEngine {
 
   private class ObserveEngineImpl[F[_]: Async: Logger](
-    executeEngine:               Engine[F, EngineState[F], SeqEvent],
-    override val systems:        Systems[F],
-    @annotation.unused settings: ObserveEngineConfiguration,
-    sm:                          ObserveMetrics,
-    translator:                  SeqTranslate[F],
-    conditionsRef:               Ref[F, Conditions]
+    executeEngine:                    Engine[F, EngineState[F], SeqEvent],
+    override val systems:             Systems[F],
+    @annotation.unused settings:      ObserveEngineConfiguration,
+    sm:                               ObserveMetrics,
+    translator:                       SeqTranslate[F],
+    @annotation.unused conditionsRef: Ref[F, Conditions]
   ) extends ObserveEngine[F] {
 
-    private val odbLoader = new ODBSequencesLoader[F](systems.odb, translator, executeEngine)
+    // private val odbLoader = new ODBSequencesLoader[F](systems.odb, translator, executeEngine)
 
     override def sync(seqId: Observation.Id): F[Unit] = Applicative[F].unit
     //      odbLoader.loadEvents(seqId).flatMap(_.map(executeEngine.offer).sequence.void)
@@ -295,8 +294,8 @@ object ObserveEngine {
      * Extract the target name from a step configuration. Some processing is necessary to get the
      * same string that appears in TCS.
      */
-    private def extractTargetName(obs: ObsQueriesGQL.ObsQuery.Data.Observation): Option[String] =
-      obs.targetEnvironment.firstScienceTarget.map(_.targetName.toString)
+    // private def extractTargetName(obs: ObsQueriesGQL.ObsQuery.Data.Observation): Option[String] =
+    //   obs.targetEnvironment.firstScienceTarget.map(_.targetName.toString)
 
     private def stepRequiresChecks(stepConfig: OcsStepConfig): Boolean = stepConfig match {
       case OcsStepConfig.Gcal(_, _, _, _) => true
@@ -398,7 +397,7 @@ object ObserveEngine {
                                 .modify(
                                   EngineState
                                     .atSequence(id)
-                                    .andThen(Focus[SequenceData[F]](_.visitId))
+                                    .andThen(SequenceData.visitId)
                                     .replace(i.some)
                                 )
                                 .as[SeqEvent](SeqEvent.NullSeqEvent)
@@ -550,7 +549,7 @@ object ObserveEngine {
     ): HandlerType[F, SeqEvent] = { (s: EngineState[F]) =>
       (EngineState
          .atSequence[F](id)
-         .andThen(Focus[SequenceData[F]](_.observer))
+         .andThen(SequenceData.observer)
          .replace(observer.some)(s),
        event
       )

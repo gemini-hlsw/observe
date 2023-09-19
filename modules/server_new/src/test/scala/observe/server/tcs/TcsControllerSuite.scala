@@ -4,13 +4,12 @@
 package observe.server.tcs
 
 import cats.kernel.laws.discipline.*
-import cats.tests.CatsSuite
 import observe.server.tcs.TcsController.*
 
 /**
  * Tests TcsController typeclasses
  */
-final class TcsControllerSpec extends CatsSuite with TcsArbitraries {
+class TcsControllerSuite extends munit.DisciplineSuite with TcsArbitraries {
   checkAll("Eq[Beam]", EqTests[Beam].eqv)
   checkAll("Eq[NodAndChop]", EqTests[NodChop].eqv)
   checkAll("Eq[InstrumentOffset]", EqTests[InstrumentOffset].eqv)

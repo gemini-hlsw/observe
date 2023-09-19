@@ -14,7 +14,6 @@ import observe.engine.ActionIndex
 import observe.engine.ExecutionIndex
 import observe.engine.ParallelActions
 import observe.engine.Step as EngineStep
-import observe.model.Observation
 import observe.model.SystemOverrides
 import observe.model.StepId
 import observe.model.dhs.DataId

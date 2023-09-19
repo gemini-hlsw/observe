@@ -16,7 +16,7 @@ Global / semanticdbEnabled := true
 ThisBuild / resolvers := List(Resolver.mavenLocal)
 
 ThisBuild / Compile / packageDoc / publishArtifact := false
-ThisBuild / Test / bspEnabled                      := false
+ThisBuild / Test / bspEnabled                      := true
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
@@ -96,11 +96,10 @@ lazy val stateengine = project
   .settings(
     name := "stateengine",
     libraryDependencies ++= Seq(
-      Cats.value,
       CatsEffect.value,
       Mouse.value,
       Fs2.value
-    ) ++ MUnit.value
+    ) ++ MUnit.value ++ Cats.value
   )
 
 lazy val giapi = project
@@ -108,8 +107,7 @@ lazy val giapi = project
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(Cats.value,
-                                Mouse.value,
+    libraryDependencies ++= Seq(Mouse.value,
                                 CatsEffect.value,
                                 Fs2.value,
                                 GiapiJmsUtil,
@@ -117,7 +115,7 @@ lazy val giapi = project
                                 GiapiStatusService,
                                 Giapi,
                                 GiapiCommandsClient
-    ) ++ Logging.value ++ Monocle.value,
+    ) ++ Logging.value ++ Monocle.value ++ MUnit.value ++ Cats.value,
     libraryDependencies ++= Seq(GmpStatusGateway  % "test",
                                 GmpStatusDatabase % "test",
                                 GmpCmdJmsBridge   % "test",
@@ -161,11 +159,10 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
   .enablePlugins(GitBranchPrompt)
   .settings(
     libraryDependencies ++= Seq(
-      Cats.value,
       Kittens.value,
       CatsTime.value,
       LucumaSchemas.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
+    ) ++ MUnit.value ++ Cats.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -186,7 +183,6 @@ lazy val observe_web_client = project
     Test / test                             := {},
     coverageEnabled                         := false,
     libraryDependencies ++= Seq(
-      Cats.value,
       Kittens.value,
       CatsEffect.value,
       Clue.value,
@@ -194,7 +190,7 @@ lazy val observe_web_client = project
       Crystal.value,
       Fs2.value,
       LucumaUI.value
-    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
+    ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
@@ -225,7 +221,6 @@ lazy val observe_server = project
         PrometheusClient,
         Log4Cats.value,
         Log4CatsNoop.value,
-        TestLibs.value,
         PPrint.value,
         Clue.value,
         ClueHttp4s,

@@ -107,9 +107,6 @@ object Settings {
    */
   object Libraries {
     // Test Libraries
-    val TestLibs       = Def.setting(
-      "org.typelevel" %%% "cats-testkit-scalatest" % "2.1.5" % "test"
-    )
     val MUnit          = Def.setting(
       Seq(
         "org.scalameta" %%% "munit"               % LibraryVersions.munitVersion           % Test,
@@ -121,7 +118,12 @@ object Settings {
     val JUnitInterface =
       "com.github.sbt" % "junit-interface" % LibraryVersions.jUnitInterface % "test"
     // Server side libraries
-    val Cats        = Def.setting("org.typelevel" %%% "cats-core" % LibraryVersions.catsVersion)
+    val Cats        = Def.setting(
+      Seq(
+        "org.typelevel" %%% "cats-core"    % LibraryVersions.catsVersion,
+        "org.typelevel" %%% "cats-testkit" % LibraryVersions.catsVersion % Test
+      )
+    )
     val Kittens     = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
     val CatsEffect  =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)

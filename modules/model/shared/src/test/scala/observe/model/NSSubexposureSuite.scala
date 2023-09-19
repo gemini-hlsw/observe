@@ -3,10 +3,11 @@
 
 package observe.model
 
-import cats.tests.CatsSuite
+import cats.syntax.eq.*
 import org.scalacheck.Gen
+import org.scalacheck.Prop.forAll
 
-final class NSSubexposureSpec extends CatsSuite {
+class NSSubexposureSuite extends munit.DisciplineSuite {
   test("subexposures calculations") {
     forAll(Gen.posNum[Int]) { n =>
       assert(NSSubexposure.subexposures(n).length === n * 4)

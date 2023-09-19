@@ -4,14 +4,13 @@
 package observe.server.gmos
 
 import cats.kernel.laws.discipline.*
-import cats.tests.CatsSuite
 import lucuma.core.util.arb.ArbEnumerated.*
 import observe.server.gmos.GmosController.Config.*
 
 /**
  * Tests Gmos Config typeclasses
  */
-final class GmosSpec extends CatsSuite {
+class GmosSuite extends munit.DisciplineSuite {
   checkAll("Eq[ShutterState]", EqTests[ShutterState].eqv)
   checkAll("Eq[Beam]", EqTests[Beam].eqv)
 }

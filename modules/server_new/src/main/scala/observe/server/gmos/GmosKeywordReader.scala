@@ -3,7 +3,6 @@
 
 package observe.server.gmos
 
-import cats.data.EitherT
 import cats.effect.Sync
 import cats.syntax.all.*
 import cats.{Applicative, MonadThrow}
@@ -30,9 +29,6 @@ final case class GmosObsKeywordsReader[F[
   dynamicConfig: D
 )(using getters: Gmos.ParamGetters[T, S, D]) {
   import GmosObsKeywordsReader.*
-
-  private implicit val BooleanDefaultValue: DefaultHeaderValue[Boolean] =
-    DefaultHeaderValue.FalseDefaultValue
 
   def preimage: F[Boolean] =
     (getters.isMosPreimaging.get(staticConfig) === MosPreImaging.IsMosPreImaging).pure[F]

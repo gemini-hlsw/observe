@@ -3,7 +3,6 @@
 
 package observe.model
 
-import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.enums.*
@@ -18,7 +17,7 @@ import squants.time.TimeUnit
 /**
  * Tests Model typeclasses
  */
-final class ModelSpec extends CatsSuite {
+class ModelSuite extends munit.DisciplineSuite {
 
   checkAll("Eq[UserDetails]", EqTests[UserDetails].eqv)
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)

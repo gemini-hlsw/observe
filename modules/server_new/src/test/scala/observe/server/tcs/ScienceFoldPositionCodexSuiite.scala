@@ -3,14 +3,12 @@
 
 package observe.server.tcs
 
-import org.scalatest.matchers.should.Matchers.*
 import ScienceFoldPositionCodex.given
 import observe.server.EpicsCodex.*
 import lucuma.core.enums.LightSinkName.{F2, Gmos, Gsaoi, Nifs, Niri_f32}
 import observe.server.tcs.TcsController.LightSource.{AO, GCAL, Sky}
-import org.scalatest.flatspec.AnyFlatSpec
 
-class ScienceFoldPositionCodexSpec extends AnyFlatSpec {
+class ScienceFoldPositionCodexSuite extends munit.FunSuite {
 
   private val invalid    = "Invalid"
   private val parked     = ("park-pos.", ScienceFold.Parked)
@@ -21,23 +19,24 @@ class ScienceFoldPositionCodexSpec extends AnyFlatSpec {
   private val f21        = ("f21", ScienceFold.Position(Sky, F2, 1))
   private val testVals   = List(ao2gmos3, gcal2nifs1, gsaoi5, ao2niri32, f21)
 
-  "ScienceFoldPositionCodex" should "properly decode EPICS strings into ScienceFold values" in {
+  test("properly decode EPICS strings into ScienceFold values") {
 
     testVals.foreach { case (s, v) =>
-      decode[String, Option[ScienceFold]](s) shouldBe Some(v)
+      assertEquals(decode[String, Option[ScienceFold]](s), Some(v))
     }
 
-    decode[String, Option[ScienceFold]](invalid) shouldBe None
+    assertEquals(decode[String, Option[ScienceFold]](invalid), None)
 
-    decode[String, Option[ScienceFold]](parked._1) shouldBe Some(parked._2)
+    assertEquals(decode[String, Option[ScienceFold]](parked._1), Some(parked._2))
 
   }
-  it should "properly encode Position values into EPICS strings" in {
 
-    decode[String, Option[ScienceFold]](invalid) shouldBe None
+  test("properly encode Position values into EPICS strings") {
+
+    assertEquals(decode[String, Option[ScienceFold]](invalid), None)
 
     testVals.foreach { case (s, v) =>
-      encode[ScienceFold.Position, String](v) shouldBe s
+      assertEquals(encode[ScienceFold.Position, String](v), s)
     }
 
   }
