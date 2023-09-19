@@ -304,6 +304,8 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
       .render: (props, _, resize, _, _, _, acquisitionTable, scienceTable) =>
+        println("HELLO")
+
         extension (row: SequenceTableRow)
           def isRunning: Boolean =
             props.runningStepId match
@@ -318,13 +320,21 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           // val index                      = row.original.index
           val stepIdOpt: Option[Step.Id] = row.original.step.id.toOption
 
+          println(step.firstOf)
+
           (props.runningStepId match
             case Some(stepId) if stepIdOpt.contains(stepId) => ObserveStyles.RowRunning
             case _                                          => ObserveStyles.RowIdle
           ) |+|
             ObserveStyles.StepRowWithBreakpoint.when_(
               stepIdOpt.exists(props.executionState.breakpoints.contains)
-            ) |+| (step match
+            ) |+|
+            ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined) |+|
+            // (step match
+            //   case FutureStep(_, _, Some(_), _) =>
+            //   case _                                             => Css.Empty
+            // ) |+|
+            (step match
               // case s if s.hasError                       => ObserveStyles.StepRowError
               // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
               // case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning

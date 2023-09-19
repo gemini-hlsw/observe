@@ -50,7 +50,7 @@ const pathExists = async (path) => {
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
-  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.3.1-RC6');
+  const scalaClassesDir = path.resolve(__dirname, 'target/scala-3.3.1');
   const isProduction = mode == 'production';
   const sjs = isProduction
     ? path.resolve(scalaClassesDir, 'observe_web_client-opt')
