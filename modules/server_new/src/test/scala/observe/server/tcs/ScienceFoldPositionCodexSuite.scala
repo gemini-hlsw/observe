@@ -19,7 +19,7 @@ class ScienceFoldPositionCodexSuite extends munit.FunSuite {
   private val f21        = ("f21", ScienceFold.Position(Sky, F2, 1))
   private val testVals   = List(ao2gmos3, gcal2nifs1, gsaoi5, ao2niri32, f21)
 
-  test("properly decode EPICS strings into ScienceFold values") {
+  test("ScienceFoldPositionCodex should properly decode EPICS strings into ScienceFold values") {
 
     testVals.foreach { case (s, v) =>
       assertEquals(decode[String, Option[ScienceFold]](s), Some(v))
@@ -31,7 +31,7 @@ class ScienceFoldPositionCodexSuite extends munit.FunSuite {
 
   }
 
-  test("properly encode Position values into EPICS strings") {
+  test("ScienceFoldPositionCodex should properly encode Position values into EPICS strings") {
 
     assertEquals(decode[String, Option[ScienceFold]](invalid), None)
 

@@ -100,7 +100,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     )
   }
 
-  test("decide if it can keep PWFS1 guiding active when applying an offset") {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep PWFS1 guiding active when applying an offset"
+  ) {
     // Big offset with PWFS1 in use
     assert(
       TcsControllerEpicsCommon.mustPauseWhileOffsetting(
@@ -188,7 +190,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     )
   }
 
-  test("decide if it can keep PWFS2 guiding active when applying an offset") {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep PWFS2 guiding active when applying an offset"
+  ) {
     // Big offset with PWFS2 in use
     assert(
       TcsControllerEpicsCommon.mustPauseWhileOffsetting(
@@ -277,7 +281,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("decide if it can keep OIWFS guiding active when applying an offset") {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep OIWFS guiding active when applying an offset"
+  ) {
     val threshold = Millimeters(1.0)
 
     // Big offset with OIWFS in use
@@ -430,7 +436,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     TestTcsEvent.MountGuideCmd("", "on")
   )
 
-  test("open PWFS1 loops for an unguided configuration") {
+  test("TcsControllerEpicsCommon should open PWFS1 loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -450,7 +456,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("open and close PWFS1 loops for a big enough offset") {
+  test("TcsControllerEpicsCommon should open and close PWFS1 loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -494,7 +500,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("close PWFS1 loops for a guided configuration") {
+  test("TcsControllerEpicsCommon should close PWFS1 loops for a guided configuration") {
     // Current Tcs state with PWFS1 guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -551,7 +557,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     comaCorrect = "On"
   )
 
-  test("not open PWFS2 loops if configuration does not change") {
+  test("TcsControllerEpicsCommon should not open PWFS2 loops if configuration does not change") {
 
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
@@ -581,7 +587,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("open PWFS2 loops for an unguided configuration") {
+  test("TcsControllerEpicsCommon should open PWFS2 loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -601,7 +607,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("open and close PWFS2 loops for a big enough offset") {
+  test("TcsControllerEpicsCommon should open and close PWFS2 loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -645,7 +651,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("close PWFS2 loops for a guided configuration") {
+  test("TcsControllerEpicsCommon should close PWFS2 loops for a guided configuration") {
     // Current Tcs state with PWFS2 guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -703,7 +709,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     comaCorrect = "On"
   )
 
-  test("not open OIWFS loops if configuration does not change") {
+  test("TcsControllerEpicsCommon should not open OIWFS loops if configuration does not change") {
 
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
@@ -733,7 +739,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("open OIWFS loops for an unguided configuration") {
+  test("TcsControllerEpicsCommon should open OIWFS loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -753,7 +759,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("open and close OIWFS loops for a big enough offset") {
+  test("TcsControllerEpicsCommon should open and close OIWFS loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -797,7 +803,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("close OIWFS loops for a guided configuration") {
+  test("TcsControllerEpicsCommon should close OIWFS loops for a guided configuration") {
     // Current Tcs state with OIWFS guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -844,7 +850,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
   def epicsTransform(prec: Int)(v: Double): Double =
     s"%.${prec}f".formatLocal(USLocale, v).toDouble
 
-  test("apply an offset if it is not at the right position") {
+  test("TcsControllerEpicsCommon should apply an offset if it is not at the right position") {
 
     val offsetDemand  = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val offsetCurrent =
@@ -887,7 +893,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("not reapply an offset if it is already at the right position") {
+  test(
+    "TcsControllerEpicsCommon should not reapply an offset if it is already at the right position"
+  ) {
 
     val offset     = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val iaa        = 33.degrees
@@ -928,7 +936,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("apply the target wavelength if it changes") {
+  test("TcsControllerEpicsCommon should apply the target wavelength if it changes") {
 
     val wavelengthDemand: Wavelength  = Wavelength.unsafeFromIntPicometers(1000000)
     val wavelengthCurrent: Wavelength = Wavelength.unsafeFromIntPicometers(1001000)
@@ -963,7 +971,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   }
 
-  test("not reapply the target wavelength if it is already at the right value") {
+  test(
+    "TcsControllerEpicsCommon should not reapply the target wavelength if it is already at the right value"
+  ) {
 
     val wavelength = Wavelength.fromIntNanometers((2000.0 / 7.0).toInt).get
     val recordPrec = 0

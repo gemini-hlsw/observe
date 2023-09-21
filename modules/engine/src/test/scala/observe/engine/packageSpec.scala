@@ -122,7 +122,7 @@ class packageSpec extends munit.CatsEffectSuite {
                .last
     } yield v.map(_._2)
 
-  test("be in Running status after starting") {
+  test("it should be in Running status after starting") {
     val qs =
       for {
         eng <- executionEngine
@@ -137,12 +137,12 @@ class packageSpec extends munit.CatsEffectSuite {
     qs.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
   }
 
-  test("be 0 pending executions after execution") {
+  test("there should be 0 pending executions after execution") {
     val qs = runToCompletion(qs1)
     qs.map(_.exists(_.sequences(seqId).pending.isEmpty)).assert
   }
 
-  test("be 2 Steps done after execution") {
+  test("there should be 2 Steps done after execution") {
     val qs = runToCompletion(qs1)
     qs.map(_.exists(_.sequences(seqId).done.length === 2)).assert
   }
@@ -182,11 +182,11 @@ class packageSpec extends munit.CatsEffectSuite {
 
   }
 
-  test("stay as running when action pauses itself") {
+  test("sequencestate should stay as running when action pauses itself") {
     actionPause.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
   }
 
-  test("change action state to Paused if output is Paused") {
+  test("engine should change action state to Paused if output is Paused") {
     val r = actionPause
     r.map(_.exists(_.sequences(seqId).current.execution.forall(Action.paused))).assert
   }
@@ -227,7 +227,7 @@ class packageSpec extends munit.CatsEffectSuite {
 
   }
 
-  test("keep processing input messages regardless of how long ParallelActions take") {
+  test("engine should keep processing input messages regardless of how long ParallelActions take") {
     val result = for {
       startedFlag <- Semaphore.apply[IO](0)
       finishFlag  <- Semaphore.apply[IO](0)
@@ -279,7 +279,7 @@ class packageSpec extends munit.CatsEffectSuite {
     result.map(_.nonEmpty).assert
   }
 
-  test("not capture runtime exceptions.") {
+  test("engine should not capture runtime exceptions.") {
     def s0(e: Throwable): TestState = TestState(
       Map(
         (seqId,
@@ -313,7 +313,7 @@ class packageSpec extends munit.CatsEffectSuite {
     }.assert
   }
 
-  test("skip steps marked to be skipped at the beginning of the sequence.") {
+  test("engine should skip steps marked to be skipped at the beginning of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -348,7 +348,7 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("skip steps marked to be skipped in the middle of the sequence.") {
+  test("engine should skip steps marked to be skipped in the middle of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -384,7 +384,7 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("skip several steps marked to be skipped.") {
+  test("engine should skip several steps marked to be skipped.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -428,7 +428,7 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("skip steps marked to be skipped at the end of the sequence.") {
+  test("engine should skip steps marked to be skipped at the end of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -464,7 +464,7 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("skip a step marked to be skipped even if it is the only one.") {
+  test("engine should skip a step marked to be skipped even if it is the only one.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -494,7 +494,7 @@ class packageSpec extends munit.CatsEffectSuite {
   }
 
   test(
-    "skip steps marked to be skipped at the beginning of the sequence, even if they have breakpoints."
+    "engine should skip steps marked to be skipped at the beginning of the sequence, even if they have breakpoints."
   ) {
     val s0: TestState = TestState(
       Map(
@@ -534,7 +534,7 @@ class packageSpec extends munit.CatsEffectSuite {
   }
 
   test(
-    "skip the leading steps if marked to be skipped, even if they have breakpoints and are the last ones."
+    "engine should skip the leading steps if marked to be skipped, even if they have breakpoints and are the last ones."
   ) {
     val s0: TestState = TestState(
       Map(
@@ -576,7 +576,9 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("skip steps marked to be skipped in the middle of the sequence, but honoring breakpoints.") {
+  test(
+    "engine should skip steps marked to be skipped in the middle of the sequence, but honoring breakpoints."
+  ) {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -613,7 +615,7 @@ class packageSpec extends munit.CatsEffectSuite {
     } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  test("run single Action") {
+  test("engine should run single Action") {
     val dummy         = new AtomicInteger(0)
     val markVal       = 1
     val sId           = stepId(1)
@@ -713,7 +715,7 @@ class packageSpec extends munit.CatsEffectSuite {
       )
     )
 
-  test("be able to start sequence from arbitrary step") {
+  test("engine should be able to start sequence from arbitrary step") {
     def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
       eng
         .startFrom(seqId, stepId(3))

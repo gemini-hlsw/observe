@@ -204,7 +204,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
   val seqzar0: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar0)
   val seqzar1: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar1)
 
-  test("be None when there are no more pending executions") {
+  test("next should be None when there are no more pending executions") {
     assert(seqz0.next.isEmpty)
     assert(seqza0.next.isEmpty)
     assert(seqza1.next.nonEmpty)
@@ -215,7 +215,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     assert(seqzar1.next.nonEmpty)
   }
 
-  test("mark a single Action as started") {
+  test("startSingle should mark a single Action as started") {
     val seq = Sequence.State.init(
       Sequence.sequence(id = seqId,
                         atomId,
@@ -230,7 +230,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     assert(seq.startSingle(c).getSingleState(c) == Action.ActionState.Started)
   }
 
-  test("not start single Action from completed Step") {
+  test("startSingle should not start single Action from completed Step") {
     val seq1 = Sequence.State.init(
       Sequence.sequence(
         id = seqId,
@@ -276,7 +276,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   }
 
-  test("mark a single running Action as failed") {
+  test("failSingle should mark a single running Action as failed") {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
@@ -300,7 +300,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     assert(seq.failSingle(c2, Result.Error("")).getSingleState(c2).isIdle)
   }
 
-  test("mark a single running Action as completed") {
+  test("failSingle should mark a single running Action as completed") {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
