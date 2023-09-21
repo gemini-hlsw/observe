@@ -213,7 +213,7 @@ trait ObserveEngine[F[_]] {
   def eventStream: Stream[F, ObserveEvent]
 
   // Used by tests
-  def stream(
+  private[server] def stream(
     s0: EngineState[F]
   ): Stream[F, (EventResult[SeqEvent], EngineState[F])]
 }
