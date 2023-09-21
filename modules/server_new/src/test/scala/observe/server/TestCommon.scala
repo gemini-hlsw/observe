@@ -33,12 +33,7 @@ import observe.server.gsaoi.{GsaoiControllerSim, GsaoiKeywordReaderDummy}
 import observe.server.keywords.DhsClientSim
 // import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
 // import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
-import observe.server.tcs.{
-  DummyTcsKeywordsReader,
-  GuideConfigDb,
-  TcsNorthControllerSim,
-  TcsSouthControllerSim
-}
+import observe.server.tcs.*
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger
@@ -48,6 +43,7 @@ import java.util.UUID
 import scala.concurrent.duration.*
 import observe.server.keywords.DhsClientProvider
 import observe.server.keywords.DhsClient
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 
 trait TestCommon extends munit.CatsEffectSuite {
   import TestCommon.*

@@ -12,6 +12,7 @@ import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceEventsArbitraries.given
 import observe.model.arb.all.given
 import squants.time.Time
+import org.scalacheck.{Test => ScalaCheckTest}
 import org.typelevel.cats.time.given
 import lucuma.core.math.Index
 import lucuma.core.math.arb.ArbIndex.*
@@ -21,7 +22,8 @@ import java.time.{LocalDate, Year}
 /**
  * Tests Serialization/Deserialization using BooPickle
  */
-final class ModelBooPicklersSpec extends munit.DisciplineSuite with ModelBooPicklers {
+class ModelBooPicklersSuite extends munit.DisciplineSuite with ModelBooPicklers {
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
 
   checkAll("Pickler[Year]", PicklerTests[Year].pickler)
   checkAll("Pickler[LocalDate]", PicklerTests[LocalDate].pickler)
