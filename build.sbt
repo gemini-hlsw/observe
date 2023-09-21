@@ -213,7 +213,6 @@ lazy val observe_server = project
       Seq(
         Http4sCirce,
         Squants.value,
-        OpenCSV,
         Http4sXml,
         Http4sBoopickle,
         Log4Cats.value,

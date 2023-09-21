@@ -50,8 +50,6 @@ object Settings {
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
     val logback          = "1.4.11"
-    val janino           = "3.1.10"
-    val logstash         = "7.0"
     val pureConfig       = "0.17.4"
     val monocleVersion   = "3.2.0"
     val circeVersion     = "0.14.6"
@@ -65,12 +63,6 @@ object Settings {
     val munitDisciplineVersion = "1.0.9"
     val munitCatsEffectVersion = "1.0.7"
 
-    // Pure JS libraries
-    val fomanticUI = "2.8.7"
-    val ocsVersion = "2022101.1.1"
-
-    val apacheXMLRPC        = "3.1.3"
-    val opencsv             = "2.3"
     val epicsService        = "1.0.7"
     val gmpCommandRecords   = "0.7.7"
     val acm                 = "0.1.1"
@@ -144,9 +136,8 @@ object Settings {
     val Log4CatsNoop     =
       Def.setting("org.typelevel" %%% "log4cats-noop" % LibraryVersions.log4cats % "test")
     val Logback          = Seq(
-      "ch.qos.logback"      % "logback-core"    % LibraryVersions.logback,
-      "ch.qos.logback"      % "logback-classic" % LibraryVersions.logback,
-      "org.codehaus.janino" % "janino"          % LibraryVersions.janino
+      "ch.qos.logback" % "logback-core"    % LibraryVersions.logback,
+      "ch.qos.logback" % "logback-classic" % LibraryVersions.logback
     )
     val Log4s            = Def.setting("org.log4s" %%% "log4s" % LibraryVersions.log4s)
     val Log4CatsLogLevel = Def.setting(
@@ -162,7 +153,6 @@ object Settings {
       "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig
     )
-    val OpenCSV          = "net.sf.opencsv"        % "opencsv"      % LibraryVersions.opencsv
     val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
