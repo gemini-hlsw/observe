@@ -27,6 +27,6 @@ object SequenceData {
 
   def seq[F[_]]: Lens[SequenceData[F], Sequence.State[F]] = Focus[SequenceData[F]](_.seq)
 
-  def visitId[F[_]] = Focus[SequenceData[F]](_.visitId)
+  def visitId[F[_]]: Lens[SequenceData[F], Option[VisitId]] = Focus[SequenceData[F]](_.visitId)
 
 }
