@@ -8,13 +8,9 @@ import cats.effect.Async
 import cats.syntax.all.*
 import monocle.Lens
 import monocle.std.option
-import lucuma.core.model.{ConstraintSet, Program}
 import lucuma.core.model.sequence.Atom
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
-import observe.engine.{Event, Sequence}
+import observe.engine.Sequence
 import observe.model.{Observation, Observer, SystemOverrides}
-import observe.server.ObserveFailure.{ObserveException, UnrecognizedInstrument}
-import observe.server.SeqEvent.*
 
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:   OdbProxy[F],
@@ -65,11 +61,11 @@ final class ODBSequencesLoader[F[_]: Async](
 //    }.recover { case e => List(Event.logDebugMsgF[F, EngineState[F], SeqEvent](explain(e))) }
 //  }.map(_.sequence).flatten
 
-  private def explain(err: Throwable): String =
-    err match {
-      case s: ObserveFailure => ObserveFailure.explain(s)
-      case _                 => ObserveFailure.explain(ObserveException(err))
-    }
+  // private def explain(err: Throwable): String =
+  //   err match {
+  //     case s: ObserveFailure => ObserveFailure.explain(s)
+  //     case _                 => ObserveFailure.explain(ObserveException(err))
+  //   }
 
 //  def refreshSequenceList(
 //    odbList: List[Observation.Id],

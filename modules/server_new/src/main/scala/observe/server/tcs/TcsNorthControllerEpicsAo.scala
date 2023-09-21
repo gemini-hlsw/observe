@@ -321,9 +321,9 @@ object TcsNorthControllerEpicsAo {
               .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.value.detector))
         ) >>> m1Enabled.fold(
         identity[TcsNorthAoConfig](_),
-        Focus[TcsNorthAoConfig](_.gc.m1Guide)
+        TcsNorthAoConfig.m1Guide
           .replace(M1GuideConfig.M1GuideOff)
-      ) >>> Focus[TcsNorthAoConfig](_.gc.m2Guide)
+      ) >>> TcsNorthAoConfig.m2Guide
         .replace(
           m2config
         ) >>> normalizeMountGuiding)(demand)
@@ -430,9 +430,9 @@ object TcsNorthControllerEpicsAo {
       val newGuideConfig = (
         enableM1Guide.fold[TcsNorthAoConfig => TcsNorthAoConfig](
           identity,
-          Focus[TcsNorthAoConfig](_.gc.m1Guide)
+          TcsNorthAoConfig.m1Guide
             .replace(M1GuideConfig.M1GuideOff)
-        ) >>> Focus[TcsNorthAoConfig](_.gc.m2Guide)
+        ) >>> TcsNorthAoConfig.m2Guide
           .replace(
             m2config
           ) >>> normalizeMountGuiding

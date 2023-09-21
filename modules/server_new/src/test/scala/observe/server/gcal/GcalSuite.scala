@@ -4,13 +4,12 @@
 package observe.server.gcal
 
 import cats.kernel.laws.discipline.*
-import cats.tests.CatsSuite
 import observe.server.gcal.GcalController.*
 
 /**
  * Tests Gcal typeclasses
  */
-final class GcalSpec extends CatsSuite with GcalArbitraries {
+class GcalSuite extends munit.DisciplineSuite with GcalArbitraries {
   checkAll("Eq[LampState]", EqTests[LampState].eqv)
   checkAll("Eq[ArLampState]", EqTests[ArLampState].eqv)
   checkAll("Eq[CuArLampState]", EqTests[CuArLampState].eqv)

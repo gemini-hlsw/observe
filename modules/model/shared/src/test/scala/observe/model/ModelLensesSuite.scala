@@ -3,7 +3,6 @@
 
 package observe.model
 
-import cats.tests.CatsSuite
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.optics.laws.discipline.FormatTests
 import lucuma.core.math.arb.ArbOffset.*
@@ -17,7 +16,7 @@ import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceEventsArbitraries.given
 import observe.model.arb.all.{*, given}
 
-final class ModelLensesSpec extends CatsSuite with ModelLenses {
+class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
   checkAll("event observer name lens", LensTests(obsNameL))
   checkAll("each step traversal", TraversalTests(eachStepT))
   checkAll("observation steps lens", LensTests(obsStepsL))

@@ -12,7 +12,6 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
-import org.scalatest.Inside.*
 import observe.engine.TestUtil.TestState
 import observe.engine.EventResult.*
 import observe.engine.SystemEvent.*
@@ -27,9 +26,9 @@ import scala.concurrent.duration.*
 import cats.effect.Ref
 import lucuma.core.model.sequence.Atom
 
-class StepSpec extends CatsEffectSuite {
+class StepSuite extends CatsEffectSuite {
 
-  private implicit def L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
+  private given L: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe")
 
   private val seqId  = observationId(1)
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
@@ -240,15 +239,16 @@ class StepSpec extends CatsEffectSuite {
     } yield u.sequences(seqId)
 
     m.compile.last.map {
-      inside(_) { case Some(Sequence.State.Zipper(zipper, status, _)) =>
-        inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
-          assert(
-            Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
-          )
-        }
-        assertEquals(status, SequenceState.Idle)
+      _.exists {
+        case Sequence.State.Zipper(zipper, status, _) =>
+          (zipper.focus.toStep match {
+            case Step(_, _, _, _, List(ex1, ex2)) =>
+              Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
+            case _                                => false
+          }) && status === SequenceState.Idle
+        case _                                        => false
       }
-    }
+    }.assert
 
   }
 
@@ -296,15 +296,16 @@ class StepSpec extends CatsEffectSuite {
       } yield u.flatMap(_._2.sequences.get(seqId))
 
     qs1.map {
-      inside(_) { case Some(Sequence.State.Zipper(zipper, status, _)) =>
-        inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
-          assert(
-            Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-          )
-        }
-        assert(status.isRunning)
+      _.exists {
+        case Sequence.State.Zipper(zipper, status, _) =>
+          (zipper.focus.toStep match {
+            case Step(_, _, _, _, List(ex1, ex2)) =>
+              Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
+            case _                                => false
+          }) && status.isRunning
+        case _                                        => false
       }
-    }
+    }.assert
 
   }
 
@@ -348,11 +349,15 @@ class StepSpec extends CatsEffectSuite {
                .map(_.map(_._2))
     } yield v
 
-    qs1.map(x =>
-      inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
-        assert(status.isRunning)
-      }
-    )
+    qs1
+      .map(x =>
+        x.flatMap(_.sequences.get(seqId)).exists {
+          case Sequence.State.Zipper(_, status, _) =>
+            status.isRunning
+          case _                                   => false
+        }
+      )
+      .assert
 
   }
 
@@ -391,16 +396,16 @@ class StepSpec extends CatsEffectSuite {
     } yield v
 
     qss.map { x =>
-      inside(x.flatMap(_.sequences.get(seqId))) {
-        case Some(Sequence.State.Zipper(zipper, status, _)) =>
-          inside(zipper.focus.toStep) { case Step(_, _, _, _, List(ex1, ex2)) =>
-            assert(
+      x.flatMap(_.sequences.get(seqId)).exists {
+        case Sequence.State.Zipper(zipper, status, _) =>
+          zipper.focus.toStep.match {
+            case Step(_, _, _, _, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            )
-          }
-          assertEquals(status, SequenceState.Idle)
+            case _                                => false
+          } && (status === SequenceState.Idle)
+        case _                                        => false
       }
-    }
+    }.assert
   }
 
   // Be careful that start command doesn't run an already running sequence.
@@ -450,11 +455,14 @@ class StepSpec extends CatsEffectSuite {
       val sequencesCompleted = x.map(_._1).collect { case SystemUpdate(x: Finished, _) => x }
       assertEquals(sequencesCompleted.length, 1)
 
-      inside(x.lastOption.flatMap(_._2.sequences.get(seqId))) {
-        case Some(Sequence.State.Final(_, status)) =>
-          assertEquals(status, SequenceState.Completed)
-      }
-    }
+      x.lastOption
+        .flatMap(_._2.sequences.get(seqId))
+        .exists {
+          case Sequence.State.Final(_, status) =>
+            status === SequenceState.Completed
+          case _                               => false
+        }
+    }.assert
   }
 
   // For this test, one of the actions in the step must produce an error as result.
@@ -487,21 +495,20 @@ class StepSpec extends CatsEffectSuite {
     val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
-      inside(x.flatMap(_.sequences.get(seqId))) {
-        case Some(Sequence.State.Zipper(zipper, status, _)) =>
-          inside(zipper.focus.toStep) {
+      x.flatMap(_.sequences.get(seqId)).exists {
+        case Sequence.State.Zipper(zipper, status, _) =>
+          (zipper.focus.toStep match {
             // Check that the sequence stopped midway
             case Step(_, _, _, _, List(ex1, ex2, ex3)) =>
-              assert(
-                Execution(ex1.toList).results.length == 2 && Execution(
-                  ex2.toList
-                ).results.length == 1 && Execution(ex3.toList).actions.length == 1
-              )
-          }
-          // And that it ended in error
-          assertEquals(status, SequenceState.Failed(errMsg))
+              Execution(ex1.toList).results.length == 2 && Execution(
+                ex2.toList
+              ).results.length == 1 && Execution(ex3.toList).actions.length == 1
+            case _                                     => false
+          }) && (status == SequenceState.Failed(errMsg)) // And that it ended in error
+        case _                                        => false
+
       }
-    }
+    }.assert
   }
 
   test(
@@ -533,11 +540,13 @@ class StepSpec extends CatsEffectSuite {
     val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
-      inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Final(_, status)) =>
-        assertEquals(status, SequenceState.Completed)
+      x.flatMap(_.sequences.get(seqId)).exists {
+        case Sequence.State.Final(_, status) =>
+          status === SequenceState.Completed
+        case _                               => false
       }
-    } *>
-      ref.get.map(assertEquals(_, 1))
+    }.assert *>
+      ref.get.map(_ === 1).assert
 
   }
 
@@ -566,11 +575,13 @@ class StepSpec extends CatsEffectSuite {
     val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
-      inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
-        // And that it ended in aborted
-        assertEquals(status, SequenceState.Aborted)
+      x.flatMap(_.sequences.get(seqId)).exists {
+        case Sequence.State.Zipper(_, status, _) =>
+          // And that it ended in aborted
+          status === SequenceState.Aborted
+        case _                                   => false
       }
-    }
+    }.assert
   }
 
   test("engine should stop execution and propagate error when a single partial Action fails") {
@@ -599,12 +610,14 @@ class StepSpec extends CatsEffectSuite {
     val qs1 = runToCompletionLastIO(qs0)
 
     qs1.map { x =>
-      inside(x.flatMap(_.sequences.get(seqId))) { case Some(Sequence.State.Zipper(_, status, _)) =>
-        // Without the error we should have a value 2
-        // And that it ended in error
-        assertEquals(status, SequenceState.Failed(errMsg))
+      x.flatMap(_.sequences.get(seqId)).exists {
+        case Sequence.State.Zipper(_, status, _) =>
+          // Without the error we should have a value 2
+          // And that it ended in error
+          status === SequenceState.Failed(errMsg)
+        case _                                   => false
       }
-    }
+    }.assert
   }
 
   test("engine should let fatal errors bubble") {
@@ -678,25 +691,25 @@ class StepSpec extends CatsEffectSuite {
     val qss = runToCompletionAllIO(qs0)
 
     qss.map { x =>
-      inside(x.drop(1).headOption.flatMap(_.sequences.get(seqId))) {
+      val a = x.drop(1).headOption.flatMap(_.sequences.get(seqId)) match {
         case Some(Sequence.State.Zipper(zipper, status, _)) =>
-          inside(zipper.focus.focus.execution.headOption) {
+          (zipper.focus.focus.execution.headOption match {
             case Some(Action(_, _, Action.State(Action.ActionState.Started, v :: _))) =>
-              assertEquals(v, PartialValDouble(0.5))
-          }
-          assert(status.isRunning)
+              v == PartialValDouble(0.5)
+            case _                                                                    => false
+          }) && status.isRunning
+        case _                                              => false
       }
-      inside(x.lastOption.flatMap(_.sequences.get(seqId))) {
+      val b = x.lastOption.flatMap(_.sequences.get(seqId)) match {
         case Some(Sequence.State.Final(seq, status)) =>
-          assertEquals(
-            seq.steps.headOption
-              .flatMap(_.executions.headOption.map(_.head))
-              .map(_.state.runState),
-            Some(Action.ActionState.Completed(RetValDouble(1.0)))
-          )
-          assertEquals(status, SequenceState.Completed)
+          seq.steps.headOption
+            .flatMap(_.executions.headOption.map(_.head))
+            .map(_.state.runState) == Some(Action.ActionState.Completed(RetValDouble(1.0)))
+          && status === SequenceState.Completed
+        case _                                       => false
       }
-    }
+      a && b
+    }.assert
 
   }
 

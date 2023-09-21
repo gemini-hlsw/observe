@@ -3,14 +3,13 @@
 
 package observe.model
 
-import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
 import events.*
 
 /**
  * Tests Event typeclasses
  */
-final class ObserveEventSpec extends CatsSuite with SequenceEventsArbitraries {
+class ObserveEventSuite extends munit.DisciplineSuite with SequenceEventsArbitraries {
   checkAll("Eq[ConnectionOpenEvent]", EqTests[ConnectionOpenEvent].eqv)
   checkAll("Eq[SequenceStart]", EqTests[SequenceStart].eqv)
   checkAll("Eq[StepExecuted]", EqTests[StepExecuted].eqv)

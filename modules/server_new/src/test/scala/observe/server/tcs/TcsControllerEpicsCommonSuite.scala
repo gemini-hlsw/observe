@@ -6,7 +6,6 @@ package observe.server.tcs
 import cats.effect.{Async, IO}
 import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
-import monocle.Focus
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
@@ -14,36 +13,13 @@ import lucuma.core.enums.LightSinkName.Gmos
 import lucuma.core.enums.Site
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import org.scalatest.PrivateMethodTester
-import org.scalatest.matchers.should.Matchers.*
 import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
 import observe.model.enums.{ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource}
 import observe.server.InstrumentGuide
+import observe.server.tcs.TcsController.BasicTcsConfig
 import observe.server.tcs.TcsController.LightSource.Sky
-import observe.server.tcs.TcsController.{
-  AGConfig,
-  BasicGuidersConfig,
-  BasicTcsConfig,
-  FocalPlaneOffset,
-  GuiderConfig,
-  GuiderSensorOff,
-  GuiderSensorOn,
-  HrwfsPickupPosition,
-  InstrumentOffset,
-  LightPath,
-  NodChopTrackingConfig,
-  OIConfig,
-  OffsetP,
-  OffsetQ,
-  OffsetX,
-  OffsetY,
-  P1Config,
-  P2Config,
-  ProbeTrackingConfig,
-  TelescopeConfig
-}
+import observe.server.tcs.TcsController.*
 import squants.space.{Arcseconds, Length, Millimeters}
-import org.scalatest.flatspec.AnyFlatSpec
 import observe.server.keywords.USLocale
 import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
 import squants.space.AngleConversions.*
@@ -51,11 +27,11 @@ import squants.space.LengthConversions.*
 
 import cats.effect.Ref
 
-class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester {
+class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
-  import TcsControllerEpicsCommonSpec._
+  import TcsControllerEpicsCommonSpec.*
 
-  private implicit def unsafeLogger: Logger[IO] = NoOpLogger.impl[IO]
+  private given Logger[IO] = NoOpLogger.impl[IO]
 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
     Arcseconds(33.8),
@@ -100,279 +76,307 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     DummyInstrument(Instrument.GmosS, 1.millimeters.some)
   )
 
-  "TcsControllerEpicsCommon" should "not pause guiding if it is not necessary" in {
+  test("TcsControllerEpicsCommon should not pause guiding if it is not necessary") {
     // No offset
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      baseConfig
-    ) shouldBe false
+    assert(
+      !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        baseConfig
+      )
+    )
 
     // Offset, but no guider in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-        .replace(
-          InstrumentOffset(
-            OffsetP(pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
-            OffsetQ(Arcseconds(0.0))
-          ).some
-        )(baseConfig)
-    ) shouldBe false
+    assert(
+      !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        BasicTcsConfig.offsetALensGS
+          .replace(
+            InstrumentOffset(
+              OffsetP(pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
+              OffsetQ(Arcseconds(0.0))
+            ).some
+          )(baseConfig)
+      )
+    )
   }
 
-  it should "decide if it can keep PWFS1 guiding active when applying an offset" in {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep PWFS1 guiding active when applying an offset"
+  ) {
     // Big offset with PWFS1 in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
+              InstrumentOffset(
+                OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs1)
-            .replace(
-              P1Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
+              ) >>>
+            BasicTcsConfig.pwfs1LensGS
+              .replace(
+                P1Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe true
+        )(baseConfig)
+      )
+    )
 
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m1Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M1GuideConfig.M1GuideOn(M1Source.PWFS1)
+              InstrumentOffset(
+                OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs1)
-            .replace(
-              P1Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m1GuideLensGS
+              .replace(
+                M1GuideConfig.M1GuideOn(M1Source.PWFS1)
+              ) >>>
+            BasicTcsConfig.pwfs1LensGS
+              .replace(
+                P1Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe true
+        )(baseConfig)
+      )
+    )
 
     // Small offset with PWFS1 in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
+              InstrumentOffset(
+                OffsetP(pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs1)
-            .replace(
-              P1Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
+              ) >>>
+            BasicTcsConfig.pwfs1LensGS
+              .replace(
+                P1Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe false
+        )(baseConfig)
+      )
+    )
   }
 
-  it should "decide if it can keep PWFS2 guiding active when applying an offset" in {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep PWFS2 guiding active when applying an offset"
+  ) {
     // Big offset with PWFS2 in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
+              InstrumentOffset(
+                OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs2)
-            .replace(
-              P2Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
+              ) >>>
+            BasicTcsConfig.pwfs2LensGS
+              .replace(
+                P2Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe true
+        )(baseConfig)
+      )
+    )
 
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m1Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M1GuideConfig.M1GuideOn(M1Source.PWFS2)
+              InstrumentOffset(
+                OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs2)
-            .replace(
-              P2Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m1GuideLensGS
+              .replace(
+                M1GuideConfig.M1GuideOn(M1Source.PWFS2)
+              ) >>>
+            BasicTcsConfig.pwfs2LensGS
+              .replace(
+                P2Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe true
+        )(baseConfig)
+      )
+    )
 
     // Small offset with PWFS2 in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
+              InstrumentOffset(
+                OffsetP(pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs2)
-            .replace(
-              P2Config(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
+              ) >>>
+            BasicTcsConfig.pwfs2LensGS
+              .replace(
+                P2Config(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
               )
-            )
-      )(baseConfig)
-    ) shouldBe false
+        )(baseConfig)
+      )
+    )
 
   }
 
-  it should "decide if it can keep OIWFS guiding active when applying an offset" in {
+  test(
+    "TcsControllerEpicsCommon should decide if it can keep OIWFS guiding active when applying an offset"
+  ) {
     val threshold = Millimeters(1.0)
 
     // Big offset with OIWFS in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
+              InstrumentOffset(
+                OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.oiwfs)
-            .replace(
-              OIConfig(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
+              ) >>>
+            BasicTcsConfig.oiwfsLensGS
+              .replace(
+                OIConfig(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
-              )
-            ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.inst)
-            .replace(DummyInstrument(Instrument.GmosS, threshold.some))
-      )(baseConfig)
-    ) shouldBe true
+              ) >>>
+            BasicTcsConfig.instLensGS
+              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+        )(baseConfig)
+      )
+    )
 
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m1Guide)
+    assert(
+      TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M1GuideConfig.M1GuideOn(M1Source.OIWFS)
+              InstrumentOffset(
+                OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.oiwfs)
-            .replace(
-              OIConfig(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m1GuideLensGS
+              .replace(
+                M1GuideConfig.M1GuideOn(M1Source.OIWFS)
+              ) >>>
+            BasicTcsConfig.oiwfsLensGS
+              .replace(
+                OIConfig(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
-              )
-            ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.inst)
-            .replace(DummyInstrument(Instrument.GmosS, threshold.some))
-      )(baseConfig)
-    ) shouldBe true
+              ) >>>
+            BasicTcsConfig.instLensGS
+              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+        )(baseConfig)
+      )
+    )
 
     // Small offset with OIWFS in use
-    TcsControllerEpicsCommon.mustPauseWhileOffsetting(
-      baseCurrentStatus,
-      (
-        Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
-          .replace(
-            InstrumentOffset(
-              OffsetP(threshold / 2.0 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    assert(
+      !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
+        baseCurrentStatus,
+        (
+          BasicTcsConfig.offsetALensGS
             .replace(
-              M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
+              InstrumentOffset(
+                OffsetP(threshold / 2.0 * FOCAL_PLANE_SCALE),
+                OffsetQ(Arcseconds(0.0))
+              ).some
             ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.gds.oiwfs)
-            .replace(
-              OIConfig(
-                GuiderConfig(
-                  ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
-                  GuiderSensorOn
+            BasicTcsConfig.m2GuideLensGS
+              .replace(
+                M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
+              ) >>>
+            BasicTcsConfig.oiwfsLensGS
+              .replace(
+                OIConfig(
+                  GuiderConfig(
+                    ProbeTrackingConfig.On(NodChopTrackingConfig.Normal),
+                    GuiderSensorOn
+                  )
                 )
-              )
-            ) >>>
-          Focus[BasicTcsConfig[Site.GS.type]](_.inst)
-            .replace(DummyInstrument(Instrument.GmosS, threshold.some))
-      )(baseConfig)
-    ) shouldBe false
+              ) >>>
+            BasicTcsConfig.instLensGS
+              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+        )(baseConfig)
+      )
+    )
   }
 
   private val baseStateWithP1Guiding = TestTcsEpics.defaultState.copy(
@@ -390,7 +394,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     comaCorrect = "On"
   )
 
-  "TcsControllerEpicsCommon" should "not open PWFS1 loops if configuration does not change" in {
+  test("TcsControllerEpicsCommon should not open PWFS1 loops if configuration does not change") {
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -432,7 +436,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     TestTcsEvent.MountGuideCmd("", "on")
   )
 
-  it should "open PWFS1 loops for an unguided configuration" in {
+  test("TcsControllerEpicsCommon should open PWFS1 loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -448,11 +452,11 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs1StopObserveCmd,
       TestTcsEvent.Pwfs1ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs1ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ) ++ guideOffEvents).map(result should contain(_))
+    ) ++ guideOffEvents).map(result.contains(_)).foreach(assert(_))
 
   }
 
-  it should "open and close PWFS1 loops for a big enough offset" in {
+  test("TcsControllerEpicsCommon should open and close PWFS1 loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithP1Guiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -484,19 +488,19 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       case _                             => true
     }
 
-    guideOffEvents.map(head should contain(_))
+    guideOffEvents.foreach(a => assert(head.contains(a)))
 
     List(
       TestTcsEvent.Pwfs1StopObserveCmd,
       TestTcsEvent.Pwfs1ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs1ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain _)
+    ).foreach(a => assert(!head.contains(a)))
 
-    guideOnEvents.map(tail should contain(_))
+    guideOnEvents.foreach(a => assert(tail.contains(a)))
 
   }
 
-  it should "close PWFS1 loops for a guided configuration" in {
+  test("TcsControllerEpicsCommon should close PWFS1 loops for a guided configuration") {
     // Current Tcs state with PWFS1 guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -534,7 +538,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs1ObserveCmd,
       TestTcsEvent.Pwfs1ProbeFollowCmd("On"),
       TestTcsEvent.Pwfs1ProbeGuideConfig("On", "Off", "Off", "On")
-    ) ++ guideOnEvents).map(result should contain(_))
+    ) ++ guideOnEvents).foreach(a => assert(result.contains(a)))
 
   }
 
@@ -553,7 +557,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     comaCorrect = "On"
   )
 
-  it should "not open PWFS2 loops if configuration does not change" in {
+  test("TcsControllerEpicsCommon should not open PWFS2 loops if configuration does not change") {
 
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
@@ -583,7 +587,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   }
 
-  it should "open PWFS2 loops for an unguided configuration" in {
+  test("TcsControllerEpicsCommon should open PWFS2 loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -599,11 +603,11 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs2StopObserveCmd,
       TestTcsEvent.Pwfs2ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs2ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ) ++ guideOffEvents).map(result should contain(_))
+    ) ++ guideOffEvents).foreach(a => assert(result.contains(a)))
 
   }
 
-  it should "open and close PWFS2 loops for a big enough offset" in {
+  test("TcsControllerEpicsCommon should open and close PWFS2 loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithP2Guiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -635,19 +639,19 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       case _                             => true
     }
 
-    guideOffEvents.map(head should contain(_))
+    guideOffEvents.foreach(a => assert(head.contains(a)))
 
     List(
       TestTcsEvent.Pwfs2StopObserveCmd,
       TestTcsEvent.Pwfs2ProbeFollowCmd("Off"),
       TestTcsEvent.Pwfs2ProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain _)
+    ).foreach(a => assert(!head.contains(a)))
 
-    guideOnEvents.map(tail should contain(_))
+    guideOnEvents.foreach(a => assert(tail.contains(a)))
 
   }
 
-  it should "close PWFS2 loops for a guided configuration" in {
+  test("TcsControllerEpicsCommon should close PWFS2 loops for a guided configuration") {
     // Current Tcs state with PWFS2 guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -685,7 +689,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.Pwfs2ObserveCmd,
       TestTcsEvent.Pwfs2ProbeFollowCmd("On"),
       TestTcsEvent.Pwfs2ProbeGuideConfig("On", "Off", "Off", "On")
-    ) ++ guideOnEvents).map(result should contain(_))
+    ) ++ guideOnEvents).foreach(a => assert(result.contains(a)))
 
   }
 
@@ -705,7 +709,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
     comaCorrect = "On"
   )
 
-  it should "not open OIWFS loops if configuration does not change" in {
+  test("TcsControllerEpicsCommon should not open OIWFS loops if configuration does not change") {
 
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
@@ -735,7 +739,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   }
 
-  it should "open OIWFS loops for an unguided configuration" in {
+  test("TcsControllerEpicsCommon should open OIWFS loops for an unguided configuration") {
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
     val genOut: IO[List[TestTcsEpics.TestTcsEvent]] = for {
@@ -751,11 +755,11 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.OiwfsStopObserveCmd,
       TestTcsEvent.OiwfsProbeFollowCmd("Off"),
       TestTcsEvent.OiwfsProbeGuideConfig("Off", "Off", "Off", "Off")
-    ) ++ guideOffEvents).map(result should contain(_))
+    ) ++ guideOffEvents).foreach(a => assert(result.contains(a)))
 
   }
 
-  it should "open and close OIWFS loops for a big enough offset" in {
+  test("TcsControllerEpicsCommon should open and close OIWFS loops for a big enough offset") {
     val dumbEpics = buildTcsController[IO](baseStateWithOIGuiding)
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
@@ -787,19 +791,19 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       case _                             => true
     }
 
-    guideOffEvents.map(head should contain(_))
+    guideOffEvents.foreach(a => assert(head.contains(a)))
 
     List(
       TestTcsEvent.OiwfsStopObserveCmd,
       TestTcsEvent.OiwfsProbeFollowCmd("Off"),
       TestTcsEvent.OiwfsProbeGuideConfig("Off", "Off", "Off", "Off")
-    ).map(head should not contain _)
+    ).foreach(a => assert(!head.contains(a)))
 
-    guideOnEvents.map(tail should contain(_))
+    guideOnEvents.foreach(a => assert(tail.contains(a)))
 
   }
 
-  it should "close OIWFS loops for a guided configuration" in {
+  test("TcsControllerEpicsCommon should close OIWFS loops for a guided configuration") {
     // Current Tcs state with OIWFS guiding, but off
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
@@ -838,7 +842,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
       TestTcsEvent.OiwfsObserveCmd,
       TestTcsEvent.OiwfsProbeFollowCmd("On"),
       TestTcsEvent.OiwfsProbeGuideConfig("On", "Off", "Off", "On")
-    ) ++ guideOnEvents).map(result should contain(_))
+    ) ++ guideOnEvents).foreach(a => assert(result.contains(a)))
 
   }
 
@@ -846,7 +850,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
   def epicsTransform(prec: Int)(v: Double): Double =
     s"%.${prec}f".formatLocal(USLocale, v).toDouble
 
-  it should "apply an offset if it is not at the right position" in {
+  test("TcsControllerEpicsCommon should apply an offset if it is not at the right position") {
 
     val offsetDemand  = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val offsetCurrent =
@@ -889,7 +893,9 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   }
 
-  it should "not reapply an offset if it is already at the right position" in {
+  test(
+    "TcsControllerEpicsCommon should not reapply an offset if it is already at the right position"
+  ) {
 
     val offset     = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
     val iaa        = 33.degrees
@@ -930,7 +936,7 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   }
 
-  it should "apply the target wavelength if it changes" in {
+  test("TcsControllerEpicsCommon should apply the target wavelength if it changes") {
 
     val wavelengthDemand: Wavelength  = Wavelength.unsafeFromIntPicometers(1000000)
     val wavelengthCurrent: Wavelength = Wavelength.unsafeFromIntPicometers(1001000)
@@ -965,7 +971,9 @@ class TcsControllerEpicsCommonSpec extends AnyFlatSpec with PrivateMethodTester 
 
   }
 
-  it should "not reapply the target wavelength if it is already at the right value" in {
+  test(
+    "TcsControllerEpicsCommon should not reapply the target wavelength if it is already at the right value"
+  ) {
 
     val wavelength = Wavelength.fromIntNanometers((2000.0 / 7.0).toInt).get
     val recordPrec = 0

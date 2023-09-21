@@ -11,6 +11,11 @@ import observe.server.altair.{Altair, AltairController}
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.GuiderConfig.given
 import lucuma.core.enums.Site
+import monocle.Focus
+import observe.model.M1GuideConfig
+import lucuma.core.enums.Site.GN
+import monocle.Lens
+import observe.model.M2GuideConfig
 
 trait TcsNorthController[F[_]] {
   import TcsNorthController.*
@@ -36,6 +41,13 @@ object TcsNorthController {
 
   type TcsNorthConfig   = TcsConfig[Site.GN.type]
   type TcsNorthAoConfig = AoTcsConfig[Site.GN.type]
+
+  object TcsNorthAoConfig {
+    val m1Guide: Lens[AoTcsConfig[GN.type], M1GuideConfig] =
+      Focus[TcsNorthAoConfig](_.gc.m1Guide)
+    val m2Guide: Lens[AoTcsConfig[GN.type], M2GuideConfig] =
+      Focus[TcsNorthAoConfig](_.gc.m2Guide)
+  }
 
   given Show[AoGuide] =
     Show.show(_.value.show)

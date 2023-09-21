@@ -276,6 +276,9 @@ object TcsController {
 
   object TelescopeConfig {
     given Show[TelescopeConfig] = Show.fromToString
+
+    val offsetA: Lens[TelescopeConfig, Option[InstrumentOffset]] =
+      Focus[TelescopeConfig](_.offsetA)
   }
 
   object P1Config extends NewType[GuiderConfig]
@@ -427,6 +430,19 @@ object TcsController {
     agc:  AGConfig,
     inst: InstrumentGuide
   ) extends TcsConfig[S]
+
+  object BasicTcsConfig {
+    def gds[S <: Site] = Focus[BasicTcsConfig[S]](_.gds)
+    def gc[S <: Site]  = Focus[BasicTcsConfig[S]](_.gc)
+
+    val offsetALensGS = Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
+    val m2GuideLensGS = Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    val m1GuideLensGS = Focus[BasicTcsConfig[Site.GS.type]](_.gc.m1Guide)
+    val pwfs1LensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs1)
+    val pwfs2LensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs2)
+    val oiwfsLensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.oiwfs)
+    val instLensGS    = Focus[BasicTcsConfig[Site.GS.type]](_.inst)
+  }
 
   final case class AoTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,

@@ -5,13 +5,12 @@ package observe.common
 
 import cats.kernel.laws.discipline.EqTests
 import cats.laws.discipline.{FoldableTests, FunctorTests, TraverseTests}
-import cats.tests.CatsSuite
 import observe.common.ArbitrariesCommon.given
 
 /**
  * Tests the Monocle Lenses for Observe Events
  */
-final class FixedLengthBufferSpec extends CatsSuite {
+class FixedLengthBufferSuite extends munit.DisciplineSuite {
 
   checkAll("Eq[FixedLengthBuffer]", EqTests[FixedLengthBuffer[Int]].eqv)
   checkAll("Functor[FixedLengthBuffer]", FunctorTests[FixedLengthBuffer].functor[Int, Int, Int])

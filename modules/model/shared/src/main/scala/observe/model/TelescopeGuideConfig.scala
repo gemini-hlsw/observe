@@ -23,7 +23,8 @@ object TelescopeGuideConfig {
 
   val mountGuide: Lens[TelescopeGuideConfig, MountGuideOption] =
     Focus[TelescopeGuideConfig](_.mountGuide)
-  val m1Guide: Lens[TelescopeGuideConfig, M1GuideConfig]       = Focus[TelescopeGuideConfig](_.m1Guide)
-  val m2Guide: Lens[TelescopeGuideConfig, M2GuideConfig]       = Focus[TelescopeGuideConfig](_.m2Guide)
+
+  val m1Guide: Lens[TelescopeGuideConfig, M1GuideConfig] = Focus[TelescopeGuideConfig](_.m1Guide)
+  val m2Guide: Lens[TelescopeGuideConfig, M2GuideConfig] = Focus[TelescopeGuideConfig](_.m2Guide)
 
 }

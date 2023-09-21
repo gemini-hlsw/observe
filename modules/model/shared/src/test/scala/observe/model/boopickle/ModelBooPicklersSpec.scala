@@ -12,7 +12,7 @@ import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceEventsArbitraries.given
 import observe.model.arb.all.given
 import squants.time.Time
-import io.chrisdavenport.cats.time.instances.all.*
+import org.typelevel.cats.time.given
 import lucuma.core.math.Index
 import lucuma.core.math.arb.ArbIndex.*
 

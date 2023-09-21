@@ -222,29 +222,29 @@ object TcsControllerEpicsCommon {
     def calc(c: GuiderSensorOption, d: GuiderSensorOption) =
       (mustOff || d === GuiderSensorOff).fold(GuiderSensorOff, c)
 
-    (Focus[BasicTcsConfig[S]](_.gds).modify(
-      Focus[BasicGuidersConfig](_.pwfs1)
+    (BasicTcsConfig.gds.modify(
+      BasicGuidersConfig.pwfs1
         .andThen(TcsController.P1Config.value)
         .andThen(GuiderConfig.detector)
         .replace(calc(current.pwfs1.detector, demand.gds.pwfs1.value.detector)) >>>
-        Focus[BasicGuidersConfig](_.pwfs2)
+        BasicGuidersConfig.pwfs2
           .andThen(TcsController.P2Config.value)
           .andThen(GuiderConfig.detector)
           .replace(calc(current.pwfs2.detector, demand.gds.pwfs2.value.detector)) >>>
-        Focus[BasicGuidersConfig](_.oiwfs)
+        BasicGuidersConfig.oiwfs
           .andThen(TcsController.OIConfig.value)
           .andThen(GuiderConfig.detector)
           .replace(calc(current.oiwfs.detector, demand.gds.oiwfs.value.detector))
-    ) >>> Focus[BasicTcsConfig[S]](_.gc).modify(
-      Focus[TelescopeGuideConfig](_.mountGuide).replace(
+    ) >>> BasicTcsConfig.gc.modify(
+      TelescopeGuideConfig.mountGuide.replace(
         (mustOff || demand.gc.mountGuide === MountGuideOption.MountGuideOff)
           .fold(MountGuideOption.MountGuideOff, current.telescopeGuideConfig.mountGuide)
       ) >>>
-        Focus[TelescopeGuideConfig](_.m1Guide).replace(
+        TelescopeGuideConfig.m1Guide.replace(
           (mustOff || demand.gc.m1Guide === M1GuideConfig.M1GuideOff)
             .fold(M1GuideConfig.M1GuideOff, current.telescopeGuideConfig.m1Guide)
         ) >>>
-        Focus[TelescopeGuideConfig](_.m2Guide).replace(
+        TelescopeGuideConfig.m2Guide.replace(
           (mustOff || demand.gc.m2Guide === M2GuideConfig.M2GuideOff)
             .fold(M2GuideConfig.M2GuideOff, current.telescopeGuideConfig.m2Guide)
         )
@@ -341,8 +341,8 @@ object TcsControllerEpicsCommon {
       actions.map { r =>
         { (x: C) =>
           r.self.as(
-            l.andThen(Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig))
-              .andThen(Focus[TelescopeGuideConfig](_.m2Guide))
+            l.andThen(BaseEpicsTcsConfig.telescopeGuideConfig)
+              .andThen(TelescopeGuideConfig.m2Guide)
               .replace(d)(x)
           )
         }.withDebug(s"M2Guide set because (${r.debug})")
@@ -437,7 +437,7 @@ object TcsControllerEpicsCommon {
           .option {
             { (x: C) =>
               setScienceFoldConfig(sf) *> Sync[F].delay(
-                l.andThen(Focus[BaseEpicsTcsConfig](_.scienceFoldPosition)).replace(sf.some)(x)
+                l.andThen(BaseEpicsTcsConfig.scienceFoldPosition).replace(sf.some)(x)
               )
             }.withDebug(s"ScienceFold($currentStr =!= $sf)")
           }
@@ -465,7 +465,7 @@ object TcsControllerEpicsCommon {
                 { (x: C) =>
                   setHRPickupConfig(a) *> Sync[F]
                     .delay(
-                      l.andThen(Focus[BaseEpicsTcsConfig](_.hrwfsPickupPosition)).replace(a)(x)
+                      l.andThen(BaseEpicsTcsConfig.hrwfsPickupPosition).replace(a)(x)
                     )
                 }.withDebug(s"HrPickup(b =!= a")
               }
@@ -572,7 +572,7 @@ object TcsControllerEpicsCommon {
       c: ProbeTrackingConfig
     ): Option[WithDebug[C => F[C]]] =
       setGuideProbe(pwfs1GuiderControl,
-                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs1))
+                    l.andThen(BaseEpicsTcsConfig.pwfs1)
                       .andThen(GuiderConfig.tracking)
                       .replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS1: $d"))
@@ -590,7 +590,7 @@ object TcsControllerEpicsCommon {
       c: ProbeTrackingConfig
     ): Option[WithDebug[C => F[C]]] =
       setGuideProbe(pwfs2GuiderControl,
-                    l.andThen(Focus[BaseEpicsTcsConfig](_.pwfs2))
+                    l.andThen(BaseEpicsTcsConfig.pwfs2)
                       .andThen(GuiderConfig.tracking)
                       .replace
       )(a, b, c).map(_.mapDebug(d => s"PWFS2: $d"))
@@ -611,7 +611,7 @@ object TcsControllerEpicsCommon {
     ): Option[WithDebug[C => F[C]]] = oiSelectionName(inst).flatMap { x =>
       if (x === oiName)
         setGuideProbe(oiwfsGuiderControl,
-                      l.andThen(Focus[BaseEpicsTcsConfig](_.oiwfs))
+                      l.andThen(BaseEpicsTcsConfig.oiwfs)
                         .andThen(GuiderConfig.tracking)
                         .replace
         )(a, b, c).map(_.mapDebug(d => s"OIWFS: $d"))
@@ -650,20 +650,20 @@ object TcsControllerEpicsCommon {
       tc.offsetA.flatMap(o =>
         applyParam(
           subsystems.contains(Subsystem.Mount),
-          l.andThen(Focus[BaseEpicsTcsConfig](_.offset)).get(current),
-          o.toFocalPlaneOffset(l.andThen(Focus[BaseEpicsTcsConfig](_.iaa)).get(current)),
+          l.andThen(BaseEpicsTcsConfig.offset).get(current),
+          o.toFocalPlaneOffset(l.andThen(BaseEpicsTcsConfig.iaa).get(current)),
           setTelescopeOffset,
-          l.andThen(Focus[BaseEpicsTcsConfig](_.offset)),
+          l.andThen(BaseEpicsTcsConfig.offset),
           offsetNear
         )("Offset")
       ),
       tc.wavelA.flatMap(
         applyParam(
           subsystems.contains(Subsystem.Mount),
-          l.andThen(Focus[BaseEpicsTcsConfig](_.wavelA)).get(current),
+          l.andThen(BaseEpicsTcsConfig.wavelA).get(current),
           _,
           setWavelength,
-          l.andThen(Focus[BaseEpicsTcsConfig](_.wavelA)),
+          l.andThen(BaseEpicsTcsConfig.wavelA),
           wavelengthNear
         )("Wavelenght")
       )
@@ -792,7 +792,7 @@ object TcsControllerEpicsCommon {
       val offsetConfig: BasicTcsConfig[S] =
         tcs
           .focus(_.tc)
-          .andThen(Focus[TelescopeConfig](_.offsetA))
+          .andThen(TelescopeConfig.offsetA)
           .replace(offset.some)
       val noddedConfig: BasicTcsConfig[S] =
         if (guided) offsetConfig

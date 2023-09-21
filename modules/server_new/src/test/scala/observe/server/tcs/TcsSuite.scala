@@ -4,13 +4,12 @@
 package observe.server.tcs
 
 import cats.kernel.laws.discipline.*
-import cats.tests.CatsSuite
 import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
 
 /**
  * Tests Tcs typeclasses
  */
-final class TcsSpec extends CatsSuite with TcsArbitraries {
+class TcsSuite extends munit.DisciplineSuite with TcsArbitraries {
   checkAll("Eq[BinaryYesNo]", EqTests[BinaryYesNo].eqv)
   checkAll("Eq[BinaryOnOff]", EqTests[BinaryOnOff].eqv)
   checkAll("Eq[CRFollow]", EqTests[CRFollow].eqv)

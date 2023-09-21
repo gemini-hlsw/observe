@@ -7,7 +7,6 @@ import cats.Applicative
 import cats.Eq
 import cats.MonadThrow
 import cats.syntax.all.*
-import monocle.Focus
 import lucuma.core.enums.GuideState
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import org.typelevel.log4cats.Logger
