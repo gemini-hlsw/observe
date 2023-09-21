@@ -224,7 +224,6 @@ object ObserveEngine {
     executeEngine:                    Engine[F, EngineState[F], SeqEvent],
     override val systems:             Systems[F],
     @annotation.unused settings:      ObserveEngineConfiguration,
-    sm:                               ObserveMetrics,
     translator:                       SeqTranslate[F],
     @annotation.unused conditionsRef: Ref[F, Conditions]
   ) extends ObserveEngine[F] {
@@ -839,7 +838,7 @@ object ObserveEngine {
         case Right((ev, qState)) =>
           val sequences = List(qState.selected.gmosNorth, qState.selected.gmosSouth).flattenOption
             .map(viewSequence)
-          toObserveEvent[F](ev, qState) <* Stream.eval(updateMetrics(ev, sequences))
+          toObserveEvent[F](ev, qState)
         case Left(x)             =>
           Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
       }
@@ -1183,7 +1182,7 @@ object ObserveEngine {
 //        )
 //        .flatMap(_.map(executeEngine.pause).fold(executeEngine.unit)(_ *> _))
 //
-    override def stopQueue(qid: QueueId, clientId: ClientId): F[Unit]                   =
+    override def stopQueue(qid: QueueId, clientId: ClientId): F[Unit] =
       Applicative[F].unit
 //      executeEngine.offer(
 //        Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1337,28 +1336,6 @@ object ObserveEngine {
 //        case _                                                   => Applicative[F].unit
 //      }).as(i)
 //
-//    /**
-//     * Update some metrics based on the event types
-//     */
-    def updateMetrics(e: EventResult[SeqEvent], sequences: List[SequenceView]): F[Unit] = {
-      def instrument(id: Observation.Id): Option[Instrument] =
-        sequences.find(_.obsId === id).map(_.metadata.instrument)
-
-      e match {
-        // TODO Add metrics for more events
-        case UserCommandResponse(ue, _, _) =>
-          ue match {
-            case UserEvent.Start(id, _, _) =>
-              instrument(id).map(i => sm.startRunning[F](i).void).getOrElse(Sync[F].unit)
-            case _                         => Sync[F].unit
-          }
-        case SystemUpdate(se, _)           =>
-          se match {
-            case _ => Sync[F].unit
-          }
-      }
-    }
-
     private def updateSequenceEndo(
       conditions: Conditions,
       operator:   Option[Operator]
@@ -1644,13 +1621,12 @@ object ObserveEngine {
   def build[F[_]: Async: Logger](
     site:    Site,
     systems: Systems[F],
-    conf:    ObserveEngineConfiguration,
-    metrics: ObserveMetrics
+    conf:    ObserveEngineConfiguration
   ): F[ObserveEngine[F]] = for {
     eng <- Engine.build[F, EngineState[F], SeqEvent](EngineState.engineState[F])
     rc  <- Ref.of[F, Conditions](Conditions.Default)
     tr  <- createTranslator(site, systems, rc)
-  } yield new ObserveEngineImpl[F](eng, systems, conf, metrics, tr, rc)
+  } yield new ObserveEngineImpl[F](eng, systems, conf, tr, rc)
 
   private def modifyStateEvent[F[_]](
     v:   SeqEvent,
