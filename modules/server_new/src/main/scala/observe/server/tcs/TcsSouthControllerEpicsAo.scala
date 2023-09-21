@@ -170,10 +170,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw2GuiderControl(g), EpicsTcsAoConfig.odgw2Tracking.replace)(a,
-                                                                                                 b,
-                                                                                                 c
-        )
+        .setGuideProbe(odgw2GuiderControl(g), EpicsTcsAoConfig.odgw2Tracking.replace)(a, b, c)
         .map(_.mapDebug(m => s"ODGW2: $m"))
 
     private def odgw3GuiderControl(g: VirtualGemsTelescope): GuideControl[F] =
@@ -189,10 +186,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw3GuiderControl(g), EpicsTcsAoConfig.odgw3Tracking.replace)(a,
-                                                                                                 b,
-                                                                                                 c
-        )
+        .setGuideProbe(odgw3GuiderControl(g), EpicsTcsAoConfig.odgw3Tracking.replace)(a, b, c)
         .map(_.mapDebug(m => s"ODGW3: $m"))
 
     private def odgw4GuiderControl(g: VirtualGemsTelescope): GuideControl[F] =
@@ -208,10 +202,7 @@ object TcsSouthControllerEpicsAo {
       c: ProbeTrackingConfig
     ): Option[WithDebug[EpicsTcsAoConfig => F[EpicsTcsAoConfig]]] =
       commonController
-        .setGuideProbe(odgw4GuiderControl(g), EpicsTcsAoConfig.odgw4Tracking.replace)(a,
-                                                                                                 b,
-                                                                                                 c
-        )
+        .setGuideProbe(odgw4GuiderControl(g), EpicsTcsAoConfig.odgw4Tracking.replace)(a, b, c)
         .map(_.mapDebug(m => s"ODGW4: $m"))
 
     def setGemsProbes(
