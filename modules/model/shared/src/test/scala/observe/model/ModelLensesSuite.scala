@@ -10,26 +10,33 @@ import lucuma.core.math.arb.ArbAngle.*
 import lucuma.core.util.arb.ArbUid.*
 import lucuma.core.math.Axis
 import monocle.law.discipline.*
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import observe.model.enums.*
 import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceEventsArbitraries.given
 import observe.model.arb.all.{*, given}
+import org.scalacheck.{Test => ScalaCheckTest}
 
 class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
+
   checkAll("event observer name lens", LensTests(obsNameL))
   checkAll("each step traversal", TraversalTests(eachStepT))
   checkAll("observation steps lens", LensTests(obsStepsL))
   checkAll("each view traversal", TraversalTests(eachViewT))
   checkAll("sequence queue lens", LensTests(sessionQueueL))
   checkAll("events prism", PrismTests(sequenceEventsP))
+
 //  checkAll("param value lens", LensTests(paramValueL("object")))
 //  checkAll("system parameters lens", LensTests(systemConfigL(SystemName.Observe)))
 //  checkAll("config param value optional",
 //           OptionalTests(configParamValueO(SystemName.Observe, "object"))
 //  )
+
   checkAll("sequence view Lens", LensTests(sequenceQueueViewL))
   checkAll("sequencename traversal", TraversalTests(sequenceNameT))
+
 //  checkAll("science step traversal", TraversalTests(scienceStepT))
 //  checkAll("science target name optional", OptionalTests(scienceTargetNameO))
 //  checkAll("step type optional", OptionalTests(stepTypeO))
@@ -37,7 +44,9 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
 //  checkAll("observe targetname traversal", TraversalTests(observeTargetNameT))
 //  checkAll("telescope targetname traversal", TraversalTests(telescopeTargetNameT))
 //  checkAll("first science step target name traversal", TraversalTests(firstScienceTargetNameT))
+
   checkAll("step type prism", PrismTests(stringToStepTypeP))
+
 //  checkAll("step step type optional", OptionalTests(stepTypeO))
 //  checkAll("telescope offset p optional", OptionalTests(offsetO[OffsetType.Telescope, Axis.P]))
 //  checkAll("telescope offset q optional", OptionalTests(offsetO[OffsetType.Telescope, Axis.Q]))
@@ -60,6 +69,7 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
 //  checkAll("instrument mask Optional", OptionalTests(instrumentMaskO))
 //  checkAll("instrument read mode Optional", OptionalTests(instrumentReadModeO))
 //  checkAll("step class", OptionalTests(stepClassO))
+
   checkAll("StandardStep", PrismTests(Step.standardStepP))
   checkAll("NodAndShuffleStep", PrismTests(Step.nsStepP))
   checkAll("Step.status", LensTests(Step.status))

@@ -11,7 +11,7 @@ import observe.model.enums.ActionStatus
 
 import Result.{Error, PartialVal, PauseContext, RetVal}
 
-final case class Action[F[_]](
+case class Action[F[_]](
   kind:  ActionType,
   gen:   Stream[F, Result],
   state: Action.State[F]
@@ -19,10 +19,13 @@ final case class Action[F[_]](
 
 object Action {
 
-  def runStateL[F[_]]: Lens[Action[F], ActionState] =
-    Focus[Action[F]](_.state).andThen(Focus[State[F]](_.runState))
+  def state[F[_]]: Lens[Action[F], Action.State[F]] =
+    Focus[Action[F]](_.state)
 
-  final case class State[F[_]](
+  def runStateL[F[_]]: Lens[Action[F], ActionState] =
+    state.andThen(Focus[State[F]](_.runState))
+
+  case class State[F[_]](
     runState: ActionState,
     partials: List[PartialVal]
   )
@@ -73,14 +76,14 @@ object Action {
 
   object ActionState {
 
-    case object Idle                              extends ActionState {
+    case object Idle                        extends ActionState {
       override val isIdle: Boolean = true
     }
-    case object Started                           extends ActionState
-    final case class Paused(ctx: PauseContext)    extends ActionState
-    final case class Completed[V <: RetVal](r: V) extends ActionState
-    final case class Failed(e: Error)             extends ActionState
-    case object Aborted                           extends ActionState {
+    case object Started                     extends ActionState
+    case class Paused(ctx: PauseContext)    extends ActionState
+    case class Completed[V <: RetVal](r: V) extends ActionState
+    case class Failed(e: Error)             extends ActionState
+    case object Aborted                     extends ActionState {
       override val isIdle: Boolean = true
     }
     private def actionStateToStatus[F[_]](s: ActionState): ActionStatus =

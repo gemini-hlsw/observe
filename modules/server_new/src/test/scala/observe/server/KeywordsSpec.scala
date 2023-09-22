@@ -1,13 +1,12 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.keywords
 
-import cats.tests.CatsSuite
 import cats.kernel.laws.discipline.*
 import observe.model.enums.KeywordName
 
-final class KeywordsSpec extends CatsSuite with KeywordArbitraries {
+class KeywordsSuite extends munit.DisciplineSuite with KeywordArbitraries {
   checkAll("Eq[KeywordName]", EqTests[KeywordName].eqv)
   checkAll("Eq[KeywordType]", EqTests[KeywordType].eqv)
   checkAll("Eq[InternalKeyword]", EqTests[InternalKeyword].eqv)
