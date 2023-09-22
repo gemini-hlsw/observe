@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.keywords
@@ -43,13 +43,12 @@ object GdsClient {
     private val client = {
       val max             = 2
       var attemptsCounter = 1
-      val policy          = RetryPolicy[F] {
-        attempts: Int =>
-          if (attempts >= max) None
-          else {
-            attemptsCounter = attemptsCounter + 1
-            Some(10.milliseconds)
-          }
+      val policy          = RetryPolicy[F] { (attempts: Int) =>
+        if (attempts >= max) None
+        else {
+          attemptsCounter = attemptsCounter + 1
+          Some(10.milliseconds)
+        }
       }
       Retry(policy)(base)
     }
