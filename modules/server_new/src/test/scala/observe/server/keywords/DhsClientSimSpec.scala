@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.keywords
@@ -6,15 +6,17 @@ package observe.server.keywords
 import cats.effect.IO
 import observe.model.enums.KeywordName
 import org.typelevel.log4cats.noop.NoOpLogger
+import org.typelevel.log4cats.Logger
 import java.time.LocalDate
 import observe.server.keywords.DhsClient.Permanent
 
 class DhsClientSimSpec extends munit.CatsEffectSuite {
-  private implicit def logger = NoOpLogger.impl[IO]
+  private given Logger[IO] = NoOpLogger.impl[IO]
 
   test("produce data labels for today") {
     (DhsClientSim[IO](LocalDate.of(2016, 4, 15))
       .flatMap(_.createImage(DhsClient.ImageParameters(Permanent, Nil)))
+      .map(_.value)
       .unsafeRunSync(): String) match {
       case "S20160415S0001" => assert(true)
       case _                => fail("Bad id")
