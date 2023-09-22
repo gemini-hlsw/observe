@@ -6,11 +6,7 @@ package observe.server.keywords
 import cats.kernel.laws.discipline.*
 import observe.model.enums.KeywordName
 
-<<<<<<<< HEAD:modules/server_new/src/test/scala/observe/server/KeywordsSpec.scala
 class KeywordsSuite extends munit.DisciplineSuite with KeywordArbitraries {
-========
-final class KeywordsSpec extends munit.DisciplineSuite with KeywordArbitraries {
->>>>>>>> 09715d975 (Restored keywords tests.):modules/server_new/src/test/scala/observe/server/keywords/KeywordsSpec.scala
   checkAll("Eq[KeywordName]", EqTests[KeywordName].eqv)
   checkAll("Eq[KeywordType]", EqTests[KeywordType].eqv)
   checkAll("Eq[InternalKeyword]", EqTests[InternalKeyword].eqv)
