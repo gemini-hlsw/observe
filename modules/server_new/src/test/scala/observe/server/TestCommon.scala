@@ -190,18 +190,18 @@ object TestCommon {
         engine.fromF[F](ActionType.Observe, Result.OK(Response.Observed(fileId)).pure[F].widen)
       )
 
-//   final case class PartialValue(s: String) extends PartialVal
-//
-//   def observingPartial[F[_]: Applicative]: Action[F] =
-//     Action
-//       .state[F]
-//       .replace(Action.State(Action.ActionState.Started, Nil))(
-//         engine.fromF[F](ActionType.Observe,
-//                         Result.Partial(PartialValue("Value")).pure[F].widen,
-//                         Result.OK(Response.Ignored).pure[F].widen
-//         )
-//       )
-//
+  final case class PartialValue(s: String) extends PartialVal
+
+  def observingPartial[F[_]: Applicative]: Action[F] =
+    Action
+      .state[F]
+      .replace(Action.State(Action.ActionState.Started, Nil))(
+        engine.fromF[F](ActionType.Observe,
+                        Result.Partial(PartialValue("Value")).pure[F].widen,
+                        Result.OK(Response.Ignored).pure[F].widen
+        )
+      )
+
   def fileIdReady[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
@@ -216,13 +216,13 @@ object TestCommon {
         )
       )(observing)
 
-//   def observePartial[F[_]: Applicative]: Action[F] =
-//     Action
-//       .state[F]
-//       .replace(Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId))))(
-//         observingPartial
-//       )
-//
+  def observePartial[F[_]: Applicative]: Action[F] =
+    Action
+      .state[F]
+      .replace(Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId))))(
+        observingPartial
+      )
+
   def paused[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
