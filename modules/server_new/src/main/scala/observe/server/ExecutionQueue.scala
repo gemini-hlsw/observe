@@ -34,5 +34,7 @@ object ExecutionQueue {
   given Eq[ExecutionQueue] =
     Eq.by(x => (x.name, x.cmdState, x.queue))
 
-  val cmdState: Lens[ExecutionQueue, BatchCommandState] = Focus[ExecutionQueue](_.cmdState)
+  val cmdState: Lens[ExecutionQueue, BatchCommandState]  = Focus[ExecutionQueue](_.cmdState)
+  val name: Lens[ExecutionQueue, String]                 = Focus[ExecutionQueue](_.name)
+  val queue: Lens[ExecutionQueue, List[SequenceInQueue]] = Focus[ExecutionQueue](_.queue)
 }
