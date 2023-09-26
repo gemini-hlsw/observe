@@ -12,6 +12,8 @@ import java.util.logging.Logger
 
 import cats.effect.Sync
 import org.slf4j.bridge.SLF4JBridgeHandler
+import org.typelevel.log4cats.{Logger => TLogger}
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 trait AppBaseDir {
 
@@ -42,12 +44,13 @@ trait AppBaseDir {
 
 trait LogInitialization extends AppBaseDir {
   // Send logs from JULI (e.g. ocs) to SLF4J
-  def configLog[F[_]: Sync]: F[Unit] = Sync[F].delay {
+  def setupLogger[F[_]: Sync]: F[TLogger[F]] = Sync[F].delay {
     LogManager.getLogManager.reset()
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
     // Required to include debugging info, may affect performance though
     Logger.getGlobal.setLevel(Level.FINE)
+    Slf4jLogger.getLoggerFromName[F]("observe")
   }
 
 }

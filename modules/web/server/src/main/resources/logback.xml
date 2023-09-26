@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Configuration of logging for seqexec for test
+ Configuration of logging for observe for test
  and production. It will select the file location
  based on the host name
 

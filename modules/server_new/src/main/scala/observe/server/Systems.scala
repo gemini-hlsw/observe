@@ -42,7 +42,7 @@ import io.circe.syntax.*
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
-final case class Systems[F[_]](
+case class Systems[F[_]] private (
   odb:                 OdbProxy[F],
   dhs:                 DhsClientProvider[F],
   tcsSouth:            TcsSouthController[F],
@@ -76,9 +76,11 @@ object Systems {
 
   final case class Builder(
     settings: ObserveEngineConfiguration,
+    sso:      LucumaSSOConfiguration,
     service:  CaService,
     tops:     Map[String, String]
   )(using L: Logger[IO], T: Temporal[IO]) {
+    println(settings.odb)
     val reconnectionStrategy: ReconnectionStrategy =
       (attempt, reason) =>
         // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
@@ -93,7 +95,7 @@ object Systems {
     def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
       sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       _  <- sk.connect()
-      _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
+      _  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
     } yield {
       given FetchClient[F, ObservationDB] = sk
       OdbProxy[F](
@@ -436,7 +438,8 @@ object Systems {
     site:       Site,
     httpClient: Client[IO],
     settings:   ObserveEngineConfiguration,
+    sso:        LucumaSSOConfiguration,
     service:    CaService
   )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
-    Builder(settings, service, decodeTops(settings.tops)).build(site, httpClient)
+    Builder(settings, sso, service, decodeTops(settings.tops)).build(site, httpClient)
 }

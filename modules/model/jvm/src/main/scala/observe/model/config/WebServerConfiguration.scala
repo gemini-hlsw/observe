@@ -4,8 +4,11 @@
 package observe.model.config
 
 import cats.Eq
+import cats.derived.*
 
 import java.nio.file.Path
+
+private given Eq[Path] = Eq.fromUniversalEquals
 
 /**
  * Configuration for the TLS server
@@ -16,13 +19,7 @@ import java.nio.file.Path
  * @param certPwd
  *   Password for the certificate used for TLS
  */
-final case class TLSConfig(keyStore: Path, keyStorePwd: String, certPwd: String)
-
-object TLSConfig {
-
-  given Eq[TLSConfig] =
-    Eq.by(x => (x.keyStore, x.keyStorePwd, x.certPwd))
-}
+case class TLSConfig(keyStore: Path, keyStorePwd: String, certPwd: String) derives Eq
 
 /**
  * Configuration for the web server side of the observe
@@ -37,15 +34,10 @@ object TLSConfig {
  * @param tls
  *   Configuration of TLS, optional
  */
-final case class WebServerConfiguration(
+case class WebServerConfiguration(
   host:            String,
   port:            Int,
   insecurePort:    Int,
   externalBaseUrl: String,
   tls:             Option[TLSConfig]
-)
-
-object WebServerConfiguration {
-  given Eq[WebServerConfiguration] =
-    Eq.by(x => (x.host, x.port, x.insecurePort, x.externalBaseUrl, x.tls))
-}
+) derives Eq

@@ -5,9 +5,6 @@ package observe.model.config
 
 import cats.Eq
 import cats.derived.*
-import org.http4s.Uri
-
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Configuration for the general authentication service
@@ -24,10 +21,6 @@ import scala.concurrent.duration.FiniteDuration
  * @param ldap
  *   URL of the ldap servers
  */
-case class AuthenticationConfig(
-  sessionLifeHrs: FiniteDuration,
-  cookieName:     String,
-  secretKey:      String,
-  useSsl:         Boolean = false,
-  ldapUrls:       List[Uri]
+case class LucumaSSOConfiguration(
+  serviceToken: String
 ) derives Eq

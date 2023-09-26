@@ -138,8 +138,7 @@ lazy val observe_web_server = project
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
-    reStart / mainClass  := Some("observe.web.server.http4s.WebServerLauncher"),
-    Compile / bspEnabled := false
+    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
   )
   .settings(
     buildInfoUsePackageAsPath := true,
