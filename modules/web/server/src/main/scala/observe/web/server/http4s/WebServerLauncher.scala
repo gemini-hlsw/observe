@@ -96,19 +96,20 @@ object WebServerLauncher extends IOApp with LogInitialization {
     context
   }
 
-  def tlsContext[F[_]: Sync: Network](tls: TLSConfig): F[Option[TLSContext[F]]] =
+  private def tlsContext[F[_]: Sync: Network](tls: TLSConfig): F[Option[TLSContext[F]]] =
     (for {
       ssl <- OptionT.liftF(makeContext[F](tls))
     } yield Network[F].tlsContext.fromSSLContext(ssl)).value
 
       /** Resource that yields the running web server */
-  def webServer[F[_]: Logger: Async: Network: Compression](
-    conf:    ObserveConfiguration,
-    systems: Systems[F]
+  private def webServer[F[_]: Logger: Async: Network: Compression](
+    conf: ObserveConfiguration,
+    oe:   ObserveEngine[F]
   ): Resource[F, Server] = {
 
     def router(wsb: WebSocketBuilder2[F]) = Router[F](
-      "/api/observe/guide" -> new GuideConfigDbRoutes(systems.guideDb).service
+      "/api/observe/guide" -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
+      "/api"               -> new ObserveCommandRoutes(oe).service
     )
 
     val builder = EmberServerBuilder
@@ -132,7 +133,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       .flatten
   }
 
-  def redirectWebServer[F[_]: Logger: Async: Network](
+  private def redirectWebServer[F[_]: Logger: Async: Network](
     conf: WebServerConfiguration
   ): Resource[F, Server] = {
     val router = Router[F](
@@ -147,7 +148,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       .build
   }
 
-  def printBanner[F[_]: Logger](conf: ObserveConfiguration): F[Unit] = {
+  private def printBanner[F[_]: Logger](conf: ObserveConfiguration): F[Unit] = {
     val banner = """
    ____  __
   / __ \/ /_  ________  ______   _____
@@ -199,7 +200,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
                             )
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
-        _                <- webServer(conf, engine.systems)
+        _                <- webServer(conf, engine)
       } yield ExitCode.Success
 
     observe.use(_ => IO.never)
