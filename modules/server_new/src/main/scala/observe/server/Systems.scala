@@ -80,7 +80,6 @@ object Systems {
     service:  CaService,
     tops:     Map[String, String]
   )(using L: Logger[IO], T: Temporal[IO]) {
-    println(settings.odb)
     val reconnectionStrategy: ReconnectionStrategy =
       (attempt, reason) =>
         // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent

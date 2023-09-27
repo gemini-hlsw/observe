@@ -7,6 +7,8 @@ import cats.Eq
 import cats.derived.*
 
 import java.nio.file.Path
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.Port
 
 private given Eq[Path] = Eq.fromUniversalEquals
 
@@ -35,9 +37,9 @@ case class TLSConfig(keyStore: Path, keyStorePwd: String, certPwd: String) deriv
  *   Configuration of TLS, optional
  */
 case class WebServerConfiguration(
-  host:            String,
-  port:            Int,
-  insecurePort:    Int,
+  host:            Host,
+  port:            Port,
+  insecurePort:    Port,
   externalBaseUrl: String,
   tls:             Option[TLSConfig]
 ) derives Eq

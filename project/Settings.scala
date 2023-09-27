@@ -36,7 +36,6 @@ object Settings {
     val catsTime            = "0.5.1"
 
     val http4sVersion              = "0.23.23"
-    val http4sBlazeVersion         = "0.23.15"
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sBoopickleVersion     = "0.23.11"
     val http4sScalaXmlVersion      = "0.23.13"
@@ -153,13 +152,14 @@ object Settings {
       "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig,
-      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig
+      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-ip4s"        % LibraryVersions.pureConfig
     )
     val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
     val Http4s           = Seq("org.http4s" %% "http4s-dsl" % LibraryVersions.http4sVersion,
-                     "org.http4s" %% "http4s-blaze-server" % LibraryVersions.http4sBlazeVersion
+                     "org.http4s" %% "http4s-ember-server" % LibraryVersions.http4sVersion
     )
     val Http4sClient     = Seq(
       "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,

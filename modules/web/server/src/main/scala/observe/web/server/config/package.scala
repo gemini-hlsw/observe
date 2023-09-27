@@ -11,6 +11,7 @@ import pureconfig.*
 import pureconfig.error.*
 import pureconfig.module.catseffect.syntax.*
 import pureconfig.module.http4s.*
+import pureconfig.module.ip4s.*
 import pureconfig.generic.derivation.default.*
 import observe.model.config.*
 
