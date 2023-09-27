@@ -14,7 +14,7 @@ object Settings {
     val crystal                 = "0.34.1"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
-    val lucumaReact             = "0.44.0"
+    val lucumaReact             = "0.44.1"
     val scalaDom                = "2.3.0"
     val scalajsReact            = "2.1.1"
     val scalaJSReactCommon      = "0.17.0"
