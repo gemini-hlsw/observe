@@ -167,25 +167,25 @@ object WebServerLauncher extends IOApp with LogInitialization {
     Logger[F].info(banner + msg)
   }
 
+  // Override the default client config
+  private def mkClient(timeout: FiniteDuration): IO[Client[IO]] =
+    JdkHttpClient.simple[IO].map(c => Client(r => c.run(r).timeout(timeout)))
+
+  private def engineIO(
+    conf:       ObserveConfiguration,
+    httpClient: Client[IO]
+  )(using Logger[IO]): Resource[IO, ObserveEngine[IO]] =
+    for {
+      caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
+      sys  <- Systems.build(conf.site, httpClient, conf.observeEngine, conf.lucumaSSO, caS)
+      seqE <- Resource.eval(ObserveEngine.build(conf.site, sys, conf.observeEngine))
+    } yield seqE
+
+  private def publishStats[F[_]: Temporal](cs: ClientsSetDb[F]): Stream[F, Unit] =
+    Stream.fixedRate[F](10.minute).flatMap(_ => Stream.eval(cs.report))
+
   /** Reads the configuration and launches the observe engine and web server */
   def observe: IO[ExitCode] = {
-
-    // Override the default client config
-    def mkClient(timeout: FiniteDuration): IO[Client[IO]] =
-      JdkHttpClient.simple[IO].map(c => Client(r => c.run(r).timeout(timeout)))
-
-    def engineIO(
-      conf:       ObserveConfiguration,
-      httpClient: Client[IO]
-    )(using Logger[IO]): Resource[IO, ObserveEngine[IO]] =
-      for {
-        caS  <- Resource.eval(CaServiceInit.caInit[IO](conf.observeEngine))
-        sys  <- Systems.build(conf.site, httpClient, conf.observeEngine, conf.lucumaSSO, caS)
-        seqE <- Resource.eval(ObserveEngine.build(conf.site, sys, conf.observeEngine))
-      } yield seqE
-
-    def publishStats[F[_]: Temporal](cs: ClientsSetDb[F]): Stream[F, Unit] =
-      Stream.fixedRate[F](10.minute).flatMap(_ => Stream.eval(cs.report))
 
     val observe: Resource[IO, ExitCode] =
       for {
@@ -200,6 +200,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
                             )
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
+        _                <- redirectWebServer(conf.webServer)
         _                <- webServer(conf, engine)
       } yield ExitCode.Success
 

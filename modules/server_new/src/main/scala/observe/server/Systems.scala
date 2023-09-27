@@ -41,6 +41,7 @@ import io.circe.syntax.*
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
+import observe.server.OdbProxy.TestOdbProxy
 
 case class Systems[F[_]] private (
   odb:                 OdbProxy[F],
@@ -74,7 +75,7 @@ case class Systems[F[_]] private (
 
 object Systems {
 
-  final case class Builder(
+  case class Builder(
     settings: ObserveEngineConfiguration,
     sso:      LucumaSSOConfiguration,
     service:  CaService,
@@ -441,4 +442,27 @@ object Systems {
     service:    CaService
   )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
     Builder(settings, sso, service, decodeTops(settings.tops)).build(site, httpClient)
+
+  def dummy[F[_]: Async: Logger]: F[Systems[F]] =
+    GuideConfigDb
+      .newDb[F]
+      .map(guideDb =>
+        new Systems(
+          new TestOdbProxy[F],
+          DhsClientProvider.dummy[F],
+          TcsSouthControllerSim[F],
+          TcsNorthControllerSim[F],
+          GcalControllerSim[F],
+          GmosControllerDisabled[F, GmosController.GmosSite.South.type]("south"),
+          GmosControllerDisabled[F, GmosController.GmosSite.North.type]("north"),
+          AltairControllerSim[F],
+          GemsControllerSim[F],
+          guideDb,
+          DummyTcsKeywordsReader[F],
+          DummyGcalKeywordsReader[F],
+          GmosKeywordReaderDummy[F],
+          AltairKeywordReaderDummy[F],
+          GemsKeywordReaderDummy[F]
+        )
+      )
 }

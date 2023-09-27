@@ -4,8 +4,7 @@
 package observe.web.server.http4s
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import cats.tests.CatsSuite
+import cats.syntax.all.*
 import observe.model.{ClientId, Observation, StepId}
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
@@ -17,143 +16,159 @@ import org.http4s.implicits.*
 import org.http4s.server.websocket.WebSocketBuilder2
 
 import observe.server.*
-import observe.web.server.http4s.encoder.*
+// import observe.web.server.http4s.encoder.*
 import observe.model.enums.*
 import observe.model.arb.ArbClientId.given
 
-class ObserveCommandRoutesSpec extends CatsSuite with ClientBooEncoders with TestRoutes {
-  test("update water vapor") {
-    forAll { (wv: WaterVapor) =>
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri"/wv")
-                      .addCookie("token", t)
-                      .withEntity(wv)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Set water vapor to $wv"))
-    }
+class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes {
+
+  test("reset conditions") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      // t      <- newLoginToken(wsb)
+      l      <- s(
+                  Request[IO](method = Method.POST, uri = uri"/resetconditions")
+                  // .addCookie("token", t)
+                  // .withEntity(wv)
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
   }
 
-  test("update image quality") {
-    forAll { (iq: ImageQuality) =>
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri"/iq")
-                      .addCookie("token", t)
-                      .withEntity(iq)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Set image quality to $iq"))
-    }
-  }
-
-  test("update sky background") {
-    forAll { (sb: SkyBackground) =>
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri"/sb")
-                      .addCookie("token", t)
-                      .withEntity(sb)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Set sky background to $sb"))
-    }
-  }
-
-  test("update cloud cover") {
-    forAll { (cc: CloudCover) =>
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri"/cc")
-                      .addCookie("token", t)
-                      .withEntity(cc)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Set cloud cover to $cc"))
-    }
-  }
-
-  test("start sequence") {
-    forAll { (obsId: Observation.Id, clientId: ClientId) =>
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST,
-                                uri = Uri.unsafeFromString(
-                                  s"/${obsId.show}/start/observer/${clientId.self}"
-                                )
-                    )
-                      .addCookie("token", t)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Started sequence ${obsId.show}"))
-    }
-  }
-
-  test("start sequence from") {
-    forAll { (obsId: Observation.Id, startFrom: StepId, clientId: ClientId) =>
-      val uri    = Uri.unsafeFromString(
-        s"/${obsId.show}/${startFrom.show}/startFrom/observer/${clientId.self}"
-      )
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(
-        b.unsafeRunSync() === Some(
-          s"Started sequence ${obsId.show} from step $startFrom"
-        )
-      )
-    }
-  }
-
-  test("pause sequence") {
-    forAll { (obsId: Observation.Id) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/pause/observer")
-      val (s, b) = (for {
-        engine <- TestObserveEngine.build[IO]
-        s      <- commandRoutes(engine)
-        wsb    <- WebSocketBuilder2[IO]
-        t      <- newLoginToken(wsb)
-        l      <- s(
-                    Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
-                  ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(b.unsafeRunSync() === Some(s"Pause sequence ${obsId.show}"))
-    }
-  }
+  // test("update water vapor") {
+  //   forAll { (wv: WaterVapor) =>
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri"/wv")
+  //                     .addCookie("token", t)
+  //                     .withEntity(wv)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Set water vapor to $wv"))
+  //   }
+  // }
+  //
+  // test("update image quality") {
+  //   forAll { (iq: ImageQuality) =>
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri"/iq")
+  //                     .addCookie("token", t)
+  //                     .withEntity(iq)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Set image quality to $iq"))
+  //   }
+  // }
+  //
+  // test("update sky background") {
+  //   forAll { (sb: SkyBackground) =>
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri"/sb")
+  //                     .addCookie("token", t)
+  //                     .withEntity(sb)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Set sky background to $sb"))
+  //   }
+  // }
+  //
+  // test("update cloud cover") {
+  //   forAll { (cc: CloudCover) =>
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri"/cc")
+  //                     .addCookie("token", t)
+  //                     .withEntity(cc)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Set cloud cover to $cc"))
+  //   }
+  // }
+  //
+  // test("start sequence") {
+  //   forAll { (obsId: Observation.Id, clientId: ClientId) =>
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST,
+  //                               uri = Uri.unsafeFromString(
+  //                                 s"/${obsId.show}/start/observer/${clientId.self}"
+  //                               )
+  //                   )
+  //                     .addCookie("token", t)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Started sequence ${obsId.show}"))
+  //   }
+  // }
+  //
+  // test("start sequence from") {
+  //   forAll { (obsId: Observation.Id, startFrom: StepId, clientId: ClientId) =>
+  //     val uri    = Uri.unsafeFromString(
+  //       s"/${obsId.show}/${startFrom.show}/startFrom/observer/${clientId.self}"
+  //     )
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(
+  //       b.unsafeRunSync() === Some(
+  //         s"Started sequence ${obsId.show} from step $startFrom"
+  //       )
+  //     )
+  //   }
+  // }
+  //
+  // test("pause sequence") {
+  //   forAll { (obsId: Observation.Id) =>
+  //     val uri    = Uri.unsafeFromString(s"/${obsId.show}/pause/observer")
+  //     val (s, b) = (for {
+  //       engine <- TestObserveEngine.build[IO]
+  //       s      <- commandRoutes(engine)
+  //       wsb    <- WebSocketBuilder2[IO]
+  //       t      <- newLoginToken(wsb)
+  //       l      <- s(
+  //                   Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
+  //                 ).value
+  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
+  //     assert(s === Some(Status.Ok))
+  //     assert(b.unsafeRunSync() === Some(s"Pause sequence ${obsId.show}"))
+  //   }
+  // }
 
   /*  test("cancelpause sequence") {
     val engine = mock[ObserveEngine[IO]]

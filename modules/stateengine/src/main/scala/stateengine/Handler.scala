@@ -4,7 +4,7 @@
 package stateengine
 
 import cats.{Applicative, Monad}
-import cats.data.{State, StateT}
+import cats.data.State
 import cats.syntax.all.*
 import fs2.Stream
 import stateengine.Handler.RetVal
@@ -13,8 +13,8 @@ import stateengine.Handler.RetVal
  * Type constructor where all Observe side effect are managed. Handler is a State machine which can
  * produce Streams as output. It is combined with the input stream to run observe engine.
  *
- * Its type parameters are: F: Effect for the Stream, A: Type of the output (usually Unit) V: Type of the events D: Type of
- * the state machine state.
+ * Its type parameters are: F: Effect for the Stream, A: Type of the output (usually Unit) V: Type
+ * of the events D: Type of the state machine state.
  */
 final case class Handler[F[_], D, V, A](run: State[D, RetVal[F, V, A]])
 
@@ -92,10 +92,10 @@ object Handler {
           }
         }
       )
-      
+
     def withStream(s: Stream[F, V]): Handler[F, D, V, A] = Handler(
-      self.run.map{
-        case RetVal(a, _) => RetVal(a, s.some)
+      self.run.map { case RetVal(a, _) =>
+        RetVal(a, s.some)
       }
     )
   }
