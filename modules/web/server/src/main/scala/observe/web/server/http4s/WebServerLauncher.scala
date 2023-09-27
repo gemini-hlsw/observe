@@ -47,6 +47,7 @@ import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
 import cats.data.OptionT
+import fs2.compression.Compression
 
 object WebServerLauncher extends IOApp with LogInitialization {
 
@@ -101,12 +102,13 @@ object WebServerLauncher extends IOApp with LogInitialization {
     } yield Network[F].tlsContext.fromSSLContext(ssl)).value
 
       /** Resource that yields the running web server */
-  def webServer[F[_]: Logger: Async: Network](
-    conf: ObserveConfiguration
+  def webServer[F[_]: Logger: Async: Network: Compression](
+    conf:    ObserveConfiguration,
+    systems: Systems[F]
   ): Resource[F, Server] = {
 
     def router(wsb: WebSocketBuilder2[F]) = Router[F](
-// //      "/api/observe/guide"    -> new GuideConfigDbRoutes(se.systems.guideDb).service,
+      "/api/observe/guide" -> new GuideConfigDbRoutes(systems.guideDb).service
     )
 
     val builder = EmberServerBuilder
@@ -149,7 +151,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     val banner = """
    ____  __
   / __ \/ /_  ________  ______   _____
- / / / / __ \/ ___/ _ \/ ___/ | / / _ \\q
+ / / / / __ \/ ___/ _ \/ ___/ | / / _ \
 / /_/ / /_/ (__  )  __/ /   | |/ /  __/
 \____/_.___/____/\___/_/    |___/\___/
 
@@ -197,7 +199,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
                             )
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
-        _                <- webServer(conf)
+        _                <- webServer(conf, engine.systems)
       } yield ExitCode.Success
 
     observe.use(_ => IO.never)

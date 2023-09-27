@@ -36,15 +36,16 @@ object ClientsSetDb {
       def removeClient(id: ClientId): F[Unit]                                                    =
         ref.update(_ - id)
       def report: F[Unit]                                                                        =
-        ref.get.flatMap { m =>
-          L.debug("Clients Summary:") *>
-            L.debug("----------------") *>
-            m.map { case (id, (i, addr, ua)) =>
-              s"  Client: $id, arrived on $i from addr: $addr ${ua.foldMap(u => s"UserAgent: $u")}"
-            }.toList
-              .traverse(L.debug(_)) *>
-            L.debug("----------------")
-        }
+        ref.get
+          .flatMap { m =>
+            (L.debug("Clients Summary:") *>
+              L.debug("----------------") *>
+              m.map { case (id, (i, addr, ua)) =>
+                s"  Client: $id, arrived on $i from addr: $addr ${ua.foldMap(u => s"UserAgent: $u")}"
+              }.toList
+                .traverse(L.debug(_)) *>
+              L.debug("----------------")).whenA(m.nonEmpty)
+          }
 
     }
   }
