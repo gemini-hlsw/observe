@@ -45,7 +45,6 @@ object Settings {
     val unboundId        = "3.2.1"
     val jwt              = "9.4.4"
     val slf4j            = "2.0.7"
-    val log4s            = "1.10.0"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
     val logback          = "1.4.11"
@@ -86,8 +85,6 @@ object Settings {
 
     // Clue
     val clue = "0.32.0"
-
-    val sttp = "3.9.0"
 
     val atto = "0.9.5"
   }
@@ -140,14 +137,13 @@ object Settings {
       "ch.qos.logback"      % "logback-classic" % LibraryVersions.logback,
       "org.codehaus.janino" % "janino"          % LibraryVersions.janino
     )
-    val Log4s            = Def.setting("org.log4s" %%% "log4s" % LibraryVersions.log4s)
     val Log4CatsLogLevel = Def.setting(
       Seq(
         "org.typelevel" %%% "log4cats-core"     % LibraryVersions.log4cats,
         "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLogLevel
       )
     )
-    val Logging          = Def.setting(Seq(JuliSlf4j, Log4s.value) ++ Logback)
+    val Logging          = Def.setting(Seq(JuliSlf4j) ++ Logback)
     val PureConfig       = Seq(
       "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
@@ -290,14 +286,6 @@ object Settings {
     val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
     val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
     val ClueJs        = Def.setting("edu.gemini" %%% "clue-scalajs" % LibraryVersions.clue)
-
-    val Sttp = Def.setting(
-      Seq(
-        "com.softwaremill.sttp.client3" %%% "core"  % LibraryVersions.sttp,
-        "com.softwaremill.sttp.client3" %%% "circe" % LibraryVersions.sttp,
-        "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
-      )
-    )
 
     val Atto = "org.tpolecat" %% "atto-core" % LibraryVersions.atto
   }

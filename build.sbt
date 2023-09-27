@@ -197,8 +197,8 @@ lazy val observe_server = project
         Clue.value,
         ClueHttp4s,
         LucumaSchemas.value,
-        ACM,
-        Atto
+        Atto,
+        ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
@@ -238,9 +238,8 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       Squants.value,
       Mouse.value,
       BooPickle.value,
-      CatsTime.value,
-      Atto
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
+      CatsTime.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -260,7 +259,6 @@ lazy val observe_engine = project
   .settings(
     libraryDependencies ++= Seq(Fs2.value,
                                 CatsEffect.value,
-                                Log4s.value,
                                 Log4Cats.value
     ) ++ Monocle.value ++ MUnit.value
   )
