@@ -9,14 +9,7 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 name := "observe"
 
-Global / onChangedBuildSource := ReloadOnSourceChanges
-
-Global / semanticdbEnabled := true
-
 ThisBuild / resolvers := List(Resolver.mavenLocal)
-
-ThisBuild / Compile / packageDoc / publishArtifact := false
-ThisBuild / Test / bspEnabled                      := true
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
@@ -24,19 +17,14 @@ ThisBuild / lucumaCssExts += "svg"
 
 ThisBuild / tlFatalWarnings := false // TODO: Remove this when we are ready to have linting checks
 
-inThisBuild(
-  Seq(
-    Global / onChangedBuildSource                            := ReloadOnSourceChanges,
-    scalafixDependencies += "edu.gemini"                      % "lucuma-schemas_3" % Settings.LibraryVersions.lucumaSchemas,
-    scalafixScalaBinaryVersion                               := "2.13",
-    ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
-  ) ++ lucumaPublishSettings
-)
-
-ThisBuild / scalaVersion       := "3.3.1"
-ThisBuild / crossScalaVersions := Seq("3.3.1")
-ThisBuild / scalacOptions ++= Seq(
-  "-language:implicitConversions"
+Global / onChangedBuildSource                   := ReloadOnSourceChanges
+ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
+ThisBuild / scalafixScalaBinaryVersion          := "2.13"
+ThisBuild / scalaVersion                        := "3.3.1"
+ThisBuild / crossScalaVersions                  := Seq("3.3.1")
+ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
+ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
+  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
 
 // Gemini repository
@@ -44,18 +32,11 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
-Global / resolvers ++= Resolver.sonatypeOssRepos("public")
-
 // This key is used to find the JRE dir. It could/should be overridden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres11"
 
 ThisBuild / evictionErrorLevel := Level.Info
-
-Global / cancelable := true
-
-// Should make CI builds more robust
-Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 // Uncomment for local gmp testing
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
@@ -77,10 +58,6 @@ lazy val esModule = Seq(
 //////////////
 // Projects
 //////////////
-
-ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
-  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-)
 
 lazy val root = tlCrossRootProject.aggregate(
   giapi,
