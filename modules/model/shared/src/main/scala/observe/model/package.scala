@@ -11,8 +11,8 @@ import squants.time.TimeUnit
 import java.util.UUID
 
 package model {
-  final case class QueueId(self: UUID)  extends AnyVal
-  final case class ClientId(self: UUID) extends AnyVal
+  case class QueueId(self: UUID)  extends AnyVal
+  case class ClientId(self: UUID) extends AnyVal
 }
 
 package object model {

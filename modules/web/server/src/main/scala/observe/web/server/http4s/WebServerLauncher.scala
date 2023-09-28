@@ -48,6 +48,7 @@ import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
 import cats.data.OptionT
 import fs2.compression.Compression
+import observe.model.events.client.ObserveClientEvent
 
 object WebServerLauncher extends IOApp with LogInitialization {
 
@@ -103,34 +104,46 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
       /** Resource that yields the running web server */
   private def webServer[F[_]: Logger: Async: Network: Compression](
-    conf: ObserveConfiguration,
-    oe:   ObserveEngine[F]
+    conf:      ObserveConfiguration,
+    clientsDb: ClientsSetDb[F],
+    oe:        ObserveEngine[F]
   ): Resource[F, Server] = {
 
-    def router(wsb: WebSocketBuilder2[F]) = Router[F](
+    def router(wsb: WebSocketBuilder2[F], events: Topic[F, ObserveClientEvent]) = Router[F](
       "/api/observe/guide" -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
-      "/api"               -> new ObserveCommandRoutes(oe).service
+      "/api"               -> new ObserveCommandRoutes(oe).service,
+      "/"                  -> new ObserveEventRoutes(clientsDb, events, wsb).service
     )
 
-    val builder = EmberServerBuilder
+    def builder(events: Topic[F, ObserveClientEvent]) = EmberServerBuilder
       .default[F]
       .withHost(conf.webServer.host)
       .withPort(conf.webServer.port)
       .withHttpWebSocketApp(wsb =>
-        Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb)).orNotFound
+        Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb, events)).orNotFound
       )
 
-    // Resource.
+    def builderWithTLS(events: Topic[F, ObserveClientEvent]) =
+      Resource
+        .eval(
+          conf.webServer.tls
+            .traverse(tlsContext)
+            .map(_.flatten)
+            .map(_.fold(builder(events))(builder(events).withTLS(_, TLSParameters.Default)))
+            .map(_.build)
+        )
+        .flatten
 
-    Resource
-      .eval(
-        conf.webServer.tls
-          .traverse(tlsContext)
-          .map(_.flatten)
-          .map(_.fold(builder)(builder.withTLS(_, TLSParameters.Default)))
-          .map(_.build)
-      )
-      .flatten
+    for {
+      wst    <- Resource.eval(Topic[F, ObserveClientEvent])
+      _      <- oe.eventStream
+                  .evalMapFilter(e => e.toClientEvent.traverse(wst.publish1))
+                  .compile
+                  .drain
+                  .background
+      server <- builderWithTLS(wst)
+    } yield server
+
   }
 
   private def redirectWebServer[F[_]: Logger: Async: Network](
@@ -201,7 +214,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
         _                <- redirectWebServer(conf.webServer)
-        _                <- webServer(conf, engine)
+        _                <- webServer(conf, cs, engine)
       } yield ExitCode.Success
 
     observe.use(_ => IO.never)
