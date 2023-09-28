@@ -4,6 +4,7 @@
 package observe.model.config
 
 import cats.Eq
+import cats.derived.*
 import lucuma.core.util.NewType
 import org.http4s.Uri
 
@@ -50,7 +51,7 @@ type GhostUriSettings = GhostUriSettings.Type
  * @param dhsTimeout
  *   Timeout for DHS operations
  */
-final case class ObserveEngineConfiguration(
+case class ObserveEngineConfiguration(
   odb:                     Uri,
   dhsServer:               Uri,
   systemControl:           SystemsControlConfiguration,
@@ -68,31 +69,4 @@ final case class ObserveEngineConfiguration(
   ioTimeout:               FiniteDuration,
   dhsTimeout:              FiniteDuration,
   dhsMaxSize:              Int
-)
-
-object ObserveEngineConfiguration {
-
-  given Eq[SystemsControlConfiguration] = Eq.instance { case (_, _) => true }
-  given Eq[ObserveEngineConfiguration]  =
-    Eq.by(x =>
-      (x.odb,
-       x.dhsServer,
-       // x.systemControl,
-       x.odbNotifications,
-       x.instForceError,
-       x.failAt,
-       x.odbQueuePollingInterval,
-       x.gpiUrl,
-       x.gpiGDS,
-       x.ghostUrl,
-       x.ghostGds,
-       x.tops,
-       x.epicsCaAddrList,
-       x.readRetries,
-       x.ioTimeout,
-       x.dhsTimeout,
-       x.dhsMaxSize
-      )
-    )
-
-}
+) derives Eq

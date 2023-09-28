@@ -26,11 +26,10 @@ object ControlStrategy {
   given Enumerated[ControlStrategy] =
     Enumerated.from(FullControl, ReadOnly, Simulated).withTag(_.tag)
 
-  implicit class ControlStrategyOps(v: ControlStrategy) {
-    val connect: Boolean      = v =!= ControlStrategy.Simulated
+  extension (v: ControlStrategy)
+    inline def connect: Boolean      = v =!= ControlStrategy.Simulated
     // If connected, then use real values for keywords
-    val realKeywords: Boolean = connect
-    val command: Boolean      = v === ControlStrategy.FullControl
-  }
+    inline def realKeywords: Boolean = connect
+    inline def command: Boolean      = v === ControlStrategy.FullControl
 
 }

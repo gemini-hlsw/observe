@@ -4,6 +4,7 @@
 package observe.model.config
 
 import cats.Eq
+import cats.derived.*
 import lucuma.core.enums.Site
 
 /**
@@ -21,16 +22,11 @@ import lucuma.core.enums.Site
  * @param authentication
  *   Configuration to support authentication
  */
-final case class ObserveConfiguration(
+case class ObserveConfiguration(
   site:           Site,
   mode:           Mode,
+  lucumaSSO:      LucumaSSOConfiguration,
   observeEngine:  ObserveEngineConfiguration,
   webServer:      WebServerConfiguration,
-  smartGcal:      SmartGcalConfiguration,
   authentication: AuthenticationConfig
-)
-
-object ObserveConfiguration {
-  given Eq[ObserveConfiguration] =
-    Eq.by(x => (x.site, x.mode, x.observeEngine, x.webServer, x.smartGcal, x.authentication))
-}
+) derives Eq

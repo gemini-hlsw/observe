@@ -10,7 +10,6 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val booPickle               = "1.4.0"
     val crystal                 = "0.34.1"
     val diode                   = "1.2.0-RC4"
     val javaTimeJS              = "2.5.0"
@@ -36,9 +35,7 @@ object Settings {
     val catsTime            = "0.5.1"
 
     val http4sVersion              = "0.23.23"
-    val http4sBlazeVersion         = "0.23.15"
     val http4sJdkHttpClientVersion = "0.9.1"
-    val http4sBoopickleVersion     = "0.23.11"
     val http4sScalaXmlVersion      = "0.23.13"
 
     val squants          = "1.8.3"
@@ -46,10 +43,10 @@ object Settings {
     val unboundId        = "3.2.1"
     val jwt              = "9.4.4"
     val slf4j            = "2.0.7"
-    val log4s            = "1.10.0"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
     val logback          = "1.4.11"
+    val janino           = "3.1.10"
     val pureConfig       = "0.17.4"
     val monocleVersion   = "3.2.0"
     val circeVersion     = "0.14.6"
@@ -87,8 +84,6 @@ object Settings {
     // Clue
     val clue = "0.32.0"
 
-    val sttp = "3.9.0"
-
     val atto = "0.9.5"
   }
 
@@ -124,11 +119,11 @@ object Settings {
     val CommonsHttp = "commons-httpclient" % "commons-httpclient" % LibraryVersions.commonsHttp
     val UnboundId   =
       "com.unboundid" % "unboundid-ldapsdk-minimal-edition" % LibraryVersions.unboundId
-    val JwtCore          = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
-    val JwtCirce         = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
-    val Slf4j            = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
-    val JuliSlf4j        = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
-    val NopSlf4j         = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
+    val JwtCore          = "com.github.jwt-scala" %% "jwt-core"         % LibraryVersions.jwt
+    val JwtCirce         = "com.github.jwt-scala" %% "jwt-circe"        % LibraryVersions.jwt
+    val Slf4j            = "org.slf4j"             % "slf4j-api"        % LibraryVersions.slf4j
+    val JuliSlf4j        = "org.slf4j"             % "jul-to-slf4j"     % LibraryVersions.slf4j
+    val NopSlf4j         = "org.slf4j"             % "slf4j-nop"        % LibraryVersions.slf4j
     val CatsTime         = Def.setting(
       "org.typelevel" %%% "cats-time-testkit" % LibraryVersions.catsTime % Test
     )
@@ -136,40 +131,39 @@ object Settings {
     val Log4CatsNoop     =
       Def.setting("org.typelevel" %%% "log4cats-noop" % LibraryVersions.log4cats % "test")
     val Logback          = Seq(
-      "ch.qos.logback" % "logback-core"    % LibraryVersions.logback,
-      "ch.qos.logback" % "logback-classic" % LibraryVersions.logback
+      "ch.qos.logback"      % "logback-core"    % LibraryVersions.logback,
+      "ch.qos.logback"      % "logback-classic" % LibraryVersions.logback,
+      "org.codehaus.janino" % "janino"          % LibraryVersions.janino
     )
-    val Log4s            = Def.setting("org.log4s" %%% "log4s" % LibraryVersions.log4s)
     val Log4CatsLogLevel = Def.setting(
       Seq(
         "org.typelevel" %%% "log4cats-core"     % LibraryVersions.log4cats,
         "com.rpiaggio"  %%% "log4cats-loglevel" % LibraryVersions.log4catsLogLevel
       )
     )
-    val Logging          = Def.setting(Seq(JuliSlf4j, Log4s.value) ++ Logback)
+    val Logging          = Def.setting(Seq(JuliSlf4j) ++ Logback)
     val PureConfig       = Seq(
       "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % LibraryVersions.pureConfig,
-      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig
+      "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig,
+      "com.github.pureconfig" %% "pureconfig-ip4s"        % LibraryVersions.pureConfig
     )
     val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
     val Http4s           = Seq("org.http4s" %% "http4s-dsl" % LibraryVersions.http4sVersion,
-                     "org.http4s" %% "http4s-blaze-server" % LibraryVersions.http4sBlazeVersion
+                     "org.http4s" %% "http4s-ember-server" % LibraryVersions.http4sVersion
     )
     val Http4sClient     = Seq(
       "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
       "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
     )
-    val Http4sBoopickle  =
-      "org.http4s" %% "http4s-boopickle" % LibraryVersions.http4sBoopickleVersion
-    val Http4sCore   = "org.http4s" %% "http4s-core"      % LibraryVersions.http4sVersion
-    val Http4sServer = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion
-    val Http4sCirce  = "org.http4s" %% "http4s-circe"     % LibraryVersions.http4sVersion
-    val Http4sXml    = "org.http4s" %% "http4s-scala-xml" % LibraryVersions.http4sScalaXmlVersion
-    val Monocle      = Def.setting(
+    val Http4sCore       = "org.http4s"           %% "http4s-core"      % LibraryVersions.http4sVersion
+    val Http4sServer     = "org.http4s"           %% "http4s-server"    % LibraryVersions.http4sVersion
+    val Http4sCirce      = "org.http4s"           %% "http4s-circe"     % LibraryVersions.http4sVersion
+    val Http4sXml        = "org.http4s"           %% "http4s-scala-xml" % LibraryVersions.http4sScalaXmlVersion
+    val Monocle          = Def.setting(
       Seq(
         "dev.optics" %%% "monocle-core"   % LibraryVersions.monocleVersion,
         "dev.optics" %%% "monocle-macro"  % LibraryVersions.monocleVersion,
@@ -177,7 +171,7 @@ object Settings {
         "dev.optics" %%% "monocle-law"    % LibraryVersions.monocleVersion
       )
     )
-    val Circe        = Def.setting(
+    val Circe            = Def.setting(
       Seq(
         "io.circe" %%% "circe-core"    % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-generic" % LibraryVersions.circeVersion,
@@ -187,7 +181,6 @@ object Settings {
     )
 
     // Client Side JS libraries
-    val BooPickle               = Def.setting("io.suzaku" %%% "boopickle" % LibraryVersions.booPickle)
     val Crystal                 = Def.setting("edu.gemini" %%% "crystal" % LibraryVersions.crystal)
     val LucumaReact             = Def.setting(
       Seq(
@@ -288,14 +281,6 @@ object Settings {
     val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
     val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
     val ClueJs        = Def.setting("edu.gemini" %%% "clue-scalajs" % LibraryVersions.clue)
-
-    val Sttp = Def.setting(
-      Seq(
-        "com.softwaremill.sttp.client3" %%% "core"  % LibraryVersions.sttp,
-        "com.softwaremill.sttp.client3" %%% "circe" % LibraryVersions.sttp,
-        "com.softwaremill.sttp.client3" %%% "cats"  % LibraryVersions.sttp
-      )
-    )
 
     val Atto = "org.tpolecat" %% "atto-core" % LibraryVersions.atto
   }

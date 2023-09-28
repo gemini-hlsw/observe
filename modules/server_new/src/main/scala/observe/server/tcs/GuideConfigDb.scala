@@ -4,6 +4,7 @@
 package observe.server.tcs
 
 import cats.{Applicative, Eq}
+import cats.derived.*
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
@@ -24,11 +25,11 @@ import observe.server.altair.AltairController.{*, given}
 import observe.server.gems.GemsController.*
 import squants.space.Millimeters
 
-final case class GuideConfig(
+case class GuideConfig(
   tcsGuide:      TelescopeGuideConfig,
   gaosGuide:     Option[Either[AltairConfig, GemsConfig]],
   gemsSkyPaused: Boolean
-)
+) derives Eq
 
 object GuideConfig {
   val tcsGuide: Lens[GuideConfig, TelescopeGuideConfig]                      = Focus[GuideConfig](_.tcsGuide)
@@ -40,7 +41,6 @@ object GuideConfig {
   val gemsGuide: Optional[GuideConfig, GemsConfig]                           =
     gaosGuide.andThen(option.some).andThen(either.stdRight)
 
-  given Eq[GuideConfig] = Eq.by(x => (x.tcsGuide, x.gaosGuide, x.gemsSkyPaused))
 }
 
 sealed trait GuideConfigDb[F[_]] {

@@ -16,10 +16,3 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 
 // Generate code for GraphQL queries
 addSbtPlugin("edu.gemini" % "sbt-clue" % "0.32.0")
-
-// Used to find dependencies
-addDependencyTreePlugin
-
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
-
-Global / onLoad := { s => "dependencyUpdates" :: s }
