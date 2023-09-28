@@ -17,7 +17,6 @@ import edu.gemini.aspen.gmp.commands.jms.clientbridge.CommandMessagesConsumer
 import edu.gemini.jms.activemq.provider.ActiveMQJmsProvider
 import giapi.client.commands.*
 import munit.CatsEffectSuite
-import org.scalatest.EitherValues
 
 import scala.concurrent.duration.*
 
@@ -74,7 +73,7 @@ object GmpCommands {
 /**
  * Tests of the giapi api
  */
-final class GiapiCommandSpec extends CatsEffectSuite with EitherValues {
+class GiapiCommandSpec extends CatsEffectSuite {
 
   def client(amqUrl: String, handleCommands: Boolean): Resource[IO, Giapi[IO]] =
     for {

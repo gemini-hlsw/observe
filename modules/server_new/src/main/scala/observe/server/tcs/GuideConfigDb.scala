@@ -3,12 +3,15 @@
 
 package observe.server.tcs
 
-import cats.Applicative
+import cats.{Applicative, Eq}
+import cats.derived.*
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.circe.{Decoder, DecodingFailure}
+import monocle.{Focus, Lens, Optional}
+import monocle.std.{either, option}
 import mouse.boolean.*
 import observe.model.M1GuideConfig.*
 import observe.model.M2GuideConfig.*
@@ -16,15 +19,29 @@ import observe.model.enums.ComaOption.*
 import observe.model.enums.MountGuideOption.*
 import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
 import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
-import observe.server.altair.AltairController.*
+import observe.model.TelescopeGuideConfig.given
+import observe.server.gems.GemsController.GemsConfig.given
+import observe.server.altair.AltairController.{*, given}
 import observe.server.gems.GemsController.*
 import squants.space.Millimeters
 
-final case class GuideConfig(
+case class GuideConfig(
   tcsGuide:      TelescopeGuideConfig,
   gaosGuide:     Option[Either[AltairConfig, GemsConfig]],
   gemsSkyPaused: Boolean
-)
+) derives Eq
+
+object GuideConfig {
+  val tcsGuide: Lens[GuideConfig, TelescopeGuideConfig]                      = Focus[GuideConfig](_.tcsGuide)
+  val gaosGuide: Lens[GuideConfig, Option[Either[AltairConfig, GemsConfig]]] =
+    Focus[GuideConfig](_.gaosGuide)
+  val gemsSkyPaused: Lens[GuideConfig, Boolean]                              = Focus[GuideConfig](_.gemsSkyPaused)
+  val altairGuide: Optional[GuideConfig, AltairConfig]                       =
+    gaosGuide.andThen(option.some).andThen(either.stdLeft)
+  val gemsGuide: Optional[GuideConfig, GemsConfig]                           =
+    gaosGuide.andThen(option.some).andThen(either.stdRight)
+
+}
 
 sealed trait GuideConfigDb[F[_]] {
   def value: F[GuideConfig]

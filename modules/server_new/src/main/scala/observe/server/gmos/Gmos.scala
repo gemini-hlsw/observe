@@ -8,7 +8,14 @@ import cats.*
 import cats.data.Kleisli
 import cats.syntax.all.*
 import eu.timepit.refined.api.Refined.*
-import lucuma.core.enums.{GmosAdc, GmosEOffsetting, GmosGratingOrder, GmosRoi}
+import lucuma.core.enums.{
+  GmosAdc,
+  GmosEOffsetting,
+  GmosGratingOrder,
+  GmosRoi,
+  MosPreImaging,
+  ObserveClass
+}
 import org.typelevel.log4cats.Logger
 import lucuma.core.math.Wavelength
 import lucuma.core.util.TimeSpan
@@ -26,6 +33,7 @@ import observe.server.keywords.KeywordsClient
 import cats.effect.{Ref, Temporal}
 import monocle.Getter
 import lucuma.core.model.sequence
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
 import observe.server.StepType.ExclusiveDarkOrBias
 import observe.server.gmos.GmosController.{Config, GmosSite}
@@ -36,7 +44,6 @@ import scala.jdk.DurationConverters.*
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   val controller: GmosController[F, T],
   nsCmdR:         Ref[F, Option[NSObserveCommand]],
-  obsType:        StepType,
   val config:     GmosController.GmosConfig[T]
 ) extends DhsInstrument[F]
     with InstrumentSystem[F] {
@@ -128,60 +135,6 @@ object Gmos {
   def rowsToShuffle(stage: NodAndShuffleStage, rows: NsRows): Int =
     if (stage === StageA) 0 else rows.value
 
-//  class GmosTranslator[F[_]: Applicative](
-//    site:      Site,
-//    systemss:  Systems[F],
-//    gmosNsCmd: Ref[F, Option[NSObserveCommand]]
-//  ) extends SeqTranslate[F] {
-//    override def sequence(
-//      sequence: Data.Observation
-//    )(using tio: Temporal[F]): F[Option[Either[List[Throwable], SequenceGen[F]]]] =
-//      sequence.execution.config match {
-//        case OdbConfig.GmosNorthExecutionConfig(_, staticN, acquisitionN, scienceN) =>
-//          buildSequence[F, GmosSite.North](staticN, acquisitionN, scienceN).some.pure[F]
-//        case OdbConfig.GmosSouthExecutionConfig(_, staticS, acquisitionS, scienceS) =>
-//          buildSequence[F, GmosSite.South](staticS, acquisitionS, scienceS).some.pure[F]
-//        case _                                                                      => none[Either[List[Throwable], SequenceGen[F]]].pure[F]
-//      }
-//
-//    override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-//      tio: Temporal[F]
-//    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
-//
-//    override def abortObserve(seqId: Observation.Id)(using
-//      tio: Temporal[F]
-//    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
-//
-//    override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-//      tio: Temporal[F]
-//    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
-//
-//    override def resumePaused(seqId: Observation.Id)(using
-//      tio: Temporal[F]
-//    ): EngineState[F] => Option[fs2.Stream[F, EventType[F]]] = ???
-//
-//    private def buildSequence[F[_], T <: GmosSite](
-//      sequence:    Data.Observation,
-//      inst:        Instrument,
-//      staticCfg:   SiteSpecifics.StaticConfig[T],
-//      acquisition: Option[ExecutionSequence[SiteSpecifics.DynamicConfig[T]]],
-//      science:     Option[ExecutionSequence[SiteSpecifics.DynamicConfig[T]]]
-//    ): Either[List[Throwable], SequenceGen[F]] = {
-//      val steps =
-//        (acquisition.nextAtom.toList ++ acquisition.possibleFuture ++ science.nextAtom.toList ++ science.possibleFuture)
-//          .flatMap(_.steps)
-//          .map(x => buildStep[F, T](staticCfg, x))
-//
-//      SequenceGen(sequence.id, sequence.id.toString(), sequence.title, inst, steps).asRight
-//    }
-//
-//    private def buildStep[F[_], T <: GmosSite](
-//      staticCfg: SiteSpecifics.StaticConfig[T],
-//      step:      SeqStep[InsConfig.Gmos[T]]
-//    ): StepGen[F] =
-//      Gmos()
-//  }
-
   trait ParamGetters[
     T <: GmosSite,
     S <: sequence.gmos.StaticConfig,
@@ -199,6 +152,7 @@ object Gmos {
     val nodAndShuffle: Getter[S, Option[GmosNodAndShuffle]]
     val roi: Getter[D, GmosRoi]
     val readout: Getter[D, GmosCcdMode]
+    val isMosPreimaging: Getter[S, MosPreImaging]
   }
 
   def calcDisperser[T <: GmosSite](
@@ -216,7 +170,7 @@ object Gmos {
         else
           wl.map(w => GmosController.Config.GmosGrating.OrderN[T](disp, o, w))
       }
-      .getOrElse(GmosController.Config.GmosGrating.Mirror)
+      .getOrElse(GmosController.Config.GmosGrating.Mirror())
 
   def fpuFromFPUnit[T <: GmosSite](
     n: Option[GmosController.GmosSite.FPU[T]],
@@ -244,15 +198,15 @@ object Gmos {
     _
   ]: Temporal: Logger, T <: GmosSite, S <: sequence.gmos.StaticConfig, D <: sequence.gmos.DynamicConfig](
     instrument: Instrument,
-    obsType:    StepType,
+    stepType:   StepType,
     staticCfg:  S,
     dynamicCfg: D
   )(using
     getters:    ParamGetters[T, S, D]
-  ): Either[ObserveFailure, (StepType, GmosController.GmosConfig[T])] = {
+  ): GmosController.GmosConfig[T] = {
 
-    def ccConfigFromSequenceConfig(t: StepType): Config.CCConfig[T] = {
-      val isDarkOrBias: Boolean = t match {
+    def ccConfigFromSequenceConfig: Config.CCConfig[T] = {
+      val isDarkOrBias: Boolean = stepType match {
         case StepType.DarkOrBias(_)          => true
         case StepType.DarkOrBiasNS(_)        => true
         case StepType.ExclusiveDarkOrBias(_) => true
@@ -280,11 +234,10 @@ object Gmos {
       RegionsOfInterest.fromOCS(getters.roi.get(dynamicCfg), List.empty)
 
     def dcConfigFromSequenceConfig(
-      t:        StepType,
       nsConfig: NSConfig
     ): DCConfig = DCConfig(
       exposureTime(getters.exposure.get(dynamicCfg), nsConfig),
-      shutterStateObserveType(t),
+      shutterStateObserveType(stepType),
       CCDReadout(
         getters.readout.get(dynamicCfg).ampReadMode,
         getters.readout.get(dynamicCfg).ampGain,
@@ -294,17 +247,6 @@ object Gmos {
       CCDBinning(getters.readout.get(dynamicCfg).xBin, getters.readout.get(dynamicCfg).yBin),
       extractROIs
     )
-
-    def calcStepType(instrument: Instrument): Either[ObserveFailure, StepType] =
-      if (getters.nodAndShuffle.get(staticCfg).isDefined) {
-        obsType match {
-          case StepType.ExclusiveDarkOrBias(_) => StepType.DarkOrBiasNS(instrument).asRight
-          case StepType.CelestialObject(_)     => StepType.NodAndShuffle(instrument).asRight
-          case st                              => ObserveFailure.Unexpected(s"N&S is not supported for steps of type $st").asLeft
-        }
-      } else {
-        obsType.asRight
-      }
 
     val nsConfig: NSConfig = getters.nodAndShuffle
       .get(staticCfg)
@@ -320,15 +262,42 @@ object Gmos {
       }
       .getOrElse(NSConfig.NoNodAndShuffle)
 
-    def conf(t: StepType): GmosController.GmosConfig[T] = GmosController.GmosConfig[T](
-      ccConfigFromSequenceConfig(t),
-      dcConfigFromSequenceConfig(t, nsConfig),
+    GmosController.GmosConfig[T](
+      ccConfigFromSequenceConfig,
+      dcConfigFromSequenceConfig(nsConfig),
       nsConfig
     )
 
-    calcStepType(instrument).map(t => (t, conf(t)))
   }
 
   final case class GmosStatusGen(ns: NSConfig) extends SequenceGen.StepStatusGen
+
+  def isNodAndShuffle[S <: StaticConfig](
+    staticConfig: S,
+    l:            Getter[S, Option[GmosNodAndShuffle]]
+  ): Boolean =
+    l.get(staticConfig).isDefined
+
+  def calcStepType[S <: StaticConfig](
+    instrument: Instrument,
+    stepCfg:    StepConfig,
+    staticCfg:  S,
+    obsClass:   ObserveClass,
+    l:          Getter[S, Option[GmosNodAndShuffle]]
+  ): Either[ObserveFailure, StepType] = {
+    val stdType = SeqTranslate.calcStepType(instrument, stepCfg, obsClass)
+    if (Gmos.isNodAndShuffle(staticCfg, l)) {
+      stdType.flatMap {
+        case StepType.DarkOrBias(_)      => StepType.DarkOrBiasNS(instrument).asRight
+        case StepType.CelestialObject(_) => StepType.NodAndShuffle(instrument).asRight
+        case st                          => ObserveFailure.Unexpected(s"N&S is not supported for steps of type $st").asLeft
+      }
+    } else {
+      stdType.map {
+        case StepType.DarkOrBias(inst) => StepType.ExclusiveDarkOrBias(instrument)
+        case x                         => x
+      }
+    }
+  }
 
 }

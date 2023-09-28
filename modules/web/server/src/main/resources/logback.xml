@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Configuration of logging for observe for test
+ and production. It will select the file location
+ based on the host name
+
+ File based logs are rotated daily up to 90 days
+
+ It supports auto reloading scanning every 60s
+-->
+<configuration scan="true" scanPeriod="60 seconds">
+  <logger name="org.http4s" level="INFO"/>
+
+  <if condition='property("HOSTNAME").contains("observe")'>
+    <!-- Configuration when running on the test or production servers -->
+    <then>
+        <!-- Files are rotated daily for up to 90 days -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/gemsoft/var/log/observe/observe.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>/gemsoft/var/log/observe/observe.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>90</maxHistory>
+                <totalSizeCap>3GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+              <pattern>%d [%thread] %-5level %logger{35} - %msg %n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- Intermediate async appender for improved performance -->
+        <appender name="ASYNC500" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>2000</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <appender-ref ref="FILE" />
+        </appender>
+
+        <root level="DEBUG">
+            <appender-ref ref="ASYNC500" />
+        </root>
+        <logger name="com.cosylab.epics" level="DEBUG">
+            <appender-ref ref="ASYNC500" />
+        </logger>
+        <logger name="gov.aps.jca" level="DEBUG">
+            <appender-ref ref="ASYNC500" />
+        </logger>
+        <logger name="org.apache.activemq" level="INFO">
+            <appender-ref ref="ASYNC500" />
+        </logger>
+        <logger name="io.netty" level="INFO">
+            <appender-ref ref="ASYNC500" />
+        </logger>
+        <logger name="org.asynchttpclient.netty" level="INFO">
+            <appender-ref ref="ASYNC500" />
+        </logger>
+
+    </then>
+    <else>
+        <!-- Configuration for development and local deployment -->
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d [%thread] %-5level %logger{35} - %msg %n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="org.apache.activemq" level="INFO">
+            <appender-ref ref="STDOUT" />
+        </logger>
+        <logger name="io.netty" level="INFO">
+            <appender-ref ref="STDOUT" />
+        </logger>
+        <logger name="org.asynchttpclient.netty" level="INFO">
+            <appender-ref ref="STDOUT" />
+        </logger>
+
+        <root level="DEBUG">
+            <appender-ref ref="STDOUT" />
+        </root>
+    </else>
+  </if>
+
+</configuration>

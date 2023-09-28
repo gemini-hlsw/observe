@@ -11,8 +11,8 @@ import observe.server.keywords.KeywordsClient
 
 import scala.concurrent.duration.*
 
-trait InstrumentSystem[F[_]] extends System[F] with InstrumentSpecifics {
-  override val resource: Instrument
+trait InstrumentSystem[F[_]] extends System[F] {
+  val resource: Instrument
 
   val contributorName: String
 

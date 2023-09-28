@@ -6,11 +6,8 @@ package observe.engine
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
-import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import observe.model.Observation
-import org.scalatest.Inside.inside
-import org.scalatest.NonImplicitAssertions
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.Logger
 
@@ -23,16 +20,15 @@ import observe.model.enums.Resource.TCS
 import observe.model.{ActionType, UserDetails}
 import observe.engine.TestUtil.TestState
 
-import scala.concurrent.duration.*
-import org.scalatest.flatspec.AnyFlatSpec
 import cats.effect.std.Semaphore
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.model.sequence.Atom
 import observe.common.test.{observationId, stepId}
+import cats.data.OptionT
 
-class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
+class packageSpec extends munit.CatsEffectSuite {
 
-  private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
+  private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
 
@@ -104,7 +100,7 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-  private val executionEngine = new Engine[IO, TestState, Unit](TestState)
+  private def executionEngine = Engine.build[IO, TestState, Unit](TestState)
   private val user            = UserDetails("telops", "Telops")
 
   def isFinished(status: SequenceState): Boolean = status match {
@@ -114,43 +110,44 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): Option[TestState] =
-    executionEngine
-      .process(PartialFunction.empty)(
-        Stream.eval(
-          IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId))
-        )
-      )(s0)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+  def runToCompletion(s0: TestState): IO[Option[TestState]] =
+    for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+      v   <- eng
+               .process(PartialFunction.empty)(s0)
+               .drop(1)
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .compile
+               .last
+    } yield v.map(_._2)
 
-  it should "be in Running status after starting" in {
-    val p  = Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
-    val qs = executionEngine
-      .process(PartialFunction.empty)(p)(qs1)
-      .take(1)
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
-    assert(qs.exists(s => Sequence.State.isRunning(s.sequences(seqId))))
+  test("it should be in Running status after starting") {
+    val qs =
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+        v   <- eng
+                 .process(PartialFunction.empty)(qs1)
+                 .take(1)
+                 .compile
+                 .last
+      } yield v.map(_._2)
+
+    qs.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
   }
 
-  it should "be 0 pending executions after execution" in {
+  test("there should be 0 pending executions after execution") {
     val qs = runToCompletion(qs1)
-    assert(qs.exists(_.sequences(seqId).pending.isEmpty))
+    qs.map(_.exists(_.sequences(seqId).pending.isEmpty)).assert
   }
 
-  it should "be 2 Steps done after execution" in {
+  test("there should be 2 Steps done after execution") {
     val qs = runToCompletion(qs1)
-    assert(qs.exists(_.sequences(seqId).done.length === 2))
+    qs.map(_.exists(_.sequences(seqId).done.length === 2)).assert
   }
 
-  private def actionPause: Option[TestState] = {
+  private def actionPause: IO[Option[TestState]] = {
     val s0: TestState = TestState(
       Map(
         seqId -> Sequence.State.init(
@@ -171,61 +168,70 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
         )
       )
     )
-    val p             = Stream.eval(IO.pure(Event.start[IO, TestState, Unit](seqId, user, clientId)))
 
     // take(3): Start, Executing, Paused
-    executionEngine
-      .process(PartialFunction.empty)(p)(s0)
-      .take(3)
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+    for {
+      eng <- executionEngine
+      _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+      v   <- eng
+               .process(PartialFunction.empty)(s0)
+               .take(3)
+               .compile
+               .last
+    } yield v.map(_._2)
+
   }
 
-  "sequence state" should "stay as running when action pauses itself" in {
-    assert(actionPause.exists(s => Sequence.State.isRunning(s.sequences(seqId))))
+  test("sequencestate should stay as running when action pauses itself") {
+    actionPause.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
   }
 
-  "engine" should "change action state to Paused if output is Paused" in {
+  test("engine should change action state to Paused if output is Paused") {
     val r = actionPause
-    assert(r.exists(_.sequences(seqId).current.execution.forall(Action.paused)))
+    r.map(_.exists(_.sequences(seqId).current.execution.forall(Action.paused))).assert
   }
 
-  "engine" should "run sequence to completion after resuming a paused action" in {
-    val p: Stream[IO, executionEngine.EventType] =
-      Stream.eval(
-        IO.pure(
-          Event.actionResume[IO, TestState, Unit](seqId, 0, Stream.eval(IO(Result.OK(DummyResult))))
+  test("run sequence to completion after resuming a paused action") {
+    val result =
+      for {
+        s   <- OptionT(actionPause)
+        eng <- OptionT.liftF(executionEngine)
+        _   <- OptionT.liftF(
+                 eng.offer(
+                   Event.actionResume[IO, TestState, Unit](seqId,
+                                                           0,
+                                                           Stream.eval(IO(Result.OK(DummyResult)))
+                   )
+                 )
+               )
+        r   <- OptionT.liftF(
+                 eng
+                   .process(PartialFunction.empty)(s)
+                   .drop(1)
+                   .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+                   .compile
+                   .last
+               )
+        m   <- OptionT.fromOption(r.map(_._2))
+      } yield m
+
+    result.value
+      .map(
+        _.forall(x =>
+          x.sequences(seqId).current.actions.isEmpty && (x
+            .sequences(seqId)
+            .status === SequenceState.Completed)
         )
       )
-
-    val result = actionPause.flatMap(
-      executionEngine
-        .process(PartialFunction.empty)(p)(_)
-        .drop(1)
-        .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-        .compile
-        .last
-        .unsafeRunTimed(5.seconds)
-    )
-    val qso    = result.flatMap(_.map(_._2))
-
-    assert(
-      qso.forall(x =>
-        x.sequences(seqId).current.actions.isEmpty && (x
-          .sequences(seqId)
-          .status === SequenceState.Completed)
-      )
-    )
+      .assert
 
   }
 
-  "engine" should "keep processing input messages regardless of how long ParallelActions take" in {
-    val result = (for {
-      q           <- Stream.eval(cats.effect.std.Queue.bounded[IO, executionEngine.EventType](1))
-      startedFlag <- Stream.eval(Semaphore.apply[IO](0))
-      finishFlag  <- Stream.eval(Semaphore.apply[IO](0))
+  test("engine should keep processing input messages regardless of how long ParallelActions take") {
+    val result = for {
+      startedFlag <- Semaphore.apply[IO](0)
+      finishFlag  <- Semaphore.apply[IO](0)
+      eng         <- executionEngine
       r           <- {
         val qs = TestState(
           Map(
@@ -251,31 +257,29 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
             )
           )
         )
-        Stream.eval(
-          List(
-            List[IO[Unit]](
-              q.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
-              startedFlag.acquire,
-              q.offer(Event.nullEvent),
-              q.offer(Event.getState[IO, TestState, Unit] { _ =>
-                Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
-              })
-            ).sequence,
-            executionEngine
-              .process(PartialFunction.empty)(Stream.fromQueueUnterminated(q))(qs)
-              .drop(1)
-              .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-              .compile
-              .drain
-          ).parSequence
-        )
+        List(
+          List[IO[Unit]](
+            eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
+            startedFlag.acquire,
+            eng.offer(Event.nullEvent),
+            eng.offer(Event.getState[IO, TestState, Unit] { _ =>
+              Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
+            })
+          ).sequence,
+          eng
+            .process(PartialFunction.empty)(qs)
+            .drop(1)
+            .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+            .compile
+            .drain
+        ).parSequence
       }
-    } yield r).compile.last.unsafeRunTimed(5.seconds).flatten
+    } yield r
 
-    assert(result.isDefined)
+    result.map(_.nonEmpty).assert
   }
 
-  "engine" should "not capture runtime exceptions." in {
+  test("engine should not capture runtime exceptions.") {
     def s0(e: Throwable): TestState = TestState(
       Map(
         (seqId,
@@ -303,12 +307,13 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    assertThrows[java.lang.RuntimeException](
-      runToCompletion(s0(new java.lang.RuntimeException))
-    )
+    runToCompletion(s0(new java.lang.RuntimeException)).attempt.map {
+      case Left(_: java.lang.RuntimeException) => true
+      case _                                   => false
+    }.assert
   }
 
-  it should "skip steps marked to be skipped at the beginning of the sequence." in {
+  test("engine should skip steps marked to be skipped at the beginning of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -328,15 +333,22 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
         )
       )
     )
-
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(stepSs === List(StepState.Skipped, StepState.Completed, StepState.Completed))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(
+                  _.done.map(_.status) === List(StepState.Skipped,
+                                                StepState.Completed,
+                                                StepState.Completed
+                  )
+                )
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip steps marked to be skipped in the middle of the sequence." in {
+  test("engine should skip steps marked to be skipped in the middle of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -357,14 +369,22 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(stepSs === List(StepState.Completed, StepState.Skipped, StepState.Completed))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(
+                  _.done.map(_.status) === List(StepState.Completed,
+                                                StepState.Skipped,
+                                                StepState.Completed
+                  )
+                )
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip several steps marked to be skipped." in {
+  test("engine should skip several steps marked to be skipped.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -391,21 +411,24 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(
-        stepSs === List(StepState.Completed,
-                        StepState.Skipped,
-                        StepState.Skipped,
-                        StepState.Skipped,
-                        StepState.Completed
-        )
-      )
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(
+                  _.done.map(_.status) === List(StepState.Completed,
+                                                StepState.Skipped,
+                                                StepState.Skipped,
+                                                StepState.Skipped,
+                                                StepState.Completed
+                  )
+                )
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip steps marked to be skipped at the end of the sequence." in {
+  test("engine should skip steps marked to be skipped at the end of the sequence.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -426,16 +449,22 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId))) { case Some(s @ Final(_, SequenceState.Completed)) =>
-      assert(
-        s.done.map(_.status) === List(StepState.Completed, StepState.Completed, StepState.Skipped)
-      )
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(
+                  _.done.map(_.status) === List(StepState.Completed,
+                                                StepState.Completed,
+                                                StepState.Skipped
+                  )
+                )
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip a step marked to be skipped even if it is the only one." in {
+  test("engine should skip a step marked to be skipped even if it is the only one.") {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -454,14 +483,19 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(stepSs === List(StepState.Skipped))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(_.done.map(_.status) === List(StepState.Skipped))
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip steps marked to be skipped at the beginning of the sequence, even if they have breakpoints." in {
+  test(
+    "engine should skip steps marked to be skipped at the beginning of the sequence, even if they have breakpoints."
+  ) {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -484,14 +518,24 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(stepSs === List(StepState.Skipped, StepState.Skipped, StepState.Completed))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <- OptionT.fromOption(
+              sf.sequences
+                .get(seqId)
+                .map(
+                  _.done.map(_.status) === List(StepState.Skipped,
+                                                StepState.Skipped,
+                                                StepState.Completed
+                  )
+                )
+            )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip the leading steps if marked to be skipped, even if they have breakpoints and are the last ones." in {
+  test(
+    "engine should skip the leading steps if marked to be skipped, even if they have breakpoints and are the last ones."
+  ) {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -516,14 +560,25 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId))) { case Some(s @ Final(_, SequenceState.Completed)) =>
-      assert(s.done.map(_.status) === List(StepState.Skipped, StepState.Skipped, StepState.Skipped))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <-
+        OptionT.fromOption(
+          sf.sequences
+            .get(seqId)
+            .collect { case s @ Final(_, SequenceState.Completed) =>
+              s
+            }
+            .map(
+              _.done.map(_.status) === List(StepState.Skipped, StepState.Skipped, StepState.Skipped)
+            )
+        )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "skip steps marked to be skipped in the middle of the sequence, but honoring breakpoints." in {
+  test(
+    "engine should skip steps marked to be skipped in the middle of the sequence, but honoring breakpoints."
+  ) {
     val s0: TestState = TestState(
       Map(
         (seqId,
@@ -547,14 +602,20 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val sf = runToCompletion(s0)
-
-    inside(sf.map(_.sequences(seqId).done.map(_.status))) { case Some(stepSs) =>
-      assert(stepSs === List(StepState.Completed, StepState.Skipped))
-    }
+    (for {
+      sf <- OptionT(runToCompletion(s0))
+      r  <-
+        OptionT.fromOption(
+          sf.sequences
+            .get(seqId)
+            .map(
+              _.done.map(_.status) === List(StepState.Completed, StepState.Skipped)
+            )
+        )
+    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
   }
 
-  it should "run single Action" in {
+  test("engine should run single Action") {
     val dummy         = new AtomicInteger(0)
     val markVal       = 1
     val sId           = stepId(1)
@@ -585,27 +646,34 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-    val c     = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
-    val event = Event.modifyState[IO, TestState, Unit](
-      executionEngine.startSingle(ActionCoords(seqId, c)).void
+    val c                                       = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
+    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
+      eng.startSingle(ActionCoords(seqId, c)).void
     )
-    val sfs   = executionEngine
-      .process(PartialFunction.empty)(Stream.eval(IO.pure(event)))(s0)
-      .map(_._2)
-      .take(2)
-      .compile
-      .toList
-      .unsafeRunSync()
+
+    val sfs =
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(event(eng))
+        v   <- eng
+                 .process(PartialFunction.empty)(s0)
+                 .map(_._2)
+                 .take(2)
+                 .compile
+                 .toList
+      } yield v
 
     /**
      * First state update must have the action started. Second state update must have the action
      * finished. The value in `dummy` must change. That is prove that the `Action` run.
      */
-    inside(sfs) { case a :: b :: _ =>
-      assert(TestState.sequenceStateIndex(seqId).getOption(a).exists(_.getSingleState(c).started))
-      assert(TestState.sequenceStateIndex(seqId).getOption(b).exists(_.getSingleState(c).completed))
-      assert(dummy.get === markVal)
-    }
+    sfs.map {
+      case a :: b :: _ =>
+        TestState.sequenceStateIndex(seqId).getOption(a).exists(_.getSingleState(c).started) &&
+        TestState.sequenceStateIndex(seqId).getOption(b).exists(_.getSingleState(c).completed) &&
+        dummy.get === markVal
+      case _           => false
+    }.assert
   }
 
   val qs2: TestState =
@@ -647,29 +715,32 @@ class packageSpec extends AnyFlatSpec with NonImplicitAssertions {
       )
     )
 
-  it should "be able to start sequence from arbitrary step" in {
-    val event = Event.modifyState[IO, TestState, Unit](
-      executionEngine
+  test("engine should be able to start sequence from arbitrary step") {
+    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
+      eng
         .startFrom(seqId, stepId(3))
         .void
     )
 
-    val sf = executionEngine
-      .process(PartialFunction.empty)(Stream.eval(IO.pure(event)))(qs2)
-      .drop(1)
-      .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-      .compile
-      .last
-      .unsafeRunSync()
-      .map(_._2)
+    val sf =
+      for {
+        eng <- executionEngine
+        _   <- eng.offer(event(eng))
+        r   <- eng
+                 .process(PartialFunction.empty)(qs2)
+                 .drop(1)
+                 .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+                 .compile
+                 .last
+      } yield r.map(_._2)
 
-    inside(sf.flatMap(_.sequences.get(seqId).map(_.toSequence))) { case Some(seq) =>
-      assertResult(Some(StepState.Completed))(seq.steps.get(0).map(_.status))
-      assertResult(Some(StepState.Skipped))(seq.steps.get(1).map(_.status))
-      assertResult(Some(StepState.Completed))(seq.steps.get(2).map(_.status))
-      assertResult(Some(StepState.Completed))(seq.steps.get(3).map(_.status))
-    }
-
+    sf.map(_.flatMap(_.sequences.get(seqId).map(_.toSequence).map { seq =>
+      Some(StepState.Completed) == seq.steps.get(0).map(_.status) &&
+      Some(StepState.Skipped) == seq.steps.get(1).map(_.status) &&
+      Some(StepState.Completed) == seq.steps.get(2).map(_.status) &&
+      Some(StepState.Completed) == seq.steps.get(3).map(_.status)
+    }).getOrElse(fail("Cannot read the sequence")))
+      .assert
   }
 
 }

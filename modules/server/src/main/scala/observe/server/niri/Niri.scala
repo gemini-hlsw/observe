@@ -89,7 +89,7 @@ final case class Niri[F[_]: Async: Logger](
   /**
    * Called to configure a system
    */
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

@@ -64,7 +64,7 @@ final case class Flamingos2[F[_]: Async: Logger](
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     EitherT
       .fromEither[F](fromSequenceConfig(config))
       .widenRethrowT

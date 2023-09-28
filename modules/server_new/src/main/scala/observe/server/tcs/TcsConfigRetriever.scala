@@ -174,7 +174,9 @@ object TcsConfigRetriever {
     private def getOffsetY: F[Length] = epicsSys.yoffsetPoA1.map(Millimeters(_))
 
     private def getWavelength: F[Wavelength] =
-      epicsSys.sourceAWavelength.map(v => Wavelength.fromIntAngstroms(v.toInt).get)
+      epicsSys.sourceAWavelength.map(v =>
+        Wavelength.fromIntAngstroms(v.toInt).getOrElse(Wavelength.Min)
+      )
 
     private def getGemsMap: F[Map[GemsSource, VirtualGemsTelescope]] = for {
       v1 <- epicsSys.g1MapName

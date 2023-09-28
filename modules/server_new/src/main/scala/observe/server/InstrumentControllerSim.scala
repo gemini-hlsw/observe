@@ -10,7 +10,8 @@ import cats.syntax.all.*
 import fs2.Stream
 import gov.aps.jca.TimeoutException
 import mouse.all.*
-import monocle.{Focus, Lens}
+import monocle.Lens
+import monocle.Focus
 import monocle.syntax.all.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult

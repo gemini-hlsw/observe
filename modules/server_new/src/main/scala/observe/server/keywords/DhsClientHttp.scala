@@ -9,7 +9,7 @@ import cats.effect.{Ref, Sync, Temporal}
 import cats.syntax.all.*
 import io.circe.syntax.*
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
-import observe.model.enums.DhsKeywordName
+import observe.model.enums.{DhsKeywordName, KeywordName}
 import observe.model.dhs.*
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
@@ -30,10 +30,11 @@ import scala.concurrent.duration.*
 /**
  * Implementation of DhsClient that interfaces with the real DHS over the http interface
  */
-class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F])
-    extends DhsClient[F]
+class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri, maxKeywords: Int, instrumentName: String)(
+  using timer: Temporal[F]
+) extends DhsClient[F]
     with Http4sClientDsl[F] {
-  import DhsClientHttp.*
+  import DhsClientHttp.given
 
   private val clientWithRetry = {
     val max             = 4
@@ -63,27 +64,64 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri)(using timer: Temporal[F
       .liftF
   }
 
+  private def keywordsPutReq(id: ImageFileId, keywords: List[InternalKeyword], finalFlag: Boolean) =
+    PUT(
+      Json.obj(
+        "setKeywords" :=
+          Json.obj(
+            "final"    := finalFlag,
+            "keywords" := keywords
+          )
+      ),
+      baseURI / id.value / "keywords"
+    )
+
   override def setKeywords(
     id:        ImageFileId,
     keywords:  KeywordBag,
     finalFlag: Boolean
   ): F[Unit] = {
-    val req = PUT(
-      Json.obj(
-        "setKeywords" :=
-          Json.obj(
-            "final"    := finalFlag,
-            "keywords" := keywords.keywords
+
+    val minKeywords: Int = 10
+
+    val limit = minKeywords.max(maxKeywords)
+
+    val pkgs = keywords.keywords.grouped(limit).toList
+
+    if (pkgs.isEmpty) {
+      clientWithRetry
+        .expect[Either[ObserveFailure, Unit]](
+          keywordsPutReq(
+            id,
+            List(internalKeywordConvert(StringKeyword(KeywordName.INSTRUMENT, instrumentName))),
+            finalFlag
           )
-      ),
-      baseURI / id.value / "keywords"
-    )
-    clientWithRetry
-      .expect[Either[ObserveFailure, Unit]](req)(jsonOf[F, Either[ObserveFailure, Unit]])
-      .attemptT
-      .leftMap(ObserveExceptionWhile("sending keywords to DHS", _))
-      .flatMap(EitherT.fromEither(_))
-      .liftF
+        )(jsonOf[F, Either[ObserveFailure, Unit]])
+        .attemptT
+        .leftMap(ObserveExceptionWhile("sending keywords to DHS", _))
+        .flatMap(EitherT.fromEither(_))
+        .liftF
+        .whenA(finalFlag)
+    } else
+      pkgs.zipWithIndex
+        .map { case (l, i) =>
+          clientWithRetry
+            .expect[Either[ObserveFailure, Unit]](
+              keywordsPutReq(
+                id,
+                l.prepended(
+                  internalKeywordConvert(StringKeyword(KeywordName.INSTRUMENT, instrumentName))
+                ),
+                (i === pkgs.length - 1) && finalFlag
+              )
+            )(jsonOf[F, Either[ObserveFailure, Unit]])
+            .attemptT
+            .leftMap(ObserveExceptionWhile("sending keywords to DHS", _))
+            .flatMap(EitherT.fromEither(_))
+            .liftF
+        }
+        .sequence
+        .void
   }
 
 }
@@ -95,9 +133,8 @@ object DhsClientHttp {
   object DhsError            extends ErrorType("DHS_ERROR")
   object InternalServerError extends ErrorType("INTERNAL_SERVER_ERROR")
 
-  implicit def errorTypeDecode: Decoder[ErrorType] = Decoder.instance[ErrorType](c =>
-    c
-      .as[String]
+  given Decoder[ErrorType] = Decoder.instance[ErrorType](
+    _.as[String]
       .map {
         case BadRequest.str          => BadRequest
         case DhsError.str            => DhsError
@@ -106,14 +143,14 @@ object DhsClientHttp {
       }
   )
 
-  implicit def errorDecode: Decoder[Error] = Decoder.instance[Error](c =>
+  given Decoder[Error] = Decoder.instance[Error](c =>
     for {
       t   <- c.downField("type").as[ErrorType]
       msg <- c.downField("message").as[String]
     } yield Error(t, msg)
   )
 
-  implicit def obsIdDecode: Decoder[Either[ObserveFailure, ImageFileId]] =
+  given obsIdDecode: Decoder[Either[ObserveFailure, ImageFileId]] =
     Decoder.instance[Either[ObserveFailure, ImageFileId]] { c =>
       val r = c.downField("response")
       val s = r.downField("status").as[String]
@@ -129,7 +166,7 @@ object DhsClientHttp {
       }
     }
 
-  implicit def unitDecode: Decoder[Either[ObserveFailure, Unit]] =
+  given unitDecode: Decoder[Either[ObserveFailure, Unit]] =
     Decoder.instance[Either[ObserveFailure, Unit]] { c =>
       val r = c.downField("response")
       val s = r.downField("status").as[String]
@@ -145,7 +182,7 @@ object DhsClientHttp {
       }
     }
 
-  implicit def imageParametersEncode: Encoder[DhsClient.ImageParameters] =
+  given imageParametersEncode: Encoder[DhsClient.ImageParameters] =
     Encoder.instance[DhsClient.ImageParameters](p =>
       Json.obj(
         "lifetime"     := p.lifetime.str,
@@ -153,7 +190,7 @@ object DhsClientHttp {
       )
     )
 
-  implicit def keywordEncode: Encoder[InternalKeyword] =
+  given keywordEncode: Encoder[InternalKeyword] =
     Encoder.instance[InternalKeyword](k =>
       Json.obj(
         "name"  := DhsKeywordName.all.find(_.keyword === k.name).map(_.name).getOrElse(k.name.name),
@@ -166,10 +203,10 @@ object DhsClientHttp {
     override def toString = s"(${t.str}) $msg"
   }
 
-  def apply[F[_]](client: Client[F], uri: Uri)(using
+  def apply[F[_]](client: Client[F], uri: Uri, maxKeywords: Int, instrumentName: String)(using
     timer: Temporal[F]
   ): DhsClient[F] =
-    new DhsClientHttp[F](client, uri)
+    new DhsClientHttp[F](client, uri, maxKeywords, instrumentName)
 }
 
 /**

@@ -18,7 +18,9 @@ import observe.server.ObserveActions.*
 import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.NSObserveCommand.*
 import observe.server.gmos.NSPartial.*
-import observe.server.tcs.TcsController.{InstrumentOffset, OffsetP, OffsetQ}
+import observe.server.tcs.TcsController.InstrumentOffset
+import observe.server.tcs.TcsController.OffsetP
+import observe.server.tcs.TcsController.OffsetQ
 import org.typelevel.log4cats.Logger
 import squants.space.AngleConversions.*
 

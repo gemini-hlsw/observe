@@ -9,14 +9,7 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 name := "observe"
 
-Global / onChangedBuildSource := ReloadOnSourceChanges
-
-Global / semanticdbEnabled := true
-
 ThisBuild / resolvers := List(Resolver.mavenLocal)
-
-ThisBuild / Compile / packageDoc / publishArtifact := false
-ThisBuild / Test / bspEnabled                      := false
 
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
 
@@ -24,36 +17,26 @@ ThisBuild / lucumaCssExts += "svg"
 
 ThisBuild / tlFatalWarnings := false // TODO: Remove this when we are ready to have linting checks
 
-inThisBuild(
-  Seq(
-    Global / onChangedBuildSource                            := ReloadOnSourceChanges,
-    scalafixDependencies += "edu.gemini"                      % "lucuma-schemas_3" % Settings.LibraryVersions.lucumaSchemas,
-    scalafixScalaBinaryVersion                               := "2.13",
-    ScalafixConfig / bspEnabled.withRank(KeyRanks.Invisible) := false
-  ) ++ lucumaPublishSettings
-)
-
-ThisBuild / scalaVersion       := "3.3.1"
-ThisBuild / crossScalaVersions := Seq("3.3.1")
+Global / onChangedBuildSource                   := ReloadOnSourceChanges
+ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
+ThisBuild / scalafixScalaBinaryVersion          := "2.13"
+ThisBuild / scalaVersion                        := "3.3.1"
+ThisBuild / crossScalaVersions                  := Seq("3.3.1")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
+ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
+  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+)
 
 // Gemini repository
 ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
-Global / resolvers ++= Resolver.sonatypeOssRepos("public")
-
 // This key is used to find the JRE dir. It could/should be overridden on a user basis
 // Add e.g. a `jres.sbt` file with your particular configuration
 ThisBuild / ocsJreDir := Path.userHome / ".jres11"
 
 ThisBuild / evictionErrorLevel := Level.Info
-
-Global / cancelable := true
-
-// Should make CI builds more robust
-Global / concurrentRestrictions += Tags.limit(ScalaJSTags.Link, 2)
 
 // Uncomment for local gmp testing
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
@@ -72,42 +55,12 @@ lazy val esModule = Seq(
   ))
 )
 
-// Custom commands to facilitate web development
-val startObserveAllCommands   = List(
-  "observe_web_server/reStart",
-  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
-  "~observe_web_client/fastOptJS"
-)
-val restartObserveWDSCommands = List(
-  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer",
-  "observe_web_client/Compile/fastOptJS/startWebpackDevServer",
-  "~observe_web_client/fastOptJS"
-)
-val stopObserveAllCommands    = List(
-  "observe_web_server/reStop",
-  "observe_web_client/Compile/fastOptJS/stopWebpackDevServer"
-)
-
-addCommandAlias("startObserveAll", startObserveAllCommands.mkString(";", ";", ""))
-addCommandAlias("restartObserveWDS", restartObserveWDSCommands.mkString(";", ";", ""))
-addCommandAlias("stopObserveAll", stopObserveAllCommands.mkString(";", ";", ""))
-
-ThisBuild / resolvers ++=
-  Resolver.sonatypeOssRepos("snapshots")
-
-ThisBuild / updateOptions := updateOptions.value.withLatestSnapshots(false)
-
 //////////////
 // Projects
 //////////////
 
-ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
-  "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-)
-
 lazy val root = tlCrossRootProject.aggregate(
   giapi,
-//  ocs2_api,
   observe_web_server,
   observe_web_client,
   observe_server,
@@ -120,11 +73,10 @@ lazy val stateengine = project
   .settings(
     name := "stateengine",
     libraryDependencies ++= Seq(
-      Cats.value,
       CatsEffect.value,
       Mouse.value,
       Fs2.value
-    ) ++ MUnit.value
+    ) ++ MUnit.value ++ Cats.value
   )
 
 lazy val giapi = project
@@ -132,8 +84,7 @@ lazy val giapi = project
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(Cats.value,
-                                Mouse.value,
+    libraryDependencies ++= Seq(Mouse.value,
                                 CatsEffect.value,
                                 Fs2.value,
                                 GiapiJmsUtil,
@@ -141,7 +92,7 @@ lazy val giapi = project
                                 GiapiStatusService,
                                 Giapi,
                                 GiapiCommandsClient
-    ) ++ Logging.value ++ Monocle.value,
+    ) ++ Logging.value ++ Monocle.value ++ MUnit.value ++ Cats.value,
     libraryDependencies ++= Seq(GmpStatusGateway  % "test",
                                 GmpStatusDatabase % "test",
                                 GmpCmdJmsBridge   % "test",
@@ -149,19 +100,6 @@ lazy val giapi = project
     ) ++ MUnit.value
   )
 
-//lazy val ocs2_api = crossProject(JVMPlatform, JSPlatform)
-//  .crossType(CrossType.Pure)
-//  .in(file("modules/ocs2_api"))
-//  .settings(commonSettings)
-//  .settings(
-//    name := "ocs2-api",
-//    libraryDependencies ++= Seq(CatsTime.value) ++
-//      LucumaCore.value
-//  )
-//  .jsSettings(coverageEnabled := false)
-//  .dependsOn(observe_model)
-
-// Project for the server side application
 lazy val observe_web_server = project
   .in(file("modules/web/server"))
   .enablePlugins(BuildInfoPlugin)
@@ -172,15 +110,12 @@ lazy val observe_web_server = project
                                 JwtCore,
                                 JwtCirce,
                                 Http4sServer,
-                                Http4sPrometheus,
                                 CommonsHttp,
                                 Log4CatsNoop.value
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
-    reStart / javaOptions += s"-javaagent:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/jmx_prometheus_javaagent-0.3.1.jar=6060:${(ThisBuild / baseDirectory).value}/app/observe-server/src/universal/bin/prometheus.yaml",
-    reStart / mainClass  := Some("observe.web.server.http4s.WebServerLauncher"),
-    Compile / bspEnabled := false
+    reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
   )
   .settings(
     buildInfoUsePackageAsPath := true,
@@ -198,11 +133,10 @@ lazy val new_model = crossProject(JVMPlatform, JSPlatform)
   .enablePlugins(GitBranchPrompt)
   .settings(
     libraryDependencies ++= Seq(
-      Cats.value,
       Kittens.value,
       CatsTime.value,
       LucumaSchemas.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
+    ) ++ MUnit.value ++ Cats.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -223,7 +157,6 @@ lazy val observe_web_client = project
     Test / test                             := {},
     coverageEnabled                         := false,
     libraryDependencies ++= Seq(
-      Cats.value,
       Kittens.value,
       CatsEffect.value,
       Clue.value,
@@ -231,7 +164,7 @@ lazy val observe_web_client = project
       Crystal.value,
       Fs2.value,
       LucumaUI.value
-    ) ++ ScalaJSReactIO.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
+    ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
     libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
       .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
@@ -256,19 +189,15 @@ lazy val observe_server = project
       Seq(
         Http4sCirce,
         Squants.value,
-        OpenCSV,
         Http4sXml,
-        Http4sBoopickle,
-        PrometheusClient,
         Log4Cats.value,
         Log4CatsNoop.value,
-        TestLibs.value,
         PPrint.value,
         Clue.value,
         ClueHttp4s,
         LucumaSchemas.value,
-        ACM,
-        Atto
+        Atto,
+        ACM
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
@@ -307,10 +236,8 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(
       Squants.value,
       Mouse.value,
-      BooPickle.value,
-      CatsTime.value,
-      Atto
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Sttp.value ++ Circe.value
+      CatsTime.value
+    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(
     commonSettings,
@@ -330,7 +257,6 @@ lazy val observe_engine = project
   .settings(
     libraryDependencies ++= Seq(Fs2.value,
                                 CatsEffect.value,
-                                Log4s.value,
                                 Log4Cats.value
     ) ++ Monocle.value ++ MUnit.value
   )
@@ -352,7 +278,6 @@ lazy val observeCommonSettings = Seq(
   // Specify a different name for the config file
   bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
   bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
-  bashScriptExtraDefines += """addJava "-javaagent:${app_home}/jmx_prometheus_javaagent-0.3.1.jar=6060:${app_home}/prometheus.yaml"""",
   // Copy logback.xml to let users customize it on site
   Universal / mappings += {
     val f = (observe_web_server / Compile / resourceDirectory).value / "logback.xml"
