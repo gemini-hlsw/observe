@@ -3,7 +3,7 @@
 
 package observe.server
 
-//import cats.Monad
+import cats.Monad
 import cats.effect.{Async, IO, Resource}
 import cats.syntax.all.*
 import edu.gemini.epics.acm.CaService
@@ -17,13 +17,13 @@ import org.http4s.jdkhttpclient.JdkWSClient
 import observe.model.config.*
 import observe.server.altair.*
 //import observe.server.flamingos2.*
-//import observe.server.gcal.*
-//import observe.server.gems.*
+import observe.server.gcal.*
+import observe.server.gems.*
 //import observe.server.ghost.*
-//import observe.server.gmos.*
+import observe.server.gmos.*
 //import observe.server.gnirs.*
 //import observe.server.gpi.*
-//import observe.server.gsaoi.*
+import observe.server.gsaoi.*
 //import observe.server.gws.DummyGwsKeywordsReader
 //import observe.server.gws.GwsEpics
 //import observe.server.gws.GwsKeywordReader
@@ -41,41 +41,43 @@ import io.circe.syntax.*
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
+import observe.server.OdbProxy.TestOdbProxy
 
-final case class Systems[F[_]](
-  odb:              OdbProxy[F],
-  dhs:              DhsClient[F], /*
+case class Systems[F[_]] private (
+  odb:                 OdbProxy[F],
+  dhs:                 DhsClientProvider[F],
   tcsSouth:            TcsSouthController[F],
   tcsNorth:            TcsNorthController[F],
   gcal:                GcalController[F],
-  flamingos2:          Flamingos2Controller[F],
+//  flamingos2:          Flamingos2Controller[F],
   gmosSouth:           GmosSouthController[F],
   gmosNorth:           GmosNorthController[F],
-  gnirs:               GnirsController[F],
+  /*  gnirs:               GnirsController[F],
   gsaoi:               GsaoiController[F],
   gpi:                 GpiController[F],
   ghost:               GhostController[F],
   niri:                NiriController[F],
-  nifs:                NifsController[F],
+  nifs:                NifsController[F], */
   altair:              AltairController[F],
   gems:                GemsController[F],
-  guideDb:             GuideConfigDb[F],*/
-  tcsKeywordReader: TcsKeywordsReader[F] /*,
+  guideDb:             GuideConfigDb[F],
+  tcsKeywordReader:    TcsKeywordsReader[F],
   gcalKeywordReader:   GcalKeywordReader[F],
   gmosKeywordReader:   GmosKeywordReader[F],
-  gnirsKeywordReader:  GnirsKeywordReader[F],
+  /*  gnirsKeywordReader:  GnirsKeywordReader[F],
   niriKeywordReader:   NiriKeywordReader[F],
   nifsKeywordReader:   NifsKeywordReader[F],
-  gsaoiKeywordReader:  GsaoiKeywordReader[F],
+  gsaoiKeywordReader:  GsaoiKeywordReader[F],*/
   altairKeywordReader: AltairKeywordReader[F],
-  gemsKeywordsReader:  GemsKeywordReader[F],
-  gwsKeywordReader:    GwsKeywordReader[F]*/
+  gemsKeywordsReader:  GemsKeywordReader[F]
+//  gwsKeywordReader:    GwsKeywordReader[F]
 )
 
 object Systems {
 
-  final case class Builder(
+  case class Builder(
     settings: ObserveEngineConfiguration,
+    sso:      LucumaSSOConfiguration,
     service:  CaService,
     tops:     Map[String, String]
   )(using L: Logger[IO], T: Temporal[IO]) {
@@ -93,7 +95,7 @@ object Systems {
     def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
       sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       _  <- sk.connect()
-      _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
+      _  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
     } yield {
       given FetchClient[F, ObservationDB] = sk
       OdbProxy[F](
@@ -103,26 +105,33 @@ object Systems {
       )
     }
 
-    def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClient[F]] =
+    def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)
-        DhsClientHttp[F](httpClient, settings.dhsServer).pure[F]
+        new DhsClientProvider[F] {
+          override def dhsClient(instrumentName: String): DhsClient[F] = new DhsClientHttp[F](
+            httpClient,
+            settings.dhsServer,
+            settings.dhsMaxSize,
+            instrumentName
+          )
+        }.pure[F]
       else
-        DhsClientSim.apply[F]
+        DhsClientSim.apply[F].map(x => (_: String) => x)
 
-    //    // TODO make instruments controllers generalized on F
-    //    def gcal: IO[(GcalController[IO], GcalKeywordReader[IO])] =
-    //      if (settings.systemControl.gcal.realKeywords)
-    //        GcalEpics
-    //          .instance[IO](service, tops)
-    //          .map(epicsSys =>
-    //            (
-    //              if (settings.systemControl.gcal.command) GcalControllerEpics(epicsSys)
-    //              else GcalControllerSim[IO],
-    //              GcalKeywordsReaderEpics(epicsSys)
-    //            )
-    //          )
-    //      else (GcalControllerSim[IO], DummyGcalKeywordsReader[IO]).pure[IO]
-    //
+    // TODO make instruments controllers generalized on F
+    def gcal: IO[(GcalController[IO], GcalKeywordReader[IO])] =
+      if (settings.systemControl.gcal.realKeywords)
+        GcalEpics
+          .instance[IO](service, tops)
+          .map(epicsSys =>
+            (
+              if (settings.systemControl.gcal.command) GcalControllerEpics(epicsSys)
+              else GcalControllerSim[IO],
+              GcalKeywordsReaderEpics(epicsSys)
+            )
+          )
+      else (GcalControllerSim[IO], DummyGcalKeywordsReader[IO]).pure[IO]
+
     def tcsSouth(
       tcsEpicsO: => Option[TcsEpics[IO]],
       site:      Site,
@@ -189,76 +198,77 @@ object Systems {
         altairKR
       )
 
-    //
-    //    def gems(
-    //      gsaoiController: GsaoiGuider[IO],
-    //      gsaoiEpicsO:     => Option[GsaoiEpics[IO]]
-    //    ): IO[(GemsController[IO], GemsKeywordReader[IO])] =
-    //      if (settings.systemControl.gems.realKeywords)
-    //        GemsEpics.instance[IO](service, tops).map { gemsEpics =>
-    //          gsaoiEpicsO
-    //            .map { gsaoiEpics =>
-    //              (
-    //                if (settings.systemControl.gems.command && settings.systemControl.tcs.command)
-    //                  GemsControllerEpics(gemsEpics, gsaoiController)
-    //                else
-    //                  GemsControllerSim[IO],
-    //                GemsKeywordReaderEpics[IO](gemsEpics, gsaoiEpics)
-    //              )
-    //            }
-    //            .getOrElse(
-    //              (GemsControllerEpics(gemsEpics, gsaoiController), GemsKeywordReaderDummy[IO])
-    //            )
-    //        }
-    //      else (GemsControllerSim[IO], GemsKeywordReaderDummy[IO]).pure[IO]
-    //
-    //    def gsaoi(
-    //      gsaoiEpicsO: => Option[GsaoiEpics[IO]]
-    //    ): IO[(GsaoiFullHandler[IO], GsaoiKeywordReader[IO])] =
-    //      gsaoiEpicsO
-    //        .map { gsaoiEpics =>
-    //          (
-    //            if (settings.systemControl.gsaoi.command) GsaoiControllerEpics(gsaoiEpics).pure[IO]
-    //            else GsaoiControllerSim[IO]
-    //          ).map((_, GsaoiKeywordReaderEpics(gsaoiEpics)))
-    //        }
-    //        .getOrElse(GsaoiControllerSim[IO].map((_, GsaoiKeywordReaderDummy[IO])))
-    //
-    //    def gemsObjects: IO[
-    //      (GemsController[IO], GemsKeywordReader[IO], GsaoiController[IO], GsaoiKeywordReader[IO])
-    //    ] =
-    //      for {
-    //        gsaoiEpicsO         <- settings.systemControl.gsaoi.realKeywords
-    //                                 .option(GsaoiEpics.instance[IO](service, tops))
-    //                                 .sequence
-    //        (gsaoiCtr, gsaoiKR) <- gsaoi(gsaoiEpicsO)
-    //        (gemsCtr, gemsKR)   <- gems(gsaoiCtr, gsaoiEpicsO)
-    //      } yield (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)
-    //
-    //    /*
-    //     * Type parameters are
-    //     * E: Instrument EPICS class
-    //     * C: Instrument controller class
-    //     * K: Instrument keyword reader class
-    //     */
-    //    def instObjects[F[_]: Monad, E, C, K](
-    //      ctrl:                 ControlStrategy,
-    //      epicsBuilder:         (CaService, Map[String, String]) => F[E],
-    //      realCtrlBuilder:      (=> E) => C,
-    //      simCtrlBuilder:       => F[C],
-    //      realKeyReaderBuilder: E => K,
-    //      simKeyReaderBuilder:  => K
-    //    ): F[(C, K)] =
-    //      if (ctrl.realKeywords)
-    //        epicsBuilder(service, tops).flatMap(epicsSys =>
-    //          (
-    //            if (ctrl.command) realCtrlBuilder(epicsSys).pure[F]
-    //            else simCtrlBuilder
-    //          ).map((_, realKeyReaderBuilder(epicsSys)))
-    //        )
-    //      else
-    //        simCtrlBuilder.map((_, simKeyReaderBuilder))
-    //
+    def gems(
+      gsaoiController: GsaoiGuider[IO],
+      gsaoiEpicsO:     => Option[GsaoiEpics[IO]]
+    ): IO[(GemsController[IO], GemsKeywordReader[IO])] =
+      if (settings.systemControl.gems.realKeywords)
+        GemsEpics.instance[IO](service, tops).map { gemsEpics =>
+          gsaoiEpicsO
+            .map { gsaoiEpics =>
+              (
+                if (settings.systemControl.gems.command && settings.systemControl.tcs.command)
+                  GemsControllerEpics(gemsEpics, gsaoiController)
+                else
+                  GemsControllerSim[IO],
+                GemsKeywordReaderEpics[IO](gemsEpics, gsaoiEpics)
+              )
+            }
+            .getOrElse(
+              (GemsControllerEpics(gemsEpics, gsaoiController), GemsKeywordReaderDummy[IO])
+            )
+        }
+      else (GemsControllerSim[IO], GemsKeywordReaderDummy[IO]).pure[IO]
+
+    def gsaoi(
+      gsaoiEpicsO: => Option[GsaoiEpics[IO]]
+    ): IO[(GsaoiFullHandler[IO], GsaoiKeywordReader[IO])] =
+      gsaoiEpicsO
+        .map { gsaoiEpics =>
+          /*if (settings.systemControl.gsaoi.command) GsaoiControllerEpics(gsaoiEpics).pure[IO]
+            else*/
+          GsaoiControllerSim[IO]
+            .map((_, GsaoiKeywordReaderEpics(gsaoiEpics)))
+        }
+        .getOrElse(GsaoiControllerSim[IO].map((_, GsaoiKeywordReaderDummy[IO])))
+
+    def gemsObjects: IO[
+      (GemsController[IO], GemsKeywordReader[IO], GsaoiController[IO], GsaoiKeywordReader[IO])
+    ] =
+      for {
+        gsaoiEpicsO        <- settings.systemControl.gsaoi.realKeywords
+                                .option(GsaoiEpics.instance[IO](service, tops))
+                                .sequence
+        a                  <- gsaoi(gsaoiEpicsO)
+        (gsaoiCtr, gsaoiKR) = a
+        b                  <- gems(gsaoiCtr, gsaoiEpicsO)
+        (gemsCtr, gemsKR)   = b
+      } yield (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)
+
+    /*
+     * Type parameters are
+     * E: Instrument EPICS class
+     * C: Instrument controller class
+     * K: Instrument keyword reader class
+     */
+    def instObjects[F[_]: Monad, E, C, K](
+      ctrl:                 ControlStrategy,
+      epicsBuilder:         (CaService, Map[String, String]) => F[E],
+      realCtrlBuilder:      (=> E) => C,
+      simCtrlBuilder:       => F[C],
+      realKeyReaderBuilder: E => K,
+      simKeyReaderBuilder:  => K
+    ): F[(C, K)] =
+      if (ctrl.realKeywords)
+        epicsBuilder(service, tops).flatMap(epicsSys =>
+          (
+            if (ctrl.command) realCtrlBuilder(epicsSys).pure[F]
+            else simCtrlBuilder
+          ).map((_, realKeyReaderBuilder(epicsSys)))
+        )
+      else
+        simCtrlBuilder.map((_, simKeyReaderBuilder))
+
     //    def gnirs: IO[(GnirsController[IO], GnirsKeywordReader[IO])] =
     //      instObjects(
     //        settings.systemControl.gnirs,
@@ -288,31 +298,31 @@ object Systems {
     //        NifsKeywordReaderEpics[IO],
     //        NifsKeywordReaderDummy[IO]
     //      )
-    //
-    //    def gmosSouth(gmosEpicsO: Option[GmosEpics[IO]], site: Site): IO[GmosSouthController[IO]] =
-    //      gmosEpicsO
-    //        .filter(_ => settings.systemControl.gmos.command && site === Site.GS)
-    //        .map(GmosSouthControllerEpics.apply[IO](_).pure[IO])
-    //        .getOrElse(GmosControllerSim.south[IO])
-    //
-    //    def gmosNorth(gmosEpicsO: Option[GmosEpics[IO]], site: Site): IO[GmosNorthController[IO]] =
-    //      gmosEpicsO
-    //        .filter(_ => settings.systemControl.gmos.command && site === Site.GN)
-    //        .map(GmosNorthControllerEpics.apply[IO](_).pure[IO])
-    //        .getOrElse(GmosControllerSim.north[IO])
-    //
-    //    def gmosObjects(
-    //      site: Site
-    //    ): IO[(GmosSouthController[IO], GmosNorthController[IO], GmosKeywordReader[IO])] =
-    //      for {
-    //        gmosEpicsO   <- settings.systemControl.gmos.realKeywords
-    //                          .option(GmosEpics.instance[IO](service, tops))
-    //                          .sequence
-    //        gmosSouthCtr <- gmosSouth(gmosEpicsO, site)
-    //        gmosNorthCtr <- gmosNorth(gmosEpicsO, site)
-    //        gmosKR        = gmosEpicsO.map(GmosKeywordReaderEpics[IO]).getOrElse(GmosKeywordReaderDummy[IO])
-    //      } yield (gmosSouthCtr, gmosNorthCtr, gmosKR)
-    //
+
+    def gmosSouth(gmosEpicsO: Option[GmosEpics[IO]], site: Site): IO[GmosSouthController[IO]] =
+      gmosEpicsO
+        .filter(_ => settings.systemControl.gmos.command && site === Site.GS)
+        .map(GmosSouthControllerEpics.apply[IO](_).pure[IO])
+        .getOrElse(GmosControllerSim.south[IO])
+
+    def gmosNorth(gmosEpicsO: Option[GmosEpics[IO]], site: Site): IO[GmosNorthController[IO]] =
+      gmosEpicsO
+        .filter(_ => settings.systemControl.gmos.command && site === Site.GN)
+        .map(GmosNorthControllerEpics.apply[IO](_).pure[IO])
+        .getOrElse(GmosControllerSim.north[IO])
+
+    def gmosObjects(
+      site: Site
+    ): IO[(GmosSouthController[IO], GmosNorthController[IO], GmosKeywordReader[IO])] =
+      for {
+        gmosEpicsO   <- settings.systemControl.gmos.realKeywords
+                          .option(GmosEpics.instance[IO](service, tops))
+                          .sequence
+        gmosSouthCtr <- gmosSouth(gmosEpicsO, site)
+        gmosNorthCtr <- gmosNorth(gmosEpicsO, site)
+        gmosKR        = gmosEpicsO.map(GmosKeywordReaderEpics[IO]).getOrElse(GmosKeywordReaderDummy[IO])
+      } yield (gmosSouthCtr, gmosNorthCtr, gmosKR)
+
     //    def flamingos2: IO[Flamingos2Controller[IO]] =
     //      if (settings.systemControl.f2.command)
     //        Flamingos2Epics.instance[IO](service, tops).map(Flamingos2ControllerEpics(_))
@@ -370,45 +380,48 @@ object Systems {
           Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
         dhsClient                                 <- Resource.eval(dhs[IO](httpClient))
         gcdb                                      <- Resource.eval(GuideConfigDb.newDb[IO])
-        //        (gcalCtr, gcalKR)                          <- Resource.eval(gcal)
+        gcals                                     <- Resource.eval(gcal)
+        (gcalCtr, gcalKR)                          = gcals
         v                                         <- Resource.eval(tcsObjects(gcdb, site))
         (tcsGN, tcsGS, tcsKR, altairCtr, altairKR) = v
-        //        (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)       <- Resource.eval(gemsObjects)
+        w                                         <- Resource.eval(gemsObjects)
+        (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)       = w
         //        (gnirsCtr, gnirsKR)                        <- Resource.eval(gnirs)
         //        f2Controller                               <- Resource.eval(flamingos2)
         //        (niriCtr, niriKR)                          <- Resource.eval(niri)
         //        (nifsCtr, nifsKR)                          <- Resource.eval(nifs)
-        //        (gmosSouthCtr, gmosNorthCtr, gmosKR)       <- Resource.eval(gmosObjects(site))
+        gms                                       <- Resource.eval(gmosObjects(site))
+        (gmosSouthCtr, gmosNorthCtr, gmosKR)       = gms
         //        gpiController                              <- gpi[IO](httpClient)
         //        ghostController                            <- ghost[IO](httpClient)
         //        gwsKR                                      <- Resource.eval(gws)
       } yield Systems[IO](
         odbProxy,
         dhsClient,
-        //        tcsGS,
-        //        tcsGN,
-        //        gcalCtr,
+        tcsGS,
+        tcsGN,
+        gcalCtr,
         //        f2Controller,
-        //        gmosSouthCtr,
-        //        gmosNorthCtr,
+        gmosSouthCtr,
+        gmosNorthCtr,
         //        gnirsCtr,
         //        gsaoiCtr,
         //        gpiController,
         //        ghostController,
         //        niriCtr,
         //        nifsCtr,
-        //        altairCtr,
-        //        gemsCtr,
-        //        gcdb,
-        tcsKR
-        //        gcalKR,
-        //        gmosKR,
+        altairCtr,
+        gemsCtr,
+        gcdb,
+        tcsKR,
+        gcalKR,
+        gmosKR,
         //        gnirsKR,
         //        niriKR,
         //        nifsKR,
         //        gsaoiKR,
-        //        altairKR,
-        //        gemsKR,
+        altairKR,
+        gemsKR
         //        gwsKR
       )
   }
@@ -425,7 +438,31 @@ object Systems {
     site:       Site,
     httpClient: Client[IO],
     settings:   ObserveEngineConfiguration,
+    sso:        LucumaSSOConfiguration,
     service:    CaService
   )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
-    Builder(settings, service, decodeTops(settings.tops)).build(site, httpClient)
+    Builder(settings, sso, service, decodeTops(settings.tops)).build(site, httpClient)
+
+  def dummy[F[_]: Async: Logger]: F[Systems[F]] =
+    GuideConfigDb
+      .newDb[F]
+      .map(guideDb =>
+        new Systems(
+          new TestOdbProxy[F],
+          DhsClientProvider.dummy[F],
+          TcsSouthControllerSim[F],
+          TcsNorthControllerSim[F],
+          GcalControllerSim[F],
+          GmosControllerDisabled[F, GmosController.GmosSite.South.type]("south"),
+          GmosControllerDisabled[F, GmosController.GmosSite.North.type]("north"),
+          AltairControllerSim[F],
+          GemsControllerSim[F],
+          guideDb,
+          DummyTcsKeywordsReader[F],
+          DummyGcalKeywordsReader[F],
+          GmosKeywordReaderDummy[F],
+          AltairKeywordReaderDummy[F],
+          GemsKeywordReaderDummy[F]
+        )
+      )
 }

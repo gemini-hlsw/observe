@@ -3,32 +3,25 @@
 
 package observe.server.gsaoi
 
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.syntax.all.*
 import edu.gemini.epics.acm.CarStateGeneric
 import edu.gemini.observe.server.gsaoi.DhsConnected
-import edu.gemini.spModel.gemini.gsaoi.Gsaoi.Filter
-import edu.gemini.spModel.gemini.gsaoi.Gsaoi.ReadMode
-import edu.gemini.spModel.gemini.gsaoi.Gsaoi.Roi
-import edu.gemini.spModel.gemini.gsaoi.Gsaoi.UtilityWheel
-import org.typelevel.log4cats.Logger
+import edu.gemini.spModel.gemini.gsaoi.Gsaoi.{Filter, ReadMode, Roi, UtilityWheel}
 import mouse.boolean.*
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.EpicsCodex.*
-import observe.server.EpicsUtil
 import observe.server.EpicsUtil.applyParam
-import observe.server.Progress
-import observe.server.ObserveFailure
-import observe.server.failUnlessM
-import observe.server.gsaoi.GsaoiController.DCConfig
-import observe.server.gsaoi.GsaoiController.GsaoiConfig
+import observe.server.{EpicsUtil, ObserveFailure, Progress, failUnlessM}
+import observe.server.gsaoi.GsaoiController.{DCConfig, GsaoiConfig}
+import org.typelevel.log4cats.Logger
 import squants.Time
 import squants.time.TimeConversions.*
+
+import java.util.concurrent.TimeUnit.{MILLISECONDS, SECONDS}
+import scala.concurrent.duration.FiniteDuration
 
 object GsaoiControllerEpics {
 
@@ -243,7 +236,7 @@ object GsaoiControllerEpics {
         override def isGuideActive: Boolean = guide
 
         override def isOdgwGuiding(odgwId: GsaoiGuider.OdgwId): Boolean = {
-          import GsaoiGuider.OdgwId._
+          import GsaoiGuider.OdgwId.*
           odgwId match {
             case Odgw1 => guide && m1 > 0
             case Odgw2 => guide && m2 > 0

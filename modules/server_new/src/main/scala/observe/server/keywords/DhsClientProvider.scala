@@ -3,6 +3,16 @@
 
 package observe.server.keywords
 
+import cats.FlatMap
+import cats.effect.kernel.Clock
+import org.typelevel.log4cats.Logger
+
 trait DhsClientProvider[F[_]] {
   def dhsClient(instrumentName: String): DhsClient[F]
+}
+
+object DhsClientProvider {
+  def dummy[F[_]: FlatMap: Clock: Logger]: DhsClientProvider[F] = new DhsClientProvider[F] {
+    override def dhsClient(instrumentName: String): DhsClient[F] = new DhsClientDisabled[F]
+  }
 }

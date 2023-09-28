@@ -276,6 +276,7 @@ object ObsQueriesGQL {
 
     object Data {
       object Observation {
+        type Target = model.Target
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
         object Execution {

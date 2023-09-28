@@ -3,10 +3,12 @@
 
 package observe.server.gmos
 
+import cats.MonadThrow
 import cats.effect.{Ref, Temporal}
 import cats.syntax.all.*
-import lucuma.core.enums.{GmosRoi, LightSinkName}
+import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging, ObserveClass}
 import lucuma.core.math.Wavelength
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
 import lucuma.core.util.TimeSpan
 import monocle.Getter
@@ -16,7 +18,7 @@ import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosController.GmosSite.{FPU, Filter, Grating, StageMode}
 import observe.server.keywords.{DhsClient, DhsClientProvider}
 import observe.server.tcs.FOCAL_PLANE_SCALE
-import observe.server.{ObserveFailure, StepType}
+import observe.server.{InstrumentSpecifics, ObserveFailure, StepType}
 import org.typelevel.log4cats.Logger
 import squants.Length
 import squants.space.Arcseconds
@@ -25,31 +27,23 @@ final case class GmosSouth[F[_]: Temporal: Logger](
   c:                 GmosSouthController[F],
   dhsClientProvider: DhsClientProvider[F],
   nsCmdR:            Ref[F, Option[NSObserveCommand]],
-  obsType:           StepType,
   cfg:               GmosController.GmosConfig[GmosSite.South.type]
 ) extends Gmos[F, GmosSite.South.type](
       c,
       nsCmdR,
-      obsType,
       cfg
     ) {
   override val resource: Instrument      = Instrument.GmosS
   override val dhsInstrumentName: String = "GMOS-S"
   override val dhsClient: DhsClient[F]   = dhsClientProvider.dhsClient(dhsInstrumentName)
 
-  override val instrument: Instrument = Instrument.GmosS
-
-  override def sfName: LightSinkName = LightSinkName.Gmos
-
-  // TODO Use different value if using electronic offsets
-  override val oiOffsetGuideThreshold: Option[Length] =
-    (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
 }
 
 object GmosSouth {
 
-  given Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth] =
-    new Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
+  given gsParamGetters
+    : Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth] =
+    new Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth] {
       override val exposure: Getter[DynamicConfig.GmosSouth, TimeSpan]                            =
         DynamicConfig.GmosSouth.exposure.asGetter
       override val filter: Getter[DynamicConfig.GmosSouth, Option[Filter[GmosSite.South.type]]]   =
@@ -74,23 +68,62 @@ object GmosSouth {
         DynamicConfig.GmosSouth.roi.asGetter
       override val readout: Getter[DynamicConfig.GmosSouth, GmosCcdMode]                          =
         DynamicConfig.GmosSouth.readout.asGetter
+      override val isMosPreimaging: Getter[StaticConfig.GmosSouth, MosPreImaging]                 =
+        StaticConfig.GmosSouth.mosPreImaging.asGetter
+    }
 
   def build[F[_]: Temporal: Logger](
     controller:        GmosController[F, GmosSite.South.type],
     dhsClientProvider: DhsClientProvider[F],
     nsCmdR:            Ref[F, Option[NSObserveCommand]],
-    obsType:           StepType,
+    stepType:          StepType,
     staticCfg:         StaticConfig.GmosSouth,
     dynamicCfg:        DynamicConfig.GmosSouth
-  ): Either[ObserveFailure, GmosSouth[F]] =
-    Gmos
-      .buildConfig[F, GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
-        Instrument.GmosS,
-        obsType,
-        staticCfg,
-        dynamicCfg
+  ): GmosSouth[F] = GmosSouth(
+    controller,
+    dhsClientProvider,
+    nsCmdR,
+    Gmos.buildConfig[F, GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
+      Instrument.GmosS,
+      stepType,
+      staticCfg,
+      dynamicCfg
+    )
+  )
+
+  def obsKeywordsReader[F[_]: MonadThrow](
+    staticConfig:  StaticConfig.GmosSouth,
+    dynamicConfig: DynamicConfig.GmosSouth
+  )(using
+    getters:       Gmos.ParamGetters[GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth]
+  ): GmosObsKeywordsReader[F,
+                           GmosSite.South.type,
+                           StaticConfig.GmosSouth,
+                           DynamicConfig.GmosSouth
+  ] =
+    GmosObsKeywordsReader(staticConfig, dynamicConfig)
+
+  object specifics extends InstrumentSpecifics[StaticConfig.GmosSouth, DynamicConfig.GmosSouth] {
+    override val instrument: Instrument = Instrument.GmosS
+
+    override def calcStepType(
+      stepConfig:   StepConfig,
+      staticConfig: StaticConfig.GmosSouth,
+      instConfig:   DynamicConfig.GmosSouth,
+      obsClass:     ObserveClass
+    ): Either[ObserveFailure, StepType] =
+      Gmos.calcStepType(instrument,
+                        stepConfig,
+                        staticConfig,
+                        obsClass,
+                        gsParamGetters.nodAndShuffle
       )
-      .map { case (t, config) =>
-        GmosSouth(controller, dhsClientProvider, nsCmdR, t, config)
-      }
+
+    override def sfName(config: DynamicConfig.GmosSouth): LightSinkName = LightSinkName.Gmos
+
+    // TODO Use different value if using electronic offsets
+    override val oiOffsetGuideThreshold: Option[Length] =
+      (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
+  }
+
 }

@@ -7,8 +7,10 @@ import lucuma.core.math.Wavelength
 import observe.model.TelescopeGuideConfig
 import observe.server.tcs.TcsController.*
 import squants.Angle
+import monocle.Lens
+import monocle.Focus
 
-final case class InstrumentPorts(
+case class InstrumentPorts(
   flamingos2Port: Int,
   ghostPort:      Int,
   gmosPort:       Int,
@@ -19,7 +21,7 @@ final case class InstrumentPorts(
   niriPort:       Int
 )
 
-final case class BaseEpicsTcsConfig(
+case class BaseEpicsTcsConfig(
   iaa:                  Angle,
   offset:               FocalPlaneOffset,
   wavelA:               Wavelength,
@@ -35,4 +37,25 @@ final case class BaseEpicsTcsConfig(
   instPorts:            InstrumentPorts
 ) {
   val instrumentOffset: InstrumentOffset = offset.toInstrumentOffset(iaa)
+}
+
+object BaseEpicsTcsConfig {
+  val iaa: Lens[BaseEpicsTcsConfig, Angle]                                 =
+    Focus[BaseEpicsTcsConfig](_.iaa)
+  val offset: Lens[BaseEpicsTcsConfig, FocalPlaneOffset]                   =
+    Focus[BaseEpicsTcsConfig](_.offset)
+  val wavelA: Lens[BaseEpicsTcsConfig, Wavelength]                         =
+    Focus[BaseEpicsTcsConfig](_.wavelA)
+  val pwfs1: Lens[BaseEpicsTcsConfig, GuiderConfig]                        =
+    Focus[BaseEpicsTcsConfig](_.pwfs1)
+  val pwfs2: Lens[BaseEpicsTcsConfig, GuiderConfig]                        =
+    Focus[BaseEpicsTcsConfig](_.pwfs2)
+  val oiwfs: Lens[BaseEpicsTcsConfig, GuiderConfig]                        =
+    Focus[BaseEpicsTcsConfig](_.oiwfs)
+  val telescopeGuideConfig: Lens[BaseEpicsTcsConfig, TelescopeGuideConfig] =
+    Focus[BaseEpicsTcsConfig](_.telescopeGuideConfig)
+  val scienceFoldPosition: Lens[BaseEpicsTcsConfig, Option[ScienceFold]]   =
+    Focus[BaseEpicsTcsConfig](_.scienceFoldPosition)
+  val hrwfsPickupPosition: Lens[BaseEpicsTcsConfig, HrwfsPickupPosition]   =
+    Focus[BaseEpicsTcsConfig](_.hrwfsPickupPosition)
 }

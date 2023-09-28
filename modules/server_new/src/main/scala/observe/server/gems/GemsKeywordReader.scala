@@ -6,7 +6,7 @@ package observe.server.gems
 import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.all.*
-//import observe.server.gsaoi.GsaoiEpics
+import observe.server.gsaoi.GsaoiEpics
 import observe.server.keywords.*
 
 trait GemsKeywordReader[F[_]] {
@@ -93,8 +93,8 @@ object GemsKeywordReaderDummy {
 
 object GemsKeywordReaderEpics {
   def apply[F[_]: Sync](
-    epics: => GemsEpics[F] /*,
-    gsaoiEpics: => GsaoiEpics[F]*/
+    epics:      => GemsEpics[F],
+    gsaoiEpics: => GsaoiEpics[F]
   ): GemsKeywordReader[F] = new GemsKeywordReader[F] {
 
     override def sadc: F[String] =
@@ -159,35 +159,31 @@ object GemsKeywordReaderEpics {
 
     override def cnSquare6: F[Double] = cnSum(List.range(25L, 31L))
 
-    override def odgwSize: F[Int] = intDefault[F] // gsaoiEpics.odgwSize.safeValOrDefault
+    override def odgwSize: F[Int] = gsaoiEpics.odgwSize.safeValOrDefault
 
-    override def odgw1X: F[Int] = intDefault[F] // gsaoiEpics.odgw1X.safeValOrDefault
+    override def odgw1X: F[Int] = gsaoiEpics.odgw1X.safeValOrDefault
 
-    override def odgw1Y: F[Int] = intDefault[F] // gsaoiEpics.odgw1Y.safeValOrDefault
+    override def odgw1Y: F[Int] = gsaoiEpics.odgw1Y.safeValOrDefault
 
-    override def odgw1Counts: F[Double] =
-      doubleDefault[F] // gsaoiEpics.odgw1Counts.safeValOrDefault
+    override def odgw1Counts: F[Double] = gsaoiEpics.odgw1Counts.safeValOrDefault
 
-    override def odgw2X: F[Int] = intDefault[F] // gsaoiEpics.odgw2X.safeValOrDefault
+    override def odgw2X: F[Int] = gsaoiEpics.odgw2X.safeValOrDefault
 
-    override def odgw2Y: F[Int] = intDefault[F] // gsaoiEpics.odgw2Y.safeValOrDefault
+    override def odgw2Y: F[Int] = gsaoiEpics.odgw2Y.safeValOrDefault
 
-    override def odgw2Counts: F[Double] =
-      doubleDefault[F] // gsaoiEpics.odgw2Counts.safeValOrDefault
+    override def odgw2Counts: F[Double] = gsaoiEpics.odgw2Counts.safeValOrDefault
 
-    override def odgw3X: F[Int] = intDefault[F] // gsaoiEpics.odgw3X.safeValOrDefault
+    override def odgw3X: F[Int] = gsaoiEpics.odgw3X.safeValOrDefault
 
-    override def odgw3Y: F[Int] = intDefault[F] // gsaoiEpics.odgw3Y.safeValOrDefault
+    override def odgw3Y: F[Int] = gsaoiEpics.odgw3Y.safeValOrDefault
 
-    override def odgw3Counts: F[Double] =
-      doubleDefault[F] // gsaoiEpics.odgw3Counts.safeValOrDefault
+    override def odgw3Counts: F[Double] = gsaoiEpics.odgw3Counts.safeValOrDefault
 
-    override def odgw4X: F[Int] = intDefault[F] // gsaoiEpics.odgw4X.safeValOrDefault
+    override def odgw4X: F[Int] = gsaoiEpics.odgw4X.safeValOrDefault
 
-    override def odgw4Y: F[Int] = intDefault[F] // gsaoiEpics.odgw4Y.safeValOrDefault
+    override def odgw4Y: F[Int] = gsaoiEpics.odgw4Y.safeValOrDefault
 
-    override def odgw4Counts: F[Double] =
-      doubleDefault[F] // gsaoiEpics.odgw4Counts.safeValOrDefault
+    override def odgw4Counts: F[Double] = gsaoiEpics.odgw4Counts.safeValOrDefault
 
     private def cwfsFlux(idx: Long): F[Double] =
       epics.ngsFlux.map(_.get(idx).map(_.toDouble)).safeValOrDefault

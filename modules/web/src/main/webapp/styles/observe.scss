@@ -294,63 +294,9 @@ html {
   padding-right: 20px;
 }
 
-// .ObserveStyles-observationProgressRow {
-//   display: flex;
-//   flex-grow: 1;
-//   flex-direction: column;
-//   width: 100%;
-//   padding-right: 7px;
-//   margin-bottom: 1em;
-
-//   // & .bar {
-//   //   height: 100% !important;
-//   // }
-
-//   // & .label {
-//   //   text-align: center;
-//   //   width: 100%;
-//   // }
-// }
-
-@mixin borderRight {
-  border-right-style: solid;
-  border-right-color: var(--surface-border);
-  border-right-width: 1px;
-}
-
-@mixin borderLeft {
-  border-left-style: solid;
-  border-left-color: var(--surface-border);
-  border-left-width: 1px;
-}
-
-@mixin borderTop {
-  border-top-style: solid;
-  border-top-color: var(--surface-border);
-  border-top-width: 1px;
-}
-
-@mixin borderBottom {
-  border-bottom-style: solid;
-  border-bottom-color: var(--surface-border);
-  border-bottom-width: 1px;
-
-  .ObserveStyles-stepRowWithBreakpoint {
-    border-bottom-color: var(--red-500);
-  }
-}
-
-@mixin borderAll {
-  @include borderRight();
-  @include borderLeft();
-  @include borderTop();
-  @include borderBottom();
-}
-
 .pl-react-table.p-datatable {
   &.ObserveStyles-observeTable {
     width: 100%;
-    border-collapse: collapse;
 
     thead {
       z-index: 1;
@@ -362,8 +308,6 @@ html {
     }
 
     tr>td {
-      @include borderLeft;
-      @include borderBottom;
       min-width: 20px;
       font-size: small;
       text-overflow: ellipsis;
@@ -386,14 +330,6 @@ html {
   }
 
   &.ObserveStyles-stepTable {
-    // table-layout: auto;
-
-    tr>td {
-      // max-height: 40px !important;
-      padding-top: 0;
-      padding-bottom: 0;
-      // border: none;
-    }
 
     tr.ObserveStyles-stepRowDone {
       pointer-events: none;
@@ -401,22 +337,261 @@ html {
       background: var(--disabled-row-background);
     }
 
-    @mixin stepRowWithBreakpointCell {
-      border-top-color: var(--red-500);
-      border-top-width: 2px;
-      // transform: translate(0, -1px);
+    $separator-color: var(--gray-200);
+    $hover-color: var(--green-500);
+    $atom-color: var(--gray-400);
+    $breakpoint-color: var(--red-500);
+
+    // ALL COMBINATIONS MUST BE EXPLICIT
+    @function row-line($height, $color) {
+      @return inset 0 $height $color;
     }
 
-    tr.ObserveStyles-stepRowWithBreakpoint {
-      td:not(.ObserveStyles-skipTableCell):not(.ObserveStyles-breakpointTableCell) {
-        @include stepRowWithBreakpointCell;
+    @function top-line($color) {
+      @return inset 0 1px $color;
+    }
+
+    @function top-thick-line($color) {
+      @return inset 0 2px $color;
+    }
+
+    @function bottom-line($color) {
+      @return inset 0 -1px $color;
+    }
+
+    @function bottom-thick-line($color) {
+      @return inset 0 -2px $color;
+    }
+
+    @function top-double-line($outer, $inner) {
+      // Thinner lines must be first since they have precedence.
+      @return top-line($outer), top-thick-line($inner);
+    }
+
+    @function bottom-double-line($outer, $inner) {
+      // Thinner lines must be first since they have precedence.
+      @return bottom-line($outer), bottom-thick-line($inner);
+    }
+
+
+    tr {
+      box-shadow: none !important;
+      
+      td {
+        padding-top: 1px;
+        padding-bottom: 1px;
+        // We have some row separators which are split betwen the previous and next row.
+        // This is easier to deal with with border 0 and box-shadows.
+        border-bottom: 0;
       }
 
-      // td .ObserveStyles-iconCell {
-      //   @include stepRowWithBreakpointCell;
-      // }
+      // Regular row.
+      // -----------------------------
+      //
+      //
+      // ROW CONTENTS
+      //
+      //
+      // SEPARATOR-SEPARATOR-SEPARATOR
+      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        box-shadow: bottom-line($separator-color) !important;
+      }
 
+      &:hover {
+        // Regular hovering row.
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        //
+        //
+        // ROW CONTENTS
+        //
+        //
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($hover-color), bottom-line($hover-color) !important;
+        }
+      }
+    }
 
+    tr.ObserveStyles-stepRowFirstInAtom:not(:first-of-type) {
+      // First-in-atom row.
+      // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+      //
+      //
+      // ROW CONTENTS
+      //
+      //
+      // SEPARATOR-SEPARATOR-SEPARATOR
+      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        box-shadow: top-line($atom-color), bottom-line($separator-color) !important;
+      }
+
+      &:hover {
+        // First-in-atom hovering row.
+        // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        //
+        // ROW CONTENTS
+        //
+        //
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-double-line($atom-color, $hover-color), bottom-line($hover-color) !important;
+        }
+      }
+
+      &:has(+ .ObserveStyles-stepRowWithBreakpoint) {
+        // First-in-atom row with next row with breakpoint.
+        // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+        //
+        //
+        // ROW CONTENTS
+        //
+        //
+        // BREAKPOINT-BREAKPOINT-BREAKPO
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($atom-color), bottom-line($breakpoint-color) !important;
+        }
+
+        &:hover {
+          // First-in-atom hovering row with next row with breakpoint.
+          // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+          // HOVER-HOVER-HOVER-HOVER-HOVER
+          //
+          // ROW CONTENTS
+          //
+          // HOVER-HOVER-HOVER-HOVER-HOVER
+          // BREAKPOINT-BREAKPOINT-BREAKPO
+          td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+            box-shadow: top-double-line($atom-color, $hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+          }
+        }
+      }
+    }
+
+    tr:has(+ .ObserveStyles-stepRowFirstInAtom) {
+      // Regular row with next row first-in-atom.
+      // -----------------------------
+      //
+      //
+      // ROW CONTENTS
+      //
+      //
+      // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        box-shadow: bottom-line($atom-color) !important;
+      }
+
+      &:hover {
+        // Regular hovering row with next row first-in-atom.
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        //
+        //
+        // ROW CONTENTS
+        //
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($hover-color), bottom-double-line($atom-color, $hover-color) !important;
+        }
+      }
+    }
+
+    tr:has(+ .ObserveStyles-stepRowWithBreakpoint) {
+      // Regular row with next row with breakpoint.
+      // -----------------------------
+      //
+      //
+      // ROW CONTENTS
+      //
+      //
+      // BREAKPOINT-BREAKPOINT-BREAKPO
+      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        box-shadow: bottom-line($breakpoint-color) !important;
+      }
+
+      &:hover {
+        // Regular hovering row with next row with breakpoint.
+        // HOVER-HOVER-HOVER-HOVER-HOV
+        //
+        //
+        // ROW CONTENTS
+        //
+        // HOVER-HOVER-HOVER-HOVER-HOV
+        // BREAKPOINT-BREAKPOINT-BREAK
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+        }
+      }
+    }
+
+    tr.ObserveStyles-stepRowWithBreakpoint, tr.ObserveStyles-stepRowWithBreakpoint:not(:first-of-type) {
+      // Breakpoint row.
+      // BREAKPOINT-BREAKPOINT-BREAKPO
+      //
+      //
+      // ROW CONTENTS
+      //
+      // 
+      // SEPARATOR-SEPARATOR-SEPARATOR
+      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        box-shadow: top-line($breakpoint-color), bottom-line($separator-color) !important;
+      }
+
+      &:has(+ .ObserveStyles-stepRowWithBreakpoint), &:has(+ .ObserveStyles-stepRowWithBreakpoint):has(+ .ObserveStyles-stepRowFirstInAtom){
+        // Breakpoint row with next row with breakpoint.
+        // BREAKPOINT-BREAKPOINT-BREAKPO
+        //
+        //
+        // ROW CONTENTS
+        //
+        // 
+        // BREAKPOINT-BREAKPOINT-BREAKPO
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($breakpoint-color), bottom-line($breakpoint-color) !important;
+        }
+      }
+
+      &:has(+ .ObserveStyles-stepRowFirstInAtom) {
+        // Breakpoint row with next row first-in-atom.
+        // -----------------------------
+        // BREAKPOINT-BREAKPOINT-BREAKPO
+        //
+        // ROW CONTENTS
+        //
+        //
+        // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-line($breakpoint-color), bottom-line($atom-color) !important;
+        }
+      }
+
+      &:hover {
+        // Breakpoint hovering row.
+        // BREAKPOINT-BREAKPOINT-BREAKPO
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        //
+        // ROW CONTENTS
+        //
+        // 
+        // HOVER-HOVER-HOVER-HOVER-HOVER
+        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+          box-shadow: top-double-line($breakpoint-color, $hover-color), bottom-line($hover-color) !important;
+        }
+
+        &:has(+ .ObserveStyles-stepRowWithBreakpoint) {
+          // Breakpoint hovering row with next row with breakpoint.
+          // BREAKPOINT-BREAKPOINT-BREAKPO
+          // HOVER-HOVER-HOVER-HOVER-HOVER
+          //
+          // ROW CONTENTS
+          //
+          // HOVER-HOVER-HOVER-HOVER-HOVER
+          // BREAKPOINT-BREAKPOINT-BREAKPO
+          td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+            box-shadow: top-double-line($breakpoint-color, $hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+          }
+        }
+      }
 
       // padding-top: 4px;
       // background-image: linear-gradient(to right, #a5673f 0px, #a5673f);

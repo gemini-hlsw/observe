@@ -58,7 +58,7 @@ final case class Ghost[F[_]: Logger: Async](controller: GhostController[F])
       }
     }
 
-  override def configure(config: CleanConfig): F[ConfigResult] =
+  override def configure(config: CleanConfig): F[ConfigResult[F]] =
     Ghost
       .fromSequenceConfig[F](config)
       .flatMap(controller.applyConfig)

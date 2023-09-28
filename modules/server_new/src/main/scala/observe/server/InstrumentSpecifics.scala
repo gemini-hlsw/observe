@@ -3,13 +3,23 @@
 
 package observe.server
 
-import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.{LightSinkName, ObserveClass}
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
 import squants.Length
 
-trait InstrumentSpecifics extends InstrumentGuide {
+trait InstrumentSpecifics[S <: StaticConfig, D <: DynamicConfig] extends InstrumentGuide {
+  def calcStepType(
+    stepConfig:   StepConfig,
+    staticConfig: S,
+    instConfig:   D,
+    obsClass:     ObserveClass
+  ): Either[ObserveFailure, StepType] =
+    SeqTranslate.calcStepType(instrument, stepConfig, obsClass)
+
   override val oiOffsetGuideThreshold: Option[Length] = None
 
   // The name used for this instrument in the science fold configuration
-  def sfName: LightSinkName
+  def sfName(instConfig: D): LightSinkName
 
 }

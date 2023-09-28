@@ -4,6 +4,7 @@
 package observe.model.config
 
 import cats.Eq
+import cats.derived.*
 import org.http4s.Uri
 
 import scala.concurrent.duration.FiniteDuration
@@ -23,16 +24,10 @@ import scala.concurrent.duration.FiniteDuration
  * @param ldap
  *   URL of the ldap servers
  */
-final case class AuthenticationConfig(
+case class AuthenticationConfig(
   sessionLifeHrs: FiniteDuration,
   cookieName:     String,
   secretKey:      String,
   useSsl:         Boolean = false,
   ldapUrls:       List[Uri]
-)
-
-object AuthenticationConfig {
-  given Eq[AuthenticationConfig] =
-    Eq.by(x => (x.sessionLifeHrs.toNanos, x.cookieName, x.secretKey, x.useSsl, x.ldapUrls))
-
-}
+) derives Eq

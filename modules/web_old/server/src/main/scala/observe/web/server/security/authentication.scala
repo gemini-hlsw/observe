@@ -21,11 +21,11 @@ import observe.model.config.*
 import AuthenticationService.AuthResult
 
 sealed trait AuthenticationFailure            extends Product with Serializable
-final case class UserNotFound(user: String)   extends AuthenticationFailure
-final case class BadCredentials(user: String) extends AuthenticationFailure
+case class UserNotFound(user: String)   extends AuthenticationFailure
+case class BadCredentials(user: String) extends AuthenticationFailure
 case object NoAuthenticator                   extends AuthenticationFailure
-final case class GenericFailure(msg: String)  extends AuthenticationFailure
-final case class DecodingFailure(msg: String) extends AuthenticationFailure
+case class GenericFailure(msg: String)  extends AuthenticationFailure
+case class DecodingFailure(msg: String) extends AuthenticationFailure
 case object MissingCookie                     extends AuthenticationFailure
 
 /**
@@ -36,11 +36,11 @@ trait AuthService[F[_]] {
 }
 
 // Intermediate class to decode the claim stored in the JWT token
-final case class JwtUserClaim(exp: Int, iat: Int, username: String, displayName: String) {
+case class JwtUserClaim(exp: Int, iat: Int, username: String, displayName: String) {
   def toUserDetails: UserDetails = UserDetails(username, displayName)
 }
 
-final case class AuthenticationService[F[_]: Sync: Logger](
+case class AuthenticationService[F[_]: Sync: Logger](
   mode:   Mode,
   config: AuthenticationConfig
 ) extends AuthService[F] {

@@ -324,7 +324,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           ) |+|
             ObserveStyles.StepRowWithBreakpoint.when_(
               stepIdOpt.exists(props.executionState.breakpoints.contains)
-            ) |+| (step match
+            ) |+|
+            ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined) |+|
+            (step match
               // case s if s.hasError                       => ObserveStyles.StepRowError
               // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
               // case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning

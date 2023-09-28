@@ -3,12 +3,13 @@
 
 package observe.model.config
 
-import cats.*
+import cats.Eq
+import cats.derived.*
 
 /**
  * Indicates how each subsystems is treated, e.g. full connection or simulated
  */
-final case class SystemsControlConfiguration(
+case class SystemsControlConfiguration(
   altair:   ControlStrategy,
   gems:     ControlStrategy,
   dhs:      ControlStrategy,
@@ -25,31 +26,7 @@ final case class SystemsControlConfiguration(
   nifs:     ControlStrategy,
   niri:     ControlStrategy,
   tcs:      ControlStrategy
-) {
+) derives Eq {
   def connectEpics: Boolean =
     altair.connect || gems.connect || f2.connect || gcal.connect || gmos.connect || gnirs.connect || gsaoi.connect || gws.connect || nifs.connect || niri.connect || tcs.connect
-}
-
-object SystemsControlConfiguration {
-  given Eq[SystemsControlConfiguration] =
-    Eq.by(x =>
-      (x.altair,
-       x.gems,
-       x.dhs,
-       x.f2,
-       x.gcal,
-       x.ghost,
-       x.gmos,
-       x.gnirs,
-       x.gpi,
-       x.gpiGds,
-       x.ghostGds,
-       x.gsaoi,
-       x.gws,
-       x.nifs,
-       x.niri,
-       x.tcs
-      )
-    )
-
 }

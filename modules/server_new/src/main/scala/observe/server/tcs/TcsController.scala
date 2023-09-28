@@ -16,6 +16,7 @@ import observe.server.gems.GemsController
 import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.given
 import squants.{Angle, Length}
+import monocle.{Focus, Lens}
 
 /**
  * Created by jluhrs on 7/30/15.
@@ -275,6 +276,9 @@ object TcsController {
 
   object TelescopeConfig {
     given Show[TelescopeConfig] = Show.fromToString
+
+    val offsetA: Lens[TelescopeConfig, Option[InstrumentOffset]] =
+      Focus[TelescopeConfig](_.offsetA)
   }
 
   object P1Config extends NewType[GuiderConfig]
@@ -307,6 +311,9 @@ object TcsController {
     given Show[GuiderConfig] = Show.fromToString[GuiderConfig]
 
     given Eq[GuiderConfig] = Eq.by(x => (x.tracking, x.detector))
+
+    val tracking: Lens[GuiderConfig, ProbeTrackingConfig] = Focus[GuiderConfig](_.tracking)
+    val detector: Lens[GuiderConfig, GuiderSensorOption]  = Focus[GuiderConfig](_.detector)
   }
 
   final case class AGConfig(sfPos: LightPath, hrwfs: Option[HrwfsConfig])
@@ -367,6 +374,12 @@ object TcsController {
     oiwfs: OIConfig
   ) extends GuidersConfig
 
+  object BasicGuidersConfig {
+    val pwfs1: Lens[BasicGuidersConfig, P1Config] = Focus[BasicGuidersConfig](_.pwfs1)
+    val pwfs2: Lens[BasicGuidersConfig, P2Config] = Focus[BasicGuidersConfig](_.pwfs2)
+    val oiwfs: Lens[BasicGuidersConfig, OIConfig] = Focus[BasicGuidersConfig](_.oiwfs)
+  }
+
   final case class AoGuidersConfig[C](
     pwfs1:   P1Config,
     aoguide: C,
@@ -374,6 +387,12 @@ object TcsController {
   ) extends GuidersConfig {
     override val pwfs2: P2Config =
       P2Config(GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff))
+  }
+
+  object AoGuidersConfig {
+    def pwfs1[C]: Lens[AoGuidersConfig[C], P1Config] = Focus[AoGuidersConfig[C]](_.pwfs1)
+    def aoguide[C]: Lens[AoGuidersConfig[C], C]      = Focus[AoGuidersConfig[C]](_.aoguide)
+    def oiwfs[C]: Lens[AoGuidersConfig[C], OIConfig] = Focus[AoGuidersConfig[C]](_.oiwfs)
   }
 
   object GuidersConfig {
@@ -412,6 +431,19 @@ object TcsController {
     inst: InstrumentGuide
   ) extends TcsConfig[S]
 
+  object BasicTcsConfig {
+    def gds[S <: Site] = Focus[BasicTcsConfig[S]](_.gds)
+    def gc[S <: Site]  = Focus[BasicTcsConfig[S]](_.gc)
+
+    val offsetALensGS = Focus[BasicTcsConfig[Site.GS.type]](_.tc.offsetA)
+    val m2GuideLensGS = Focus[BasicTcsConfig[Site.GS.type]](_.gc.m2Guide)
+    val m1GuideLensGS = Focus[BasicTcsConfig[Site.GS.type]](_.gc.m1Guide)
+    val pwfs1LensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs1)
+    val pwfs2LensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.pwfs2)
+    val oiwfsLensGS   = Focus[BasicTcsConfig[Site.GS.type]](_.gds.oiwfs)
+    val instLensGS    = Focus[BasicTcsConfig[Site.GS.type]](_.inst)
+  }
+
   final case class AoTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
@@ -420,6 +452,17 @@ object TcsController {
     gaos: SiteSpecifics.AoConfig[S],
     inst: InstrumentGuide
   ) extends TcsConfig[S]
+
+  object AoTcsConfig {
+    def gc[S <: Site]: Lens[AoTcsConfig[S], TelescopeGuideConfig]                               = Focus[AoTcsConfig[S]](_.gc)
+    def tc[S <: Site]: Lens[AoTcsConfig[S], TelescopeConfig]                                    = Focus[AoTcsConfig[S]](_.tc)
+    def gds[S <: Site]: Lens[AoTcsConfig[S], AoGuidersConfig[SiteSpecifics.AoGuidersConfig[S]]] =
+      Focus[AoTcsConfig[S]](_.gds)
+    def agc[S <: Site]: Lens[AoTcsConfig[S], AGConfig]                                          = Focus[AoTcsConfig[S]](_.agc)
+    def gaos[S <: Site]: Lens[AoTcsConfig[S], SiteSpecifics.AoConfig[S]]                        =
+      Focus[AoTcsConfig[S]](_.gaos)
+    def inst[S <: Site]: Lens[AoTcsConfig[S], InstrumentGuide]                                  = Focus[AoTcsConfig[S]](_.inst)
+  }
 
   object SiteSpecifics {
 
