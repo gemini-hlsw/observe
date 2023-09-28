@@ -110,9 +110,9 @@ object WebServerLauncher extends IOApp with LogInitialization {
   ): Resource[F, Server] = {
 
     def router(wsb: WebSocketBuilder2[F], events: Topic[F, ObserveClientEvent]) = Router[F](
-      "/api/observe/guide" -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
-      "/api"               -> new ObserveCommandRoutes(oe).service,
-      "/"                  -> new ObserveEventRoutes(clientsDb, events, wsb).service
+      "/api/observe/guide"  -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
+      "/api/observe"        -> new ObserveCommandRoutes(oe).service,
+      "/api/observe/events" -> new ObserveEventRoutes(clientsDb, events, wsb).service
     )
 
     def builder(events: Topic[F, ObserveClientEvent]) = EmberServerBuilder

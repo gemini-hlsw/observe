@@ -55,7 +55,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
     Stream.fixedRate[F](pingInterval).flatMap(_ => Stream.emit(Ping()))
 
   val protectedServices: HttpRoutes[F] =
-    HttpRoutes.of { case ws @ GET -> Root / "api" / "observe" / "events" =>
+    HttpRoutes.of { case ws @ GET -> Root =>
       // If the user didn't login, anonymize
       // val anonymizeF: ObserveEvent => ObserveEvent = user.fold(_ => anonymize, _ => identity)
       //

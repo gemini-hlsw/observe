@@ -15,8 +15,8 @@ import org.typelevel.cats.time.given
 import java.time.Instant
 import observe.model.events.client.*
 
-sealed trait ObserveEvent       extends Product with Serializable
-sealed trait ObserveModelUpdate extends ObserveEvent {
+sealed trait ObserveEvent       extends Product with Serializable derives Eq
+sealed trait ObserveModelUpdate extends ObserveEvent derives Eq {
   def view: SequencesQueue[SequenceView]
 }
 
@@ -40,40 +40,6 @@ case class ConnectionOpenEvent(
   serverVersion: String
 ) extends ObserveEvent
     derives Eq
-
-object ObserveModelUpdate {
-  given Eq[ObserveModelUpdate] =
-    Eq.instance {
-      case (a: SequenceStart, b: SequenceStart)                             => a === b
-      case (a: StepExecuted, b: StepExecuted)                               => a === b
-      case (a: FileIdStepExecuted, b: FileIdStepExecuted)                   => a === b
-      case (a: SequenceCompleted, b: SequenceCompleted)                     => a === b
-      case (a: SequenceLoaded, b: SequenceLoaded)                           => a === b
-      case (a: SequenceUnloaded, b: SequenceUnloaded)                       => a === b
-      case (a: StepBreakpointChanged, b: StepBreakpointChanged)             => a === b
-      case (a: OperatorUpdated, b: OperatorUpdated)                         => a === b
-      case (a: ObserverUpdated, b: ObserverUpdated)                         => a === b
-      case (a: ConditionsUpdated, b: ConditionsUpdated)                     => a === b
-      case (a: StepSkipMarkChanged, b: StepSkipMarkChanged)                 => a === b
-      case (a: SequencePauseRequested, b: SequencePauseRequested)           => a === b
-      case (a: SequencePauseCanceled, b: SequencePauseCanceled)             => a === b
-      case (a: SequenceRefreshed, b: SequenceRefreshed)                     => a === b
-      case (a: ActionStopRequested, b: ActionStopRequested)                 => a === b
-      case (a: SequenceUpdated, b: SequenceUpdated)                         => a === b
-      case (a: SequencePaused, b: SequencePaused)                           => a === b
-      case (a: ExposurePaused, b: ExposurePaused)                           => a === b
-      case (a: SequenceError, b: SequenceError)                             => a === b
-      case (a: LoadSequenceUpdated, b: LoadSequenceUpdated)                 => a === b
-      case (a: ClearLoadedSequencesUpdated, b: ClearLoadedSequencesUpdated) => a === b
-      case (a: QueueUpdated, b: QueueUpdated)                               => a === b
-      case (a: SequenceStopped, b: SequenceStopped)                         => a === b
-      case (a: SequenceAborted, b: SequenceAborted)                         => a === b
-      case _                                                                => false
-    }
-
-  def unapply(u: ObserveModelUpdate): Option[SequencesQueue[SequenceView]] =
-    Some(u.view)
-}
 
 case class SequenceStart(
   obsId:  Observation.Id,
@@ -167,21 +133,6 @@ case class UserPromptNotification(prompt: UserPrompt, clientId: ClientId) extend
 case class GuideConfigUpdate(telescope: TelescopeGuideConfig) extends ObserveEvent derives Eq
 
 case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
-
-given Eq[ObserveEvent] =
-  Eq.instance {
-    case (a: ConnectionOpenEvent, b: ConnectionOpenEvent)           => a === b
-    case (a: ObserveModelUpdate, b: ObserveModelUpdate)             => a === b
-    case (a: ServerLogMessage, b: ServerLogMessage)                 => a === b
-    case (a: UserNotification, b: UserNotification)                 => a === b
-    case (a: UserPromptNotification, b: UserPromptNotification)     => a === b
-    case (a: GuideConfigUpdate, b: GuideConfigUpdate)               => a === b
-    case (a: ObservationProgressEvent, b: ObservationProgressEvent) => a === b
-    case (a: SingleActionEvent, b: SingleActionEvent)               => a === b
-    case (a: AlignAndCalibEvent, b: AlignAndCalibEvent)             => a === b
-    case (_: NullEvent.type, _: NullEvent.type)                     => true
-    case _                                                          => false
-  }
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[ObserveClientEvent] = e match {

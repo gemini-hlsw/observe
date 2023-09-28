@@ -8,10 +8,15 @@ import cats.syntax.all.*
 import fs2.compression.Compression
 import org.http4s.*
 import org.http4s.dsl.*
+import org.http4s.circe.*
 import org.http4s.server.middleware.GZip
 import observe.model.*
 import observe.server
 import observe.server.ObserveEngine
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.WaterVapor
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.CloudExtinction
 // import observe.web.server.http4s.OptionalRunOverride
 // import observe.web.server.http4s.encoder.*
 // import observe.web.server.security.AuthenticationService
@@ -31,6 +36,13 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
 
   // Handles authentication
   // private val httpAuthentication = new Http4sAuthentication(auth)
+
+  given EntityDecoder[F, WaterVapor]      = jsonOf[F, WaterVapor]
+  given EntityDecoder[F, ImageQuality]    = jsonOf[F, ImageQuality]
+  given EntityDecoder[F, SkyBackground]   = jsonOf[F, SkyBackground]
+  given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
+
+  val userDetails = UserDetails("telops", "TelOps")
 
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] { // AuthedRoutes.of {
     // case POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
@@ -143,16 +155,17 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.setDhsEnabled(inputQueue, obsId, user, dhsEnabled) *>
     //     Ok(s"Set DHS enable flag to '$dhsEnabled' for sequence $obsId")
 
-    // case req @ POST -> Root / "iq" as user =>
-    //   req.req.decode[ImageQuality](iq =>
-    //     se.setImageQuality(inputQueue, iq, user) *>
-    //       Ok(s"Set image quality to $iq")
-    //   )
-    //
-    // case req @ POST -> Root / "wv" as user =>
-    //   req.req.decode[WaterVapor](wv =>
-    //     se.setWaterVapor(inputQueue, wv, user) *> Ok(s"Set water vapor to $wv")
-    //   )
+    case req @ POST -> Root / "iq" =>
+      req.decode[ImageQuality](iq => oe.setImageQuality(iq, userDetails) *> NoContent())
+
+    case req @ POST -> Root / "wv" =>
+      req.decode[WaterVapor](wv => oe.setWaterVapor(wv, userDetails) *> NoContent())
+
+    case req @ POST -> Root / "sb" =>
+      req.decode[SkyBackground](sb => oe.setSkyBackground(sb, userDetails) *> NoContent())
+
+    case req @ POST -> Root / "ce"        =>
+      req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, userDetails) *> NoContent())
     //
     // case req @ POST -> Root / "sb" as user =>
     //   req.req.decode[SkyBackground](sb =>
