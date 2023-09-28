@@ -190,7 +190,6 @@ lazy val observe_server = project
         Http4sCirce,
         Squants.value,
         Http4sXml,
-        Http4sBoopickle,
         Log4Cats.value,
         Log4CatsNoop.value,
         PPrint.value,
@@ -237,7 +236,6 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++= Seq(
       Squants.value,
       Mouse.value,
-      BooPickle.value,
       CatsTime.value
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
