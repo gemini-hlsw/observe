@@ -41,8 +41,9 @@ import io.circe.syntax.*
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
+import observe.server.OdbProxy.TestOdbProxy
 
-final case class Systems[F[_]](
+case class Systems[F[_]] private (
   odb:                 OdbProxy[F],
   dhs:                 DhsClientProvider[F],
   tcsSouth:            TcsSouthController[F],
@@ -74,8 +75,9 @@ final case class Systems[F[_]](
 
 object Systems {
 
-  final case class Builder(
+  case class Builder(
     settings: ObserveEngineConfiguration,
+    sso:      LucumaSSOConfiguration,
     service:  CaService,
     tops:     Map[String, String]
   )(using L: Logger[IO], T: Temporal[IO]) {
@@ -93,7 +95,7 @@ object Systems {
     def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
       sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       _  <- sk.connect()
-      _  <- sk.initialize(Map("Authorization" -> s"Bearer dummy".asJson))
+      _  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
     } yield {
       given FetchClient[F, ObservationDB] = sk
       OdbProxy[F](
@@ -436,7 +438,31 @@ object Systems {
     site:       Site,
     httpClient: Client[IO],
     settings:   ObserveEngineConfiguration,
+    sso:        LucumaSSOConfiguration,
     service:    CaService
   )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
-    Builder(settings, service, decodeTops(settings.tops)).build(site, httpClient)
+    Builder(settings, sso, service, decodeTops(settings.tops)).build(site, httpClient)
+
+  def dummy[F[_]: Async: Logger]: F[Systems[F]] =
+    GuideConfigDb
+      .newDb[F]
+      .map(guideDb =>
+        new Systems(
+          new TestOdbProxy[F],
+          DhsClientProvider.dummy[F],
+          TcsSouthControllerSim[F],
+          TcsNorthControllerSim[F],
+          GcalControllerSim[F],
+          GmosControllerDisabled[F, GmosController.GmosSite.South.type]("south"),
+          GmosControllerDisabled[F, GmosController.GmosSite.North.type]("north"),
+          AltairControllerSim[F],
+          GemsControllerSim[F],
+          guideDb,
+          DummyTcsKeywordsReader[F],
+          DummyGcalKeywordsReader[F],
+          GmosKeywordReaderDummy[F],
+          AltairKeywordReaderDummy[F],
+          GemsKeywordReaderDummy[F]
+        )
+      )
 }

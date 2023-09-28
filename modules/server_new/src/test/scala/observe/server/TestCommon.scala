@@ -3,97 +3,34 @@
 
 package observe.server
 
-import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
-import cats.{Applicative, Monoid}
-import fs2.Stream
-import giapi.client.ghost.GhostClient
-import giapi.client.gpi.GpiClient
+import cats.Applicative
 import lucuma.core.enums.Site
-import observe.common.test.*
 import observe.engine
 import observe.engine.Result.{PartialVal, PauseContext}
 import observe.engine.{Action, Result}
 import observe.model.config.*
 import observe.model.dhs.*
-import observe.model.enums.{Instrument, Resource}
-import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
-import observe.server.OdbProxy.TestOdbProxy
-import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
+import observe.model.ActionType
 // import observe.server.flamingos2.Flamingos2ControllerSim
-import observe.server.gcal.{DummyGcalKeywordsReader, GcalControllerSim}
-import observe.server.gems.{GemsControllerSim, GemsKeywordReaderDummy}
-// import observe.server.ghost.GhostController
-import observe.server.gmos.{GmosControllerSim, GmosKeywordReaderDummy}
 // import observe.server.gnirs.{GnirsControllerSim, GnirsKeywordReaderDummy}
 // import observe.server.gpi.GpiController
-import observe.server.gsaoi.{GsaoiControllerSim, GsaoiKeywordReaderDummy}
 // import observe.server.gws.DummyGwsKeywordsReader
-import observe.server.keywords.DhsClientSim
 // import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
 // import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
-import observe.server.tcs.*
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 
-import java.util.UUID
 import scala.concurrent.duration.*
-import observe.server.keywords.DhsClientProvider
-import observe.server.keywords.DhsClient
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
+import observe.model.enums.Resource
 
 trait TestCommon extends munit.CatsEffectSuite {
   import TestCommon.*
 
-  val defaultSystems: IO[Systems[IO]] = (
-    DhsClientSim[IO].map(x =>
-      new DhsClientProvider[IO] {
-        override def dhsClient(instrumentName: String): DhsClient[IO] = x
-      }
-    ),
-    // Flamingos2ControllerSim[IO],
-    GmosControllerSim.south[IO],
-    GmosControllerSim.north[IO]
-    // GnirsControllerSim[IO],
-    // GsaoiControllerSim[IO],
-    // gpiSim,
-    // ghostSim,
-    // NiriControllerSim[IO],
-    // NifsControllerSim[IO]
-  ).mapN { (dhs, /*f2,*/ gmosS, gmosN /*gnirs, gsaoi , gpi, ghost, niri, nifs*/ ) =>
-    Systems[IO](
-      new TestOdbProxy[IO],
-      dhs,
-      TcsSouthControllerSim[IO],
-      TcsNorthControllerSim[IO],
-      GcalControllerSim[IO],
-      // f2,
-      gmosS,
-      gmosN,
-      // gnirs,
-      AltairControllerSim[IO],
-      // gsaoi,
-      // gpi,
-      // ghost,
-      // niri,
-      // nifs,
-      GemsControllerSim[IO],
-      GuideConfigDb.constant[IO],
-      DummyTcsKeywordsReader[IO],
-      DummyGcalKeywordsReader[IO],
-      GmosKeywordReaderDummy[IO],
-      // GnirsKeywordReaderDummy[IO],
-      // NiriKeywordReaderDummy[IO],
-      // NifsKeywordReaderDummy[IO],
-      // GsaoiKeywordReaderDummy[IO],
-      AltairKeywordReaderDummy[IO],
-      GemsKeywordReaderDummy[IO]
-      // DummyGwsKeywordsReader[IO]
-    )
-  }
+  val defaultSystems: IO[Systems[IO]] = Systems.dummy[IO]
 
   val observeEngine: IO[ObserveEngine[IO]] =
     defaultSystems.flatMap(ObserveEngine.build(Site.GS, _, defaultSettings))

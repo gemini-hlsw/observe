@@ -4,43 +4,28 @@
 package observe.web.server.http4s
 
 import cats.Applicative
+import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
 import observe.engine.EventResult
 import observe.model.Observation.Id
-import observe.model.{
-  ClientId,
-  Conditions,
-  Observer,
-  Operator,
-  QueueId,
-  StepId,
-  UserDetails,
-  events
-}
-import observe.model.enums.{
-  CloudCover,
-  ImageQuality,
-  Instrument,
-  Resource,
-  RunOverride,
-  SkyBackground,
-  WaterVapor
-}
+import observe.model.*
+import observe.model.enums.*
 import observe.server.keywords.DhsClientDisabled
 import observe.server.{EngineState, EventQueue, EventType, ObserveEngine, SeqEvent, Systems}
 import org.typelevel.log4cats.Logger
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.WaterVapor
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.CloudExtinction
 
-class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
-  override val systems: Systems[F] = Systems(
-    new DhsClientDisabled[F]
-  )
+class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
+  override val systems: Systems[F] = sys
 
-  override def sync(q: EventQueue[F], seqId: Id): F[Unit] = Applicative[F].unit
+  override def sync(seqId: Id): F[Unit] = Applicative[F].unit
 
   override def start(
-    q:           EventQueue[F],
     id:          Id,
     user:        UserDetails,
     observer:    Observer,
@@ -49,7 +34,6 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
   ): F[Unit] = Applicative[F].unit
 
   override def startFrom(
-    q:           EventQueue[F],
     id:          Id,
     observer:    Observer,
     stp:         StepId,
@@ -58,21 +42,18 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
   ): F[Unit] = Applicative[F].unit
 
   override def requestPause(
-    q:        EventQueue[F],
     id:       Id,
     observer: Observer,
     user:     UserDetails
   ): F[Unit] = Applicative[F].unit
 
   override def requestCancelPause(
-    q:        EventQueue[F],
     id:       Id,
     observer: Observer,
     user:     UserDetails
   ): F[Unit] = Applicative[F].unit
 
   override def setBreakpoint(
-    q:        EventQueue[F],
     seqId:    Id,
     user:     UserDetails,
     observer: Observer,
@@ -80,46 +61,40 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
     v:        Boolean
   ): F[Unit] = Applicative[F].unit
 
-  override def setOperator(q: EventQueue[F], user: UserDetails, name: Operator): F[Unit] =
+  override def setOperator(user: UserDetails, name: Operator): F[Unit] =
     Applicative[F].unit
 
   override def setObserver(
-    q:     EventQueue[F],
     seqId: Id,
     user:  UserDetails,
     name:  Observer
   ): F[Unit] = Applicative[F].unit
 
   override def setTcsEnabled(
-    q:       EventQueue[F],
     seqId:   Id,
     user:    UserDetails,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setGcalEnabled(
-    q:       EventQueue[F],
     seqId:   Id,
     user:    UserDetails,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setInstrumentEnabled(
-    q:       EventQueue[F],
     seqId:   Id,
     user:    UserDetails,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setDhsEnabled(
-    q:       EventQueue[F],
     seqId:   Id,
     user:    UserDetails,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def selectSequence(
-    q:        EventQueue[F],
     i:        Instrument,
     sid:      Id,
     observer: Observer,
@@ -127,28 +102,27 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
     clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def clearLoadedSequences(q: EventQueue[F], user: UserDetails): F[Unit] =
+  override def clearLoadedSequences(user: UserDetails): F[Unit] =
     Applicative[F].unit
 
-  override def resetConditions(q: EventQueue[F]): F[Unit] = Applicative[F].unit
+  override def resetConditions: F[Unit] = Applicative[F].unit
 
-  override def setConditions(q: EventQueue[F], conditions: Conditions, user: UserDetails): F[Unit] =
+  override def setConditions(conditions: Conditions, user: UserDetails): F[Unit] =
     Applicative[F].unit
 
-  override def setImageQuality(q: EventQueue[F], iq: ImageQuality, user: UserDetails): F[Unit] =
+  override def setImageQuality(iq: ImageQuality, user: UserDetails): F[Unit] =
     Applicative[F].unit
 
-  override def setWaterVapor(q: EventQueue[F], wv: WaterVapor, user: UserDetails): F[Unit] =
+  override def setWaterVapor(wv: WaterVapor, user: UserDetails): F[Unit] =
     Applicative[F].unit
 
-  override def setSkyBackground(q: EventQueue[F], sb: SkyBackground, user: UserDetails): F[Unit] =
+  override def setSkyBackground(sb: SkyBackground, user: UserDetails): F[Unit] =
     Applicative[F].unit
 
-  override def setCloudCover(q: EventQueue[F], cc: CloudCover, user: UserDetails): F[Unit] =
+  override def setCloudExtinction(cc: CloudExtinction, user: UserDetails): F[Unit] =
     Applicative[F].unit
 
   override def setSkipMark(
-    q:        EventQueue[F],
     seqId:    Id,
     user:     UserDetails,
     observer: Observer,
@@ -156,10 +130,9 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
     v:        Boolean
   ): F[Unit] = Applicative[F].unit
 
-  override def requestRefresh(q: EventQueue[F], clientId: ClientId): F[Unit] = Applicative[F].unit
+  override def requestRefresh(clientId: ClientId): F[Unit] = Applicative[F].unit
 
   override def stopObserve(
-    q:        EventQueue[F],
     seqId:    Id,
     observer: Observer,
     user:     UserDetails,
@@ -167,14 +140,12 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
   ): F[Unit] = Applicative[F].unit
 
   override def abortObserve(
-    q:        EventQueue[F],
     seqId:    Id,
     observer: Observer,
     user:     UserDetails
   ): F[Unit] = Applicative[F].unit
 
   override def pauseObserve(
-    q:        EventQueue[F],
     seqId:    Id,
     observer: Observer,
     user:     UserDetails,
@@ -182,44 +153,40 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
   ): F[Unit] = Applicative[F].unit
 
   override def resumeObserve(
-    q:        EventQueue[F],
     seqId:    Id,
     observer: Observer,
     user:     UserDetails
   ): F[Unit] = Applicative[F].unit
 
-  override def addSequencesToQueue(q: EventQueue[F], qid: QueueId, seqIds: List[Id]): F[Unit] =
+  override def addSequencesToQueue(qid: QueueId, seqIds: List[Id]): F[Unit] =
     Applicative[F].unit
 
-  override def addSequenceToQueue(q: EventQueue[F], qid: QueueId, seqId: Id): F[Unit] =
+  override def addSequenceToQueue(qid: QueueId, seqId: Id): F[Unit] =
     Applicative[F].unit
 
-  override def removeSequenceFromQueue(q: EventQueue[F], qid: QueueId, seqId: Id): F[Unit] =
+  override def removeSequenceFromQueue(qid: QueueId, seqId: Id): F[Unit] =
     Applicative[F].unit
 
   override def moveSequenceInQueue(
-    q:     EventQueue[F],
     qid:   QueueId,
     seqId: Id,
     delta: Int,
     cid:   ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def clearQueue(q: EventQueue[F], qid: QueueId): F[Unit] = Applicative[F].unit
+  override def clearQueue(qid: QueueId): F[Unit] = Applicative[F].unit
 
   override def startQueue(
-    q:        EventQueue[F],
     qid:      QueueId,
     observer: Observer,
     user:     UserDetails,
     clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def stopQueue(q: EventQueue[F], qid: QueueId, clientId: ClientId): F[Unit] =
+  override def stopQueue(qid: QueueId, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
   override def configSystem(
-    q:        EventQueue[F],
     sid:      Id,
     observer: Observer,
     user:     UserDetails,
@@ -228,13 +195,14 @@ class TestObserveEngine[F[_]: Sync: Logger] extends ObserveEngine[F] {
     clientID: ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def eventStream(q: EventQueue[F]): fs2.Stream[F, events.ObserveEvent] = Stream.empty
+  override def eventStream: fs2.Stream[F, events.ObserveEvent] = Stream.empty
 
-  override def stream(p: fs2.Stream[F, EventType[F]])(
+  override def stream(
     s0: EngineState[F]
   ): fs2.Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
 }
 
 object TestObserveEngine {
-  def build[F[_]: Sync: Logger]: F[TestObserveEngine[F]] = new TestObserveEngine[F].pure[F]
+  def build[F[_]: Async: Logger]: F[TestObserveEngine[F]] =
+    Systems.dummy[F].map(TestObserveEngine[F](_))
 }

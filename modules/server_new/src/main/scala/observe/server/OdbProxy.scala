@@ -22,6 +22,7 @@ import observe.model.StepId
 import org.typelevel.log4cats.Logger
 import observe.server.given
 import observe.server.ObsQueryInput.*
+import cats.MonadThrow
 
 sealed trait OdbEventCommands[F[_]] {
   def datasetStart(
@@ -532,10 +533,10 @@ object OdbProxy {
         .map(_.recordGmosSouthVisit.visit.id)
   }
 
-  final class TestOdbProxy[F[_]: Sync] extends OdbProxy[F] {
+  class TestOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
     val evCmds = new DummyOdbCommands[F]
 
-    override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = Sync[F]
+    override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
       .raiseError(
         ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented.")
       )

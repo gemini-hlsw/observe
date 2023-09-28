@@ -3,14 +3,14 @@
 
 package web.server.common
 
-import cats.effect.Sync
+import cats.Monad
 import org.http4s.HttpRoutes
 import org.http4s.Uri
 import org.http4s.dsl.*
 import org.http4s.headers.Location
 import org.http4s.implicits.*
 
-class RedirectToHttpsRoutes[F[_]: Sync](toPort: Int, externalName: String) extends Http4sDsl[F] {
+class RedirectToHttpsRoutes[F[_]: Monad](toPort: Int, externalName: String) extends Http4sDsl[F] {
   val baseUri: Uri = Uri.fromString(s"https://$externalName:$toPort").getOrElse(uri"/")
 
   val service: HttpRoutes[F] = HttpRoutes.of[F] { case request =>
