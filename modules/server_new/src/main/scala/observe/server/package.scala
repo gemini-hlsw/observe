@@ -62,10 +62,9 @@ package object server {
 
     def instrumentLoaded[F[_]](
       instrument: Instrument
-    ): Option[Lens[EngineState[F], Option[SequenceData[F]]]] = instrument match {
-      case Instrument.GmosS => Some(EngineState.selectedGmosSouth)
-      case Instrument.GmosN => Some(EngineState.selectedGmosNorth)
-      case _                => none
+    ): Lens[EngineState[F], Option[SequenceData[F]]] = instrument match {
+      case Instrument.GmosS => EngineState.selectedGmosSouth
+      case Instrument.GmosN => EngineState.selectedGmosNorth
     }
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =

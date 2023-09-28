@@ -336,6 +336,7 @@ object SeqTranslate {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(StopObserveCmd(stop), _, _, _, _, _) => stop(graceful)
         case UnpausableControl(StopObserveCmd(stop), _)           => stop(graceful)
+        case _                                                    => Applicative[F].unit
       }
       deliverObserveCmd(seqId, f)(st).orElse(stopPaused(seqId).apply(st))
     }
@@ -346,6 +347,7 @@ object SeqTranslate {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(_, AbortObserveCmd(abort), _, _, _, _) => abort
         case UnpausableControl(_, AbortObserveCmd(abort))           => abort
+        case _                                                      => Applicative[F].unit
       }
 
       deliverObserveCmd(seqId, f)(st).orElse(abortPaused(seqId).apply(st))
@@ -587,7 +589,7 @@ object SeqTranslate {
             Resource.Gcal -> defaultGcal
           )
 
-        case StepType.AlignAndCalib => Map.empty[Resource, SystemOverrides => System[F]]
+        // case StepType.AlignAndCalib => Map.empty[Resource, SystemOverrides => System[F]]
 
         case StepType.Gems(inst) =>
           Map(
@@ -740,9 +742,9 @@ object SeqTranslate {
               instHeader(kwClient)
             )
 
-      case StepType.AlignAndCalib =>
-        (_: KeywordsClient[F]) =>
-          (_: HeaderExtraData) => List.empty[Header[F]] // No headers for A&C
+//      case StepType.AlignAndCalib =>
+//        (_: KeywordsClient[F]) =>
+//          (_: HeaderExtraData) => List.empty[Header[F]] // No headers for A&C
 
       case StepType.Gems(_) =>
         (kwClient: KeywordsClient[F]) =>

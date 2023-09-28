@@ -14,6 +14,7 @@ import lucuma.core.model.{ConstraintSet, Observation}
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
 import monocle.Optional
 import monocle.Focus
+import monocle.Lens
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.engine.EventResult.*
@@ -216,6 +217,12 @@ trait ObserveEngine[F[_]] {
   private[server] def stream(
     s0: EngineState[F]
   ): Stream[F, (EventResult[SeqEvent], EngineState[F])]
+
+  private[server] def loadSequenceEndo(
+    observer: Option[Observer],
+    seqg:     SequenceGen[F],
+    l:        Lens[EngineState[F], Option[SequenceData[F]]]
+  ): Endo[EngineState[F]]
 }
 
 object ObserveEngine {
@@ -654,50 +661,32 @@ object ObserveEngine {
                   )
                   .as(
                     Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                      EngineState
+                      val l = EngineState
                         .instrumentLoaded[F](seq.instrument)
-                        .map { l =>
-                          if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
-                            (
-                              st.sequences
-                                .get(sid)
-                                .fold(
-                                  ODBSequencesLoader
-                                    .loadSequenceEndo(observer.some, seq, executeEngine, l)
-                                )(_ =>
-                                  ODBSequencesLoader.reloadSequenceEndo(seq, executeEngine, l)
-                                )(st),
-                              LoadSequence(sid),
-                            )
-                          } else {
-                            (
-                              st,
-                              SeqEvent.NotifyUser(
-                                Notification.RequestFailed(
-                                  List(
-                                    s"Error loading observation $sid",
-                                    s"A sequence is running on instrument ${seq.instrument}"
-                                  )
-                                ),
-                                clientId
+                      if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
+                        (
+                          st.sequences
+                            .get(sid)
+                            .fold(
+                              ODBSequencesLoader
+                                .loadSequenceEndo(observer.some, seq, l)
+                            )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                          LoadSequence(sid),
+                        )
+                      } else {
+                        (
+                          st,
+                          SeqEvent.NotifyUser(
+                            Notification.RequestFailed(
+                              List(
+                                s"Error loading observation $sid",
+                                s"A sequence is running on instrument ${seq.instrument}"
                               )
-                            )
-                          }
-                        }
-                        .getOrElse(
-                          (
-                            st,
-                            SeqEvent.NotifyUser(
-                              Notification.RequestFailed(
-                                List(
-                                  s"Error loading observation $sid",
-                                  s"Instrument ${seq.instrument} not supported"
-                                )
-                              ),
-                              clientId
-                            )
+                            ),
+                            clientId
                           )
                         )
+                      }
                     }.toHandle)
                   )
             }
@@ -1237,42 +1226,43 @@ object ObserveEngine {
 //            .getOrElse(executeEngine.unit)
 //        )
 //    }
-//
-//    private def configSystemCheck(sid: Observation.Id, sys: Resource)(
-//      st:                              EngineState[F]
-//    ): Boolean = {
-//      // Resources used by running sequences
-//      val used = resourcesInUse(st)
-//
-//      // Resources reserved by running queues, excluding `sid` to prevent self blocking
+
+    private def configSystemCheck(sid: Observation.Id, sys: Resource)(
+      st: EngineState[F]
+    ): Boolean = {
+      // Resources used by running sequences
+      val used = resourcesInUse(st)
+
+      // Resources reserved by running queues, excluding `sid` to prevent self blocking
 //      val reservedByQueues = resourcesReserved(EngineState.sequences[F].modify(_ - sid)(st))
 //
 //      !(used ++ reservedByQueues).contains(sys)
-//    }
-//
-//    private def configSystemHandle(
-//      sid:      Observation.Id,
-//      stepId:   StepId,
-//      sys:      Resource,
-//      clientID: ClientId
-//    ): HandlerType[F, SeqEvent] =
-//      executeEngine.get.flatMap { st =>
-//        if (configSystemCheck(sid, sys)(st)) {
-//          st.sequences
-//            .get(sid)
-//            .flatMap(_.seqGen.configActionCoord(stepId, sys))
-//            .map(c =>
-//              executeEngine.startSingle(ActionCoords(sid, c)).map[SeqEvent] {
-//                case EventResult.Outcome.Ok => StartSysConfig(sid, stepId, sys)
-//                case _                      => NullSeqEvent
-//              }
-//            )
-//            .getOrElse(executeEngine.pure(NullSeqEvent))
-//        } else {
-//          executeEngine.pure(ResourceBusy(sid, stepId, sys, clientID))
-//        }
-//      }
-//
+      !used.contains(sys)
+    }
+
+    private def configSystemHandle(
+      sid:      Observation.Id,
+      stepId:   StepId,
+      sys:      Resource,
+      clientID: ClientId
+    ): HandlerType[F, SeqEvent] =
+      executeEngine.get.flatMap { st =>
+        if (configSystemCheck(sid, sys)(st)) {
+          st.sequences
+            .get(sid)
+            .flatMap(_.seqGen.configActionCoord(stepId, sys))
+            .map(c =>
+              executeEngine.startSingle(ActionCoords(sid, c)).map[SeqEvent] {
+                case EventResult.Outcome.Ok => StartSysConfig(sid, stepId, sys)
+                case _                      => NullSeqEvent
+              }
+            )
+            .getOrElse(executeEngine.pure(NullSeqEvent))
+        } else {
+          executeEngine.pure(ResourceBusy(sid, stepId, sys, clientID))
+        }
+      }
+
 //    /**
 //     * Triggers the application of a specific step configuration to a system
 //     */
@@ -1283,14 +1273,13 @@ object ObserveEngine {
       stepId:   StepId,
       sys:      Resource,
       clientID: ClientId
-    ): F[Unit] = Applicative[F].unit
-//      setObserver(sid, user, observer) *>
-//        executeEngine.offer(
-//          Event.modifyState[F, EngineState[F], SeqEvent](
-//            configSystemHandle(sid, stepId, sys, clientID)
-//          )
-//        )
-//
+    ): F[Unit] = setObserver(sid, user, observer) *>
+      executeEngine.offer(
+        Event.modifyState[F, EngineState[F], SeqEvent](
+          configSystemHandle(sid, stepId, sys, clientID)
+        )
+      )
+
     def notifyODB(
       i: (EventResult[SeqEvent], EngineState[F])
     ): F[(EventResult[SeqEvent], EngineState[F])] = i.pure[F]
@@ -1444,6 +1433,12 @@ object ObserveEngine {
 //              refreshSequence(seqId)).withEvent(SetDhsEnabled(seqId, user.some, enabled)).toHandle
 //          )
 //        )
+
+    def loadSequenceEndo(
+      observer: Option[Observer],
+      seqg:     SequenceGen[F],
+      l:        Lens[EngineState[F], Option[SequenceData[F]]]
+    ): Endo[EngineState[F]] = ODBSequencesLoader.loadSequenceEndo(observer, seqg, l)
 
   }
 

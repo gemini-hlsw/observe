@@ -568,12 +568,13 @@ object AltairControllerEpics {
 
   }
 
-  private def aoOffsetThreshold(instrument: Instrument): Option[Length] = instrument match {
-    case Instrument.Nifs  => (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
-    case Instrument.Niri  => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some
-    case Instrument.Gnirs => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some
-    case _                => none
-  }
+  private def aoOffsetThreshold(instrument: Instrument): Option[Length] = none
+//  instrument match {
+//    case Instrument.Nifs  => (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
+//    case Instrument.Niri  => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some
+//    case Instrument.Gnirs => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some
+//    case _                => none
+//  }
 
   // Auxiliary class that contains all the information from a pause calculation
   private sealed case class PauseReturn[F[_]](

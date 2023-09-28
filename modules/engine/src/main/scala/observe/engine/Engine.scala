@@ -90,17 +90,6 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   private def cancelPause(id: Observation.Id): HandleType[Unit] =
     modifyS(id)(Sequence.State.userStopSet(false))
 
-  /**
-   * Builds the initial state of a sequence
-   */
-  def load(seq: Sequence[F]): Sequence.State[F] = Sequence.State.init(seq)
-
-  /**
-   * Redefines an existing sequence. Changes the step actions, removes steps, adds new steps.
-   */
-  def reload(seq: Sequence.State[F], steps: List[Step[F]]): Sequence.State[F] =
-    Sequence.State.reload(steps, seq)
-
   def startSingle(c: ActionCoords): HandleType[Outcome] = get.flatMap { st =>
     val x = for {
       seq <- stateL.sequenceStateIndex(c.sid).getOption(st)
@@ -554,5 +543,16 @@ object Engine {
     sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
     iq <- Queue.unbounded[F, Event[F, S, U]]
   } yield new Engine(stateL, sq, iq)
+
+  /**
+   * Builds the initial state of a sequence
+   */
+  def load[F[_]](seq: Sequence[F]): Sequence.State[F] = Sequence.State.init(seq)
+
+  /**
+   * Redefines an existing sequence. Changes the step actions, removes steps, adds new steps.
+   */
+  def reload[F[_]](seq: Sequence.State[F], steps: List[Step[F]]): Sequence.State[F] =
+    Sequence.State.reload(steps, seq)
 
 }
