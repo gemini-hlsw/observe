@@ -50,15 +50,15 @@ package object model {
 
   extension (i: Instrument) {
     def hasOI: Boolean = i match {
-      case Instrument.F2    => true
+//      case Instrument.F2    => true
       case Instrument.GmosS => true
       case Instrument.GmosN => true
-      case Instrument.Nifs  => true
-      case Instrument.Niri  => true
-      case Instrument.Gnirs => true
-      case Instrument.Gsaoi => false
-      case Instrument.Gpi   => true
-      case Instrument.Ghost => false
+//      case Instrument.Nifs  => true
+//      case Instrument.Niri  => true
+//      case Instrument.Gnirs => true
+//      case Instrument.Gsaoi => false
+//      case Instrument.Gpi   => true
+//      case Instrument.Ghost => false
     }
   }
 }

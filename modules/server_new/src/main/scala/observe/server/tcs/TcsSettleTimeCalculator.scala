@@ -44,11 +44,11 @@ object TcsSettleTimeCalculator {
 
   val oiwfsSettleTimeCalculators: Map[Instrument, SettleTimeCalculator] = Map(
     Instrument.GmosN -> constantSettleTime(1.seconds),
-    Instrument.GmosS -> constantSettleTime(1.seconds),
-    Instrument.F2    -> constantSettleTime(1.seconds),
-    Instrument.Nifs  -> constantSettleTime(4.seconds),
-    Instrument.Niri  -> constantSettleTime(4.seconds),
-    Instrument.Gnirs -> constantSettleTime(4.seconds)
+    Instrument.GmosS -> constantSettleTime(1.seconds)
+//    Instrument.F2    -> constantSettleTime(1.seconds),
+//    Instrument.Nifs  -> constantSettleTime(4.seconds),
+//    Instrument.Niri  -> constantSettleTime(4.seconds),
+//    Instrument.Gnirs -> constantSettleTime(4.seconds)
   )
 
   def calcDisplacement(startOffset: InstrumentOffset, endOffset: InstrumentOffset): Angle =

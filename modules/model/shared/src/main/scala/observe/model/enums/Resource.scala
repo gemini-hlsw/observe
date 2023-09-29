@@ -44,24 +44,26 @@ sealed abstract class Instrument(tag: String, ordinal: Int, label: String)
 
 object Instrument {
 
-  case object F2    extends Instrument("F2", 11, "Flamingos2")
-  case object Ghost extends Instrument("Ghost", 12, "GHOST")
+//  case object F2    extends Instrument("F2", 11, "Flamingos2")
+//  case object Ghost extends Instrument("Ghost", 12, "GHOST")
   case object GmosS extends Instrument("GmosS", 13, "GMOS-S")
   case object GmosN extends Instrument("GmosN", 14, "GMOS-N")
-  case object Gnirs extends Instrument("Gnirs", 15, "GNIRS")
-  case object Gpi   extends Instrument("Gpi", 16, "GPI")
-  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
-  case object Niri  extends Instrument("Niri", 18, "NIRI")
-  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
+//  case object Gnirs extends Instrument("Gnirs", 15, "GNIRS")
+//  case object Gpi   extends Instrument("Gpi", 16, "GPI")
+//  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
+//  case object Niri  extends Instrument("Niri", 18, "NIRI")
+//  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
 
   given Show[Instrument] =
     Show.show(_.label)
 
   val gsInstruments: NonEmptyList[Instrument] =
-    NonEmptyList.of(F2, Ghost, GmosS, Gpi, Gsaoi)
+    NonEmptyList.of(GmosS)
+//    NonEmptyList.of(F2, Ghost, GmosS, Gpi, Gsaoi)
 
   val gnInstruments: NonEmptyList[Instrument] =
-    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
+    NonEmptyList.of(GmosN)
+//    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
 
   val all: NonEmptyList[Instrument] =
     gsInstruments.concatNel(gnInstruments)

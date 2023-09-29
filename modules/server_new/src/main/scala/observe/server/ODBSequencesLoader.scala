@@ -9,7 +9,7 @@ import cats.syntax.all.*
 import monocle.Lens
 import monocle.std.option
 import lucuma.core.model.sequence.Atom
-import observe.engine.Sequence
+import observe.engine.{Engine, Sequence}
 import observe.model.{Observation, Observer, SystemOverrides}
 
 final class ODBSequencesLoader[F[_]: Async](
@@ -93,10 +93,9 @@ object ODBSequencesLoader {
   ): Sequence[F] = Sequence.sequence(id, atomId, toStepList(seq, overrides, d))
 
   private[server] def loadSequenceEndo[F[_]](
-    observer:   Option[Observer],
-    seqg:       SequenceGen[F],
-    execEngine: ExecEngineType[F],
-    l:          Lens[EngineState[F], Option[SequenceData[F]]]
+    observer: Option[Observer],
+    seqg:     SequenceGen[F],
+    l:        Lens[EngineState[F], Option[SequenceData[F]]]
   ): Endo[EngineState[F]] = st =>
     l.replace(
       SequenceData[F](
@@ -104,7 +103,7 @@ object ODBSequencesLoader {
         none,
         SystemOverrides.AllEnabled,
         seqg,
-        execEngine.load(
+        Engine.load(
           toEngineSequence(
             seqg.obsData.id,
             seqg.atomId,
@@ -118,15 +117,14 @@ object ODBSequencesLoader {
     )(st)
 
   private[server] def reloadSequenceEndo[F[_]](
-    seqg:       SequenceGen[F],
-    execEngine: ExecEngineType[F],
-    l:          Lens[EngineState[F], Option[SequenceData[F]]]
+    seqg: SequenceGen[F],
+    l:    Lens[EngineState[F], Option[SequenceData[F]]]
   ): Endo[EngineState[F]] = st =>
     l.andThen(option.some)
       .modify(sd =>
         sd.copy(
           seqGen = seqg,
-          seq = execEngine.reload(
+          seq = Engine.reload(
             sd.seq,
             toStepList(
               seqg,

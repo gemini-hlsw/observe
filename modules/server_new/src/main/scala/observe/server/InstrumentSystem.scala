@@ -39,17 +39,17 @@ trait InstrumentSystem[F[_]] extends System[F] {
 object InstrumentSystem {
   val ObserveOperationsTimeout = 1.minute
 
-  final case class StopObserveCmd[F[_]](self: Boolean => F[Unit])
-  final case class AbortObserveCmd[F[_]](self: F[Unit])
-  final case class PauseObserveCmd[F[_]](self: Boolean => F[Unit])
+  final case class StopObserveCmd[+F[_]](self: Boolean => F[Unit])
+  final case class AbortObserveCmd[+F[_]](self: F[Unit])
+  final case class PauseObserveCmd[+F[_]](self: Boolean => F[Unit])
 
-  final case class ContinuePausedCmd[F[_]](self: FiniteDuration => F[ObserveCommandResult])
-  final case class StopPausedCmd[F[_]](self: F[ObserveCommandResult])
-  final case class AbortPausedCmd[F[_]](self: F[ObserveCommandResult])
+  final case class ContinuePausedCmd[+F[_]](self: FiniteDuration => F[ObserveCommandResult])
+  final case class StopPausedCmd[+F[_]](self: F[ObserveCommandResult])
+  final case class AbortPausedCmd[+F[_]](self: F[ObserveCommandResult])
 
-  sealed trait ObserveControl[F[_]] extends Product with Serializable
-  case object Uncontrollable        extends ObserveControl[Nothing]
-  final case class CompleteControl[F[_]](
+  sealed trait ObserveControl[+F[_]] extends Product with Serializable
+  case object Uncontrollable         extends ObserveControl[Nothing]
+  final case class CompleteControl[+F[_]](
     stop:        StopObserveCmd[F],
     abort:       AbortObserveCmd[F],
     pause:       PauseObserveCmd[F],
@@ -58,7 +58,7 @@ object InstrumentSystem {
     abortPaused: AbortPausedCmd[F]
   ) extends ObserveControl[F]
   // Special class for instrument, that cannot pause/resume like IR instruments and GSAOI
-  final case class UnpausableControl[F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
+  final case class UnpausableControl[+F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
       extends ObserveControl[F]
 
   final case class ElapsedTime(self: FiniteDuration) extends AnyVal

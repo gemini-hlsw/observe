@@ -154,6 +154,6 @@ object StepsView {
 
   def stepsView[F[_]](instrument: Instrument): StepsView[F] = instrument match {
     case GmosN | GmosS => GmosStepsView.stepsView[F]
-    case _             => defaultStepsView[F]
+    // case _             => defaultStepsView[F]
   }
 }

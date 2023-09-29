@@ -26,9 +26,9 @@ object StepType {
   final case class DarkOrBias(override val instrument: Instrument)          extends StepType
   final case class DarkOrBiasNS(override val instrument: Instrument)        extends StepType
   final case class ExclusiveDarkOrBias(override val instrument: Instrument) extends StepType
-  case object AlignAndCalib                                                 extends StepType {
-    override val instrument: Instrument = Instrument.Gpi
-  }
+//  case object AlignAndCalib                                                 extends StepType {
+//    override val instrument: Instrument = Instrument.Gpi
+//  }
 
   given Eq[StepType] = Eq.instance {
     case (CelestialObject(i), CelestialObject(j))         => i === j
@@ -40,7 +40,7 @@ object StepType {
     case (DarkOrBias(i), DarkOrBias(j))                   => i === j
     case (DarkOrBiasNS(i), DarkOrBiasNS(j))               => i === j
     case (ExclusiveDarkOrBias(i), ExclusiveDarkOrBias(j)) => i === j
-    case (AlignAndCalib, AlignAndCalib)                   => true
+//    case (AlignAndCalib, AlignAndCalib)                   => true
     case _                                                => false
   }
 }

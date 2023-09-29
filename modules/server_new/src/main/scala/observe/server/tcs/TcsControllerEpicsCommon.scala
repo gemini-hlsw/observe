@@ -854,12 +854,12 @@ object TcsControllerEpicsCommon {
     ) <= WavelengthTolerance.toAngstroms
 
   def oiSelectionName(i: Instrument): Option[String] = i match {
-    case Instrument.F2                                        => "F2".some
-    case Instrument.GmosS | Instrument.GmosN                  => "GMOS".some
-    case Instrument.Gnirs                                     => "GNIRS".some
-    case Instrument.Niri                                      => "NIRI".some
-    case Instrument.Nifs                                      => "NIFS".some
-    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
+//    case Instrument.F2                                        => "F2".some
+    case Instrument.GmosS | Instrument.GmosN => "GMOS".some
+//    case Instrument.Gnirs                                     => "GNIRS".some
+//    case Instrument.Niri                                      => "NIRI".some
+//    case Instrument.Nifs                                      => "NIFS".some
+//    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
   }
 
   def calcMoveDistanceSquared(current: BaseEpicsTcsConfig, demand: TelescopeConfig): Option[Area] =
