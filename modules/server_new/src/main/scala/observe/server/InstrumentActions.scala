@@ -6,8 +6,10 @@ package observe.server
 import cats.data.NonEmptyList
 import cats.effect.Temporal
 import fs2.Stream
+import observe.engine.Action
 import observe.engine.Action.ActionState
-import observe.engine.{Action, ParallelActions, Result}
+import observe.engine.ParallelActions
+import observe.engine.Result
 import observe.model.ActionType
 import observe.model.dhs.ImageFileId
 import org.typelevel.log4cats.Logger

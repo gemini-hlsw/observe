@@ -3,10 +3,10 @@
 
 package observe.model.arb
 
+import observe.model.GmosParameters.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import observe.model.GmosParameters.*
 
 trait ArbGmosParameters {
   given gmosNsPairsArb: Arbitrary[NsPairs]   =

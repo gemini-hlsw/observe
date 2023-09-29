@@ -3,29 +3,39 @@
 
 package observe.server.tcs
 
-import cats.effect.{Async, IO}
-import cats.syntax.all.*
+import cats.effect.Async
+import cats.effect.IO
+import cats.effect.Ref
 import cats.effect.unsafe.implicits.global
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import lucuma.core.math.Wavelength
-import lucuma.core.math.Wavelength.*
+import cats.syntax.all.*
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
 import lucuma.core.enums.LightSinkName.Gmos
 import lucuma.core.enums.Site
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.noop.NoOpLogger
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
-import observe.model.enums.{ComaOption, Instrument, M1Source, MountGuideOption, TipTiltSource}
+import lucuma.core.math.Wavelength
+import lucuma.core.math.Wavelength.*
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.TelescopeGuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.Instrument
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.InstrumentGuide
+import observe.server.keywords.USLocale
 import observe.server.tcs.TcsController.BasicTcsConfig
 import observe.server.tcs.TcsController.LightSource.Sky
 import observe.server.tcs.TcsController.*
-import squants.space.{Arcseconds, Length, Millimeters}
-import observe.server.keywords.USLocale
-import observe.server.tcs.TestTcsEpics.{ProbeGuideConfigVals, TestTcsEvent}
+import observe.server.tcs.TestTcsEpics.ProbeGuideConfigVals
+import observe.server.tcs.TestTcsEpics.TestTcsEvent
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
 import squants.space.AngleConversions.*
+import squants.space.Arcseconds
+import squants.space.Length
 import squants.space.LengthConversions.*
-
-import cats.effect.Ref
+import squants.space.Millimeters
 
 class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 

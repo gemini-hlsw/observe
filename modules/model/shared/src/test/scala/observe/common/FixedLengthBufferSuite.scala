@@ -4,7 +4,9 @@
 package observe.common
 
 import cats.kernel.laws.discipline.EqTests
-import cats.laws.discipline.{FoldableTests, FunctorTests, TraverseTests}
+import cats.laws.discipline.FoldableTests
+import cats.laws.discipline.FunctorTests
+import cats.laws.discipline.TraverseTests
 import observe.common.ArbitrariesCommon.given
 
 /**

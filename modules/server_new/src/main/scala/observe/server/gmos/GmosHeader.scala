@@ -5,14 +5,14 @@ package observe.server.gmos
 
 import cats.effect.Sync
 import cats.syntax.all.*
+import lucuma.core.model.sequence.gmos
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
 import observe.server.gmos.GmosController.GmosSite
 import observe.server.keywords.*
-import org.typelevel.log4cats.Logger
-import lucuma.core.model.sequence.gmos
 import observe.server.tcs.TcsKeywordsReader
+import org.typelevel.log4cats.Logger
 
 object GmosHeader {
   def header[F[_]: Sync: Logger, T <: GmosSite, S <: gmos.StaticConfig, D <: gmos.DynamicConfig](

@@ -3,14 +3,15 @@
 
 package observe.server
 
-import cats.effect.{IO, Ref}
+import cats.effect.IO
+import cats.effect.Ref
+import munit.CatsEffectSuite
+import observe.model.dhs.*
+import observe.model.enums.ObserveCommandResult
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 
 import scala.concurrent.duration.*
-import observe.model.enums.ObserveCommandResult
-import observe.model.dhs.*
-import munit.CatsEffectSuite
 
 class InstrumentControllerSimSuite extends CatsEffectSuite {
   private given Logger[IO] = NoOpLogger.impl[IO]

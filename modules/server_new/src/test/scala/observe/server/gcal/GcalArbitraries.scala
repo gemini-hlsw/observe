@@ -3,11 +3,11 @@
 
 package observe.server.gcal
 
-import org.scalacheck.Arbitrary.*
+import observe.server.gcal.GcalController.*
 import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.server.gcal.GcalController.*
 
 trait GcalArbitraries {
   given Arbitrary[GcalController.LampState] =

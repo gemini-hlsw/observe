@@ -4,10 +4,10 @@
 package observe.model.config.arb
 
 import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.config.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import observe.model.config.*
 
 trait ArbSystemsControlConfiguration {
 

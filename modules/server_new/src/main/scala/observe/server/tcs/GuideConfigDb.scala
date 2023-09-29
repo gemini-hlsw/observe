@@ -3,25 +3,35 @@
 
 package observe.server.tcs
 
-import cats.{Applicative, Eq}
+import cats.Applicative
+import cats.Eq
 import cats.derived.*
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
 import fs2.concurrent.SignallingRef
-import io.circe.{Decoder, DecodingFailure}
-import monocle.{Focus, Lens, Optional}
-import monocle.std.{either, option}
+import io.circe.Decoder
+import io.circe.DecodingFailure
+import monocle.Focus
+import monocle.Lens
+import monocle.Optional
+import monocle.std.either
+import monocle.std.option
 import mouse.boolean.*
+import observe.model.M1GuideConfig
 import observe.model.M1GuideConfig.*
+import observe.model.M2GuideConfig
 import observe.model.M2GuideConfig.*
-import observe.model.enums.ComaOption.*
-import observe.model.enums.MountGuideOption.*
-import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
+import observe.model.TelescopeGuideConfig
 import observe.model.TelescopeGuideConfig.given
-import observe.server.gems.GemsController.GemsConfig.given
+import observe.model.enums.ComaOption
+import observe.model.enums.ComaOption.*
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.MountGuideOption.*
+import observe.model.enums.TipTiltSource
 import observe.server.altair.AltairController.{*, given}
+import observe.server.gems.GemsController.GemsConfig.given
 import observe.server.gems.GemsController.*
 import squants.space.Millimeters
 

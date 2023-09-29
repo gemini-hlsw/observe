@@ -3,18 +3,21 @@
 
 package observe.server.gmos
 
-import cats.effect.{Ref, Temporal}
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
-import observe.engine.{ParallelActions, Result}
+import observe.engine.ParallelActions
+import observe.engine.Result
 import observe.model.NSSubexposure
 import observe.model.dhs.*
+import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage.*
-import observe.model.enums.{Guiding, ObserveCommandResult}
-import observe.server.*
+import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentActions.*
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObserveActions.*
+import observe.server.*
 import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.NSObserveCommand.*
 import observe.server.gmos.NSPartial.*

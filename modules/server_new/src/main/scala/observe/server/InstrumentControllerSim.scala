@@ -4,15 +4,17 @@
 package observe.server
 
 import cats.*
+import cats.effect.Ref
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.effect.kernel.Async
-import cats.effect.{Ref, Sync, Temporal}
 import cats.syntax.all.*
 import fs2.Stream
 import gov.aps.jca.TimeoutException
-import mouse.all.*
-import monocle.Lens
 import monocle.Focus
+import monocle.Lens
 import monocle.syntax.all.*
+import mouse.all.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime

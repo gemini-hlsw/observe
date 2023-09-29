@@ -4,7 +4,8 @@
 package observe.server.tcs
 
 import cats.kernel.laws.discipline.*
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
 
 /**
  * Tests Tcs typeclasses

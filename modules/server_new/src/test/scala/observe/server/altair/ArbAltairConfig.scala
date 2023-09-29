@@ -3,9 +3,11 @@
 
 package observe.server.altair
 
-import org.scalacheck.Arbitrary.*
-import org.scalacheck.{Arbitrary, Cogen, Gen}
 import observe.model.arb.all.given
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 import squants.Length
 
 import AltairController.{AltairConfig, AltairOff, Lgs, LgsWithOi, LgsWithP1, Ngs}

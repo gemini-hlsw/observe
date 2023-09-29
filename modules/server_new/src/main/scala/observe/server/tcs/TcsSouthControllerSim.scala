@@ -8,8 +8,10 @@ import cats.data.NonEmptySet
 import cats.implicits.*
 import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
-import observe.server.tcs.TcsController.{InstrumentOffset, Subsystem}
-import observe.server.tcs.TcsSouthController.{TcsSouthConfig, given}
+import observe.server.tcs.TcsController.InstrumentOffset
+import observe.server.tcs.TcsController.Subsystem
+import observe.server.tcs.TcsSouthController.TcsSouthConfig
+import observe.server.tcs.TcsSouthController.given
 import org.typelevel.log4cats.Logger
 
 class TcsSouthControllerSim[F[_]: Applicative: Logger] private extends TcsSouthController[F] {

@@ -3,35 +3,39 @@
 
 package observe.server.gmos
 
+import cats.Applicative
+import cats.ApplicativeError
 import cats.effect.Async
 import cats.syntax.all.*
-import cats.{Applicative, ApplicativeError}
 import edu.gemini.epics.acm.CarStateGeneric
 import fs2.Stream
-import lucuma.core.enums.{GmosAmpCount, GmosAmpReadMode, GmosEOffsetting, GmosGratingOrder}
+import lucuma.core.enums.GmosAmpCount
+import lucuma.core.enums.GmosAmpReadMode
+import lucuma.core.enums.GmosEOffsetting
+import lucuma.core.enums.GmosGratingOrder
 import lucuma.core.math.Wavelength
 import mouse.all.*
 import observe.model.GmosParameters.*
+import observe.model.NSSubexposure
+import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.model.{NSSubexposure, ObserveStage}
 import observe.server.EpicsCodex.*
+import observe.server.EpicsCommandBase
+import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.gmos.GmosController.*
+import observe.server.NSProgress
+import observe.server.ObserveFailure
+import observe.server.Progress
+import observe.server.RemainingTime
 import observe.server.gmos.GmosController.Config.*
-import observe.server.{
-  EpicsCommandBase,
-  EpicsUtil,
-  NSProgress,
-  ObserveFailure,
-  Progress,
-  RemainingTime
-}
+import observe.server.gmos.GmosController.*
 import org.typelevel.log4cats.Logger
 
-import java.util.concurrent.TimeUnit.{MILLISECONDS, SECONDS}
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.DurationConverters.*
 

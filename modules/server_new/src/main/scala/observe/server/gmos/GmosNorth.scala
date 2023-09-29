@@ -4,20 +4,34 @@
 package observe.server.gmos
 
 import cats.MonadThrow
-import cats.effect.{Ref, Temporal}
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all.*
-import lucuma.core.enums.{GmosRoi, LightSinkName, MosPreImaging, ObserveClass}
+import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.MosPreImaging
+import lucuma.core.enums.ObserveClass
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.GmosCcdMode
+import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
+import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
 import monocle.Getter
 import observe.model.enums.Instrument
-import observe.server.gmos.GmosController.Config.{DTAX, GratingOrder}
+import observe.server.InstrumentSpecifics
+import observe.server.ObserveFailure
+import observe.server.StepType
+import observe.server.gmos.GmosController.Config.DTAX
+import observe.server.gmos.GmosController.Config.GratingOrder
 import observe.server.gmos.GmosController.GmosSite
-import observe.server.gmos.GmosController.GmosSite.{FPU, Filter, Grating, StageMode}
-import observe.server.keywords.{DhsClient, DhsClientProvider}
-import observe.server.{InstrumentSpecifics, ObserveFailure, StepType}
+import observe.server.gmos.GmosController.GmosSite.FPU
+import observe.server.gmos.GmosController.GmosSite.Filter
+import observe.server.gmos.GmosController.GmosSite.Grating
+import observe.server.gmos.GmosController.GmosSite.StageMode
+import observe.server.keywords.DhsClient
+import observe.server.keywords.DhsClientProvider
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import org.typelevel.log4cats.Logger
 import squants.Length

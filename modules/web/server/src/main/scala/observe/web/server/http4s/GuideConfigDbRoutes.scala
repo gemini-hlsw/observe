@@ -6,15 +6,15 @@ package observe.web.server.http4s
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.compression.Compression
-import org.typelevel.log4cats.Logger
+import observe.server.tcs.GuideConfig
+import observe.server.tcs.GuideConfigDb
+import observe.server.tcs.GuideConfigDb.given
 import org.http4s.EntityDecoder
 import org.http4s.HttpRoutes
 import org.http4s.circe.jsonOf
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.GZip
-import observe.server.tcs.GuideConfig
-import observe.server.tcs.GuideConfigDb
-import observe.server.tcs.GuideConfigDb.given
+import org.typelevel.log4cats.Logger
 
 class GuideConfigDbRoutes[F[_]: Concurrent: Compression: Logger](db: GuideConfigDb[F])
     extends Http4sDsl[F] {

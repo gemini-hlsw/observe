@@ -5,12 +5,12 @@ package observe.model
 
 import cats.kernel.laws.discipline.*
 import lucuma.core.util.arb.ArbEnumerated.given
-import observe.model.enums.*
 import observe.model.GmosParameters.*
-import observe.model.dhs.*
 import observe.model.ObserveModelArbitraries.given
-import observe.model.events.SingleActionEvent
 import observe.model.arb.all.given
+import observe.model.dhs.*
+import observe.model.enums.*
+import observe.model.events.SingleActionEvent
 import squants.time.Time
 import squants.time.TimeUnit
 

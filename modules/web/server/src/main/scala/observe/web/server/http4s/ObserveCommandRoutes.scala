@@ -6,17 +6,17 @@ package observe.web.server.http4s
 import cats.effect.Async
 import cats.syntax.all.*
 import fs2.compression.Compression
-import org.http4s.*
-import org.http4s.dsl.*
-import org.http4s.circe.*
-import org.http4s.server.middleware.GZip
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import observe.model.*
 import observe.server
 import observe.server.ObserveEngine
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.SkyBackground
-import lucuma.core.enums.CloudExtinction
+import org.http4s.*
+import org.http4s.circe.*
+import org.http4s.dsl.*
+import org.http4s.server.middleware.GZip
 // import observe.web.server.http4s.OptionalRunOverride
 // import observe.web.server.http4s.encoder.*
 // import observe.web.server.security.AuthenticationService

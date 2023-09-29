@@ -5,22 +5,24 @@ package observe.server
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import lucuma.core.model.sequence.{Atom, StepConfig}
-import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
 import mouse.all.*
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.Action
 import observe.engine.ActionCoordsInSeq
 import observe.engine.ActionIndex
 import observe.engine.ExecutionIndex
 import observe.engine.ParallelActions
 import observe.engine.Step as EngineStep
-import observe.model.SystemOverrides
 import observe.model.StepId
+import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.

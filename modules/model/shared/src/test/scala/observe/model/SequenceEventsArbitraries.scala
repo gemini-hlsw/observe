@@ -3,21 +3,23 @@
 
 package observe.model
 
-import events.*
-import org.scalacheck.Arbitrary
-import org.scalacheck.Cogen
-import org.scalacheck.Gen
-import org.scalacheck.Arbitrary.*
+import lucuma.core.arb.ArbTime.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
-import lucuma.core.arb.ArbTime.*
-import java.time.Instant
-import observe.model.enums.*
-import observe.model.dhs.*
-import observe.model.QueueManipulationOp.*
 import observe.model.ObserveModelArbitraries.given
+import observe.model.QueueManipulationOp.*
 import observe.model.arb.all.given
+import observe.model.dhs.*
+import observe.model.enums.*
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
+
+import java.time.Instant
+
+import events.*
 
 trait SequenceEventsArbitraries {
 

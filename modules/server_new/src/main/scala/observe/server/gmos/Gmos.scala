@@ -3,22 +3,27 @@
 
 package observe.server.gmos
 
-import scala.concurrent.duration.*
 import cats.*
 import cats.data.Kleisli
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all.*
 import eu.timepit.refined.api.Refined.*
-import lucuma.core.enums.{
-  GmosAdc,
-  GmosEOffsetting,
-  GmosGratingOrder,
-  GmosRoi,
-  MosPreImaging,
-  ObserveClass
-}
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.GmosAdc
+import lucuma.core.enums.GmosEOffsetting
+import lucuma.core.enums.GmosGratingOrder
+import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.MosPreImaging
+import lucuma.core.enums.ObserveClass
 import lucuma.core.math.Wavelength
+import lucuma.core.model.sequence
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.GmosCcdMode
+import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
+import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
+import monocle.Getter
 import observe.model.GmosParameters.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Guiding
@@ -26,19 +31,19 @@ import observe.model.enums.Instrument
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.server.{StepType, gmos, *}
+import observe.server.StepType
+import observe.server.StepType.ExclusiveDarkOrBias
+import observe.server._
+import observe.server.gmos
+import observe.server.gmos.GmosController.Config
 import observe.server.gmos.GmosController.Config.*
+import observe.server.gmos.GmosController.GmosSite
+import observe.server.gmos.NSObserveCommand
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
-import cats.effect.{Ref, Temporal}
-import monocle.Getter
-import lucuma.core.model.sequence
-import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
-import observe.server.StepType.ExclusiveDarkOrBias
-import observe.server.gmos.GmosController.{Config, GmosSite}
-import observe.server.gmos.NSObserveCommand
+import org.typelevel.log4cats.Logger
 
+import scala.concurrent.duration.*
 import scala.jdk.DurationConverters.*
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](

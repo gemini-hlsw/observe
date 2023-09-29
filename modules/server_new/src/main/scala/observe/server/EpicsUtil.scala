@@ -5,22 +5,30 @@ package observe.server
 
 import cats.*
 import cats.data.Nested
-import cats.effect.{Async, Sync, Temporal}
+import cats.effect.Async
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import fs2.Stream
 import mouse.boolean.*
 import observe.model.ObserveStage
-import observe.model.enums.{ApplyCommandResult, ObserveCommandResult}
-import observe.server.ObserveFailure.{NullEpicsError, ObserveException}
+import observe.model.enums.ApplyCommandResult
+import observe.model.enums.ObserveCommandResult
+import observe.server.ObserveFailure.NullEpicsError
+import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
 
-import java.lang.{Double as JDouble, Float as JFloat, Integer as JInt}
+import java.lang.{Double => JDouble}
+import java.lang.{Float => JFloat}
+import java.lang.{Integer => JInt}
 import java.util
+import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{Timer as JTimer, TimerTask}
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import java.util.{Timer => JTimer}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters.*
 import scala.math.abs
 

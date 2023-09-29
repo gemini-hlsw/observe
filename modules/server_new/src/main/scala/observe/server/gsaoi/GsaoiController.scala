@@ -3,14 +3,17 @@
 
 package observe.server.gsaoi
 
-import cats.{Applicative, Eq, Show}
+import cats.Applicative
+import cats.Eq
+import cats.Show
 import lucuma.core.util.NewType
+import lucuma.core.util.TimeSpan
+import lucuma.core.util.TimeSpan.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
-import observe.server.gsaoi.GsaoiController.{DCConfig, GsaoiConfig}
-import lucuma.core.util.TimeSpan
-import lucuma.core.util.TimeSpan.*
+import observe.server.gsaoi.GsaoiController.DCConfig
+import observe.server.gsaoi.GsaoiController.GsaoiConfig
 
 import scala.concurrent.duration.*
 import scala.jdk.DurationConverters.*

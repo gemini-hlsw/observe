@@ -7,8 +7,8 @@ import cats.data.NonEmptySet
 import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.Altair
 import observe.server.overrideLogMessage
-import org.typelevel.log4cats.Logger
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
+import org.typelevel.log4cats.Logger
 
 class TcsNorthControllerDisabled[F[_]: Logger] extends TcsNorthController[F] {
   override def applyConfig(

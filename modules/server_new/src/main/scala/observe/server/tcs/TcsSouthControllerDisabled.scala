@@ -7,8 +7,8 @@ import cats.data.NonEmptySet
 import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems
 import observe.server.overrideLogMessage
-import org.typelevel.log4cats.Logger
 import observe.server.tcs.TcsSouthController.TcsSouthConfig
+import org.typelevel.log4cats.Logger
 
 class TcsSouthControllerDisabled[F[_]: Logger] extends TcsSouthController[F] {
   override def applyConfig(

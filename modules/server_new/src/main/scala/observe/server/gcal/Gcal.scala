@@ -3,16 +3,19 @@
 
 package observe.server.gcal
 
-import scala.Function.const
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.{GcalArc, GcalContinuum, GcalShutter}
+import lucuma.core.enums.GcalArc
+import lucuma.core.enums.GcalContinuum
+import lucuma.core.enums.GcalShutter
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepConfig.Gcal.Lamp.*
 import observe.model.enums.Resource
 import observe.server.ConfigResult
 import observe.server.System
 import observe.server.gcal.GcalController.*
+
+import scala.Function.const
 
 /**
  * Created by jluhrs on 3/21/17.

@@ -3,10 +3,10 @@
 
 package observe.model.arb
 
+import observe.model.dhs.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.dhs.*
 
 trait ArbDhsTypes {
 

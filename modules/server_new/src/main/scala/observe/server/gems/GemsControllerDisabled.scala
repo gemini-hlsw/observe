@@ -5,12 +5,12 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.syntax.all.*
-import observe.server.tcs.Gaos.PauseConditionSet
-import org.typelevel.log4cats.Logger
-import observe.server.overrideLogMessage
 import observe.server.gems.Gems.GemsWfsState
+import observe.server.overrideLogMessage
 import observe.server.tcs.Gaos
+import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
+import org.typelevel.log4cats.Logger
 
 class GemsControllerDisabled[F[_]: Logger: Applicative] extends GemsController[F] {
   override def pauseResume(

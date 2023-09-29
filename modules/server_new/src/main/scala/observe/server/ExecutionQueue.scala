@@ -4,12 +4,14 @@
 package observe.server
 
 import cats.Eq
+import monocle.Focus
+import monocle.Lens
 import observe.model.BatchCommandState
 import observe.model.Observation
 import observe.model.SequenceState
-import observe.model.enums.{Instrument, Resource}
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.server.ExecutionQueue.SequenceInQueue
-import monocle.{Focus, Lens}
 
 final case class ExecutionQueue(
   name:     String,

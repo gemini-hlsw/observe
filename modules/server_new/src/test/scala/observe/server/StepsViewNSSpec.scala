@@ -4,9 +4,9 @@
 package observe.server
 
 import cats.Id
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.eq.*
-import cats.data.NonEmptyList
 import observe.engine.*
 import observe.model.enums.*
 import observe.server.TestCommon.*

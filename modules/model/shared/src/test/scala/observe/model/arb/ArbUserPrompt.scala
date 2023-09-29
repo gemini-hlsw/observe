@@ -6,16 +6,18 @@ package observe.model.arb
 import cats.data.NonEmptyList
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
-import observe.model.{Observation, StepId, UserPrompt}
-import org.scalacheck.{Arbitrary, Cogen, Gen}
+import observe.model.Observation
+import observe.model.StepId
+import observe.model.UserPrompt
+import observe.model.UserPrompt.ChecksOverride
+import observe.model.UserPrompt.Discrepancy
+import observe.model.UserPrompt.ObsConditionsCheckOverride
+import observe.model.UserPrompt.SeqCheck
+import observe.model.UserPrompt.TargetCheckOverride
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
-import observe.model.UserPrompt.{
-  ChecksOverride,
-  Discrepancy,
-  ObsConditionsCheckOverride,
-  SeqCheck,
-  TargetCheckOverride
-}
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbUserPrompt {
 

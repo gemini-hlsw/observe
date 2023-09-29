@@ -9,7 +9,6 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import lucuma.core.enums.GuideState
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import org.typelevel.log4cats.Logger
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.gems.GemsController.Cwfs1Usage
@@ -22,14 +21,15 @@ import observe.server.gems.GemsController.Odgw2Usage
 import observe.server.gems.GemsController.Odgw3Usage
 import observe.server.gems.GemsController.Odgw4Usage
 import observe.server.gems.GemsController.P1Usage
-import observe.server.tcs.{Gaos, GuideConfig, GuideConfigDb}
-import observe.server.tcs.Gaos.{
-  PauseCondition,
-  PauseConditionSet,
-  PauseResume,
-  ResumeCondition,
-  ResumeConditionSet
-}
+import observe.server.tcs.Gaos
+import observe.server.tcs.Gaos.PauseCondition
+import observe.server.tcs.Gaos.PauseConditionSet
+import observe.server.tcs.Gaos.PauseResume
+import observe.server.tcs.Gaos.ResumeCondition
+import observe.server.tcs.Gaos.ResumeConditionSet
+import observe.server.tcs.GuideConfig
+import observe.server.tcs.GuideConfigDb
+import org.typelevel.log4cats.Logger
 import squants.Time
 
 trait Gems[F[_]] extends Gaos[F] {

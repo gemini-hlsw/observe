@@ -3,15 +3,15 @@
 
 package observe.server.keywords
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 import cats.FlatMap
+import cats.effect.Clock
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import observe.model.dhs.ImageFileId
 import observe.server.overrideLogMessage
-import cats.effect.Clock
+import org.typelevel.log4cats.Logger
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class DhsClientDisabled[F[_]: FlatMap: Clock: Logger] extends DhsClient[F] {
 

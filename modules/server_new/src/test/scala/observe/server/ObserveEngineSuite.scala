@@ -3,39 +3,49 @@
 
 package observe.server
 
-import cats.data.NonEmptyList
 import cats.Monoid
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
-import monocle.Focus
 import lucuma.core.enums.*
 import lucuma.core.math.Offset
-import lucuma.core.model.{ConstraintSet, ElevationRange, Program}
-import lucuma.core.model.sequence.{Atom, ExecutionConfig, ExecutionSequence, Step, StepEstimate}
-import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
+import lucuma.core.model.ConstraintSet
+import lucuma.core.model.ElevationRange
+import lucuma.core.model.Program
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import lucuma.core.model.sequence.StepEstimate
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
+import monocle.Focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
-import observe.model.Operator
-import observe.model.UserDetails
+import observe.common.test.*
+import observe.engine.EventResult
+import observe.engine.EventResult.Outcome
+import observe.engine.Sequence
 import observe.model.Conditions
 import observe.model.Observer
+import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.StepState
-import observe.model.UserPrompt
-import observe.model.enums.{Instrument, RunOverride}
-import observe.model.enums.Resource.{Gcal, TCS}
-import observe.engine.{EventResult, Sequence}
-import observe.common.test.*
-import observe.engine.EventResult.Outcome
-import observe.server.SequenceGen.StepStatusGen
-import observe.server.SeqEvent.RequestConfirmation
 import observe.model.SystemOverrides
-import observe.model.enums.Resource
+import observe.model.UserDetails
+import observe.model.UserPrompt
 import observe.model.dhs.DataId
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.Resource.Gcal
+import observe.model.enums.Resource.TCS
+import observe.model.enums.RunOverride
+import observe.server.SeqEvent.RequestConfirmation
+import observe.server.SequenceGen.StepStatusGen
 
 class ObserveEngineSuite extends TestCommon {
 

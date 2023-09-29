@@ -5,7 +5,6 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import observe.server.gems.Gems.Cwfs1DetectorState
 import observe.server.gems.Gems.Cwfs2DetectorState
 import observe.server.gems.Gems.Cwfs3DetectorState
@@ -18,6 +17,7 @@ import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
 import observe.server.tcs.Gaos.ResumeConditionSet
+import org.typelevel.log4cats.Logger
 
 object GemsControllerSim {
   def apply[F[_]: Applicative](using L: Logger[F]): GemsController[F] =

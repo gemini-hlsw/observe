@@ -4,8 +4,6 @@
 package observe.server.altair
 
 import cats.Applicative
-
-import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
@@ -14,9 +12,14 @@ import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.altair.LgsSfoControl
 import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil}
+import observe.server.EpicsCommand
+import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
+import observe.server.EpicsSystem
+import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
+
+import scala.concurrent.duration.FiniteDuration
 
 trait AltairEpics[F[_]] {
   import AltairEpics._

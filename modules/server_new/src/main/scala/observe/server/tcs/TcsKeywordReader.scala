@@ -4,7 +4,8 @@
 package observe.server.tcs
 
 import cats.*
-import cats.data.{Nested, OptionT}
+import cats.data.Nested
+import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.syntax.string.*

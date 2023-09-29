@@ -3,13 +3,21 @@
 
 package observe.server.gsaoi
 
-import cats.effect.{Async, IO, Sync}
+import cats.effect.Async
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.gsaoi.DhsConnected
+import observe.server.EpicsCommand
+import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
-import observe.server.EpicsUtil.{safeAttributeF, safeAttributeSDoubleF, safeAttributeSIntF}
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase}
+import observe.server.EpicsSystem
+import observe.server.EpicsUtil
+import observe.server.EpicsUtil.safeAttributeF
+import observe.server.EpicsUtil.safeAttributeSDoubleF
+import observe.server.EpicsUtil.safeAttributeSIntF
+import observe.server.ObserveCommandBase
 
 import java.lang.Double as JDouble
 import java.util.concurrent.TimeUnit.SECONDS

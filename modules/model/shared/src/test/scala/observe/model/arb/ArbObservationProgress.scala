@@ -3,17 +3,18 @@
 
 package observe.model.arb
 
-import observe.model.Observation
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import observe.model.Observation
+import observe.model.ObserveStage.given
+import observe.model.*
+import observe.model.arb.ArbNSSubexposure.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.arb.ArbNSSubexposure.given
-import observe.model.*
-import observe.model.ObserveStage.given
+
 import scala.concurrent.duration.FiniteDuration
 
 trait ArbObservationProgress {

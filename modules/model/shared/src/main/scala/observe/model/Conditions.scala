@@ -5,11 +5,12 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
-import monocle.{Focus, Lens}
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import monocle.Focus
+import monocle.Lens
 
 final case class Conditions(
   cc: Option[CloudExtinction],

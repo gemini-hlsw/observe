@@ -5,10 +5,10 @@ package observe.model.config
 
 import cats.Eq
 import cats.derived.*
-
-import java.nio.file.Path
 import com.comcast.ip4s.Host
 import com.comcast.ip4s.Port
+
+import java.nio.file.Path
 
 private given Eq[Path] = Eq.fromUniversalEquals
 

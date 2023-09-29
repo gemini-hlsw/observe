@@ -8,8 +8,10 @@ import cats.data.NonEmptySet
 import cats.implicits.*
 import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.Altair
-import observe.server.tcs.TcsController.{InstrumentOffset, Subsystem}
-import observe.server.tcs.TcsNorthController.{TcsNorthConfig, given}
+import observe.server.tcs.TcsController.InstrumentOffset
+import observe.server.tcs.TcsController.Subsystem
+import observe.server.tcs.TcsNorthController.TcsNorthConfig
+import observe.server.tcs.TcsNorthController.given
 import org.typelevel.log4cats.Logger
 
 class TcsNorthControllerSim[F[_]: Applicative: Logger] private extends TcsNorthController[F] {
