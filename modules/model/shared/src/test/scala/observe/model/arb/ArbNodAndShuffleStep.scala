@@ -3,24 +3,28 @@
 
 package observe.model.arb
 
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
-import lucuma.core.model.sequence.arb.ArbStepConfig.*
-import lucuma.core.model.sequence.StepConfig
-import org.scalacheck.{Arbitrary, Cogen, Gen}
-import org.scalacheck.Arbitrary.*
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbUid.*
 import lucuma.core.util.TimeSpan
+import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbTimeSpan.given
-import observe.model.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.GmosParameters.*
-import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
-import observe.model.enums.*
-import observe.model.arb.ArbStepState.given
+import observe.model.NodAndShuffleStep.PauseGracefully
+import observe.model.NodAndShuffleStep.PendingObserveCmd
+import observe.model.NodAndShuffleStep.StopGracefully
+import observe.model.*
 import observe.model.arb.ArbDhsTypes.given
 import observe.model.arb.ArbGmosParameters.given
 import observe.model.arb.ArbNSRunningState.given
+import observe.model.arb.ArbStepState.given
+import observe.model.enums.*
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbNodAndShuffleStep {
 

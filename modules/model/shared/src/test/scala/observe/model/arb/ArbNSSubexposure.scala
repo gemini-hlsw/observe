@@ -3,14 +3,14 @@
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Cogen
-import org.scalacheck.Gen
 import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.GmosParameters.*
 import observe.model.*
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.*
-import observe.model.GmosParameters.*
+import org.scalacheck.Arbitrary
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbNSSubexposure {
   given nsSubexposureArb: Arbitrary[NSSubexposure] = Arbitrary[NSSubexposure] {

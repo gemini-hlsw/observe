@@ -3,6 +3,42 @@
 
 package observe.web.server.http4s
 
+import cats.data.OptionT
+import cats.effect.Ref
+import cats.effect.Resource
+import cats.effect.Temporal
+import cats.effect.*
+import cats.effect.syntax.all.*
+import cats.syntax.all.*
+import fs2.Stream
+import fs2.compression.Compression
+import fs2.concurrent.Topic
+import fs2.io.net.Network
+import fs2.io.net.tls.TLSContext
+import fs2.io.net.tls.TLSParameters
+import observe.model.config.*
+import observe.model.events.*
+import observe.model.events.client.ObserveClientEvent
+import observe.server
+import observe.server.CaServiceInit
+import observe.server.ObserveEngine
+import observe.server.Systems
+import observe.web.server.OcsBuildInfo
+import observe.web.server.config.*
+import org.http4s.HttpRoutes
+import org.http4s.client.Client
+import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.jdkhttpclient.JdkHttpClient
+import org.http4s.server.Router
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.Server
+import org.http4s.server.middleware.{Logger => Http4sLogger}
+import org.http4s.server.websocket.WebSocketBuilder2
+import org.typelevel.log4cats.Logger
+import pureconfig.*
+import web.server.common.LogInitialization
+import web.server.common.RedirectToHttpsRoutes
+
 import java.io.FileInputStream
 import java.nio.file.{Path => FilePath}
 import java.security.KeyStore
@@ -11,44 +47,6 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import scala.concurrent.duration.*
-import cats.effect.*
-import cats.effect.syntax.all.*
-import cats.syntax.all.*
-import fs2.Stream
-import fs2.concurrent.Topic
-import org.typelevel.log4cats.Logger
-import org.http4s.HttpRoutes
-import org.http4s.client.Client
-import org.http4s.server.Router
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.Server
-import org.http4s.server.websocket.WebSocketBuilder2
-import org.http4s.server.middleware.{Logger => Http4sLogger}
-import pureconfig.*
-import observe.model.config.*
-import observe.model.events.*
-import observe.server
-//import observe.server.CaServiceInit
-import observe.server.ObserveEngine
-import observe.server.Systems
-// import observe.server.executeEngine
-//import observe.server.tcs.GuideConfigDb
-import observe.web.server.OcsBuildInfo
-import observe.web.server.config.*
-// import observe.web.server.logging.AppenderForClients
-// import observe.web.server.security.AuthenticationService
-import web.server.common.LogInitialization
-import web.server.common.RedirectToHttpsRoutes
-import cats.effect.{Ref, Resource, Temporal}
-import org.http4s.jdkhttpclient.JdkHttpClient
-import observe.server.CaServiceInit
-import org.http4s.ember.server.EmberServerBuilder
-import fs2.io.net.Network
-import fs2.io.net.tls.TLSContext
-import fs2.io.net.tls.TLSParameters
-import cats.data.OptionT
-import fs2.compression.Compression
-import observe.model.events.client.ObserveClientEvent
 
 object WebServerLauncher extends IOApp with LogInitialization {
 

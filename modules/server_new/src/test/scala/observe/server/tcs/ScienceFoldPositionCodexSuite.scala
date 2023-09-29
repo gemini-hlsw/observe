@@ -3,10 +3,17 @@
 
 package observe.server.tcs
 
-import ScienceFoldPositionCodex.given
+import lucuma.core.enums.LightSinkName.F2
+import lucuma.core.enums.LightSinkName.Gmos
+import lucuma.core.enums.LightSinkName.Gsaoi
+import lucuma.core.enums.LightSinkName.Nifs
+import lucuma.core.enums.LightSinkName.Niri_f32
 import observe.server.EpicsCodex.*
-import lucuma.core.enums.LightSinkName.{F2, Gmos, Gsaoi, Nifs, Niri_f32}
-import observe.server.tcs.TcsController.LightSource.{AO, GCAL, Sky}
+import observe.server.tcs.TcsController.LightSource.AO
+import observe.server.tcs.TcsController.LightSource.GCAL
+import observe.server.tcs.TcsController.LightSource.Sky
+
+import ScienceFoldPositionCodex.given
 
 class ScienceFoldPositionCodexSuite extends munit.FunSuite {
 

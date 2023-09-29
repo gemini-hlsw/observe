@@ -3,10 +3,6 @@
 
 package observe.web.server.http4s
 
-import java.util.UUID
-
-import scala.concurrent.duration.*
-
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
@@ -16,23 +12,25 @@ import fs2.compression.Compression
 import fs2.concurrent.Topic
 import io.circe.Encoder
 import io.circe.syntax.*
-import org.typelevel.log4cats.Logger
-// import lucuma.core.enums.GiapiStatus
+import observe.model.ClientId
+import observe.model.*
+import observe.model.events.*
+import observe.model.events.client.ObserveClientEvent
+import observe.server.ObserveEngine
 import org.http4s.*
 import org.http4s.dsl.*
 import org.http4s.headers.`User-Agent`
 import org.http4s.server.middleware.GZip
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
-import org.http4s.websocket.WebSocketFrame.Text
 import org.http4s.websocket.WebSocketFrame.Close
 import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Pong
-import observe.model.ClientId
-import observe.model.*
-import observe.model.events.*
-import observe.server.ObserveEngine
-import observe.model.events.client.ObserveClientEvent
+import org.http4s.websocket.WebSocketFrame.Text
+import org.typelevel.log4cats.Logger
+
+import java.util.UUID
+import scala.concurrent.duration.*
 
 /**
  * Rest Endpoints under the /api route

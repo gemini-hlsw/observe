@@ -3,13 +3,18 @@
 
 package observe.server.gmos
 
-import scala.concurrent.duration.*
 import cats.Show
 import cats.syntax.all.*
 import fs2.Stream
-import lucuma.core.enums.{GmosEOffsetting, GmosRoi, GmosXBinning, GmosYBinning}
-import lucuma.core.math.{Offset, Wavelength}
-import lucuma.core.util.{Enumerated, TimeSpan}
+import lucuma.core.enums.GmosEOffsetting
+import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.GmosXBinning
+import lucuma.core.enums.GmosYBinning
+import lucuma.core.math.Offset
+import lucuma.core.math.Wavelength
+import lucuma.core.refined.numeric.NonZeroInt
+import lucuma.core.util.Enumerated
+import lucuma.core.util.TimeSpan
 import lucuma.core.util.TimeSpan.*
 import observe.model.GmosParameters
 import observe.model.GmosParameters.*
@@ -19,9 +24,13 @@ import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.*
-import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NSConfig}
+import observe.server.gmos.GmosController.Config.DCConfig
+import observe.server.gmos.GmosController.Config.DarkOrBias
+import observe.server.gmos.GmosController.Config.NSConfig
+
+import scala.concurrent.duration.*
+
 import GmosController.*
-import lucuma.core.refined.numeric.NonZeroInt
 
 trait GmosController[F[_], T <: GmosSite] {
   import GmosController._

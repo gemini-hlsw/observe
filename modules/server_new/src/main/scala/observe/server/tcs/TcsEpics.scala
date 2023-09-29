@@ -6,12 +6,16 @@ package observe.server.tcs
 import cats.effect.*
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
-import edu.gemini.observe.server.tcs.{BinaryEnabledDisabled, BinaryOnOff, BinaryYesNo}
+import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
 import observe.model.enums.ApplyCommandResult
+import observe.server.EpicsCommand
+import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.*
+import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
 import observe.server.ObserveFailure.ObserveException
-import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem}
 import squants.Angle
 import squants.space.Degrees
 

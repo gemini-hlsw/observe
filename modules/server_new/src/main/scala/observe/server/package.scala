@@ -3,28 +3,41 @@
 
 package observe
 
+import cats.Applicative
+import cats.ApplicativeThrow
+import cats.Endo
+import cats.Eq
+import cats.Functor
+import cats.MonadError
+import cats.MonadThrow
+import cats.Order
 import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import cats.{Applicative, ApplicativeThrow, Endo, Eq, Functor, MonadError, MonadThrow, Order}
 import clue.ErrorPolicy
 import fs2.Stream
-import monocle.{Focus, Lens, Optional}
+import lucuma.schemas.ObservationDB.Scalars.VisitId
+import monocle.Focus
+import monocle.Lens
+import monocle.Optional
 import monocle.syntax.all.*
+import observe.engine.Engine
+import observe.engine.Result
 import observe.engine.Result.PauseContext
-import observe.engine.{Engine, Result, *}
+import observe.engine._
+import observe.model.Observation
+import observe.model._
 import observe.model.enums.*
-import observe.model.{Observation, *}
 import observe.server.SequenceGen.StepGen
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import lucuma.schemas.ObservationDB.Scalars.VisitId
-
-import scala.concurrent.duration.FiniteDuration
-import server.InstrumentSystem.ElapsedTime
 import squants.Length
 import squants.space.Angle
+
+import scala.concurrent.duration.FiniteDuration
+
+import server.InstrumentSystem.ElapsedTime
 
 package object server {
 

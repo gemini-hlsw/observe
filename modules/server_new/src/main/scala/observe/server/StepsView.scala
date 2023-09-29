@@ -7,13 +7,19 @@ import cats.Order.*
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import observe.engine
+import observe.engine.Action
 import observe.engine.Action.ActionState
-import observe.engine.{Action, ParallelActions}
+import observe.engine.ParallelActions
+import observe.model.ActionType
 import observe.model.NodAndShuffleStep.PendingObserveCmd
+import observe.model.StandardStep
+import observe.model.Step
+import observe.model.StepState
 import observe.model.dhs.ImageFileId
+import observe.model.enums.ActionStatus
+import observe.model.enums.Instrument
 import observe.model.enums.Instrument.*
-import observe.model.enums.{ActionStatus, Instrument, Resource}
-import observe.model.{ActionType, StandardStep, Step, StepState}
+import observe.model.enums.Resource
 import observe.server.gmos.GmosStepsView
 
 trait StepsView[F[_]] {

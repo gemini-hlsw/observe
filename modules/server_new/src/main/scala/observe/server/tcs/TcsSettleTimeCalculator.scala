@@ -8,8 +8,10 @@ import cats.data.NonEmptySet
 import cats.syntax.all.*
 import mouse.boolean.*
 import observe.model.enums.Instrument
-import observe.server.tcs.TcsController.{InstrumentOffset, Subsystem}
-import squants.{Ratio, Time}
+import observe.server.tcs.TcsController.InstrumentOffset
+import observe.server.tcs.TcsController.Subsystem
+import squants.Ratio
+import squants.Time
 import squants.space.Angle
 import squants.space.AngleConversions.*
 import squants.time.TimeConversions.*

@@ -4,13 +4,13 @@
 package observe.model.arb
 
 import cats.syntax.option.*
+import lucuma.core.util.arb.ArbUid.*
+import observe.model.RunningStep
+import observe.model.StepId
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.RunningStep
-import observe.model.StepId
-import lucuma.core.util.arb.ArbUid.*
 
 trait ArbRunningStep {
 

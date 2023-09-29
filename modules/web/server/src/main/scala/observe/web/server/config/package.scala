@@ -6,14 +6,14 @@ package observe.web.server.config
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.Site
+import observe.model.config.*
 import org.http4s.Uri
 import pureconfig.*
 import pureconfig.error.*
+import pureconfig.generic.derivation.default.*
 import pureconfig.module.catseffect.syntax.*
 import pureconfig.module.http4s.*
 import pureconfig.module.ip4s.*
-import pureconfig.generic.derivation.default.*
-import observe.model.config.*
 
 import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration

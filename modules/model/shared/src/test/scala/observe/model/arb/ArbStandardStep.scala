@@ -3,19 +3,19 @@
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.*
-import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbUid.*
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbUid.*
 import observe.model.*
-import observe.model.enums.*
-import observe.model.arb.ArbStepState.given
 import observe.model.arb.ArbDhsTypes.given
+import observe.model.arb.ArbStepState.given
+import observe.model.enums.*
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
 
 trait ArbStandardStep {
 

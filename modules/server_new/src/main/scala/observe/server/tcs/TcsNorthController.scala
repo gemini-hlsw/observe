@@ -6,16 +6,17 @@ package observe.server.tcs
 import cats.Show
 import cats.data.NonEmptySet
 import cats.implicits.*
-import observe.model.enums.NodAndShuffleStage
-import observe.server.altair.{Altair, AltairController}
-import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsController.GuiderConfig.given
 import lucuma.core.enums.Site
-import monocle.Focus
-import observe.model.M1GuideConfig
 import lucuma.core.enums.Site.GN
+import monocle.Focus
 import monocle.Lens
+import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
+import observe.model.enums.NodAndShuffleStage
+import observe.server.altair.Altair
+import observe.server.altair.AltairController
+import observe.server.tcs.TcsController.GuiderConfig.given
+import observe.server.tcs.TcsController.*
 
 trait TcsNorthController[F[_]] {
   import TcsNorthController.*

@@ -3,10 +3,11 @@
 
 package observe.server.keywords
 
-import scala.concurrent.duration.*
-import scala.xml.Elem
 import cats.effect.Async
 import cats.syntax.all.*
+import observe.model.Observation
+import observe.model.dhs.ImageFileId
+import observe.server.ObserveFailure
 import org.http4s.*
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
@@ -15,9 +16,9 @@ import org.http4s.client.middleware.RetryPolicy
 import org.http4s.dsl.io.*
 import org.http4s.implicits.*
 import org.http4s.scalaxml.*
-import observe.model.Observation
-import observe.model.dhs.ImageFileId
-import observe.server.ObserveFailure
+
+import scala.concurrent.duration.*
+import scala.xml.Elem
 
 /**
  * Gemini Data service client

@@ -3,12 +3,14 @@
 
 package observe.server.tcs
 
-import atto.*
 import atto.Atto.*
+import atto.*
 import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
-import observe.server.EpicsCodex.{DecodeEpicsValue, EncodeEpicsValue}
-import observe.server.tcs.ScienceFold.{Parked, Position}
+import observe.server.EpicsCodex.DecodeEpicsValue
+import observe.server.EpicsCodex.EncodeEpicsValue
+import observe.server.tcs.ScienceFold.Parked
+import observe.server.tcs.ScienceFold.Position
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.TcsController.LightSource.*
 

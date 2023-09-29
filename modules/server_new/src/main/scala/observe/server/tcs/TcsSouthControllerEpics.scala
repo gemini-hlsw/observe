@@ -6,6 +6,7 @@ package observe.server.tcs
 import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
+import lucuma.core.enums.Site
 import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
@@ -13,7 +14,6 @@ import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsSouthController.*
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.Site
 
 final case class TcsSouthControllerEpics[F[_]: Async: Logger](
   epicsSys:      TcsEpics[F],

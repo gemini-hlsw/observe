@@ -4,9 +4,9 @@
 package observe.server.gcal
 
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import observe.server.gcal.GcalController.GcalConfig
 import observe.server.gcal.GcalController.given
+import org.typelevel.log4cats.Logger
 
 object GcalControllerSim {
   def apply[F[_]: Logger]: GcalController[F] = new GcalController[F] {

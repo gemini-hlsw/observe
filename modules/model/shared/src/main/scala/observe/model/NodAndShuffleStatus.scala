@@ -4,9 +4,9 @@
 package observe.model
 
 import cats.*
+import lucuma.core.util.TimeSpan
 import observe.model.GmosParameters.*
 import observe.model.enums.*
-import lucuma.core.util.TimeSpan
 
 final case class NSRunningState(action: NSAction, sub: NSSubexposure)
 

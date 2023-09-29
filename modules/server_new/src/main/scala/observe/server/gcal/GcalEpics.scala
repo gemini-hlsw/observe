@@ -3,8 +3,6 @@
 
 package observe.server.gcal
 
-import scala.concurrent.duration.FiniteDuration
-
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Sync
@@ -17,6 +15,8 @@ import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.safeAttributeF
+
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Created by jluhrs on 3/14/17.

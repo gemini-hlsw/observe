@@ -4,27 +4,30 @@
 package observe.engine
 
 import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.IO
+import cats.effect.std.Semaphore
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
+import lucuma.core.model.sequence.Atom
+import observe.common.test.observationId
+import observe.common.test.stepId
+import observe.engine.Sequence.State.Final
+import observe.engine.TestUtil.TestState
+import observe.model.ActionType
+import observe.model.ClientId
 import observe.model.Observation
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import observe.model.SequenceState
+import observe.model.StepState
+import observe.model.UserDetails
+import observe.model.enums.Instrument.GmosS
+import observe.model.enums.Resource.TCS
 import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
-import observe.engine.Sequence.State.Final
-import observe.model.{ClientId, SequenceState, StepState}
-import observe.model.enums.Instrument.GmosS
-import observe.model.enums.Resource.TCS
-import observe.model.{ActionType, UserDetails}
-import observe.engine.TestUtil.TestState
-
-import cats.effect.std.Semaphore
-import eu.timepit.refined.types.numeric.PosLong
-import lucuma.core.model.sequence.Atom
-import observe.common.test.{observationId, stepId}
-import cats.data.OptionT
 
 class packageSpec extends munit.CatsEffectSuite {
 

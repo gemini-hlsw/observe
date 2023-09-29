@@ -12,9 +12,9 @@ import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.optics.Format
 import lucuma.core.syntax.all.*
 import monocle.*
-import monocle.syntax.all.*
 import monocle.macros.GenLens
 import monocle.macros.GenPrism
+import monocle.syntax.all.*
 import observe.model.enums.*
 import observe.model.events.*
 

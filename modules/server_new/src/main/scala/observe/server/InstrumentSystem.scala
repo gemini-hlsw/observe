@@ -6,7 +6,8 @@ package observe.server
 import cats.data.Kleisli
 import fs2.Stream
 import observe.model.dhs.ImageFileId
-import observe.model.enums.{Instrument, ObserveCommandResult}
+import observe.model.enums.Instrument
+import observe.model.enums.ObserveCommandResult
 import observe.server.keywords.KeywordsClient
 
 import scala.concurrent.duration.*

@@ -3,16 +3,16 @@
 
 package observe.model.arb
 
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.TelescopeGuideConfig
+import observe.model.arb.ArbM1GuideConfig.given
+import observe.model.arb.ArbM2GuideConfig.given
+import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbEnumerated.*
-import observe.model.TelescopeGuideConfig
-import observe.model.enums.*
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
-import observe.model.arb.ArbM1GuideConfig.given
-import observe.model.arb.ArbM2GuideConfig.given
 
 trait ArbTelescopeGuideConfig {
 

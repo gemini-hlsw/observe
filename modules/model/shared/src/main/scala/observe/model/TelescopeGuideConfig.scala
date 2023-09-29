@@ -5,8 +5,9 @@ package observe.model
 
 import cats.Eq
 import cats.Show
+import monocle.Focus
+import monocle.Lens
 import observe.model.enums.MountGuideOption
-import monocle.{Focus, Lens}
 
 /** Data type for guide config. */
 final case class TelescopeGuideConfig(

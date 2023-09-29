@@ -3,12 +3,15 @@
 
 package observe.server.tcs
 
+import cats.Eq
+import cats.Show
 import cats.syntax.all.*
-import cats.{Eq, Show}
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.GemsController.GemsConfig
-import observe.server.tcs.Gaos.PauseCondition.{FixedPauseCondition, OffsetMove}
-import observe.server.tcs.Gaos.ResumeCondition.{FixedResumeCondition, OffsetReached}
+import observe.server.tcs.Gaos.PauseCondition.FixedPauseCondition
+import observe.server.tcs.Gaos.PauseCondition.OffsetMove
+import observe.server.tcs.Gaos.ResumeCondition.FixedResumeCondition
+import observe.server.tcs.Gaos.ResumeCondition.OffsetReached
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 

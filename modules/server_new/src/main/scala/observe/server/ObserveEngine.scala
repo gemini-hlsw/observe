@@ -3,43 +3,61 @@
 
 package observe.server
 
-import cats.{Applicative, Endo, MonoidK}
+import cats.Applicative
+import cats.Endo
+import cats.MonoidK
 import cats.data.NonEmptyList
+import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.effect.kernel.Sync
-import cats.effect.{Async, Ref, Temporal}
 import cats.syntax.all.*
-import fs2.{Pipe, Stream}
-import lucuma.core.enums.{CloudExtinction, ImageQuality, Site, SkyBackground, WaterVapor}
-import lucuma.core.model.{ConstraintSet, Observation}
+import fs2.Pipe
+import fs2.Stream
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.Site
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
+import lucuma.core.model.ConstraintSet
+import lucuma.core.model.Observation
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
-import monocle.Optional
 import monocle.Focus
 import monocle.Lens
+import monocle.Optional
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.engine.EventResult.*
+import observe.engine.Handle
 import observe.engine.Result.Partial
-import observe.engine.{Handle, Step as _, SystemEvent, UserEvent, *}
-import observe.model.NodAndShuffleStep.{PauseGracefully, PendingObserveCmd, StopGracefully}
+import observe.engine.SystemEvent
+import observe.engine.UserEvent
+import observe.engine.{Step => _, _}
+import observe.model.NodAndShuffleStep.PauseGracefully
+import observe.model.NodAndShuffleStep.PendingObserveCmd
+import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
-import observe.model.given
-import observe.model.UserPrompt.{
-  Discrepancy,
-  ObsConditionsCheckOverride,
-  SeqCheck,
-  TargetCheckOverride
-}
-import observe.model.{StepId, UserDetails, *}
-import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, ServerLogLevel}
+import observe.model.StepId
+import observe.model.UserDetails
+import observe.model.UserPrompt.Discrepancy
+import observe.model.UserPrompt.ObsConditionsCheckOverride
+import observe.model.UserPrompt.SeqCheck
+import observe.model.UserPrompt.TargetCheckOverride
+import observe.model._
 import observe.model.config.*
-//import observe.model.enums.{ImageQuality as _, *}
+import observe.model.enums.BatchExecState
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
+import observe.model.enums.RunOverride
+import observe.model.enums.ServerLogLevel
 import observe.model.events.{SequenceStart as ClientSequenceStart, *}
-// import observe.common.ObsQueriesGQL
+import observe.model.given
 import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.*
+
 import SeqEvent.*
 
 trait ObserveEngine[F[_]] {

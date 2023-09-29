@@ -5,8 +5,8 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
-import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.Enumerated
 import monocle.Focus
 import monocle.Lens

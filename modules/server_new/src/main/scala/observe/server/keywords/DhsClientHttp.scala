@@ -5,21 +5,28 @@ package observe.server.keywords
 
 import cats.FlatMap
 import cats.data.EitherT
-import cats.effect.{Ref, Sync, Temporal}
+import cats.effect.Ref
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.DecodingFailure
+import io.circe.Encoder
+import io.circe.Json
 import io.circe.syntax.*
-import io.circe.{Decoder, DecodingFailure, Encoder, Json}
-import observe.model.enums.{DhsKeywordName, KeywordName}
 import observe.model.dhs.*
+import observe.model.enums.DhsKeywordName
+import observe.model.enums.KeywordName
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
-import observe.server.keywords.DhsClient.ImageParameters
 import observe.server.*
+import observe.server.keywords.DhsClient.ImageParameters
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.client.middleware.{Retry, RetryPolicy}
+import org.http4s.client.middleware.Retry
+import org.http4s.client.middleware.RetryPolicy
 import org.http4s.dsl.io.*
 import org.typelevel.log4cats.Logger
 

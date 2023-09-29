@@ -3,28 +3,30 @@
 
 package observe.engine
 
-import cats.effect.IO
 import cats.data.NonEmptyList
+import cats.effect.IO
+import cats.effect.Ref
 import cats.implicits.*
-import munit.CatsEffectSuite
 import fs2.Stream
+import lucuma.core.model.sequence.Atom
+import munit.CatsEffectSuite
+import observe.common.test.*
+import observe.engine.EventResult.*
+import observe.engine.SystemEvent.*
+import observe.engine.TestUtil.TestState
+import observe.model.ActionType
+import observe.model.ClientId
+import observe.model.SequenceState
+import observe.model.StepState
+import observe.model.UserDetails
+import observe.model.enums.Instrument.GmosS
+import observe.model.enums.Resource
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
-import observe.engine.TestUtil.TestState
-import observe.engine.EventResult.*
-import observe.engine.SystemEvent.*
-import observe.model.enums.Instrument.GmosS
-import observe.model.{ClientId, SequenceState, StepState}
-import observe.model.enums.Resource
-import observe.model.{ActionType, UserDetails}
-import observe.common.test.*
-
 import scala.Function.const
 import scala.concurrent.duration.*
-import cats.effect.Ref
-import lucuma.core.model.sequence.Atom
 
 class StepSuite extends CatsEffectSuite {
 

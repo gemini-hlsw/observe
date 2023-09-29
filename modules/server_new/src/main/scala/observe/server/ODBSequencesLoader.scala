@@ -6,11 +6,14 @@ package observe.server
 import cats.Endo
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.model.sequence.Atom
 import monocle.Lens
 import monocle.std.option
-import lucuma.core.model.sequence.Atom
-import observe.engine.{Engine, Sequence}
-import observe.model.{Observation, Observer, SystemOverrides}
+import observe.engine.Engine
+import observe.engine.Sequence
+import observe.model.Observation
+import observe.model.Observer
+import observe.model.SystemOverrides
 
 final class ODBSequencesLoader[F[_]: Async](
   odbProxy:   OdbProxy[F],

@@ -5,7 +5,6 @@ package observe.web.server.http4s
 
 import cats.effect.Sync
 import cats.syntax.all.*
-// import observe.web.server.security.{AuthenticationService, Http4sAuthentication}
 import org.http4s.*
 import org.http4s.dsl.*
 // import AuthenticationService.AuthResult

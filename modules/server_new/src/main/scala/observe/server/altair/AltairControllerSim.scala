@@ -5,11 +5,13 @@ package observe.server.altair
 
 import cats.Applicative
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import observe.model.enums.Instrument
 import observe.server.altair.AltairController.AltairPauseResume
-import observe.server.tcs.Gaos.{GuideCapabilities, PauseConditionSet, ResumeConditionSet}
+import observe.server.tcs.Gaos.GuideCapabilities
+import observe.server.tcs.Gaos.PauseConditionSet
+import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.TcsController
+import org.typelevel.log4cats.Logger
 import squants.Time
 
 object AltairControllerSim {

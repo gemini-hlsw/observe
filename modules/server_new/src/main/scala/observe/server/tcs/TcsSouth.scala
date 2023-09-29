@@ -6,17 +6,24 @@ package observe.server.tcs
 import cats.data.NonEmptySet
 import cats.effect.Sync
 import cats.syntax.all.*
+import lucuma.core.enums.GuideState
+import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.enums.{GuideState, Site}
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
-import observe.model.enums.{M1Source, NodAndShuffleStage, Resource, TipTiltSource}
+import observe.model.enums.M1Source
+import observe.model.enums.NodAndShuffleStage
+import observe.model.enums.Resource
+import observe.model.enums.TipTiltSource
+import observe.server.ConfigResult
+import observe.server.InstrumentGuide
+import observe.server.ObserveFailure
 import observe.server.gems.Gems
-import observe.server.gems.GemsController.{GemsConfig, GemsOff}
+import observe.server.gems.GemsController.GemsConfig
+import observe.server.gems.GemsController.GemsOff
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsSouthController.*
-import observe.server.{ConfigResult, InstrumentGuide, ObserveFailure}
 import org.typelevel.log4cats.Logger
 import squants.space.AngleConversions.*
 

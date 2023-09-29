@@ -6,13 +6,13 @@ package observe.server.tcs
 import cats.data.*
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.enums.Site
 import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsNorthController.*
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.Site
 
 final case class TcsNorthControllerEpics[F[_]: Async: Logger](epicsSys: TcsEpics[F])
     extends TcsNorthController[F] {

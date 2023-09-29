@@ -3,13 +3,8 @@
 
 package observe.server.gems
 
-import java.util.concurrent.TimeUnit.SECONDS
-
-import scala.concurrent.duration.FiniteDuration
-
 import cats.effect.Async
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
 import mouse.boolean.*
 import observe.server.gems.Gems.*
 import observe.server.gems.GemsController.GemsConfig
@@ -19,6 +14,10 @@ import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
 import observe.server.tcs.Gaos.ResumeCondition
 import observe.server.tcs.Gaos.ResumeConditionSet
+import org.typelevel.log4cats.Logger
+
+import java.util.concurrent.TimeUnit.SECONDS
+import scala.concurrent.duration.FiniteDuration
 
 class GemsControllerEpics[F[_]: Async](
   epicsSys:    GemsEpics[F],

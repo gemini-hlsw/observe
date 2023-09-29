@@ -3,8 +3,8 @@
 
 package observe.server.gcal
 
-import org.typelevel.log4cats.Logger
 import observe.server.overrideLogMessage
+import org.typelevel.log4cats.Logger
 
 class GcalControllerDisabled[F[_]: Logger] extends GcalController[F] {
   override def applyConfig(config: GcalController.GcalConfig): F[Unit] =

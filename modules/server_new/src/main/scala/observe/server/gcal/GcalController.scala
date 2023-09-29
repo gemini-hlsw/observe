@@ -6,7 +6,9 @@ package observe.server.gcal
 import cats.Eq
 import cats.Show
 import cats.syntax.all.*
-import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
+import lucuma.core.enums.GcalDiffuser
+import lucuma.core.enums.GcalFilter
+import lucuma.core.enums.GcalShutter
 
 trait GcalController[F[_]] {
 

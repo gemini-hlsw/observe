@@ -3,9 +3,11 @@
 
 package observe.server
 
-import lucuma.core.enums.{LightSinkName, ObserveClass}
+import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.ObserveClass
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
 import squants.Length
 
 trait InstrumentSpecifics[S <: StaticConfig, D <: DynamicConfig] extends InstrumentGuide {

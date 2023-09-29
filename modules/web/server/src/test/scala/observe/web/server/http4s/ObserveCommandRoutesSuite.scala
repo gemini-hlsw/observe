@@ -5,26 +5,27 @@ package observe.web.server.http4s
 
 import cats.effect.IO
 import cats.syntax.all.*
-import observe.model.{ClientId, Observation, StepId}
+import io.circe.syntax.*
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
-import io.circe.syntax.*
+import observe.model.ClientId
+import observe.model.Observation
+import observe.model.StepId
+import observe.model.arb.ArbClientId.given
+import observe.model.enums.*
+import observe.server.*
+import org.http4s.*
+import org.http4s.circe.*
+import org.http4s.implicits.*
+import org.http4s.server.websocket.WebSocketBuilder2
+import org.scalacheck.Prop.forAll
 
 import java.net.URLEncoder
-import org.http4s.*
-import org.http4s.implicits.*
-import org.http4s.circe.*
-import org.http4s.server.websocket.WebSocketBuilder2
-
-import observe.server.*
-import observe.model.enums.*
-import observe.model.arb.ArbClientId.given
-import org.scalacheck.Prop.forAll
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.SkyBackground
-import lucuma.core.enums.CloudExtinction
 
 class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 

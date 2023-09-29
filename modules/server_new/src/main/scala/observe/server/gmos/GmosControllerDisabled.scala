@@ -8,7 +8,9 @@ import cats.syntax.all.*
 import fs2.Stream
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
-import observe.server.{InstrumentSystem, Progress, overrideLogMessage}
+import observe.server.InstrumentSystem
+import observe.server.Progress
+import observe.server.overrideLogMessage
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.FiniteDuration

@@ -4,15 +4,17 @@
 package observe.server
 
 import cats.*
-import cats.effect.{Concurrent, Temporal}
+import cats.effect.Concurrent
+import cats.effect.Temporal
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
+import observe.model.Observation
+import observe.model.StepId
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
-import observe.model.{Observation, StepId}
 import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
 

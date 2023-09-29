@@ -4,19 +4,22 @@
 package observe.server.tcs
 
 import cats.*
-import cats.data.{NonEmptySet, OneAnd}
+import cats.data.NonEmptySet
+import cats.data.OneAnd
 import cats.syntax.all.*
 import lucuma.core.enums.*
 import lucuma.core.math.Wavelength
 import lucuma.core.util.NewType
+import monocle.Focus
+import monocle.Lens
 import observe.model.TelescopeGuideConfig
 import observe.server.InstrumentGuide
 import observe.server.altair.AltairController
 import observe.server.gems.GemsController
-import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.given
-import squants.{Angle, Length}
-import monocle.{Focus, Lens}
+import observe.server.tcs.TcsSouthController.GemsGuiders
+import squants.Angle
+import squants.Length
 
 /**
  * Created by jluhrs on 7/30/15.

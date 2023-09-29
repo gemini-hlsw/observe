@@ -7,28 +7,32 @@ import cats.*
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.enums.Site
+import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
 import mouse.boolean.*
-import lucuma.core.enums.Site
-import monocle.Focus
+import observe.model.M1GuideConfig
 import observe.model.M1GuideConfig.M1GuideOn
-import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
+import observe.model.M2GuideConfig
+import observe.model.TelescopeGuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
 import observe.server.gems.GemsController.GemsConfig
-import observe.server.tcs.Gaos.{
-  PauseCondition,
-  PauseConditionSet,
-  ResumeCondition,
-  ResumeConditionSet
-}
+import observe.server.tcs.Gaos.PauseCondition
+import observe.server.tcs.Gaos.PauseConditionSet
+import observe.server.tcs.Gaos.ResumeCondition
+import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.GemsSource.*
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
-import observe.server.tcs.TcsEpics.{ProbeFollowCmd, VirtualGemsTelescope}
+import observe.server.tcs.TcsEpics.ProbeFollowCmd
+import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsSouthController.{*, given}
 import org.typelevel.log4cats.Logger
 import squants.time.TimeConversions.*

@@ -10,17 +10,23 @@ import edu.gemini.observe.server.tcs.BinaryYesNo
 import lucuma.core.math.Wavelength
 import mouse.boolean.*
 import observe.model.TelescopeGuideConfig
-import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.decode
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.gems.Gems.*
 import observe.server.tcs.GemsSource.*
+import observe.server.tcs.TcsController.FollowOption.FollowOff
+import observe.server.tcs.TcsController.FollowOption.FollowOn
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsController.FollowOption.{FollowOff, FollowOn}
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
-import squants.space.{Degrees, Millimeters}
-import squants.{Angle, Length}
+import squants.Angle
+import squants.Length
+import squants.space.Degrees
+import squants.space.Millimeters
 
 sealed trait TcsConfigRetriever[F[_]] {
   def retrieveBaseConfiguration: F[BaseEpicsTcsConfig]

@@ -4,27 +4,33 @@
 package observe.server.gmos
 
 import cats.Show
-import cats.effect.{Async, Ref, Temporal}
+import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
-import monocle.Optional
 import monocle.Focus
-import monocle.syntax.all.*
+import monocle.Optional
 import monocle.std.option.some
+import monocle.syntax.all.*
 import observe.model.GmosParameters.NsCycles
+import observe.model.NSSubexposure
+import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.model.{NSSubexposure, ObserveStage}
+import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.RemainingTime
+import observe.server.ObsProgress
+import observe.server.Progress
 import observe.server.ProgressUtil.countdown
+import observe.server.RemainingTime
 import observe.server.gmos.GmosController.Config.NSConfig
 import observe.server.gmos.GmosController.GmosConfig
-import observe.server.{InstrumentControllerSim, ObsProgress, Progress}
 import org.typelevel.log4cats.Logger
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Keep track of the current execution state

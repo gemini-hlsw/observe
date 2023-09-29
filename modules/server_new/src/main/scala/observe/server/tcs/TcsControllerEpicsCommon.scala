@@ -5,20 +5,26 @@ package observe.server.tcs
 
 import cats.*
 import cats.data.*
-import cats.effect.{Async, Sync}
+import cats.effect.Async
+import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.{LightSinkName, Site}
+import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
-import monocle.{Iso, Lens}
 import monocle.Focus
+import monocle.Iso
+import monocle.Lens
 import monocle.syntax.all.focus
 import mouse.boolean.*
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.TelescopeGuideConfig
 import observe.model.enums.*
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
 import observe.server.EpicsCodex.encode
+import observe.server.EpicsCommand
+import observe.server.ObserveFailure
 import observe.server.tcs.TcsController.*
-import observe.server.{EpicsCommand, ObserveFailure}
 import org.typelevel.log4cats.Logger
 import squants.Length
 import squants.space.Area

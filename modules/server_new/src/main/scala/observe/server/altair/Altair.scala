@@ -3,15 +3,17 @@
 
 package observe.server.altair
 
-import cats.{ApplicativeThrow, Eq}
+import cats.ApplicativeThrow
+import cats.Eq
 import cats.effect.Sync
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.altair.AltairController.*
 import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos
-import observe.server.tcs.Gaos.{PauseConditionSet, ResumeConditionSet}
+import observe.server.tcs.Gaos.PauseConditionSet
+import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import squants.Time
 

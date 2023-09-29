@@ -6,14 +6,14 @@ package observe.model.events
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
+import observe.model.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
-import observe.model.*
+import observe.model.events.client.*
 import observe.model.given
 import org.typelevel.cats.time.given
 
 import java.time.Instant
-import observe.model.events.client.*
 
 sealed trait ObserveEvent       extends Product with Serializable derives Eq
 sealed trait ObserveModelUpdate extends ObserveEvent derives Eq {

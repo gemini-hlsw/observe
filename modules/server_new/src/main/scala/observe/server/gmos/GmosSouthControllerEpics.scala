@@ -5,9 +5,9 @@ package observe.server.gmos
 
 import cats.effect.*
 import lucuma.core.enums.*
-import observe.server.gmos.GmosController.GmosSite
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.gmos.GmosController.Config.BuiltinROI
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosControllerEpics.ROIValues
 import org.typelevel.log4cats.Logger
 

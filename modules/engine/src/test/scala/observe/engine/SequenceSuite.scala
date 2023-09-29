@@ -3,22 +3,25 @@
 
 package observe.engine
 
-import cats.effect.IO
 import cats.data.NonEmptyList
+import cats.data.OptionT
+import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.Observation as LObservation
+import observe.common.test.*
+import observe.engine.TestUtil.TestState
+import observe.model.ActionType
+import observe.model.ClientId
+import observe.model.SequenceState
+import observe.model.StepId
+import observe.model.UserDetails
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
-import org.typelevel.log4cats.slf4j.Slf4jLogger
-import org.typelevel.log4cats.Logger
-import lucuma.core.model.Observation as LObservation
-import lucuma.core.model.sequence.Atom
-import observe.model.{ActionType, ClientId, SequenceState, StepId, UserDetails}
-import observe.engine.TestUtil.TestState
-import observe.common.test.*
-
 import scala.Function.const
-import cats.data.OptionT
 
 class SequenceSuite extends munit.CatsEffectSuite {
 

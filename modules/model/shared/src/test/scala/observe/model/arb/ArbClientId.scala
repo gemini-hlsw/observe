@@ -3,12 +3,13 @@
 
 package observe.model.arb
 
-import java.util.UUID
+import observe.model.ClientId
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Cogen.*
-import observe.model.ClientId
+
+import java.util.UUID
 
 trait ArbClientId {
 

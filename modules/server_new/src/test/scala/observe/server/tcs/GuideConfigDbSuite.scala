@@ -3,20 +3,22 @@
 
 package observe.server.tcs
 
-import io.circe.parser.*
 import cats.effect.IO
-import monocle.law.discipline.{LensTests, OptionalTests}
-import org.scalacheck.Arbitrary.*
-import observe.model.enums.*
-import observe.model.arb.all.given
+import io.circe.parser.*
+import monocle.law.discipline.LensTests
+import monocle.law.discipline.OptionalTests
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.server.tcs.GuideConfigDb.given
-import observe.server.tcs.GuideConfig.given
-import observe.server.altair.ArbAltairConfig.given
+import observe.model.arb.all.given
+import observe.model.enums.*
 import observe.server.altair.AltairController
 import observe.server.altair.AltairController.Lgs
+import observe.server.altair.ArbAltairConfig.given
+import observe.server.gems.ArbGemsConfig.given
+import observe.server.gems.GemsController.Cwfs1Usage
+import observe.server.gems.GemsController.Cwfs2Usage
+import observe.server.gems.GemsController.Cwfs3Usage
 import observe.server.gems.GemsController.GemsOn
 import observe.server.gems.GemsController.OIUsage
 import observe.server.gems.GemsController.Odgw1Usage
@@ -24,10 +26,9 @@ import observe.server.gems.GemsController.Odgw2Usage
 import observe.server.gems.GemsController.Odgw3Usage
 import observe.server.gems.GemsController.Odgw4Usage
 import observe.server.gems.GemsController.P1Usage
-import observe.server.gems.GemsController.Cwfs1Usage
-import observe.server.gems.GemsController.Cwfs2Usage
-import observe.server.gems.GemsController.Cwfs3Usage
-import observe.server.gems.ArbGemsConfig.given
+import observe.server.tcs.GuideConfig.given
+import observe.server.tcs.GuideConfigDb.given
+import org.scalacheck.Arbitrary.*
 import squants.space.Millimeters
 
 final class GuideConfigDbSuite

@@ -3,19 +3,19 @@
 
 package observe.model
 
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.optics.laws.discipline.FormatTests
-import lucuma.core.math.arb.ArbOffset.*
-import lucuma.core.math.arb.ArbAngle.*
-import lucuma.core.util.arb.ArbUid.*
 import lucuma.core.math.Axis
+import lucuma.core.math.arb.ArbAngle.*
+import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.optics.laws.discipline.FormatTests
+import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbUid.*
 import monocle.law.discipline.*
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.*
-import observe.model.enums.*
 import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceEventsArbitraries.given
 import observe.model.arb.all.{*, given}
+import observe.model.enums.*
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.{Test => ScalaCheckTest}
 
 class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {

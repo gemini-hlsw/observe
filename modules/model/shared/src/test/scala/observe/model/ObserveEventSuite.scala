@@ -4,6 +4,7 @@
 package observe.model
 
 import cats.kernel.laws.discipline.*
+
 import events.*
 
 /**
