@@ -13,7 +13,6 @@ import cats.data.Chain.*
 import cats.syntax.all.*
 import mouse.all.*
 
-
 object FixedLengthBuffer {
   private final case class FixedLengthBufferImpl[A](maxLength: Int, data: Chain[A])
       extends FixedLengthBuffer[A] {
