@@ -7,19 +7,9 @@ import cats.Eq
 import cats.derived.*
 
 /**
- * Configuration for the general authentication service
- * @param devMode
- *   Indicates if we are in development mode, In this mode there is an internal list of users
- * @param sessionLifeHrs
- *   How long will the session live in hours
- * @param cookieName
- *   Name of the cookie to store the token
- * @param secretKey
- *   Secret key to encrypt jwt tokens
- * @param useSsl
- *   Whether we use SSL setting the cookie to be https only
- * @param ldap
- *   URL of the ldap servers
+ * Parameeters to configure SSO
+ *
+ * @param serviceToken
  */
 case class LucumaSSOConfiguration(
   serviceToken: String

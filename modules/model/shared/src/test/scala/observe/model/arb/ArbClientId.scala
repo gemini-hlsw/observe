@@ -14,14 +14,14 @@ import java.util.UUID
 trait ArbClientId {
 
   given clientIdArb: Arbitrary[ClientId] = Arbitrary {
-    arbitrary[UUID].map(ClientId.apply)
+    arbitrary[UUID].map(ClientId(_))
   }
 
   given cogenUUID: Cogen[UUID] =
     Cogen[(Long, Long)].contramap(u => (u.getMostSignificantBits, u.getLeastSignificantBits))
 
   given cidCogen: Cogen[ClientId] =
-    Cogen[UUID].contramap(_.self)
+    Cogen[UUID].contramap(_.value)
 
 }
 

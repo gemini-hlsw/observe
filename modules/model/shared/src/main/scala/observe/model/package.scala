@@ -4,6 +4,7 @@
 package observe
 
 import cats.*
+import lucuma.core.util.NewType
 import observe.model.enums.*
 import squants.time.Time
 import squants.time.TimeUnit
@@ -11,8 +12,10 @@ import squants.time.TimeUnit
 import java.util.UUID
 
 package model {
-  case class QueueId(self: UUID)  extends AnyVal
-  case class ClientId(self: UUID) extends AnyVal
+  case class QueueId(self: UUID) extends AnyVal
+
+  object ClientId extends NewType[UUID]
+  type ClientId = ClientId.Type
 }
 
 package object model {
@@ -30,13 +33,7 @@ package object model {
   given scala.math.Ordering[QueueId] =
     Order[QueueId].toOrdering
 
-  given Eq[ClientId]                  = Eq.by(x => x.self)
-  given Show[ClientId]                = Show.fromToString
-  given Order[ClientId]               =
-    Order.by(_.self)
-  given scala.math.Ordering[ClientId] =
-    Order[ClientId].toOrdering
-  val UnknownTargetName               = "None"
+  val UnknownTargetName = "None"
 
   val CalibrationQueueName: String = "Calibration Queue"
   val CalibrationQueueId: QueueId  =

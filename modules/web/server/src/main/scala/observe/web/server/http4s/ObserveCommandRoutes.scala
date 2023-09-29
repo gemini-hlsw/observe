@@ -164,7 +164,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     case req @ POST -> Root / "sb" =>
       req.decode[SkyBackground](sb => oe.setSkyBackground(sb, userDetails) *> NoContent())
 
-    case req @ POST -> Root / "ce"        =>
+    case req @ POST -> Root / "ce" =>
       req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, userDetails) *> NoContent())
     //
     // case req @ POST -> Root / "sb" as user =>
@@ -230,9 +230,9 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     // }
     //
     // val refreshCommand: HttpRoutes[F] = HttpRoutes.of[F] {
-    //   case GET -> Root / "refresh" / ClientIDVar(clientId) =>
-    //     se.requestRefresh(inputQueue, clientId) *> NoContent()
-    //
+    // case GET -> Root / "refresh" / ClientIDVar(clientId) =>
+    //   oe.requestRefresh(clientId) *> NoContent()
+
     case POST -> Root / "resetconditions" =>
       oe.resetConditions *> NoContent()
   }
