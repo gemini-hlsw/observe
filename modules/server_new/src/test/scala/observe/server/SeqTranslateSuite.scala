@@ -4,16 +4,20 @@
 package observe.server
 
 import cats.Monoid
-import cats.syntax.all.*
-import cats.effect.*
 import cats.data.NonEmptyList
+import cats.effect.*
+import cats.syntax.all.*
 import fs2.Stream
-import observe.model.{ActionType, Conditions, SequenceState}
 import lucuma.core.enums.Site
 import observe.common.test.*
-import observe.engine.{Action, Result, Sequence}
-import observe.model.enums.Instrument
+import observe.engine.Action
+import observe.engine.Result
+import observe.engine.Sequence
+import observe.model.ActionType
+import observe.model.Conditions
+import observe.model.SequenceState
 import observe.model.dhs.*
+import observe.model.enums.Instrument
 import observe.server.Response.Observed
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
