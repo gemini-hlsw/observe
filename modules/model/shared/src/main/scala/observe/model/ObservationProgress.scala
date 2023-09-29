@@ -9,6 +9,7 @@ import lucuma.core.util.Enumerated
 import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
+
 import scala.concurrent.duration.FiniteDuration
 
 sealed trait Progress extends Product with Serializable {

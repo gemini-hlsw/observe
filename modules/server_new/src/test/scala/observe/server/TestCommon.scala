@@ -3,70 +3,71 @@
 
 package observe.server
 
+import cats.Applicative
+import cats.Monoid
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
-import cats.{Applicative, Monoid}
 import eu.timepit.refined.types.numeric.PosLong
-//import giapi.client.ghost.GhostClient
-//import giapi.client.gpi.GpiClient
-import lucuma.core.enums.{
-  Breakpoint,
-  CloudExtinction,
-  GmosAmpCount,
-  GmosAmpGain,
-  GmosAmpReadMode,
-  GmosDtax,
-  GmosGratingOrder,
-  GmosNorthDetector,
-  GmosNorthFpu,
-  GmosNorthGrating,
-  GmosNorthStageMode,
-  GmosRoi,
-  GmosXBinning,
-  GmosYBinning,
-  GuideState,
-  ImageQuality,
-  MosPreImaging,
-  ObsActiveStatus,
-  ObsStatus,
-  ObserveClass,
-  Site,
-  SkyBackground,
-  WaterVapor
-}
-import lucuma.core.math.{Offset, Wavelength}
+import lucuma.core.enums.Breakpoint
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.GmosAmpCount
+import lucuma.core.enums.GmosAmpGain
+import lucuma.core.enums.GmosAmpReadMode
+import lucuma.core.enums.GmosDtax
+import lucuma.core.enums.GmosGratingOrder
+import lucuma.core.enums.GmosNorthDetector
+import lucuma.core.enums.GmosNorthFpu
+import lucuma.core.enums.GmosNorthGrating
+import lucuma.core.enums.GmosNorthStageMode
+import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.GmosXBinning
+import lucuma.core.enums.GmosYBinning
+import lucuma.core.enums.GuideState
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.MosPreImaging
+import lucuma.core.enums.ObsActiveStatus
+import lucuma.core.enums.ObsStatus
+import lucuma.core.enums.ObserveClass
+import lucuma.core.enums.Site
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
+import lucuma.core.math.Offset
+import lucuma.core.math.Wavelength
+import lucuma.core.model.ConstraintSet
+import lucuma.core.model.ElevationRange
+import lucuma.core.model.Program
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
-import lucuma.core.model.sequence.gmos.{
-  DynamicConfig,
-  GmosCcdMode,
-  GmosFpuMask,
-  GmosGratingConfig,
-  StaticConfig
-}
-import lucuma.core.model.{ConstraintSet, ElevationRange, Program}
-import lucuma.core.model.sequence.{
-  Atom,
-  ExecutionConfig,
-  ExecutionSequence,
-  Step,
-  StepConfig,
-  StepEstimate
-}
+import lucuma.core.model.sequence.Step
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.StepEstimate
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.GmosCcdMode
+import lucuma.core.model.sequence.gmos.GmosFpuMask
+import lucuma.core.model.sequence.gmos.GmosGratingConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.test.*
 import observe.engine
-import observe.engine.Result.{PartialVal, PauseContext}
-import observe.engine.{Action, Result}
+import observe.engine.Action
+import observe.engine.Result
+import observe.engine.Result.PartialVal
+import observe.engine.Result.PauseContext
+import observe.model.ActionType
+import observe.model.ClientId
+import observe.model.Observation
+import observe.model.SystemOverrides
 import observe.model.config.*
 import observe.model.dhs.*
-import observe.model.enums.{Instrument, Resource}
-import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
+import observe.model.enums.Instrument
+import observe.model.enums.Resource
 import observe.server.SequenceGen.StepStatusGen
-// import observe.server.gpi.GpiController
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger

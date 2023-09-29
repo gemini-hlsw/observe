@@ -3,8 +3,9 @@
 
 package observe.model.arb
 
-import org.scalacheck.{Arbitrary, Cogen}
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
 import squants.Length
 import squants.space.LengthConversions.*
 

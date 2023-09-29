@@ -4,18 +4,18 @@
 package observe.server
 
 import cats.Id
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits.*
-import cats.data.NonEmptyList
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import observe.engine.*
 import observe.model.*
-import observe.model.enums.*
 import observe.model.enums.Resource.TCS
+import observe.model.enums.*
 import observe.server.TestCommon.*
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.SkyBackground
 
 class StepsViewSuite extends TestCommon {
 

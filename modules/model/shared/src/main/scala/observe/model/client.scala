@@ -6,11 +6,10 @@ package observe.model.events.client
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
-
+import io.circe.Decoder
+import io.circe.Encoder
 import lucuma.core.util.Enumerated
 import observe.model.Conditions
-import io.circe.Encoder
-import io.circe.Decoder
 
 enum ObserveEventType(val tag: String) derives Enumerated:
   case ConditionsUpdated extends ObserveEventType("conditions_updated")

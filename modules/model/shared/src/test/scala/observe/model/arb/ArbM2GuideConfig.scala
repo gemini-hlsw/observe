@@ -3,14 +3,14 @@
 
 package observe.model.arb
 
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.M2GuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.TipTiltSource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import lucuma.core.util.arb.ArbEnumerated.*
-import observe.model.enums.ComaOption
-import observe.model.enums.TipTiltSource
-import observe.model.M2GuideConfig
 
 trait ArbM2GuideConfig {
 

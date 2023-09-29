@@ -3,6 +3,10 @@
 
 package observe.server
 
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import observe.model.ClientId
 import observe.model.Conditions
 import observe.model.Notification
@@ -14,7 +18,6 @@ import observe.model.StepId
 import observe.model.UserDetails
 import observe.model.UserPrompt
 import observe.model.enums.*
-import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
 
 sealed trait SeqEvent extends Product with Serializable
 

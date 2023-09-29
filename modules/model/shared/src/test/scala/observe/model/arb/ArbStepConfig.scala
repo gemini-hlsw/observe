@@ -3,15 +3,15 @@
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary.*
-import org.scalacheck.*
 import lucuma.core.arb.*
-import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.*
 import observe.model.enums.*
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.*
 
 trait ArbStepConfig {
   val asciiStr: Gen[String] =

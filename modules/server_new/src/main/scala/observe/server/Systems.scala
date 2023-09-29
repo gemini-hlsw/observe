@@ -4,44 +4,35 @@
 package observe.server
 
 import cats.Monad
-import cats.effect.{Async, IO, Resource}
+import cats.effect.Async
+import cats.effect.IO
+import cats.effect.Resource
+import cats.effect.Temporal
 import cats.syntax.all.*
+import clue.*
+import clue.http4s.Http4sWebSocketBackend
+import clue.http4s.Http4sWebSocketClient
+import clue.websocket.ReconnectionStrategy
 import edu.gemini.epics.acm.CaService
-//import giapi.client.ghost.GhostClient
-//import giapi.client.gpi.GpiClient
-import org.typelevel.log4cats.Logger
+import io.circe.syntax.*
 import lucuma.core.enums.Site
+import lucuma.schemas.ObservationDB
 import mouse.boolean.*
-import org.http4s.client.Client
-import org.http4s.jdkhttpclient.JdkWSClient
 import observe.model.config.*
+import observe.server.OdbProxy.TestOdbProxy
 import observe.server.altair.*
-//import observe.server.flamingos2.*
 import observe.server.gcal.*
 import observe.server.gems.*
-//import observe.server.ghost.*
 import observe.server.gmos.*
-//import observe.server.gnirs.*
-//import observe.server.gpi.*
 import observe.server.gsaoi.*
-//import observe.server.gws.DummyGwsKeywordsReader
-//import observe.server.gws.GwsEpics
-//import observe.server.gws.GwsKeywordReader
-//import observe.server.gws.GwsKeywordsReaderEpics
 import observe.server.keywords.*
-//import observe.server.nifs.*
-//import observe.server.niri.*
 import observe.server.tcs.*
-import cats.effect.Temporal
-import clue.*
-import clue.http4s.{Http4sWebSocketBackend, Http4sWebSocketClient}
-import clue.websocket.ReconnectionStrategy
-import lucuma.schemas.ObservationDB
-import io.circe.syntax.*
+import org.http4s.client.Client
+import org.http4s.jdkhttpclient.JdkWSClient
+import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
-import observe.server.OdbProxy.TestOdbProxy
 
 case class Systems[F[_]] private (
   odb:                 OdbProxy[F],

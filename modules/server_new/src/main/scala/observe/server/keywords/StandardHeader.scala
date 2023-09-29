@@ -8,14 +8,17 @@ import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.GuideState
+import observe.model.Conditions
+import observe.model.Observation
+import observe.model.Observer
+import observe.model.Operator
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
-import observe.model.{Conditions, Observation, Observer, Operator}
 import observe.server.OcsBuildInfo
-import org.typelevel.log4cats.Logger
 import observe.server.tcs.TargetKeywordsReader
 import observe.server.tcs.TcsController
 import observe.server.tcs.TcsKeywordsReader
+import org.typelevel.log4cats.Logger
 
 final case class StateKeywordsReader[F[_]: Applicative](
   conditions: Conditions,

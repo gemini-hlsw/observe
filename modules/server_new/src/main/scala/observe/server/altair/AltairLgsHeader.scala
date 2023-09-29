@@ -5,11 +5,11 @@ package observe.server.altair
 
 import cats.Applicative
 import cats.effect.Sync
-import org.typelevel.log4cats.Logger
-import observe.model.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
 import observe.server.keywords.*
+import org.typelevel.log4cats.Logger
 
 object AltairLgsHeader {
 

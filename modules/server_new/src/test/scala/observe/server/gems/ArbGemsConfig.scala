@@ -4,10 +4,21 @@
 package observe.server.gems
 
 import cats.syntax.all.*
-import org.scalacheck.{Arbitrary, Cogen}
+import observe.server.gems.GemsController.Cwfs1Usage.given
+import observe.server.gems.GemsController.Cwfs2Usage.given
+import observe.server.gems.GemsController.Cwfs3Usage.given
+import observe.server.gems.GemsController.OIUsage.given
+import observe.server.gems.GemsController.Odgw1Usage.given
+import observe.server.gems.GemsController.Odgw2Usage.given
+import observe.server.gems.GemsController.Odgw3Usage.given
+import observe.server.gems.GemsController.Odgw4Usage.given
+import observe.server.gems.GemsController.P1Usage.given
+import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
 import org.scalacheck.Cogen.*
 import org.scalacheck.Gen
+
 import GemsController.{
   Cwfs1Usage,
   Cwfs2Usage,
@@ -22,15 +33,6 @@ import GemsController.{
   Odgw4Usage,
   P1Usage
 }
-import observe.server.gems.GemsController.Cwfs1Usage.given
-import observe.server.gems.GemsController.Cwfs2Usage.given
-import observe.server.gems.GemsController.Cwfs3Usage.given
-import observe.server.gems.GemsController.OIUsage.given
-import observe.server.gems.GemsController.Odgw1Usage.given
-import observe.server.gems.GemsController.Odgw2Usage.given
-import observe.server.gems.GemsController.Odgw3Usage.given
-import observe.server.gems.GemsController.Odgw4Usage.given
-import observe.server.gems.GemsController.P1Usage.given
 
 trait ArbGemsConfig {
 

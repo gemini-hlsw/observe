@@ -3,9 +3,9 @@
 
 package observe.server
 
-import org.http4s.Uri
 import observe.model.Observation
 import observe.model.dhs.*
+import org.http4s.Uri
 
 sealed trait ObserveFailure extends Exception with Product with Serializable
 

@@ -3,10 +3,10 @@
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Gen
-import org.scalacheck.Cogen
 import observe.model.StepState
+import org.scalacheck.Arbitrary
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbStepState {
   given stepStateArb: Arbitrary[StepState] = Arbitrary[StepState] {

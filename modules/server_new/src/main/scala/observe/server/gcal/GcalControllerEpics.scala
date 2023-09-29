@@ -3,19 +3,22 @@
 
 package observe.server.gcal
 
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
 import cats.effect.Async
 import cats.syntax.all.*
 import edu.gemini.observe.server.gcal.BinaryOnOff
-import lucuma.core.enums.{GcalDiffuser, GcalFilter, GcalShutter}
-import org.typelevel.log4cats.Logger
+import lucuma.core.enums.GcalDiffuser
+import lucuma.core.enums.GcalFilter
+import lucuma.core.enums.GcalShutter
 import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil.applyParam
 import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
 import observe.server.gcal.GcalController.*
+import org.typelevel.log4cats.Logger
+
+import java.util.concurrent.TimeUnit.SECONDS
+import scala.concurrent.duration.FiniteDuration
 
 object GcalControllerEpics {
   // Default value from Tcl Observe

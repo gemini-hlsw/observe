@@ -3,24 +3,29 @@
 
 package observe.server.tcs
 
-import cats.{Applicative, Eq}
+import cats.Applicative
+import cats.Eq
 import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Temporal
 import cats.syntax.all.*
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import monocle.{Getter, Lens}
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
 import monocle.Focus
+import monocle.Getter
+import monocle.Lens
 import observe.model.enums.ApplyCommandResult
-import observe.server.TestEpicsCommand.*
 import observe.server.EpicsCommand
+import observe.server.TestEpicsCommand.*
 import observe.server.tcs.TcsEpics.*
-import observe.server.tcs.TestTcsEpics.TestTcsEvent.{AoCorrectCmd, AoPrepareMatrix}
+import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoCorrectCmd
+import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoPrepareMatrix
 import squants.Angle
 import squants.space.AngleConversions.*
 
-import java.util.concurrent.TimeUnit.SECONDS
 import java.time.Duration
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
-import cats.effect.{Ref, Temporal}
 
 case class TestTcsEpics[F[_]: Async](
   state: Ref[F, TestTcsEpics.State],

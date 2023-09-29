@@ -5,22 +5,25 @@ package observe.server
 
 import cats.Applicative
 import cats.data.NonEmptySet
-import cats.effect.{Async, Ref, Sync, Temporal}
+import cats.effect.Async
+import cats.effect.Ref
+import cats.effect.Sync
+import cats.effect.Temporal
 import cats.syntax.all.*
-import lucuma.core.model.sequence
-import lucuma.core.model.sequence.{
-  ExecutionConfig,
-  InstrumentExecutionConfig,
-  Step => OdbStep,
-  StepConfig
-}
-import lucuma.core.model.sequence.gmos.{DynamicConfig, StaticConfig}
-import lucuma.core.math.Wavelength
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
-import org.typelevel.log4cats.Logger
-import lucuma.core.enums.{ObserveClass, Site}
+import lucuma.core.enums.ObserveClass
+import lucuma.core.enums.Site
+import lucuma.core.math.Wavelength
+import lucuma.core.model.sequence
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.model.sequence.{Step => OdbStep}
 import mouse.all.*
+import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 import observe.engine.Action.ActionState
 import observe.engine.*
 import observe.model.Observation
@@ -30,29 +33,17 @@ import observe.model.enums.Resource
 import observe.model.{Progress as _, *}
 import observe.server.InstrumentSystem.*
 import observe.server.ObserveFailure.Unexpected
-import observe.server.gmos.GmosController.GmosSite
-//import observe.server.SequenceConfiguration._
 import observe.server.SequenceGen.StepActionsGen
 import observe.server.SequenceGen.StepGen
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.altair.AltairControllerDisabled
-//import observe.server.altair.AltairHeader
-//import observe.server.altair.AltairLgsHeader
-//import observe.server.flamingos2.Flamingos2
-//import observe.server.flamingos2.Flamingos2Controller
-//import observe.server.flamingos2.Flamingos2ControllerDisabled
-//import observe.server.flamingos2.Flamingos2Header
 import observe.server.gcal.*
 import observe.server.gems.Gems
 import observe.server.gems.GemsController
 import observe.server.gems.GemsControllerDisabled
-//import observe.server.gems.GemsHeader
-//import observe.server.ghost.Ghost
-//import observe.server.ghost.GhostController
-//import observe.server.ghost.GhostControllerDisabled
-//import observe.server.ghost.GhostHeader
 import observe.server.gmos.GmosController
+import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosControllerDisabled
 import observe.server.gmos.GmosHeader
 import observe.server.gmos.GmosNorth
@@ -63,23 +54,12 @@ import observe.server.gmos.GmosSouth
 import observe.server.gmos.GmosSouth.given
 import observe.server.gmos.GmosSouthController
 import observe.server.gmos.NSObserveCommand
-//import observe.server.gnirs._
-//import observe.server.gpi.Gpi
-//import observe.server.gpi.GpiController
-//import observe.server.gpi.GpiControllerDisabled
-//import observe.server.gpi.GpiHeader
-//import observe.server.gsaoi._
-//import observe.server.gws.GwsHeader
 import observe.server.keywords._
-//import observe.server.nifs._
-//import observe.server.niri._
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.*
-//import squants.Time
-//import squants.time.TimeConversions._
-//import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
-import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
+import org.typelevel.log4cats.Logger
+
 import scala.concurrent.duration.*
 
 //trait SeqTranslate[F[_]] extends ObserveActions {

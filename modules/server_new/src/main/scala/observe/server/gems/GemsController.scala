@@ -3,7 +3,8 @@
 
 package observe.server.gems
 
-import cats.{Eq, Show}
+import cats.Eq
+import cats.Show
 import cats.implicits.*
 import mouse.boolean.*
 import observe.server.gems.Gems.GemsWfsState

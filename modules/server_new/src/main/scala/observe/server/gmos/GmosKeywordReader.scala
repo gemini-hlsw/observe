@@ -3,18 +3,21 @@
 
 package observe.server.gmos
 
+import cats.Applicative
+import cats.MonadThrow
 import cats.effect.Sync
 import cats.syntax.all.*
-import cats.{Applicative, MonadThrow}
 import lucuma.core.enums.MosPreImaging
-import lucuma.core.math.{Angle, Offset}
+import lucuma.core.math.Angle
+import lucuma.core.math.Offset
 import lucuma.core.model.sequence
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.StaticConfig
-import monocle.Getter
 import monocle.Focus
+import monocle.Getter
 import observe.model.enums.NodAndShuffleStage
-import observe.model.enums.NodAndShuffleStage.{StageA, StageB}
+import observe.model.enums.NodAndShuffleStage.StageA
+import observe.model.enums.NodAndShuffleStage.StageB
 import observe.server.ObserveFailure
 import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosEpics.RoiStatus

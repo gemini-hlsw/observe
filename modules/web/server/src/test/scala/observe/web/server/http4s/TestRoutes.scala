@@ -4,23 +4,22 @@
 package observe.web.server.http4s
 
 import cats.effect.IO
+import cats.effect.Ref
 import cats.effect.std.Queue
 import fs2.concurrent.Topic
 import giapi.client.GiapiStatusDb
 import lucuma.core.enums.Site
-import org.typelevel.log4cats.noop.NoOpLogger
+import observe.model.UserLoginRequest
+import observe.model.config.*
+import observe.model.events.*
+import observe.server.{*, given}
 import org.http4s.*
 import org.http4s.implicits.*
-import observe.server.{*, given}
-import org.typelevel.log4cats.Logger
-//import observe.server.tcs.GuideConfigDb
-import observe.model.events.*
-import observe.model.config.*
-// import observe.web.server.security.AuthenticationService
-import observe.model.UserLoginRequest
-import scala.concurrent.duration.*
-import cats.effect.Ref
 import org.http4s.server.websocket.WebSocketBuilder2
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
+
+import scala.concurrent.duration.*
 
 trait TestRoutes {
   given logger: Logger[IO] = NoOpLogger.impl[IO]

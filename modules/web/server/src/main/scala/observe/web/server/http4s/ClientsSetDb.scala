@@ -3,15 +3,15 @@
 
 package observe.web.server.http4s
 
-import java.time.Instant
-
 import cats.Monad
-import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
-import org.http4s.headers.`User-Agent`
-import observe.model.ClientId
-import cats.effect.Ref
 import cats.effect.Clock
+import cats.effect.Ref
+import cats.syntax.all.*
+import observe.model.ClientId
+import org.http4s.headers.`User-Agent`
+import org.typelevel.log4cats.Logger
+
+import java.time.Instant
 
 trait ClientsSetDb[F[_]] {
   def newClient(

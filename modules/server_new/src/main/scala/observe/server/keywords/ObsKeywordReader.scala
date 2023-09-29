@@ -5,16 +5,22 @@ package observe.server.keywords
 
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.{GuideState, Site}
-import lucuma.core.model.sequence.{Step as OcsStep, StepConfig}
-import lucuma.core.enums.GuideState.{Disabled, Enabled}
+import lucuma.core.enums.GuideState
+import lucuma.core.enums.GuideState.Disabled
+import lucuma.core.enums.GuideState.Enabled
+import lucuma.core.enums.Site
+import lucuma.core.model.ElevationRange
+import lucuma.core.model.TimingWindowEnd
+import lucuma.core.model.TimingWindowRepeat
+import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.{ElevationRange, TimingWindowEnd, TimingWindowRepeat}
+import lucuma.core.model.sequence.{Step => OcsStep}
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 
+import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneId}
 
 sealed trait ObsKeywordsReader[F[_]] {
   def obsType: F[String]

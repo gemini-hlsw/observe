@@ -3,13 +3,13 @@
 
 package observe.model.arb
 
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.*
+import observe.model.arb.ArbNSSubexposure.given
+import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbEnumerated.*
-import observe.model.*
-import observe.model.enums.*
-import observe.model.arb.ArbNSSubexposure.given
 
 trait ArbNSRunningState {
   given nsRunningStateArb: Arbitrary[NSRunningState] = Arbitrary[NSRunningState] {

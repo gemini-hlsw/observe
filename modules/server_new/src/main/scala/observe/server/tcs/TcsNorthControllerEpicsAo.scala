@@ -7,24 +7,31 @@ import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.implicits.*
-import mouse.boolean.*
-import monocle.{Focus, Lens}
+import lucuma.core.enums.Site
+import monocle.Focus
+import monocle.Lens
 import monocle.syntax.all.*
-import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
-import observe.model.{M1GuideConfig, M2GuideConfig, TelescopeGuideConfig}
+import mouse.boolean.*
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.TelescopeGuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsControllerEpicsCommon.{calcMoveDistanceSquared, offsetNear}
+import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
+import observe.server.tcs.TcsControllerEpicsCommon.offsetNear
 import observe.server.tcs.TcsNorthController.{*, given}
 import org.typelevel.log4cats.Logger
 import squants.Length
 import squants.space.Area
 import squants.time.TimeConversions.*
-import lucuma.core.enums.Site
 
 import java.time.Duration
 

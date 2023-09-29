@@ -4,12 +4,18 @@
 package observe.server.tcs
 
 import cats.syntax.all.*
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import observe.model.{M1GuideConfig, M2GuideConfig}
-import observe.model.enums.{ComaOption, M1Source, MountGuideOption, TipTiltSource}
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.M1Source
+import observe.model.enums.MountGuideOption
+import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.DecodeEpicsValue
+import observe.server.tcs.TcsController.FollowOption.FollowOff
+import observe.server.tcs.TcsController.FollowOption.FollowOn
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsController.FollowOption.{FollowOff, FollowOn}
 
 trait TcsConfigDecoders {
   // Code to retrieve the current configuration from TCS. Include a lot of decoders

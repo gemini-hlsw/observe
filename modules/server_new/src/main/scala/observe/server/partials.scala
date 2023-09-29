@@ -4,8 +4,9 @@
 package observe.server
 
 import observe.engine.Result.PartialVal
+import observe.model.NSSubexposure
+import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.{NSSubexposure, ObserveStage}
 
 import scala.concurrent.duration.FiniteDuration
 

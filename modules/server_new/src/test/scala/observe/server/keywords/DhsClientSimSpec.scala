@@ -5,10 +5,11 @@ package observe.server.keywords
 
 import cats.effect.IO
 import observe.model.enums.KeywordName
-import org.typelevel.log4cats.noop.NoOpLogger
-import org.typelevel.log4cats.Logger
-import java.time.LocalDate
 import observe.server.keywords.DhsClient.Permanent
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.noop.NoOpLogger
+
+import java.time.LocalDate
 
 class DhsClientSimSpec extends munit.CatsEffectSuite {
   private given Logger[IO] = NoOpLogger.impl[IO]

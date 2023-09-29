@@ -3,8 +3,10 @@
 
 package observe.server.tcs
 
-import observe.model.{M1GuideConfig, M2GuideConfig}
-import observe.model.enums.{ComaOption, MountGuideOption}
+import observe.model.M1GuideConfig
+import observe.model.M2GuideConfig
+import observe.model.enums.ComaOption
+import observe.model.enums.MountGuideOption
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.tcs.TcsController.*
 

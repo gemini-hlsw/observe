@@ -4,11 +4,11 @@
 package observe.server.tcs
 
 import lucuma.core.math.Wavelength
+import monocle.Focus
+import monocle.Lens
 import observe.model.TelescopeGuideConfig
 import observe.server.tcs.TcsController.*
 import squants.Angle
-import monocle.Lens
-import monocle.Focus
 
 case class InstrumentPorts(
   flamingos2Port: Int,

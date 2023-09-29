@@ -3,13 +3,13 @@
 
 package observe.model.arb
 
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.M1GuideConfig
+import observe.model.enums.M1Source
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.enums.M1Source
-import observe.model.M1GuideConfig
-import lucuma.core.util.arb.ArbEnumerated.*
 
 trait ArbM1GuideConfig {
 

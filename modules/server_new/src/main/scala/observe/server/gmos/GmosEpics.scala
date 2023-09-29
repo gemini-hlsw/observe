@@ -3,16 +3,21 @@
 
 package observe.server.gmos
 
-import cats.effect.{Async, IO, Sync}
+import cats.effect.Async
+import cats.effect.IO
+import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import mouse.all.*
 import observe.model.enums.ApplyCommandResult
+import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
+import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
+import observe.server.ObserveCommandBase
 import observe.server.ObserveFailure.*
-import observe.server.gmos.GmosEpics.{RoiParameters, RoiStatus}
-import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
+import observe.server.gmos.GmosEpics.RoiParameters
+import observe.server.gmos.GmosEpics.RoiStatus
 
 import java.lang.Double as JDouble
 import scala.concurrent.duration.*

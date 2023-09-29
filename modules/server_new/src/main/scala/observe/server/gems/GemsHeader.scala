@@ -5,11 +5,10 @@ package observe.server.gems
 
 import cats.effect.Sync
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
-import observe.model.enums.KeywordName
 import lucuma.core.enums.GuideState
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
 import observe.server.keywords.Header
 import observe.server.keywords.KeywordBag
 import observe.server.keywords.KeywordsClient
@@ -23,6 +22,7 @@ import observe.server.tcs.GemsSource
 import observe.server.tcs.TargetKeywordsReader
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsKeywordsReader
+import org.typelevel.log4cats.Logger
 
 object GemsHeader {
   def header[F[_]: Sync: Logger](

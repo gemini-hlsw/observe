@@ -8,17 +8,22 @@ import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import observe.engine.EventResult
 import observe.model.Observation.Id
 import observe.model.*
 import observe.model.enums.*
+import observe.server.EngineState
+import observe.server.EventQueue
+import observe.server.EventType
+import observe.server.ObserveEngine
+import observe.server.SeqEvent
+import observe.server.Systems
 import observe.server.keywords.DhsClientDisabled
-import observe.server.{EngineState, EventQueue, EventType, ObserveEngine, SeqEvent, Systems}
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.SkyBackground
-import lucuma.core.enums.CloudExtinction
 
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
   override val systems: Systems[F] = sys

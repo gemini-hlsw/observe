@@ -3,20 +3,21 @@
 
 package observe.server.tcs
 
-import edu.gemini.observe.server.tcs.{BinaryOnOff, BinaryYesNo}
-import org.scalacheck.Arbitrary.*
+import edu.gemini.observe.server.tcs.BinaryOnOff
+import edu.gemini.observe.server.tcs.BinaryYesNo
+import observe.model.TelescopeGuideConfig
+import observe.model.arb.ArbTelescopeGuideConfig.given
+import observe.server.altair.AltairController.AltairConfig
+import observe.server.altair.ArbAltairConfig.given
+import observe.server.gems.ArbGemsConfig.given
+import observe.server.gems.GemsController.GemsConfig
 import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import squants.Angle
 import squants.space.AngleConversions.*
 import squants.space.Degrees
-import observe.model.TelescopeGuideConfig
-import observe.server.gems.GemsController.GemsConfig
-import observe.server.gems.ArbGemsConfig.given
-import observe.server.altair.AltairController.AltairConfig
-import observe.server.altair.ArbAltairConfig.given
-import observe.model.arb.ArbTelescopeGuideConfig.given
 
 trait TcsArbitraries {
   given Arbitrary[TcsController.Beam]    = Arbitrary(

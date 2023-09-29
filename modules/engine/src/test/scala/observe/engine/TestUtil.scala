@@ -4,9 +4,10 @@
 package observe.engine
 
 import cats.effect.IO
-import observe.model.Observation
-import monocle.{Focus, Optional}
+import monocle.Focus
+import monocle.Optional
 import monocle.function.Index.*
+import observe.model.Observation
 
 object TestUtil {
   final case class TestState(sequences: Map[Observation.Id, Sequence.State[IO]])

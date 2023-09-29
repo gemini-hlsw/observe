@@ -5,14 +5,13 @@ package observe.server
 
 import clue.data.syntax.*
 import lucuma.core.math.Offset
-import lucuma.core.model.sequence.gmos.{GmosNodAndShuffle, StaticConfig}
-import lucuma.schemas.ObservationDB.Types.{
-  GmosNodAndShuffleInput,
-  GmosNorthStaticInput,
-  GmosSouthStaticInput,
-  OffsetComponentInput,
-  OffsetInput
-}
+import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
+import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.schemas.ObservationDB.Types.GmosNodAndShuffleInput
+import lucuma.schemas.ObservationDB.Types.GmosNorthStaticInput
+import lucuma.schemas.ObservationDB.Types.GmosSouthStaticInput
+import lucuma.schemas.ObservationDB.Types.OffsetComponentInput
+import lucuma.schemas.ObservationDB.Types.OffsetInput
 
 object ObsQueryInput {
 

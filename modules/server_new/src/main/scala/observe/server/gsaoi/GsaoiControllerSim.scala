@@ -8,9 +8,11 @@ import cats.effect.Async
 import cats.syntax.all.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
+import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.{InstrumentControllerSim, Progress}
-import observe.server.gsaoi.GsaoiController.{DCConfig, GsaoiConfig}
+import observe.server.Progress
+import observe.server.gsaoi.GsaoiController.DCConfig
+import observe.server.gsaoi.GsaoiController.GsaoiConfig
 import org.typelevel.log4cats.Logger
 
 import scala.concurrent.duration.*

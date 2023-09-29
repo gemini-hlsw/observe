@@ -5,7 +5,8 @@ package observe.server.tcs
 
 import observe.server.EpicsCommand
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsEpics.{ProbeFollowCmd, ProbeGuideCmd}
+import observe.server.tcs.TcsEpics.ProbeFollowCmd
+import observe.server.tcs.TcsEpics.ProbeGuideCmd
 
 final case class GuideControl[F[_]](
   subs:            Subsystem,

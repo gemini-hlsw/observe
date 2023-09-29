@@ -5,10 +5,10 @@ package observe.server
 
 import cats.*
 import cats.syntax.all.*
-import org.typelevel.log4cats.Logger
-import observe.model.enums.KeywordName
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
+import org.typelevel.log4cats.Logger
 
 import java.util.Locale
 
