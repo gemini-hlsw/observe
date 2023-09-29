@@ -3,13 +3,13 @@
 
 package observe.server
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
 import cats.{Applicative, Monoid}
-import fs2.Stream
 import eu.timepit.refined.types.numeric.PosLong
-import giapi.client.ghost.GhostClient
-import giapi.client.gpi.GpiClient
+//import giapi.client.ghost.GhostClient
+//import giapi.client.gpi.GpiClient
 import lucuma.core.enums.{
   Breakpoint,
   CloudExtinction,
@@ -64,26 +64,16 @@ import observe.model.config.*
 import observe.model.dhs.*
 import observe.model.enums.{Instrument, Resource}
 import observe.model.{ActionType, ClientId, Observation, SystemOverrides}
-import observe.server.OdbProxy.TestOdbProxy
 import observe.server.SequenceGen.StepStatusGen
-import observe.server.altair.{AltairControllerSim, AltairKeywordReaderDummy}
-// import observe.server.flamingos2.Flamingos2ControllerSim
-// import observe.server.gnirs.{GnirsControllerSim, GnirsKeywordReaderDummy}
 // import observe.server.gpi.GpiController
-// import observe.server.gws.DummyGwsKeywordsReader
-// import observe.server.nifs.{NifsControllerSim, NifsKeywordReaderDummy}
-// import observe.server.niri.{NiriControllerSim, NiriKeywordReaderDummy}
-import observe.server.tcs.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 
+import java.util.UUID
 import scala.concurrent.duration.*
-import observe.model.enums.Resource
-import observe.server.keywords.DhsClientProvider
-import observe.server.keywords.DhsClient
 
 trait TestCommon extends munit.CatsEffectSuite {
   import TestCommon.*

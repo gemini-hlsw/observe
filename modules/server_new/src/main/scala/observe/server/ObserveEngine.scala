@@ -222,7 +222,7 @@ trait ObserveEngine[F[_]] {
     observer: Option[Observer],
     seqg:     SequenceGen[F],
     l:        Lens[EngineState[F], Option[SequenceData[F]]]
-  ): Endo[EngineState[F]]
+  ): Endo[EngineState[F]] = ODBSequencesLoader.loadSequenceEndo(observer, seqg, l)
 }
 
 object ObserveEngine {
@@ -1433,12 +1433,6 @@ object ObserveEngine {
 //              refreshSequence(seqId)).withEvent(SetDhsEnabled(seqId, user.some, enabled)).toHandle
 //          )
 //        )
-
-    def loadSequenceEndo(
-      observer: Option[Observer],
-      seqg:     SequenceGen[F],
-      l:        Lens[EngineState[F], Option[SequenceData[F]]]
-    ): Endo[EngineState[F]] = ODBSequencesLoader.loadSequenceEndo(observer, seqg, l)
 
   }
 
