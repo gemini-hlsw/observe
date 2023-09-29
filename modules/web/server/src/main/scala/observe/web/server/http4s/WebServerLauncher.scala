@@ -16,9 +16,10 @@ import fs2.concurrent.Topic
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
+import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
-import observe.model.events.client.ObserveClientEvent
+import observe.model.events.client.ClientEvent
 import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine
@@ -107,13 +108,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
     oe:        ObserveEngine[F]
   ): Resource[F, Server] = {
 
-    def router(wsb: WebSocketBuilder2[F], events: Topic[F, ObserveClientEvent]) = Router[F](
+    def router(
+      wsb:    WebSocketBuilder2[F],
+      events: Topic[F, (Option[ClientId], ClientEvent)]
+    ) = Router[F](
       "/api/observe/guide"  -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
       "/api/observe"        -> new ObserveCommandRoutes(oe).service,
-      "/api/observe/events" -> new ObserveEventRoutes(clientsDb, events, wsb).service
+      "/api/observe/events" -> new ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
     )
 
-    def builder(events: Topic[F, ObserveClientEvent]) = EmberServerBuilder
+    def builder(events: Topic[F, (Option[ClientId], ClientEvent)]) = EmberServerBuilder
       .default[F]
       .withHost(conf.webServer.host)
       .withPort(conf.webServer.port)
@@ -121,7 +125,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb, events)).orNotFound
       )
 
-    def builderWithTLS(events: Topic[F, ObserveClientEvent]) =
+    def builderWithTLS(events: Topic[F, (Option[ClientId], ClientEvent)]) =
       Resource
         .eval(
           conf.webServer.tls
@@ -133,9 +137,9 @@ object WebServerLauncher extends IOApp with LogInitialization {
         .flatten
 
     for {
-      wst    <- Resource.eval(Topic[F, ObserveClientEvent])
+      wst    <- Resource.eval(Topic[F, (Option[ClientId], ClientEvent)])
       _      <- oe.eventStream
-                  .evalMapFilter(e => e.toClientEvent.traverse(wst.publish1))
+                  .evalMapFilter(_.toClientEvent.traverse(wst.publish1))
                   .compile
                   .drain
                   .background

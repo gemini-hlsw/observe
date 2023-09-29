@@ -4,7 +4,7 @@
 package observe.web.server.http4s
 
 import cats.effect.Async
-import cats.effect.Sync
+import cats.effect.std.UUIDGen
 import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
@@ -12,11 +12,14 @@ import fs2.compression.Compression
 import fs2.concurrent.Topic
 import io.circe.Encoder
 import io.circe.syntax.*
+import lucuma.core.enums.Site
 import observe.model.ClientId
 import observe.model.*
 import observe.model.events.*
-import observe.model.events.client.ObserveClientEvent
+import observe.model.events.client.ClientEvent
+import observe.model.events.client.ClientEvent.InitialEvent
 import observe.server.ObserveEngine
+import observe.server.OcsBuildInfo
 import org.http4s.*
 import org.http4s.dsl.*
 import org.http4s.headers.`User-Agent`
@@ -36,8 +39,10 @@ import scala.concurrent.duration.*
  * Rest Endpoints under the /api route
  */
 class ObserveEventRoutes[F[_]: Async: Compression](
+  site:             Site,
   clientsDb:        ClientsSetDb[F],
-  engineOutput:     Topic[F, ObserveClientEvent],
+  engine:           ObserveEngine[F],
+  engineOutput:     Topic[F, (Option[ClientId], ClientEvent)],
   webSocketBuilder: WebSocketBuilder2[F]
 )(using
   L:                Logger[F]
@@ -57,18 +62,23 @@ class ObserveEventRoutes[F[_]: Async: Compression](
       // If the user didn't login, anonymize
       // val anonymizeF: ObserveEvent => ObserveEvent = user.fold(_ => anonymize, _ => identity)
       //
-      // def initialEvent(clientId: ClientId): Stream[F, WebSocketFrame] =
-      //   Stream.emit(toFrame(ConnectionOpenEvent(user.toOption, clientId, OcsBuildInfo.version)))
 
+      def initialEvent(clientId: ClientId): Stream[F, WebSocketFrame] =
+        Stream.emit(toFrame(InitialEvent(site, clientId, OcsBuildInfo.version)))
+
+      // engineOutput.
       def engineEvents(clientId: ClientId): Stream[F, WebSocketFrame] =
         engineOutput
           .subscribe(100)
           // .map(anonymizeF)
           // .filter(filterOutNull)
-          // .filter(filterOutOnClientId(clientId))
+          .filter(filterOutOnClientId(clientId))
+          .map(_._2)
           .map(toFrame)
-      val clientSocket                                                = (ws.remoteAddr, ws.remotePort).mapN((a, p) => s"$a:$p").orEmpty
-      val userAgent                                                   = ws.headers.get[`User-Agent`]
+
+      val clientSocket = (ws.remoteAddr, ws.remotePort).mapN((a, p) => s"$a:$p").orEmpty
+
+      val userAgent = ws.headers.get[`User-Agent`]
 
       // We don't care about messages sent over ws by clients but we want to monitor
       // control frames and track that pings arrive from clients
@@ -90,12 +100,18 @@ class ObserveEventRoutes[F[_]: Async: Compression](
 
       // Create a client specific websocket
       for {
-        clientId <- Sync[F].delay(ClientId(UUID.randomUUID()))
+        clientId <- UUIDGen[F].randomUUID.map(ClientId(_))
         _        <- clientsDb.newClient(clientId, clientSocket, userAgent)
-        _        <- L.info(s"New client $clientSocket => ${clientId.self}")
-        // initial   = initialEvent(clientId)
-        streams   = Stream(pingStream, engineEvents(clientId)).parJoinUnbounded
-                      .onFinalize[F](clientsDb.removeClient(clientId))
+        _        <- L.info(s"New client $clientSocket => ${clientId.value}")
+        streams   =
+          Stream(
+            pingStream,
+            engineEvents(clientId),
+            initialEvent(clientId) ++ Stream
+              .eval(engine.requestRefresh(clientId))
+              .map(_ => Ping()) // Request an initial refresh
+          ).parJoinUnbounded
+            .onFinalize[F](clientsDb.removeClient(clientId))
         ws       <- webSocketBuilder
                       .withFilterPingPongs(false)
                       .build(streams, clientEventsSink(clientId))
@@ -126,12 +142,10 @@ class ObserveEventRoutes[F[_]: Async: Compression](
   //       case _         => true
   //     }
   //
-  // // Messages with a clientId are only sent to the matching client
-  // private def filterOutOnClientId(clientId: ClientId) =
-  //   (e: ObserveEvent) =>
-  //     e match {
-  //       case e: ForClient if e.clientId =!= clientId => false
-  //       case _                                       => true
-  //     }
-  //
+  // Messages with a clientId are only sent to the matching client
+  private def filterOutOnClientId[A](clientId: ClientId): ((Option[ClientId], A)) => Boolean = {
+    case (Some(cid), _) => cid === clientId
+    case _              => true
+  }
+
 }

@@ -10,7 +10,6 @@ import observe.model.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
 import observe.model.events.client.*
-import observe.model.given
 import org.typelevel.cats.time.given
 
 import java.time.Instant
@@ -135,8 +134,13 @@ case class GuideConfigUpdate(telescope: TelescopeGuideConfig) extends ObserveEve
 case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
-  def toClientEvent: Option[ObserveClientEvent] = e match {
-    case ConditionsUpdated(v) =>
-      Some(ObserveClientEvent(ObserveClientState(v.conditions), ObserveEventType.ConditionsUpdated))
-    case _                    => None
+  def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
+    case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.conditions).some
+    case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.conditions).some
+    case _                       => none
+  }).map { u =>
+    e match {
+      case e: ForClient => (e.clientId.some, u)
+      case _            => (none, u)
+    }
   }
