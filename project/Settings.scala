@@ -82,7 +82,7 @@ object Settings {
     val lucumaSchemas = "0.61.0"
 
     // Clue
-    val clue = "0.32.0"
+    val clue = "0.33.0"
 
     val atto = "0.9.5"
   }
