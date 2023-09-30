@@ -4,16 +4,9 @@
 package observe.model
 
 import cats.Eq
-import observe.model.enums.Instrument
+import cats.derived.*
+import lucuma.core.enums.Instrument
 
 /** Metadata about the sequence required on the exit point */
-final case class SequenceMetadata(
-  instrument: Instrument,
-  observer:   Option[Observer],
-  name:       String
-)
-
-object SequenceMetadata {
-  given Eq[SequenceMetadata] =
-    Eq.by(x => (x.instrument, x.observer, x.name))
-}
+case class SequenceMetadata(instrument: Instrument, observer: Option[Observer], name: String)
+    derives Eq

@@ -7,6 +7,7 @@ import crystal.react.View
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
+import observe.ui.components.ConfigSection
 import observe.ui.components.Home
 import observe.ui.model.Page
 import observe.ui.model.Page.*
@@ -24,6 +25,15 @@ object Routing:
           | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
           | staticRoute(root / "daytime", Daytime) ~> renderP(rootModel => <.div("Daytime"))
           | staticRoute(root / "excluded", Excluded) ~> renderP(rootModel => <.div("Excluded")))
+          | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
+            <.div(
+              ConfigSection(
+                // rootModel.get.status,
+                rootModel.get.operator,
+                rootModel.zoom(RootModel.conditions)
+              )
+            )
+          )
 
       val configuration =
         rules

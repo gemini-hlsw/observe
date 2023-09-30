@@ -9,27 +9,29 @@ import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
 import observe.model.*
+import observe.ui.model.enums.ClientMode
 
 case class RootModel(
   userVault:            Option[UserVault],
-  status:               ClientStatus,
+  // status:               ClientStatus,
   conditions:           Conditions,
   operator:             Option[Operator],
   userSelectionMessage: Option[NonEmptyString]
-)
+):
+  val clientMode: ClientMode = userVault.fold(ClientMode.ReadOnly)(_ => ClientMode.CanOperate)
 
 object RootModel:
   def initial(userVault: Either[Throwable, Option[UserVault]]): RootModel =
     RootModel(
       userVault.toOption.flatten,
-      ClientStatus.Default,
+      // ClientStatus.Default,
       Conditions.Default,
       none,
       userVault.left.toOption.map(t => NonEmptyString.unsafeFrom(t.getMessage))
     )
 
   val userVault: Lens[RootModel, Option[UserVault]]                 = Focus[RootModel](_.userVault)
-  val status: Lens[RootModel, ClientStatus]                         = Focus[RootModel](_.status)
+  // val status: Lens[RootModel, ClientStatus]                         = Focus[RootModel](_.status)
   val conditions: Lens[RootModel, Conditions]                       = Focus[RootModel](_.conditions)
   val operator: Lens[RootModel, Option[Operator]]                   = Focus[RootModel](_.operator)
   val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]] =

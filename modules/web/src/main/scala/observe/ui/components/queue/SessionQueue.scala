@@ -23,6 +23,7 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
+import observe.ui.display.given
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)
@@ -111,7 +112,7 @@ object SessionQueue:
     // )
 
   private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-    s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").orEmpty}"
+    s"${status.shortName} ${runningStep.map(rs => s" ${rs.shortName}").orEmpty}"
 
   // private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
   //   // <.div(ObserveStyles.QueueText |+| css)(node)

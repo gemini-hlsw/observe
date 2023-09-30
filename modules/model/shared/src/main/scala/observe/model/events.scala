@@ -26,7 +26,7 @@ sealed trait ForClient extends ObserveEvent {
   def clientId: ClientId
 }
 
-case class ObservationProgressEvent(progress: Progress) extends ObserveEvent derives Eq
+case class ObservationProgressEvent(progress: ObservationProgress) extends ObserveEvent derives Eq
 
 case class ServerLogMessage(level: ServerLogLevel, timestamp: Instant, msg: String)
     extends ObserveEvent derives Order

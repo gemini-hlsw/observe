@@ -28,10 +28,13 @@ import observe.ui.model.enums.AppTab
 import org.http4s.circe.*
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.syntax.all.*
+import org.http4s.Uri
 import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
 import typings.loglevel.mod.LogLevelDesc
+import org.http4s.ember.client.EmberClientBuilder
+import observe.ui.services.ConfigApiImpl
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -129,9 +132,11 @@ object Main:
               reconnectionStrategy
             )
           )
+      httpClient                                 <- EmberClientBuilder.default[IO].build
     yield AppContext[IO](
       AppContext.version(ExecutionEnvironment.Development),
       SSOClient(appConfig.sso),
+      ConfigApiImpl(httpClient, uri"/api/observe"),
       (tab: AppTab) => routerCtl.urlFor(tab.getPage).value,
       (tab: AppTab, via: SetRouteVia) => routerCtl.set(tab.getPage, via)
     )

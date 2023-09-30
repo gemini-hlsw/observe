@@ -25,10 +25,9 @@ import lucuma.react.primereact.*
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
-import observe.model.ClientStatus
+import observe.ui.model.enums.ClientMode
 import observe.model.ExecutionState
 import observe.model.Observer
-import observe.model.UserDetails
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.enums.SequenceState
@@ -52,7 +51,7 @@ case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 object Home:
   private type Props = Home
 
-  private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
+  // private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
 
   private val component =
     ScalaFnComponent
@@ -127,7 +126,7 @@ object Home:
           val configState = List(
             (Resource.TCS, ActionStatus.Completed),
             (Resource.Gcal, ActionStatus.Running),
-            (Resource.Instrument(Instrument.GmosNorth), ActionStatus.Pending)
+            (Resource.fromInstrument(Instrument.GmosNorth).get, ActionStatus.Pending)
           )
 
           val initialBreakpoints: Set[Step.Id] =
@@ -153,6 +152,8 @@ object Home:
         val executingStepId: Option[Step.Id] = executionState.get.sequenceState match
           case SequenceState.Running(stepId, _, _, _) => stepId.some
           case _                                      => none
+
+        val clientMode: ClientMode = props.rootModel.get.clientMode
 
         def tabOperations(excutionConfig: ExecutionConfig[?, ?]): TabOperations =
           executingStepId.fold(TabOperations.Default): stepId =>
@@ -182,7 +183,7 @@ object Home:
                     .renderPot:
                       case InstrumentExecutionConfig.GmosNorth(config) =>
                         GmosNorthSequenceTables(
-                          clientStatus,
+                          clientMode,
                           obsId,
                           config,
                           executionState.get,
@@ -193,7 +194,7 @@ object Home:
                           .withKey(obsId.toString)
                       case InstrumentExecutionConfig.GmosSouth(config) =>
                         GmosSouthSequenceTables(
-                          clientStatus,
+                          clientMode,
                           obsId,
                           config,
                           executionState.get,

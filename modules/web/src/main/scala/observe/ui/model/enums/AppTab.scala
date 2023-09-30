@@ -19,24 +19,27 @@ import observe.ui.model.Page
  * the order in AppTab.all.
  */
 enum AppTab(val title: String) derives Enumerated:
-  case Schedule  extends AppTab("Schedule")
-  case Nighttime extends AppTab("Nighttime")
-  case Daytime   extends AppTab("Daytime")
-  case Excluded  extends AppTab("Excluded")
+  case Schedule      extends AppTab("Schedule")
+  case Nighttime     extends AppTab("Nighttime")
+  case Daytime       extends AppTab("Daytime")
+  case Excluded      extends AppTab("Excluded")
+  case Configuration extends AppTab("Configuration")
 
   lazy val tag: String = title
 
   lazy val getPage: Page = this match
-    case AppTab.Schedule  => Page.Schedule
-    case AppTab.Nighttime => Page.Nighttime
-    case AppTab.Daytime   => Page.Daytime
-    case AppTab.Excluded  => Page.Excluded
+    case AppTab.Schedule      => Page.Schedule
+    case AppTab.Nighttime     => Page.Nighttime
+    case AppTab.Daytime       => Page.Daytime
+    case AppTab.Excluded      => Page.Excluded
+    case AppTab.Configuration => Page.Configuration
 
 object AppTab:
   def from(page: Page): AppTab = page match
-    case Page.Schedule  => AppTab.Schedule
-    case Page.Nighttime => AppTab.Nighttime
-    case Page.Daytime   => AppTab.Daytime
-    case Page.Excluded  => AppTab.Excluded
+    case Page.Schedule      => AppTab.Schedule
+    case Page.Nighttime     => AppTab.Nighttime
+    case Page.Daytime       => AppTab.Daytime
+    case Page.Excluded      => AppTab.Excluded
+    case Page.Configuration => AppTab.Configuration
 
   given Display[AppTab] = Display.byShortName(_.title)

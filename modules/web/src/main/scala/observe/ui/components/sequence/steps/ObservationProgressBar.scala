@@ -16,8 +16,8 @@ import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.enums.ObservationStage
 import observe.ui.ObserveStyles
+import lucuma.core.util.TimeSpan
 
-import java.time.Duration
 import java.util.UUID
 
 /**
@@ -45,8 +45,8 @@ object ObservationProgressBar extends ProgressLabel:
           obsId = Observation.Id.fromLong(133742).get,
           obsName = "Test observation",
           stepId = Step.Id.fromUuid(UUID.randomUUID),
-          total = Duration.ofSeconds(1200),
-          remaining = Duration.ofSeconds(932),
+          total = TimeSpan.unsafeFromMicroseconds(1200000000L),
+          remaining = TimeSpan.unsafeFromMicroseconds(932000000L),
           stage = ObservationStage.Acquiring
         )
         .ready
@@ -57,8 +57,8 @@ object ObservationProgressBar extends ProgressLabel:
           // TODO Smooth Progress Bar
           // val remainingMillis = p.maxValue - s.value
 
-          val totalMillis     = total.toMillis.toInt
-          val remainingMillis = remaining.toMillis.toInt
+          val totalMillis     = total.toMilliseconds.toInt
+          val remainingMillis = remaining.toMilliseconds.toInt
 
           val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 

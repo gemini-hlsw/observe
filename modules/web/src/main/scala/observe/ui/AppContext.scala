@@ -21,12 +21,14 @@ import lucuma.ui.utils.versionDateFormatter
 import lucuma.ui.utils.versionDateTimeFormatter
 import observe.ui.model.enums.AppTab
 import org.typelevel.log4cats.Logger
+import observe.ui.services.ConfigApi
 
 import java.time.Instant
 
 case class AppContext[F[_]: FlatMap](
   version:       NonEmptyString,
   ssoClient:     SSOClient[F],
+  configApi:     ConfigApi[F],
   pageUrl:       AppTab => String,
   setPageVia:    (AppTab, SetRouteVia) => Callback
 )(using

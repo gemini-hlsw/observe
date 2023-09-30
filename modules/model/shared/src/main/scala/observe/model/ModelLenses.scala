@@ -7,8 +7,8 @@ import cats.*
 import cats.syntax.all.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
+// import lucuma.core.model.sequence.StepConfig
+// import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.optics.Format
 import lucuma.core.syntax.all.*
 import monocle.*
@@ -22,9 +22,9 @@ trait ModelLenses {
   // Some useful Monocle lenses
   val obsNameL: Lens[SequenceView, String]                                  =
     GenLens[SequenceView](_.metadata.name)
-  val eachStepT: Traversal[List[Step], Step]                                =
-    Traversal.fromTraverse[List, Step]
-  val obsStepsL: Lens[SequenceView, List[Step]]                             = GenLens[SequenceView](_.steps)
+  // val eachStepT: Traversal[List[Step], Step]                                =
+  // Traversal.fromTraverse[List, Step]
+  // val obsStepsL: Lens[SequenceView, List[Step]]                             = GenLens[SequenceView](_.steps)
   val eachViewT: Traversal[List[SequenceView], SequenceView]                =
     Traversal.fromTraverse[List, SequenceView]
   val sessionQueueL: Lens[SequencesQueue[SequenceView], List[SequenceView]] =
@@ -38,10 +38,10 @@ trait ModelLenses {
 //  val parametersRoot: Iso[Map[ParamName, ParamValue], Map[ParamName, ParamValue]]   =
 //    Iso.id[Map[ParamName, ParamValue]]
 
-  val sequenceStepT: Traversal[SequenceView, Step] =
-    obsStepsL.andThen( // sequence steps
-      eachStepT
-    )                  // each step
+  // val sequenceStepT: Traversal[SequenceView, Step] =
+  //   obsStepsL.andThen( // sequence steps
+  //     eachStepT
+  //   )                  // each step
 
   // Focus on a param value
 //  def paramValueL(param: ParamName): Lens[Parameters, Option[String]] =
@@ -132,48 +132,48 @@ trait ModelLenses {
       )         // sequence's observation name
 
   // Composite lens to find the instrument config
-  def sequenceInstConfigT: Traversal[ObserveEvent, DynamicConfig] =
-    sequenceEventsP
-      .andThen( // Events with model updates
-        sequenceQueueViewL
-      )
-      .andThen( // Find the sequence view
-        sessionQueueL
-      )
-      .andThen( // Find the queue
-        eachViewT
-      )
-      .andThen( // each sequence on the queue
-        obsStepsL
-      )
-      .andThen( // sequence steps
-        eachStepT
-      )
-      .andThen( // each step
-        Step.instConfig
-      )         // configuration of the step
+  // def sequenceInstConfigT: Traversal[ObserveEvent, DynamicConfig] =
+  //   sequenceEventsP
+  //     .andThen( // Events with model updates
+  //       sequenceQueueViewL
+  //     )
+  //     .andThen( // Find the sequence view
+  //       sessionQueueL
+  //     )
+  //     .andThen( // Find the queue
+  //       eachViewT
+  //     )
+  //     .andThen( // each sequence on the queue
+  //       obsStepsL
+  //     )
+  //     .andThen( // sequence steps
+  //       eachStepT
+  //     )
+  //     .andThen( // each step
+  //       Step.instConfig
+  //     )         // configuration of the step
 
   // Composite lens to find the step config
-  def sequenceStepConfigT: Traversal[ObserveEvent, StepConfig] =
-    sequenceEventsP
-      .andThen( // Events with model updates
-        sequenceQueueViewL
-      )
-      .andThen( // Find the sequence view
-        sessionQueueL
-      )
-      .andThen( // Find the queue
-        eachViewT
-      )
-      .andThen( // each sequence on the queue
-        obsStepsL
-      )
-      .andThen( // sequence steps
-        eachStepT
-      )
-      .andThen( // each step
-        Step.stepConfig
-      )         // configuration of the step
+  // def sequenceStepConfigT: Traversal[ObserveEvent, StepConfig] =
+  //   sequenceEventsP
+  //     .andThen( // Events with model updates
+  //       sequenceQueueViewL
+  //     )
+  //     .andThen( // Find the sequence view
+  //       sessionQueueL
+  //     )
+  //     .andThen( // Find the queue
+  //       eachViewT
+  //     )
+  //     .andThen( // each sequence on the queue
+  //       obsStepsL
+  //     )
+  //     .andThen( // sequence steps
+  //       eachStepT
+  //     )
+  //     .andThen( // each step
+  //       Step.stepConfig
+  //     )         // configuration of the step
 
   def filterEntry[K, V](predicate: (K, V) => Boolean): Traversal[Map[K, V], V] =
     new PTraversal[Map[K, V], Map[K, V], V, V] {

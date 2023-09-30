@@ -30,6 +30,7 @@ import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.TabOperations
 import observe.ui.model.reusability.given
+import observe.ui.model.enums.ClientMode
 
 import scalajs.js
 
@@ -37,7 +38,7 @@ sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,
   protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
 ):
-  def clientStatus: ClientStatus // TODO Switch to UserVault
+  def clientMode: ClientMode
   def obsId: Observation.Id
   def config: ExecutionConfig[S, D]
   def executionState: ExecutionState
@@ -47,7 +48,10 @@ sealed trait SequenceTables[S, D](
 
   // TODO: nextAtom will actually come from the observe server.
   private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
-    SequenceRow.FutureStep.fromAtoms(sequence.nextAtom +: sequence.possibleFuture)
+    SequenceRow.FutureStep.fromAtoms(
+      sequence.nextAtom +: sequence.possibleFuture,
+      _ => none // TODO Pass signal to noise
+    )
 
   protected[sequence] lazy val acquisitionSteps: List[SequenceRow.FutureStep[D]] =
     config.acquisition.map(steps).orEmpty
@@ -61,7 +65,7 @@ sealed trait SequenceTables[S, D](
       case _                                      => none
 
 case class GmosNorthSequenceTables(
-  clientStatus:   ClientStatus,
+  clientMode:     ClientMode,
   obsId:          Observation.Id,
   config:         ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
   executionState: ExecutionState,
@@ -75,7 +79,7 @@ case class GmosNorthSequenceTables(
     )
 
 case class GmosSouthSequenceTables(
-  clientStatus:   ClientStatus,
+  clientMode:     ClientMode,
   obsId:          Observation.Id,
   config:         ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
   executionState: ExecutionState,
@@ -184,7 +188,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
       .useState(none[Step.Id]) // selectedStep
       .useResizeDetector()
       .useMemoBy((props, selectedStep, _) => // cols
-        (props.clientStatus,
+        (props.clientMode,
          props.instrument,
          props.obsId,
          props.tabOperations,
@@ -193,7 +197,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
          selectedStep.value
         )
       ): (props, _, _) =>
-        (clientStatus, instrument, obsId, tabOperations, executionState, isPreview, selectedStep) =>
+        (clientMode, instrument, obsId, tabOperations, executionState, isPreview, selectedStep) =>
           List(
             column(
               BreakpointColumnId,
@@ -237,7 +241,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                   props.runningStepId.flatMap: stepId =>
                     Option.when(cell.row.original.step.id.contains(stepId)):
                       StepProgressCell(
-                        clientStatus = clientStatus,
+                        clientMode = clientMode,
                         instrument = instrument,
                         stepId = stepId,
                         stepType = stepType,

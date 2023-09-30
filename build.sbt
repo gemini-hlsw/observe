@@ -141,6 +141,7 @@ lazy val observe_web_client = project
       ClueJs.value,
       Crystal.value,
       Fs2.value,
+      Http4sEmberClient.value,
       LucumaUI.value
     ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:
@@ -155,7 +156,7 @@ lazy val observe_web_client = project
     ),
     buildInfoPackage := "observe.ui"
   )
-  .dependsOn(new_model.js)
+  .dependsOn(observe_model.js)
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project

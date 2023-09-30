@@ -6,28 +6,15 @@ package observe.model.enums
 import cats.data.NonEmptyList
 import lucuma.core.util.Enumerated
 
-sealed abstract class NodAndShuffleStage(val tag: String) extends Product with Serializable {
-  val symbol: Symbol
-}
+enum NodAndShuffleStage(val tag: String, val symbol: Symbol) derives Enumerated:
+  // The OT lets beams up to G but in practice it is always A/B
+  case StageA extends NodAndShuffleStage("StageA", Symbol("A"))
+  case StageB extends NodAndShuffleStage("StageB", Symbol("B"))
 
-// The OT lets beams up to G but in practice it is always A/B
-object NodAndShuffleStage {
-  case object StageA extends NodAndShuffleStage("StageA") {
-    val symbol: Symbol = Symbol("A")
-  }
-  case object StageB extends NodAndShuffleStage("StageB") {
-    val symbol: Symbol = Symbol("B")
-  }
-
-  /** @group Typeclass Instances */
-  given Enumerated[NodAndShuffleStage] =
-    Enumerated.from(StageA, StageB).withTag(_.tag)
-
+object NodAndShuffleStage:
   // The sequence of nod and shuffle is always BAAB,
   // In principle we'd expect the OT to send the sequence but instead the
   // sequence is hardcoded in the observe and we only read the positions from
   // the OT
   val NsSequence: NonEmptyList[NodAndShuffleStage] =
     NonEmptyList.of(StageB, StageA, StageA, StageB)
-
-}

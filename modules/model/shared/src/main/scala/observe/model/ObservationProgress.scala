@@ -4,88 +4,43 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.util.Enumerated
-import monocle.Iso
 import monocle.Prism
 import monocle.macros.GenPrism
+import lucuma.core.util.TimeSpan
+import observe.model.enums.ObservationStage
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
 
-import scala.concurrent.duration.FiniteDuration
+enum ObservationProgress(val isNs: Boolean) derives Eq:
+  def obsId: Observation.Id
+  def stepId: Step.Id
+  def total: TimeSpan
+  def remaining: TimeSpan
+  def stage: ObservationStage
 
-sealed trait Progress extends Product with Serializable {
-  val obsId: Observation.Id
-  val stepId: StepId
-  val total: FiniteDuration
-  val remaining: FiniteDuration
-  val stage: ObserveStage
-}
+  case Regular(
+    obsId:     Observation.Id,
+    stepId:    Step.Id,
+    total:     TimeSpan,
+    remaining: TimeSpan,
+    stage:     ObservationStage
+  ) extends ObservationProgress(false)
 
-object Progress {
+  case NodAndShuffle(
+    obsId:     Observation.Id,
+    stepId:    Step.Id,
+    total:     TimeSpan,
+    remaining: TimeSpan,
+    stage:     ObservationStage,
+    sub:       NsSubexposure
+  ) extends ObservationProgress(true)
 
-  given Eq[Progress] =
-    Eq.instance {
-      case (a: ObservationProgress, b: ObservationProgress)     => a === b
-      case (a: NSObservationProgress, b: NSObservationProgress) => a === b
-      case _                                                    => false
-    }
+object ObservationProgress:
+  implicit val regular: Prism[ObservationProgress, ObservationProgress.Regular] =
+    GenPrism[ObservationProgress, ObservationProgress.Regular]
 
-  given Prism[Progress, ObservationProgress] =
-    GenPrism[Progress, ObservationProgress]
-
-  given Prism[Progress, NSObservationProgress] =
-    GenPrism[Progress, NSObservationProgress]
-
-  given Prism[Progress, Progress] =
-    Iso.id[Progress].asPrism
-}
-
-final case class ObservationProgress(
-  obsId:     Observation.Id,
-  stepId:    StepId,
-  total:     FiniteDuration,
-  remaining: FiniteDuration,
-  stage:     ObserveStage
-) extends Progress
-
-object ObservationProgress {
-
-  given Eq[ObservationProgress] =
-    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
-
-}
-
-final case class NSObservationProgress(
-  obsId:     Observation.Id,
-  stepId:    StepId,
-  total:     FiniteDuration,
-  remaining: FiniteDuration,
-  stage:     ObserveStage,
-  sub:       NSSubexposure
-) extends Progress
-
-object NSObservationProgress {
-
-  given Eq[NSObservationProgress] =
-    Eq.by(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
-
-}
-
-sealed abstract class ObserveStage(val tag: String)
-
-object ObserveStage {
-
-  case object Idle       extends ObserveStage("Idle")
-  case object Preparing  extends ObserveStage("Preparing")
-  case object Acquiring  extends ObserveStage("Acquiring")
-  case object ReadingOut extends ObserveStage("ReadingOut")
-
-  given Enumerated[ObserveStage] =
-    Enumerated.from(Idle, Preparing, Acquiring, ReadingOut).withTag(_.tag)
-
-  def fromBooleans(prep: Boolean, acq: Boolean, rdout: Boolean): ObserveStage =
-    if (prep) Preparing
-    else if (acq) Acquiring
-    else if (rdout) ReadingOut
-    else Idle
-
-}
+  implicit val nodAndShuffle: Prism[ObservationProgress, ObservationProgress.NodAndShuffle] =
+    GenPrism[ObservationProgress, ObservationProgress.NodAndShuffle]
