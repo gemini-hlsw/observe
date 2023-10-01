@@ -9,6 +9,7 @@ import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.math.Angle
 import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
@@ -17,8 +18,6 @@ import observe.server.EpicsCommandBase.*
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
 import observe.server.ObserveFailure.ObserveException
-import squants.Angle
-import squants.space.Degrees
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -195,7 +194,7 @@ trait TcsEpics[F[_]] {
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
+  def waitInPosition(stabilizationTime: TimeSpan, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit]
 
@@ -907,7 +906,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  override def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
+  override def waitInPosition(stabilizationTime: TimeSpan, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit] =
     T.sleep(FiniteDuration(tcsSettleTime.toMillis, TimeUnit.MILLISECONDS)) *> (
@@ -915,7 +914,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
         waitForValueF(inPositionAttr, "TRUE", timeout, "TCS inposition flag")
       } else {
         Sync[F]
-          .delay(filteredInPositionAttr.restart(stabilizationTime))
+          .delay(filteredInPositionAttr.restart(stabilizationTime.toDuration))
           .flatMap(waitForValueF(_, "TRUE", timeout, "TCS inposition flag"))
       }
     )
@@ -1083,7 +1082,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   override val oiwfsTarget: Target[F] = target("oi")
 
   override def parallacticAngle: F[Angle] =
-    safeAttributeSDoubleF(tcsState.getDoubleAttribute("parangle")).map(Degrees(_))
+    safeAttributeSDoubleF(tcsState.getDoubleAttribute("parangle")).map(Angle.fromDoubleDegrees(_))
 
   override def m2UserFocusOffset: F[Double] = safeAttributeSDoubleF(
     tcsState.getDoubleAttribute("m2ZUserOffset")

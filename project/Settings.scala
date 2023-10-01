@@ -24,8 +24,8 @@ object Settings {
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.13"
 
-    val atto             = "0.9.5"
-    val squants          = "1.8.3"
+    val coulomb          = "0.8.0"
+    val commonsHttp      = "3.1"
     val unboundId        = "3.2.1"
     val jwt              = "10.0.0"
     val slf4j            = "2.0.12"
@@ -129,7 +129,13 @@ object Settings {
       "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % LibraryVersions.pureConfig
     )
-    val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
+    val Coulomb          = Def.setting(
+      Seq(
+        "com.manyangled" %%% "coulomb-core"    % LibraryVersions.coulomb,
+        "com.manyangled" %%% "coulomb-units"   % LibraryVersions.coulomb,
+        "com.manyangled" %%% "coulomb-testkit" % LibraryVersions.coulomb % Test
+      )
+    )
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
     val Http4s           = Seq(

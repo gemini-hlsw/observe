@@ -7,6 +7,7 @@ import cats.ApplicativeThrow
 import cats.Eq
 import cats.effect.Sync
 import lucuma.core.enums.Instrument
+import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.model.enums.Resource
 import observe.server.altair.AltairController.*
@@ -15,7 +16,6 @@ import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.TcsController.FocalPlaneOffset
-import squants.Time
 
 trait Altair[F[_]] extends Gaos[F] {
 
@@ -52,7 +52,7 @@ object Altair {
     ): F[AltairPauseResume[F]] =
       controller.pauseResume(pauseReasons, resumeReasons, currOffset, instrument)(config)
 
-    override def observe(config: Either[AltairConfig, GemsConfig], expTime: Time): F[Unit] =
+    override def observe(config: Either[AltairConfig, GemsConfig], expTime: TimeSpan): F[Unit] =
       config.swap.map(controller.observe(expTime)(_)).getOrElse(Sync[F].unit)
 
     override def endObserve(config: Either[AltairConfig, GemsConfig]): F[Unit] =

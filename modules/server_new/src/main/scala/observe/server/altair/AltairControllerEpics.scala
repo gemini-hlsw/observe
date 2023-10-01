@@ -3,11 +3,17 @@
 
 package observe.server.altair
 
+import algebra.instances.all.given
 import cats.Eq
 import cats.*
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
+import coulomb.*
+import coulomb.policy.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
+import coulomb.units.accepted.Millimeter
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
 import lucuma.core.enums.Instrument
@@ -17,7 +23,7 @@ import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
 import observe.server.ObserveFailure
 import observe.server.altair.AltairController.*
-import observe.server.tcs.FOCAL_PLANE_SCALE
+import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.Gaos.PauseCondition.GaosGuideOff
 import observe.server.tcs.Gaos.PauseCondition.OiOff
 import observe.server.tcs.Gaos.PauseCondition.P1Off
@@ -26,13 +32,8 @@ import observe.server.tcs.Gaos.ResumeCondition.OiOn
 import observe.server.tcs.Gaos.ResumeCondition.P1On
 import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.FocalPlaneOffset
-import observe.server.tcs.TcsEpics
+import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
-import squants.Length
-import squants.Time
-import squants.space.Arcseconds
-import squants.space.Millimeters
-import squants.time.TimeConversions.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -40,9 +41,9 @@ import java.time.temporal.ChronoUnit
 import scala.annotation.unused
 
 object AltairControllerEpics {
-  final case class EpicsAltairConfig(
-    currentMatrixCoords:  (Length, Length),
-    preparedMatrixCoords: (Length, Length),
+  case class EpicsAltairConfig(
+    currentMatrixCoords:  (Quantity[Double, Millimeter], Quantity[Double, Millimeter]),
+    preparedMatrixCoords: (Quantity[Double, Millimeter], Quantity[Double, Millimeter]),
     strapRTStatus:        Boolean,
     strapTempStatus:      Boolean,
     stapHVoltStatus:      Boolean,
@@ -57,51 +58,60 @@ object AltairControllerEpics {
     epicsTcs:    => TcsEpics[F]
   )(using L: Logger[F]): AltairController[F] = new AltairController[F] {
 
-    private def inRangeLinear[T <: Ordered[T]](vMin: T, vMax: T)(v: T): Boolean =
+    private def inRangeLinear[T: Order](vMin: T, vMax: T)(v: T): Boolean =
       v > vMin && v < vMax
 
-    private def newPosition(starPos: (Length, Length))(offset: FocalPlaneOffset): (Length, Length) =
+    private def newPosition(starPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter]))(
+      offset: FocalPlaneOffset
+    ): (Quantity[Double, Millimeter], Quantity[Double, Millimeter]) =
       starPos.bimap(_ + offset.x.value, _ + offset.y.value)
 
     val CorrectionsOn: String  = "ON"
     val CorrectionsOff: String = "OFF"
 
     // The OT checks this, why do it again in Observe?
-    private def newPosInRange(newPos: (Length, Length)): Boolean = {
-      val minX = Millimeters(-37.2)
-      val maxX = Millimeters(37.2)
-      val minY = Millimeters(-37.2)
-      val maxY = Millimeters(37.2)
+    private def newPosInRange(
+      newPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+    ): Boolean = {
+      val minX = -37.2.withUnit[Millimeter]
+      val maxX = 37.2.withUnit[Millimeter]
+      val minY = -37.2.withUnit[Millimeter]
+      val maxY = 37.2.withUnit[Millimeter]
 
       newPos match {
         case (x, y) => inRangeLinear(minX, maxX)(x) && inRangeLinear(minY, maxY)(y)
       }
     }
 
-    private def validControlMatrix(mtxPos: (Length, Length))(newPos: (Length, Length)): Boolean = {
-      val limit = Arcseconds(5.0) / FOCAL_PLANE_SCALE
+    private def validControlMatrix(
+      mtxPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+    )(newPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])): Boolean = {
+      val limit = 5.0.withUnit[ArcSecond] %% FOCAL_PLANE_SCALE
 
       val diff = newPos.bimap(_ - mtxPos._1, _ - mtxPos._2)
+      limit.pow[2]
 
-      diff._1 * diff._1 + diff._2 * diff._2 < limit * limit
+      diff._1.pow[2] + diff._2.pow[2] < limit.pow[2]
     }
 
     private def validateCurrentControlMatrix(
       currCfg: EpicsAltairConfig,
-      newPos:  (Length, Length)
+      newPos:  (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
     ): Boolean = validControlMatrix(currCfg.currentMatrixCoords)(newPos)
 
     private def validatePreparedControlMatrix(
       currCfg: EpicsAltairConfig,
-      newPos:  (Length, Length)
+      newPos:  (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
     ): Boolean = validControlMatrix(currCfg.preparedMatrixCoords)(newPos)
 
-    private def prepareMatrix(newPos: (Length, Length)): F[Unit] =
-      epicsTcs.aoPrepareControlMatrix.setX(newPos._1.toMillimeters) *>
-        epicsTcs.aoPrepareControlMatrix.setY(newPos._2.toMillimeters)
+    private def prepareMatrix(
+      newPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+    ): F[Unit] =
+      epicsTcs.aoPrepareControlMatrix.setX(newPos._1.value) *>
+        epicsTcs.aoPrepareControlMatrix.setY(newPos._2.value)
 
     private def pauseNgsMode(
-      position:   (Length, Length),
+      position:   (Quantity[Double, Millimeter], Quantity[Double, Millimeter]),
       currCfg:    EpicsAltairConfig,
       instrument: Instrument
     )(pauseReasons: PauseConditionSet): PauseReturn[F] = {
@@ -163,7 +173,7 @@ object AltairControllerEpics {
         epicsTcs.aoCorrect.post(DefaultTimeout)
 
     private def pauseResumeNgsMode(
-      startPos:   (Length, Length),
+      startPos:   (Quantity[Double, Millimeter], Quantity[Double, Millimeter]),
       currCfg:    EpicsAltairConfig,
       currOffset: FocalPlaneOffset,
       instrument: Instrument
@@ -203,18 +213,18 @@ object AltairControllerEpics {
 
     // Let's keep this check until we are sure the coordinates for the control matrix are properly estimated
     private val checkControlMatrix: F[Unit] = {
-      val tolerance = Millimeters(1e-3)
+      val tolerance = 1e-3.withUnit[Millimeter]
 
       for {
-        pmtxx <- epicsTcs.aoPreparedCMX.map(Millimeters(_))
-        pmtxy <- epicsTcs.aoPreparedCMY.map(Millimeters(_))
-        aogsx <- epicsTcs.aoGuideStarX.map(Millimeters(_))
-        aogsy <- epicsTcs.aoGuideStarY.map(Millimeters(_))
+        pmtxx <- epicsTcs.aoPreparedCMX.map(_.withUnit[Millimeter])
+        pmtxy <- epicsTcs.aoPreparedCMY.map(_.withUnit[Millimeter])
+        aogsx <- epicsTcs.aoGuideStarX.map(_.withUnit[Millimeter])
+        aogsy <- epicsTcs.aoGuideStarY.map(_.withUnit[Millimeter])
         _     <-
           L.warn(
             s"Altair prepared matrix coordinates ($pmtxx, $pmtxy) don't match guide star coordinates ($aogsx, $aogsy)"
           ).whenA(
-            (pmtxx - aogsx) * (pmtxx - aogsx) + (pmtxy - aogsy) * (pmtxy - aogsy) > tolerance * tolerance
+            (pmtxx - aogsx).pow[2] + (pmtxy - aogsy).pow[2] > tolerance.pow[2]
           )
       } yield ()
     }
@@ -337,7 +347,7 @@ object AltairControllerEpics {
     private def pauseResumeLgsMode(
       strap:      Boolean,
       sfo:        Boolean,
-      startPos:   (Length, Length),
+      startPos:   (Quantity[Double, Millimeter], Quantity[Double, Millimeter]),
       currCfg:    EpicsAltairConfig,
       currOffset: FocalPlaneOffset,
       instrument: Instrument
@@ -524,24 +534,24 @@ object AltairControllerEpics {
       }
     }
 
-    override def observe(expTime: Time)(cfg: AltairConfig): F[Unit] = Sync[F]
+    override def observe(expTime: TimeSpan)(cfg: AltairConfig): F[Unit] = Sync[F]
       .delay(LocalDate.now)
       .flatMap(date =>
         (epicsTcs.aoStatistics.setTriggerTimeInterval(0.0) *>
-          epicsTcs.aoStatistics.setInterval(expTime.toSeconds) *>
+          epicsTcs.aoStatistics.setInterval(expTime.toSeconds.toDouble) *>
           epicsTcs.aoStatistics.setSamples(1) *>
           epicsTcs.aoStatistics.setFileName(
             "aostats" + date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-          )).whenA(expTime > 5.seconds && cfg =!= AltairOff)
+          )).whenA(TimeSpan.fromSeconds(5).exists(expTime > _) && cfg =!= AltairOff)
       )
 
     override def endObserve(cfg: AltairConfig): F[Unit] = Applicative[F].unit
 
     def retrieveConfig: F[EpicsAltairConfig] = for {
-      cmtxx <- epicsAltair.matrixStartX.map(Millimeters(_))
-      cmtxy <- epicsAltair.matrixStartY.map(Millimeters(_))
-      pmtxx <- epicsTcs.aoPreparedCMX.map(Millimeters(_))
-      pmtxy <- epicsTcs.aoPreparedCMY.map(Millimeters(_))
+      cmtxx <- epicsAltair.matrixStartX.map(_.withUnit[Millimeter])
+      cmtxy <- epicsAltair.matrixStartY.map(_.withUnit[Millimeter])
+      pmtxx <- epicsTcs.aoPreparedCMX.map(_.withUnit[Millimeter])
+      pmtxy <- epicsTcs.aoPreparedCMY.map(_.withUnit[Millimeter])
       strRT <- epicsAltair.strapRTStatus
       strTm <- epicsAltair.strapTempStatus
       strHV <- epicsAltair.strapHVStatus
@@ -571,12 +581,14 @@ object AltairControllerEpics {
     ): Boolean = {
       val deltas =
         (offset.to.x.value - offset.from.x.value, offset.to.y.value - offset.from.y.value)
-      aoOffsetThreshold(inst).exists(h => deltas._1 * deltas._1 + deltas._2 * deltas._2 < h * h)
+      aoOffsetThreshold(inst).exists(h => deltas._1.pow[2] + deltas._2.pow[2] < h.pow[2])
     }
 
   }
 
-  private def aoOffsetThreshold(@unused instrument: Instrument): Option[Length] = none
+  private def aoOffsetThreshold(
+    @unused instrument: Instrument
+  ): Option[Quantity[Double, Millimeter]] = none
 //  instrument match {
 //    case Instrument.Nifs  => (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
 //    case Instrument.Niri  => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some

@@ -3,18 +3,26 @@
 
 package observe.server.tcs
 
+import algebra.instances.all.given
 import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Ref
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all.*
+import coulomb.Quantity
+import coulomb.policy.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
+import coulomb.units.accepted.Millimeter
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName.Gmos
 import lucuma.core.enums.Site
+import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
+import lucuma.core.syntax.all.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
@@ -24,28 +32,27 @@ import observe.model.enums.MountGuideOption
 import observe.model.enums.TipTiltSource
 import observe.server.InstrumentGuide
 import observe.server.keywords.USLocale
+import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.TcsController.BasicTcsConfig
 import observe.server.tcs.TcsController.LightSource.Sky
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TestTcsEpics.ProbeGuideConfigVals
 import observe.server.tcs.TestTcsEpics.TestTcsEvent
+import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import squants.space.AngleConversions.*
-import squants.space.Arcseconds
-import squants.space.Length
-import squants.space.LengthConversions.*
-import squants.space.Millimeters
+
+import scala.language.implicitConversions
 
 class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
-  import TcsControllerEpicsCommonSpec.*
+  import TcsControllerEpicsCommonSuite.*
 
   private given Logger[IO] = NoOpLogger.impl[IO]
 
   private val baseCurrentStatus = BaseEpicsTcsConfig(
-    Arcseconds(33.8),
-    FocalPlaneOffset(OffsetX(Millimeters(0.0)), OffsetY(Millimeters(0.0))),
+    Angle.fromDoubleArcseconds(33.8),
+    FocalPlaneOffset(OffsetX(0.0.withUnit[Millimeter]), OffsetY(0.0.withUnit[Millimeter])),
     Wavelength.fromIntMicrometers(400).get,
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
     GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff),
@@ -83,8 +90,24 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       OIConfig(GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
     ),
     AGConfig(LightPath(Sky, Gmos), None),
-    DummyInstrument(Instrument.GmosSouth, 1.millimeters.some)
+    DummyInstrument(Instrument.GmosSouth, 1.0.withUnit[Millimeter].some)
   )
+
+  def doubleInstrumentOffset(threshold: Quantity[Double, Millimeter]): InstrumentOffset =
+    InstrumentOffset(OffsetP((threshold * 2) ** FOCAL_PLANE_SCALE),
+                     OffsetQ(0.0.withUnit[ArcSecond])
+    )
+
+  def halfInstrumentOffset(threshold: Quantity[Double, Millimeter]): InstrumentOffset =
+    InstrumentOffset(OffsetP((threshold / 2) ** FOCAL_PLANE_SCALE),
+                     OffsetQ(0.0.withUnit[ArcSecond])
+    )
+
+  val ioPwfs1: InstrumentOffset      = doubleInstrumentOffset(pwfs1OffsetThreshold)
+  val ioSmallPwfs1: InstrumentOffset = halfInstrumentOffset(pwfs1OffsetThreshold)
+
+  val ioPwfs2: InstrumentOffset      = doubleInstrumentOffset(pwfs2OffsetThreshold)
+  val ioSmallPwfs2: InstrumentOffset = halfInstrumentOffset(pwfs2OffsetThreshold)
 
   test("TcsControllerEpicsCommon should not pause guiding if it is not necessary") {
     // No offset
@@ -100,12 +123,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       !TcsControllerEpicsCommon.mustPauseWhileOffsetting(
         baseCurrentStatus,
         BasicTcsConfig.offsetALensGS
-          .replace(
-            InstrumentOffset(
-              OffsetP(pwfs1OffsetThreshold * 2 * FOCAL_PLANE_SCALE),
-              OffsetQ(Arcseconds(0.0))
-            ).some
-          )(baseConfig)
+          .replace(ioPwfs1.some)(baseConfig)
       )
     )
   }
@@ -119,12 +137,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioPwfs1.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
@@ -147,12 +160,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs1OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioPwfs1.some) >>>
             BasicTcsConfig.m1GuideLensGS
               .replace(
                 M1GuideConfig.M1GuideOn(M1Source.PWFS1)
@@ -176,12 +184,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs1OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioSmallPwfs1.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
@@ -209,12 +212,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioPwfs2.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
@@ -237,12 +235,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs2OffsetThreshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioPwfs2.some) >>>
             BasicTcsConfig.m1GuideLensGS
               .replace(
                 M1GuideConfig.M1GuideOn(M1Source.PWFS2)
@@ -266,12 +259,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(pwfs2OffsetThreshold / 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(ioSmallPwfs2.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS2))
@@ -294,7 +282,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
   test(
     "TcsControllerEpicsCommon should decide if it can keep OIWFS guiding active when applying an offset"
   ) {
-    val threshold = Millimeters(1.0)
+    val threshold           = 1.0.withUnit[Millimeter]
+    val thresholdOffset     = doubleInstrumentOffset(threshold)
+    val halfThresholdOffset = halfInstrumentOffset(threshold)
 
     // Big offset with OIWFS in use
     assert(
@@ -302,12 +292,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(thresholdOffset.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
@@ -332,12 +317,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(threshold * 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(thresholdOffset.some) >>>
             BasicTcsConfig.m1GuideLensGS
               .replace(
                 M1GuideConfig.M1GuideOn(M1Source.OIWFS)
@@ -363,12 +343,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         baseCurrentStatus,
         (
           BasicTcsConfig.offsetALensGS
-            .replace(
-              InstrumentOffset(
-                OffsetP(threshold / 2.0 * FOCAL_PLANE_SCALE),
-                OffsetQ(Arcseconds(0.0))
-              ).some
-            ) >>>
+            .replace(halfThresholdOffset.some) >>>
             BasicTcsConfig.m2GuideLensGS
               .replace(
                 M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.OIWFS))
@@ -471,7 +446,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
       tc = baseConfig.tc
-        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
+        .copy(offsetA =
+          InstrumentOffset(OffsetP(10.0.withUnit[ArcSecond]), OffsetQ(0.0.withUnit[ArcSecond])).some
+        ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
@@ -622,7 +599,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
       tc = baseConfig.tc
-        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
+        .copy(offsetA =
+          InstrumentOffset(OffsetP(10.0.withUnit[ArcSecond]), OffsetQ(0.0.withUnit[ArcSecond])).some
+        ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
@@ -774,7 +753,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
     val config: BasicTcsConfig[Site.GS.type] = baseConfig.copy(
       tc = baseConfig.tc
-        .copy(offsetA = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(0.arcseconds)).some),
+        .copy(offsetA =
+          InstrumentOffset(OffsetP(10.0.withUnit[ArcSecond]), OffsetQ(0.0.withUnit[ArcSecond])).some
+        ),
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
@@ -862,9 +843,11 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
   test("TcsControllerEpicsCommon should apply an offset if it is not at the right position") {
 
-    val offsetDemand  = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
+    val offsetDemand =
+      InstrumentOffset(OffsetP(10.0.withUnit[ArcSecond]), OffsetQ(-5.0.withUnit[ArcSecond]))
+
     val offsetCurrent =
-      InstrumentOffset(OffsetP(10.00001.arcseconds), OffsetQ(-5.arcseconds))
+      InstrumentOffset(OffsetP(10.00001.withUnit[ArcSecond]), OffsetQ(-5.0.withUnit[ArcSecond]))
     val iaa           = 33.degrees
     val wavelength    = Wavelength.fromIntNanometers(440).get
     val recordPrec    = 14
@@ -872,10 +855,10 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
         xoffsetPoA1 =
-          epicsTransform(recordPrec)(offsetCurrent.toFocalPlaneOffset(iaa).x.value.toMillimeters),
+          epicsTransform(recordPrec)(offsetCurrent.toFocalPlaneOffset(iaa).x.value.value),
         yoffsetPoA1 =
-          epicsTransform(recordPrec)(offsetCurrent.toFocalPlaneOffset(iaa).y.value.toMillimeters),
-        instrAA = epicsTransform(recordPrec)(iaa.toDegrees),
+          epicsTransform(recordPrec)(offsetCurrent.toFocalPlaneOffset(iaa).y.value.value),
+        instrAA = epicsTransform(recordPrec)(iaa.toDoubleDegrees),
         sourceAWavelength =
           epicsTransform(recordPrec)(wavelength.toAngstroms.value.value.doubleValue)
       )
@@ -907,18 +890,17 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     "TcsControllerEpicsCommon should not reapply an offset if it is already at the right position"
   ) {
 
-    val offset     = InstrumentOffset(OffsetP(10.arcseconds), OffsetQ(-5.arcseconds))
+    val offset     =
+      InstrumentOffset(OffsetP(10.0.withUnit[ArcSecond]), OffsetQ(-5.0.withUnit[ArcSecond]))
     val iaa        = 33.degrees
     val wavelength = Wavelength.fromIntNanometers(440).get
     val recordPrec = 14
 
     val dumbEpics = buildTcsController[IO](
       TestTcsEpics.defaultState.copy(
-        xoffsetPoA1 =
-          epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).x.value.toMillimeters),
-        yoffsetPoA1 =
-          epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).y.value.toMillimeters),
-        instrAA = epicsTransform(recordPrec)(iaa.toDegrees),
+        xoffsetPoA1 = epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).x.value.value),
+        yoffsetPoA1 = epicsTransform(recordPrec)(offset.toFocalPlaneOffset(iaa).y.value.value),
+        instrAA = epicsTransform(recordPrec)(iaa.toDoubleDegrees),
         sourceAWavelength =
           epicsTransform(recordPrec)(wavelength.toAngstroms.value.value.doubleValue)
       )
@@ -1019,12 +1001,12 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
 
 }
 
-object TcsControllerEpicsCommonSpec {
-  final case class DummyInstrument(id: Instrument, threshold: Option[Length])
+object TcsControllerEpicsCommonSuite {
+  case class DummyInstrument(id: Instrument, threshold: Option[Quantity[Double, Millimeter]])
       extends InstrumentGuide {
     override val instrument: Instrument = id
 
-    override def oiOffsetGuideThreshold: Option[Length] = threshold
+    override def oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] = threshold
   }
 
   def buildTcsController[F[_]: Async](baseState: TestTcsEpics.State): F[TestTcsEpics[F]] =

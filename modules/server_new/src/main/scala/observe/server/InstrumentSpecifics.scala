@@ -3,12 +3,13 @@
 
 package observe.server
 
+import coulomb.Quantity
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.ObserveClass
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
-import squants.Length
 
 trait InstrumentSpecifics[S <: StaticConfig, D <: DynamicConfig] extends InstrumentGuide {
   def calcStepType(
@@ -19,7 +20,7 @@ trait InstrumentSpecifics[S <: StaticConfig, D <: DynamicConfig] extends Instrum
   ): Either[ObserveFailure, StepType] =
     SeqTranslate.calcStepType(instrument, stepConfig, obsClass)
 
-  override val oiOffsetGuideThreshold: Option[Length] = None
+  override val oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] = None
 
   // The name used for this instrument in the science fold configuration
   def sfName(instConfig: D): LightSinkName
