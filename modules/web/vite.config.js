@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs/promises';
 import mkcert from 'vite-plugin-mkcert';
-import { VitePluginFonts } from 'vite-plugin-fonts';
+import Unfonts from 'unplugin-fonts/vite'
 
 const fixCssRoot = (opts = {}) => {
   return {
@@ -23,13 +22,10 @@ const fixCssRoot = (opts = {}) => {
  */
 fixCssRoot.postcss = true;
 
-const fontImport = VitePluginFonts({
-  google: {
+const fontImport = Unfonts({
+  fontsource: {
     families: [
-      {
-        name: 'Lato',
-        styles: 'ital,wght@0,400;0,700;1,400;1,700',
-      },
+      'Lato'
     ],
   },
 });
@@ -161,7 +157,6 @@ export default defineConfig(async ({ mode }) => {
     },
     plugins: [
       mkcert({ hosts: ['localhost', 'local.lucuma.xyz'] }),
-      react(),
       fontImport
     ],
   };

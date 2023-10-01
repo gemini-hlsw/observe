@@ -124,7 +124,7 @@ object Main:
         Resource
           .eval(
             WebSocketJSClient.of[IO, ObservationDB](
-              "ws://localhost:8082/ws",
+              appConfig.odbURI.toString,
               "ODB",
               reconnectionStrategy
             )
