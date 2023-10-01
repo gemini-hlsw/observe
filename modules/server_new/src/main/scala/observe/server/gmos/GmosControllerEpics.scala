@@ -21,6 +21,7 @@ import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
+import observe.model.{NsSubexposure, ObserveStage}
 import observe.server.EpicsCodex.*
 import observe.server.EpicsCommandBase
 import observe.server.EpicsUtil
@@ -540,13 +541,13 @@ object GmosControllerEpics extends GmosEncoders {
       } yield if (ret === ObserveCommandResult.Success) ObserveCommandResult.Aborted else ret
 
       // Calculate the current subexposure
-      def nsSubExposure: F[NSSubexposure] =
+      def NsSubexposure: F[NsSubexposure] =
         (sys.nsPairs, sys.currentCycle, sys.aExpCount, sys.bExpCount).mapN {
           (total, cycle, aCount, bCount) =>
             val stageIndex = (aCount + bCount) % NsSequence.length
             val sub        =
-              NSSubexposure(NsCycles(total / 2), NsCycles(cycle), stageIndex)
-            sub.getOrElse(NSSubexposure.Zero)
+              NsSubexposure(NsCycles(total / 2), NsCycles(cycle), stageIndex)
+            sub.getOrElse(NsSubexposure.Zero)
         }
 
       // Different progress results for classic and NS
@@ -554,7 +555,7 @@ object GmosControllerEpics extends GmosEncoders {
         (time, remaining, stage) =>
           sys.nsState.flatMap {
             case "CLASSIC" => EpicsUtil.defaultProgress[F](time, remaining, stage)
-            case _         => nsSubExposure.map(s => NSProgress(time, remaining, stage, s))
+            case _         => NsSubexposure.map(s => NSProgress(time, remaining, stage, s))
           }
 
       override def observeProgress(

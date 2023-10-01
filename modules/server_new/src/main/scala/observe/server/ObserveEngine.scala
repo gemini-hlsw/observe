@@ -1787,10 +1787,10 @@ object ObserveEngine {
           case SystemEvent.Aborted(id, _, _, _)                                     => Stream.emit(SequenceAborted(id, svs))
           case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
-            Stream.emit(ObservationProgressEvent(ObservationProgress(i, s, t, r.self, v)))
+            Stream.emit(ObservationProgressEvent(ObservationProgress.Regular(i, s, t, r.self, v)))
           case SystemEvent.PartialResult(i, s, _, Partial(NSProgress(t, r, v, u)))  =>
             Stream.emit(
-              ObservationProgressEvent(NSObservationProgress(i, s, t, r.self, v, u))
+              ObservationProgressEvent(ObservationProgress.NodAndShuffle(i, s, t, r.self, v, u))
             )
           case SystemEvent.PartialResult(_, _, _, Partial(FileIdAllocated(fileId))) =>
             Stream.emit(FileIdStepExecuted(fileId, svs))

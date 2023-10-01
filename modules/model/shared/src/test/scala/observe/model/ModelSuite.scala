@@ -30,7 +30,7 @@ class ModelSuite extends munit.DisciplineSuite {
   checkAll("Eq[ActionStatus]", EqTests[ActionStatus].eqv)
   checkAll("Eq[Step]", EqTests[Step].eqv)
   checkAll("Eq[StandardStep]", EqTests[StandardStep].eqv)
-  checkAll("Eq[NSSubexposure]", EqTests[NSSubexposure].eqv)
+  checkAll("Eq[NsSubexposure]", EqTests[NsSubexposure].eqv)
   checkAll("Eq[NodAndShuffleStatus]", EqTests[NodAndShuffleStatus].eqv)
   checkAll("Eq[NodAndShuffleStep]", EqTests[NodAndShuffleStep].eqv)
   checkAll("Eq[SequenceState]", EqTests[SequenceState].eqv)
@@ -78,6 +78,6 @@ class ModelSuite extends munit.DisciplineSuite {
   checkAll("Eq[DataId]", EqTests[DataId].eqv)
   checkAll("Eq[NsPairs]", EqTests[NsPairs].eqv)
   checkAll("Eq[NsRows]", EqTests[NsRows].eqv)
-  checkAll("Eq[NSAction]", EqTests[NSAction].eqv)
-  checkAll("Eq[NSRunningState]", EqTests[NSRunningState].eqv)
+  checkAll("Eq[NsAction]", EqTests[NsAction].eqv)
+  checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
 }

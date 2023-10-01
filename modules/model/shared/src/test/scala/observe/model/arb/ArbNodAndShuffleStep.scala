@@ -18,13 +18,7 @@ import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.*
 import observe.model.arb.ArbDhsTypes.given
 import observe.model.arb.ArbGmosParameters.given
-import observe.model.arb.ArbNSRunningState.given
-import observe.model.arb.ArbStepState.given
-import observe.model.enums.*
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.*
-import org.scalacheck.Cogen
-import org.scalacheck.Gen
+import observe.model.arb.ArbNsRunningState.given
 
 trait ArbNodAndShuffleStep {
 
@@ -34,12 +28,12 @@ trait ArbNodAndShuffleStep {
       t  <- arbitrary[TimeSpan]
       n  <- arbitrary[TimeSpan]
       c  <- arbitrary[NsCycles]
-      s  <- arbitrary[Option[NSRunningState]]
+      s  <- arbitrary[Option[NsRunningState]]
     } yield NodAndShuffleStatus(as, t, n, c, s)
   }
 
   given nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
-    Cogen[(ActionStatus, TimeSpan, TimeSpan, NsCycles, Option[NSRunningState])].contramap { x =>
+    Cogen[(ActionStatus, TimeSpan, TimeSpan, NsCycles, Option[NsRunningState])].contramap { x =>
       (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles, x.state)
     }
 

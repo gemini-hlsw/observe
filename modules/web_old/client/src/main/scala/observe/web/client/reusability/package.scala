@@ -50,11 +50,11 @@ package object reusability {
   given Reusability[StepConfig]                                = Reusability.byEq
   val stdStepReuse: Reusability[StandardStep]                  =
     Reusability.caseClassExcept("config")
-  given Reusability[NSSubexposure]                             =
-    Reusability.derive[NSSubexposure]
+  given Reusability[NsSubexposure]                             =
+    Reusability.derive[NsSubexposure]
   given Reusability[SystemOverrides]                           = Reusability.byEq
-  given Reusability[NSRunningState]                            =
-    Reusability.derive[NSRunningState]
+  given Reusability[NsRunningState]                            =
+    Reusability.derive[NsRunningState]
   given Reusability[NodAndShuffleStatus]                       =
     Reusability.derive[NodAndShuffleStatus]
   val nsStepReuse: Reusability[NodAndShuffleStep]              =

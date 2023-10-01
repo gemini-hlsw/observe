@@ -10,20 +10,24 @@ import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
+import lucuma.core.util.arb.ArbEnumerated.*
+import observe.model.*
+import observe.model.enums.*
+import observe.model.arb.ArbNsSubexposure.given
 
-trait ArbNSRunningState {
-  given nsRunningStateArb: Arbitrary[NSRunningState] = Arbitrary[NSRunningState] {
+trait ArbNsRunningState {
+  given NsRunningStateArb: Arbitrary[NsRunningState] = Arbitrary[NsRunningState] {
     for {
-      a <- arbitrary[NSAction]
-      u <- arbitrary[NSSubexposure]
-    } yield NSRunningState(a, u)
+      a <- arbitrary[NsAction]
+      u <- arbitrary[NsSubexposure]
+    } yield NsRunningState(a, u)
   }
 
-  given nsRunningStateCogen: Cogen[NSRunningState] =
-    Cogen[(NSAction, NSSubexposure)].contramap { x =>
+  given NsRunningStateCogen: Cogen[NsRunningState] =
+    Cogen[(NsAction, NsSubexposure)].contramap { x =>
       (x.action, x.sub)
     }
 
 }
 
-object ArbNSRunningState extends ArbNSRunningState
+object ArbNsRunningState extends ArbNsRunningState

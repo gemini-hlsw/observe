@@ -8,7 +8,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
 import observe.ui.model.TabOperations

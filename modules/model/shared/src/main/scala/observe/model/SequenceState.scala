@@ -1,21 +1,20 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model.enums
+package observe.model
 
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
-import lucuma.core.model.sequence.Step
+// import lucuma.core.model.sequence.Step
 import lucuma.core.util.Display
-import observe.model.NsRunningState
 
 enum SequenceState(val name: String) derives Eq:
   case Completed           extends SequenceState("Completed")
   case Idle                extends SequenceState("Idle")
   case Running(
-    stepId:       Step.Id,
-    nsState:      Option[NsRunningState],
+    // stepId:       Step.Id,
+    // nsState:      Option[NsRunningState],
     userStop:     Boolean,
     internalStop: Boolean
   )                        extends SequenceState("Running")
@@ -24,8 +23,8 @@ enum SequenceState(val name: String) derives Eq:
 
   def internalStopRequested: Boolean =
     this match
-      case SequenceState.Running(_, _, _, b) => b
-      case _                                 => false
+      case SequenceState.Running(_, b) => b
+      case _                           => false
 
   def isError: Boolean =
     this match
@@ -37,8 +36,8 @@ enum SequenceState(val name: String) derives Eq:
 
   def isRunning: Boolean =
     this match
-      case SequenceState.Running(_, _, _, _) => true
-      case _                                 => false
+      case SequenceState.Running(_, _) => true
+      case _                           => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -48,17 +47,19 @@ enum SequenceState(val name: String) derives Eq:
 
   def userStopRequested: Boolean =
     this match
-      case SequenceState.Running(_, _, b, _) => b
-      case _                                 => false
+      case SequenceState.Running(b, _) => b
+      case _                           => false
 
 object SequenceState:
   object Running:
-    def init(stepId: Step.Id, nsState: Option[NsRunningState]): Running =
-      SequenceState.Running(
-        stepId = stepId,
-        nsState = nsState,
-        userStop = false,
-        internalStop = false
-      )
+    val init: Running =
+      SequenceState.Running(userStop = false, internalStop = false)
+    // def init(stepId: Step.Id, nsState: Option[NsRunningState]): Running =
+    //   SequenceState.Running(
+    //     stepId = stepId,
+    //     nsState = nsState,
+    //     userStop = false,
+    //     internalStop = false
+    //   )
 
   given Display[SequenceState] = Display.byShortName(_.name)

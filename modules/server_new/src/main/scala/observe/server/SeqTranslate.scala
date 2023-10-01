@@ -30,7 +30,7 @@ import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
-import observe.model.{Progress as _, *}
+import observe.model.{ObservationProgress as _, *}
 import observe.server.InstrumentSystem.*
 import observe.server.ObserveFailure.Unexpected
 import observe.server.SequenceGen.StepActionsGen

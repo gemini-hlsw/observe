@@ -4,9 +4,8 @@
 package observe.server
 
 import observe.engine.Result.PartialVal
-import observe.model.NSSubexposure
-import observe.model.enums.NSAction
-
+import observe.model.NsSubexposure
+import observe.model.enums.NsAction
 import gmos.GmosController.GmosSite
 
 package object gmos {
@@ -17,30 +16,30 @@ package object gmos {
   import lucuma.core.util.Enumerated
 
   sealed trait NSPartial extends PartialVal {
-    def ongoingAction: NSAction
-    def sub: NSSubexposure
+    def ongoingAction: NsAction
+    def sub: NsSubexposure
   }
   object NSPartial {
-    def unapply(s: NSPartial): Option[(NSAction, NSSubexposure)] =
+    def unapply(s: NSPartial): Option[(NsAction, NsSubexposure)] =
       Some((s.ongoingAction, s.sub))
 
-    case class NSStart(sub: NSSubexposure)            extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.Start
+    case class NSStart(sub: NsSubexposure)            extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.Start
     }
-    case class NSTCSNodStart(sub: NSSubexposure)      extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.NodStart
+    case class NSTCSNodStart(sub: NsSubexposure)      extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.NodStart
     }
-    case class NSTCSNodComplete(sub: NSSubexposure)   extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.NodComplete
+    case class NSTCSNodComplete(sub: NsSubexposure)   extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.NodComplete
     }
-    case class NSSubexposureStart(sub: NSSubexposure) extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.StageObserveStart
+    case class NsSubexposureStart(sub: NsSubexposure) extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.StageObserveStart
     }
-    case class NSSubexposureEnd(sub: NSSubexposure)   extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.StageObserveComplete
+    case class NsSubexposureEnd(sub: NsSubexposure)   extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.StageObserveComplete
     }
-    case class NSComplete(sub: NSSubexposure)         extends NSPartial {
-      override val ongoingAction: NSAction = NSAction.Done
+    case class NSComplete(sub: NsSubexposure)         extends NSPartial {
+      override val ongoingAction: NsAction = NsAction.Done
     }
 
     case object NSContinue  extends InternalPartialVal

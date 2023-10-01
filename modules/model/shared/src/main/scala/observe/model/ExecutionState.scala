@@ -8,7 +8,6 @@ import cats.derived.*
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Lens
-import observe.model.enums.SequenceState
 import observe.model.enums.Resource
 import observe.model.enums.ActionStatus
 

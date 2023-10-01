@@ -15,7 +15,7 @@ import observe.ui.model.enums.ClientMode
 import observe.model.ImageFileId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
@@ -39,9 +39,10 @@ case class StepProgressCell(
       // Will we always require logging in?
       ( /*clientStatus.isLogged ||*/ tabOperations.resourceRunNotIdle(i))
 
-  private val runningStepId: Option[Step.Id] = sequenceState match
-    case SequenceState.Running(stepId, _, _, _) => stepId.some
-    case _                                      => none
+  private val runningStepId: Option[Step.Id] = none
+  // sequenceState match
+  // case SequenceState.Running(stepId, _, _, _) => stepId.some
+  // case _                                      => none
 
   private val isRunning =
     tabOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)

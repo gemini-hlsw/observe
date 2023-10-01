@@ -10,7 +10,6 @@ import lucuma.core.util.Enumerated
 import monocle.Prism
 import monocle.macros.GenPrism
 import lucuma.core.util.TimeSpan
-import observe.model.enums.ObservationStage
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 
@@ -19,14 +18,14 @@ enum ObservationProgress(val isNs: Boolean) derives Eq:
   def stepId: Step.Id
   def total: TimeSpan
   def remaining: TimeSpan
-  def stage: ObservationStage
+  def stage: ObserveStage
 
   case Regular(
     obsId:     Observation.Id,
     stepId:    Step.Id,
     total:     TimeSpan,
     remaining: TimeSpan,
-    stage:     ObservationStage
+    stage:     ObserveStage
   ) extends ObservationProgress(false)
 
   case NodAndShuffle(
@@ -34,7 +33,7 @@ enum ObservationProgress(val isNs: Boolean) derives Eq:
     stepId:    Step.Id,
     total:     TimeSpan,
     remaining: TimeSpan,
-    stage:     ObservationStage,
+    stage:     ObserveStage,
     sub:       NsSubexposure
   ) extends ObservationProgress(true)
 

@@ -14,7 +14,9 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-
+import observe.model.arb.ArbNsSubexposure.given
+import observe.model.*
+import observe.model.ObserveStage.given
 import scala.concurrent.duration.FiniteDuration
 
 trait ArbObservationProgress {
@@ -42,12 +44,12 @@ trait ArbObservationProgress {
         t <- arbitrary[FiniteDuration]
         r <- arbitrary[FiniteDuration]
         v <- arbitrary[ObserveStage]
-        u <- arbitrary[NSSubexposure]
+        u <- arbitrary[NsSubexposure]
       } yield NSObservationProgress(o, s, t, r, v, u)
     }
 
   given nsObservationInProgressCogen: Cogen[NSObservationProgress] =
-    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage, NSSubexposure)]
+    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage, NsSubexposure)]
       .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
   given arbProgress: Arbitrary[Progress] =

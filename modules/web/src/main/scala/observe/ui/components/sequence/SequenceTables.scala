@@ -23,8 +23,8 @@ import lucuma.ui.sequence.*
 import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
-import observe.model.*
-import observe.model.enums.SequenceState
+import observe.model.ExecutionState
+// import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
@@ -59,10 +59,10 @@ sealed trait SequenceTables[S, D](
   protected[sequence] lazy val scienceSteps: List[SequenceRow.FutureStep[D]] =
     config.science.map(steps).orEmpty
 
-  protected[sequence] lazy val runningStepId: Option[Step.Id] =
-    executionState.sequenceState match
-      case SequenceState.Running(stepId, _, _, _) => stepId.some
-      case _                                      => none
+  protected[sequence] lazy val runningStepId: Option[Step.Id] = none
+  // executionState.sequenceState match
+  //   case SequenceState.Running( _, _) => stepId.some
+  //   case _                                      => none
 
 case class GmosNorthSequenceTables(
   clientMode:     ClientMode,

@@ -14,7 +14,7 @@ import lucuma.react.common.*
 import lucuma.react.primereact.ProgressBar
 import observe.model.ImageFileId
 import observe.model.ObservationProgress
-import observe.model.enums.ObservationStage
+import observe.model.ObserveStage
 import observe.ui.ObserveStyles
 import lucuma.core.util.TimeSpan
 
@@ -43,17 +43,17 @@ object ObservationProgressBar extends ProgressLabel:
       ObservationProgress
         .Regular(
           obsId = Observation.Id.fromLong(133742).get,
-          obsName = "Test observation",
+          // obsName = "Test observation",
           stepId = Step.Id.fromUuid(UUID.randomUUID),
           total = TimeSpan.unsafeFromMicroseconds(1200000000L),
           remaining = TimeSpan.unsafeFromMicroseconds(932000000L),
-          stage = ObservationStage.Acquiring
+          stage = ObserveStage.Acquiring
         )
         .ready
     )
     .render((props, progress) =>
       progress.value.toOption match
-        case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
+        case Some(ObservationProgress.Regular(_, _, total, remaining, stage)) =>
           // TODO Smooth Progress Bar
           // val remainingMillis = p.maxValue - s.value
 

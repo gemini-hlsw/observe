@@ -30,7 +30,7 @@ import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.queries.ObsQueriesGQL
 import observe.ui.AppContext
 import observe.ui.DefaultErrorPolicy
@@ -119,14 +119,15 @@ object Home:
 
           val sequenceState: SequenceState =
             executingStepId.fold(SequenceState.Idle)(stepId =>
-              SequenceState.Running(stepId, none, false, false)
+              // SequenceState.Running(stepId, none, false, false)
+              SequenceState.Running(false, false)
             )
 
           // We simulate a config state.
           val configState = List(
             (Resource.TCS, ActionStatus.Completed),
             (Resource.Gcal, ActionStatus.Running),
-            (Resource.fromInstrument(Instrument.GmosNorth).get, ActionStatus.Pending)
+            (observe.model.enums.Instrument.GmosN, ActionStatus.Pending)
           )
 
           val initialBreakpoints: Set[Step.Id] =
@@ -149,9 +150,10 @@ object Home:
             .zoom(ExecutionState.breakpoints)
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId)
 
-        val executingStepId: Option[Step.Id] = executionState.get.sequenceState match
-          case SequenceState.Running(stepId, _, _, _) => stepId.some
-          case _                                      => none
+        val executingStepId: Option[Step.Id] = none
+        // executionState.get.sequenceState match
+        // case SequenceState.Running(stepId, _, _, _) => stepId.some
+        // case _                                      => none
 
         val clientMode: ClientMode = props.rootModel.get.clientMode
 

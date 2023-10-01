@@ -7,9 +7,8 @@ import cats.effect.Ref
 import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
-import observe.engine.ParallelActions
-import observe.engine.Result
-import observe.model.NSSubexposure
+import observe.engine.{ParallelActions, Result}
+import observe.model.NsSubexposure
 import observe.model.dhs.*
 import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage.*
@@ -76,7 +75,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
     fileId:   ImageFileId,
     env:      ObserveEnvironment[F],
     nsCfg:    NSConfig.NodAndShuffle,
-    subExp:   NSSubexposure,
+    subExp:   NsSubexposure,
     nsObsCmd: Ref[F, Option[NSObserveCommand]]
   ): F[Result] =
     // Essentially the same as default observation but with a custom tail
@@ -101,7 +100,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
     fileId:   ImageFileId,
     env:      ObserveEnvironment[F],
     nsCfg:    NSConfig.NodAndShuffle,
-    subExp:   NSSubexposure,
+    subExp:   NsSubexposure,
     nsObsCmd: Option[NSObserveCommand]
   )(obsResult: ObserveCommandResult): F[Result] =
     (nsObsCmd, obsResult) match {
@@ -144,7 +143,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
     fileId:      ImageFileId,
     env:         ObserveEnvironment[F],
     nsCfg:       NSConfig.NodAndShuffle,
-    subExp:      NSSubexposure,
+    subExp:      NsSubexposure,
     nsObsCmdRef: Ref[F, Option[NSObserveCommand]]
   ): F[Result] = (
     for {
@@ -159,7 +158,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
    */
   def oneSubExposure(
     fileId:    ImageFileId,
-    sub:       NSSubexposure,
+    sub:       NsSubexposure,
     positions: Vector[NSPosition],
     env:       ObserveEnvironment[F],
     nsCfg:     NSConfig.NodAndShuffle,
@@ -187,7 +186,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
       // Observes for each subexposure
       observationProgressStream(env)
         .mergeHaltR(
-          Stream.emit(Result.Partial(NSSubexposureStart(sub))) ++
+          Stream.emit(Result.Partial(NsSubexposureStart(sub))) ++
             (if (sub.firstSubexposure) {
                Stream.eval(initialObserve(fileId, env, nsCfg, sub, nsCmd))
              } else if (sub.lastSubexposure) {
@@ -195,7 +194,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
              } else {
                Stream.eval(continueObserve(fileId, env, nsCfg, sub, nsCmd))
              }) ++
-            Stream.emit(Result.Partial(NSSubexposureEnd(sub)))
+            Stream.emit(Result.Partial(NsSubexposureEnd(sub)))
         )
         .handleErrorWith(catchObsErrors[F])
   }
@@ -209,22 +208,22 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
         Stream.empty
       case c @ NSConfig.NodAndShuffle(cycles, _, positions, _) =>
         val nsZero =
-          NSSubexposure
+          NsSubexposure
             .subexposures(cycles.value)
             .headOption
-            .getOrElse(NSSubexposure.Zero)
+            .getOrElse(NsSubexposure.Zero)
         val nsLast =
-          NSSubexposure
+          NsSubexposure
             .subexposures(cycles.value)
             .lastOption
-            .getOrElse(NSSubexposure.Zero)
+            .getOrElse(NsSubexposure.Zero)
 
         // Clean NS command Ref
         Stream.eval(inst.nsCmdRef.set(none)) *>
           // Initial notification of N&S Starting
           Stream.emit(Result.Partial(NSStart(nsZero))) ++
           // each subexposure actions
-          NSSubexposure
+          NsSubexposure
             .subexposures(cycles.value)
             .map {
               oneSubExposure(fileId, _, positions, env, c, inst.nsCmdRef)
@@ -242,14 +241,14 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
   ): Stream[F, Result] = {
 
     val nsLast =
-      NSSubexposure
+      NsSubexposure
         .subexposures(nsConfig.cycles.value)
         .lastOption
-        .getOrElse(NSSubexposure.Zero)
+        .getOrElse(NsSubexposure.Zero)
 
     Stream.eval(inst.nsCount).flatMap { cnt =>
       Stream.eval(inst.nsCmdRef.set(none)) *>
-        NSSubexposure
+        NsSubexposure
           .subexposures(nsConfig.cycles.value)
           .map {
             oneSubExposure(fileId, _, nsConfig.positions, env, nsConfig, inst.nsCmdRef)

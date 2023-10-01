@@ -19,9 +19,9 @@ package object arb {
       with ArbStepConfig
       with ArbDhsTypes
       with ArbTime
-      with ArbNSSubexposure
+      with ArbNsSubexposure
       with ArbGmosParameters
-      with ArbNSRunningState
+      with ArbNsRunningState
       with ArbObservationProgress
       with ArbUserPrompt
       with ArbLength

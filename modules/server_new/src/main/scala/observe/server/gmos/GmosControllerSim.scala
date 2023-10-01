@@ -19,7 +19,7 @@ import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.server.InstrumentControllerSim
+import observe.model.{NsSubexposure, ObserveStage}
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObsProgress
 import observe.server.Progress
@@ -165,8 +165,8 @@ object GmosControllerSim {
             Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
         else countdown[F](total, elapsed.self)
       ).map { p =>
-        val sub = NSSubexposure(NsCycles(curr.totalCycles), NsCycles(curr.cycle), curr.stageIndex)
-        p.toNSProgress(sub.getOrElse(NSSubexposure.Zero))
+        val sub = NsSubexposure(NsCycles(curr.totalCycles), NsCycles(curr.cycle), curr.stageIndex)
+        p.toNSProgress(sub.getOrElse(NsSubexposure.Zero))
       }
 
       override def observeProgress(

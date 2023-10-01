@@ -4,39 +4,34 @@
 package observe.model.enums
 
 import cats.Show
-import cats.syntax.all.*
 import cats.data.NonEmptyList
 import lucuma.core.util.Enumerated
-import lucuma.core.enums.Instrument
+import lucuma.core.enums.{Instrument => CoreInstrument}
 
 /** A Observe resource represents any system that can be only used by one single agent. */
-enum Resource(val label: String, val instrument: Option[Instrument]) derives Enumerated:
-  val tag: String           = label
-  val isInstrument: Boolean = instrument.isDefined
+sealed abstract class Resource(val tag: String, val ordinal: Int, val label: String)
+    extends Product
+    with Serializable {
+  def isInstrument: Boolean = false
+}
 
-  case P1     extends Resource("P1", none)
-  case OI     extends Resource("OI", none)
-  case TCS    extends Resource("TCS", none)
-  case Gcal   extends Resource("Gcal", none)
-  case Gems   extends Resource("Gems", none)
-  case Altair extends Resource("Altair", none)
-  case F2     extends Resource("F2", Instrument.Flamingos2.some)
-  case Ghost  extends Resource("Ghost", Instrument.Ghost.some)
-  case GmosS  extends Resource("GmosS", Instrument.GmosSouth.some)
-  case GmosN  extends Resource("GmosN", Instrument.GmosNorth.some)
-  case Gnirs  extends Resource("Gnirs", Instrument.Gnirs.some)
-  case Gpi    extends Resource("Gpi", Instrument.Gpi.some)
-  case Gsaoi  extends Resource("Gsaoi", Instrument.Gsaoi.some)
-  case Niri   extends Resource("Niri", Instrument.Niri.some)
-  case Nifs   extends Resource("Nifs", Instrument.Nifs.some)
+object Resource {
+
+  case object P1     extends Resource("P1", 1, "P1")
+  case object OI     extends Resource("OI", 2, "OI")
+  case object TCS    extends Resource("TCS", 3, "TCS")
+  case object Gcal   extends Resource("Gcal", 4, "Gcal")
+  case object Gems   extends Resource("Gems", 5, "Gems")
+  case object Altair extends Resource("Altair", 6, "Altair")
 
   // Mount and science fold cannot be controlled independently. Maybe in the future.
   // For now, I replaced them with TCS
-  //  case Mount extends Resource
-  //  case  ScienceFold extends Resource
+  //  case object Mount extends Resource
+  //  case object ScienceFold extends Resource
+  given Show[Resource] =
+    Show.show(_.label)
 
-object Resource:
-  given Show[Resource] = Show.show(_.label)
+  val common: List[Resource] = List(TCS, Gcal)
 
   /** @group Typeclass Instances */
   given Enumerated[Resource] =
@@ -46,10 +41,22 @@ object Resource:
 sealed abstract class Instrument(tag: String, ordinal: Int, label: String)
     extends Resource(tag, ordinal, label) {
   override def isInstrument: Boolean = true
+
+  def underlying: CoreInstrument = this match
+    case Instrument.F2    => CoreInstrument.Flamingos2
+    case Instrument.Ghost => CoreInstrument.Ghost
+    case Instrument.GmosS => CoreInstrument.GmosSouth
+    case Instrument.GmosN => CoreInstrument.GmosNorth
+    case Instrument.Gnirs => CoreInstrument.Gnirs
+    case Instrument.Gpi   => CoreInstrument.Gpi
+    case Instrument.Gsaoi => CoreInstrument.Gsaoi
+    case Instrument.Niri  => CoreInstrument.Niri
+    case Instrument.Nifs  => CoreInstrument.Nifs
 }
 
 object Instrument {
 
+  <<<<<<< HEAD
 //  case object F2    extends Instrument("F2", 11, "Flamingos2")
 //  case object Ghost extends Instrument("Ghost", 12, "GHOST")
   case object GmosS extends Instrument("GmosS", 13, "GMOS-S")
@@ -59,6 +66,17 @@ object Instrument {
 //  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
 //  case object Niri  extends Instrument("Niri", 18, "NIRI")
 //  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
+  =======
+  case object F2    extends Instrument("F2", 11, "Flamingos2")
+  case object Ghost extends Instrument("Ghost", 12, "GHOST")
+  case object GmosS extends Instrument("GmosS", 13, "GMOS-S")
+  case object GmosN extends Instrument("GmosN", 14, "GMOS-N")
+  case object Gnirs extends Instrument("Gnirs", 15, "GNIRS")
+  case object Gpi   extends Instrument("Gpi", 16, "GPI")
+  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
+  case object Niri  extends Instrument("Niri", 18, "NIRI")
+  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
+  >>>>>>>.f1f36aaab(checkpoint)
 
   given Show[Instrument] =
     Show.show(_.label)
@@ -71,5 +89,22 @@ object Instrument {
     NonEmptyList.of(GmosN)
 //    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
 
-  def fromInstrument(instrument: Instrument): Option[Resource] =
-    AllInstruments.find(_.instrument.contains_(instrument))
+  val gnInstruments: NonEmptyList[Instrument] =
+    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
+
+  val all: NonEmptyList[Instrument] =
+    gsInstruments.concatNel(gnInstruments)
+
+  val allResources: NonEmptyList[Resource] =
+    NonEmptyList.of(Resource.P1,
+                    Resource.OI,
+                    Resource.TCS,
+                    Resource.Gcal,
+                    Resource.Gems,
+                    Resource.Altair
+    ) ::: Instrument.all
+
+  /** @group Typeclass Instances */
+  given Enumerated[Instrument] =
+    Enumerated.from(all.head, all.tail: _*).withTag(_.tag)
+}

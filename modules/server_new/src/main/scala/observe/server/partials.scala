@@ -7,6 +7,7 @@ import observe.engine.Result.PartialVal
 import observe.model.NSSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
+import observe.model.{NsSubexposure, ObserveStage}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -25,7 +26,7 @@ sealed trait Progress extends PartialVal with Product with Serializable {
 
 object Progress {
   extension (a: Progress) {
-    def toNSProgress(sub: NSSubexposure): NSProgress =
+    def toNSProgress(sub: NsSubexposure): NSProgress =
       NSProgress.fromObsProgress(a, sub)
   }
 }
@@ -39,12 +40,12 @@ final case class NSProgress(
   total:     FiniteDuration,
   remaining: RemainingTime,
   stage:     ObserveStage,
-  sub:       NSSubexposure
+  sub:       NsSubexposure
 ) extends Progress {
   val progress: FiniteDuration = total - remaining.self
 }
 
 object NSProgress {
-  def fromObsProgress(progress: Progress, sub: NSSubexposure): NSProgress =
+  def fromObsProgress(progress: Progress, sub: NsSubexposure): NSProgress =
     NSProgress(progress.total, progress.remaining, progress.stage, sub)
 }

@@ -105,27 +105,6 @@ lazy val observe_web_server = project
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
-lazy val new_model = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Full)
-  .in(file("modules/new_model"))
-  .enablePlugins(GitBranchPrompt)
-  .settings(
-    libraryDependencies ++= Seq(
-      Kittens.value,
-      CatsTime.value,
-      LucumaSchemas.value
-    ) ++ MUnit.value ++ Cats.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
-  )
-  .jvmSettings(
-    commonSettings,
-    libraryDependencies += Http4sCore
-  )
-  .jsSettings(
-    // And add a custom one
-    libraryDependencies += JavaTimeJS.value,
-    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
-  )
-
 lazy val observe_web_client = project
   .in(file("modules/web"))
   .settings(lucumaGlobalSettings: _*)
