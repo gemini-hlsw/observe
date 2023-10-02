@@ -351,7 +351,7 @@
     <value>0</value>
   </channel>
   <channel>
-    <name>gm1:sad:dc:NsCurrentCycle</name>
+    <name>gm1:sad:dc:nsCurrentCycle</name>
     <type>string</type>
     <value></value>
   </channel>
