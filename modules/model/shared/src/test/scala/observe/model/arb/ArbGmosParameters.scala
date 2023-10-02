@@ -3,24 +3,24 @@
 
 package observe.model.arb
 
-import observe.model.GmosParameters.*
+import lucuma.core.arb.newTypeArbitrary
+import lucuma.core.arb.newTypeCogen
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 
 trait ArbGmosParameters {
-  given gmosNsPairsArb: Arbitrary[NsPairs]   =
-    Arbitrary(arbitrary[Int].map(NsPairs.apply(_)))
-  given gmosNsPairsCogen: Cogen[NsPairs]     =
-    Cogen[Int].contramap(_.value)
-  given gmosNsRowsArb: Arbitrary[NsRows]     =
-    Arbitrary(arbitrary[Int].map(NsRows.apply(_)))
-  given gmosNsRowsCogen: Cogen[NsRows]       =
-    Cogen[Int].contramap(_.value)
-  given gmosNsCyclesArb: Arbitrary[NsCycles] =
-    Arbitrary(arbitrary[Int].map(NsCycles.apply(_)))
-  given gmosNsCyclesCogen: Cogen[NsCycles]   =
-    Cogen[Int].contramap(_.value)
+  given Arbitrary[NsPairs] = newTypeArbitrary(NsPairs)
+  given Cogen[NsPairs]     = newTypeCogen(NsPairs)
+
+  given Arbitrary[NsStageIndex] = newTypeArbitrary(NsStageIndex)
+  given Cogen[NsStageIndex]     = newTypeCogen(NsStageIndex)
+
+  given Arbitrary[NsRows] = newTypeArbitrary(NsRows)
+  given Cogen[NsRows]     = newTypeCogen(NsRows)
+
+  given Arbitrary[NsCycles] = newTypeArbitrary(NsCycles)
+  given Cogen[NsCycles]     = newTypeCogen(NsCycles)
 }
 
 object ArbGmosParameters extends ArbGmosParameters

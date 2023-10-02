@@ -20,8 +20,8 @@ final class GmosStepsView[F[_]] extends StepsView[F] {
     altCfgStatus:  List[(Resource, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
   ): Step = {
-    val nodAndShuffle: Option[GmosController.Config.NSConfig.NodAndShuffle] = stepg.genData match {
-      case Gmos.GmosStatusGen(ns: NSConfig.NodAndShuffle) => ns.some
+    val nodAndShuffle: Option[GmosController.Config.NsConfig.NodAndShuffle] = stepg.genData match {
+      case Gmos.GmosStatusGen(ns: NsConfig.NodAndShuffle) => ns.some
       case _                                              => none
     }
 

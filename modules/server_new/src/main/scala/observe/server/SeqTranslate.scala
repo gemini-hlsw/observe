@@ -58,9 +58,11 @@ import observe.server.keywords._
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.*
-import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.*
+//import squants.Time
+//import squants.time.TimeConversions._
+//import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
+import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
+import lucuma.core.util.TimeSpan
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
@@ -346,7 +348,7 @@ object SeqTranslate {
     override def resumePaused(seqId: Observation.Id)(using
       tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
-      val observeIndex: Option[(ObserveContext[F], Option[FiniteDuration], Int)] =
+      val observeIndex: Option[(ObserveContext[F], Option[TimeSpan], Int)] =
         st.sequences
           .get(seqId)
           .flatMap(
@@ -371,7 +373,7 @@ object SeqTranslate {
             seqId,
             i,
             obCtx
-              .progress(ElapsedTime(t.getOrElse(0.0.seconds)))
+              .progress(ElapsedTime(t.getOrElse(TimeSpan.Zero)))
               .mergeHaltR(obCtx.resumePaused(obCtx.expTime))
               .handleErrorWith(catchObsErrors[F])
           )

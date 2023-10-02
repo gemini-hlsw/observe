@@ -54,16 +54,17 @@ trait ArbNodAndShuffleStep {
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[NodAndShuffleStatus]
       oc <- arbitrary[Option[PendingObserveCmd]]
-    } yield new NodAndShuffleStep(id = id,
-                                  instConfig = d,
-                                  stepConfig = t,
-                                  status = s,
-                                  breakpoint = b,
-                                  skip = k,
-                                  fileId = f,
-                                  configStatus = cs,
-                                  nsStatus = os,
-                                  pendingObserveCmd = oc
+    } yield new NodAndShuffleStep(
+      id = id,
+      instConfig = d,
+      stepConfig = t,
+      status = s,
+      breakpoint = b,
+      skip = k,
+      fileId = f,
+      configStatus = cs,
+      nsStatus = os,
+      pendingObserveCmd = oc
     )
   }
 

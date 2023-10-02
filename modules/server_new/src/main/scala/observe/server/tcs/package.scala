@@ -11,6 +11,8 @@ import squants.Length
 import squants.Ratio
 import squants.space.Arcseconds
 import squants.space.Millimeters
+import lucuma.core.util.TimeSpan
+import java.time.temporal.ChronoUnit
 
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
@@ -53,8 +55,8 @@ package object tcs {
   val BottomPort: Int  = 1
   val InvalidPort: Int = 0
 
-  val tcsTimeout: FiniteDuration = FiniteDuration(90, SECONDS)
-  val agTimeout: FiniteDuration  = FiniteDuration(90, SECONDS)
+  val tcsTimeout: TimeSpan = TimeSpan.unsafeFromDuration(90, ChronoUnit.SECONDS)
+  val agTimeout: TimeSpan  = TimeSpan.unsafeFromDuration(90, ChronoUnit.SECONDS)
 
   val NonStopExposures = -1
 

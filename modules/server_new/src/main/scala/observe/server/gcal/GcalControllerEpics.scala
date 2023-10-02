@@ -15,14 +15,13 @@ import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
 import observe.server.gcal.GcalController.*
-import org.typelevel.log4cats.Logger
-
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import lucuma.core.util.TimeSpan
+import java.time.temporal.ChronoUnit
 
 object GcalControllerEpics {
   // Default value from Tcl Observe
-  private val SetupTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
+  private val SetupTimeout: TimeSpan =
+    TimeSpan.unsafeFromDuration(60, ChronoUnit.SECONDS)
 
   implicit private val encodeLampState: EncodeEpicsValue[LampState, BinaryOnOff] =
     EncodeEpicsValue {

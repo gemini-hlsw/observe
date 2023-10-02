@@ -35,8 +35,32 @@ import squants.time.TimeConversions.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import cats.*
+import cats.effect.Async
+import cats.effect.Sync
+import cats.Eq
+import cats.syntax.all.*
+import monocle.Focus
+import edu.gemini.epics.acm.CarStateGEM5
+import edu.gemini.observe.server.altair.LgsSfoControl
+import org.typelevel.log4cats.Logger
+import mouse.boolean.*
+import observe.model.enums.Instrument
+import observe.model.enums.ApplyCommandResult
+import observe.server.ObserveFailure
+import observe.server.altair.AltairController.*
+import observe.server.tcs.FOCAL_PLANE_SCALE
+import observe.server.tcs.Gaos.PauseCondition.{GaosGuideOff, OiOff, P1Off}
+import observe.server.tcs.Gaos.ResumeCondition.{GaosGuideOn, OiOn, P1On}
+import observe.server.tcs.Gaos.*
+import observe.server.tcs.TcsController.FocalPlaneOffset
+import observe.server.tcs.TcsEpics
+import squants.Length
+import squants.Time
+import squants.space.{Arcseconds, Millimeters}
+import squants.time.TimeConversions.*
+import lucuma.core.util.TimeSpan
+import java.time.temporal.ChronoUnit
 
 object AltairControllerEpics {
   final case class EpicsAltairConfig(
@@ -194,8 +218,8 @@ object AltairControllerEpics {
       )
     }
 
-    private val AoSettledTimeout  = FiniteDuration(30, SECONDS)
-    private val MatrixPrepTimeout = FiniteDuration(10, SECONDS)
+    private val AoSettledTimeout  = TimeSpan.unsafeFromDuration(30, ChronoUnit.SECONDS)
+    private val MatrixPrepTimeout = TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
 
     private val dmFlattenAction: F[ApplyCommandResult] =
       epicsTcs.aoFlatten.mark *> epicsTcs.aoFlatten.post(DefaultTimeout)
@@ -280,7 +304,8 @@ object AltairControllerEpics {
         L.debug("STRAP gate stopped")
     ).whenA(currCfg.strapGate =!= 0)
 
-    private val StrapLoopSettleTimeout = FiniteDuration(10, SECONDS)
+    private val StrapLoopSettleTimeout =
+      TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
 
     private def startStrapLoop(currCfg: EpicsAltairConfig): F[Unit] = (
       L.debug("Starting STRAP loop in Altair") *>
@@ -597,8 +622,8 @@ object AltairControllerEpics {
     keepGuiding:  GuideCapabilities // What guiding to enable after resume
   )
 
-  private val DefaultTimeout = FiniteDuration(10, SECONDS)
+  private val DefaultTimeout = TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
 
-  private val StrapGateTimeout = FiniteDuration(5, SECONDS)
+  private val StrapGateTimeout = TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS)
 
 }

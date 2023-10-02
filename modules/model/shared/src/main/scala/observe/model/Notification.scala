@@ -7,7 +7,7 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import observe.model.enums.Resource
-import lucuma.core.enums.Instrument
+import observe.model.enums.Instrument
 
 enum Notification derives Eq:
   // Notification that user tried to run a sequence that used resource already in use

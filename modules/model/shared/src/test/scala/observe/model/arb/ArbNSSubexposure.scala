@@ -17,7 +17,7 @@ trait ArbNsSubexposure {
     for {
       t <- Gen.posNum[Int].map(NsCycles.apply(_))
       c <- Gen.choose(0, t.value).map(NsCycles.apply(_))
-      i <- Gen.choose(0, NsSequence.length - 1)
+      i <- Gen.choose(0, NsSequence.length - 1).map(NsStageIndex.apply(_))
     } yield NsSubexposure(t, c, i).getOrElse(NsSubexposure.Zero)
   }
 
@@ -29,7 +29,7 @@ trait ArbNsSubexposure {
         Int,
         NodAndShuffleStage
       )
-    ].contramap(s => (s.totalCycles.value, s.cycle.value, s.stageIndex, s.stage))
+    ].contramap(s => (s.totalCycles.value, s.cycle.value, s.stageIndex.value, s.stage))
 
 }
 

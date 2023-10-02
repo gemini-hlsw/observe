@@ -17,8 +17,7 @@ import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.*
+import lucuma.core.util.TimeSpan
 
 /**
  * Methods usedd to generate observation related actions
@@ -89,7 +88,7 @@ trait ObserveActions {
   def observationProgressStream[F[_]](
     env: ObserveEnvironment[F]
   ): Stream[F, Result] = env.inst
-    .observeProgress(env.inst.calcObserveTime, ElapsedTime(0.0.seconds))
+    .observeProgress(env.inst.calcObserveTime, ElapsedTime(TimeSpan.Zero))
     .map(Result.Partial(_))
 
   /**
@@ -176,27 +175,24 @@ trait ObserveActions {
         val totalTime = env.inst.calcObserveTime
         env.inst.observeControl match {
           case c: CompleteControl[F] =>
-            val resumePaused: FiniteDuration => Stream[F, Result] =
-              (remaining: FiniteDuration) =>
+            val resumePaused: TimeSpan => Stream[F, Result] =
+              (remaining: TimeSpan) =>
                 Stream
-                  .eval {
-                    c.continue
-                      .self(remaining)
-                  }
+                  .eval(c.continue.self(remaining))
                   .flatMap(observeTail(fileId, env))
-            val progress: ElapsedTime => Stream[F, Result]        =
+            val progress: ElapsedTime => Stream[F, Result]  =
               (elapsed: ElapsedTime) =>
                 env.inst
                   .observeProgress(totalTime, elapsed)
                   .map(Result.Partial(_))
                   .widen[Result]
-            val stopPaused: Stream[F, Result]                     =
+            val stopPaused: Stream[F, Result]               =
               Stream
                 .eval {
                   c.stopPaused.self
                 }
                 .flatMap(observeTail(fileId, env))
-            val abortPaused: Stream[F, Result]                    =
+            val abortPaused: Stream[F, Result]              =
               Stream
                 .eval {
                   c.abortPaused.self

@@ -295,7 +295,7 @@
             <description>CCD X start</description>
         </attribute>
         <attribute name="currentCycle">
-            <channel>sad:dc:nsCurrentCycle</channel>
+            <channel>sad:dc:NsCurrentCycle</channel>
             <type>INTEGER</type>
             <description>Current Cycle </description>
         </attribute>

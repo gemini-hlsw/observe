@@ -41,9 +41,7 @@ object NsSubexposure:
     } else none
 
   // Calculate the subexposures
-  def subexposures(
-    totalCycles: Int
-  ): List[NsSubexposure] =
+  def subexposures(totalCycles: Int): List[NsSubexposure] =
     (for {
       i <- 0 until totalCycles
       j <- 0 until NsSequence.length

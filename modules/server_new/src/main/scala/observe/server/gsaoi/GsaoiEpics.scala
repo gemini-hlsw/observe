@@ -12,12 +12,11 @@ import edu.gemini.observe.server.gsaoi.DhsConnected
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
-import observe.server.EpicsSystem
-import observe.server.EpicsUtil
-import observe.server.EpicsUtil.safeAttributeF
-import observe.server.EpicsUtil.safeAttributeSDoubleF
-import observe.server.EpicsUtil.safeAttributeSIntF
-import observe.server.ObserveCommandBase
+import observe.server.EpicsUtil.{safeAttributeF, safeAttributeSDoubleF, safeAttributeSIntF}
+import observe.server.{EpicsCommand, EpicsCommandBase, EpicsSystem, EpicsUtil, ObserveCommandBase}
+import lucuma.core.util.TimeSpan
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 import java.lang.Double as JDouble
 import java.util.concurrent.TimeUnit.SECONDS
@@ -76,13 +75,14 @@ class GsaoiEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]
   }
 
   private val observeAS: Option[CaApplySender] = Option(
-    epicsService.createObserveSender("gsaoi::observeCmd",
-                                     s"${GsaoiTop}dc:stateApply",
-                                     s"${GsaoiTop}dc:observeC",
-                                     false,
-                                     s"${GsaoiTop}dc:stop",
-                                     s"${GsaoiTop}dc:abort",
-                                     ""
+    epicsService.createObserveSender(
+      "gsaoi::observeCmd",
+      s"${GsaoiTop}dc:stateApply",
+      s"${GsaoiTop}dc:observeC",
+      false,
+      s"${GsaoiTop}dc:stop",
+      s"${GsaoiTop}dc:abort",
+      ""
     )
   )
 
@@ -239,7 +239,7 @@ class GsaoiEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]
                                   java.time.Duration.ofMillis(guideStabilizeTime.toMillis)
     )
 
-  private val guideTimeout     = FiniteDuration(5, SECONDS)
+  private val guideTimeout     = TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS)
   def waitForGuideOn: F[Unit]  =
     Async[F]
       .delay(filteredNotGuidingAttr.restart)

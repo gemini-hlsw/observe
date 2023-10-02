@@ -24,22 +24,20 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObsProgress
 import observe.server.Progress
 import observe.server.ProgressUtil.countdown
-import observe.server.RemainingTime
-import observe.server.gmos.GmosController.Config.NSConfig
+import observe.server.gmos.GmosController.Config.NsConfig
 import observe.server.gmos.GmosController.GmosConfig
 import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
+import lucuma.core.util.TimeSpan
+import observe.model.GmosParameters.NsStageIndex
 
 /**
  * Keep track of the current execution state
  */
-final case class NSCurrent(
+final case class NsCurrent(
   fileId:        ImageFileId,
   totalCycles:   Int,
   exposureCount: Int,
-  expTime:       FiniteDuration
+  expTime:       TimeSpan
 ) {
   def lastSubexposure: Boolean =
     (exposureCount + 1) === totalCycles * NsSequence.length
@@ -51,8 +49,8 @@ final case class NSCurrent(
   val stageIndex: Int = exposureCount % NsSequence.length
 }
 
-object NSCurrent {
-  given Show[NSCurrent] = Show.show { a =>
+object NsCurrent {
+  given Show[NsCurrent] = Show.show { a =>
     s"NS State: file=${a.fileId}, cycle=${a.cycle + 1}, stage=${NsSequence.toList
         .lift(a.exposureCount % NsSequence.length)
         .getOrElse("Unknown")}/${(a.exposureCount % NsSequence.length) + 1}, subexposure=${a.exposureCount + 1}, expTime=${a.expTime}"
@@ -62,54 +60,54 @@ object NSCurrent {
 /**
  * Used to keep the internal state of NS
  */
-final case class NSObsState(config: NSConfig, current: Option[NSCurrent])
+final case class NsObsState(config: NsConfig, current: Option[NsCurrent])
 
-object NSObsState {
-  def fromConfig(c: NSConfig): NSObsState =
-    NSObsState(c, None)
+object NsObsState {
+  def fromConfig(c: NsConfig): NsObsState =
+    NsObsState(c, None)
 
-  val Zero: NSObsState = NSObsState(NSConfig.NoNodAndShuffle, None)
+  val Zero: NsObsState = NsObsState(NsConfig.NoNodAndShuffle, None)
 
-  val fileId: Optional[NSObsState, ImageFileId] =
-    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(Focus[NSCurrent](_.fileId))
+  val fileId: Optional[NsObsState, ImageFileId] =
+    Focus[NsObsState](_.current).andThen(some[NsCurrent]).andThen(Focus[NsCurrent](_.fileId))
 
-  val exposureCount: Optional[NSObsState, Int] =
-    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(Focus[NSCurrent](_.exposureCount))
+  val exposureCount: Optional[NsObsState, Int] =
+    Focus[NsObsState](_.current).andThen(some[NsCurrent]).andThen(Focus[NsCurrent](_.exposureCount))
 
-  val expTime: Optional[NSObsState, FiniteDuration] =
-    Focus[NSObsState](_.current).andThen(some[NSCurrent]).andThen(Focus[NSCurrent](_.expTime))
+  val expTime: Optional[NsObsState, TimeSpan] =
+    Focus[NsObsState](_.current).andThen(some[NsCurrent]).andThen(Focus[NsCurrent](_.expTime))
 
 }
 
 object GmosControllerSim {
   def apply[F[_]: Temporal, T <: GmosController.GmosSite](
     sim:      InstrumentControllerSim[F],
-    nsConfig: Ref[F, NSObsState]
+    nsConfig: Ref[F, NsObsState]
   ): GmosController[F, T] =
     new GmosController[F, T] {
       override def observe(
         fileId:  ImageFileId,
-        expTime: FiniteDuration
+        expTime: TimeSpan
       ): F[ObserveCommandResult] =
         nsConfig.modify {
-          case s @ NSObsState(NSConfig.NoNodAndShuffle, _)                =>
+          case s @ NsObsState(NsConfig.NoNodAndShuffle, _)                =>
             (s, s)
-          case s @ NSObsState(NSConfig.NodAndShuffle(cycles, _, _, _), _) =>
+          case s @ NsObsState(NsConfig.NodAndShuffle(cycles, _, _, _), _) =>
             // Initialize the current state
             val update =
-              s.focus(_.current).replace(NSCurrent(fileId, cycles.value, 0, expTime).some)
+              s.focus(_.current).replace(NsCurrent(fileId, cycles.value, 0, expTime).some)
             (update, update)
         } >>= {
-          case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
+          case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
             sim.log(s"Simulate Gmos N&S observation ${curr.show}") *>
               // Initial N&S obs
               sim.observe(fileId, expTime).as(ObserveCommandResult.Paused)
-          case NSObsState(_, _)                                           =>
+          case NsObsState(_, _)                                           =>
             sim.observe(fileId, expTime) // Regular observation
         }
 
       override def applyConfig(config: GmosConfig[T]): F[Unit] =
-        nsConfig.set(NSObsState.fromConfig(config.ns)) *> // Keep the state of NS Config
+        nsConfig.set(NsObsState.fromConfig(config.ns)) *> // Keep the state of NS Config
           sim.applyConfig(config)
 
       override def stopObserve: F[Unit] = sim.stopObserve
@@ -120,22 +118,22 @@ object GmosControllerSim {
 
       override def pauseObserve: F[Unit] = sim.pauseObserve
 
-      override def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult] =
+      override def resumePaused(expTime: TimeSpan): F[ObserveCommandResult] =
         nsConfig.modify {
-          case s @ NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr))
+          case s @ NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr))
               if !curr.lastSubexposure =>
             // We should keep track of where on a N&S Sequence are we
             // Let's just increase the exposure counter
-            val upd = NSObsState.exposureCount.modify(_ + 1)
+            val upd = NsObsState.exposureCount.modify(_ + 1)
             (upd(s), upd(s))
           case s =>
             (s, s)
         } >>= {
-          case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr))
+          case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr))
               if !curr.lastSubexposure =>
             sim.log(s"Next Nod ${curr.show}") *>
               sim.observe(curr.fileId, expTime).as(ObserveCommandResult.Paused)
-          case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr)) if curr.lastSubexposure =>
+          case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr)) if curr.lastSubexposure =>
             sim.log(s"Final Nod ${curr.show}") *>
               sim.observe(curr.fileId, expTime)
           case _                                                                                  =>
@@ -148,33 +146,37 @@ object GmosControllerSim {
       override def abortPaused: F[ObserveCommandResult] = sim.abortPaused
 
       private def classicObserveProgress(
-        total:   FiniteDuration,
+        total:   TimeSpan,
         elapsed: ElapsedTime
       ): Stream[F, Progress] = sim.observeCountdown(total, elapsed)
 
       private def nsObserveProgress(
-        total:   FiniteDuration,
+        total:   TimeSpan,
         elapsed: ElapsedTime,
-        curr:    NSCurrent
+        curr:    NsCurrent
       ): Stream[F, Progress] = (
         if (curr.firstSubexposure)
           Stream.emit(ObsProgress(total, RemainingTime(total), ObserveStage.Preparing)) ++
             countdown[F](total, elapsed.self)
         else if (curr.lastSubexposure)
           countdown[F](total, elapsed.self) ++
-            Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
+            Stream.emit(ObsProgress(total, RemainingTime(TimeSpan.Zero), ObserveStage.ReadingOut))
         else countdown[F](total, elapsed.self)
       ).map { p =>
-        val sub = NsSubexposure(NsCycles(curr.totalCycles), NsCycles(curr.cycle), curr.stageIndex)
+        val sub = NsSubexposure(
+          NsCycles(curr.totalCycles),
+          NsCycles(curr.cycle),
+          NsStageIndex(curr.stageIndex)
+        )
         p.toNSProgress(sub.getOrElse(NsSubexposure.Zero))
       }
 
       override def observeProgress(
-        total:   FiniteDuration,
+        total:   TimeSpan,
         elapsed: ElapsedTime
       ): Stream[F, Progress] =
         Stream.eval(nsConfig.get).flatMap {
-          case NSObsState(NSConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
+          case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
             nsObserveProgress(total, elapsed, curr)
           case _                                                          => classicObserveProgress(total, elapsed)
         }
@@ -183,12 +185,12 @@ object GmosControllerSim {
     }
 
   def south[F[_]: Async: Logger]: F[GmosController[F, GmosController.GmosSite.South.type]] =
-    (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS South")).mapN { (nsConfig, sim) =>
+    (Ref.of(NsObsState.Zero), InstrumentControllerSim[F](s"GMOS South")).mapN { (nsConfig, sim) =>
       GmosControllerSim[F, GmosController.GmosSite.South.type](sim, nsConfig)
     }
 
   def north[F[_]: Async: Logger]: F[GmosController[F, GmosController.GmosSite.North.type]] =
-    (Ref.of(NSObsState.Zero), InstrumentControllerSim[F](s"GMOS North")).mapN { (nsConfig, sim) =>
+    (Ref.of(NsObsState.Zero), InstrumentControllerSim[F](s"GMOS North")).mapN { (nsConfig, sim) =>
       GmosControllerSim[F, GmosController.GmosSite.North.type](sim, nsConfig)
     }
 }

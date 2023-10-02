@@ -18,6 +18,7 @@ import observe.model.enums.ObserveCommandResult
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
+import lucuma.core.util.TimeSpan
 
 import java.lang.{Double => JDouble}
 import java.lang.{Float => JFloat}
@@ -26,14 +27,13 @@ import java.util
 import java.util.TimerTask
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{Timer => JTimer}
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
+import java.util.{Timer as JTimer, TimerTask}
 import scala.jdk.CollectionConverters.*
 import scala.math.abs
+import java.util.concurrent.TimeUnit
 
 trait EpicsCommand[F[_]] {
-  def post(timeout: FiniteDuration): F[ApplyCommandResult]
+  def post(timeout: TimeSpan): F[ApplyCommandResult]
   def mark: F[Unit]
 }
 
@@ -42,7 +42,7 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
 
   import EpicsUtil.*
 
-  override def post(timeout: FiniteDuration): F[ApplyCommandResult] = setTimeout(timeout) *>
+  override def post(timeout: TimeSpan): F[ApplyCommandResult] = setTimeout(timeout) *>
     Async[F]
       .async[ApplyCommandResult] { (f: Either[Throwable, ApplyCommandResult] => Unit) =>
         Async[F].delay {
@@ -66,9 +66,9 @@ abstract class EpicsCommandBase[F[_]: Async](sysName: String) extends EpicsComma
     cs.map(_.mark())
   }.void
 
-  protected def setTimeout(t: FiniteDuration): F[Unit] =
+  protected def setTimeout(t: TimeSpan): F[Unit] =
     Sync[F].delay {
-      cs.map(_.getApplySender).map(_.setTimeout(t.length, t.unit))
+      cs.map(_.getApplySender).map(_.setTimeout(t.toMicroseconds, TimeUnit.MICROSECONDS))
     }.void
 
 }
@@ -135,7 +135,7 @@ object EpicsCommandBase {
 }
 
 trait ObserveCommand[F[_]] {
-  def post(timeout: FiniteDuration): F[ObserveCommandResult]
+  def post(timeout: TimeSpan): F[ObserveCommandResult]
   def mark: F[Unit]
 }
 
@@ -145,7 +145,7 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
 
   import EpicsUtil.*
 
-  override def post(timeout: FiniteDuration): F[ObserveCommandResult] = setTimeout(timeout) *>
+  override def post(timeout: TimeSpan): F[ObserveCommandResult] = setTimeout(timeout) *>
     Async[F]
       .async[ObserveCommandResult] { (f: Either[Throwable, ObserveCommandResult] => Unit) =>
         Async[F].delay {
@@ -172,9 +172,9 @@ abstract class ObserveCommandBase[F[_]: Async](sysName: String) extends ObserveC
     cs.map(_.mark())
   }.void
 
-  protected def setTimeout(t: FiniteDuration): F[Unit] =
+  protected def setTimeout(t: TimeSpan): F[Unit] =
     Sync[F].delay {
-      os.map(_.setTimeout(t.length, t.unit))
+      os.map(_.setTimeout(t.toMicroseconds, TimeUnit.MICROSECONDS))
     }.void
 }
 
@@ -215,7 +215,7 @@ object EpicsUtil {
   def waitForValuesF[T, F[_]: Async](
     attr:    CaAttribute[T],
     vv:      Seq[T],
-    timeout: FiniteDuration,
+    timeout: TimeSpan,
     name:    String
   ): F[T] =
     Async[F].async[T] { (f: Either[Throwable, T] => Unit) =>
@@ -258,7 +258,7 @@ object EpicsUtil {
           }
 
           locked(lock0) {
-            if (timeout.toMillis > 0) {
+            if (timeout > TimeSpan.Zero) {
               timer.schedule(
                 new TimerTask {
                   override def run(): Unit = if (resultGuard.getAndDecrement() === 1) {
@@ -268,7 +268,7 @@ object EpicsUtil {
                     f(ObserveFailure.Timeout(name).asLeft)
                   }
                 },
-                timeout.toMillis
+                timeout.toMilliseconds.toLong
               )
             }
             attr.addListener(statusListener)
@@ -281,7 +281,7 @@ object EpicsUtil {
   def waitForValueF[T, F[_]: Async](
     attr:    CaAttribute[T],
     v:       T,
-    timeout: FiniteDuration,
+    timeout: TimeSpan,
     name:    String
   ): F[Unit] =
     waitForValuesF[T, F](attr, List(v), timeout, name).void
@@ -419,18 +419,18 @@ object EpicsUtil {
     get.map(areValuesDifferentEnough(relTolerance, _, v).option(set))
 
   def defaultProgress[F[_]: Applicative](
-    time:      FiniteDuration,
+    time:      TimeSpan,
     remaining: RemainingTime,
     stage:     ObserveStage
   ): F[Progress] =
     ObsProgress(time, remaining, stage).pure[F].widen[Progress]
 
   def countdown[F[_]: Temporal](
-    total:    FiniteDuration,
-    rem:      F[FiniteDuration],
+    total:    TimeSpan,
+    rem:      F[TimeSpan],
     obsState: F[CarStateGeneric],
     obsStage: F[ObserveStage],
-    p:        (FiniteDuration, RemainingTime, ObserveStage) => F[Progress]
+    p:        (TimeSpan, RemainingTime, ObserveStage) => F[Progress]
   ): Stream[F, Progress] =
     ProgressUtil
       .fromFOption[F](_ =>
@@ -441,9 +441,9 @@ object EpicsUtil {
           r <- p(if (total > c) total else c, RemainingTime(c), v)
         } yield if (s.isBusy) r.some else none
       )
-      .dropWhile(_.remaining.self === Duration.Zero) // drop leading zeros
+      .dropWhile(_.remaining.self === TimeSpan.Zero) // drop leading zeros
       .takeThrough(x =>
-        x.remaining.self > Duration.Zero || x.stage === ObserveStage.Acquiring
+        x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Acquiring
       ) // drop all tailing zeros but the first one, unless it is still acquiring
 
   // Component names read from instruments usually have a part name as suffix. For example, the

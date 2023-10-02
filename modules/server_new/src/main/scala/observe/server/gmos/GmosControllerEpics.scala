@@ -32,13 +32,20 @@ import observe.server.ObserveFailure
 import observe.server.Progress
 import observe.server.RemainingTime
 import observe.server.gmos.GmosController.Config.*
-import observe.server.gmos.GmosController.*
+import observe.server.{
+  EpicsCommandBase,
+  EpicsUtil,
+  NsProgress,
+  ObserveFailure,
+  Progress,
+  RemainingTime
+}
 import org.typelevel.log4cats.Logger
+import lucuma.core.util.TimeSpan
 
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
 import scala.jdk.DurationConverters.*
+import observe.model.GmosParameters.NsStageIndex
+import java.time.temporal.ChronoUnit
 
 trait GmosEncoders {
   given EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {
@@ -439,7 +446,7 @@ object GmosControllerEpics extends GmosEncoders {
           // TODO these are not smart about setting them only if needed
           setROI(config.bi, config.roi)
 
-      private def nsParams(state: GmosNSEpicsState, config: NSConfig): List[F[Unit]] =
+      private def nsParams(state: GmosNSEpicsState, config: NsConfig): List[F[Unit]] =
         List(
           applyParam(state.nsPairs.value, config.nsPairs.value, (x: Int) => DC.setNsPairs(x)),
           applyParam(state.nsRows.value, config.nsRows.value, (x: Int) => DC.setNsRows(x)),
@@ -477,10 +484,10 @@ object GmosControllerEpics extends GmosEncoders {
             L.debug("Completed Gmos configuration")
         }
 
-      override def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult] =
+      override def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult] =
         failOnDHSNotConected *>
           sys.observeCmd.setLabel(fileId.value) *>
-          sys.observeCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
+          sys.observeCmd.post(expTime +| ReadoutTimeout)
 
       private def failOnDHSNotConected: F[Unit] =
         sys.dhsConnected
@@ -519,10 +526,10 @@ object GmosControllerEpics extends GmosEncoders {
 
       override def pauseObserve: F[Unit] = protectedObserveCommand("Pause", sys.pauseCmd)
 
-      override def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult] = for {
+      override def resumePaused(expTime: TimeSpan): F[ObserveCommandResult] = for {
         _   <- L.debug("Resume Gmos observation")
         _   <- sys.continueCmd.mark
-        ret <- sys.continueCmd.post(FiniteDuration(expTime.toMillis, MILLISECONDS) + ReadoutTimeout)
+        ret <- sys.continueCmd.post(expTime +| ReadoutTimeout)
         _   <- L.debug("Completed Gmos observation")
       } yield ret
 
@@ -541,30 +548,30 @@ object GmosControllerEpics extends GmosEncoders {
       } yield if (ret === ObserveCommandResult.Success) ObserveCommandResult.Aborted else ret
 
       // Calculate the current subexposure
-      def NsSubexposure: F[NsSubexposure] =
+      def nsSubexposure: F[NsSubexposure] =
         (sys.nsPairs, sys.currentCycle, sys.aExpCount, sys.bExpCount).mapN {
           (total, cycle, aCount, bCount) =>
             val stageIndex = (aCount + bCount) % NsSequence.length
             val sub        =
-              NsSubexposure(NsCycles(total / 2), NsCycles(cycle), stageIndex)
+              NsSubexposure(NsCycles(total / 2), NsCycles(cycle), NsStageIndex(stageIndex))
             sub.getOrElse(NsSubexposure.Zero)
         }
 
       // Different progress results for classic and NS
-      def gmosProgress: (FiniteDuration, RemainingTime, ObserveStage) => F[Progress] =
+      def gmosProgress: (TimeSpan, RemainingTime, ObserveStage) => F[Progress] =
         (time, remaining, stage) =>
           sys.nsState.flatMap {
             case "CLASSIC" => EpicsUtil.defaultProgress[F](time, remaining, stage)
-            case _         => NsSubexposure.map(s => NSProgress(time, remaining, stage, s))
+            case _         => nsSubexposure.map(s => NsProgress(time, remaining, stage, s))
           }
 
       override def observeProgress(
-        total:   FiniteDuration,
+        total:   TimeSpan,
         elapsed: ElapsedTime
       ): Stream[F, Progress] =
         EpicsUtil.countdown[F](
           total,
-          sys.countdown.map(x => FiniteDuration((x * 1000.0).toLong, MILLISECONDS)),
+          sys.countdown.map(x => TimeSpan.unsafeFromDuration(x.toLong, ChronoUnit.SECONDS)),
           sys.observeState.widen[CarStateGeneric],
           (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut)
             .mapN(ObserveStage.fromBooleans),
@@ -633,9 +640,9 @@ object GmosControllerEpics extends GmosEncoders {
     def apply[A <: GmosSite](using ev: Encoders[A]): Encoders[A] = ev
   }
 
-  val DefaultTimeout: FiniteDuration = FiniteDuration(60, SECONDS)
-  val ReadoutTimeout: FiniteDuration = FiniteDuration(120, SECONDS)
-  val ConfigTimeout: FiniteDuration  = FiniteDuration(600, SECONDS)
+  val DefaultTimeout: TimeSpan = TimeSpan.unsafeFromDuration(60, ChronoUnit.SECONDS)
+  val ReadoutTimeout: TimeSpan = TimeSpan.unsafeFromDuration(120, ChronoUnit.SECONDS)
+  val ConfigTimeout: TimeSpan  = TimeSpan.unsafeFromDuration(600, ChronoUnit.SECONDS)
 
   def dummy[A](v: Option[A]): String = v match {
     case Some(value) => value.toString

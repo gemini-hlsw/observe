@@ -37,13 +37,14 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
-import observe.model.StepId
-import observe.model.UserDetails
-import observe.model.UserPrompt.Discrepancy
-import observe.model.UserPrompt.ObsConditionsCheckOverride
-import observe.model.UserPrompt.SeqCheck
-import observe.model.UserPrompt.TargetCheckOverride
-import observe.model._
+import observe.model.UserPrompt.{
+  Discrepancy,
+  ObsConditionsCheckOverride,
+  SeqCheck,
+  TargetCheckOverride
+}
+import observe.model.{StepId, UserDetails, *}
+import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, ServerLogLevel}
 import observe.model.config.*
 import observe.model.enums.BatchExecState
 import observe.model.enums.Instrument
@@ -1788,7 +1789,7 @@ object ObserveEngine {
           case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
             Stream.emit(ObservationProgressEvent(ObservationProgress.Regular(i, s, t, r.self, v)))
-          case SystemEvent.PartialResult(i, s, _, Partial(NSProgress(t, r, v, u)))  =>
+          case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u)))  =>
             Stream.emit(
               ObservationProgressEvent(ObservationProgress.NodAndShuffle(i, s, t, r.self, v, u))
             )

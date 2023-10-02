@@ -18,6 +18,7 @@ import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
+import lucuma.core.util.TimeSpan
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -84,7 +85,7 @@ trait GemsEpics[F[_]] {
 
   def scienceReady: F[Boolean]
 
-  def waitForStableLoops(timeout: FiniteDuration): F[Unit]
+  def waitForStableLoops(timeout: TimeSpan): F[Unit]
 
   def ttLoop: F[LoopState]
 
@@ -258,11 +259,12 @@ object GemsEpics extends EpicsSystem[GemsEpics[IO]] {
     override def scienceReady: F[Boolean] =
       safeAttributeF(scienceStateAttr).map(_ === ReadyState.Ready)
 
-    override def waitForStableLoops(timeout: FiniteDuration): F[Unit] =
-      EpicsUtil.waitForValueF(scienceStateAttr,
-                              ReadyState.Ready,
-                              timeout,
-                              "GeMS science ready flag"
+    override def waitForStableLoops(timeout: TimeSpan): F[Unit] =
+      EpicsUtil.waitForValueF(
+        scienceStateAttr,
+        ReadyState.Ready,
+        timeout,
+        "GeMS science ready flag"
       )
 
     private val ttLoopAttr            = mystStatus.addEnum("ttLoop",

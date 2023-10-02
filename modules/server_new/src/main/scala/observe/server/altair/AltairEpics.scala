@@ -18,6 +18,7 @@ import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
+import lucuma.core.util.TimeSpan
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -30,10 +31,10 @@ trait AltairEpics[F[_]] {
   val sfoControl: SfoControlCommand[F]
   val btoLoopControl: BtoLoopControlCommand[F]
 
-  def waitForStrapGate(v:    Int, timeout:          FiniteDuration): F[Unit]
-  def waitForStrapLoop(v:    Boolean, timeout:      FiniteDuration): F[Unit]
-  def waitAoSettled(timeout: FiniteDuration): F[Unit]
-  def waitMatrixCalc(v:      CarStateGEM5, timeout: FiniteDuration): F[Unit]
+  def waitForStrapGate(v:    Int, timeout:          TimeSpan): F[Unit]
+  def waitForStrapLoop(v:    Boolean, timeout:      TimeSpan): F[Unit]
+  def waitAoSettled(timeout: TimeSpan): F[Unit]
+  def waitMatrixCalc(v:      CarStateGEM5, timeout: TimeSpan): F[Unit]
 
   // Statuses
   def strapTempStatus: F[Boolean]
@@ -129,7 +130,7 @@ class AltairEpicsImpl[F[_]: Async](service: CaService, tops: Map[String, String]
     )
     def setActive(v: LgsSfoControl): F[Unit] = setParameter(active, v)
 
-    override def post(timeout: FiniteDuration): F[ApplyCommandResult] =
+    override def post(timeout: TimeSpan): F[ApplyCommandResult] =
       ApplyCommandResult.Completed.pure[F].widen
 
     override def mark: F[Unit] = Applicative[F].unit
@@ -152,14 +153,14 @@ class AltairEpicsImpl[F[_]: Async](service: CaService, tops: Map[String, String]
   private val strapGateAttr      = status.getIntegerAttribute("strapgate")
   override def strapGate: F[Int] = safeAttributeSIntF(strapGateAttr)
 
-  override def waitForStrapGate(v: Int, timeout: FiniteDuration): F[Unit] =
+  override def waitForStrapGate(v: Int, timeout: TimeSpan): F[Unit] =
     EpicsUtil.waitForValueF(strapGateAttr, v: Integer, timeout, "Altair strap gate")
 
   private val strapLoopAttr          = status.getIntegerAttribute("straploop")
   override def strapLoop: F[Boolean] =
     safeAttributeSIntF(strapLoopAttr).map(_ =!= 0)
 
-  override def waitForStrapLoop(v: Boolean, timeout: FiniteDuration): F[Unit] =
+  override def waitForStrapLoop(v: Boolean, timeout: TimeSpan): F[Unit] =
     EpicsUtil.waitForValueF(strapLoopAttr, v.fold(1, 0): Integer, timeout, "Altair strap loop")
 
   override def strapRTStatus: F[Boolean] =
@@ -205,7 +206,7 @@ class AltairEpicsImpl[F[_]: Async](service: CaService, tops: Map[String, String]
   override def aoSettled: F[Boolean] = safeAttributeSDoubleF(aoSettledAttr)
     .map(_ =!= 0.0)
 
-  override def waitAoSettled(timeout: FiniteDuration): F[Unit] =
+  override def waitAoSettled(timeout: TimeSpan): F[Unit] =
     EpicsUtil.waitForValueF[java.lang.Double, F](aoSettledAttr, 1.0, timeout, "AO settled flag")
 
   override def matrixStartX: F[Double] = safeAttributeSDoubleF(status.getDoubleAttribute("conmatx"))
@@ -216,7 +217,7 @@ class AltairEpicsImpl[F[_]: Async](service: CaService, tops: Map[String, String]
     status.addEnum[CarStateGEM5]("cmPrepBusy", s"${AltairTop}prepareCm.BUSY", classOf[CarStateGEM5])
   override def controlMatrixCalc: F[CarStateGEM5] = safeAttributeF(controlMatrixCalcAttr)
 
-  override def waitMatrixCalc(v: CarStateGEM5, timeout: FiniteDuration): F[Unit] =
+  override def waitMatrixCalc(v: CarStateGEM5, timeout: TimeSpan): F[Unit] =
     EpicsUtil.waitForValueF(controlMatrixCalcAttr, v, timeout, "Altair control matrix calculation")
 
   override def lgsP1: F[Boolean] = safeAttributeSIntF(status.getIntegerAttribute("lgsp1On"))

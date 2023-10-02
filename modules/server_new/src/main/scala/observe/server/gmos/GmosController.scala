@@ -24,12 +24,7 @@ import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.*
-import observe.server.gmos.GmosController.Config.DCConfig
-import observe.server.gmos.GmosController.Config.DarkOrBias
-import observe.server.gmos.GmosController.Config.NSConfig
-
-import scala.concurrent.duration.*
-
+import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NsConfig}
 import GmosController.*
 
 trait GmosController[F[_], T <: GmosSite] {
@@ -37,7 +32,7 @@ trait GmosController[F[_], T <: GmosSite] {
 
   def applyConfig(config: GmosConfig[T]): F[Unit]
 
-  def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult]
+  def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult]
 
   // endObserve is to notify the completion of the observation, not to cause its end.
   def endObserve: F[Unit]
@@ -48,13 +43,13 @@ trait GmosController[F[_], T <: GmosSite] {
 
   def pauseObserve: F[Unit]
 
-  def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult]
+  def resumePaused(expTime: TimeSpan): F[ObserveCommandResult]
 
   def stopPaused: F[ObserveCommandResult]
 
   def abortPaused: F[ObserveCommandResult]
 
-  def observeProgress(total: FiniteDuration, elapsed: ElapsedTime): Stream[F, Progress]
+  def observeProgress(total: TimeSpan, elapsed: ElapsedTime): Stream[F, Progress]
 
   def nsCount: F[Int]
 
@@ -171,15 +166,15 @@ object GmosController {
     final case class NSPosition(stage: NodAndShuffleStage, offset: Offset, guide: Guiding)
 
     // Node and shuffle options
-    sealed trait NSConfig extends Product with Serializable {
+    sealed trait NsConfig extends Product with Serializable {
       def nsPairs: NsPairs
       def nsRows: NsRows
       def exposureDivider: NsExposureDivider
       def nsState: NodAndShuffleState
     }
 
-    object NSConfig {
-      case object NoNodAndShuffle extends NSConfig {
+    object NsConfig {
+      case object NoNodAndShuffle extends NsConfig {
         val nsPairs: GmosParameters.NsPairs                   = GmosParameters.NsPairs(0)
         val nsRows: GmosParameters.NsRows                     = GmosParameters.NsRows(0)
         val exposureDivider: GmosParameters.NsExposureDivider =
@@ -192,7 +187,7 @@ object GmosController {
         rows:         NsRows,
         positions:    Vector[NSPosition],
         exposureTime: TimeSpan
-      ) extends NSConfig {
+      ) extends NsConfig {
         val nsPairs: GmosParameters.NsPairs                   =
           GmosParameters.NsPairs(cycles.value * NodAndShuffleStage.NsSequence.length / 2)
         val nsRows: GmosParameters.NsRows                     =
@@ -273,7 +268,7 @@ object GmosController {
   final case class GmosConfig[T <: GmosSite](
     cc: Config.CCConfig[T],
     dc: DCConfig,
-    ns: NSConfig
+    ns: NsConfig
   )
 //  {
 //    def this(c: Config[T])(cc: Config.CCConfig, dc: DCConfig, ns: NSConfig) = this(cc, dc, c, ns)

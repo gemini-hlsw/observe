@@ -8,21 +8,26 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
 import observe.model.ObserveStage
+import lucuma.core.util.TimeSpan
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 object ProgressUtil {
   private val PollPeriod = FiniteDuration(1, SECONDS)
 
-  def fromF[F[_]: Temporal](f: FiniteDuration => F[Progress]): Stream[F, Progress] =
-    Stream.awakeEvery[F](PollPeriod).evalMap(f)
+  private def finiteDurationToTimeSpan(fd: FiniteDuration): TimeSpan =
+    TimeSpan.unsafeFromMicroseconds(fd.toMicros)
 
-  def fromFOption[F[_]: Temporal](
-    f: FiniteDuration => F[Option[Progress]]
-  ): Stream[F, Progress] =
-    Stream.awakeEvery[F](PollPeriod).evalMap(f).collect { case Some(p) => p }
+  def fromF[F[_]: Temporal](f: TimeSpan => F[Progress]): Stream[F, Progress] =
+    Stream
+      .awakeEvery[F](PollPeriod)
+      .evalMap(f.compose(finiteDurationToTimeSpan))
+
+  def fromFOption[F[_]: Temporal](f: TimeSpan => F[Option[Progress]]): Stream[F, Progress] =
+    Stream
+      .awakeEvery[F](PollPeriod)
+      .evalMap(f.compose(finiteDurationToTimeSpan))
+      .collect { case Some(p) => p }
 
   def fromStateT[F[_]: Temporal, S](
     fs: FiniteDuration => StateT[F, S, Progress]
@@ -44,44 +49,40 @@ object ProgressUtil {
   /**
    * Simple simulated countdown
    */
-  def countdown[F[_]: Temporal](
-    total:   FiniteDuration,
-    elapsed: FiniteDuration
-  ): Stream[F, Progress] =
+  def countdown[F[_]: Temporal](total: TimeSpan, elapsed: TimeSpan): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] { (t: FiniteDuration) =>
-        val progress  = t + elapsed
-        val remaining = total - progress
-        val clipped   = if (remaining.toMillis >= 0) remaining else Duration.Zero
+      .fromF[F] { (t: TimeSpan) =>
+        val progress  = t +| elapsed
+        val remaining = total -| progress
+        val clipped   = if (remaining >= TimeSpan.Zero) remaining else TimeSpan.Zero
         ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
       }
-      .takeThrough(_.remaining.self > Duration.Zero)
+      .takeThrough(_.remaining.self > TimeSpan.Zero)
 
   /**
    * Simulated countdown with simulated observation stage
    */
-  def obsCountdown[F[_]: Temporal](
-    total:   FiniteDuration,
-    elapsed: FiniteDuration
-  ): Stream[F, Progress] =
+  def obsCountdown[F[_]: Temporal](total: TimeSpan, elapsed: TimeSpan): Stream[F, Progress] =
     Stream.emit(ObsProgress(total, RemainingTime(total), ObserveStage.Preparing)) ++
       countdown[F](total, elapsed) ++
-      Stream.emit(ObsProgress(total, RemainingTime(Duration.Zero), ObserveStage.ReadingOut))
+      Stream.emit(ObsProgress(total, RemainingTime(TimeSpan.Zero), ObserveStage.ReadingOut))
 
   /**
    * Simulated countdown with observation stage provided by instrument
    */
   def obsCountdownWithObsStage[F[_]: Temporal](
-    total:   FiniteDuration,
-    elapsed: FiniteDuration,
+    total:   TimeSpan,
+    elapsed: TimeSpan,
     stage:   F[ObserveStage]
   ): Stream[F, Progress] =
     ProgressUtil
-      .fromF[F] { (t: FiniteDuration) =>
-        val progress  = t + elapsed
-        val remaining = total - progress
-        val clipped   = if (remaining >= Duration.Zero) remaining else Duration.Zero
-        stage.map(v => ObsProgress(total, RemainingTime(clipped), v)).widen[Progress]
+      .fromF[F] { (t: TimeSpan) =>
+        val progress  = t +| elapsed
+        val remaining = total -| progress
+        val clipped   = if (remaining >= TimeSpan.Zero) remaining else TimeSpan.Zero
+        stage
+          .map(v => ObsProgress(total, RemainingTime(clipped), v))
+          .widen[Progress]
       }
-      .takeThrough(x => x.remaining.self > Duration.Zero || x.stage === ObserveStage.Acquiring)
+      .takeThrough(x => x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Acquiring)
 }

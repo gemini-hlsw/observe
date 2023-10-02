@@ -12,15 +12,14 @@ import observe.server.InstrumentSystem
 import observe.server.Progress
 import observe.server.overrideLogMessage
 import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.FiniteDuration
+import lucuma.core.util.TimeSpan
 
 class GmosControllerDisabled[F[_]: Logger: Applicative, T <: GmosController.GmosSite](name: String)
     extends GmosController[F, T] {
   override def applyConfig(config: GmosController.GmosConfig[T]): F[Unit] =
     overrideLogMessage(name, "applyConfig")
 
-  override def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult] =
+  override def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult] =
     overrideLogMessage(name, s"observe $fileId").as(ObserveCommandResult.Success)
 
   override def endObserve: F[Unit] = overrideLogMessage(name, "endObserve")
@@ -31,7 +30,7 @@ class GmosControllerDisabled[F[_]: Logger: Applicative, T <: GmosController.Gmos
 
   override def pauseObserve: F[Unit] = overrideLogMessage(name, "pauseObserve")
 
-  override def resumePaused(expTime: FiniteDuration): F[ObserveCommandResult] =
+  override def resumePaused(expTime: TimeSpan): F[ObserveCommandResult] =
     overrideLogMessage(name, "resumePaused").as(ObserveCommandResult.Success)
 
   override def stopPaused: F[ObserveCommandResult] =
@@ -41,7 +40,7 @@ class GmosControllerDisabled[F[_]: Logger: Applicative, T <: GmosController.Gmos
     overrideLogMessage(name, "abortPaused").as(ObserveCommandResult.Aborted)
 
   override def observeProgress(
-    total:   FiniteDuration,
+    total:   TimeSpan,
     elapsed: InstrumentSystem.ElapsedTime
   ): Stream[F, Progress] = Stream.empty
 

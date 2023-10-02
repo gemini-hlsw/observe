@@ -15,6 +15,7 @@ import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.safeAttributeF
+import lucuma.core.util.TimeSpan
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -25,7 +26,7 @@ class GcalEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
   val sysName: String = "GCAL"
   val GcalTop: String = tops.getOrElse("gc", "")
 
-  def post(timeout: FiniteDuration): F[ApplyCommandResult] = lampsCmd.post(timeout)
+  def post(timeout: TimeSpan): F[ApplyCommandResult] = lampsCmd.post(timeout)
 
   object shutterCmd extends EpicsCommandBase[F](sysName) {
     override val cs: Option[CaCommandSender] = Option(
