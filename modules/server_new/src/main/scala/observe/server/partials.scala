@@ -3,12 +3,11 @@
 
 package observe.server
 
+import lucuma.core.util.TimeSpan
 import observe.engine.Result.PartialVal
-import observe.model.NSSubexposure
+import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-import observe.model.{NsSubexposure, ObserveStage}
-import lucuma.core.util.TimeSpan
 
 // Marker trait for partials that won't result on a client message
 trait InternalPartialVal extends PartialVal

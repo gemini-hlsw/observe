@@ -11,6 +11,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.model.ObserveStage
 import observe.model.enums.ApplyCommandResult
@@ -18,19 +19,18 @@ import observe.model.enums.ObserveCommandResult
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
 
 import java.lang.{Double => JDouble}
 import java.lang.{Float => JFloat}
 import java.lang.{Integer => JInt}
 import java.util
 import java.util.TimerTask
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{Timer as JTimer, TimerTask}
+import java.util.{Timer => JTimer}
 import scala.jdk.CollectionConverters.*
 import scala.math.abs
-import java.util.concurrent.TimeUnit
 
 trait EpicsCommand[F[_]] {
   def post(timeout: TimeSpan): F[ApplyCommandResult]

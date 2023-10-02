@@ -4,17 +4,25 @@
 package observe.model
 
 import cats.syntax.all.*
-import lucuma.core.enums.{CloudExtinction, ImageQuality, SkyBackground, WaterVapor}
-
+import lucuma.core.arb.newTypeArbitrary
+import lucuma.core.arb.newTypeCogen
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.arb.all.given
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
-import observe.model.arb.all.given
-import lucuma.core.arb.newTypeArbitrary
-import lucuma.core.arb.newTypeCogen
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
+import squants.time.*
+
+import scala.collection.immutable.SortedMap
 
 trait ObserveModelArbitraries {
 

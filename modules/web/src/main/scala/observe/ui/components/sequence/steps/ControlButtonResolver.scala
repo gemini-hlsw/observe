@@ -3,8 +3,8 @@
 
 package observe.ui.components.sequence.steps
 
-import observe.ui.model.enums.ClientMode
 import observe.model.SequenceState
+import observe.ui.model.enums.ClientMode
 
 sealed trait ControlButtonResolver[A]:
   def extractor(a: A): (ClientMode, SequenceState, Boolean) // ExecutionStep)

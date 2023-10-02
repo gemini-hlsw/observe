@@ -33,13 +33,13 @@ object operations:
       isMultiLevel:    Boolean
     ): List[Operations]
 
-  private object F2SupportedOperations extends SupportedOperations:
-    def apply(
-      level:           OperationLevel,
-      isObservePaused: Boolean,
-      isMultiLevel:    Boolean
-    ): List[Operations] =
-      Nil
+  // private object F2SupportedOperations extends SupportedOperations:
+  //   def apply(
+  //     level:           OperationLevel,
+  //     isObservePaused: Boolean,
+  //     isMultiLevel:    Boolean
+  //   ): List[Operations] =
+  //     Nil
 
   private object GmosSupportedOperations extends SupportedOperations:
     def apply(
@@ -73,45 +73,45 @@ object operations:
         case NsNod       =>
           List(Operations.PauseImmediatelyObservation, Operations.StopImmediatelyObservation)
 
-  private object GnirsSupportedOperations extends SupportedOperations:
-    def apply(
-      level:           OperationLevel,
-      isObservePaused: Boolean,
-      isMultiLevel:    Boolean
-    ): List[Operations] =
-      level match
-        case Observation => List(Operations.StopObservation, Operations.AbortObservation)
-        case _           => Nil
+  // private object GnirsSupportedOperations extends SupportedOperations:
+  //   def apply(
+  //     level:           OperationLevel,
+  //     isObservePaused: Boolean,
+  //     isMultiLevel:    Boolean
+  //   ): List[Operations] =
+  //     level match
+  //       case Observation => List(Operations.StopObservation, Operations.AbortObservation)
+  //       case _           => Nil
 
-  private object NiriSupportedOperations extends SupportedOperations:
-    def apply(
-      level:           OperationLevel,
-      isObservePaused: Boolean,
-      isMultiLevel:    Boolean
-    ): List[Operations] =
-      level match
-        case Observation => List(Operations.StopObservation, Operations.AbortObservation)
-        case _           => Nil
+  // private object NiriSupportedOperations extends SupportedOperations:
+  //   def apply(
+  //     level:           OperationLevel,
+  //     isObservePaused: Boolean,
+  //     isMultiLevel:    Boolean
+  //   ): List[Operations] =
+  //     level match
+  //       case Observation => List(Operations.StopObservation, Operations.AbortObservation)
+  //       case _           => Nil
 
-  private object NifsSupportedOperations extends SupportedOperations:
-    def apply(
-      level:           OperationLevel,
-      isObservePaused: Boolean,
-      isMultiLevel:    Boolean
-    ): List[Operations] =
-      level match
-        case Observation => List(Operations.StopObservation, Operations.AbortObservation)
-        case _           => Nil
+  // private object NifsSupportedOperations extends SupportedOperations:
+  //   def apply(
+  //     level:           OperationLevel,
+  //     isObservePaused: Boolean,
+  //     isMultiLevel:    Boolean
+  //   ): List[Operations] =
+  //     level match
+  //       case Observation => List(Operations.StopObservation, Operations.AbortObservation)
+  //       case _           => Nil
 
-  private object GsaoiSupportedOperations extends SupportedOperations:
-    def apply(
-      level:           OperationLevel,
-      isObservePaused: Boolean,
-      isMultiLevel:    Boolean
-    ): List[Operations] =
-      level match
-        case Observation => List(Operations.StopObservation, Operations.AbortObservation)
-        case _           => Nil
+  // private object GsaoiSupportedOperations extends SupportedOperations:
+  //   def apply(
+  //     level:           OperationLevel,
+  //     isObservePaused: Boolean,
+  //     isMultiLevel:    Boolean
+  //   ): List[Operations] =
+  //     level match
+  //       case Observation => List(Operations.StopObservation, Operations.AbortObservation)
+  //       case _           => Nil
 
   private object NilSupportedOperations extends SupportedOperations:
     def apply(
@@ -122,13 +122,13 @@ object operations:
       Nil
 
   private val instrumentOperations: Map[Instrument, SupportedOperations] = Map(
-    Instrument.F2     -> F2SupportedOperations,
-    Instrument.GmosS  -> GmosSupportedOperations,
-    Instrument.GmosN -> GmosSupportedOperations),
-    Instrument.Gnirs(->) GnirsSupportedOperations,
-    Instrument.Niri   -> NiriSupportedOperations,
-    Instrument.Nifs   -> NifsSupportedOperations,
-    Instrument.Gsaoi  -> GsaoiSupportedOperations
+    // Instrument.F2     -> F2SupportedOperations,
+    Instrument.GmosS -> GmosSupportedOperations,
+    Instrument.GmosN -> GmosSupportedOperations
+    // Instrument.Gnirs -> GnirsSupportedOperations,
+    // Instrument.Niri   -> NiriSupportedOperations,
+    // Instrument.Nifs   -> NifsSupportedOperations,
+    // Instrument.Gsaoi  -> GsaoiSupportedOperations
   )
 
   extension (i: Instrument)
@@ -137,7 +137,9 @@ object operations:
       isObservePaused: Boolean,
       isMultiLevel:    Boolean = false
     ): List[Operations] =
-      instrumentOperations.getOrElse(i, NilSupportedOperations)(level,
-                                                                isObservePaused,
-                                                                isMultiLevel
-      )
+      instrumentOperations
+        .getOrElse(i, NilSupportedOperations)(
+          level,
+          isObservePaused,
+          isMultiLevel
+        )

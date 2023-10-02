@@ -5,6 +5,7 @@ package observe.model.arb
 
 import lucuma.core.arb.newTypeArbitrary
 import lucuma.core.arb.newTypeCogen
+import observe.model.GmosParameters.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen

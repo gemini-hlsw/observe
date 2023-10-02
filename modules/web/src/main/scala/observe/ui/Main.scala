@@ -25,16 +25,16 @@ import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
 import observe.ui.model.enums.AppTab
+import observe.ui.services.ConfigApiImpl
+import org.http4s.Uri
 import org.http4s.circe.*
 import org.http4s.dom.FetchClientBuilder
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.syntax.all.*
-import org.http4s.Uri
 import org.scalajs.dom
 import org.scalajs.dom.Element
 import org.typelevel.log4cats.Logger
 import typings.loglevel.mod.LogLevelDesc
-import org.http4s.ember.client.EmberClientBuilder
-import observe.ui.services.ConfigApiImpl
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration

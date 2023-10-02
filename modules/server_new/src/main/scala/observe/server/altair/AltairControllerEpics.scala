@@ -5,16 +5,21 @@ package observe.server.altair
 
 import cats.Eq
 import cats.*
+import cats.*
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
+import cats.syntax.all.*
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
+import lucuma.core.util.TimeSpan
 import monocle.Focus
+import mouse.boolean.*
 import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
 import observe.model.enums.Instrument
 import observe.server.ObserveFailure
+import observe.server.altair.AltairController.*
 import observe.server.altair.AltairController.*
 import observe.server.tcs.FOCAL_PLANE_SCALE
 import observe.server.tcs.Gaos.PauseCondition.GaosGuideOff
@@ -24,6 +29,7 @@ import observe.server.tcs.Gaos.ResumeCondition.GaosGuideOn
 import observe.server.tcs.Gaos.ResumeCondition.OiOn
 import observe.server.tcs.Gaos.ResumeCondition.P1On
 import observe.server.tcs.Gaos.*
+import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import observe.server.tcs.TcsEpics
 import org.typelevel.log4cats.Logger
@@ -32,34 +38,10 @@ import squants.Time
 import squants.space.Arcseconds
 import squants.space.Millimeters
 import squants.time.TimeConversions.*
+import squants.time.TimeConversions.*
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import cats.*
-import cats.effect.Async
-import cats.effect.Sync
-import cats.Eq
-import cats.syntax.all.*
-import monocle.Focus
-import edu.gemini.epics.acm.CarStateGEM5
-import edu.gemini.observe.server.altair.LgsSfoControl
-import org.typelevel.log4cats.Logger
-import mouse.boolean.*
-import observe.model.enums.Instrument
-import observe.model.enums.ApplyCommandResult
-import observe.server.ObserveFailure
-import observe.server.altair.AltairController.*
-import observe.server.tcs.FOCAL_PLANE_SCALE
-import observe.server.tcs.Gaos.PauseCondition.{GaosGuideOff, OiOff, P1Off}
-import observe.server.tcs.Gaos.ResumeCondition.{GaosGuideOn, OiOn, P1On}
-import observe.server.tcs.Gaos.*
-import observe.server.tcs.TcsController.FocalPlaneOffset
-import observe.server.tcs.TcsEpics
-import squants.Length
-import squants.Time
-import squants.space.{Arcseconds, Millimeters}
-import squants.time.TimeConversions.*
-import lucuma.core.util.TimeSpan
 import java.time.temporal.ChronoUnit
 
 object AltairControllerEpics {

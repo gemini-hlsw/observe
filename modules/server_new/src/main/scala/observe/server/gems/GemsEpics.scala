@@ -12,15 +12,13 @@ import edu.gemini.epics.acm.CaService
 import edu.gemini.epics.acm.CaStatusAcceptor
 import edu.gemini.observe.server.gems.LoopState
 import edu.gemini.observe.server.gems.ReadyState
+import lucuma.core.util.TimeSpan
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
-import lucuma.core.util.TimeSpan
-
-import scala.concurrent.duration.FiniteDuration
 
 trait GemsEpics[F[_]] {
   import observe.server.gems.GemsEpics.LoopControl

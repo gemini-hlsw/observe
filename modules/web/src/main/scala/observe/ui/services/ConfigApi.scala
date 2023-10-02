@@ -3,14 +3,14 @@
 
 package observe.ui.services
 
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.SkyBackground
-import lucuma.core.enums.CloudExtinction
-import observe.model.ClientId
-import japgolly.scalajs.react.feature.Context
 import cats.effect.IO
 import japgolly.scalajs.react.React
+import japgolly.scalajs.react.feature.Context
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
+import observe.model.ClientId
 
 trait ConfigApi[F[_]]:
   def setImageQuality(iq:  ImageQuality): F[Unit]

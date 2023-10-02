@@ -9,6 +9,7 @@ import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
@@ -18,7 +19,6 @@ import observe.server.EpicsUtil.*
 import observe.server.ObserveFailure.ObserveException
 import squants.Angle
 import squants.space.Degrees
-import lucuma.core.util.TimeSpan
 
 import java.time.Duration
 import java.util.concurrent.TimeUnit

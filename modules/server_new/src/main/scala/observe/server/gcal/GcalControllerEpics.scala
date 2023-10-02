@@ -9,13 +9,15 @@ import edu.gemini.observe.server.gcal.BinaryOnOff
 import lucuma.core.enums.GcalDiffuser
 import lucuma.core.enums.GcalFilter
 import lucuma.core.enums.GcalShutter
+import lucuma.core.util.TimeSpan
 import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil.applyParam
 import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
 import observe.server.gcal.GcalController.*
-import lucuma.core.util.TimeSpan
+import org.typelevel.log4cats.Logger
+
 import java.time.temporal.ChronoUnit
 
 object GcalControllerEpics {

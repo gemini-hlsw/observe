@@ -5,10 +5,8 @@ package observe.ui.display
 
 // import cats.syntax.eq.*
 import lucuma.core.util.Display
-import observe.model.enums.*
-// import lucuma.core.enums.CloudExtinction
-// import lucuma.core.util.Display
 import observe.model.RunningStep
+import observe.model.enums.*
 
 // private def conditionIntToString(v: Int): String = if (v === 100) "Any" else v.toString
 

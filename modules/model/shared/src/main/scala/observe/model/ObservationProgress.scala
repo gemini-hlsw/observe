@@ -6,12 +6,12 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
-import lucuma.core.util.Enumerated
-import monocle.Prism
-import monocle.macros.GenPrism
-import lucuma.core.util.TimeSpan
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.core.util.Enumerated
+import lucuma.core.util.TimeSpan
+import monocle.Prism
+import monocle.macros.GenPrism
 
 enum ObservationProgress(val isNs: Boolean) derives Eq:
   def obsId: Observation.Id

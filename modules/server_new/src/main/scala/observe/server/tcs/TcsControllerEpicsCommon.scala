@@ -12,6 +12,7 @@ import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Iso
 import monocle.Lens
@@ -30,7 +31,6 @@ import squants.Length
 import squants.space.Area
 import squants.space.LengthConversions.*
 import squants.time.TimeConversions.*
-import lucuma.core.util.TimeSpan
 
 import java.time.Duration
 import java.time.temporal.ChronoUnit

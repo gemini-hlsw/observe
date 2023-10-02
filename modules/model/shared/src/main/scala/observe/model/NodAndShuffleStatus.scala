@@ -5,6 +5,7 @@ package observe.model
 
 import cats.*
 import cats.derived.*
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import observe.model.GmosParameters.*

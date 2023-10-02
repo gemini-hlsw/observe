@@ -11,6 +11,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Getter
 import monocle.Lens
@@ -24,8 +25,6 @@ import squants.Angle
 import squants.space.AngleConversions.*
 
 import java.time.Duration
-import cats.effect.{Ref, Temporal}
-import lucuma.core.util.TimeSpan
 import java.time.temporal.ChronoUnit
 
 case class TestTcsEpics[F[_]: Async](

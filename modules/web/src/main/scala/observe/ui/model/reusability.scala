@@ -12,8 +12,8 @@ import observe.model.ExecutionState
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
 import observe.model.SequenceState
-import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.ClientMode
+import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
 
 object reusability:

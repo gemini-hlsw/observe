@@ -5,14 +5,14 @@ package observe.server
 
 import cats.effect.IO
 import cats.effect.Ref
+import lucuma.core.util.TimeSpan
 import munit.CatsEffectSuite
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-import lucuma.core.util.TimeSpan
-import java.time.temporal.ChronoUnit
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration.*
 
 class InstrumentControllerSimSuite extends CatsEffectSuite {

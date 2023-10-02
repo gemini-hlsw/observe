@@ -5,8 +5,8 @@ package observe.model
 
 import lucuma.core.refined.numeric.NonZeroInt
 import lucuma.core.util.NewType
-
 import lucuma.core.util.TimeSpan
+
 import java.time.temporal.ChronoUnit
 
 trait GmosParameters {

@@ -11,8 +11,8 @@ import lucuma.react.primereact.Card
 import lucuma.react.primereact.Dropdown
 import lucuma.react.primereact.InputText
 import observe.model.*
-import observe.ui.ObserveStyles
 import observe.ui.AppContext
+import observe.ui.ObserveStyles
 
 case class ConfigSection(
   // status:     ClientStatus,

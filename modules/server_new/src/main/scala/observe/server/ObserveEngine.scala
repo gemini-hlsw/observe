@@ -37,14 +37,13 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
-import observe.model.UserPrompt.{
-  Discrepancy,
-  ObsConditionsCheckOverride,
-  SeqCheck,
-  TargetCheckOverride
-}
-import observe.model.{StepId, UserDetails, *}
-import observe.model.enums.{BatchExecState, Instrument, Resource, RunOverride, ServerLogLevel}
+import observe.model.StepId
+import observe.model.UserDetails
+import observe.model.UserPrompt.Discrepancy
+import observe.model.UserPrompt.ObsConditionsCheckOverride
+import observe.model.UserPrompt.SeqCheck
+import observe.model.UserPrompt.TargetCheckOverride
+import observe.model._
 import observe.model.config.*
 import observe.model.enums.BatchExecState
 import observe.model.enums.Instrument

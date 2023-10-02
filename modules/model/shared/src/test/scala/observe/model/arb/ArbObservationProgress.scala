@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbTimeSpan.given
@@ -10,15 +11,11 @@ import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
 import observe.model.ObserveStage.given
 import observe.model.*
-import observe.model.arb.ArbNSSubexposure.given
+import observe.model.arb.ArbNsSubexposure.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.model.arb.ArbNsSubexposure.given
-import observe.model.*
-import observe.model.ObserveStage.given
-import lucuma.core.util.TimeSpan
 
 trait ArbObservationProgress:
   given Arbitrary[ObservationProgress.Regular] =

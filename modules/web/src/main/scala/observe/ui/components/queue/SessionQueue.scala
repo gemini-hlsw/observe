@@ -21,9 +21,9 @@ import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.display.given
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
-import observe.ui.display.given
 
 case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
     extends ReactFnProps(SessionQueue.component)

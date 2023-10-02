@@ -10,6 +10,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.altair.LgsSfoControl
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
@@ -18,9 +19,6 @@ import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
-import lucuma.core.util.TimeSpan
-
-import scala.concurrent.duration.FiniteDuration
 
 trait AltairEpics[F[_]] {
   import AltairEpics._

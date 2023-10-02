@@ -6,7 +6,6 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
-// import lucuma.core.model.sequence.Step
 import lucuma.core.util.Display
 
 enum SequenceState(val name: String) derives Eq:

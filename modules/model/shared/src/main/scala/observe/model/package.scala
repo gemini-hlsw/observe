@@ -4,9 +4,9 @@
 package observe
 
 import cats.*
+import observe.model.enums.Instrument
 import squants.time.Time
 import squants.time.TimeUnit
-import observe.model.enums.Instrument
 
 import java.util.UUID
 

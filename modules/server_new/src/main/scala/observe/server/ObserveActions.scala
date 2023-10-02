@@ -9,6 +9,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
 import observe.model.Observation
@@ -17,7 +18,6 @@ import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
 
 /**
  * Methods usedd to generate observation related actions

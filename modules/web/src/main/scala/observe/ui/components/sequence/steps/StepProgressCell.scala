@@ -11,14 +11,14 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
-import observe.ui.model.enums.ClientMode
 import observe.model.ImageFileId
+import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
+import observe.ui.model.enums.ClientMode
 
 case class StepProgressCell(
   clientMode:    ClientMode,

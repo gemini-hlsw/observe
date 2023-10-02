@@ -7,10 +7,11 @@ import cats.data.StateT
 import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
-import observe.model.ObserveStage
 import lucuma.core.util.TimeSpan
+import observe.model.ObserveStage
 
-import scala.concurrent.duration.{FiniteDuration, SECONDS}
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.SECONDS
 
 object ProgressUtil {
   private val PollPeriod = FiniteDuration(1, SECONDS)

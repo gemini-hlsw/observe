@@ -6,16 +6,14 @@ import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
 import edu.gemini.observe.server.tcs.ParkState
+import lucuma.core.util.TimeSpan
 import squants.Angle
 import squants.Length
 import squants.Ratio
 import squants.space.Arcseconds
 import squants.space.Millimeters
-import lucuma.core.util.TimeSpan
-import java.time.temporal.ChronoUnit
 
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import java.time.temporal.ChronoUnit
 
 package tcs {
 

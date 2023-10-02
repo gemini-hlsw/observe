@@ -41,14 +41,8 @@ import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.NSObserveCommand
 import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
-import cats.effect.{Ref, Temporal}
-import monocle.Getter
-import lucuma.core.model.sequence
-import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosCcdMode, GmosNodAndShuffle, StaticConfig}
-import observe.server.StepType.ExclusiveDarkOrBias
-import observe.server.gmos.GmosController.{Config, GmosSite}
-import observe.server.gmos.NSObserveCommand
+import org.typelevel.log4cats.Logger
+
 import java.time.temporal.ChronoUnit
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](

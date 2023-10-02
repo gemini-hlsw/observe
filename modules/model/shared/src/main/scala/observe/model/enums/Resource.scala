@@ -5,8 +5,9 @@ package observe.model.enums
 
 import cats.Show
 import cats.data.NonEmptyList
-import lucuma.core.util.Enumerated
+import cats.syntax.option.*
 import lucuma.core.enums.{Instrument => CoreInstrument}
+import lucuma.core.util.Enumerated
 
 /** A Observe resource represents any system that can be only used by one single agent. */
 sealed abstract class Resource(val tag: String, val ordinal: Int, val label: String)
@@ -43,20 +44,31 @@ sealed abstract class Instrument(tag: String, ordinal: Int, label: String)
   override def isInstrument: Boolean = true
 
   def underlying: CoreInstrument = this match
-    case Instrument.F2    => CoreInstrument.Flamingos2
-    case Instrument.Ghost => CoreInstrument.Ghost
+    // case Instrument.F2    => CoreInstrument.Flamingos2
+    // case Instrument.Ghost => CoreInstrument.Ghost
     case Instrument.GmosS => CoreInstrument.GmosSouth
     case Instrument.GmosN => CoreInstrument.GmosNorth
-    case Instrument.Gnirs => CoreInstrument.Gnirs
-    case Instrument.Gpi   => CoreInstrument.Gpi
-    case Instrument.Gsaoi => CoreInstrument.Gsaoi
-    case Instrument.Niri  => CoreInstrument.Niri
-    case Instrument.Nifs  => CoreInstrument.Nifs
+    // case Instrument.Gnirs => CoreInstrument.Gnirs
+    // case Instrument.Gpi   => CoreInstrument.Gpi
+    // case Instrument.Gsaoi => CoreInstrument.Gsaoi
+    // case Instrument.Niri  => CoreInstrument.Niri
+    // case Instrument.Nifs  => CoreInstrument.Nifs
 }
 
 object Instrument {
+  def fromCoreInstrument(i: CoreInstrument): Option[Instrument] =
+    i match
+      // case CoreInstrument.Flamingos2 => F2
+      // case CoreInstrument.Ghost      => Ghost
+      case CoreInstrument.GmosSouth => GmosS.some
+      case CoreInstrument.GmosNorth => GmosN.some
+      // case CoreInstrument.Gnirs      => Gnirs
+      // case CoreInstrument.Gpi        => Gpi
+      // case CoreInstrument.Gsaoi      => Gsaoi
+      // case CoreInstrument.Niri       => Niri
+      // case CoreInstrument.Nifs       => Nifs
+      case _                        => none
 
-  <<<<<<< HEAD
 //  case object F2    extends Instrument("F2", 11, "Flamingos2")
 //  case object Ghost extends Instrument("Ghost", 12, "GHOST")
   case object GmosS extends Instrument("GmosS", 13, "GMOS-S")
@@ -66,17 +78,6 @@ object Instrument {
 //  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
 //  case object Niri  extends Instrument("Niri", 18, "NIRI")
 //  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
-  =======
-  case object F2    extends Instrument("F2", 11, "Flamingos2")
-  case object Ghost extends Instrument("Ghost", 12, "GHOST")
-  case object GmosS extends Instrument("GmosS", 13, "GMOS-S")
-  case object GmosN extends Instrument("GmosN", 14, "GMOS-N")
-  case object Gnirs extends Instrument("Gnirs", 15, "GNIRS")
-  case object Gpi   extends Instrument("Gpi", 16, "GPI")
-  case object Gsaoi extends Instrument("Gsaoi", 17, "GSAOI")
-  case object Niri  extends Instrument("Niri", 18, "NIRI")
-  case object Nifs  extends Instrument("Nifs", 19, "NIFS")
-  >>>>>>>.f1f36aaab(checkpoint)
 
   given Show[Instrument] =
     Show.show(_.label)
@@ -88,9 +89,6 @@ object Instrument {
   val gnInstruments: NonEmptyList[Instrument] =
     NonEmptyList.of(GmosN)
 //    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
-
-  val gnInstruments: NonEmptyList[Instrument] =
-    NonEmptyList.of(GmosN, Gnirs, Niri, Nifs)
 
   val all: NonEmptyList[Instrument] =
     gsInstruments.concatNel(gnInstruments)

@@ -19,6 +19,13 @@ import observe.model.*
 import observe.model.arb.ArbDhsTypes.given
 import observe.model.arb.ArbGmosParameters.given
 import observe.model.arb.ArbNsRunningState.given
+import observe.model.arb.ArbStepState.given
+import observe.model.enums.ActionStatus
+import observe.model.enums.Resource
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbNodAndShuffleStep {
 

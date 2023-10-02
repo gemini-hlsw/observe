@@ -5,11 +5,12 @@ package observe.server
 
 import cats.data.Kleisli
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.ObserveCommandResult
 import observe.server.keywords.KeywordsClient
-import lucuma.core.util.TimeSpan
+
 import java.time.temporal.ChronoUnit
 
 trait InstrumentSystem[F[_]] extends System[F] {

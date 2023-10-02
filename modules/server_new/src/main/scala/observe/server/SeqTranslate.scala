@@ -22,6 +22,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.model.sequence.{Step => OdbStep}
+import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 import observe.engine.Action.ActionState
@@ -58,11 +59,7 @@ import observe.server.keywords._
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.*
-//import squants.Time
-//import squants.time.TimeConversions._
-//import observe.common.ObsQueriesGQL.ObsQuery.{Data, GmosSite, GmosStatic, InsConfig, SeqStep, SeqStepConfig, Sequence => OdbSequence}
-import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
-import lucuma.core.util.TimeSpan
+import org.typelevel.log4cats.Logger
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {

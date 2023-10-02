@@ -14,38 +14,31 @@ import lucuma.core.enums.GmosAmpReadMode
 import lucuma.core.enums.GmosEOffsetting
 import lucuma.core.enums.GmosGratingOrder
 import lucuma.core.math.Wavelength
+import lucuma.core.util.TimeSpan
 import mouse.all.*
+import observe.model.GmosParameters.NsStageIndex
 import observe.model.GmosParameters.*
-import observe.model.NSSubexposure
+import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.model.{NsSubexposure, ObserveStage}
 import observe.server.EpicsCodex.*
 import observe.server.EpicsCommandBase
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
 import observe.server.InstrumentSystem.ElapsedTime
-import observe.server.NSProgress
+import observe.server.NsProgress
 import observe.server.ObserveFailure
 import observe.server.Progress
 import observe.server.RemainingTime
+import observe.server.gmos.GmosController.Config
 import observe.server.gmos.GmosController.Config.*
-import observe.server.{
-  EpicsCommandBase,
-  EpicsUtil,
-  NsProgress,
-  ObserveFailure,
-  Progress,
-  RemainingTime
-}
+import observe.server.gmos.GmosController.GmosSite
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
 
-import scala.jdk.DurationConverters.*
-import observe.model.GmosParameters.NsStageIndex
 import java.time.temporal.ChronoUnit
+import scala.jdk.DurationConverters.*
 
 trait GmosEncoders {
   given EncodeEpicsValue[AmpReadMode, String] = EncodeEpicsValue {

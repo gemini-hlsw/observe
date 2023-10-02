@@ -13,7 +13,6 @@ import observe.model.events.client.*
 import org.typelevel.cats.time.given
 
 import java.time.Instant
-import observe.model.events.client.*
 
 sealed trait ObserveEvent       extends Product with Serializable derives Eq
 sealed trait ObserveModelUpdate extends ObserveEvent derives Eq {

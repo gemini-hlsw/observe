@@ -10,14 +10,12 @@ import edu.gemini.epics.acm.CaAttribute
 import edu.gemini.epics.acm.CaCommandSender
 import edu.gemini.epics.acm.CaService
 import edu.gemini.observe.server.gcal.BinaryOnOff
+import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.safeAttributeF
-import lucuma.core.util.TimeSpan
-
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Created by jluhrs on 3/14/17.

@@ -7,8 +7,9 @@ import lucuma.core.arb.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.math.arb.ArbOffset.*
-import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.*
+import org.scalacheck.Arbitrary.*
+import org.scalacheck.Gen
 
 trait ArbStepConfig {
   val asciiStr: Gen[String] =

@@ -11,6 +11,7 @@ import cats.effect.kernel.Async
 import cats.syntax.all.*
 import fs2.Stream
 import gov.aps.jca.TimeoutException
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
@@ -20,10 +21,9 @@ import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
 
-import scala.concurrent.duration.*
 import java.time.temporal.ChronoUnit
+import scala.concurrent.duration.*
 
 sealed trait InstrumentControllerSim[F[_]] {
   def log(msg: => String): F[Unit]

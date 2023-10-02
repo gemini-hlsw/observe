@@ -25,12 +25,11 @@ import lucuma.react.primereact.*
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
-import observe.ui.model.enums.ClientMode
 import observe.model.ExecutionState
 import observe.model.Observer
+import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.SequenceState
 import observe.queries.ObsQueriesGQL
 import observe.ui.AppContext
 import observe.ui.DefaultErrorPolicy
@@ -40,6 +39,7 @@ import observe.ui.model.ResourceRunOperation
 import observe.ui.model.RootModel
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
+import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 
 import scala.collection.immutable.SortedMap

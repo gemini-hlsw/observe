@@ -4,6 +4,7 @@
 package observe.model
 
 import lucuma.core.util.NewType
+
 import java.util.UUID
 
 object ClientId extends NewType[UUID]

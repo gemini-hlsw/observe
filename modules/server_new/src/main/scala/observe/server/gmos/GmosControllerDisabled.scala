@@ -6,13 +6,13 @@ package observe.server.gmos
 import cats.Applicative
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem
 import observe.server.Progress
 import observe.server.overrideLogMessage
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
 
 class GmosControllerDisabled[F[_]: Logger: Applicative, T <: GmosController.GmosSite](name: String)
     extends GmosController[F, T] {

@@ -5,6 +5,7 @@ package observe.server.gems
 
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.server.gems.Gems.*
 import observe.server.gems.GemsController.GemsConfig
@@ -14,7 +15,8 @@ import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
 import observe.server.tcs.Gaos.ResumeCondition
 import observe.server.tcs.Gaos.ResumeConditionSet
-import lucuma.core.util.TimeSpan
+import org.typelevel.log4cats.Logger
+
 import java.time.temporal.ChronoUnit
 
 class GemsControllerEpics[F[_]: Async](

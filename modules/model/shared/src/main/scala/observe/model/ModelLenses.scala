@@ -7,8 +7,6 @@ import cats.*
 import cats.syntax.all.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-// import lucuma.core.model.sequence.StepConfig
-// import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.optics.Format
 import lucuma.core.syntax.all.*
 import monocle.*

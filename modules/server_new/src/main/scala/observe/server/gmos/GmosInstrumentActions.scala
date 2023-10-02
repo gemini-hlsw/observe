@@ -7,7 +7,9 @@ import cats.effect.Ref
 import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
-import observe.engine.{ParallelActions, Result}
+import lucuma.core.util.TimeSpan
+import observe.engine.ParallelActions
+import observe.engine.Result
 import observe.model.NsSubexposure
 import observe.model.dhs.*
 import observe.model.enums.Guiding
@@ -25,7 +27,6 @@ import observe.server.tcs.TcsController.OffsetP
 import observe.server.tcs.TcsController.OffsetQ
 import org.typelevel.log4cats.Logger
 import squants.space.AngleConversions.*
-import lucuma.core.util.TimeSpan
 
 /**
  * Gmos needs different actions for N&S

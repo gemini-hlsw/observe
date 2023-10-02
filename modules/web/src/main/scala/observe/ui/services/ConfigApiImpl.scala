@@ -3,22 +3,21 @@
 
 package observe.ui.services
 
-import org.http4s.Uri
-import lucuma.core.enums.ImageQuality
-import lucuma.core.enums.WaterVapor
-import lucuma.core.enums.SkyBackground
-import lucuma.core.enums.CloudExtinction
-import observe.model.ClientId
-import org.http4s.client.Client
-import org.http4s.Method
-import io.circe.Encoder
-import io.circe.syntax.*
-import org.http4s.circe.*
-import org.http4s.client.*
-import io.circe.*
-import org.http4s.*
-// import org.http4s.client.dsl.io.*
 import cats.effect.IO
+import io.circe.Encoder
+import io.circe.*
+import io.circe.syntax.*
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
+import observe.model.ClientId
+import org.http4s.Method
+import org.http4s.Uri
+import org.http4s.*
+import org.http4s.circe.*
+import org.http4s.client.Client
+import org.http4s.client.*
 
 case class ConfigApiImpl(client: Client[IO], baseUri: Uri) extends ConfigApi[IO]:
   private def request[T: Encoder](path: String, data: T): IO[Unit] =

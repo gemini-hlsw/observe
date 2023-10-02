@@ -17,6 +17,7 @@ import cats.effect.std.Queue
 import cats.syntax.all.*
 import clue.ErrorPolicy
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
 import monocle.Lens
@@ -32,15 +33,10 @@ import observe.model.enums.*
 import observe.server.SequenceGen.StepGen
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import lucuma.schemas.ObservationDB.Scalars.VisitId
-import lucuma.core.util.TimeSpan
-
-import server.InstrumentSystem.ElapsedTime
 import squants.Length
 import squants.space.Angle
 
-import scala.concurrent.duration.FiniteDuration
-
+import server.InstrumentSystem.ElapsedTime
 import server.InstrumentSystem.ElapsedTime
 
 package object server {

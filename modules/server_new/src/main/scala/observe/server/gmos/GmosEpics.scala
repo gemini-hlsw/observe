@@ -8,6 +8,7 @@ import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
+import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
@@ -16,9 +17,8 @@ import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
 import observe.server.ObserveCommandBase
 import observe.server.ObserveFailure.*
-import observe.server.gmos.GmosEpics.{RoiParameters, RoiStatus}
-import observe.server.{EpicsCommandBase, EpicsSystem, ObserveCommandBase}
-import lucuma.core.util.TimeSpan
+import observe.server.gmos.GmosEpics.RoiParameters
+import observe.server.gmos.GmosEpics.RoiStatus
 
 import java.lang.Double as JDouble
 import scala.concurrent.duration.*

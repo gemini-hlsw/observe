@@ -7,10 +7,10 @@ import cats.Applicative
 import cats.Monad
 import cats.effect.Ref
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import observe.model.enums.ApplyCommandResult
-import lucuma.core.util.TimeSpan
 
 object TestEpicsCommand {
 

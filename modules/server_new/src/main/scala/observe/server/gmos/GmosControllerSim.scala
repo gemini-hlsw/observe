@@ -9,26 +9,27 @@ import cats.effect.Ref
 import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Optional
 import monocle.std.option.some
 import monocle.syntax.all.*
 import observe.model.GmosParameters.NsCycles
-import observe.model.NSSubexposure
+import observe.model.GmosParameters.NsStageIndex
+import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
-import observe.model.{NsSubexposure, ObserveStage}
+import observe.server.InstrumentControllerSim
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObsProgress
 import observe.server.Progress
 import observe.server.ProgressUtil.countdown
+import observe.server.RemainingTime
 import observe.server.gmos.GmosController.Config.NsConfig
 import observe.server.gmos.GmosController.GmosConfig
 import org.typelevel.log4cats.Logger
-import lucuma.core.util.TimeSpan
-import observe.model.GmosParameters.NsStageIndex
 
 /**
  * Keep track of the current execution state

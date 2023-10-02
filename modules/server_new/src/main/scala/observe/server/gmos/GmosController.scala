@@ -24,7 +24,10 @@ import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.*
-import observe.server.gmos.GmosController.Config.{DCConfig, DarkOrBias, NsConfig}
+import observe.server.gmos.GmosController.Config.DCConfig
+import observe.server.gmos.GmosController.Config.DarkOrBias
+import observe.server.gmos.GmosController.Config.NsConfig
+
 import GmosController.*
 
 trait GmosController[F[_], T <: GmosSite] {
