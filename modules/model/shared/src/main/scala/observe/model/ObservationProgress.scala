@@ -38,8 +38,8 @@ enum ObservationProgress(val isNs: Boolean) derives Eq:
   ) extends ObservationProgress(true)
 
 object ObservationProgress:
-  implicit val regular: Prism[ObservationProgress, ObservationProgress.Regular] =
+  val regular: Prism[ObservationProgress, ObservationProgress.Regular] =
     GenPrism[ObservationProgress, ObservationProgress.Regular]
 
-  implicit val nodAndShuffle: Prism[ObservationProgress, ObservationProgress.NodAndShuffle] =
+  val nodAndShuffle: Prism[ObservationProgress, ObservationProgress.NodAndShuffle] =
     GenPrism[ObservationProgress, ObservationProgress.NodAndShuffle]
