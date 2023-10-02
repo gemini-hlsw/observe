@@ -12,8 +12,6 @@ enum SequenceState(val name: String) derives Eq:
   case Completed           extends SequenceState("Completed")
   case Idle                extends SequenceState("Idle")
   case Running(
-    // stepId:       Step.Id,
-    // nsState:      Option[NsRunningState],
     userStop:     Boolean,
     internalStop: Boolean
   )                        extends SequenceState("Running")
@@ -53,12 +51,5 @@ object SequenceState:
   object Running:
     val init: Running =
       SequenceState.Running(userStop = false, internalStop = false)
-    // def init(stepId: Step.Id, nsState: Option[NsRunningState]): Running =
-    //   SequenceState.Running(
-    //     stepId = stepId,
-    //     nsState = nsState,
-    //     userStop = false,
-    //     internalStop = false
-    //   )
 
   given Display[SequenceState] = Display.byShortName(_.name)
