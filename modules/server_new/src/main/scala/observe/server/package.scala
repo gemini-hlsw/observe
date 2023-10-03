@@ -46,7 +46,7 @@ package object server {
     gmosNorth: Option[SequenceData[F]]
   )
 
-  final case class EngineState[F[_]](
+  case class EngineState[F[_]](
     queues:     ExecutionQueues,
     selected:   Selected[F],
     conditions: Conditions,
@@ -146,7 +146,7 @@ package object server {
 
   }
 
-  final case class HeaderExtraData(
+  case class HeaderExtraData(
     conditions: Conditions,
     operator:   Option[Operator],
     observer:   Option[Observer],
@@ -156,7 +156,7 @@ package object server {
     val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None)
   }
 
-  final case class ObserveContext[F[_]](
+  case class ObserveContext[F[_]](
     resumePaused: TimeSpan => Stream[F, Result],
     progress:     ElapsedTime => Stream[F, Result],
     stopPaused:   Stream[F, Result],
@@ -167,7 +167,7 @@ package object server {
   type ExecutionQueues = Map[QueueId, ExecutionQueue]
 
   // This is far from ideal but we'll address this in another refactoring
-  private implicit def logger: Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
+  private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 

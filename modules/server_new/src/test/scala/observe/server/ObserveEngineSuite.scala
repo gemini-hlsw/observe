@@ -22,7 +22,6 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
-import monocle.Focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
@@ -920,10 +919,10 @@ class ObserveEngineSuite extends TestCommon {
                                                       seq,
                                                       EngineState.instrumentLoaded(Instrument.GmosN)
     ) >>>
-      Focus[EngineState[IO]](_.conditions.iq).replace(ImageQuality.PointTwo.some) >>>
-      Focus[EngineState[IO]](_.conditions.wv).replace(WaterVapor.Median.some) >>>
-      Focus[EngineState[IO]](_.conditions.sb).replace(SkyBackground.Dark.some) >>>
-      Focus[EngineState[IO]](_.conditions.cc).replace(CloudExtinction.PointFive.some))
+      EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.PointTwo.some) >>>
+      EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Median.some) >>>
+      EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Dark.some) >>>
+      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.PointFive.some))
       .apply(EngineState.default[IO])
 
     (for {
@@ -953,10 +952,10 @@ class ObserveEngineSuite extends TestCommon {
                                                       seq,
                                                       EngineState.instrumentLoaded(Instrument.GmosN)
     ) >>>
-      Focus[EngineState[IO]](_.conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
-      Focus[EngineState[IO]](_.conditions.wv).replace(WaterVapor.Dry.some) >>>
-      Focus[EngineState[IO]](_.conditions.sb).replace(SkyBackground.Darkest.some) >>>
-      Focus[EngineState[IO]](_.conditions.cc).replace(CloudExtinction.OnePointZero.some))
+      EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
+      EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
+      EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
+      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.OnePointZero.some))
       .apply(EngineState.default[IO])
 
     for {
@@ -1000,10 +999,10 @@ class ObserveEngineSuite extends TestCommon {
                                                       seq,
                                                       EngineState.instrumentLoaded(Instrument.GmosN)
     ) >>>
-      Focus[EngineState[IO]](_.conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
-      Focus[EngineState[IO]](_.conditions.wv).replace(WaterVapor.Dry.some) >>>
-      Focus[EngineState[IO]](_.conditions.sb).replace(SkyBackground.Darkest.some) >>>
-      Focus[EngineState[IO]](_.conditions.cc).replace(CloudExtinction.OnePointZero.some))
+      EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
+      EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
+      EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
+      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.OnePointZero.some))
       .apply(EngineState.default[IO])
 
     for {
