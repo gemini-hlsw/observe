@@ -58,10 +58,7 @@ sealed trait SequenceTables[S, D](
   protected[sequence] lazy val scienceSteps: List[SequenceRow.FutureStep[D]] =
     config.science.map(steps).orEmpty
 
-  protected[sequence] lazy val runningStepId: Option[Step.Id] = none
-  // executionState.sequenceState match
-  //   case SequenceState.Running( _, _) => stepId.some
-  //   case _                                      => none
+  protected[sequence] lazy val runningStepId: Option[Step.Id] = executionState.runningStepId
 
 case class GmosNorthSequenceTables(
   clientMode:     ClientMode,

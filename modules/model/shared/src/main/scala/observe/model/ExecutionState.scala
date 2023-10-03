@@ -16,14 +16,16 @@ import observe.model.enums.Resource
  */
 case class ExecutionState(
   sequenceState: SequenceState,
+  runningStepId: Option[Step.Id],
+  nsState:       Option[NsRunningState],
   configStatus:  List[(Resource, ActionStatus)],
   breakpoints:   Set[Step.Id] = Set.empty
 ) derives Eq
 
 object ExecutionState:
-  val sequenceState: Lens[ExecutionState, SequenceState]                 =
-    Focus[ExecutionState](_.sequenceState)
+  val sequenceState: Lens[ExecutionState, SequenceState]                 = Focus[ExecutionState](_.sequenceState)
+  val runningStepId: Lens[ExecutionState, Option[Step.Id]]               = Focus[ExecutionState](_.runningStepId)
+  val nsState: Lens[ExecutionState, Option[NsRunningState]]              = Focus[ExecutionState](_.nsState)
   val configStatus: Lens[ExecutionState, List[(Resource, ActionStatus)]] =
     Focus[ExecutionState](_.configStatus)
-  val breakpoints: Lens[ExecutionState, Set[Step.Id]]                    =
-    Focus[ExecutionState](_.breakpoints)
+  val breakpoints: Lens[ExecutionState, Set[Step.Id]]                    = Focus[ExecutionState](_.breakpoints)
