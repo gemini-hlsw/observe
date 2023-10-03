@@ -95,7 +95,7 @@ object Home:
           )
       // TODO: This will actually come from the observe server.
       .useStateView(
-        ExecutionState(SequenceState.Idle, List.empty)
+        ExecutionState(SequenceState.Idle, none, none, List.empty)
       )
       .useEffectWithDepsBy((_, _, _, _, config, _) => config)((_, _, _, _, _, executionState) =>
         config =>
@@ -118,10 +118,7 @@ object Home:
                 executionConfig.science.map(_.nextAtom.steps.head.id)
 
           val sequenceState: SequenceState =
-            executingStepId.fold(SequenceState.Idle)(stepId =>
-              // SequenceState.Running(stepId, none, false, false)
-              SequenceState.Running(false, false)
-            )
+            executingStepId.fold(SequenceState.Idle)(_ => SequenceState.Running(false, false))
 
           // We simulate a config state.
           val configState = List(
@@ -141,7 +138,9 @@ object Home:
                     getBreakPoints(executionConfig.science)
               .orEmpty
 
-          executionState.set(ExecutionState(sequenceState, configState, initialBreakpoints))
+          executionState.set(
+            ExecutionState(sequenceState, executingStepId, none, configState, initialBreakpoints)
+          )
       )
       .render: (props, ctx, observations, selectedObsId, config, executionState) =>
         // TODO: Notify server of breakpoint changes
@@ -150,15 +149,12 @@ object Home:
             .zoom(ExecutionState.breakpoints)
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId)
 
-        val executingStepId: Option[Step.Id] = none
-        // executionState.get.sequenceState match
-        // case SequenceState.Running(stepId, _, _, _) => stepId.some
-        // case _                                      => none
+        val runningStepId: Option[Step.Id] = executionState.get.runningStepId
 
         val clientMode: ClientMode = props.rootModel.get.clientMode
 
         def tabOperations(excutionConfig: ExecutionConfig[?, ?]): TabOperations =
-          executingStepId.fold(TabOperations.Default): stepId =>
+          runningStepId.fold(TabOperations.Default): stepId =>
             TabOperations.Default.copy(resourceRunRequested = SortedMap.from:
               executionState.get.configStatus.flatMap: (resource, status) =>
                 ResourceRunOperation.fromActionStatus(stepId)(status).map(resource -> _)

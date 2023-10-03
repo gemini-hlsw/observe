@@ -88,3 +88,4 @@ modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
 
 # Web development runtime files
 modules/web/src/main/publicdev/
+local.conf.json
