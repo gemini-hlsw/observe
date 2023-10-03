@@ -29,13 +29,13 @@ import observe.common.test.*
 import observe.engine.EventResult
 import observe.engine.EventResult.Outcome
 import observe.engine.Sequence
+import observe.engine.user
 import observe.model.Conditions
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.StepState
 import observe.model.SystemOverrides
-import observe.model.UserDetails
 import observe.model.UserPrompt
 import observe.model.dhs.DataId
 import observe.model.enums.Instrument
@@ -55,7 +55,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0       = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setOperator(UserDetails("", ""), operator), 2)
+      sf <- advanceN(oe, s0, oe.setOperator(user, operator), 2)
     } yield sf.flatMap(EngineState.operator.get).exists { op =>
       op === operator
     }).assert
@@ -67,7 +67,7 @@ class ObserveEngineSuite extends TestCommon {
 
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setImageQuality(iq, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
       op === iq
     }).assert
@@ -79,7 +79,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.wv).get).exists { op =>
       op === wv
     }).assert
@@ -90,7 +90,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
       op === ce
     }).assert
@@ -101,7 +101,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.sb).get).exists { op =>
       op === sb
     }).assert
@@ -118,7 +118,7 @@ class ObserveEngineSuite extends TestCommon {
     (for {
       oe <- observeEngine
       sf <-
-        advanceN(oe, s0, oe.setObserver(seqObsId1, UserDetails("", ""), observer), 2)
+        advanceN(oe, s0, oe.setObserver(seqObsId1, user, observer), 2)
     } yield sf
       .flatMap(EngineState.atSequence(seqObsId1).getOption)
       .flatMap(_.observer)
@@ -150,7 +150,7 @@ class ObserveEngineSuite extends TestCommon {
       sf <- advanceOne(
               oe,
               s0,
-              oe.start(seqObsId2, UserDetails("", ""), Observer(""), clientId, RunOverride.Default)
+              oe.start(seqObsId2, user, Observer(""), clientId, RunOverride.Default)
             )
     } yield sf
       .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
@@ -182,7 +182,7 @@ class ObserveEngineSuite extends TestCommon {
               s0,
               oe.start(
                 seqObsId2,
-                UserDetails("", ""),
+                user,
                 Observer(""),
                 clientId,
                 RunOverride.Default
@@ -211,7 +211,7 @@ class ObserveEngineSuite extends TestCommon {
               oe.configSystem(
                 seqObsId1,
                 Observer(""),
-                UserDetails("", ""),
+                user,
                 stepId(1),
                 TCS,
                 clientId
@@ -245,7 +245,7 @@ class ObserveEngineSuite extends TestCommon {
               oe.configSystem(
                 seqObsId1,
                 Observer(""),
-                UserDetails("", ""),
+                user,
                 stepId(1),
                 TCS,
                 clientId
@@ -284,7 +284,7 @@ class ObserveEngineSuite extends TestCommon {
           oe.configSystem(
             seqObsId2,
             Observer(""),
-            UserDetails("", ""),
+            user,
             stepId(1),
             TCS,
             clientId
@@ -328,7 +328,7 @@ class ObserveEngineSuite extends TestCommon {
             .configSystem(
               seqObsId2,
               Observer(""),
-              UserDetails("", ""),
+              user,
               stepId(1),
               Gcal,
               clientId
@@ -479,7 +479,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Default
@@ -510,7 +510,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Default
@@ -541,7 +541,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Default
@@ -572,7 +572,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Default
@@ -603,7 +603,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Default
@@ -634,7 +634,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Override
@@ -665,7 +665,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          s0,
 //                          observeEngine.start(q,
 //                                              seqObsId1,
-//                                              UserDetails("", ""),
+//                                              user,
 //                                              Observer(""),
 //                                              clientId,
 //                                              RunOverride.Override
@@ -933,7 +933,7 @@ class ObserveEngineSuite extends TestCommon {
                          s0,
                          observeEngine.start(
                            seqObsId1,
-                           UserDetails("", ""),
+                           user,
                            Observer(""),
                            clientId,
                            RunOverride.Default
@@ -964,7 +964,7 @@ class ObserveEngineSuite extends TestCommon {
       result        <-
         observeEngine.start(
           seqObsId1,
-          UserDetails("", ""),
+          user,
           Observer(""),
           clientId,
           RunOverride.Default
@@ -1013,7 +1013,7 @@ class ObserveEngineSuite extends TestCommon {
           observeEngine,
           s0,
           observeEngine
-            .start(seqObsId1, UserDetails("", ""), Observer(""), clientId, RunOverride.Override),
+            .start(seqObsId1, user, Observer(""), clientId, RunOverride.Override),
           3
         )
     } yield {

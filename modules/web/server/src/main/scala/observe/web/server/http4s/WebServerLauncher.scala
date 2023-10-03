@@ -16,6 +16,10 @@ import fs2.concurrent.Topic
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
+import lucuma.core.model.User
+import lucuma.sso.client.SsoClient
+import lucuma.sso.client.SsoJwtReader
+import lucuma.sso.client.util.JwtDecoder
 import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
@@ -101,10 +105,30 @@ object WebServerLauncher extends IOApp with LogInitialization {
       ssl <- OptionT.liftF(makeContext[F](tls))
     } yield Network[F].tlsContext.fromSSLContext(ssl)).value
 
-      /** Resource that yields the running web server */
+  private def jwtReader[F[_]: Concurrent](sso: LucumaSSOConfiguration): SsoJwtReader[F] =
+    SsoJwtReader(JwtDecoder.withPublicKey(sso.publicKey))
+
+  private def ssoClient[F[_]: Async: Network: Logger](
+    httpClient: Client[F],
+    sso:        LucumaSSOConfiguration
+  ): Resource[F, SsoClient[F, User]] =
+    Resource.eval(
+      SsoClient
+        .initial(
+          serviceJwt = sso.serviceToken,
+          ssoRoot = sso.ssoUrl,
+          jwtReader = jwtReader[F](sso),
+          httpClient = httpClient
+        )
+        .map(_.map(_.user))
+    )
+
+  // SsoJwtReader(JwtDecoder.withPublicKey(sso.publicKey)).map { jwtReader =>
+  /** Resource that yields the running web server */
   private def webServer[F[_]: Logger: Async: Network: Compression](
     conf:      ObserveConfiguration,
     clientsDb: ClientsSetDb[F],
+    ssoClient: SsoClient[F, User],
     oe:        ObserveEngine[F]
   ): Resource[F, Server] = {
 
@@ -113,7 +137,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
       events: Topic[F, (Option[ClientId], ClientEvent)]
     ) = Router[F](
       "/api/observe/guide"  -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
-      "/api/observe"        -> new ObserveCommandRoutes(oe).service,
+      "/api/observe"        -> new ObserveCommandRoutes(ssoClient, oe).service,
       "/api/observe/events" -> new ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
     )
 
@@ -216,7 +240,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
         _                <- redirectWebServer(conf.webServer)
-        _                <- webServer(conf, cs, engine)
+        sso              <- ssoClient(cli, conf.lucumaSSO)
+        _                <- webServer(conf, cs, sso, engine)
       } yield ExitCode.Success
 
     observe.use(_ => IO.never)

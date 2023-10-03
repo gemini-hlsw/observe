@@ -84,7 +84,13 @@ lazy val observe_web_server = project
   .enablePlugins(GitBranchPrompt)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(UnboundId, JwtCore, JwtCirce, Http4sServer, Log4CatsNoop.value) ++
+    libraryDependencies ++= Seq(UnboundId,
+                                LucumaSSO.value,
+                                JwtCore,
+                                JwtCirce,
+                                Http4sServer,
+                                Log4CatsNoop.value
+    ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
     reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")

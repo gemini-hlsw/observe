@@ -12,6 +12,8 @@ import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
+import lucuma.core.model.User
+import lucuma.core.model.arb.ArbUser.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -65,13 +67,6 @@ trait ObserveModelArbitraries {
       a <- Gen.oneOf(ActionType.Observe, ActionType.Undefined)
       b <- Gen.oneOf(c, a)
     } yield b
-  }
-
-  given Arbitrary[UserDetails] = Arbitrary[UserDetails] {
-    for {
-      u <- arbitrary[String]
-      n <- arbitrary[String]
-    } yield UserDetails(u, n)
   }
 
   given Arbitrary[Observer]         = Arbitrary[Observer](Gen.alphaStr.map(Observer(_)))
@@ -130,9 +125,6 @@ trait ObserveModelArbitraries {
   given Cogen[SequenceState] =
     Cogen[String].contramap(_.productPrefix)
 
-  given Cogen[UserDetails] =
-    Cogen[(String, String)].contramap(u => (u.username, u.displayName))
-
   given Cogen[SequenceMetadata] =
     Cogen[(Instrument, Option[Observer], String)].contramap(s => (s.instrument, s.observer, s.name))
 
@@ -167,7 +159,7 @@ trait ObserveModelArbitraries {
   given Arbitrary[BatchCommandState.Run] = Arbitrary {
     for {
       observer <- arbitrary[Observer]
-      user     <- arbitrary[UserDetails]
+      user     <- arbitrary[User]
       clid     <- arbitrary[ClientId]
     } yield BatchCommandState.Run(observer, user, clid)
   }
@@ -179,7 +171,7 @@ trait ObserveModelArbitraries {
   )
 
   given Cogen[BatchCommandState] =
-    Cogen[(String, Option[Observer], Option[UserDetails], Option[ClientId])]
+    Cogen[(String, Option[Observer], Option[User], Option[ClientId])]
       .contramap {
         case r @ BatchCommandState.Run(obs, usd, cid) =>
           (r.productPrefix, obs.some, usd.some, cid.some)
@@ -200,17 +192,6 @@ trait ObserveModelArbitraries {
   given Cogen[ExecutionQueueView] =
     Cogen[(QueueId, String, BatchCommandState, BatchExecState, List[Observation.Id])]
       .contramap(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
-
-  given Arbitrary[UserLoginRequest] =
-    Arbitrary {
-      for {
-        u <- arbitrary[String]
-        p <- arbitrary[String]
-      } yield UserLoginRequest(u, p)
-    }
-
-  given Cogen[UserLoginRequest] =
-    Cogen[(String, String)].contramap(x => (x.username, x.password))
 
   given Arbitrary[TimeUnit] =
     Arbitrary {

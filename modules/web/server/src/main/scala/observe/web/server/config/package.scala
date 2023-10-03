@@ -6,6 +6,7 @@ package observe.web.server.config
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.Site
+import lucuma.sso.client.util.GpgPublicKeyReader
 import observe.model.config.*
 import org.http4s.Uri
 import pureconfig.*
@@ -16,6 +17,7 @@ import pureconfig.module.http4s.*
 import pureconfig.module.ip4s.*
 
 import java.nio.file.Path
+import java.security.PublicKey
 import scala.concurrent.duration.FiniteDuration
 
 case class SiteValueUnknown(site: String)         extends FailureReason {
@@ -26,6 +28,9 @@ case class ModeValueUnknown(mode: String)         extends FailureReason {
 }
 case class StrategyValueUnknown(strategy: String) extends FailureReason {
   def description: String = s"strategy '$strategy' invalid"
+}
+case class PublicKeyUnknown(value: String)        extends FailureReason {
+  def description: String = s"publicKey '$value' invalid"
 }
 
 /**
@@ -55,6 +60,15 @@ given ConfigReader[ControlStrategy] =
         case Some(x) => x.asRight
         case _       => cf.failed(StrategyValueUnknown(c))
       }
+    }
+  }
+
+given ConfigReader[PublicKey] =
+  ConfigReader.fromCursor[PublicKey] { cf =>
+    cf.asString.flatMap { c =>
+      GpgPublicKeyReader
+        .publicKey(c)
+        .leftFlatMap(_ => cf.failed(PublicKeyUnknown(c)))
     }
   }
 

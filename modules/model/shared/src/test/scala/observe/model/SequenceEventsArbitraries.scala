@@ -4,6 +4,8 @@
 package observe.model
 
 import lucuma.core.arb.ArbTime.*
+import lucuma.core.model.User
+import lucuma.core.model.arb.ArbUser.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -29,7 +31,7 @@ trait SequenceEventsArbitraries {
 
   given Arbitrary[ConnectionOpenEvent] = Arbitrary[ConnectionOpenEvent] {
     for {
-      u  <- arbitrary[Option[UserDetails]]
+      u  <- arbitrary[Option[User]]
       id <- arbitrary[ClientId]
       v  <- arbitrary[String]
     } yield ConnectionOpenEvent(u, id, v)
@@ -252,7 +254,7 @@ trait SequenceEventsArbitraries {
   }
 
   given Cogen[ConnectionOpenEvent] =
-    Cogen[(Option[UserDetails], ClientId, String)]
+    Cogen[(Option[User], ClientId, String)]
       .contramap(x => (x.userDetails, x.clientId, x.serverVersion))
 
   given Cogen[ObserveModelUpdate] =

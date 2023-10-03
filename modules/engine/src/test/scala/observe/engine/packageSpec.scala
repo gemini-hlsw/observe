@@ -10,7 +10,13 @@ import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
+import lucuma.core.model.OrcidId
+import lucuma.core.model.OrcidProfile
+import lucuma.core.model.StandardRole
+import lucuma.core.model.StandardUser
+import lucuma.core.model.User
 import lucuma.core.model.sequence.Atom
+import lucuma.refined.*
 import observe.common.test.observationId
 import observe.common.test.stepId
 import observe.engine.Sequence.State.Final
@@ -20,7 +26,6 @@ import observe.model.ClientId
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.StepState
-import observe.model.UserDetails
 import observe.model.enums.Instrument.GmosS
 import observe.model.enums.Resource.TCS
 import org.typelevel.log4cats.Logger
@@ -28,6 +33,20 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+
+def user =
+  StandardUser(
+    User.Id(1.refined),
+    StandardRole.Staff(StandardRole.Id(1.refined)),
+    Nil,
+    OrcidProfile(
+      OrcidId.fromValue("0000-0001-5558-6297").getOrElse(sys.error("OrcidId")),
+      Some("John"),
+      Some("Doe"),
+      None,
+      None
+    )
+  )
 
 class packageSpec extends munit.CatsEffectSuite {
 
@@ -104,7 +123,6 @@ class packageSpec extends munit.CatsEffectSuite {
     )
 
   private def executionEngine = Engine.build[IO, TestState, Unit](TestState)
-  private val user            = UserDetails("telops", "Telops")
 
   def isFinished(status: SequenceState): Boolean = status match {
     case SequenceState.Idle      => true

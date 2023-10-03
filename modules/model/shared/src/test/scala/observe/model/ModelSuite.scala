@@ -7,6 +7,7 @@ import cats.kernel.laws.discipline.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.ObserveModelArbitraries.given
+import observe.model.ObserveModelArbitraries.given_Arbitrary_Operator
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
@@ -19,7 +20,6 @@ import squants.time.TimeUnit
  */
 class ModelSuite extends munit.DisciplineSuite {
 
-  checkAll("Eq[UserDetails]", EqTests[UserDetails].eqv)
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)

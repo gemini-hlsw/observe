@@ -12,6 +12,7 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.User
 import observe.engine.EventResult
 import observe.model.Observation.Id
 import observe.model.*
@@ -32,7 +33,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
 
   override def start(
     id:          Id,
-    user:        UserDetails,
+    user:        User,
     observer:    Observer,
     clientId:    ClientId,
     runOverride: RunOverride
@@ -49,53 +50,53 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def requestPause(
     id:       Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit] = Applicative[F].unit
 
   override def requestCancelPause(
     id:       Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit] = Applicative[F].unit
 
   override def setBreakpoint(
     seqId:    Id,
-    user:     UserDetails,
+    user:     User,
     observer: Observer,
     stepId:   StepId,
     v:        Boolean
   ): F[Unit] = Applicative[F].unit
 
-  override def setOperator(user: UserDetails, name: Operator): F[Unit] =
+  override def setOperator(user: User, name: Operator): F[Unit] =
     Applicative[F].unit
 
   override def setObserver(
     seqId: Id,
-    user:  UserDetails,
+    user:  User,
     name:  Observer
   ): F[Unit] = Applicative[F].unit
 
   override def setTcsEnabled(
     seqId:   Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setGcalEnabled(
     seqId:   Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setInstrumentEnabled(
     seqId:   Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def setDhsEnabled(
     seqId:   Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit] = Applicative[F].unit
 
@@ -103,33 +104,33 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     i:        Instrument,
     sid:      Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def clearLoadedSequences(user: UserDetails): F[Unit] =
+  override def clearLoadedSequences(user: User): F[Unit] =
     Applicative[F].unit
 
   override def resetConditions: F[Unit] = Applicative[F].unit
 
-  override def setConditions(conditions: Conditions, user: UserDetails): F[Unit] =
+  override def setConditions(conditions: Conditions, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setImageQuality(iq: ImageQuality, user: UserDetails): F[Unit] =
+  override def setImageQuality(iq: ImageQuality, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setWaterVapor(wv: WaterVapor, user: UserDetails): F[Unit] =
+  override def setWaterVapor(wv: WaterVapor, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setSkyBackground(sb: SkyBackground, user: UserDetails): F[Unit] =
+  override def setSkyBackground(sb: SkyBackground, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setCloudExtinction(cc: CloudExtinction, user: UserDetails): F[Unit] =
+  override def setCloudExtinction(cc: CloudExtinction, user: User): F[Unit] =
     Applicative[F].unit
 
   override def setSkipMark(
     seqId:    Id,
-    user:     UserDetails,
+    user:     User,
     observer: Observer,
     stepId:   StepId,
     v:        Boolean
@@ -140,27 +141,27 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def stopObserve(
     seqId:    Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     graceful: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def abortObserve(
     seqId:    Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit] = Applicative[F].unit
 
   override def pauseObserve(
     seqId:    Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     graceful: Boolean
   ): F[Unit] = Applicative[F].unit
 
   override def resumeObserve(
     seqId:    Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit] = Applicative[F].unit
 
   override def addSequencesToQueue(qid: QueueId, seqIds: List[Id]): F[Unit] =
@@ -184,7 +185,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def startQueue(
     qid:      QueueId,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
@@ -194,7 +195,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def configSystem(
     sid:      Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     stepId:   StepId,
     sys:      Resource,
     clientID: ClientId

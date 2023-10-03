@@ -10,6 +10,8 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.User
+import lucuma.sso.client.SsoClient
 import observe.model.*
 import observe.server
 import observe.server.ObserveEngine
@@ -29,9 +31,8 @@ import org.http4s.server.middleware.GZip
  * Rest Endpoints under the /api route
  */
 class ObserveCommandRoutes[F[_]: Async: Compression](
-  // auth:       AuthenticationService[F],
-  // inputQueue: server.EventQueue[F],
-  oe: ObserveEngine[F]
+  ssoClient: SsoClient[F, User],
+  oe:        ObserveEngine[F]
 ) extends Http4sDsl[F] {
 
   // Handles authentication
@@ -41,8 +42,6 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   given EntityDecoder[F, ImageQuality]    = jsonOf[F, ImageQuality]
   given EntityDecoder[F, SkyBackground]   = jsonOf[F, SkyBackground]
   given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
-
-  val userDetails = UserDetails("telops", "TelOps")
 
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] { // AuthedRoutes.of {
     // case POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
@@ -156,16 +155,24 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //     Ok(s"Set DHS enable flag to '$dhsEnabled' for sequence $obsId")
 
     case req @ POST -> Root / "iq" =>
-      req.decode[ImageQuality](iq => oe.setImageQuality(iq, userDetails) *> NoContent())
+      ssoClient.require(req) { u =>
+        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u) *> NoContent())
+      }
 
     case req @ POST -> Root / "wv" =>
-      req.decode[WaterVapor](wv => oe.setWaterVapor(wv, userDetails) *> NoContent())
+      ssoClient.require(req) { u =>
+        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u) *> NoContent())
+      }
 
     case req @ POST -> Root / "sb" =>
-      req.decode[SkyBackground](sb => oe.setSkyBackground(sb, userDetails) *> NoContent())
+      ssoClient.require(req) { u =>
+        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u) *> NoContent())
+      }
 
     case req @ POST -> Root / "ce" =>
-      req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, userDetails) *> NoContent())
+      ssoClient.require(req) { u =>
+        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u) *> NoContent())
+      }
     //
     // case req @ POST -> Root / "sb" as user =>
     //   req.req.decode[SkyBackground](sb =>
@@ -233,8 +240,10 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     // case GET -> Root / "refresh" / ClientIDVar(clientId) =>
     //   oe.requestRefresh(clientId) *> NoContent()
 
-    case POST -> Root / "resetconditions" =>
-      oe.resetConditions *> NoContent()
+    case req @ POST -> Root / "resetconditions" =>
+      ssoClient.require(req) { u =>
+        oe.resetConditions *> NoContent()
+      }
   }
 
   val service: HttpRoutes[F] =
