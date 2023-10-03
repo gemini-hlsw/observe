@@ -25,14 +25,6 @@ pull_request_rules:
       add:
       - engine
       remove: []
-- name: Label giapi PRs
-  conditions:
-  - files~=^modules/giapi/
-  actions:
-    label:
-      add:
-      - giapi
-      remove: []
 - name: Label model PRs
   conditions:
   - files~=^modules/model/
