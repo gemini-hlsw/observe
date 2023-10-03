@@ -11,17 +11,17 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
-import observe.model.ClientStatus
 import observe.model.ImageFileId
+import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.enums.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.StopOperation
 import observe.ui.model.TabOperations
+import observe.ui.model.enums.ClientMode
 
 case class StepProgressCell(
-  clientStatus:  ClientStatus,
+  clientMode:    ClientMode,
   instrument:    Instrument,
   stepId:        Step.Id,
   stepType:      StepTypeDisplay,
@@ -36,11 +36,13 @@ case class StepProgressCell(
 ) extends ReactFnProps(StepProgressCell.component):
   def stepSelected(i: Step.Id): Boolean =
     selectedStep.exists(_ === i) && !isPreview &&
-      (clientStatus.isLogged || tabOperations.resourceRunNotIdle(i))
+      // Will we always require logging in?
+      ( /*clientStatus.isLogged ||*/ tabOperations.resourceRunNotIdle(i))
 
-  private val runningStepId: Option[Step.Id] = sequenceState match
-    case SequenceState.Running(stepId, _, _, _) => stepId.some
-    case _                                      => none
+  private val runningStepId: Option[Step.Id] = none
+  // sequenceState match
+  // case SequenceState.Running(stepId, _, _, _) => stepId.some
+  // case _                                      => none
 
   private val isRunning =
     tabOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)
@@ -68,7 +70,7 @@ object StepProgressCell:
   private type Props = StepProgressCell
 
   private given ControlButtonResolver[Props] =
-    ControlButtonResolver.build(p => (p.clientStatus, p.sequenceState, p.isRunning))
+    ControlButtonResolver.build(p => (p.clientMode, p.sequenceState, p.isRunning))
 
   private def stepControlButtons(props: Props): TagMod =
     StepControlButtons(
@@ -112,7 +114,7 @@ object StepProgressCell:
         props.stepId,
         props.configStatus.map(_._1),
         TabOperations.resourceRunRequested.get(props.tabOperations),
-        props.clientStatus.canOperate
+        props.clientMode
       ),
       if (props.isBias)
         // BiasStatus(

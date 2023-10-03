@@ -4,31 +4,37 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
+import lucuma.core.util.Display
 
-sealed trait SequenceState extends Product with Serializable {
-  import SequenceState._
+enum SequenceState(val name: String) derives Eq:
+  case Completed           extends SequenceState("Completed")
+  case Idle                extends SequenceState("Idle")
+  case Running(
+    userStop:     Boolean,
+    internalStop: Boolean
+  )                        extends SequenceState("Running")
+  case Failed(msg: String) extends SequenceState("Failed")
+  case Aborted             extends SequenceState("Aborted")
 
   def internalStopRequested: Boolean =
-    this match {
+    this match
       case SequenceState.Running(_, b) => b
       case _                           => false
-    }
 
   def isError: Boolean =
-    this match {
+    this match
       case Failed(_) => true
       case _         => false
-    }
 
   def isInProcess: Boolean =
     this =!= SequenceState.Idle
 
   def isRunning: Boolean =
-    this match {
-      case Running(_, _) => true
-      case _             => false
-    }
+    this match
+      case SequenceState.Running(_, _) => true
+      case _                           => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -37,27 +43,13 @@ sealed trait SequenceState extends Product with Serializable {
     this === SequenceState.Idle || this === SequenceState.Aborted
 
   def userStopRequested: Boolean =
-    this match {
+    this match
       case SequenceState.Running(b, _) => b
       case _                           => false
-    }
 
-}
-
-object SequenceState {
-
-  case object Completed                                              extends SequenceState
-  case object Idle                                                   extends SequenceState
-  final case class Running(userStop: Boolean, internalStop: Boolean) extends SequenceState
-  final case class Failed(msg: String)                               extends SequenceState
-  case object Aborted                                                extends SequenceState
-
-  object Running {
+object SequenceState:
+  object Running:
     val init: Running =
-      Running(userStop = false, internalStop = false)
-  }
+      SequenceState.Running(userStop = false, internalStop = false)
 
-  given Eq[SequenceState] =
-    Eq.fromUniversalEquals
-
-}
+  given Display[SequenceState] = Display.byShortName(_.name)

@@ -9,6 +9,7 @@ import cats.effect.*
 import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.enums.Site
+import lucuma.core.util.TimeSpan
 import observe.common.test.*
 import observe.engine.Action
 import observe.engine.Result
@@ -22,8 +23,7 @@ import observe.server.Response.Observed
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
 
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
+import java.time.temporal.ChronoUnit
 
 class SeqTranslateSuite extends TestCommon {
 
@@ -87,7 +87,7 @@ class SeqTranslateSuite extends TestCommon {
             _ => Stream.empty,
             Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
             Stream.eval(ObserveFailure.Aborted(seqObsId1).raiseError[IO, Result]),
-            FiniteDuration(1, TimeUnit.SECONDS)
+            TimeSpan.unsafeFromDuration(1, ChronoUnit.SECONDS)
           )
         )
       )

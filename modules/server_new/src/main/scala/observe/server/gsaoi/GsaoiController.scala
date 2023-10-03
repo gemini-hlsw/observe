@@ -15,9 +15,6 @@ import observe.server.Progress
 import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig
 
-import scala.concurrent.duration.*
-import scala.jdk.DurationConverters.*
-
 trait GsaoiController[F[_]] {
 
   def applyConfig(config: GsaoiConfig): F[Unit]
@@ -30,13 +27,13 @@ trait GsaoiController[F[_]] {
 
   def abortObserve: F[Unit]
 
-  def observeProgress(total: FiniteDuration): fs2.Stream[F, Progress]
+  def observeProgress(total: TimeSpan): fs2.Stream[F, Progress]
 
-  def calcTotalExposureTime(cfg: DCConfig)(using ev: Applicative[F]): FiniteDuration = {
+  def calcTotalExposureTime(cfg: DCConfig)(using ev: Applicative[F]): TimeSpan = {
     val readFactor  = 1.2
     val readOutTime = TimeSpan.unsafeFromMicroseconds(15000000)
 
-    (cfg.exposureTime *| cfg.coadds.value *| readFactor +| readOutTime).toDuration.toScala
+    (cfg.exposureTime *| cfg.coadds.value *| readFactor) +| readOutTime
   }
 
 }

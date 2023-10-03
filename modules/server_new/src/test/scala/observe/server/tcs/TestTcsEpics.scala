@@ -11,6 +11,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Getter
 import monocle.Lens
@@ -24,8 +25,7 @@ import squants.Angle
 import squants.space.AngleConversions.*
 
 import java.time.Duration
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import java.time.temporal.ChronoUnit
 
 case class TestTcsEpics[F[_]: Async](
   state: Ref[F, TestTcsEpics.State],
@@ -35,9 +35,9 @@ case class TestTcsEpics[F[_]: Async](
 
   val outputF: F[List[TestTcsEvent]] = out.get
 
-  val DefaultTimeout: FiniteDuration = FiniteDuration(1, SECONDS)
+  val DefaultTimeout: TimeSpan = TimeSpan.unsafeFromDuration(1, ChronoUnit.SECONDS)
 
-  override def post(timeout: FiniteDuration): F[ApplyCommandResult] =
+  override def post(timeout: TimeSpan): F[ApplyCommandResult] =
     List[EpicsCommand[F]](
       m1GuideCmd,
       m2GuideCmd,
@@ -446,12 +446,12 @@ case class TestTcsEpics[F[_]: Async](
   override val oiwfsProbeGuideConfig: ProbeGuideConfig[F] =
     probeGuideConfigGetters(state, State.oiwfsProbeGuideConfig.asGetter)
 
-  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
+  override def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit] =
     Applicative[F].unit
 
-  override def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit] =
+  override def waitAGInPosition(timeout: TimeSpan)(using T: Temporal[F]): F[Unit] =
     Applicative[F].unit
 
   override def hourAngle: F[String] = state.get.map(_.hourAngle)

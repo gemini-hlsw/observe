@@ -6,8 +6,10 @@ package observe.server
 import cats.effect.IO
 import edu.gemini.epics.acm.CaWindowStabilizer
 import edu.gemini.epics.acm.test.DummyAttribute
+import lucuma.core.util.TimeSpan
 
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -23,7 +25,12 @@ class EpicsUtilSuite extends munit.CatsEffectSuite {
       new CaWindowStabilizer(attr, Duration.ofMillis(50), executor)
     attr.setValue(1)
     IO.delay(filtered.restart) *>
-      EpicsUtil.waitForValueF[Integer, IO](filtered, 1, FiniteDuration(100, MILLISECONDS), "")
+      EpicsUtil.waitForValueF[Integer, IO](
+        filtered,
+        1,
+        TimeSpan.unsafeFromDuration(100, ChronoUnit.MILLIS),
+        ""
+      )
   }
 
 }

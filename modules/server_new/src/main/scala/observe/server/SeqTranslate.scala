@@ -22,6 +22,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.model.sequence.{Step => OdbStep}
+import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
 import observe.engine.Action.ActionState
@@ -30,7 +31,7 @@ import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.Instrument
 import observe.model.enums.Resource
-import observe.model.{Progress as _, *}
+import observe.model.{ObservationProgress as _, *}
 import observe.server.InstrumentSystem.*
 import observe.server.ObserveFailure.Unexpected
 import observe.server.SequenceGen.StepActionsGen
@@ -59,8 +60,6 @@ import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.*
 
 //trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
@@ -346,7 +345,7 @@ object SeqTranslate {
     override def resumePaused(seqId: Observation.Id)(using
       tio: Temporal[F]
     ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
-      val observeIndex: Option[(ObserveContext[F], Option[FiniteDuration], Int)] =
+      val observeIndex: Option[(ObserveContext[F], Option[TimeSpan], Int)] =
         st.sequences
           .get(seqId)
           .flatMap(
@@ -371,7 +370,7 @@ object SeqTranslate {
             seqId,
             i,
             obCtx
-              .progress(ElapsedTime(t.getOrElse(0.0.seconds)))
+              .progress(ElapsedTime(t.getOrElse(TimeSpan.Zero)))
               .mergeHaltR(obCtx.resumePaused(obCtx.expTime))
               .handleErrorWith(catchObsErrors[F])
           )

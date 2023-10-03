@@ -342,7 +342,7 @@ trait SequenceEventsArbitraries {
     Cogen[(Notification, ClientId)].contramap(x => (x.memo, x.clientId))
 
   given Cogen[ObservationProgressEvent] =
-    Cogen[Progress].contramap(_.progress)
+    Cogen[ObservationProgress].contramap(_.progress)
 
   given Cogen[AlignAndCalibEvent] =
     Cogen[Int].contramap(_.step)

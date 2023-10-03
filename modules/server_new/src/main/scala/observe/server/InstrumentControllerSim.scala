@@ -11,6 +11,7 @@ import cats.effect.kernel.Async
 import cats.syntax.all.*
 import fs2.Stream
 import gov.aps.jca.TimeoutException
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
@@ -21,12 +22,13 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
 
+import java.time.temporal.ChronoUnit
 import scala.concurrent.duration.*
 
 sealed trait InstrumentControllerSim[F[_]] {
   def log(msg: => String): F[Unit]
 
-  def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult]
+  def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult]
 
   def applyConfig[C: Show](config: C): F[Unit]
 
@@ -44,7 +46,7 @@ sealed trait InstrumentControllerSim[F[_]] {
 
   def abortPaused: F[ObserveCommandResult]
 
-  def observeCountdown(total: FiniteDuration, elapsed: ElapsedTime): Stream[F, Progress]
+  def observeCountdown(total: TimeSpan, elapsed: ElapsedTime): Stream[F, Progress]
 
 }
 
@@ -53,12 +55,17 @@ object InstrumentControllerSim {
     stopFlag:      Boolean,
     abortFlag:     Boolean,
     pauseFlag:     Boolean,
-    remainingTime: Long
+    remainingTime: TimeSpan
   )
 
   object ObserveState {
     val Zero: ObserveState =
-      ObserveState(stopFlag = false, abortFlag = false, pauseFlag = false, remainingTime = 0)
+      ObserveState(
+        stopFlag = false,
+        abortFlag = false,
+        pauseFlag = false,
+        remainingTime = TimeSpan.Zero
+      )
 
     val pauseFalse = (o: ObserveState) =>
       (o.focus(_.pauseFlag).replace(false), o.focus(_.pauseFlag).replace(false))
@@ -71,13 +78,13 @@ object InstrumentControllerSim {
   private[server] final class InstrumentControllerSimImpl[F[_]](
     name:               String,
     useTimeout:         Boolean,
-    readOutDelay:       FiniteDuration,
-    stopObserveDelay:   FiniteDuration,
-    configurationDelay: FiniteDuration,
+    readOutDelay:       TimeSpan,
+    stopObserveDelay:   TimeSpan,
+    configurationDelay: TimeSpan,
     obsStateRef:        Ref[F, ObserveState]
   )(using val F: MonadThrow[F], L: Logger[F], T: Temporal[F])
       extends InstrumentControllerSim[F] {
-    private val TIC = 200L
+    private val TIC = TimeSpan.unsafeFromMicroseconds(200L)
 
     def log(msg: => String): F[Unit] =
       L.info(msg)
@@ -85,7 +92,7 @@ object InstrumentControllerSim {
     private def tupledUpdate[A, B](f: A => B) = (x: A) => (f(x), f(x))
 
     private[server] def observeTic(
-      timeout: Option[Long]
+      timeout: Option[TimeSpan]
     ): F[ObserveCommandResult] = obsStateRef.get.flatMap { observeState =>
       if (observeState.stopFlag) {
         ObserveCommandResult.Stopped.pure[F].widen
@@ -96,39 +103,39 @@ object InstrumentControllerSim {
           _.focus(_.remainingTime).replace(observeState.remainingTime)
         ) *>
           ObserveCommandResult.Paused.pure[F].widen
-      } else if (timeout.exists(_ <= 0)) {
+      } else if (timeout.exists(_ <= TimeSpan.Zero)) {
         F.raiseError(ObserveException(new TimeoutException()))
       } else if (observeState.remainingTime < TIC) {
         log(s"Simulate $name observation completed") *>
           ObserveCommandResult.Success.pure[F].widen
       } else {
-        val upd: ObserveState => ObserveState = _.focus(_.remainingTime).modify(_ - TIC)
+        val upd: ObserveState => ObserveState = _.focus(_.remainingTime).modify(_ -| TIC)
         // Use flatMap to ensure we don't stack overflow
         obsStateRef.modify(tupledUpdate(upd)) *>
-          T.sleep(FiniteDuration(TIC.toLong, MILLISECONDS)) *>
-          observeTic(timeout.map(_ - TIC))
+          T.sleep(FiniteDuration(TIC.toMicroseconds, MICROSECONDS)) *>
+          observeTic(timeout.map(_ -| TIC))
       }
     }
 
-    def observe(fileId: ImageFileId, expTime: FiniteDuration): F[ObserveCommandResult] = {
-      val totalTime = expTime + readOutDelay
+    def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult] = {
+      val totalTime = expTime +| readOutDelay
       log(s"Simulate taking $name observation with label $fileId") *> {
         val upd = { (s: ObserveState) => s.focus(_.stopFlag).replace(false) } >>> {
           _.focus(_.pauseFlag).replace(false)
         } >>> { _.focus(_.abortFlag).replace(false) } >>> {
-          _.focus(_.remainingTime).replace(totalTime.toMillis)
+          _.focus(_.remainingTime).replace(totalTime)
         }
         obsStateRef.modify(tupledUpdate(upd))
-      } *> observeTic(useTimeout.option(totalTime.toMillis + 2 * TIC))
+      } *> observeTic(useTimeout.option(totalTime +| (TIC *| 2)))
     }
 
     def applyConfig[C: Show](config: C): F[Unit] =
       log(s"Simulate applying $name configuration ${config.show}") *>
-        T.sleep(configurationDelay)
+        T.sleep(FiniteDuration(configurationDelay.toMicroseconds, MICROSECONDS))
 
     def stopObserve: F[Unit] =
       log(s"Simulate stopping $name exposure") *>
-        T.sleep(stopObserveDelay) *>
+        T.sleep(FiniteDuration(stopObserveDelay.toMicroseconds, MICROSECONDS)) *>
         obsStateRef.update(Focus[ObserveState](_.stopFlag).replace(true))
 
     def abortObserve: F[Unit] =
@@ -148,13 +155,15 @@ object InstrumentControllerSim {
           _.focus(_.pauseFlag).replace(false)
         } >>> { _.focus(_.abortFlag).replace(false) }
         obsStateRef.modify(tupledUpdate(upd))
-      } >>= { s => observeTic(useTimeout.option(s.remainingTime + 2 * TIC)) }
+      } >>= { s => observeTic(useTimeout.option(s.remainingTime +| (TIC *| 2))) }
 
     def stopPaused: F[ObserveCommandResult] =
       log(s"Simulate stopping $name paused observation") *> {
         val upd = { (s: ObserveState) => s.focus(_.stopFlag).replace(true) } >>> {
           _.focus(_.pauseFlag).replace(false)
-        } >>> { _.focus(_.abortFlag).replace(false) } >>> { _.focus(_.remainingTime).replace(1000) }
+        } >>> { _.focus(_.abortFlag).replace(false) } >>> {
+          _.focus(_.remainingTime).replace(TimeSpan.unsafeFromMicroseconds(1000))
+        }
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 
@@ -162,12 +171,14 @@ object InstrumentControllerSim {
       log(s"Simulate aborting $name paused observation") *> {
         val upd = { (s: ObserveState) => s.focus(_.stopFlag).replace(false) } >>> {
           _.focus(_.pauseFlag).replace(false)
-        } >>> { _.focus(_.abortFlag).replace(true) } >>> { _.focus(_.remainingTime).replace(1000) }
+        } >>> { _.focus(_.abortFlag).replace(true) } >>> {
+          _.focus(_.remainingTime).replace(TimeSpan.unsafeFromMicroseconds(1000))
+        }
         obsStateRef.modify(tupledUpdate(upd))
       } *> observeTic(none)
 
     def observeCountdown(
-      total:   FiniteDuration,
+      total:   TimeSpan,
       elapsed: ElapsedTime
     ): Stream[F, Progress] =
       ProgressUtil.obsCountdown[F](total, elapsed.self)
@@ -176,28 +187,30 @@ object InstrumentControllerSim {
 
   def apply[F[_]: Logger: Async](name: String): F[InstrumentControllerSim[F]] =
     InstrumentControllerSim.ObserveState.ref[F].map { obsStateRef =>
-      new InstrumentControllerSimImpl[F](name,
-                                         false,
-                                         FiniteDuration(5, SECONDS),
-                                         FiniteDuration(1500, MILLISECONDS),
-                                         FiniteDuration(5, SECONDS),
-                                         obsStateRef
+      new InstrumentControllerSimImpl[F](
+        name,
+        false,
+        TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS),
+        TimeSpan.unsafeFromDuration(1500, ChronoUnit.MILLIS),
+        TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS),
+        obsStateRef
       )
     }
 
   def unsafeWithTimes[F[_]: Async: Logger](
     name:               String,
-    readOutDelay:       FiniteDuration,
-    stopObserveDelay:   FiniteDuration,
-    configurationDelay: FiniteDuration
+    readOutDelay:       TimeSpan,
+    stopObserveDelay:   TimeSpan,
+    configurationDelay: TimeSpan
   ): InstrumentControllerSim[F] = {
     val obsStateRef = InstrumentControllerSim.ObserveState.unsafeRef[F]
-    new InstrumentControllerSimImpl[F](name,
-                                       true,
-                                       readOutDelay,
-                                       stopObserveDelay,
-                                       configurationDelay,
-                                       obsStateRef
+    new InstrumentControllerSimImpl[F](
+      name,
+      true,
+      readOutDelay,
+      stopObserveDelay,
+      configurationDelay,
+      obsStateRef
     )
   }
 

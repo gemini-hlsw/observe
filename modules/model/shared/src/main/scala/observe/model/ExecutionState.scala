@@ -8,12 +8,11 @@ import cats.derived.*
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Lens
-import observe.model.enums.SequenceState
-import observe.model.enums.Resource
 import observe.model.enums.ActionStatus
+import observe.model.enums.Resource
 
 /**
- * This class concentrates all the state that is kept in the server.
+ * This class concentrates all the execution state that is kept in the server.
  */
 case class ExecutionState(
   sequenceState: SequenceState,

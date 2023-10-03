@@ -25,13 +25,11 @@ import lucuma.react.primereact.*
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
-import observe.model.ClientStatus
 import observe.model.ExecutionState
 import observe.model.Observer
-import observe.model.UserDetails
+import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.enums.SequenceState
 import observe.queries.ObsQueriesGQL
 import observe.ui.AppContext
 import observe.ui.DefaultErrorPolicy
@@ -41,6 +39,7 @@ import observe.ui.model.ResourceRunOperation
 import observe.ui.model.RootModel
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
+import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 
 import scala.collection.immutable.SortedMap
@@ -52,7 +51,7 @@ case class Home(rootModel: View[RootModel]) extends ReactFnProps(Home.component)
 object Home:
   private type Props = Home
 
-  private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
+  // private val clientStatus = ClientStatus.Default.copy(user = UserDetails("telops", "Telops").some)
 
   private val component =
     ScalaFnComponent
@@ -120,14 +119,15 @@ object Home:
 
           val sequenceState: SequenceState =
             executingStepId.fold(SequenceState.Idle)(stepId =>
-              SequenceState.Running(stepId, none, false, false)
+              // SequenceState.Running(stepId, none, false, false)
+              SequenceState.Running(false, false)
             )
 
           // We simulate a config state.
           val configState = List(
             (Resource.TCS, ActionStatus.Completed),
             (Resource.Gcal, ActionStatus.Running),
-            (Resource.Instrument(Instrument.GmosNorth), ActionStatus.Pending)
+            (observe.model.enums.Instrument.GmosN, ActionStatus.Pending)
           )
 
           val initialBreakpoints: Set[Step.Id] =
@@ -150,9 +150,12 @@ object Home:
             .zoom(ExecutionState.breakpoints)
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId)
 
-        val executingStepId: Option[Step.Id] = executionState.get.sequenceState match
-          case SequenceState.Running(stepId, _, _, _) => stepId.some
-          case _                                      => none
+        val executingStepId: Option[Step.Id] = none
+        // executionState.get.sequenceState match
+        // case SequenceState.Running(stepId, _, _, _) => stepId.some
+        // case _                                      => none
+
+        val clientMode: ClientMode = props.rootModel.get.clientMode
 
         def tabOperations(excutionConfig: ExecutionConfig[?, ?]): TabOperations =
           executingStepId.fold(TabOperations.Default): stepId =>
@@ -182,7 +185,7 @@ object Home:
                     .renderPot:
                       case InstrumentExecutionConfig.GmosNorth(config) =>
                         GmosNorthSequenceTables(
-                          clientStatus,
+                          clientMode,
                           obsId,
                           config,
                           executionState.get,
@@ -193,7 +196,7 @@ object Home:
                           .withKey(obsId.toString)
                       case InstrumentExecutionConfig.GmosSouth(config) =>
                         GmosSouthSequenceTables(
-                          clientStatus,
+                          clientMode,
                           obsId,
                           config,
                           executionState.get,

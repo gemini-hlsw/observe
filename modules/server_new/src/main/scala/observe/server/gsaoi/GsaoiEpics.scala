@@ -9,6 +9,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.gsaoi.DhsConnected
+import lucuma.core.util.TimeSpan
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
@@ -20,6 +21,8 @@ import observe.server.EpicsUtil.safeAttributeSIntF
 import observe.server.ObserveCommandBase
 
 import java.lang.Double as JDouble
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration
 
@@ -76,13 +79,14 @@ class GsaoiEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]
   }
 
   private val observeAS: Option[CaApplySender] = Option(
-    epicsService.createObserveSender("gsaoi::observeCmd",
-                                     s"${GsaoiTop}dc:stateApply",
-                                     s"${GsaoiTop}dc:observeC",
-                                     false,
-                                     s"${GsaoiTop}dc:stop",
-                                     s"${GsaoiTop}dc:abort",
-                                     ""
+    epicsService.createObserveSender(
+      "gsaoi::observeCmd",
+      s"${GsaoiTop}dc:stateApply",
+      s"${GsaoiTop}dc:observeC",
+      false,
+      s"${GsaoiTop}dc:stop",
+      s"${GsaoiTop}dc:abort",
+      ""
     )
   )
 
@@ -239,7 +243,7 @@ class GsaoiEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String]
                                   java.time.Duration.ofMillis(guideStabilizeTime.toMillis)
     )
 
-  private val guideTimeout     = FiniteDuration(5, SECONDS)
+  private val guideTimeout     = TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS)
   def waitForGuideOn: F[Unit]  =
     Async[F]
       .delay(filteredNotGuidingAttr.restart)

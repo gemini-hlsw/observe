@@ -5,12 +5,13 @@ package observe.server
 
 import cats.data.Kleisli
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Instrument
 import observe.model.enums.ObserveCommandResult
 import observe.server.keywords.KeywordsClient
 
-import scala.concurrent.duration.*
+import java.time.temporal.ChronoUnit
 
 trait InstrumentSystem[F[_]] extends System[F] {
   val resource: Instrument
@@ -22,14 +23,14 @@ trait InstrumentSystem[F[_]] extends System[F] {
   def observe: Kleisli[F, ImageFileId, ObserveCommandResult]
 
   // Expected total observe lapse, used to calculate timeout
-  def calcObserveTime: FiniteDuration
+  def calcObserveTime: TimeSpan
 
-  def observeTimeout: FiniteDuration = 1.minute
+  def observeTimeout: TimeSpan = TimeSpan.unsafeFromDuration(1, ChronoUnit.MINUTES)
 
   def keywordsClient: KeywordsClient[F]
 
   def observeProgress(
-    total:   FiniteDuration,
+    total:   TimeSpan,
     elapsed: InstrumentSystem.ElapsedTime
   ): Stream[F, Progress]
 
@@ -38,13 +39,13 @@ trait InstrumentSystem[F[_]] extends System[F] {
 }
 
 object InstrumentSystem {
-  val ObserveOperationsTimeout = 1.minute
+  val ObserveOperationsTimeout = TimeSpan.unsafeFromDuration(1, ChronoUnit.MINUTES)
 
   final case class StopObserveCmd[+F[_]](self: Boolean => F[Unit])
   final case class AbortObserveCmd[+F[_]](self: F[Unit])
   final case class PauseObserveCmd[+F[_]](self: Boolean => F[Unit])
 
-  final case class ContinuePausedCmd[+F[_]](self: FiniteDuration => F[ObserveCommandResult])
+  final case class ContinuePausedCmd[+F[_]](self: TimeSpan => F[ObserveCommandResult])
   final case class StopPausedCmd[+F[_]](self: F[ObserveCommandResult])
   final case class AbortPausedCmd[+F[_]](self: F[ObserveCommandResult])
 
@@ -62,5 +63,5 @@ object InstrumentSystem {
   final case class UnpausableControl[+F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
       extends ObserveControl[F]
 
-  final case class ElapsedTime(self: FiniteDuration) extends AnyVal
+  final case class ElapsedTime(self: TimeSpan) extends AnyVal
 }

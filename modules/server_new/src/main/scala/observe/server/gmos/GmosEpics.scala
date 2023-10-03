@@ -8,6 +8,7 @@ import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
+import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
@@ -26,7 +27,7 @@ class GmosEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
   val sysName: String = "GMOS"
   val GmosTop: String = tops.getOrElse("gm", "gm:")
 
-  def post(timeout: FiniteDuration): F[ApplyCommandResult] = configCmd.post(timeout)
+  def post(timeout: TimeSpan): F[ApplyCommandResult] = configCmd.post(timeout)
 
   object configCmd extends EpicsCommandBase[F](sysName) {
     override protected val cs: Option[CaCommandSender] = Option(

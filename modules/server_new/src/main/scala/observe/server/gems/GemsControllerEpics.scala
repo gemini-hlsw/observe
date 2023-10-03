@@ -5,6 +5,7 @@ package observe.server.gems
 
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.server.gems.Gems.*
 import observe.server.gems.GemsController.GemsConfig
@@ -16,8 +17,7 @@ import observe.server.tcs.Gaos.ResumeCondition
 import observe.server.tcs.Gaos.ResumeConditionSet
 import org.typelevel.log4cats.Logger
 
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import java.time.temporal.ChronoUnit
 
 class GemsControllerEpics[F[_]: Async](
   epicsSys:    GemsEpics[F],
@@ -119,8 +119,10 @@ object GemsControllerEpics {
   val PauseCmd: String  = "PAUSE"
   val ResumeCmd: String = "RESUME"
 
-  val CmdTimeout: FiniteDuration               = FiniteDuration(10, SECONDS)
-  val LoopStabilizationTimeout: FiniteDuration = FiniteDuration(30, SECONDS)
+  val CmdTimeout: TimeSpan               =
+    TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
+  val LoopStabilizationTimeout: TimeSpan =
+    TimeSpan.unsafeFromDuration(30, ChronoUnit.SECONDS)
 
   val ApdStart: String = "START"
   val ApdStop: String  = "STOP"

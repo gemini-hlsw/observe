@@ -5,14 +5,17 @@ package observe.model
 
 import lucuma.core.refined.numeric.NonZeroInt
 import lucuma.core.util.NewType
+import lucuma.core.util.TimeSpan
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.SECONDS
+import java.time.temporal.ChronoUnit
 
 trait GmosParameters {
 
   object NsPairs extends NewType[Int]
   type NsPairs = NsPairs.Type
+
+  object NsStageIndex extends NewType[Int]
+  type NsStageIndex = NsStageIndex.Type
 
   object NsRows extends NewType[Int]
   type NsRows = NsRows.Type
@@ -24,7 +27,7 @@ trait GmosParameters {
   type NsExposureDivider = NsExposureDivider.Type
 
   // Remaining time when it is not safe to stop, pause or abort
-  val SafetyCutoff: FiniteDuration = new FiniteDuration(3, SECONDS)
+  val SafetyCutoff: TimeSpan = TimeSpan.unsafeFromDuration(3, ChronoUnit.SECONDS)
 
 }
 

@@ -9,6 +9,7 @@ import edu.gemini.epics.acm.*
 import edu.gemini.observe.server.tcs.BinaryEnabledDisabled
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
@@ -35,7 +36,7 @@ trait TcsEpics[F[_]] {
 
   import TcsEpics.*
 
-  def post(timeout: FiniteDuration): F[ApplyCommandResult]
+  def post(timeout: TimeSpan): F[ApplyCommandResult]
 
   val m1GuideCmd: M1GuideCmd[F]
 
@@ -194,7 +195,7 @@ trait TcsEpics[F[_]] {
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
+  def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit]
 
@@ -202,7 +203,7 @@ trait TcsEpics[F[_]] {
   /* TODO: AG inposition can take up to 1[s] to react to a TCS command. If the value is read before that, it may induce
    * an error. A better solution is to detect the edge, from not in position to in-position.
    */
-  def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit]
+  def waitAGInPosition(timeout: TimeSpan)(using T: Temporal[F]): F[Unit]
 
   def hourAngle: F[String]
 
@@ -448,7 +449,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
 
   // This is a bit ugly. Commands are triggered from the main apply record, so I just choose an arbitrary command here.
   // Triggering that command will trigger all the marked commands.
-  override def post(timeout: FiniteDuration): F[ApplyCommandResult] = m1GuideCmd.post(timeout)
+  override def post(timeout: TimeSpan): F[ApplyCommandResult] = m1GuideCmd.post(timeout)
 
   override val m1GuideCmd: M1GuideCmd[F] = new EpicsCommandBase[F](sysName) with M1GuideCmd[F] {
     override val cs: Option[CaCommandSender] = Option(epicsService.getCommandSender("m1Guide"))
@@ -906,7 +907,7 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   // This functions returns a F that, when run, first waits tcsSettleTime to absorb in-position transients, then waits
   // for the in-position to change to true and stay true for stabilizationTime. It will wait up to `timeout`
   // seconds for that to happen.
-  override def waitInPosition(stabilizationTime: Duration, timeout: FiniteDuration)(using
+  override def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit] =
     T.sleep(FiniteDuration(tcsSettleTime.toMillis, TimeUnit.MILLISECONDS)) *> (
@@ -930,8 +931,8 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
   /* TODO: AG inposition can take up to 1[s] to react to a TCS command. If the value is read before that, it may induce
    * an error. A better solution is to detect the edge, from not in position to in-position.
    */
-  private val AGSettleTime                                                              = FiniteDuration(1100, MILLISECONDS)
-  override def waitAGInPosition(timeout: FiniteDuration)(using T: Temporal[F]): F[Unit] =
+  private val AGSettleTime                                                        = FiniteDuration(1100, MILLISECONDS)
+  override def waitAGInPosition(timeout: TimeSpan)(using T: Temporal[F]): F[Unit] =
     T.sleep(AGSettleTime) *>
       Sync[F]
         .delay(filteredAGInPositionAttr.restart)

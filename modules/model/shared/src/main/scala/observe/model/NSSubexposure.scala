@@ -4,51 +4,45 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
 import observe.model.GmosParameters.*
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.NodAndShuffleStage.*
 
-final case class NSSubexposure private (
+case class NsSubexposure private (
   totalCycles: NsCycles,          // Total amount of cycles for a N&S step
   cycle:       NsCycles,          // Cycle for this sub exposure
-  stageIndex:  Int,               // Nod or stage index (between 0 and 3)
+  stageIndex:  NsStageIndex,      // Nod or stage index (between 0 and 3)
   stage:       NodAndShuffleStage // Subexposure stage
-) {
-  val firstSubexposure: Boolean = cycle.value === 0 && stageIndex === 0
+) derives Eq:
+  val firstSubexposure: Boolean = cycle.value === 0 && stageIndex.value === 0
   val lastSubexposure: Boolean  =
-    cycle.value === totalCycles.value - 1 && stageIndex === NsSequence.length - 1
-}
+    cycle.value === totalCycles.value - 1 && stageIndex.value === NodAndShuffleStage.NsSequence.length - 1
 
-object NSSubexposure {
-  given Eq[NSSubexposure] =
-    Eq.by(x => (x.totalCycles, x.cycle, x.stageIndex, x.stage))
-
-  val Zero: NSSubexposure = NSSubexposure(NsCycles(0), NsCycles(0), 0, StageA)
+object NsSubexposure:
+  val Zero: NsSubexposure = NsSubexposure(NsCycles(0), NsCycles(0), NsStageIndex(0), StageA)
 
   // Smart constructor returns a Some if the parameters are logically consistent
   def apply(
     totalCycles: NsCycles,
     cycle:       NsCycles,
-    stageIndex:  Int
-  ): Option[NSSubexposure] =
+    stageIndex:  NsStageIndex
+  ): Option[NsSubexposure] =
     if (
-      totalCycles.value >= 0 && cycle.value >= 0 && cycle <= totalCycles && stageIndex >= 0 && stageIndex < NsSequence.length
+      totalCycles.value >= 0 && cycle.value >= 0 && cycle.value <= totalCycles.value && stageIndex.value >= 0 && stageIndex.value < NodAndShuffleStage.NsSequence.length
     ) {
-      NSSubexposure(totalCycles,
-                    cycle,
-                    stageIndex,
-                    NsSequence.toList.lift(stageIndex).getOrElse(StageA)
+      NsSubexposure(
+        totalCycles,
+        cycle,
+        stageIndex,
+        NsSequence.toList.lift(stageIndex.value).getOrElse(StageA)
       ).some
     } else none
 
   // Calculate the subexposures
-  def subexposures(
-    totalCycles: Int
-  ): List[NSSubexposure] =
+  def subexposures(totalCycles: Int): List[NsSubexposure] =
     (for {
       i <- 0 until totalCycles
       j <- 0 until NsSequence.length
-    } yield NSSubexposure(NsCycles(totalCycles), NsCycles(i), j)).toList.flatten
-
-}
+    } yield NsSubexposure(NsCycles(totalCycles), NsCycles(i), NsStageIndex(j))).toList.flatten

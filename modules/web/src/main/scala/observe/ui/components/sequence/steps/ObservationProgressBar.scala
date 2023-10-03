@@ -10,14 +10,14 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.core.util.TimeSpan
 import lucuma.react.common.*
 import lucuma.react.primereact.ProgressBar
 import observe.model.ImageFileId
 import observe.model.ObservationProgress
-import observe.model.enums.ObservationStage
+import observe.model.ObserveStage
 import observe.ui.ObserveStyles
 
-import java.time.Duration
 import java.util.UUID
 
 /**
@@ -43,22 +43,22 @@ object ObservationProgressBar extends ProgressLabel:
       ObservationProgress
         .Regular(
           obsId = Observation.Id.fromLong(133742).get,
-          obsName = "Test observation",
+          // obsName = "Test observation",
           stepId = Step.Id.fromUuid(UUID.randomUUID),
-          total = Duration.ofSeconds(1200),
-          remaining = Duration.ofSeconds(932),
-          stage = ObservationStage.Acquiring
+          total = TimeSpan.unsafeFromMicroseconds(1200000000L),
+          remaining = TimeSpan.unsafeFromMicroseconds(932000000L),
+          stage = ObserveStage.Acquiring
         )
         .ready
     )
     .render((props, progress) =>
       progress.value.toOption match
-        case Some(ObservationProgress.Regular(_, _, _, total, remaining, stage)) =>
+        case Some(ObservationProgress.Regular(_, _, total, remaining, stage)) =>
           // TODO Smooth Progress Bar
           // val remainingMillis = p.maxValue - s.value
 
-          val totalMillis     = total.toMillis.toInt
-          val remainingMillis = remaining.toMillis.toInt
+          val totalMillis     = total.toMilliseconds.toInt
+          val remainingMillis = remaining.toMilliseconds.toInt
 
           val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 

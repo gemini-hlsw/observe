@@ -3,69 +3,62 @@
 
 package observe.model.arb
 
+import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
 import observe.model.ObserveStage.given
 import observe.model.*
-import observe.model.arb.ArbNSSubexposure.given
+import observe.model.arb.ArbNsSubexposure.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
-import scala.concurrent.duration.FiniteDuration
-
-trait ArbObservationProgress {
-
-  given arbObservationProgress: Arbitrary[ObservationProgress] =
-    Arbitrary {
-      for {
+trait ArbObservationProgress:
+  given Arbitrary[ObservationProgress.Regular] =
+    Arbitrary:
+      for
         o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
-        t <- arbitrary[FiniteDuration]
-        r <- arbitrary[FiniteDuration]
+        t <- arbitrary[TimeSpan]
+        r <- arbitrary[TimeSpan]
         v <- arbitrary[ObserveStage]
-      } yield ObservationProgress(o, s, t, r, v)
-    }
+      yield ObservationProgress.Regular(o, s, t, r, v)
 
-  given observationInProgressCogen: Cogen[ObservationProgress] =
-    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage)]
+  given Cogen[ObservationProgress.Regular] =
+    Cogen[(Observation.Id, StepId, TimeSpan, TimeSpan, ObserveStage)]
       .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
 
-  given arbNSObservationProgress: Arbitrary[NSObservationProgress] =
-    Arbitrary {
-      for {
+  given Arbitrary[ObservationProgress.NodAndShuffle] =
+    Arbitrary:
+      for
         o <- arbitrary[Observation.Id]
         s <- arbitrary[StepId]
-        t <- arbitrary[FiniteDuration]
-        r <- arbitrary[FiniteDuration]
+        t <- arbitrary[TimeSpan]
+        r <- arbitrary[TimeSpan]
         v <- arbitrary[ObserveStage]
-        u <- arbitrary[NSSubexposure]
-      } yield NSObservationProgress(o, s, t, r, v, u)
-    }
+        u <- arbitrary[NsSubexposure]
+      yield ObservationProgress.NodAndShuffle(o, s, t, r, v, u)
 
-  given nsObservationInProgressCogen: Cogen[NSObservationProgress] =
-    Cogen[(Observation.Id, StepId, FiniteDuration, FiniteDuration, ObserveStage, NSSubexposure)]
+  given Cogen[ObservationProgress.NodAndShuffle] =
+    Cogen[(Observation.Id, StepId, TimeSpan, TimeSpan, ObserveStage, NsSubexposure)]
       .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
 
-  given arbProgress: Arbitrary[Progress] =
-    Arbitrary {
-      for {
-        o <- arbitrary[ObservationProgress]
-        n <- arbitrary[NSObservationProgress]
+  given Arbitrary[ObservationProgress] =
+    Arbitrary:
+      for
+        o <- arbitrary[ObservationProgress.Regular]
+        n <- arbitrary[ObservationProgress.NodAndShuffle]
         p <- Gen.oneOf(o, n)
-      } yield p
-    }
+      yield p
 
-  given progressCogen: Cogen[Progress] =
-    Cogen[Either[ObservationProgress, NSObservationProgress]]
-      .contramap {
-        case x: ObservationProgress   => Left(x)
-        case x: NSObservationProgress => Right(x)
-      }
-
-}
+  given Cogen[ObservationProgress] =
+    Cogen[Either[ObservationProgress.Regular, ObservationProgress.NodAndShuffle]]
+      .contramap:
+        case x @ ObservationProgress.Regular(_, _, _, _, _)          => Left(x)
+        case x @ ObservationProgress.NodAndShuffle(_, _, _, _, _, _) => Right(x)
 
 object ArbObservationProgress extends ArbObservationProgress

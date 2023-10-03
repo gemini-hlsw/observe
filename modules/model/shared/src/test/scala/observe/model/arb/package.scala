@@ -3,11 +3,9 @@
 
 package observe.model
 
-package object arb {
-
+package object arb:
   object all
-      extends ArbClientId
-      with ArbRunningStep
+      extends ArbRunningStep
       with ArbNotification
       with ArbM2GuideConfig
       with ArbM1GuideConfig
@@ -19,10 +17,9 @@ package object arb {
       with ArbStepConfig
       with ArbDhsTypes
       with ArbTime
-      with ArbNSSubexposure
+      with ArbNsSubexposure
       with ArbGmosParameters
-      with ArbNSRunningState
+      with ArbNsRunningState
       with ArbObservationProgress
       with ArbUserPrompt
       with ArbLength
-}

@@ -7,11 +7,10 @@ import cats.Applicative
 import cats.Monad
 import cats.effect.Ref
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import observe.model.enums.ApplyCommandResult
-
-import scala.concurrent.duration.FiniteDuration
 
 object TestEpicsCommand {
 
@@ -31,7 +30,7 @@ object TestEpicsCommand {
     st:    Ref[F, S],
     out:   Ref[F, List[A]]
   ) extends EpicsCommand[F] {
-    override def post(timeout: FiniteDuration): F[ApplyCommandResult] = st.get.flatMap { s =>
+    override def post(timeout: TimeSpan): F[ApplyCommandResult] = st.get.flatMap { s =>
       if (markL.get(s))
         out.modify(x => (x :+ event(s), ())) *>
           st.modify(s => (markL.replace(false)(cmd(s)), ApplyCommandResult.Completed))
@@ -162,9 +161,9 @@ object TestEpicsCommand {
   }
 
   class DummyCmd[F[_]: Applicative] extends EpicsCommand[F] {
-    override def post(timeout: FiniteDuration): F[ApplyCommandResult] =
+    override def post(timeout: TimeSpan): F[ApplyCommandResult] =
       ApplyCommandResult.Completed.pure[F].widen[ApplyCommandResult]
-    override def mark: F[Unit]                                        = Applicative[F].unit
+    override def mark: F[Unit]                                  = Applicative[F].unit
   }
 
 }

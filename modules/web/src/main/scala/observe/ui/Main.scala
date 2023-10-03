@@ -25,8 +25,11 @@ import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import observe.ui.model.RootModel
 import observe.ui.model.enums.AppTab
+import observe.ui.services.ConfigApiImpl
+import org.http4s.Uri
 import org.http4s.circe.*
 import org.http4s.dom.FetchClientBuilder
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.syntax.all.*
 import org.scalajs.dom
 import org.scalajs.dom.Element
@@ -129,9 +132,11 @@ object Main:
               reconnectionStrategy
             )
           )
+      httpClient                                 <- EmberClientBuilder.default[IO].build
     yield AppContext[IO](
       AppContext.version(ExecutionEnvironment.Development),
       SSOClient(appConfig.sso),
+      ConfigApiImpl(httpClient, uri"/api/observe"),
       (tab: AppTab) => routerCtl.urlFor(tab.getPage).value,
       (tab: AppTab, via: SetRouteVia) => routerCtl.set(tab.getPage, via)
     )

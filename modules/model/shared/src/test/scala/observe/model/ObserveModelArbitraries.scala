@@ -4,6 +4,8 @@
 package observe.model
 
 import cats.syntax.all.*
+import lucuma.core.arb.newTypeArbitrary
+import lucuma.core.arb.newTypeCogen
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
@@ -20,14 +22,13 @@ import org.scalacheck.Cogen
 import org.scalacheck.Gen
 import squants.time.*
 
-import java.util.UUID
 import scala.collection.immutable.SortedMap
 
 trait ObserveModelArbitraries {
 
   private val maxListSize = 2
 
-  given Arbitrary[Operator] = Arbitrary[Operator](Gen.alphaStr.map(Operator.apply))
+  given Arbitrary[Operator] = Arbitrary[Operator](Gen.alphaStr.map(Operator(_)))
 
   given Arbitrary[Conditions] = Arbitrary[Conditions] {
     for {
@@ -50,12 +51,11 @@ trait ObserveModelArbitraries {
       } yield SequencesQueue(Map.empty, c, o, SortedMap.empty, b)
     }
 
-  given Arbitrary[QueueId] = Arbitrary {
-    arbitrary[UUID].map(QueueId.apply)
-  }
+  given Arbitrary[ClientId] = newTypeArbitrary(ClientId)
+  given Cogen[ClientId]     = newTypeCogen(ClientId)
 
-  given Cogen[QueueId] =
-    Cogen[UUID].contramap(_.self)
+  given Arbitrary[QueueId] = newTypeArbitrary(QueueId)
+  given Cogen[QueueId]     = newTypeCogen(QueueId)
 
   given Arbitrary[ActionType] = Arbitrary[ActionType] {
     for {
@@ -72,7 +72,7 @@ trait ObserveModelArbitraries {
     } yield UserDetails(u, n)
   }
 
-  given Arbitrary[Observer]         = Arbitrary[Observer](Gen.alphaStr.map(Observer.apply))
+  given Arbitrary[Observer]         = Arbitrary[Observer](Gen.alphaStr.map(Observer(_)))
   given Arbitrary[SequenceMetadata] = Arbitrary[SequenceMetadata] {
     for {
       i <- arbitrary[Instrument]
@@ -121,11 +121,9 @@ trait ObserveModelArbitraries {
   given Cogen[ActionType] =
     Cogen[String].contramap(_.productPrefix)
 
-  given Cogen[Operator] =
-    Cogen[String].contramap(_.value)
+  given Cogen[Operator] = newTypeCogen(Operator)
 
-  given Cogen[Observer] =
-    Cogen[String].contramap(_.value)
+  given Cogen[Observer] = newTypeCogen(Observer)
 
   given Cogen[SequenceState] =
     Cogen[String].contramap(_.productPrefix)
@@ -286,8 +284,7 @@ trait ObserveModelArbitraries {
     }
 
   given Cogen[SingleActionEvent] =
-    Cogen[SingleActionOp]
-      .contramap(_.op)
+    Cogen[SingleActionOp].contramap(_.op)
 }
 
 object ObserveModelArbitraries extends ObserveModelArbitraries

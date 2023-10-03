@@ -4,71 +4,47 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
 
-sealed abstract class StepState extends Product with Serializable
+enum StepState derives Eq:
+  case Pending             extends StepState
+  case Completed           extends StepState
+  case Skipped             extends StepState
+  case Aborted             extends StepState
+  case Failed(msg: String) extends StepState
+  case Running             extends StepState
+  case Paused              extends StepState
 
-object StepState {
+  def canSetBreakpoint: Boolean = this match
+    case StepState.Pending | StepState.Skipped | StepState.Paused | StepState.Running |
+        StepState.Aborted =>
+      true
+    case _ => false
 
-  case object Pending                  extends StepState
-  case object Completed                extends StepState
-  case object Skipped                  extends StepState
-  case object Aborted                  extends StepState
-  final case class Failed(msg: String) extends StepState
-  case object Running                  extends StepState
-  case object Paused                   extends StepState
+  def canSetSkipmark: Boolean = this match
+    case StepState.Pending | StepState.Paused | StepState.Aborted => true
+    case _ if hasError                                            => true
+    case _                                                        => false
 
-  given Eq[StepState] =
-    Eq.instance {
-      case (Pending, Pending)     => true
-      case (Completed, Completed) => true
-      case (Skipped, Skipped)     => true
-      case (Failed(a), Failed(b)) => a === b
-      case (Running, Running)     => true
-      case (Paused, Paused)       => true
-      case (Aborted, Aborted)     => true
-      case _                      => false
-    }
+  def hasError: Boolean = this match
+    case StepState.Failed(_) => true
+    case _                   => false
 
-  extension (s: StepState) {
-    def canSetBreakpoint: Boolean = s match {
-      case StepState.Pending | StepState.Skipped | StepState.Paused | StepState.Running |
-          StepState.Aborted =>
-        true
-      case _ => false
-    }
+  def isRunning: Boolean = this === StepState.Running
 
-    def canSetSkipmark: Boolean = s match {
-      case StepState.Pending | StepState.Paused | StepState.Aborted => true
-      case _ if hasError                                            => true
-      case _                                                        => false
-    }
+  def isPending: Boolean = this === StepState.Pending
 
-    def hasError: Boolean = s match {
-      case StepState.Failed(_) => true
-      case _                   => false
-    }
+  def runningOrComplete: Boolean = this match
+    case StepState.Running | StepState.Completed => true
+    case _                                       => false
 
-    def isRunning: Boolean = s === StepState.Running
+  def isFinished: Boolean = this match
+    case StepState.Completed | StepState.Skipped => true
+    case _                                       => false
 
-    def isPending: Boolean = s === StepState.Pending
+  def wasSkipped: Boolean = this === StepState.Skipped
 
-    def runningOrComplete: Boolean = s match {
-      case StepState.Running | StepState.Completed => true
-      case _                                       => false
-    }
-
-    def isFinished: Boolean = s match {
-      case StepState.Completed | StepState.Skipped => true
-      case _                                       => false
-    }
-
-    def wasSkipped: Boolean = s === StepState.Skipped
-
-    def canConfigure: Boolean = s match {
-      case StepState.Pending | StepState.Paused | StepState.Failed(_) | StepState.Aborted => true
-      case _                                                                              => false
-    }
-
-  }
-}
+  def canConfigure: Boolean = this match
+    case StepState.Pending | StepState.Paused | StepState.Failed(_) | StepState.Aborted => true
+    case _                                                                              => false

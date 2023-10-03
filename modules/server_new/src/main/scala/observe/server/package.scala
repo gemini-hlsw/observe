@@ -17,6 +17,7 @@ import cats.effect.std.Queue
 import cats.syntax.all.*
 import clue.ErrorPolicy
 import fs2.Stream
+import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
 import monocle.Lens
@@ -35,8 +36,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import squants.Length
 import squants.space.Angle
 
-import scala.concurrent.duration.FiniteDuration
-
+import server.InstrumentSystem.ElapsedTime
 import server.InstrumentSystem.ElapsedTime
 
 package object server {
@@ -157,11 +157,11 @@ package object server {
   }
 
   final case class ObserveContext[F[_]](
-    resumePaused: FiniteDuration => Stream[F, Result],
+    resumePaused: TimeSpan => Stream[F, Result],
     progress:     ElapsedTime => Stream[F, Result],
     stopPaused:   Stream[F, Result],
     abortPaused:  Stream[F, Result],
-    expTime:      FiniteDuration
+    expTime:      TimeSpan
   ) extends PauseContext
 
   type ExecutionQueues = Map[QueueId, ExecutionQueue]

@@ -12,16 +12,16 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
-trait ArbNSSubexposure {
-  given nsSubexposureArb: Arbitrary[NSSubexposure] = Arbitrary[NSSubexposure] {
+trait ArbNsSubexposure {
+  given NsSubexposureArb: Arbitrary[NsSubexposure] = Arbitrary[NsSubexposure] {
     for {
       t <- Gen.posNum[Int].map(NsCycles.apply(_))
       c <- Gen.choose(0, t.value).map(NsCycles.apply(_))
-      i <- Gen.choose(0, NsSequence.length - 1)
-    } yield NSSubexposure(t, c, i).getOrElse(NSSubexposure.Zero)
+      i <- Gen.choose(0, NsSequence.length - 1).map(NsStageIndex.apply(_))
+    } yield NsSubexposure(t, c, i).getOrElse(NsSubexposure.Zero)
   }
 
-  given nsSubexposureCogen: Cogen[NSSubexposure] =
+  given NsSubexposureCogen: Cogen[NsSubexposure] =
     Cogen[
       (
         Int,
@@ -29,8 +29,8 @@ trait ArbNSSubexposure {
         Int,
         NodAndShuffleStage
       )
-    ].contramap(s => (s.totalCycles.value, s.cycle.value, s.stageIndex, s.stage))
+    ].contramap(s => (s.totalCycles.value, s.cycle.value, s.stageIndex.value, s.stage))
 
 }
 
-object ArbNSSubexposure extends ArbNSSubexposure
+object ArbNsSubexposure extends ArbNsSubexposure

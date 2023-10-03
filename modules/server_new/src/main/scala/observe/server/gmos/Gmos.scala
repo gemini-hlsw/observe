@@ -43,8 +43,7 @@ import observe.server.keywords.DhsInstrument
 import observe.server.keywords.KeywordsClient
 import org.typelevel.log4cats.Logger
 
-import scala.concurrent.duration.*
-import scala.jdk.DurationConverters.*
+import java.time.temporal.ChronoUnit
 
 abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
   val controller: GmosController[F, T],
@@ -63,7 +62,8 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
 
   val nsCount: F[Int] = controller.nsCount
 
-  override def observeTimeout: FiniteDuration = 110.seconds
+  override def observeTimeout: TimeSpan =
+    TimeSpan.unsafeFromDuration(110, ChronoUnit.SECONDS)
 
   override def observeControl: InstrumentSystem.CompleteControl[F] =
     if (isNodAndShuffle)
@@ -118,20 +118,15 @@ abstract class Gmos[F[_]: Temporal: Logger, T <: GmosSite](
       .applyConfig(config)
       .as(ConfigResult(this))
 
-  override def calcObserveTime: FiniteDuration =
-    (config.dc.t /| config.ns.exposureDivider.value).toDuration.toScala
+  override def calcObserveTime: TimeSpan =
+    config.dc.t /| config.ns.exposureDivider.value
 
-  override def observeProgress(
-    total:   FiniteDuration,
-    elapsed: ElapsedTime
-  ): fs2.Stream[F, Progress] =
-    controller
-      .observeProgress(total, elapsed)
+  override def observeProgress(total: TimeSpan, elapsed: ElapsedTime): fs2.Stream[F, Progress] =
+    controller.observeProgress(total, elapsed)
 
-  def isNodAndShuffle: Boolean = config.ns match {
-    case NSConfig.NoNodAndShuffle => false
+  def isNodAndShuffle: Boolean = config.ns match
+    case NsConfig.NoNodAndShuffle => false
     case _                        => true
-  }
 
 }
 
@@ -186,7 +181,7 @@ object Gmos {
 
   def exposureTime(
     exp:      TimeSpan,
-    nsConfig: NSConfig
+    nsConfig: NsConfig
   ): TimeSpan = exp /| nsConfig.exposureDivider.value
 
   def shutterStateObserveType(obsType: StepType): ShutterState = obsType match {
@@ -239,7 +234,7 @@ object Gmos {
       RegionsOfInterest.fromOCS(getters.roi.get(dynamicCfg), List.empty)
 
     def dcConfigFromSequenceConfig(
-      nsConfig: NSConfig
+      nsConfig: NsConfig
     ): DCConfig = DCConfig(
       exposureTime(getters.exposure.get(dynamicCfg), nsConfig),
       shutterStateObserveType(stepType),
@@ -253,10 +248,10 @@ object Gmos {
       extractROIs
     )
 
-    val nsConfig: NSConfig = getters.nodAndShuffle
+    val nsConfig: NsConfig = getters.nodAndShuffle
       .get(staticCfg)
       .map { n =>
-        NSConfig.NodAndShuffle(
+        NsConfig.NodAndShuffle(
           NsCycles(n.shuffleCycles.value),
           NsRows(n.shuffleOffset.value),
           Vector(NSPosition(NodAndShuffleStage.StageA, n.posA, Guiding.Guide),
@@ -265,7 +260,7 @@ object Gmos {
           getters.exposure.get(dynamicCfg)
         )
       }
-      .getOrElse(NSConfig.NoNodAndShuffle)
+      .getOrElse(NsConfig.NoNodAndShuffle)
 
     GmosController.GmosConfig[T](
       ccConfigFromSequenceConfig,
@@ -275,7 +270,7 @@ object Gmos {
 
   }
 
-  final case class GmosStatusGen(ns: NSConfig) extends SequenceGen.StepStatusGen
+  final case class GmosStatusGen(ns: NsConfig) extends SequenceGen.StepStatusGen
 
   def isNodAndShuffle[S <: StaticConfig](
     staticConfig: S,

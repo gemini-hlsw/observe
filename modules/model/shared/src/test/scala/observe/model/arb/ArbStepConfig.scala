@@ -7,11 +7,9 @@ import lucuma.core.arb.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.math.arb.ArbOffset.*
-import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.*
-import observe.model.enums.*
 import org.scalacheck.Arbitrary.*
-import org.scalacheck.*
+import org.scalacheck.Gen
 
 trait ArbStepConfig {
   val asciiStr: Gen[String] =
@@ -23,14 +21,14 @@ trait ArbStepConfig {
       b <- asciiStr
     } yield (a, b)
 
-  val parametersGen: Gen[Parameters] =
-    Gen.chooseNum(0, 10).flatMap(s => Gen.mapOfN[String, String](s, stepItemG))
+  // val parametersGen: Gen[Parameters] =
+  //   Gen.chooseNum(0, 10).flatMap(s => Gen.mapOfN[String, String](s, stepItemG))
 
-  val stepConfigG: Gen[(SystemName, Parameters)] =
-    for {
-      a <- arbitrary[SystemName]
-      b <- parametersGen
-    } yield (a, b)
+  // val stepConfigG: Gen[(SystemName, Parameters)] =
+  //   for {
+  //     a <- arbitrary[SystemName]
+  //     b <- parametersGen
+  //   } yield (a, b)
 
   private val perturbations: List[String => Gen[String]] =
     List(s => if (s.startsWith("-")) Gen.const(s) else Gen.const(s"00%s") // insert leading 0s

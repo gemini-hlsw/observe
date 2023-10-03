@@ -5,6 +5,8 @@ package observe.model.enums
 
 import cats.Show
 import cats.data.NonEmptyList
+import cats.syntax.option.*
+import lucuma.core.enums.{Instrument => CoreInstrument}
 import lucuma.core.util.Enumerated
 
 /** A Observe resource represents any system that can be only used by one single agent. */
@@ -40,9 +42,32 @@ object Resource {
 sealed abstract class Instrument(tag: String, ordinal: Int, label: String)
     extends Resource(tag, ordinal, label) {
   override def isInstrument: Boolean = true
+
+  def underlying: CoreInstrument = this match
+    // case Instrument.F2    => CoreInstrument.Flamingos2
+    // case Instrument.Ghost => CoreInstrument.Ghost
+    case Instrument.GmosS => CoreInstrument.GmosSouth
+    case Instrument.GmosN => CoreInstrument.GmosNorth
+    // case Instrument.Gnirs => CoreInstrument.Gnirs
+    // case Instrument.Gpi   => CoreInstrument.Gpi
+    // case Instrument.Gsaoi => CoreInstrument.Gsaoi
+    // case Instrument.Niri  => CoreInstrument.Niri
+    // case Instrument.Nifs  => CoreInstrument.Nifs
 }
 
 object Instrument {
+  def fromCoreInstrument(i: CoreInstrument): Option[Instrument] =
+    i match
+      // case CoreInstrument.Flamingos2 => F2
+      // case CoreInstrument.Ghost      => Ghost
+      case CoreInstrument.GmosSouth => GmosS.some
+      case CoreInstrument.GmosNorth => GmosN.some
+      // case CoreInstrument.Gnirs      => Gnirs
+      // case CoreInstrument.Gpi        => Gpi
+      // case CoreInstrument.Gsaoi      => Gsaoi
+      // case CoreInstrument.Niri       => Niri
+      // case CoreInstrument.Nifs       => Nifs
+      case _                        => none
 
 //  case object F2    extends Instrument("F2", 11, "Flamingos2")
 //  case object Ghost extends Instrument("Ghost", 12, "GHOST")

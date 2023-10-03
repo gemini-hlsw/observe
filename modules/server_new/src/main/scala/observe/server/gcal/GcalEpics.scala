@@ -10,13 +10,12 @@ import edu.gemini.epics.acm.CaAttribute
 import edu.gemini.epics.acm.CaCommandSender
 import edu.gemini.epics.acm.CaService
 import edu.gemini.observe.server.gcal.BinaryOnOff
+import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.safeAttributeF
-
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Created by jluhrs on 3/14/17.
@@ -25,7 +24,7 @@ class GcalEpics[F[_]: Async](epicsService: CaService, tops: Map[String, String])
   val sysName: String = "GCAL"
   val GcalTop: String = tops.getOrElse("gc", "")
 
-  def post(timeout: FiniteDuration): F[ApplyCommandResult] = lampsCmd.post(timeout)
+  def post(timeout: TimeSpan): F[ApplyCommandResult] = lampsCmd.post(timeout)
 
   object shutterCmd extends EpicsCommandBase[F](sysName) {
     override val cs: Option[CaCommandSender] = Option(

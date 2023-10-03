@@ -12,7 +12,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.Observer
 import observe.model.RunningStep
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.ui.model.enums.ObsClass
 
 case class SessionQueueRow(

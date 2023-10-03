@@ -12,14 +12,13 @@ import edu.gemini.epics.acm.CaService
 import edu.gemini.epics.acm.CaStatusAcceptor
 import edu.gemini.observe.server.gems.LoopState
 import edu.gemini.observe.server.gems.ReadyState
+import lucuma.core.util.TimeSpan
 import observe.server.EpicsCommand
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil
 import observe.server.EpicsUtil.*
-
-import scala.concurrent.duration.FiniteDuration
 
 trait GemsEpics[F[_]] {
   import observe.server.gems.GemsEpics.LoopControl
@@ -84,7 +83,7 @@ trait GemsEpics[F[_]] {
 
   def scienceReady: F[Boolean]
 
-  def waitForStableLoops(timeout: FiniteDuration): F[Unit]
+  def waitForStableLoops(timeout: TimeSpan): F[Unit]
 
   def ttLoop: F[LoopState]
 
@@ -258,11 +257,12 @@ object GemsEpics extends EpicsSystem[GemsEpics[IO]] {
     override def scienceReady: F[Boolean] =
       safeAttributeF(scienceStateAttr).map(_ === ReadyState.Ready)
 
-    override def waitForStableLoops(timeout: FiniteDuration): F[Unit] =
-      EpicsUtil.waitForValueF(scienceStateAttr,
-                              ReadyState.Ready,
-                              timeout,
-                              "GeMS science ready flag"
+    override def waitForStableLoops(timeout: TimeSpan): F[Unit] =
+      EpicsUtil.waitForValueF(
+        scienceStateAttr,
+        ReadyState.Ready,
+        timeout,
+        "GeMS science ready flag"
       )
 
     private val ttLoopAttr            = mystStatus.addEnum("ttLoop",

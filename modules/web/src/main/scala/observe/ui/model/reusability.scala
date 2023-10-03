@@ -8,16 +8,16 @@ import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
-import observe.model.ClientStatus
 import observe.model.ExecutionState
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
+import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
 
 object reusability:
-  given Reusability[ClientStatus]                          = Reusability.byEq
+  given Reusability[ClientMode]                            = Reusability.byEq
   given Reusability[SequenceState]                         = Reusability.byEq
   given Reusability[TabOperations]                         = Reusability.byEq
   given Reusability[ObsClass]                              = Reusability.byEq

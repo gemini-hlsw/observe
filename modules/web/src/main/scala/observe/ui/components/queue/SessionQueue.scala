@@ -18,9 +18,10 @@ import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.display.given
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 
@@ -59,19 +60,19 @@ object SessionQueue:
     // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
       row.status match
-        case SequenceState.Completed           => Icons.Check // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _, _, _) => Icons.CircleNotch.withSpin(true)
+        case SequenceState.Completed     => Icons.Check // clazz = selectedIconStyle)
+        case SequenceState.Running(_, _) => Icons.CircleNotch.withSpin(true)
         //      loading = true,
         //      clazz = ObserveStyles.runningIcon
-        case SequenceState.Failed(_)           => EmptyVdom
+        case SequenceState.Failed(_)     => EmptyVdom
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused                    =>             // EmptyVdom
+        case _ if isFocused              =>             // EmptyVdom
           Icons.CircleCheck.copy(size = IconSize.LG)
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
-        case _                                 => EmptyVdom
+        case _                           => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,
@@ -111,7 +112,7 @@ object SessionQueue:
     // )
 
   private def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-    s"${status.shortName} ${runningStep.map(u => s" ${u.shortName}").orEmpty}"
+    s"${status.shortName} ${runningStep.map(rs => s" ${rs.shortName}").orEmpty}"
 
   // private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
   //   // <.div(ObserveStyles.QueueText |+| css)(node)

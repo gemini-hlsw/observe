@@ -5,7 +5,7 @@ package observe.ui.components.sequence.steps
 
 import cats.syntax.all.*
 import observe.model.ImageFileId
-import observe.model.enums.ObservationStage
+import observe.model.ObserveStage
 
 trait ProgressLabel:
   protected def renderLabel(
@@ -13,7 +13,7 @@ trait ProgressLabel:
     remainingMillis: Option[Int],
     stopping:        Boolean,
     paused:          Boolean,
-    stage:           ObservationStage
+    stage:           ObserveStage
   ): String = {
     val durationStr = remainingMillis.foldMap { millis =>
       // s"mm:ss (s s) Remaining"
@@ -25,9 +25,9 @@ trait ProgressLabel:
     }
     val stageStr    =
       stage match {
-        case ObservationStage.Preparing  => "Preparing".some
-        case ObservationStage.ReadingOut => "Reading out...".some
-        case _                           => None
+        case ObserveStage.Preparing  => "Preparing".some
+        case ObserveStage.ReadingOut => "Reading out...".some
+        case _                       => None
       }
 
     if (paused) s"$fileId - Paused$durationStr"

@@ -11,7 +11,7 @@ import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.*
-import observe.model.enums.SequenceState
+import observe.model.SequenceState
 import observe.model.operations.Operations.*
 import observe.model.operations.*
 import observe.ui.Icons

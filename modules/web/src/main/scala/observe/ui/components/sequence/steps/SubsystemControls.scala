@@ -19,6 +19,7 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.display.given
 import observe.ui.model.ResourceRunOperation
+import observe.ui.model.enums.ClientMode
 
 import scala.collection.immutable.SortedMap
 
@@ -30,7 +31,7 @@ case class SubsystemControls(
   stepId:         Step.Id,
   resources:      List[Resource],
   resourcesCalls: SortedMap[Resource, ResourceRunOperation],
-  canOperate:     Boolean
+  clientMode:     ClientMode
 ) extends ReactFnProps(SubsystemControls.component)
 
 object SubsystemControls:
@@ -87,8 +88,8 @@ object SubsystemControls:
                 case ResourceRunOperation.ResourceRunInFlight(_) => true
                 case _                                           => false
               ,
-              clazz =
-                ObserveStyles.ConfigButton |+| ObserveStyles.DefaultCursor.unless_(props.canOperate)
+              clazz = ObserveStyles.ConfigButton |+|
+                ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate)
               //     onClickE =
               //       if (p.canOperate) requestResourceCall(p.id, p.stepId, r)
               //       else js.undefined,

@@ -8,7 +8,6 @@ import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.ClientId
 import observe.model.Conditions
 import observe.model.ObserveModelArbitraries.given
-import observe.model.arb.ArbClientId.given
 import observe.model.events.client.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

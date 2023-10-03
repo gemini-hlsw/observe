@@ -16,7 +16,6 @@ import lucuma.core.util.arb.ArbUid.*
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.arb.ArbClientId.given
 import observe.model.enums.*
 import observe.server.*
 import org.http4s.*

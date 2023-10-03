@@ -4,27 +4,28 @@
 package observe.model
 
 import cats.*
+import cats.derived.*
 import lucuma.core.util.TimeSpan
+import monocle.Focus
+import monocle.Lens
 import observe.model.GmosParameters.*
 import observe.model.enums.*
 
-final case class NSRunningState(action: NSAction, sub: NSSubexposure)
+case class NsRunningState(action: NsAction, sub: NsSubexposure) derives Eq
 
-object NSRunningState {
-  given Eq[NSRunningState] =
-    Eq.by(x => (x.action, x.sub))
-}
-
-final case class NodAndShuffleStatus(
+case class NodAndShuffleStatus(
   observing:         ActionStatus,
   totalExposureTime: TimeSpan,
   nodExposureTime:   TimeSpan,
   cycles:            NsCycles,
-  state:             Option[NSRunningState]
-)
+  state:             Option[NsRunningState]
+) derives Eq
 
-object NodAndShuffleStatus {
-
-  given Eq[NodAndShuffleStatus] =
-    Eq.by(x => (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles, x.state))
-}
+object NodAndShuffleStatus:
+  val observing: Lens[NodAndShuffleStatus, ActionStatus]       = Focus[NodAndShuffleStatus](_.observing)
+  val totalExposureTime: Lens[NodAndShuffleStatus, TimeSpan]   =
+    Focus[NodAndShuffleStatus](_.totalExposureTime)
+  val nodExposureTime: Lens[NodAndShuffleStatus, TimeSpan]     =
+    Focus[NodAndShuffleStatus](_.nodExposureTime)
+  val cycles: Lens[NodAndShuffleStatus, NsCycles]              = Focus[NodAndShuffleStatus](_.cycles)
+  val state: Lens[NodAndShuffleStatus, Option[NsRunningState]] = Focus[NodAndShuffleStatus](_.state)

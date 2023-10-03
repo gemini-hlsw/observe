@@ -4,34 +4,16 @@
 package observe
 
 import cats.*
-import lucuma.core.util.NewType
-import observe.model.enums.*
+import observe.model.enums.Instrument
 import squants.time.Time
 import squants.time.TimeUnit
 
 import java.util.UUID
 
-package model {
-  case class QueueId(self: UUID) extends AnyVal
-
-  object ClientId extends NewType[UUID]
-  type ClientId = ClientId.Type
-}
-
 package object model {
-  type ParamName       = String
-  type ParamValue      = String
-  type Parameters      = Map[ParamName, ParamValue]
   type StepId          = lucuma.core.model.sequence.Step.Id
   type ObservationName = String
   type TargetName      = String
-
-  given Eq[QueueId]                  = Eq.by(x => x.self)
-  given Show[QueueId]                = Show.fromToString
-  given Order[QueueId]               =
-    Order.by(_.self)
-  given scala.math.Ordering[QueueId] =
-    Order[QueueId].toOrdering
 
   val UnknownTargetName = "None"
 

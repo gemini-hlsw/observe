@@ -12,6 +12,7 @@ import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Iso
 import monocle.Lens
@@ -32,8 +33,7 @@ import squants.space.LengthConversions.*
 import squants.time.TimeConversions.*
 
 import java.time.Duration
-import java.util.concurrent.TimeUnit.SECONDS
-import scala.concurrent.duration.FiniteDuration
+import java.time.temporal.ChronoUnit
 
 /**
  * Base implementation of an Epics TcsController Type parameter BaseEpicsTcsConfig is the class used
@@ -748,8 +748,9 @@ object TcsControllerEpicsCommon {
             s <- params
             _ <- epicsSys.post(ConfigTimeout)
             _ <- if (mountMoves)
-                   epicsSys.waitInPosition(Duration.ofMillis(stabilizationTime.toMillis),
-                                           tcsTimeout
+                   epicsSys.waitInPosition(
+                     Duration.ofMillis(stabilizationTime.toMillis),
+                     tcsTimeout
                    ) *> L.debug("TCS inposition")
                  else
                    (epicsSys.waitAGInPosition(agTimeout) *> L.debug("AG inposition"))
@@ -840,8 +841,8 @@ object TcsControllerEpicsCommon {
   def apply[F[_]: Async: Logger, S <: Site](epicsSys: TcsEpics[F]): TcsControllerEpicsCommon[F, S] =
     new TcsControllerEpicsCommonImpl(epicsSys)
 
-  val DefaultTimeout: FiniteDuration = FiniteDuration(10, SECONDS)
-  val ConfigTimeout: FiniteDuration  = FiniteDuration(60, SECONDS)
+  val DefaultTimeout: TimeSpan = TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
+  val ConfigTimeout: TimeSpan  = TimeSpan.unsafeFromDuration(60, ChronoUnit.SECONDS)
 
   val OffsetTolerance: Length = 1e-6.millimeters
 

@@ -34,7 +34,7 @@ final case class SequenceView(
 
 object SequenceView {
   given Eq[SequenceView] =
-    Eq.by(x => (x.obsId, x.metadata, x.status, x.steps, x.willStopIn))
+    Eq.by(x => (x.obsId, x.metadata, x.status, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
     Focus[SequenceView](_.steps).andThen(each[List[Step], Step])

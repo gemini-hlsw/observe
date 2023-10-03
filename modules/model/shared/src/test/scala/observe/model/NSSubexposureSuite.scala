@@ -7,10 +7,10 @@ import cats.syntax.eq.*
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 
-class NSSubexposureSuite extends munit.DisciplineSuite {
+class NsSubexposureSuite extends munit.DisciplineSuite {
   test("subexposures calculations") {
     forAll(Gen.posNum[Int]) { n =>
-      assert(NSSubexposure.subexposures(n).length === n * 4)
+      assert(NsSubexposure.subexposures(n).length === n * 4)
     }
   }
 }

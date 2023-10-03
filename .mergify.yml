@@ -33,14 +33,6 @@ pull_request_rules:
       add:
       - model
       remove: []
-- name: Label new_model PRs
-  conditions:
-  - files~=^modules/new_model/
-  actions:
-    label:
-      add:
-      - new_model
-      remove: []
 - name: Label observe-server PRs
   conditions:
   - files~=^app/observe-server/

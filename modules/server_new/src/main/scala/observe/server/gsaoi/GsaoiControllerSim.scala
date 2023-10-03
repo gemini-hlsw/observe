@@ -6,6 +6,7 @@ package observe.server.gsaoi
 import cats.Applicative
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentControllerSim
@@ -14,8 +15,6 @@ import observe.server.Progress
 import observe.server.gsaoi.GsaoiController.DCConfig
 import observe.server.gsaoi.GsaoiController.GsaoiConfig
 import org.typelevel.log4cats.Logger
-
-import scala.concurrent.duration.*
 
 object GsaoiControllerSim {
   def apply[F[_]: Logger: Async]: F[GsaoiFullHandler[F]] =
@@ -34,8 +33,8 @@ object GsaoiControllerSim {
 
         override def endObserve: F[Unit] = sim.endObserve
 
-        override def observeProgress(total: FiniteDuration): fs2.Stream[F, Progress] =
-          sim.observeCountdown(total, ElapsedTime(Duration.Zero))
+        override def observeProgress(total: TimeSpan): fs2.Stream[F, Progress] =
+          sim.observeCountdown(total, ElapsedTime(TimeSpan.Zero))
 
         override def currentState: F[GsaoiGuider.GuideState] = (new GsaoiGuider.GuideState {
           override def isGuideActive: Boolean = false

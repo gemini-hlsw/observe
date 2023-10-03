@@ -3,48 +3,47 @@
 
 package observe.server
 
+import lucuma.core.util.TimeSpan
 import observe.engine.Result.PartialVal
-import observe.model.NSSubexposure
+import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
-
-import scala.concurrent.duration.FiniteDuration
 
 // Marker trait for partials that won't result on a client message
 trait InternalPartialVal extends PartialVal
 
 final case class FileIdAllocated(fileId: ImageFileId) extends PartialVal
-final case class RemainingTime(self: FiniteDuration)  extends AnyVal
+final case class RemainingTime(self: TimeSpan)        extends AnyVal
 
 sealed trait Progress extends PartialVal with Product with Serializable {
-  val total: FiniteDuration
+  val total: TimeSpan
   val remaining: RemainingTime
-  def progress: FiniteDuration
+  def progress: TimeSpan
   val stage: ObserveStage
 }
 
 object Progress {
   extension (a: Progress) {
-    def toNSProgress(sub: NSSubexposure): NSProgress =
-      NSProgress.fromObsProgress(a, sub)
+    def toNSProgress(sub: NsSubexposure): NsProgress =
+      NsProgress.fromObsProgress(a, sub)
   }
 }
 
-final case class ObsProgress(total: FiniteDuration, remaining: RemainingTime, stage: ObserveStage)
+final case class ObsProgress(total: TimeSpan, remaining: RemainingTime, stage: ObserveStage)
     extends Progress {
-  val progress: FiniteDuration = total - remaining.self
+  val progress: TimeSpan = total -| remaining.self
 }
 
-final case class NSProgress(
-  total:     FiniteDuration,
+final case class NsProgress(
+  total:     TimeSpan,
   remaining: RemainingTime,
   stage:     ObserveStage,
-  sub:       NSSubexposure
+  sub:       NsSubexposure
 ) extends Progress {
-  val progress: FiniteDuration = total - remaining.self
+  val progress: TimeSpan = total -| remaining.self
 }
 
-object NSProgress {
-  def fromObsProgress(progress: Progress, sub: NSSubexposure): NSProgress =
-    NSProgress(progress.total, progress.remaining, progress.stage, sub)
+object NsProgress {
+  def fromObsProgress(progress: Progress, sub: NsSubexposure): NsProgress =
+    NsProgress(progress.total, progress.remaining, progress.stage, sub)
 }
