@@ -841,14 +841,12 @@ object ObserveEngine {
     }
 
     override def eventStream: Stream[F, ObserveEvent] =
-      stream(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
-        case Right((ev, qState)) =>
-          val sequences = List(qState.selected.gmosNorth, qState.selected.gmosSouth).flattenOption
-            .map(viewSequence)
-          toObserveEvent[F](ev, qState)
-        case Left(x)             =>
-          Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
-      }
+      Stream.eval(executeEngine.offer(Event.getState(_ => heartbeatStream.some)).as(NullEvent)) ++
+        stream(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
+          case Right((ev, qState)) => toObserveEvent[F](ev, qState)
+          case Left(x)             =>
+            Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
+        }
 
     override def stream(
       s0: EngineState[F]
