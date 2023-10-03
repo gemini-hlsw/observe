@@ -17,6 +17,22 @@ pull_request_rules:
   - status-success=Build and Test (ubuntu-latest, 3, temurin@17, rootJVM)
   actions:
     merge: {}
+- name: Label client PRs
+  conditions:
+  - files~=^modules/web/client/
+  actions:
+    label:
+      add:
+      - client
+      remove: []
+- name: Label client-clue PRs
+  conditions:
+  - files~=^modules/web/client-clue/
+  actions:
+    label:
+      add:
+      - client-clue
+      remove: []
 - name: Label engine PRs
   conditions:
   - files~=^modules/engine/
@@ -104,20 +120,4 @@ pull_request_rules:
     label:
       add:
       - stateengine
-      remove: []
-- name: Label web PRs
-  conditions:
-  - files~=^modules/web/
-  actions:
-    label:
-      add:
-      - web
-      remove: []
-- name: Label web-clue PRs
-  conditions:
-  - files~=^modules/web-clue/
-  actions:
-    label:
-      add:
-      - web-clue
       remove: []
