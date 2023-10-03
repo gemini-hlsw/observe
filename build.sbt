@@ -60,7 +60,6 @@ lazy val esModule = Seq(
 //////////////
 
 lazy val root = tlCrossRootProject.aggregate(
-  giapi,
   observe_web_server,
   observe_web_client,
   observe_server,
@@ -77,27 +76,6 @@ lazy val stateengine = project
       Mouse.value,
       Fs2.value
     ) ++ MUnit.value ++ Cats.value
-  )
-
-lazy val giapi = project
-  .in(file("modules/giapi"))
-  .enablePlugins(GitBranchPrompt)
-  .settings(commonSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(Mouse.value,
-                                CatsEffect.value,
-                                Fs2.value,
-                                GiapiJmsUtil,
-                                GiapiJmsProvider,
-                                GiapiStatusService,
-                                Giapi,
-                                GiapiCommandsClient
-    ) ++ Logging.value ++ Monocle.value ++ MUnit.value ++ Cats.value,
-    libraryDependencies ++= Seq(GmpStatusGateway  % "test",
-                                GmpStatusDatabase % "test",
-                                GmpCmdJmsBridge   % "test",
-                                NopSlf4j          % "test"
-    ) ++ MUnit.value
   )
 
 lazy val observe_web_server = project
@@ -197,7 +175,8 @@ lazy val observe_server = project
         ClueHttp4s,
         LucumaSchemas.value,
         Atto,
-        ACM
+        ACM,
+        GiapiScala
       ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
@@ -211,7 +190,6 @@ lazy val observe_server = project
     buildInfoPackage          := "observe.server"
   )
   .dependsOn(observe_engine    % "compile->compile;test->test",
-             giapi,
 //             ocs2_api.jvm,
              observe_model.jvm % "compile->compile;test->test"
   )
