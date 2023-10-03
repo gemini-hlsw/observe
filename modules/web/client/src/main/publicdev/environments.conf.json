@@ -2,7 +2,7 @@
   {
     "hostName": "*",
     "environment": "DEVELOPMENT",
-    "odbURI": "wss://lucuma-postgres-odb-dev.herokuapp.com/ws",
+    "odbURI": "ws://localhost:8082/ws",
     "sso": {
       "uri": "https://sso-dev.gpp.lucuma.xyz",
       "readTimeoutSeconds": 10,

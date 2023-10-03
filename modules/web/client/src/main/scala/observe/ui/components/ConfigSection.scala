@@ -3,6 +3,7 @@
 
 package observe.ui.components
 
+import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -13,6 +14,10 @@ import lucuma.react.primereact.InputText
 import observe.model.*
 import observe.ui.AppContext
 import observe.ui.ObserveStyles
+import lucuma.core.enums.ImageQuality
+import lucuma.refined.*
+import lucuma.ui.primereact.given
+import lucuma.ui.primereact.EnumDropdownOptionalView
 
 case class ConfigSection(
   // status:     ClientStatus,
@@ -28,10 +33,12 @@ object ConfigSection:
     .withHooks[Props]
     .useContext(AppContext.ctx)
     .render: (props, ctx) =>
-      // val iq =
-      //   props.conditions.zoom(
-      //     Conditions.iq
-      //   ).withOnMod(_.map(ctx.configApi.setImageQuality).orEmpty)
+      import ctx.given
+
+      val iq: View[Option[ImageQuality]] =
+        props.conditions
+          .zoom(Conditions.iq)
+          .withOnMod(_.map(ctx.configApi.setImageQuality).orEmpty.runAsync)
 
       Card(clazz = ObserveStyles.HeaderSideBarCard)(
         <.div(ObserveStyles.HeaderSideBar)(
@@ -45,7 +52,7 @@ object ConfigSection:
           ),
           <.div(ObserveStyles.ImageQualityArea)(
             <.label(^.htmlFor := "imageQuality")("Image Quality"),
-            Dropdown("", List.empty, id = "imageQuality")
+            EnumDropdownOptionalView(id = "imageQuality".refined, value = iq, showClear = false)
           ),
           <.div(ObserveStyles.CloudCoverArea)(
             <.label(^.htmlFor := "cloudCover")("Cloud Cover"),
