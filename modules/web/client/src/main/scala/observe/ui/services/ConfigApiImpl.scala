@@ -21,13 +21,10 @@ import org.http4s.client.*
 
 case class ConfigApiImpl(client: Client[IO], baseUri: Uri) extends ConfigApi[IO]:
   private def request[T: Encoder](path: String, data: T): IO[Unit] =
-    client.expect[Unit](
-      // Method.POST(data.asJson, baseUri.addPath(path))
-      Request(Method.POST, baseUri.addPath(path)).withEntity(data.asJson)
-    )
+    client.expect[Unit](Request(Method.POST, baseUri.addPath(path)).withEntity(data.asJson))
 
-  def setImageQuality(iq:  ImageQuality): IO[Unit]    = request("/commands/iq", iq)
-  def setCloudCover(ce:    CloudExtinction): IO[Unit] = request("/commands/ce", ce)
-  def setWaterVapor(wv:    WaterVapor): IO[Unit]      = request("/commands/wv", wv)
-  def setSkyBackground(sb: SkyBackground): IO[Unit]   = request("/commands/sb", sb)
-  def refresh(clientId:    ClientId): IO[Unit]        = request("/commands/refresh", clientId)
+  def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("/iq", iq)
+  def setCloudExtinction(ce: CloudExtinction): IO[Unit] = request("/ce", ce)
+  def setWaterVapor(wv:      WaterVapor): IO[Unit]      = request("/wv", wv)
+  def setSkyBackground(sb:   SkyBackground): IO[Unit]   = request("/sb", sb)
+  def refresh(clientId:      ClientId): IO[Unit]        = request("/refresh", clientId)

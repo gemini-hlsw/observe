@@ -13,7 +13,7 @@ import monocle.Focus
 import monocle.Lens
 
 final case class Conditions(
-  cc: Option[CloudExtinction],
+  ce: Option[CloudExtinction],
   iq: Option[ImageQuality],
   sb: Option[SkyBackground],
   wv: Option[WaterVapor]
@@ -59,9 +59,9 @@ object Conditions {
     Unknown // Taken from ODB
 
   given Eq[Conditions] =
-    Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
+    Eq.by(x => (x.ce, x.iq, x.sb, x.wv))
 
-  val cc: Lens[Conditions, Option[CloudExtinction]] = Focus[Conditions](_.cc)
+  val ce: Lens[Conditions, Option[CloudExtinction]] = Focus[Conditions](_.ce)
   val iq: Lens[Conditions, Option[ImageQuality]]    = Focus[Conditions](_.iq)
   val sb: Lens[Conditions, Option[SkyBackground]]   = Focus[Conditions](_.sb)
   val wv: Lens[Conditions, Option[WaterVapor]]      = Focus[Conditions](_.wv)

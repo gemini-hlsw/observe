@@ -7,17 +7,18 @@ import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.CloudExtinction
+import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.SkyBackground
+import lucuma.core.enums.WaterVapor
 import lucuma.react.common.*
-import lucuma.react.primereact.Card
-import lucuma.react.primereact.Dropdown
 import lucuma.react.primereact.InputText
+import lucuma.refined.*
+import lucuma.ui.primereact.FormEnumDropdownOptionalView
+import lucuma.ui.primereact.given
 import observe.model.*
 import observe.ui.AppContext
 import observe.ui.ObserveStyles
-import lucuma.core.enums.ImageQuality
-import lucuma.refined.*
-import lucuma.ui.primereact.given
-import lucuma.ui.primereact.EnumDropdownOptionalView
 
 case class ConfigSection(
   // status:     ClientStatus,
@@ -40,31 +41,62 @@ object ConfigSection:
           .zoom(Conditions.iq)
           .withOnMod(_.map(ctx.configApi.setImageQuality).orEmpty.runAsync)
 
-      Card(clazz = ObserveStyles.HeaderSideBarCard)(
-        <.div(ObserveStyles.HeaderSideBar)(
-          <.div(ObserveStyles.ObserverArea)(
-            <.label(^.htmlFor := "observer")("Observer Name"),
-            InputText("observer")
-          ),
-          <.div(ObserveStyles.OperatorArea)(
-            <.label(^.htmlFor := "operator")("Operator"),
-            InputText("operator")
-          ),
-          <.div(ObserveStyles.ImageQualityArea)(
-            <.label(^.htmlFor := "imageQuality")("Image Quality"),
-            EnumDropdownOptionalView(id = "imageQuality".refined, value = iq, showClear = false)
-          ),
-          <.div(ObserveStyles.CloudCoverArea)(
-            <.label(^.htmlFor := "cloudCover")("Cloud Cover"),
-            Dropdown("", List.empty, id = "cloudCover")
-          ),
-          <.div(ObserveStyles.WaterVaporArea)(
-            <.label(^.htmlFor := "waterVapor")("Water Vapor"),
-            Dropdown("", List.empty, id = "waterVapor")
-          ),
-          <.div(ObserveStyles.SkyBackgroundArea)(
-            <.label(^.htmlFor := "skyBackground")("Sky Background"),
-            Dropdown("", List.empty, id = "skyBackground")
+      val ce: View[Option[CloudExtinction]] =
+        props.conditions
+          .zoom(Conditions.ce)
+          .withOnMod(_.map(ctx.configApi.setCloudExtinction).orEmpty.runAsync)
+
+      val wv: View[Option[WaterVapor]] =
+        props.conditions
+          .zoom(Conditions.wv)
+          .withOnMod(_.map(ctx.configApi.setWaterVapor).orEmpty.runAsync)
+
+      val sb: View[Option[SkyBackground]] =
+        props.conditions
+          .zoom(Conditions.sb)
+          .withOnMod(_.map(ctx.configApi.setSkyBackground).orEmpty.runAsync)
+
+        // Card(clazz = ObserveStyles.HeaderSideBarCard)(
+      <.div(ObserveStyles.ConfigSection)(
+        <.div(ObserveStyles.ObserverArea)(
+          <.label(^.htmlFor := "observer")("Observer Name"),
+          InputText("observer")
+        ),
+        <.div(ObserveStyles.OperatorArea)(
+          <.label(^.htmlFor := "operator")("Operator"),
+          InputText("operator")
+        ),
+        <.div(ObserveStyles.ImageQualityArea)(
+          FormEnumDropdownOptionalView(
+            id = "imageQuality".refined,
+            label = "Image Quality",
+            value = iq,
+            showClear = false
+          )
+        ),
+        <.div(ObserveStyles.CloudExtinctionArea)(
+          FormEnumDropdownOptionalView(
+            id = "cloudExtinction".refined,
+            label = "Cloud Extinction",
+            value = ce,
+            showClear = false
+          )
+        ),
+        <.div(ObserveStyles.WaterVaporArea)(
+          FormEnumDropdownOptionalView(
+            id = "waterVapor".refined,
+            label = "Water Vapor",
+            value = wv,
+            showClear = false
+          )
+        ),
+        <.div(ObserveStyles.SkyBackgroundArea)(
+          FormEnumDropdownOptionalView(
+            id = "skyBackground".refined,
+            label = "Sky Background",
+            value = sb,
+            showClear = false
           )
         )
+        // )
       )

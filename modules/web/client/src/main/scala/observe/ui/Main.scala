@@ -28,8 +28,8 @@ import observe.ui.model.enums.AppTab
 import observe.ui.services.ConfigApiImpl
 import org.http4s.Uri
 import org.http4s.circe.*
+import org.http4s.client.Client
 import org.http4s.dom.FetchClientBuilder
-import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.syntax.all.*
 import org.scalajs.dom
 import org.scalajs.dom.Element
@@ -44,6 +44,8 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 
 @JSExportTopLevel("Main")
 object Main:
+  private val ConfigFile = uri"/environments.conf.json"
+  private val ApiBaseUri = uri"/api/observe"
 
   @JSExport
   def runIOApp(): Unit = run.unsafeRunAndForget()
@@ -98,14 +100,15 @@ object Main:
           TimeUnit.SECONDS
         ).some
 
-  private val configFile = uri"/environments.conf.json"
-
-  private val fetchConfig: IO[AppConfig] =
+  private val fetchClient: Client[IO] =
     FetchClientBuilder[IO]
       .withRequestTimeout(5.seconds)
       .withCache(dom.RequestCache.`no-store`)
       .create
-      .get(configFile)(_.decodeJson[List[AppConfig]])
+
+  private val fetchConfig: IO[AppConfig] =
+    fetchClient
+      .get(ConfigFile)(_.decodeJson[List[AppConfig]])
       .adaptError: t =>
         new Exception("Could not retrieve configuration.", t)
       .flatMap: confs =>
@@ -132,11 +135,11 @@ object Main:
               reconnectionStrategy
             )
           )
-      httpClient                                 <- EmberClientBuilder.default[IO].build
     yield AppContext[IO](
       AppContext.version(ExecutionEnvironment.Development),
       SSOClient(appConfig.sso),
-      ConfigApiImpl(httpClient, uri"/api/observe"),
+      ConfigApiImpl(fetchClient, ApiBaseUri),
+      // uri"/api/observe"),
       (tab: AppTab) => routerCtl.urlFor(tab.getPage).value,
       (tab: AppTab, via: SetRouteVia) => routerCtl.set(tab.getPage, via)
     )

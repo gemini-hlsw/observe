@@ -216,26 +216,12 @@ html {
 //   background: @background;
 // }
 
-.ObserveStyles-HeaderSideBarCard {
-  height: 100%;
-
-  .p-card-body {
-    height: 100%;
-
-    .p-card-content {
-      height: 100%;
-      padding: 0;
-    }
-  }
-}
-
-.ObserveStyles-HeaderSideBar {
-  height: 100%;
+.ObserveStyles-ConfigSection {
   display: grid;
   grid-template-areas:
     "observer observer"
     "operator operator"
-    "imageQuality cloudCover"
+    "imageQuality cloudExtinction"
     "waterVapor skyBackground";
   column-gap: 15px;
 
@@ -266,8 +252,8 @@ html {
   grid-area: imageQuality;
 }
 
-.ObserveStyles-CloudCoverArea {
-  grid-area: cloudCover;
+.ObserveStyles-CloudExtinctionArea {
+  grid-area: cloudExtinction;
 }
 
 .ObserveStyles-WaterVaporArea {

@@ -137,6 +137,13 @@ export default defineConfig(async ({ mode }) => {
       host: '0.0.0.0',
       port: 8081,
       https: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:7070',
+          changeOrigin: true,
+          secure: false,
+        }
+      },
       watch: {
         ignored: [
           function ignoreThisPath(_path) {
