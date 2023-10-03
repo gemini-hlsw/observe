@@ -106,7 +106,7 @@ lazy val observe_web_server = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
 lazy val observe_web_client = project
-  .in(file("modules/web"))
+  .in(file("modules/web/client"))
   .settings(lucumaGlobalSettings: _*)
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin, BuildInfoPlugin)
