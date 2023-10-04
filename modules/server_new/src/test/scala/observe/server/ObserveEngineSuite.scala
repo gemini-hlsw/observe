@@ -86,13 +86,13 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setCloudExtinction should set Cloud Extinction condition") {
-    val cc = CloudExtinction.TwoPointZero
+    val ce = CloudExtinction.TwoPointZero
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(cc, UserDetails("", "")), 2)
-    } yield sf.flatMap(EngineState.conditions.andThen(Conditions.cc).get).exists { op =>
-      op === cc
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, UserDetails("", "")), 2)
+    } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
+      op === ce
     }).assert
   }
 
@@ -922,7 +922,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.PointTwo.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Median.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Dark.some) >>>
-      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.PointFive.some))
+      EngineState.conditions.andThen(Conditions.ce).replace(CloudExtinction.PointFive.some))
       .apply(EngineState.default[IO])
 
     (for {
@@ -955,7 +955,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
-      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.OnePointZero.some))
+      EngineState.conditions.andThen(Conditions.ce).replace(CloudExtinction.OnePointZero.some))
       .apply(EngineState.default[IO])
 
     for {
@@ -1002,7 +1002,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
-      EngineState.conditions.andThen(Conditions.cc).replace(CloudExtinction.OnePointZero.some))
+      EngineState.conditions.andThen(Conditions.ce).replace(CloudExtinction.OnePointZero.some))
       .apply(EngineState.default[IO])
 
     for {

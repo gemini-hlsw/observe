@@ -87,5 +87,5 @@ modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
 .direnv/
 
 # Web development runtime files
-modules/web/src/main/publicdev/
+modules/web/client/src/main/publicdev/
 local.conf.json

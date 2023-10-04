@@ -13,11 +13,11 @@ import lucuma.core.enums.WaterVapor
 import observe.model.ClientId
 
 trait ConfigApi[F[_]]:
-  def setImageQuality(iq:  ImageQuality): F[Unit]
-  def setCloudCover(ce:    CloudExtinction): F[Unit]
-  def setWaterVapor(wv:    WaterVapor): F[Unit]
-  def setSkyBackground(sb: SkyBackground): F[Unit]
-  def refresh(clientId:    ClientId): F[Unit]
+  def setImageQuality(iq:    ImageQuality): F[Unit]
+  def setCloudExtinction(ce: CloudExtinction): F[Unit]
+  def setWaterVapor(wv:      WaterVapor): F[Unit]
+  def setSkyBackground(sb:   SkyBackground): F[Unit]
+  def refresh(clientId:      ClientId): F[Unit]
 
 object ConfigApi:
   val ctx: Context[ConfigApi[IO]] = React.createContext(null) // No default value

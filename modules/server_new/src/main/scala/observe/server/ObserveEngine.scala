@@ -355,13 +355,13 @@ object ObserveEngine {
     ): Option[ObsConditionsCheckOverride] = {
 
       val UnknownStr: String = "Unknown"
-      val reqCC              = requiredObsConditions.cloudExtinction
+      val reqCE              = requiredObsConditions.cloudExtinction
       val reqIQ              = requiredObsConditions.imageQuality
       val reqSB              = requiredObsConditions.skyBackground
       val reqWV              = requiredObsConditions.waterVapor
 
-      val ccCmp = (!checkCloudCover(actualObsConditions.cc, reqCC))
-        .option(Discrepancy(actualObsConditions.cc.fold(UnknownStr)(_.label), reqCC.label))
+      val ccCmp = (!checkCloudCover(actualObsConditions.ce, reqCE))
+        .option(Discrepancy(actualObsConditions.ce.fold(UnknownStr)(_.label), reqCE.label))
 
       val iqCmp = (!checkImageQuality(actualObsConditions.iq, reqIQ))
         .option(Discrepancy(actualObsConditions.iq.fold(UnknownStr)(_.label), reqIQ.label))
@@ -779,13 +779,13 @@ object ObserveEngine {
         )
 
     override def setCloudExtinction(
-      cc:   CloudExtinction,
+      ce:   CloudExtinction,
       user: UserDetails
-    ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $cc") *>
+    ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $ce") *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          (EngineState.conditions[F].andThen(Conditions.cc).replace(cc.some) >>> refreshSequences)
-            .withEvent(SetCloudCover(cc, user.some))
+          (EngineState.conditions[F].andThen(Conditions.ce).replace(ce.some) >>> refreshSequences)
+            .withEvent(SetCloudCover(ce, user.some))
             .toHandle
         )
       )

@@ -114,7 +114,7 @@ lazy val observe_web_client = project
       ClueJs.value,
       Crystal.value,
       Fs2.value,
-      Http4sEmberClient.value,
+      Http4sDom.value,
       LucumaUI.value
     ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     // TODO Remove this, only used for prototype:

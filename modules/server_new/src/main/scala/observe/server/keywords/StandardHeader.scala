@@ -30,7 +30,7 @@ final case class StateKeywordsReader[F[_]: Applicative](
     observer.map(_.value).filter(_.nonEmpty).getOrElse("observer").pure[F]
   def operatorName: F[String]       = operator.map(_.value).filter(_.nonEmpty).getOrElse("ssa").pure[F]
   def rawImageQuality: F[String]    = conditions.iq.map(_.label).getOrElse("Any").pure[F]
-  def rawCloudCover: F[String]      = conditions.cc.map(_.label).getOrElse("Any").pure[F]
+  def rawCloudExtinction: F[String] = conditions.ce.map(_.label).getOrElse("Any").pure[F]
   def rawWaterVapor: F[String]      = conditions.wv.map(_.label).getOrElse("Any").pure[F]
   def rawBackgroundLight: F[String] = conditions.sb.map(_.label).getOrElse("Any").pure[F]
 }
@@ -99,7 +99,7 @@ class StandardHeader[F[_]: Sync: Logger](
     buildDouble(mountTcsKeyword(tcsReader.sourceATarget.properMotionRA), KeywordName.PMRA),
     buildDouble(mountTcsKeyword(tcsReader.sourceATarget.wavelength), KeywordName.WAVELENG),
     buildString(stateReader.rawImageQuality, KeywordName.RAWIQ),
-    buildString(stateReader.rawCloudCover, KeywordName.RAWCC),
+    buildString(stateReader.rawCloudExtinction, KeywordName.RAWCC),
     buildString(stateReader.rawWaterVapor, KeywordName.RAWWV),
     buildString(stateReader.rawBackgroundLight, KeywordName.RAWBG),
     buildString(obsReader.pIReq, KeywordName.RAWPIREQ),
