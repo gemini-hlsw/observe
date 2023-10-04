@@ -34,6 +34,7 @@ import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 import scala.concurrent.duration.*
+import eu.timepit.refined.types.string.NonEmptyString
 
 /**
  * Rest Endpoints under the /api route
@@ -64,7 +65,13 @@ class ObserveEventRoutes[F[_]: Async: Compression](
       //
 
       def initialEvent(clientId: ClientId): Stream[F, WebSocketFrame] =
-        Stream.emit(toFrame(InitialEvent(site, clientId, OcsBuildInfo.version)))
+        Stream.emit(
+          toFrame(
+            InitialEvent(
+              Environment(site, clientId, Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version)))
+            )
+          )
+        )
 
       // engineOutput.
       def engineEvents(clientId: ClientId): Stream[F, WebSocketFrame] =

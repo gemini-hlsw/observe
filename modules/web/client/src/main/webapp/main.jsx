@@ -7,6 +7,7 @@ import '/lucuma-css/lucuma-ui-side-tabs.scss';
 import '/lucuma-css/lucuma-ui-table.scss';
 import '/lucuma-css/lucuma-ui-variables-dark.scss';
 import '/lucuma-css/lucuma-ui-variables-light.scss';
+import '/lucuma-css/solar-system.scss';
 import "primereact/resources/primereact.min.css";     // core css
 import "primeicons/primeicons.css";                   // icons
 

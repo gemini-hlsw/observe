@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui
+package observe.ui.model
 
 import cats.FlatMap
 import cats.effect.IO
@@ -22,6 +22,7 @@ import lucuma.ui.utils.versionDateTimeFormatter
 import observe.ui.model.enums.AppTab
 import observe.ui.services.ConfigApi
 import org.typelevel.log4cats.Logger
+import observe.ui.BuildInfo
 
 import java.time.Instant
 

@@ -31,7 +31,7 @@ import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.queries.ObsQueriesGQL
-import observe.ui.AppContext
+import observe.ui.model.AppContext
 import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue

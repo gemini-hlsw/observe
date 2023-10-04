@@ -17,15 +17,13 @@ import lucuma.refined.*
 import lucuma.ui.primereact.FormEnumDropdownOptionalView
 import lucuma.ui.primereact.given
 import observe.model.*
-import observe.ui.AppContext
+import observe.ui.model.AppContext
 import observe.ui.ObserveStyles
 
 case class ConfigSection(
-  // status:     ClientStatus,
   operator:   Option[Operator],
   conditions: View[Conditions]
 ) extends ReactFnProps(ConfigSection.component)
-// val canOperate: Boolean = status.canOperate
 
 object ConfigSection:
   private type Props = ConfigSection
@@ -36,6 +34,7 @@ object ConfigSection:
     .render: (props, ctx) =>
       import ctx.given
 
+      // TODO Error handling in API requests
       val iq: View[Option[ImageQuality]] =
         props.conditions
           .zoom(Conditions.iq)

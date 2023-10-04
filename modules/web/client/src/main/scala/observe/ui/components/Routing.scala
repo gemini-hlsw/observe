@@ -1,14 +1,12 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui
+package observe.ui.components
 
 import crystal.react.View
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
-import observe.ui.components.ConfigSection
-import observe.ui.components.Home
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel

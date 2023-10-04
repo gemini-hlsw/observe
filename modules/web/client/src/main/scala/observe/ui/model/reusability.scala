@@ -15,6 +15,7 @@ import observe.model.SequenceState
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
+import observe.model.Environment
 
 object reusability:
   given Reusability[ClientMode]                            = Reusability.byEq
@@ -27,3 +28,5 @@ object reusability:
   given Reusability[RunningStep]                           = Reusability.byEq
   given Reusability[NodAndShuffleStatus]                   = Reusability.byEq
   given Reusability[ExecutionState]                        = Reusability.byEq
+  given Reusability[RootModelData]                         = Reusability.byEq
+  given Reusability[Environment]                           = Reusability.byEq

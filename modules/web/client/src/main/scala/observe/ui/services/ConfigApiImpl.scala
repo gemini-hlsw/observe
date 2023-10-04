@@ -20,7 +20,7 @@ import org.http4s.client.Client
 import org.http4s.client.*
 
 case class ConfigApiImpl(client: Client[IO], baseUri: Uri) extends ConfigApi[IO]:
-  private def request[T: Encoder](path: String, data: T): IO[Unit] =
+  private def request[T: Encoder](path: String, data: T): IO[Unit] = // TODO: Retries
     client.expect[Unit](Request(Method.POST, baseUri.addPath(path)).withEntity(data.asJson))
 
   def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("/iq", iq)

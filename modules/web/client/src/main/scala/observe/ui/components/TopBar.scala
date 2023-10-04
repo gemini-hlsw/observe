@@ -24,7 +24,7 @@ import lucuma.ui.enums.Theme
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.given
-import observe.ui.AppContext
+import observe.ui.model.AppContext
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 
