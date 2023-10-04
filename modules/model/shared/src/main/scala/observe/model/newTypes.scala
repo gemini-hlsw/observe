@@ -3,10 +3,10 @@
 
 package observe.model
 
+import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.util.NewType
 
 import java.util.UUID
-import eu.timepit.refined.types.string.NonEmptyString
 
 object Version extends NewType[NonEmptyString]
 type Version = Version.Type

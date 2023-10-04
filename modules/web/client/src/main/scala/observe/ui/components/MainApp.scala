@@ -3,53 +3,54 @@
 
 package observe.ui.components
 
-import cats.syntax.all.*
 import cats.effect.IO
 import cats.effect.Resource
-import japgolly.scalajs.react.*
 import cats.effect.std.Dispatcher
-import japgolly.scalajs.react.vdom.html_<^.*
-import crystal.react.hooks.*
-import crystal.react.*
-import crystal.react.given
-import crystal.syntax.*
-import lucuma.ui.syntax.pot.*
-import crystal.Pot
-import japgolly.scalajs.react.extra.router.*
-import lucuma.ui.sso.UserVault
-import observe.ui.model.RootModel
-import observe.ui.model.RootModelData
-import org.http4s.Uri
-import org.http4s.circe.*
-import org.http4s.client.Client
-import org.http4s.dom.FetchClientBuilder
-import org.http4s.syntax.all.*
-import scala.concurrent.duration.*
-import org.scalajs.dom
-import observe.ui.model.AppConfig
-import observe.ui.model.AppContext
-import org.typelevel.log4cats.Logger
-import typings.loglevel.mod.LogLevelDesc
-import log4cats.loglevel.LogLevelLogger
+import cats.syntax.all.*
 import clue.js.WebSocketJSBackend
 import clue.js.WebSocketJSClient
 import clue.websocket.ReconnectionStrategy
-import lucuma.schemas.ObservationDB
-import java.util.concurrent.TimeUnit
-import lucuma.ui.sso.SSOClient
-import observe.ui.services.ConfigApiImpl
-import observe.ui.model.enums.AppTab
-import lucuma.core.model.StandardUser
-import lucuma.core.model.StandardRole
-import fs2.Pipe
-import org.http4s.client.websocket.WSFrame
-import observe.model.events.client.ClientEvent
-import io.circe.parser.decode
-import org.http4s.dom.WebSocketClient
-import org.http4s.client.websocket.WSRequest
-import observe.model.Environment
-import observe.ui.model.reusability.given
+import crystal.Pot
+import crystal.react.*
+import crystal.react.given
+import crystal.react.hooks.*
+import crystal.syntax.*
 import eu.timepit.refined.types.string.NonEmptyString
+import fs2.Pipe
+import io.circe.parser.decode
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.extra.router.*
+import japgolly.scalajs.react.vdom.html_<^.*
+import log4cats.loglevel.LogLevelLogger
+import lucuma.core.model.StandardRole
+import lucuma.core.model.StandardUser
+import lucuma.schemas.ObservationDB
+import lucuma.ui.sso.SSOClient
+import lucuma.ui.sso.UserVault
+import lucuma.ui.syntax.pot.*
+import observe.model.Environment
+import observe.model.events.client.ClientEvent
+import observe.ui.model.AppConfig
+import observe.ui.model.AppContext
+import observe.ui.model.RootModel
+import observe.ui.model.RootModelData
+import observe.ui.model.enums.AppTab
+import observe.ui.model.reusability.given
+import observe.ui.services.ConfigApiImpl
+import org.http4s.Uri
+import org.http4s.circe.*
+import org.http4s.client.Client
+import org.http4s.client.websocket.WSFrame
+import org.http4s.client.websocket.WSRequest
+import org.http4s.dom.FetchClientBuilder
+import org.http4s.dom.WebSocketClient
+import org.http4s.syntax.all.*
+import org.scalajs.dom
+import org.typelevel.log4cats.Logger
+import typings.loglevel.mod.LogLevelDesc
+
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.*
 
 object MainApp:
   private val ConfigFile: Uri = uri"/environments.conf.json"
@@ -113,7 +114,7 @@ object MainApp:
     )
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
-  val processClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
+  val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
     _.flatMap:
       case WSFrame.Text(text, _) => fs2.Stream(decode[ClientEvent](text))
       case _                     => fs2.Stream.empty
@@ -123,8 +124,7 @@ object MainApp:
   private val component =
     ScalaFnComponent
       .withHooks[Unit]
-      // Build AppContext
-      .useResourceOnMount(
+      .useResourceOnMount: // Build AppContext
         for
           appConfig                                  <- Resource.eval(fetchConfig)
           given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.DEBUG))
@@ -146,9 +146,8 @@ object MainApp:
           (tab: AppTab) => MainApp.routerCtl.urlFor(tab.getPage).value,
           (tab: AppTab, via: SetRouteVia) => MainApp.routerCtl.set(tab.getPage, via)
         )
-      )
       .useStateView(Pot.pending[RootModelData])
-      .useEffectWithDepsBy((_, ctxPot, _) => ctxPot.void)((_, ctxPot, rootModelData) =>
+      .useEffectWithDepsBy((_, ctxPot, _) => ctxPot.void): (_, ctxPot, rootModelData) =>
         _ => // Once AppContext is ready, proceed to attempt login.
           ctxPot.toOption
             .map: ctx =>
@@ -159,21 +158,20 @@ object MainApp:
                   rootModelData.async.set(RootModelData.initial(userVault).ready)
                 )
             .orEmpty
-      )
       .useStateView(Pot.pending[Environment])
       // Subscribe to client event stream (and initialize Environment)
       // TODO Reconnecting middleware
       .useResourceOnMount(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)))
       .useAsyncEffectWithDepsBy((_, ctx, rootModelData, environment, wsConnection) =>
         (wsConnection.void, rootModelData.get.void, ctx.void).tupled
-      )((_, ctxPot, rootModelDataPot, environment, wsConnectionPot) =>
+      ): (_, ctxPot, rootModelDataPot, environment, wsConnectionPot) =>
         _ =>
           (wsConnectionPot, rootModelDataPot.toPotView, ctxPot).tupled.toOption
             .map: (wsConnection, rootModelData, ctx) =>
               import ctx.given
 
               wsConnection.receiveStream
-                .through(processClientEvents)
+                .through(parseClientEvents)
                 .evalMap:
                   // Process client event stream
                   case Right(event) =>
@@ -197,17 +195,15 @@ object MainApp:
                 .start
                 .map(_.cancel)
             .orEmpty
-      )
       // RootModel is not initialized until RootModelData and Environment are available
       .useStateView(Pot.pending[RootModel])
       .useEffectWithDepsBy((_, ctx, rootModelData, environment, _, _) =>
         (rootModelData.get, environment.get).tupled.toOption
-      )((_, _, _, _, _, rootModel) =>
+      ): (_, _, _, _, _, rootModel) =>
         // Once RootModelData and Environment are ready, build RootModel
         _.map: (rootModelData, environment) =>
           rootModel.set(RootModel(environment, rootModelData).ready)
         .orEmpty
-      )
       .render: (_, ctxPot, _, _, _, rootModelPot) =>
         // When both AppContext and RootModel are ready, proceed to render.
         (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>

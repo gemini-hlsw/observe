@@ -6,6 +6,7 @@ package observe.web.server.http4s
 import cats.effect.Async
 import cats.effect.std.UUIDGen
 import cats.syntax.all.*
+import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import fs2.Stream
 import fs2.compression.Compression
@@ -34,7 +35,6 @@ import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 import scala.concurrent.duration.*
-import eu.timepit.refined.types.string.NonEmptyString
 
 /**
  * Rest Endpoints under the /api route

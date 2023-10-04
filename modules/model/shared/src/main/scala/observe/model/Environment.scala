@@ -6,11 +6,11 @@ package observe.model
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
+import eu.timepit.refined.cats.given
 import io.circe.Decoder
 import io.circe.Encoder
-import lucuma.core.enums.Site
-import eu.timepit.refined.cats.given
 import io.circe.refined.given
+import lucuma.core.enums.Site
 
 final case class Environment(site: Site, clientId: ClientId, version: Version)
     derives Eq,

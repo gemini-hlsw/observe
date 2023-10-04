@@ -5,9 +5,9 @@ package observe.ui
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits._
+import observe.ui.components.MainApp
 import org.scalajs.dom
 import org.scalajs.dom.Element
-import observe.ui.components.MainApp
 
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel

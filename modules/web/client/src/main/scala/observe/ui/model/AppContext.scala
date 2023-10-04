@@ -19,10 +19,10 @@ import lucuma.ui.enums.ExecutionEnvironment
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.utils.versionDateFormatter
 import lucuma.ui.utils.versionDateTimeFormatter
+import observe.ui.BuildInfo
 import observe.ui.model.enums.AppTab
 import observe.ui.services.ConfigApi
 import org.typelevel.log4cats.Logger
-import observe.ui.BuildInfo
 
 import java.time.Instant
 

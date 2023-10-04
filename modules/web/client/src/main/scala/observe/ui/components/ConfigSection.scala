@@ -17,8 +17,8 @@ import lucuma.refined.*
 import lucuma.ui.primereact.FormEnumDropdownOptionalView
 import lucuma.ui.primereact.given
 import observe.model.*
-import observe.ui.model.AppContext
 import observe.ui.ObserveStyles
+import observe.ui.model.AppContext
 
 case class ConfigSection(
   operator:   Option[Operator],

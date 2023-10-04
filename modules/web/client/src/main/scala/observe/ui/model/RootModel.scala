@@ -6,13 +6,13 @@ package observe.ui.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.option.*
+import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
 import observe.model.*
 import observe.ui.model.enums.ClientMode
-import eu.timepit.refined.cats.given
 
 case class RootModelData(
   userVault:            Option[UserVault],
