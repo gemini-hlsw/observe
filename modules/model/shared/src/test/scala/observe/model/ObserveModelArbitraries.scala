@@ -32,11 +32,11 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[Conditions] = Arbitrary[Conditions] {
     for {
-      cc <- arbitrary[Option[CloudExtinction]]
+      ce <- arbitrary[Option[CloudExtinction]]
       iq <- arbitrary[Option[ImageQuality]]
       sb <- arbitrary[Option[SkyBackground]]
       wv <- arbitrary[Option[WaterVapor]]
-    } yield Conditions(cc, iq, sb, wv)
+    } yield Conditions(ce, iq, sb, wv)
   }
 
   // N.B. We don't want to auto derive this to limit the size of the lists for performance reasons
@@ -160,7 +160,7 @@ trait ObserveModelArbitraries {
   given Cogen[Conditions] =
     Cogen[
       (Option[CloudExtinction], Option[ImageQuality], Option[SkyBackground], Option[WaterVapor])
-    ].contramap(c => (c.cc, c.iq, c.sb, c.wv))
+    ].contramap(c => (c.ce, c.iq, c.sb, c.wv))
 
   given Arbitrary[BatchCommandState.Run] = Arbitrary {
     for {
