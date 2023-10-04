@@ -15,7 +15,7 @@ import observe.server.tcs.TcsController.LightSource.Sky
 
 import ScienceFoldPositionCodex.given
 
-class ScienceFoldPositionCodexSuite extends munit.FunSuite {
+class ScienceFoldPositionCodexSuite extends munit.FunSuite:
 
   private val invalid    = "Invalid"
   private val parked     = ("park-pos.", ScienceFold.Parked)
@@ -26,26 +26,18 @@ class ScienceFoldPositionCodexSuite extends munit.FunSuite {
   private val f21        = ("f21", ScienceFold.Position(Sky, F2, 1))
   private val testVals   = List(ao2gmos3, gcal2nifs1, gsaoi5, ao2niri32, f21)
 
-  test("ScienceFoldPositionCodex should properly decode EPICS strings into ScienceFold values") {
+  test("ScienceFoldPositionCodex should properly decode EPICS strings into ScienceFold values"):
 
-    testVals.foreach { case (s, v) =>
+    testVals.foreach: (s, v) =>
       assertEquals(decode[String, Option[ScienceFold]](s), Some(v))
-    }
 
     assertEquals(decode[String, Option[ScienceFold]](invalid), None)
 
     assertEquals(decode[String, Option[ScienceFold]](parked._1), Some(parked._2))
 
-  }
-
-  test("ScienceFoldPositionCodex should properly encode Position values into EPICS strings") {
+  test("ScienceFoldPositionCodex should properly encode Position values into EPICS strings"):
 
     assertEquals(decode[String, Option[ScienceFold]](invalid), None)
 
-    testVals.foreach { case (s, v) =>
+    testVals.foreach: (s, v) =>
       assertEquals(encode[ScienceFold.Position, String](v), s)
-    }
-
-  }
-
-}
