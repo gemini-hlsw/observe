@@ -195,13 +195,13 @@ class StepsViewSuite extends TestCommon {
   }
 
   test("StepsView setCloudExtintion should set Cloud Extinction condition") {
-    val cc = CloudExtinction.PointThree
+    val ce = CloudExtinction.PointThree
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(cc, UserDetails("", "")), 2)
-    } yield sf.flatMap(EngineState.conditions.andThen(Conditions.cc).get).exists { op =>
-      op === cc
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, UserDetails("", "")), 2)
+    } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
+      op === ce
     }).assert
   }
 
