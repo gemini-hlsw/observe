@@ -4,12 +4,14 @@
 package observe.model
 
 import cats.syntax.all.*
+import eu.timepit.refined.scalacheck.string.given
 import lucuma.core.arb.newTypeArbitrary
 import lucuma.core.arb.newTypeCogen
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -285,6 +287,9 @@ trait ObserveModelArbitraries {
 
   given Cogen[SingleActionEvent] =
     Cogen[SingleActionOp].contramap(_.op)
+
+  given Arbitrary[Version] = newTypeArbitrary(Version)
+  given Cogen[Version]     = newTypeCogen(Version)
 }
 
 object ObserveModelArbitraries extends ObserveModelArbitraries
