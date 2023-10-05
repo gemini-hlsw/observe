@@ -25,6 +25,7 @@ import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.schemas.ObservationDB
+import lucuma.ui.reusability.given
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.pot.*
@@ -36,6 +37,7 @@ import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
 import observe.ui.model.reusability.given
+import observe.ui.services.ConfigApi
 import observe.ui.services.ConfigApiImpl
 import org.http4s.Uri
 import org.http4s.circe.*
@@ -142,7 +144,6 @@ object MainApp:
         yield AppContext[IO](
           AppContext.version(appConfig.environment),
           SSOClient(appConfig.sso),
-          ConfigApiImpl(fetchClient, ApiBaseUri),
           (tab: AppTab) => MainApp.routerCtl.urlFor(tab.getPage).value,
           (tab: AppTab, via: SetRouteVia) => MainApp.routerCtl.set(tab.getPage, via)
         )
@@ -204,9 +205,20 @@ object MainApp:
         _.map: (rootModelData, environment) =>
           rootModel.set(RootModel(environment, rootModelData).ready)
         .orEmpty
-      .render: (_, ctxPot, _, _, _, rootModelPot) =>
+      // Build ConfigApi instance only when token changes
+      .useMemoBy((_, _, rootModelData, _, _, _) =>
+        rootModelData.get.toOption.flatMap(_.userVault.map(_.token))
+      ): (_, _, _, _, _, _) =>
+        _.map: token =>
+          ConfigApiImpl(fetchClient, ApiBaseUri, token)
+      .render: (_, ctxPot, _, _, _, rootModelPot, configApiOpt) =>
+        def provideApiCtx(vdom: VdomNode) =
+          configApiOpt.fold(vdom)(ConfigApi.ctx.provide(_)(vdom))
+
         // When both AppContext and RootModel are ready, proceed to render.
         (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>
-          AppContext.ctx.provide(ctx)(router(rootModel))
+          AppContext.ctx.provide(ctx)(
+            provideApiCtx(router(rootModel))
+          )
 
   inline def apply() = component()

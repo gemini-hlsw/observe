@@ -3,6 +3,7 @@
 
 package observe.ui.services
 
+import cats.MonadThrow
 import cats.effect.IO
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
@@ -12,12 +13,16 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import observe.model.ClientId
 
-trait ConfigApi[F[_]]:
-  def setImageQuality(iq:    ImageQuality): F[Unit]
-  def setCloudExtinction(ce: CloudExtinction): F[Unit]
-  def setWaterVapor(wv:      WaterVapor): F[Unit]
-  def setSkyBackground(sb:   SkyBackground): F[Unit]
-  def refresh(clientId:      ClientId): F[Unit]
+trait ConfigApi[F[_]: MonadThrow]:
+  protected val NotAuthorized: F[Unit] =
+    MonadThrow[F].raiseError(new RuntimeException("Not authorized"))
+
+  def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
+  def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
+  def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
+  def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
+  def refresh(clientId:      ClientId): F[Unit]        = NotAuthorized
 
 object ConfigApi:
-  val ctx: Context[ConfigApi[IO]] = React.createContext(null) // No default value
+  // Default value is NotAuthorized implementations
+  val ctx: Context[ConfigApi[IO]] = React.createContext(new ConfigApi[IO] {})

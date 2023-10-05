@@ -19,6 +19,7 @@ import lucuma.ui.primereact.given
 import observe.model.*
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
+import observe.ui.services.ConfigApi
 
 case class ConfigSection(
   operator:   Option[Operator],
@@ -31,29 +32,30 @@ object ConfigSection:
   private val component = ScalaFnComponent
     .withHooks[Props]
     .useContext(AppContext.ctx)
-    .render: (props, ctx) =>
+    .useContext(ConfigApi.ctx)
+    .render: (props, ctx, configApi) =>
       import ctx.given
 
       // TODO Error handling in API requests
       val iq: View[Option[ImageQuality]] =
         props.conditions
           .zoom(Conditions.iq)
-          .withOnMod(_.map(ctx.configApi.setImageQuality).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
 
       val ce: View[Option[CloudExtinction]] =
         props.conditions
           .zoom(Conditions.ce)
-          .withOnMod(_.map(ctx.configApi.setCloudExtinction).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
 
       val wv: View[Option[WaterVapor]] =
         props.conditions
           .zoom(Conditions.wv)
-          .withOnMod(_.map(ctx.configApi.setWaterVapor).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setWaterVapor).orEmpty.runAsync)
 
       val sb: View[Option[SkyBackground]] =
         props.conditions
           .zoom(Conditions.sb)
-          .withOnMod(_.map(ctx.configApi.setSkyBackground).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
         // Card(clazz = ObserveStyles.HeaderSideBarCard)(
       <.div(ObserveStyles.ConfigSection)(
