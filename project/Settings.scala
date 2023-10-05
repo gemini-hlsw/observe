@@ -26,7 +26,7 @@ object Settings {
     val catsTime          = "0.5.1"
 
     val http4sVersion              = "0.23.23"
-    val http4sDomVersion           = "0.2.8"
+    val http4sDomVersion           = "0.2.10"
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.13"
 
