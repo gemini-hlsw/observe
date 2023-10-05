@@ -123,7 +123,6 @@ object WebServerLauncher extends IOApp with LogInitialization {
         .map(_.map(_.user))
     )
 
-  // SsoJwtReader(JwtDecoder.withPublicKey(sso.publicKey)).map { jwtReader =>
   /** Resource that yields the running web server */
   private def webServer[F[_]: Logger: Async: Network: Compression](
     conf:      ObserveConfiguration,

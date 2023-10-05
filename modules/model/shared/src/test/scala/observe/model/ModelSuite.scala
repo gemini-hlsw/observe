@@ -7,7 +7,6 @@ import cats.kernel.laws.discipline.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.ObserveModelArbitraries.given
-import observe.model.ObserveModelArbitraries.given_Arbitrary_Operator
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
