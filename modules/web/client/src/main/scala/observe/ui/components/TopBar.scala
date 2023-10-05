@@ -7,6 +7,7 @@ import cats.effect.IO
 import crystal.react.View
 import crystal.react.*
 import crystal.react.hooks.*
+import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.util.NewType
@@ -24,14 +25,16 @@ import lucuma.ui.enums.Theme
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.given
-import observe.ui.AppContext
+import observe.model.Environment
 import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.model.AppContext
 
 case class TopBar(
-  vault:    View[UserVault],
-  theme:    View[Theme],
-  onLogout: IO[Unit]
+  environment: Environment,
+  vault:       View[UserVault],
+  theme:       View[Theme],
+  onLogout:    IO[Unit]
 ) extends ReactFnProps(TopBar.component)
 
 object TopBar:
@@ -77,6 +80,8 @@ object TopBar:
             clazz = LayoutStyles.MainHeader,
             left = <.span(LayoutStyles.MainTitle, "Observe"),
             right = React.Fragment(
+              <.span(props.environment.site.shortName),
+              " - ",
               <.span(LayoutStyles.MainUserName)(user.displayName),
               Button(
                 icon = Icons.Bars,
@@ -91,7 +96,10 @@ object TopBar:
             About(
               "Observe".refined,
               ObserveStyles.LoginTitle,
-              ctx.version,
+              NonEmptyString
+                .unsafeFrom(
+                  s"${ctx.version.value} / Server: ${props.environment.version.value.value}"
+                ),
               isAboutOpen.as(IsAboutOpen.value)
             )
           else

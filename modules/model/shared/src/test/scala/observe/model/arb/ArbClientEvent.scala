@@ -3,16 +3,16 @@
 
 package observe.model.arb
 
-import lucuma.core.enums.Site
-import lucuma.core.util.arb.ArbEnumerated.given
-import observe.model.ClientId
 import observe.model.Conditions
+import observe.model.Environment
 import observe.model.ObserveModelArbitraries.given
 import observe.model.events.client.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+
+import ArbEnvironment.given
 
 trait ArbClientEvent:
 
@@ -22,14 +22,10 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.ObserveState] = Cogen[Conditions].contramap(_.conditions)
 
   given Arbitrary[ClientEvent.InitialEvent] = Arbitrary:
-    for
-      site     <- arbitrary[Site]
-      clientId <- arbitrary[ClientId]
-      version  <- arbitrary[String]
-    yield ClientEvent.InitialEvent(site, clientId, version)
+    arbitrary[Environment].map(ClientEvent.InitialEvent(_))
 
   given Cogen[ClientEvent.InitialEvent] =
-    Cogen[(Site, ClientId, String)].contramap(x => (x.site, x.clientId, x.version))
+    Cogen[Environment].contramap(_.environment)
 
   given Arbitrary[ClientEvent] = Arbitrary:
     for

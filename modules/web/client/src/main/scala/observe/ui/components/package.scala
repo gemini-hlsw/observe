@@ -3,7 +3,7 @@
 
 package observe.ui.components
 
-import observe.ui.AppContext
+import observe.ui.model.AppContext
 import org.typelevel.log4cats.Logger
 
 // TODO See if this can be generalized to any number of hooks

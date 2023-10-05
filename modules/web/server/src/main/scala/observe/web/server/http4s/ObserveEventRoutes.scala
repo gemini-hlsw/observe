@@ -6,6 +6,7 @@ package observe.web.server.http4s
 import cats.effect.Async
 import cats.effect.std.UUIDGen
 import cats.syntax.all.*
+import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import fs2.Stream
 import fs2.compression.Compression
@@ -64,7 +65,13 @@ class ObserveEventRoutes[F[_]: Async: Compression](
       //
 
       def initialEvent(clientId: ClientId): Stream[F, WebSocketFrame] =
-        Stream.emit(toFrame(InitialEvent(site, clientId, OcsBuildInfo.version)))
+        Stream.emit(
+          toFrame(
+            InitialEvent(
+              Environment(site, clientId, Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version)))
+            )
+          )
+        )
 
       // engineOutput.
       def engineEvents(clientId: ClientId): Stream[F, WebSocketFrame] =

@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val crystal      = "0.34.4"
+    val crystal      = "0.34.5"
     val javaTimeJS   = "2.5.0"
     val lucumaReact  = "0.44.1"
     val scalaDom     = "2.3.0"
@@ -151,6 +151,7 @@ object Settings {
         "io.circe" %%% "circe-core"    % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-generic" % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-parser"  % LibraryVersions.circeVersion,
+        "io.circe" %%% "circe-refined" % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-testing" % LibraryVersions.circeVersion % "test"
       )
     )

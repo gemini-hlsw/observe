@@ -8,6 +8,7 @@ import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
+import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
@@ -27,3 +28,5 @@ object reusability:
   given Reusability[RunningStep]                           = Reusability.byEq
   given Reusability[NodAndShuffleStatus]                   = Reusability.byEq
   given Reusability[ExecutionState]                        = Reusability.byEq
+  given Reusability[RootModelData]                         = Reusability.byEq
+  given Reusability[Environment]                           = Reusability.byEq

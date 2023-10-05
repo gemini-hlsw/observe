@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui
+package observe.ui.components
 
 import cats.effect.IO
 import cats.syntax.all.*
@@ -18,7 +18,8 @@ import lucuma.ui.components.state.IfLogged
 import lucuma.ui.hooks.*
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
-import observe.ui.components.TopBar
+import observe.ui.BroadcastEvent
+import observe.ui.model.AppContext
 import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.enums.AppTab
@@ -66,7 +67,7 @@ object Layout:
             props.rootModel
               .zoom(RootModel.userVault)
               .mapValue: (userVault: View[UserVault]) =>
-                TopBar(userVault, theme, IO.unit),
+                TopBar(props.rootModel.get.environment, userVault, theme, IO.unit),
             SideTabs(
               "side-tabs".refined,
               appTabView,
