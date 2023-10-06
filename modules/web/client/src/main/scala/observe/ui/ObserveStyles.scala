@@ -101,3 +101,5 @@ object ObserveStyles:
   val DefaultCursor: Css     = Css("ObserveStyles-defaultCursor")
   val ConfigButtonStrip: Css = Css("ObserveStyles-configButtonStrip")
   val ConfigButton: Css      = Css("ObserveStyles-configButton")
+
+  val SyncingPanel: Css = Css("ObserveStyles-syncingPanel")

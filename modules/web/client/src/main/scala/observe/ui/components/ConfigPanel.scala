@@ -21,13 +21,13 @@ import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.services.ConfigApi
 
-case class ConfigSection(
+case class ConfigPanel(
   operator:   Option[Operator],
   conditions: View[Conditions]
-) extends ReactFnProps(ConfigSection.component)
+) extends ReactFnProps(ConfigPanel.component)
 
-object ConfigSection:
-  private type Props = ConfigSection
+object ConfigPanel:
+  private type Props = ConfigPanel
 
   private val component = ScalaFnComponent
     .withHooks[Props]
@@ -57,7 +57,6 @@ object ConfigSection:
           .zoom(Conditions.sb)
           .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
-        // Card(clazz = ObserveStyles.HeaderSideBarCard)(
       <.div(ObserveStyles.ConfigSection)(
         <.div(ObserveStyles.ObserverArea)(
           <.label(^.htmlFor := "observer")("Observer Name"),
@@ -72,7 +71,8 @@ object ConfigSection:
             id = "imageQuality".refined,
             label = "Image Quality",
             value = iq,
-            showClear = false
+            showClear = false,
+            disabled = configApi.isBlocked
           )
         ),
         <.div(ObserveStyles.CloudExtinctionArea)(
@@ -80,7 +80,8 @@ object ConfigSection:
             id = "cloudExtinction".refined,
             label = "Cloud Extinction",
             value = ce,
-            showClear = false
+            showClear = false,
+            disabled = configApi.isBlocked
           )
         ),
         <.div(ObserveStyles.WaterVaporArea)(
@@ -88,7 +89,8 @@ object ConfigSection:
             id = "waterVapor".refined,
             label = "Water Vapor",
             value = wv,
-            showClear = false
+            showClear = false,
+            disabled = configApi.isBlocked
           )
         ),
         <.div(ObserveStyles.SkyBackgroundArea)(
@@ -96,8 +98,8 @@ object ConfigSection:
             id = "skyBackground".refined,
             label = "Sky Background",
             value = sb,
-            showClear = false
+            showClear = false,
+            disabled = configApi.isBlocked
           )
         )
-        // )
       )

@@ -4,10 +4,14 @@
 package observe.ui.services
 
 import cats.effect.IO
+import cats.effect.Resource
+import crystal.react.View
+import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Encoder
 import io.circe.*
 import io.circe.syntax.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
@@ -20,18 +24,35 @@ import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.*
 import org.http4s.headers.Authorization
+import org.typelevel.log4cats.Logger
 
-case class ConfigApiImpl(client: Client[IO], baseUri: Uri, token: NonEmptyString)
+case class ConfigApiImpl(
+  client:        Client[IO],
+  baseUri:       Uri,
+  token:         NonEmptyString,
+  isBlockedView: View[Boolean],
+  latch:         Resource[IO, Unit],
+  onError:       Throwable => IO[Unit]
+)(using Logger[IO])
     extends ConfigApi[IO]:
-  private def request[T: Encoder](path: String, data: T): IO[Unit] = // TODO: Retries
-    client.expect[Unit](
-      Request(Method.POST, baseUri.addPath(path))
-        .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
-        .withEntity(data.asJson)
+  private def request[T: Encoder](path: String, data: T): IO[Unit] =
+    latch.use(_ =>
+      isBlockedView.async.set(true) >>
+        client
+          .expect[Unit](
+            Request(Method.POST, baseUri.addPath(path))
+              .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
+              .withEntity(data.asJson)
+          )
+          .onError(onError)
+          .onCancel(onError(new Exception("There was an error modifying conditions."))) >>
+        isBlockedView.async.set(false)
     )
 
-  override def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("/iq", iq)
-  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] = request("/ce", ce)
-  override def setWaterVapor(wv:      WaterVapor): IO[Unit]      = request("/wv", wv)
-  override def setSkyBackground(sb:   SkyBackground): IO[Unit]   = request("/sb", sb)
-  override def refresh(clientId:      ClientId): IO[Unit]        = request("/refresh", clientId)
+  override def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("iq", iq)
+  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] = request("ce", ce)
+  override def setWaterVapor(wv:      WaterVapor): IO[Unit]      = request("wv", wv)
+  override def setSkyBackground(sb:   SkyBackground): IO[Unit]   = request("sb", sb)
+  override def refresh(clientId:      ClientId): IO[Unit]        = request("refresh", clientId)
+
+  override def isBlocked: Boolean = isBlockedView.get

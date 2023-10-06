@@ -14,6 +14,7 @@ import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router.SetRouteVia
 import japgolly.scalajs.react.feature.Context
+import lucuma.react.primereact.ToastRef
 import lucuma.schemas.ObservationDB
 import lucuma.ui.enums.ExecutionEnvironment
 import lucuma.ui.sso.SSOClient
@@ -29,7 +30,8 @@ case class AppContext[F[_]: FlatMap](
   version:       NonEmptyString,
   ssoClient:     SSOClient[F],
   pageUrl:       AppTab => String,
-  setPageVia:    (AppTab, SetRouteVia) => Callback
+  setPageVia:    (AppTab, SetRouteVia) => Callback,
+  toast:         ToastRef
 )(using
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
