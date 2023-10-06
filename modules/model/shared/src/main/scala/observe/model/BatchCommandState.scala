@@ -5,14 +5,14 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
+import lucuma.core.model.User
 
 sealed trait BatchCommandState extends Product with Serializable
 
 object BatchCommandState {
-  case object Idle extends BatchCommandState
-  final case class Run(observer: Observer, user: UserDetails, clientId: ClientId)
-      extends BatchCommandState
-  case object Stop extends BatchCommandState
+  case object Idle                                                         extends BatchCommandState
+  final case class Run(observer: Observer, user: User, clientId: ClientId) extends BatchCommandState
+  case object Stop                                                         extends BatchCommandState
 
   given Eq[BatchCommandState] = Eq.instance {
     case (Idle, Idle)                       => true

@@ -18,7 +18,6 @@ import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
 import observe.model.StepState
-import observe.model.UserDetails
 import observe.model.enums.Instrument.GmosS
 import observe.model.enums.Resource
 import org.typelevel.log4cats.Logger
@@ -34,7 +33,6 @@ class StepSuite extends CatsEffectSuite {
 
   private val seqId  = observationId(1)
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
-  private val user   = UserDetails("telops", "Telops")
 
   private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
