@@ -19,7 +19,6 @@ import squants.time.TimeUnit
  */
 class ModelSuite extends munit.DisciplineSuite {
 
-  checkAll("Eq[UserDetails]", EqTests[UserDetails].eqv)
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)

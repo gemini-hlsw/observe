@@ -6,11 +6,11 @@ package observe.engine
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.model.User
 import observe.engine.SystemEvent.Null
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.UserDetails
 
 import java.time.Instant
 
@@ -26,29 +26,29 @@ object Event {
   final case class EventUser[F[_], S, U](ue: UserEvent[F, S, U]) extends Event[F, S, U]
   final case class EventSystem[F[_], S, U](se: SystemEvent)      extends Event[F, S, U]
 
-  def start[F[_], S, U](id: Observation.Id, user: UserDetails, clientId: ClientId): Event[F, S, U] =
+  def start[F[_], S, U](id: Observation.Id, user: User, clientId: ClientId): Event[F, S, U] =
     EventUser[F, S, U](Start[F, S, U](id, user.some, clientId))
-  def pause[F[_], S, U](id: Observation.Id, user: UserDetails): Event[F, S, U]                     =
+  def pause[F[_], S, U](id: Observation.Id, user: User): Event[F, S, U]                     =
     EventUser[F, S, U](Pause(id, user.some))
-  def cancelPause[F[_], S, U](id: Observation.Id, user: UserDetails): Event[F, S, U]               =
+  def cancelPause[F[_], S, U](id: Observation.Id, user: User): Event[F, S, U]               =
     EventUser[F, S, U](CancelPause(id, user.some))
   def breakpoint[F[_], S, U](
     id:   Observation.Id,
-    user: UserDetails,
+    user: User,
     step: StepId,
     v:    Boolean
   ): Event[F, S, U] = EventUser[F, S, U](Breakpoint(id, user.some, step, v))
   def skip[F[_], S, U](
     id:   Observation.Id,
-    user: UserDetails,
+    user: User,
     step: StepId,
     v:    Boolean
   ): Event[F, S, U] = EventUser[F, S, U](SkipMark(id, user.some, step, v))
-  def poll[F[_], S, U](clientId: ClientId): Event[F, S, U]                                         =
+  def poll[F[_], S, U](clientId: ClientId): Event[F, S, U]                                  =
     EventUser[F, S, U](Poll(clientId))
-  def getState[F[_], S, U](f: S => Option[Stream[F, Event[F, S, U]]]): Event[F, S, U]              =
+  def getState[F[_], S, U](f: S => Option[Stream[F, Event[F, S, U]]]): Event[F, S, U]       =
     EventUser[F, S, U](GetState(f))
-  def modifyState[F[_], S, U](f: Handle[F, S, Event[F, S, U], U]): Event[F, S, U]                  =
+  def modifyState[F[_], S, U](f: Handle[F, S, Event[F, S, U], U]): Event[F, S, U]           =
     EventUser[F, S, U](ModifyState(f))
   def actionStop[F[_], S, U](
     id: Observation.Id,
@@ -60,17 +60,17 @@ object Event {
     c:  Stream[F, Result]
   ): Event[F, S, U] =
     EventUser[F, S, U](ActionResume(id, i, c))
-  def logDebugMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                            =
+  def logDebugMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                     =
     EventUser[F, S, U](LogDebug(msg, ts))
-  def logDebugMsgF[F[_]: Sync, S, U](msg: String): F[Event[F, S, U]]                               =
+  def logDebugMsgF[F[_]: Sync, S, U](msg: String): F[Event[F, S, U]]                        =
     Sync[F].delay(Instant.now).map(t => EventUser[F, S, U](LogDebug(msg, t)))
-  def logInfoMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                             =
+  def logInfoMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                      =
     EventUser[F, S, U](LogInfo(msg, ts))
-  def logWarningMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                          =
+  def logWarningMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                   =
     EventUser[F, S, U](LogWarning(msg, ts))
-  def logErrorMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                            =
+  def logErrorMsg[F[_], S, U](msg: String, ts: Instant): Event[F, S, U]                     =
     EventUser[F, S, U](LogError(msg, ts))
-  def logErrorMsgF[F[_]: Sync, S, U](msg: String): F[Event[F, S, U]]                               =
+  def logErrorMsgF[F[_]: Sync, S, U](msg: String): F[Event[F, S, U]]                        =
     Sync[F].delay(Instant.now).map(t => EventUser[F, S, U](LogError(msg, t)))
 
   def pure[F[_]: Sync, S, U](v: U): Event[F, S, U] = EventUser[F, S, U](Pure(v))

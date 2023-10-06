@@ -16,7 +16,6 @@ import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
 import observe.model.StepId
-import observe.model.UserDetails
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -33,7 +32,6 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   // All tests check the output of running a sequence against the expected sequence of updates.
 
-  private val user            = UserDetails("telops", "Telops")
   private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
   def simpleStep(id: StepId, breakpoint: Boolean): Step[IO] =

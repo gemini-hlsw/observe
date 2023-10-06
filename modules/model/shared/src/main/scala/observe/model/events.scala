@@ -6,6 +6,7 @@ package observe.model.events
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
+import lucuma.core.model.User
 import observe.model.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
@@ -34,7 +35,7 @@ case class ServerLogMessage(level: ServerLogLevel, timestamp: Instant, msg: Stri
 case object NullEvent extends ObserveEvent
 
 case class ConnectionOpenEvent(
-  userDetails:   Option[UserDetails],
+  userDetails:   Option[User],
   clientId:      ClientId,
   serverVersion: String
 ) extends ObserveEvent

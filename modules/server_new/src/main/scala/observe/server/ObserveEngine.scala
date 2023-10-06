@@ -21,6 +21,7 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
+import lucuma.core.model.User
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
 import monocle.Focus
 import monocle.Lens
@@ -38,7 +39,6 @@ import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
 import observe.model.StepId
-import observe.model.UserDetails
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
 import observe.model.UserPrompt.SeqCheck
@@ -68,7 +68,7 @@ trait ObserveEngine[F[_]] {
 
   def start(
     id:          Observation.Id,
-    user:        UserDetails,
+    user:        User,
     observer:    Observer,
     clientId:    ClientId,
     runOverride: RunOverride
@@ -85,53 +85,53 @@ trait ObserveEngine[F[_]] {
   def requestPause(
     id:       Observation.Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit]
 
   def requestCancelPause(
     id:       Observation.Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit]
 
   def setBreakpoint(
     seqId:    Observation.Id,
-    user:     UserDetails,
+    user:     User,
     observer: Observer,
     stepId:   StepId,
     v:        Boolean
   ): F[Unit]
 
-  def setOperator(user: UserDetails, name: Operator): F[Unit]
+  def setOperator(user: User, name: Operator): F[Unit]
 
   def setObserver(
     seqId: Observation.Id,
-    user:  UserDetails,
+    user:  User,
     name:  Observer
   ): F[Unit]
 
   // Systems overrides
   def setTcsEnabled(
     seqId:   Observation.Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit]
 
   def setGcalEnabled(
     seqId:   Observation.Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit]
 
   def setInstrumentEnabled(
     seqId:   Observation.Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit]
 
   def setDhsEnabled(
     seqId:   Observation.Id,
-    user:    UserDetails,
+    user:    User,
     enabled: Boolean
   ): F[Unit]
 
@@ -139,27 +139,27 @@ trait ObserveEngine[F[_]] {
     i:        Instrument,
     sid:      Observation.Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     clientId: ClientId
   ): F[Unit]
 
-  def clearLoadedSequences(user: UserDetails): F[Unit]
+  def clearLoadedSequences(user: User): F[Unit]
 
   def resetConditions: F[Unit]
 
-  def setConditions(conditions: Conditions, user: UserDetails): F[Unit]
+  def setConditions(conditions: Conditions, user: User): F[Unit]
 
-  def setImageQuality(iq: ImageQuality, user: UserDetails): F[Unit]
+  def setImageQuality(iq: ImageQuality, user: User): F[Unit]
 
-  def setWaterVapor(wv: WaterVapor, user: UserDetails): F[Unit]
+  def setWaterVapor(wv: WaterVapor, user: User): F[Unit]
 
-  def setSkyBackground(sb: SkyBackground, user: UserDetails): F[Unit]
+  def setSkyBackground(sb: SkyBackground, user: User): F[Unit]
 
-  def setCloudExtinction(cc: CloudExtinction, user: UserDetails): F[Unit]
+  def setCloudExtinction(cc: CloudExtinction, user: User): F[Unit]
 
   def setSkipMark(
     seqId:    Observation.Id,
-    user:     UserDetails,
+    user:     User,
     observer: Observer,
     stepId:   StepId,
     v:        Boolean
@@ -170,27 +170,27 @@ trait ObserveEngine[F[_]] {
   def stopObserve(
     seqId:    Observation.Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     graceful: Boolean
   ): F[Unit]
 
   def abortObserve(
     seqId:    Observation.Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit]
 
   def pauseObserve(
     seqId:    Observation.Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     graceful: Boolean
   ): F[Unit]
 
   def resumeObserve(
     seqId:    Observation.Id,
     observer: Observer,
-    user:     UserDetails
+    user:     User
   ): F[Unit]
 
   def addSequencesToQueue(qid: QueueId, seqIds: List[Observation.Id]): F[Unit]
@@ -211,7 +211,7 @@ trait ObserveEngine[F[_]] {
   def startQueue(
     qid:      QueueId,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     clientId: ClientId
   ): F[Unit]
 
@@ -223,7 +223,7 @@ trait ObserveEngine[F[_]] {
   def configSystem(
     sid:      Observation.Id,
     observer: Observer,
-    user:     UserDetails,
+    user:     User,
     stepId:   StepId,
     sys:      Resource,
     clientID: ClientId
@@ -505,7 +505,7 @@ object ObserveEngine {
     // Stars a sequence from the first non executed step. The method checks for resources conflict.
     override def start(
       id:          Observation.Id,
-      user:        UserDetails,
+      user:        User,
       observer:    Observer,
       clientId:    ClientId,
       runOverride: RunOverride
@@ -536,28 +536,28 @@ object ObserveEngine {
     override def requestPause(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails
+      user:     User
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine.offer(Event.pause[F, EngineState[F], SeqEvent](seqId, user))
 
     override def requestCancelPause(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails
+      user:     User
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine.offer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
 
     override def setBreakpoint(
       seqId:    Observation.Id,
-      user:     UserDetails,
+      user:     User,
       observer: Observer,
       stepId:   StepId,
       v:        Boolean
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine.offer(Event.breakpoint[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
 
-    override def setOperator(user: UserDetails, name: Operator): F[Unit] =
-      logDebugEvent(s"ObserveEngine: Setting Operator name to '$name' by ${user.username}") *>
+    override def setOperator(user: User, name: Operator): F[Unit] =
+      logDebugEvent(s"ObserveEngine: Setting Operator name to '$name' by ${user.displayName}") *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
             (EngineState.operator[F].replace(name.some) >>> refreshSequences)
@@ -581,10 +581,10 @@ object ObserveEngine {
 
     override def setObserver(
       seqId: Observation.Id,
-      user:  UserDetails,
+      user:  User,
       name:  Observer
     ): F[Unit] = logDebugEvent(
-      s"ObserveEngine: Setting Observer name to '$name' for sequence '$seqId' by ${user.username}"
+      s"ObserveEngine: Setting Observer name to '$name' for sequence '$seqId' by ${user.displayName}"
     ) *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
@@ -599,7 +599,7 @@ object ObserveEngine {
 //      i:        Instrument,
 //      sid:      Observation.Id,
 //      observer: Observer,
-//      user:     UserDetails,
+//      user:     User,
 //      clientId: ClientId
 //    ): EventType[F] = {
 //      val lens = EngineState
@@ -625,7 +625,7 @@ object ObserveEngine {
       i:        Instrument,
       sid:      Observation.Id,
       observer: Observer,
-      user:     UserDetails,
+      user:     User,
       clientId: ClientId
     ): F[Unit] = executeEngine.inject(
       systems.odb
@@ -715,7 +715,7 @@ object ObserveEngine {
     private def logDebugEvent(msg: String): F[Unit] =
       Event.logDebugMsgF[F, EngineState[F], SeqEvent](msg).flatMap(executeEngine.offer)
 
-    override def clearLoadedSequences(user: UserDetails): F[Unit] =
+    override def clearLoadedSequences(user: User): F[Unit] =
       logDebugEvent("ObserveEngine: Updating loaded sequences") *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -738,7 +738,7 @@ object ObserveEngine {
 
     override def setConditions(
       conditions: Conditions,
-      user:       UserDetails
+      user:       User
     ): F[Unit] = logDebugEvent("ObserveEngine: Setting conditions") *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
@@ -748,7 +748,7 @@ object ObserveEngine {
         )
       )
 
-    override def setImageQuality(iq: ImageQuality, user: UserDetails): F[Unit] =
+    override def setImageQuality(iq: ImageQuality, user: User): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting image quality to $iq") *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -758,7 +758,7 @@ object ObserveEngine {
           )
         )
 
-    override def setWaterVapor(wv: WaterVapor, user: UserDetails): F[Unit] =
+    override def setWaterVapor(wv: WaterVapor, user: User): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting water vapor to $wv") *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -768,7 +768,7 @@ object ObserveEngine {
           )
         )
 
-    override def setSkyBackground(sb: SkyBackground, user: UserDetails): F[Unit] =
+    override def setSkyBackground(sb: SkyBackground, user: User): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting sky background to $sb") *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -780,7 +780,7 @@ object ObserveEngine {
 
     override def setCloudExtinction(
       ce:   CloudExtinction,
-      user: UserDetails
+      user: User
     ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $ce") *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
@@ -792,7 +792,7 @@ object ObserveEngine {
 
     override def setSkipMark(
       seqId:    Observation.Id,
-      user:     UserDetails,
+      user:     User,
       observer: Observer,
       stepId:   StepId,
       v:        Boolean
@@ -800,7 +800,7 @@ object ObserveEngine {
 //      setObserver(seqId, user, observer) *>
 //        executeEngine.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
 //
-    override def requestRefresh(clientId: ClientId): F[Unit]                     =
+    override def requestRefresh(clientId: ClientId): F[Unit]              =
       executeEngine.offer(Event.poll(clientId))
 
     private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] =
@@ -856,7 +856,7 @@ object ObserveEngine {
     override def stopObserve(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails,
+      user:     User,
       graceful: Boolean
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine
@@ -871,7 +871,7 @@ object ObserveEngine {
     override def abortObserve(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails
+      user:     User
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine.offer(
         Event.actionStop[F, EngineState[F], SeqEvent](seqId, translator.abortObserve(seqId))
@@ -880,7 +880,7 @@ object ObserveEngine {
     override def pauseObserve(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails,
+      user:     User,
       graceful: Boolean
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine
@@ -897,7 +897,7 @@ object ObserveEngine {
     override def resumeObserve(
       seqId:    Observation.Id,
       observer: Observer,
-      user:     UserDetails
+      user:     User
     ): F[Unit] =
       executeEngine.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
         setObserver(seqId, user, observer) *>
@@ -1058,7 +1058,7 @@ object ObserveEngine {
 //    private def setObserverAndSelect(
 //      sid:      Observation.Id,
 //      observer: Observer,
-//      user:     UserDetails,
+//      user:     User,
 //      clientId: ClientId
 //    ): HandlerType[F, Unit] = Handle(
 //      StateT[F, EngineState[F], (Unit, Option[Stream[F, EventType[F]]])] { st: EngineState[F] =>
@@ -1098,7 +1098,7 @@ object ObserveEngine {
 //    private def runSequences(
 //      ss:       Set[Observation.Id],
 //      observer: Observer,
-//      user:     UserDetails,
+//      user:     User,
 //      clientId: ClientId
 //    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      ss.map(sid =>
@@ -1114,7 +1114,7 @@ object ObserveEngine {
 //    private def runQueue(
 //      qid:      QueueId,
 //      observer: Observer,
-//      user:     UserDetails,
+//      user:     User,
 //      clientId: ClientId
 //    ): HandlerType[F, List[(Observation.Id, StepId)]] =
 //      executeEngine.get
@@ -1133,7 +1133,7 @@ object ObserveEngine {
 //    private def runNextsInQueue(
 //      qid:      QueueId,
 //      observer: Observer,
-//      user:     UserDetails,
+//      user:     User,
 //      clientId: ClientId,
 //      freed:    Set[Resource]
 //    ): HandlerType[F, List[(Observation.Id, StepId)]] =
@@ -1144,7 +1144,7 @@ object ObserveEngine {
     override def startQueue(
       qid:      QueueId,
       observer: Observer,
-      user:     UserDetails,
+      user:     User,
       clientId: ClientId
     ): F[Unit] = Applicative[F].unit
     //    executeEngine.offer(
@@ -1285,7 +1285,7 @@ object ObserveEngine {
     override def configSystem(
       sid:      Observation.Id,
       observer: Observer,
-      user:     UserDetails,
+      user:     User,
       stepId:   StepId,
       sys:      Resource,
       clientID: ClientId
@@ -1366,7 +1366,7 @@ object ObserveEngine {
 
     override def setTcsEnabled(
       seqId:   Observation.Id,
-      user:    UserDetails,
+      user:    User,
       enabled: Boolean
     ): F[Unit] = Applicative[F].unit
 //      logDebugEvent(
@@ -1387,7 +1387,7 @@ object ObserveEngine {
 //
     override def setGcalEnabled(
       seqId:   Observation.Id,
-      user:    UserDetails,
+      user:    User,
       enabled: Boolean
     ): F[Unit] = Applicative[F].unit
 //      logDebugEvent(
@@ -1408,7 +1408,7 @@ object ObserveEngine {
 //
     override def setInstrumentEnabled(
       seqId:   Observation.Id,
-      user:    UserDetails,
+      user:    User,
       enabled: Boolean
     ): F[Unit] = Applicative[F].unit
 //      logDebugEvent(
@@ -1431,7 +1431,7 @@ object ObserveEngine {
 //
     override def setDhsEnabled(
       seqId:   Observation.Id,
-      user:    UserDetails,
+      user:    User,
       enabled: Boolean
     ): F[Unit] = Applicative[F].unit
 //      logDebugEvent(

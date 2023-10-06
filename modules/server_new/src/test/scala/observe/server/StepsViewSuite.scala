@@ -163,7 +163,7 @@ class StepsViewSuite extends TestCommon {
     val s0       = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setOperator(UserDetails("", ""), operator), 2)
+      sf <- advanceN(oe, s0, oe.setOperator(user, operator), 2)
     } yield sf
       .flatMap(EngineState.operator.get)
       .exists { op =>
@@ -177,7 +177,7 @@ class StepsViewSuite extends TestCommon {
 
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setImageQuality(iq, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
       op === iq
     }).assert
@@ -188,7 +188,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.wv).get).exists { op =>
       op === wv
     }).assert
@@ -199,7 +199,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
       op === ce
     }).assert
@@ -210,7 +210,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, UserDetails("", "")), 2)
+      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.sb).get).exists { op =>
       op === sb
     }
@@ -224,7 +224,7 @@ class StepsViewSuite extends TestCommon {
   //   (for {
   //     oe <- observeEngine
   //     sf <-
-  //       advanceN(oe, s0, oe.setObserver(seqObsId1, UserDetails("", ""), observer), 2)
+  //       advanceN(oe, s0, oe.setObserver(seqObsId1, user, observer), 2)
   //   } yield sf
   //     .flatMap(
   //       EngineState
@@ -261,7 +261,7 @@ class StepsViewSuite extends TestCommon {
 //               s0,
 //               observeEngine.start(q,
 //                                   seqObsId2,
-//                                   UserDetails("", ""),
+//                                   user,
 //                                   Observer(""),
 //                                   clientId,
 //                                   RunOverride.Default
@@ -296,7 +296,7 @@ class StepsViewSuite extends TestCommon {
 //               s0,
 //               observeEngine.start(q,
 //                                   seqObsId2,
-//                                   UserDetails("", ""),
+//                                   user,
 //                                   Observer(""),
 //                                   clientId,
 //                                   RunOverride.Default
@@ -325,7 +325,7 @@ class StepsViewSuite extends TestCommon {
 //                  observeEngine.configSystem(q,
 //                                             seqObsId1,
 //                                             Observer(""),
-//                                             UserDetails("", ""),
+//                                             user,
 //                                             stepId(1),
 //                                             TCS,
 //                                             clientId
@@ -365,7 +365,7 @@ class StepsViewSuite extends TestCommon {
 //                    observeEngine.configSystem(q,
 //                                               seqObsId1,
 //                                               Observer(""),
-//                                               UserDetails("", ""),
+//                                               user,
 //                                               stepId(1),
 //                                               TCS,
 //                                               clientId
@@ -410,7 +410,7 @@ class StepsViewSuite extends TestCommon {
 //           observeEngine.configSystem(q,
 //                                      seqObsId2,
 //                                      Observer(""),
-//                                      UserDetails("", ""),
+//                                      user,
 //                                      stepId(1),
 //                                      Instrument.F2,
 //                                      clientId
@@ -456,7 +456,7 @@ class StepsViewSuite extends TestCommon {
 //             .configSystem(q,
 //                           seqObsId2,
 //                           Observer(""),
-//                           UserDetails("", ""),
+//                           user,
 //                           stepId(1),
 //                           Instrument.F2,
 //                           clientId

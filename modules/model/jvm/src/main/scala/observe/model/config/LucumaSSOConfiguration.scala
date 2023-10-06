@@ -5,6 +5,9 @@ package observe.model.config
 
 import cats.Eq
 import cats.derived.*
+import org.http4s.Uri
+
+import java.security.PublicKey
 
 /**
  * Parameeters to configure SSO
@@ -12,5 +15,13 @@ import cats.derived.*
  * @param serviceToken
  */
 case class LucumaSSOConfiguration(
-  serviceToken: String
-) derives Eq
+  serviceToken: String,
+  publicKey:    PublicKey,
+  ssoUrl:       Uri
+)
+
+object LucumaSSOConfiguration {
+  private given Eq[PublicKey] = Eq.fromUniversalEquals
+
+  given Eq[LucumaSSOConfiguration] = Eq.derived[LucumaSSOConfiguration]
+}
