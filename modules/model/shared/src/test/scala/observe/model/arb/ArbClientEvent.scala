@@ -49,7 +49,7 @@ trait ArbClientEvent:
 
   given Cogen[ClientEvent.ObserveState] =
     Cogen[(List[(Observation.Id, ExecutionState)], Conditions)].contramap(x =>
-      (x.state.sequences.toList, x.conditions)
+      (x.sequenceExecution.toList, x.conditions)
     )
 
   given Arbitrary[ClientEvent.InitialEvent] = Arbitrary:
