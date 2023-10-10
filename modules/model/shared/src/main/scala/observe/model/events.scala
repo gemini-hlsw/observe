@@ -136,8 +136,8 @@ case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
-    case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.conditions).some
-    case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.conditions).some
+    case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case _                       => none
   }).map { u =>
     e match {

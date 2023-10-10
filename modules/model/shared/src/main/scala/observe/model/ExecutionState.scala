@@ -5,6 +5,8 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import io.circe.Decoder
+import io.circe.Encoder
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Lens
@@ -20,7 +22,9 @@ case class ExecutionState(
   nsState:       Option[NsRunningState],
   configStatus:  List[(Resource, ActionStatus)],
   breakpoints:   Set[Step.Id] = Set.empty
-) derives Eq
+) derives Eq,
+      Encoder.AsObject,
+      Decoder
 
 object ExecutionState:
   val sequenceState: Lens[ExecutionState, SequenceState]                 = Focus[ExecutionState](_.sequenceState)

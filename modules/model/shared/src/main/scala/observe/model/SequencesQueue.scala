@@ -16,7 +16,7 @@ import scala.collection.immutable.SortedMap
  * Represents a queue with different levels of details. E.g. it could be a list of Ids Or a list of
  * fully hydrated SequenceViews
  */
-final case class SequencesQueue[T](
+case class SequencesQueue[T](
   loaded:       Map[Instrument, Observation.Id],
   conditions:   Conditions,
   operator:     Option[Operator],
