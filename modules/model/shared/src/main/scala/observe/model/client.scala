@@ -8,16 +8,28 @@ import cats.derived.*
 import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
+import io.circe.KeyDecoder
+import io.circe.KeyEncoder
 import io.circe.syntax.*
-import lucuma.core.util.Enumerated
+import lucuma.core.model.Observation
 import observe.model.Conditions
 import observe.model.Environment
-
-enum ObserveEventType(val tag: String) derives Enumerated:
-  case StateRefresh      extends ObserveEventType("state_refreshed")
-  case ConditionsUpdated extends ObserveEventType("conditions_updated")
+import observe.model.ExecutionState
+import observe.model.SequenceView
+import observe.model.SequencesQueue
 
 sealed trait ClientEvent derives Eq
+
+private given KeyEncoder[Observation.Id] = _.toString
+private given KeyDecoder[Observation.Id] = Observation.Id.parse(_)
+
+extension (v: SequencesQueue[SequenceView])
+  def sequencesState: Map[Observation.Id, ExecutionState] =
+    v.sessionQueue.map(o => (o.obsId, o.executionState)).toMap
+
+extension (q: SequenceView)
+  def executionState: ExecutionState =
+    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Nil)
 
 object ClientEvent:
   case class InitialEvent(environment: Environment) extends ClientEvent
@@ -25,14 +37,17 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
-  case class ObserveState(conditions: Conditions) extends ClientEvent
+  case class ObserveState(
+    sequenceExecution: Map[Observation.Id, ExecutionState],
+    conditions:        Conditions
+  ) extends ClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
 
   given Encoder[ClientEvent] = Encoder.instance:
-    case e @ InitialEvent(_) => e.asJson
-    case e @ ObserveState(_) => e.asJson
+    case e @ InitialEvent(_)    => e.asJson
+    case e @ ObserveState(_, _) => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](

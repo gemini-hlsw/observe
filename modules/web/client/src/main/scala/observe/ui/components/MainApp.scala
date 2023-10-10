@@ -177,9 +177,9 @@ object MainApp:
                   // Process client event stream
                   case Right(event) =>
                     event match
-                      case ClientEvent.InitialEvent(env)        =>
+                      case ClientEvent.InitialEvent(env)           =>
                         environment.async.set(env.ready)
-                      case ClientEvent.ObserveState(conditions) =>
+                      case ClientEvent.ObserveState(_, conditions) =>
                         rootModelData.zoom(RootModelData.conditions).async.set(conditions)
                   case Left(error)  =>
                     rootModelData

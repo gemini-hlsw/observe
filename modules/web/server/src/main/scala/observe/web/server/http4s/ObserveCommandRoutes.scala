@@ -12,7 +12,6 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
 import lucuma.sso.client.SsoClient
-import observe.model.*
 import observe.server
 import observe.server.ObserveEngine
 import org.http4s.*
@@ -169,7 +168,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
         req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u) *> NoContent())
       }
 
-    case req @ POST -> Root / "ce" =>
+    case req @ POST -> Root / "ce"                       =>
       ssoClient.require(req) { u =>
         req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u) *> NoContent())
       }
@@ -237,8 +236,8 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     // }
     //
     // val refreshCommand: HttpRoutes[F] = HttpRoutes.of[F] {
-    // case GET -> Root / "refresh" / ClientIDVar(clientId) =>
-    //   oe.requestRefresh(clientId) *> NoContent()
+    case GET -> Root / "refresh" / ClientIDVar(clientId) =>
+      oe.requestRefresh(clientId) *> NoContent()
 
     case req @ POST -> Root / "resetconditions" =>
       ssoClient.require(req) { u =>
