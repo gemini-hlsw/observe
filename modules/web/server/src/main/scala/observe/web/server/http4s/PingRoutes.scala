@@ -1,27 +1,28 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-// package observe.web.server.http4s
+package observe.web.server.http4s
 
-// import cats.effect.Sync
-// import cats.syntax.all.*
-// import observe.web.server.security.{AuthenticationService, Http4sAuthentication}
-// import org.http4s.*
-// import org.http4s.dsl.*
-// import AuthenticationService.AuthResult
+import cats.Monad
+import fs2.compression.Compression
+import lucuma.core.model.User
+import lucuma.sso.client.SsoClient
+import org.http4s.*
+import org.http4s.dsl.*
+import org.http4s.server.middleware.GZip
 
 /**
  * Rest Endpoints to ping the backend and detect when you're logged out
  */
-// class PingRoutes[F[_]: Sync](auth: AuthenticationService[F]) extends Http4sDsl[F] {
-//
-//   private val httpAuthentication               = new Http4sAuthentication(auth)
-//
-//   val pingService: AuthedRoutes[AuthResult, F] =
-//     AuthedRoutes.of { case GET -> Root as user =>
-//       user.fold(_ => Response[F](Status.Unauthorized).pure[F], _ => Ok(""))
-//     }
-//
-//   def service: HttpRoutes[F] = httpAuthentication.optAuth(pingService)
-//
-// }
+class PingRoutes[F[_]: Monad: Compression](ssoClient: SsoClient[F, User]) extends Http4sDsl[F] {
+
+  val pingService: HttpRoutes[F] = HttpRoutes.of[F] { case req @ GET -> Root =>
+    ssoClient.require(req) { _ =>
+      Ok("")
+    }
+  }
+
+  def service: HttpRoutes[F] =
+    GZip(pingService)
+
+}

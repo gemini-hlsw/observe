@@ -137,6 +137,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     ) = Router[F](
       "/api/observe/guide"  -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
       "/api/observe"        -> new ObserveCommandRoutes(ssoClient, oe).service,
+      "/api/observe/ping"   -> new PingRoutes(ssoClient).service,
       "/api/observe/events" -> new ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
     )
 
