@@ -168,31 +168,22 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
         req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u) *> NoContent())
       }
 
-    case req @ POST -> Root / "ce"                       =>
+    case req @ POST -> Root / "ce" =>
       ssoClient.require(req) { u =>
         req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u) *> NoContent())
       }
-    //
-    // case req @ POST -> Root / "sb" as user =>
-    //   req.req.decode[SkyBackground](sb =>
-    //     se.setSkyBackground(inputQueue, sb, user) *>
-    //       Ok(s"Set sky background to $sb")
-    //   )
-    //
-    // case req @ POST -> Root / "cc" as user =>
-    //   req.req.decode[CloudCover](cc =>
-    //     se.setCloudCover(inputQueue, cc, user) *> Ok(s"Set cloud cover to $cc")
-    //   )
 
-    //   case POST -> Root / "load" / InstrumentVar(i) / ObsId(obsId) / ObserverVar(
-    //         observer
-    //       ) / ClientIDVar(clientId) as user =>
-    //     se.selectSequence(inputQueue, i, obsId, observer, user, clientId) *>
-    //       Ok(s"Set selected sequence $obsId for $i")
-    //
-    //   case POST -> Root / "unload" / "all" as user =>
-    //     se.clearLoadedSequences(inputQueue, user) *> Ok(s"Queue cleared")
-    //
+    case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) / ObserverVar(
+          observer
+        ) / ClientIDVar(clientId) =>
+      ssoClient.require(req) { user =>
+        oe.selectSequence(i, obsId, observer, user, clientId) *>
+          Ok(s"Set selected sequence $obsId for $i")
+      }
+
+    // case POST -> Root / "unload" / "all" as user         =>
+    //   oe.clearLoadedSequences(inputQueue, user) *> Ok(s"Queue cleared")
+
     //   case req @ POST -> Root / "queue" / QueueIdVar(qid) / "add" as _ =>
     //     req.req.decode[List[Observation.Id]](ids =>
     //       se.addSequencesToQueue(inputQueue, qid, ids) *>

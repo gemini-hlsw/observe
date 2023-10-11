@@ -636,13 +636,13 @@ object ObserveEngine {
           _.fold(
             e =>
               Logger[F]
-                .warn(e)(s"Error loading observation $sid")
+                .warn(e)(s"Error loading observation $sid, by '${user.displayName}'.")
                 .as(
                   Event.pure(
                     SeqEvent.NotifyUser(
                       Notification.RequestFailed(
                         List(
-                          s"Error loading observation $sid",
+                          s"Error loading observation $sid, by '${user.displayName}'.",
                           e.getMessage
                         )
                       ),
@@ -655,7 +655,9 @@ object ObserveEngine {
                 Logger[F]
                   .warn(
                     err.headOption
-                      .map(e => s"Error loading observation $sid: ${e.getMessage}")
+                      .map(e =>
+                        s"Error loading observation $sid: ${e.getMessage}, by '${user.displayName}'."
+                      )
                       .getOrElse(s"Error loading observation $sid")
                   )
                   .as(
@@ -663,7 +665,7 @@ object ObserveEngine {
                       SeqEvent.NotifyUser(
                         Notification.RequestFailed(
                           List(
-                            "Error loading observation $sid"
+                            s"Error loading observation $sid"
                           ) ++ err.headOption.toList.map(e => e.getMessage)
                         ),
                         clientId
@@ -673,9 +675,11 @@ object ObserveEngine {
               case (errs, Some(seq)) =>
                 errs.isEmpty
                   .fold(
-                    Logger[F].warn(s"Loaded observation $sid."),
+                    Logger[F].warn(s"Loaded observation $sid, by '${user.displayName}'."),
                     Logger[F]
-                      .warn(s"Loaded observation $sid with warnings: ${errs.mkString}.")
+                      .warn(
+                        s"Loaded observation $sid with warnings: ${errs.mkString} by '${user.displayName}'."
+                      )
                   )
                   .as(
                     Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
@@ -697,7 +701,7 @@ object ObserveEngine {
                           SeqEvent.NotifyUser(
                             Notification.RequestFailed(
                               List(
-                                s"Error loading observation $sid",
+                                s"Error loading observation $sid, by '${user.displayName}'.",
                                 s"A sequence is running on instrument ${seq.instrument}"
                               )
                             ),
