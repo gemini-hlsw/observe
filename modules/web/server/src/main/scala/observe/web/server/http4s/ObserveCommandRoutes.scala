@@ -25,7 +25,6 @@ import org.http4s.server.middleware.GZip
 // import observe.web.server.security.TokenRefresher
 // import lucuma.core.model.Observation.{Id => ObsId}
 // import lucuma.core.model.sequence.Step.{Id => StepId}
-import scala.concurrent.duration.*
 
 /**
  * Rest Endpoints under the /api route
