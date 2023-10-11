@@ -17,7 +17,7 @@ object ClientIDVar {
 
 trait EnumeratedVar[A: Enumerated] {
   def unapply(str: String): Option[A] =
-    Enumerated[A].all.find(a => Enumerated[A].fromTag(str).exists(_ === a))
+    Enumerated[A].fromTag(str)
 }
 
 object InstrumentVar extends EnumeratedVar[Instrument]
