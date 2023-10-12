@@ -51,7 +51,6 @@ import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.enums.ServerLogLevel
 import observe.model.events.{SequenceStart as ClientSequenceStart, *}
-import observe.model.given
 import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
@@ -114,25 +113,25 @@ trait ObserveEngine[F[_]] {
   def setTcsEnabled(
     seqId:   Observation.Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit]
 
   def setGcalEnabled(
     seqId:   Observation.Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit]
 
   def setInstrumentEnabled(
     seqId:   Observation.Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit]
 
   def setDhsEnabled(
     seqId:   Observation.Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit]
 
   def selectSequence(
@@ -1368,91 +1367,78 @@ object ObserveEngine {
       ).map(_.modify(updateSequenceEndo(st.conditions, st.operator)))
         .combineAll(MonoidK[Endo].algebra)(st)
 
+    private def toggleOverride(
+      resource: String,
+      modify:   (SubsystemEnabled, SystemOverrides) => SystemOverrides,
+      event:    SeqEvent,
+      seqId:    Observation.Id,
+      user:     User,
+      enabled:  SubsystemEnabled
+    ): F[Unit] =
+      logDebugEvent(
+        s"ObserveEngine: Setting $resource enabled flag to '$enabled' for sequence '$seqId' by ${user.id}"
+      ) *>
+        executeEngine.offer(
+          Event.modifyState[F, EngineState[F], SeqEvent](
+            (EngineState
+              .atSequence(seqId)
+              .modify(SequenceData.overrides.modify { x =>
+                modify(enabled, x)
+              }) >>>
+              refreshSequence(seqId)).withEvent(event).toHandle
+          )
+        )
     override def setTcsEnabled(
       seqId:   Observation.Id,
       user:    User,
-      enabled: Boolean
-    ): F[Unit] = Applicative[F].unit
-//      logDebugEvent(
-//        q,
-//        s"ObserveEngine: Setting TCS enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
-//      ) *>
-//        executeEngine.offer(
-//          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState
-//              .sequences[F]
-//              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
-//              .modify(SequenceData.overrides.modify { x =>
-//                if (enabled) x.enableTcs else x.disableTcs
-//              }) >>>
-//              refreshSequence(seqId)).withEvent(SetTcsEnabled(seqId, user.some, enabled)).toHandle
-//          )
-//        )
-//
+      enabled: SubsystemEnabled
+    ): F[Unit] =
+      toggleOverride(Resource.TCS.label,
+                     (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
+                     SetTcsEnabled(seqId, user.some, enabled),
+                     seqId,
+                     user,
+                     enabled
+      )
+
     override def setGcalEnabled(
       seqId:   Observation.Id,
       user:    User,
-      enabled: Boolean
-    ): F[Unit] = Applicative[F].unit
-//      logDebugEvent(
-//        q,
-//        s"ObserveEngine: Setting Gcal enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
-//      ) *>
-//        executeEngine.offer(
-//          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState
-//              .sequences[F]
-//              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
-//              .modify(SequenceData.overrides.modify { x =>
-//                if (enabled) x.enableGcal else x.disableGcal
-//              }) >>>
-//              refreshSequence(seqId)).withEvent(SetGcalEnabled(seqId, user.some, enabled)).toHandle
-//          )
-//        )
-//
+      enabled: SubsystemEnabled
+    ): F[Unit] =
+      toggleOverride(Resource.Gcal.label,
+                     (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
+                     SetGcalEnabled(seqId, user.some, enabled),
+                     seqId,
+                     user,
+                     enabled
+      )
+
     override def setInstrumentEnabled(
       seqId:   Observation.Id,
       user:    User,
-      enabled: Boolean
-    ): F[Unit] = Applicative[F].unit
-//      logDebugEvent(
-//        q,
-//        s"ObserveEngine: Setting instrument enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
-//      ) *>
-//        executeEngine.offer(
-//          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState
-//              .sequences[F]
-//              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
-//              .modify(SequenceData.overrides.modify { x =>
-//                if (enabled) x.enableInstrument else x.disableInstrument
-//              }) >>>
-//              refreshSequence(seqId))
-//              .withEvent(SetInstrumentEnabled(seqId, user.some, enabled))
-//              .toHandle
-//          )
-//        )
-//
+      enabled: SubsystemEnabled
+    ): F[Unit] =
+      toggleOverride("Instrument",
+                     (enabled, x) => if (enabled.value) x.enableInstrument else x.disableInstrument,
+                     SetInstrumentEnabled(seqId, user.some, enabled),
+                     seqId,
+                     user,
+                     enabled
+      )
+
     override def setDhsEnabled(
       seqId:   Observation.Id,
       user:    User,
-      enabled: Boolean
-    ): F[Unit] = Applicative[F].unit
-//      logDebugEvent(
-//        q,
-//        s"ObserveEngine: Setting DHS enabled flag to '$enabled' for sequence '$seqId' by ${user.username}"
-//      ) *>
-//        executeEngine.offer(
-//          Event.modifyState[F, EngineState[F], SeqEvent](
-//            (EngineState
-//              .sequences[F]
-//              .andThen(mapIndex[Observation.Id, SequenceData[F]].index(seqId))
-//              .modify(SequenceData.overrides.modify { x =>
-//                if (enabled) x.enableDhs else x.disableDhs
-//              }) >>>
-//              refreshSequence(seqId)).withEvent(SetDhsEnabled(seqId, user.some, enabled)).toHandle
-//          )
-//        )
+      enabled: SubsystemEnabled
+    ): F[Unit] =
+      toggleOverride("DHS",
+                     (enabled, x) => if (enabled.value) x.enableDhs else x.disableDhs,
+                     SetDhsEnabled(seqId, user.some, enabled),
+                     seqId,
+                     user,
+                     enabled
+      )
 
   }
 

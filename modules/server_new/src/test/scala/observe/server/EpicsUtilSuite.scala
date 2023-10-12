@@ -12,8 +12,6 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import scala.concurrent.duration.FiniteDuration
 
 class EpicsUtilSuite extends munit.CatsEffectSuite {
 

@@ -37,7 +37,6 @@ import squants.Length
 import squants.space.Angle
 
 import server.InstrumentSystem.ElapsedTime
-import server.InstrumentSystem.ElapsedTime
 
 package object server {
 

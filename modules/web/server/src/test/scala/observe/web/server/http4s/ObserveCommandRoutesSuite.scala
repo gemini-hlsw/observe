@@ -42,7 +42,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
-                  Request[IO](method = Method.POST, uri = uri"/wv")
+                  Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/wv"))
                     .withEntity((WaterVapor.Wet: WaterVapor).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -56,7 +56,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
-                  Request[IO](method = Method.POST, uri = uri"/iq")
+                  Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/iq"))
                     .withEntity((ImageQuality.PointTwo: ImageQuality).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -70,7 +70,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
-                  Request[IO](method = Method.POST, uri = uri"/sb")
+                  Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/sb"))
                     .withEntity((SkyBackground.Darkest: SkyBackground).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -84,7 +84,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
-                  Request[IO](method = Method.POST, uri = uri"/ce")
+                  Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/ce"))
                     .withEntity((CloudExtinction.PointFive: CloudExtinction).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -100,7 +100,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       l      <- s(
                   Request[IO](method = Method.POST,
                               uri = Uri.unsafeFromString(
-                                s"/load/GmosS/${obsId.show}/observer/${clientId.value}"
+                                s"/load/GmosS/${obsId.show}/${clientId.value}/observer"
                               )
                   )
                 ).value
@@ -117,6 +117,70 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                   Request[IO](method = Method.POST,
                               uri = Uri.unsafeFromString(
                                 s"/${obsId.show}/execute/${stepId.show}/TCS/observer/${clientId.value}"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("disable tcs") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/${obsId.show}/${clientId.value}/tcsEnabled/false"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("disable gcal") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/${obsId.show}/${clientId.value}/gcalEnabled/false"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("disable instrument") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/${obsId.show}/${clientId.value}/instrumentEnabled/false"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("disable dhs") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/${obsId.show}/${clientId.value}/dhsEnabled/false"
                               )
                   )
                 ).value

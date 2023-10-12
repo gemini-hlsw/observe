@@ -61,6 +61,9 @@ trait ObserveModelArbitraries {
   given Arbitrary[QueueId] = newTypeArbitrary(QueueId)
   given Cogen[QueueId]     = newTypeCogen(QueueId)
 
+  given Arbitrary[SubsystemEnabled] = newTypeArbitrary(SubsystemEnabled)
+  given Cogen[SubsystemEnabled]     = newTypeCogen(SubsystemEnabled)
+
   given Arbitrary[ActionType] = Arbitrary[ActionType] {
     for {
       c <- arbitrary[Resource].map(ActionType.Configure.apply)
@@ -96,10 +99,10 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[SystemOverrides] = Arbitrary[SystemOverrides] {
     for {
-      tcs  <- arbitrary[Boolean]
-      inst <- arbitrary[Boolean]
-      gcal <- arbitrary[Boolean]
-      dhs  <- arbitrary[Boolean]
+      tcs  <- arbitrary[SubsystemEnabled]
+      inst <- arbitrary[SubsystemEnabled]
+      gcal <- arbitrary[SubsystemEnabled]
+      dhs  <- arbitrary[SubsystemEnabled]
     } yield SystemOverrides(tcs, inst, gcal, dhs)
   }
 
@@ -129,7 +132,7 @@ trait ObserveModelArbitraries {
     Cogen[(Instrument, Option[Observer], String)].contramap(s => (s.instrument, s.observer, s.name))
 
   given Cogen[SystemOverrides] =
-    Cogen[(Boolean, Boolean, Boolean, Boolean)].contramap(x =>
+    Cogen[(SubsystemEnabled, SubsystemEnabled, SubsystemEnabled, SubsystemEnabled)].contramap(x =>
       (x.isTcsEnabled, x.isInstrumentEnabled, x.isGcalEnabled, x.isDhsEnabled)
     )
 

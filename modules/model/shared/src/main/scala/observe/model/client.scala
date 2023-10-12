@@ -32,7 +32,7 @@ extension (v: SequencesQueue[SequenceView])
 
 extension (q: SequenceView)
   def executionState: ExecutionState =
-    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Nil)
+    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Nil, q.systemOverrides)
 
 object ClientEvent:
   enum SingleActionState(val tag: String) derives Eq, Enumerated:

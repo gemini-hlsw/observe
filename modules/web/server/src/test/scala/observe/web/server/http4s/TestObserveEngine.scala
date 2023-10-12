@@ -18,12 +18,9 @@ import observe.model.Observation.Id
 import observe.model.*
 import observe.model.enums.*
 import observe.server.EngineState
-import observe.server.EventQueue
-import observe.server.EventType
 import observe.server.ObserveEngine
 import observe.server.SeqEvent
 import observe.server.Systems
-import observe.server.keywords.DhsClientDisabled
 import org.typelevel.log4cats.Logger
 
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
@@ -79,25 +76,25 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def setTcsEnabled(
     seqId:   Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit] = Applicative[F].unit
 
   override def setGcalEnabled(
     seqId:   Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit] = Applicative[F].unit
 
   override def setInstrumentEnabled(
     seqId:   Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit] = Applicative[F].unit
 
   override def setDhsEnabled(
     seqId:   Id,
     user:    User,
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ): F[Unit] = Applicative[F].unit
 
   override def selectSequence(

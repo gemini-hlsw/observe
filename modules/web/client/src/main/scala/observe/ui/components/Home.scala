@@ -28,6 +28,7 @@ import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.SequenceState
+import observe.model.SystemOverrides
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.queries.ObsQueriesGQL
@@ -95,7 +96,7 @@ object Home:
           )
       // TODO: This will actually come from the observe server.
       .useStateView(
-        ExecutionState(SequenceState.Idle, none, none, List.empty)
+        ExecutionState(SequenceState.Idle, none, none, List.empty, SystemOverrides.AllEnabled)
       )
       .useEffectWithDepsBy((_, _, _, _, config, _) => config)((_, _, _, _, _, executionState) =>
         config =>
@@ -138,8 +139,15 @@ object Home:
                     getBreakPoints(executionConfig.science)
               .orEmpty
 
+          // TODO Verify it is correct the use of systemOverrides
           executionState.set(
-            ExecutionState(sequenceState, executingStepId, none, configState, initialBreakpoints)
+            ExecutionState(sequenceState,
+                           executingStepId,
+                           none,
+                           configState,
+                           executionState.get.systemOverrides,
+                           initialBreakpoints
+            )
           )
       )
       .render: (props, ctx, observations, selectedObsId, config, executionState) =>

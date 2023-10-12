@@ -31,4 +31,6 @@ object SequenceData {
 
   def visitId[F[_]]: Lens[SequenceData[F], Option[VisitId]] = Focus[SequenceData[F]](_.visitId)
 
+  def overrides[F[_]]: Lens[SequenceData[F], SystemOverrides] = Focus[SequenceData[F]](_.overrides)
+
 }

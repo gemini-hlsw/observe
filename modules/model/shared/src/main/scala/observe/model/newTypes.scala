@@ -25,3 +25,10 @@ type Operator = Operator.Type
 
 object ImageFileId extends NewType[String]
 type ImageFileId = ImageFileId.Type
+
+object SubsystemEnabled extends NewType[Boolean] {
+  val Enabled  = SubsystemEnabled(true)
+  val Disabled = SubsystemEnabled(false)
+}
+
+type SubsystemEnabled = SubsystemEnabled.Type
