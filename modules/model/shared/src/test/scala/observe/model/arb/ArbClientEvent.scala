@@ -19,6 +19,7 @@ import observe.model.SequencesQueue
 import observe.model.arb.ArbNsRunningState.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
+import observe.model.events.client.ClientEvent.SingleActionState
 import observe.model.events.client.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
@@ -58,17 +59,35 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.InitialEvent] =
     Cogen[Environment].contramap(_.environment)
 
+  given Arbitrary[ClientEvent.SingleActionEvent] = Arbitrary:
+    for
+      o <- arbitrary[Observation.Id]
+      s <- arbitrary[Step.Id]
+      r <- arbitrary[Resource]
+      t <- arbitrary[SingleActionState]
+      e <- arbitrary[Option[String]]
+    yield ClientEvent.SingleActionEvent(o, s, r, t, e)
+
+  given Cogen[ClientEvent.SingleActionEvent] =
+    Cogen[(Observation.Id, Step.Id, Resource, SingleActionState, Option[String])].contramap(x =>
+      (x.obsId, x.stepId, x.resource, x.event, x.error)
+    )
+
   given Arbitrary[ClientEvent] = Arbitrary:
     for
       initial <- arbitrary[ClientEvent.InitialEvent]
       state   <- arbitrary[ClientEvent.ObserveState]
-      r       <- Gen.oneOf(initial, state)
+      step    <- arbitrary[ClientEvent.SingleActionEvent]
+      r       <- Gen.oneOf(initial, state, step)
     yield r
 
   given Cogen[ClientEvent] =
-    Cogen[Either[ClientEvent.InitialEvent, ClientEvent.ObserveState]].contramap:
-      case e: ClientEvent.InitialEvent => Left(e)
-      case e: ClientEvent.ObserveState => Right(e)
+    Cogen[Either[ClientEvent.InitialEvent, Either[ClientEvent.ObserveState,
+                                                  ClientEvent.SingleActionEvent
+    ]]].contramap:
+      case e: ClientEvent.InitialEvent      => Left(e)
+      case e: ClientEvent.ObserveState      => Right(Left(e))
+      case e: ClientEvent.SingleActionEvent => Right(Right(e))
 
 end ArbClientEvent
 

@@ -150,6 +150,9 @@ object MainApp:
     event match
       case ClientEvent.InitialEvent(env)                           =>
         environment.async.set(env.ready)
+      case ClientEvent.SingleActionEvent(_, _, _, _, _)            =>
+        // TODO Update the UI
+        IO.unit
       case ClientEvent.ObserveState(sequenceExecution, conditions) =>
         rootModelData.zoom(RootModelData.sequenceExecution).async.set(sequenceExecution) >>
           rootModelData.zoom(RootModelData.conditions).async.set(conditions) >>

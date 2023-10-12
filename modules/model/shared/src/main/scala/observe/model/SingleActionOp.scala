@@ -14,11 +14,10 @@ sealed trait SingleActionOp extends Product with Serializable {
 }
 
 object SingleActionOp {
-  final case class Started(sid: Observation.Id, stepId: StepId, resource: Resource)
+  case class Started(sid: Observation.Id, stepId: StepId, resource: Resource) extends SingleActionOp
+  case class Completed(sid: Observation.Id, stepId: StepId, resource: Resource)
       extends SingleActionOp
-  final case class Completed(sid: Observation.Id, stepId: StepId, resource: Resource)
-      extends SingleActionOp
-  final case class Error(
+  case class Error(
     sid:      Observation.Id,
     stepId:   StepId,
     resource: Resource,
