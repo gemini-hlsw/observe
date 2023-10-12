@@ -65,12 +65,11 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 
 object MainApp:
-  private val ConfigFile: Uri            = uri"/environments.conf.json"
-  private val ApiBaseUri: Uri            = uri"/api/observe"
-  private val EventWsUri: Uri            =
+  private val ConfigFile: Uri     = uri"/environments.conf.json"
+  private val ApiBaseUri: Uri     = uri"/api/observe"
+  private val EventWsUri: Uri     =
     Uri.unsafeFromString("wss://" + dom.window.location.host + ApiBaseUri + "/events")
-  private val RefreshBaseUri: Uri        = ApiBaseUri / "refresh"
-  private val ResyncWait: FiniteDuration = 3.seconds
+  private val RefreshBaseUri: Uri = ApiBaseUri / "refresh"
 
   // Set up logging
   private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
@@ -123,9 +122,7 @@ object MainApp:
 
   // This will run until canceled.
   private def reSync(clientId: ClientId): IO[Unit] =
-    fetchClient.get(RefreshBaseUri / clientId.toString)(_ => IO.unit) >>
-      IO.sleep(ResyncWait) >>
-      reSync(clientId)
+    fetchClient.get(RefreshBaseUri / clientId.toString)(_ => IO.unit)
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
