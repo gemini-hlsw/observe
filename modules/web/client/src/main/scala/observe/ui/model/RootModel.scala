@@ -8,6 +8,8 @@ import cats.derived.*
 import cats.syntax.option.*
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
+import japgolly.scalajs.react.ReactCats.*
+import japgolly.scalajs.react.Reusability
 import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
@@ -44,6 +46,8 @@ object RootModelData:
   val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]           =
     Focus[RootModelData](_.userSelectionMessage)
   val log: Lens[RootModelData, List[NonEmptyString]]                              = Focus[RootModelData](_.log)
+
+  given Reusability[RootModelData] = Reusability.byEq
 
 case class RootModel(environment: Environment, data: RootModelData) derives Eq:
   export data.*

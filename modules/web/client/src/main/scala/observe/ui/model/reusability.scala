@@ -28,5 +28,4 @@ object reusability:
   given Reusability[RunningStep]                           = Reusability.byEq
   given Reusability[NodAndShuffleStatus]                   = Reusability.byEq
   given Reusability[ExecutionState]                        = Reusability.byEq
-  given Reusability[RootModelData]                         = Reusability.byEq
   given Reusability[Environment]                           = Reusability.byEq

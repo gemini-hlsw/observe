@@ -3,5 +3,10 @@
 
 package observe.ui.model.enums
 
+import japgolly.scalajs.react.Reusability
+
 enum SyncStatus:
   case Synced, OutOfSync
+
+object SyncStatus:
+  given Reusability[SyncStatus] = Reusability.by_==
