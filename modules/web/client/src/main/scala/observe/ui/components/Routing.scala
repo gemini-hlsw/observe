@@ -25,8 +25,7 @@ object Routing:
           | staticRoute(root / "excluded", Excluded) ~> renderP(rootModel => <.div("Excluded")))
           | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
             <.div(
-              ConfigSection(
-                // rootModel.get.status,
+              ConfigPanel(
                 rootModel.get.operator,
                 rootModel.zoom(RootModel.conditions)
               )

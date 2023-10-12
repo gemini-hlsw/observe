@@ -111,8 +111,8 @@ lazy val observe_web_client = project
   .settings(esModule: _*)
   .enablePlugins(ScalaJSPlugin, LucumaCssPlugin, CluePlugin, BuildInfoPlugin)
   .settings(
-    Test / test                             := {},
-    coverageEnabled                         := false,
+    Test / test      := {},
+    coverageEnabled  := false,
     libraryDependencies ++= Seq(
       Kittens.value,
       CatsEffect.value,
@@ -123,9 +123,6 @@ lazy val observe_web_client = project
       Http4sDom.value,
       LucumaUI.value
     ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
-    // TODO Remove this, only used for prototype:
-    libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
-      .cross(CrossVersion.for3Use2_13), // Do not use this, it's insecure. Substitute with GenUUID
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs"))),
     buildInfoKeys    := Seq[BuildInfoKey](
       scalaVersion,

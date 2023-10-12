@@ -18,8 +18,6 @@ import observe.model.ObservationProgress
 import observe.model.ObserveStage
 import observe.ui.ObserveStyles
 
-import java.util.UUID
-
 /**
  * Component to wrap the progress bar
  */
@@ -39,17 +37,17 @@ object ObservationProgressBar extends ProgressLabel:
 
   private val component = ScalaFnComponent
     .withHooks[Props]
-    .useMemo[Unit, Pot[ObservationProgress]](())(_ =>
-      ObservationProgress
-        .Regular(
-          obsId = Observation.Id.fromLong(133742).get,
-          // obsName = "Test observation",
-          stepId = Step.Id.fromUuid(UUID.randomUUID),
-          total = TimeSpan.unsafeFromMicroseconds(1200000000L),
-          remaining = TimeSpan.unsafeFromMicroseconds(932000000L),
-          stage = ObserveStage.Acquiring
-        )
-        .ready
+    .useMemoBy[Unit, Pot[ObservationProgress]](_ => ())(props =>
+      _ =>
+        ObservationProgress
+          .Regular(
+            obsId = Observation.Id.fromLong(133742).get,
+            stepId = props.stepId,
+            total = TimeSpan.unsafeFromMicroseconds(1200000000L),
+            remaining = TimeSpan.unsafeFromMicroseconds(932000000L),
+            stage = ObserveStage.Acquiring
+          )
+          .ready
     )
     .render((props, progress) =>
       progress.value.toOption match

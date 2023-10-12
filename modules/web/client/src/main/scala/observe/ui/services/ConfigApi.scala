@@ -23,6 +23,8 @@ trait ConfigApi[F[_]: MonadThrow]:
   def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
   def refresh(clientId:      ClientId): F[Unit]        = NotAuthorized
 
+  def isBlocked: Boolean = false
+
 object ConfigApi:
   // Default value is NotAuthorized implementations
   val ctx: Context[ConfigApi[IO]] = React.createContext(new ConfigApi[IO] {})

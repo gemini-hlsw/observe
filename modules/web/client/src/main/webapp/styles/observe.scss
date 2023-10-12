@@ -891,3 +891,12 @@ html {
   padding: 0 0.5em;
   height: 100%;
 }
+
+.ObserveStyles-syncingPanel {
+  height: var(--solar-system-size);
+  width: var(--solar-system-size);
+
+  .p-dialog-header {
+    text-align: center;
+  }
+}

@@ -16,6 +16,7 @@ import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Option[UserVault],
+  sequenceExecution:    Map[Observation.Id, ExecutionState],
   conditions:           Conditions,
   operator:             Option[Operator],
   userSelectionMessage: Option[NonEmptyString],
@@ -26,7 +27,8 @@ case class RootModelData(
 object RootModelData:
   def initial(userVault: Either[Throwable, Option[UserVault]]): RootModelData =
     RootModelData(
-      userVault.toOption.flatten,
+      userVault = userVault.toOption.flatten,
+      sequenceExecution = Map.empty,
       conditions = Conditions.Default,
       operator = none,
       userSelectionMessage =
@@ -34,21 +36,25 @@ object RootModelData:
       log = List.empty
     )
 
-  val userVault: Lens[RootModelData, Option[UserVault]]                 = Focus[RootModelData](_.userVault)
-  val conditions: Lens[RootModelData, Conditions]                       = Focus[RootModelData](_.conditions)
-  val operator: Lens[RootModelData, Option[Operator]]                   = Focus[RootModelData](_.operator)
-  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]] =
+  val userVault: Lens[RootModelData, Option[UserVault]]                           = Focus[RootModelData](_.userVault)
+  val sequenceExecution: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
+    Focus[RootModelData](_.sequenceExecution)
+  val conditions: Lens[RootModelData, Conditions]                                 = Focus[RootModelData](_.conditions)
+  val operator: Lens[RootModelData, Option[Operator]]                             = Focus[RootModelData](_.operator)
+  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]           =
     Focus[RootModelData](_.userSelectionMessage)
-  val log: Lens[RootModelData, List[NonEmptyString]]                    = Focus[RootModelData](_.log)
+  val log: Lens[RootModelData, List[NonEmptyString]]                              = Focus[RootModelData](_.log)
 
 case class RootModel(environment: Environment, data: RootModelData) derives Eq:
   export data.*
 
 object RootModel:
-  private val data: Lens[RootModel, RootModelData]                  = Focus[RootModel](_.data)
-  val userVault: Lens[RootModel, Option[UserVault]]                 = data.andThen(RootModelData.userVault)
-  val conditions: Lens[RootModel, Conditions]                       = data.andThen(RootModelData.conditions)
-  val operator: Lens[RootModel, Option[Operator]]                   = data.andThen(RootModelData.operator)
-  val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]] =
+  private val data: Lens[RootModel, RootModelData]                            = Focus[RootModel](_.data)
+  val userVault: Lens[RootModel, Option[UserVault]]                           = data.andThen(RootModelData.userVault)
+  val sequenceExecution: Lens[RootModel, Map[Observation.Id, ExecutionState]] =
+    data.andThen(RootModelData.sequenceExecution)
+  val conditions: Lens[RootModel, Conditions]                                 = data.andThen(RootModelData.conditions)
+  val operator: Lens[RootModel, Option[Operator]]                             = data.andThen(RootModelData.operator)
+  val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]]           =
     data.andThen(RootModelData.userSelectionMessage)
-  val log: Lens[RootModel, List[NonEmptyString]]                    = data.andThen(RootModelData.log)
+  val log: Lens[RootModel, List[NonEmptyString]]                              = data.andThen(RootModelData.log)

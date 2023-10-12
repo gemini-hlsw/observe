@@ -12,6 +12,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.Css
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
+import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs
 import lucuma.ui.components.state.IfLogged
@@ -68,6 +69,7 @@ object Layout:
               .zoom(RootModel.userVault)
               .mapValue: (userVault: View[UserVault]) =>
                 TopBar(props.rootModel.get.environment, userVault, theme, IO.unit),
+            Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
             SideTabs(
               "side-tabs".refined,
               appTabView,
