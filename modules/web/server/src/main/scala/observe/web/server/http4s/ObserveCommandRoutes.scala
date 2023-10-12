@@ -46,7 +46,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
         ResourceVar(resource) / ObserverVar(obs) / ClientIDVar(clientId) =>
       ssoClient.require(req) { user =>
         oe.configSystem(oid, obs, user, step, resource, clientId) *>
-          Ok(s"Run ${resource.show} from config at $oid/$step by ${user.displayName}/${obs.value}")
+          NoContent()
       }
 
     // case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(

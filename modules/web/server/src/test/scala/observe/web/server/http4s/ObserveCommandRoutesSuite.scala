@@ -10,34 +10,28 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
 import observe.model.ClientId
-import observe.model.Observation
-import observe.model.StepId
-import observe.model.enums.*
-import observe.server.*
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.implicits.*
 import org.http4s.server.websocket.WebSocketBuilder2
-import org.scalacheck.Prop.forAll
 
-import java.net.URLEncoder
+import java.util.UUID
 
 class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
+  val clientId = ClientId(UUID.randomUUID())
+  val obsId    = Observation.Id.fromLong(1000).get
+  val stepId   = Step.Id.fromUuid(UUID.randomUUID())
 
   test("reset conditions"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
-      // t      <- newLoginToken(wsb)
       l      <- s(
                   Request[IO](method = Method.POST, uri = uri"/resetconditions")
-                  // .addCookie("token", t)
-                  // .withEntity(wv)
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
@@ -47,10 +41,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
-      // t      <- newLoginToken(wsb)
       l      <- s(
                   Request[IO](method = Method.POST, uri = uri"/wv")
-                    // .addCookie("token", t)
                     .withEntity((WaterVapor.Wet: WaterVapor).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -63,10 +55,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
-      // t      <- newLoginToken(wsb)
       l      <- s(
                   Request[IO](method = Method.POST, uri = uri"/iq")
-                    // .addCookie("token", t)
                     .withEntity((ImageQuality.PointTwo: ImageQuality).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -79,10 +69,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
-      // t      <- newLoginToken(wsb)
       l      <- s(
                   Request[IO](method = Method.POST, uri = uri"/sb")
-                    // .addCookie("token", t)
                     .withEntity((SkyBackground.Darkest: SkyBackground).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
@@ -95,16 +83,47 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
-      // t      <- newLoginToken(wsb)
       l      <- s(
                   Request[IO](method = Method.POST, uri = uri"/ce")
-                    // .addCookie("token", t)
                     .withEntity((CloudExtinction.PointFive: CloudExtinction).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
     } yield (l.map(_.status), b)
     assertIO(r.map(_._1), Some(Status.NoContent)) *>
       assertIO(r.map(_._2), Some(s""))
+
+  test("load sequence") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/load/GmosS/${obsId.show}/observer/${clientId.value}"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("execute sequence step/resource") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <- s(
+                  Request[IO](method = Method.POST,
+                              uri = Uri.unsafeFromString(
+                                s"/${obsId.show}/execute/${stepId.show}/TCS/observer/${clientId.value}"
+                              )
+                  )
+                ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
   //
   // test("start sequence") {
   //   forAll { (obsId: Observation.Id, clientId: ClientId) =>

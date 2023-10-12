@@ -54,10 +54,10 @@ object ClientEvent:
         Decoder
 
   case class SingleActionEvent(
-    sid:      Observation.Id,
+    obsId:    Observation.Id,
     stepId:   StepId,
     resource: Resource,
-    state:    SingleActionState,
+    event:    SingleActionState,
     error:    Option[String]
   ) extends ClientEvent
       derives Eq,
