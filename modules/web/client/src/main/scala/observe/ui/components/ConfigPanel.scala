@@ -36,7 +36,6 @@ object ConfigPanel:
     .render: (props, ctx, configApi) =>
       import ctx.given
 
-      // TODO Error handling in API requests
       val iq: View[Option[ImageQuality]] =
         props.conditions
           .zoom(Conditions.iq)

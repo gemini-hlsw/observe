@@ -13,6 +13,7 @@ import clue.js.WebSocketJSClient
 import clue.websocket.ReconnectionStrategy
 import crystal.Pot
 import crystal.react.*
+import crystal.react.given
 import crystal.react.hooks.*
 import crystal.syntax.*
 import eu.timepit.refined.types.string.NonEmptyString
@@ -43,6 +44,7 @@ import observe.ui.model.AppContext
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
+import observe.ui.model.reusability.given
 import observe.ui.services.ConfigApi
 import observe.ui.services.ConfigApiImpl
 import org.http4s.Uri
@@ -63,11 +65,12 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 
 object MainApp:
-  private val ConfigFile: Uri     = uri"/environments.conf.json"
-  private val ApiBaseUri: Uri     = uri"/api/observe"
-  private val EventWsUri: Uri     =
+  private val ConfigFile: Uri            = uri"/environments.conf.json"
+  private val ApiBaseUri: Uri            = uri"/api/observe"
+  private val EventWsUri: Uri            =
     Uri.unsafeFromString("wss://" + dom.window.location.host + ApiBaseUri + "/events")
-  private val RefreshBaseUri: Uri = ApiBaseUri / "refresh"
+  private val RefreshBaseUri: Uri        = ApiBaseUri / "refresh"
+  private val ResyncWait: FiniteDuration = 3.seconds
 
   // Set up logging
   private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
@@ -118,8 +121,11 @@ object MainApp:
               confs.find(_.hostName === "*")
         )(orElse = new Exception("Host not found in configuration."))
 
+  // This will run until canceled.
   private def reSync(clientId: ClientId): IO[Unit] =
-    fetchClient.get(RefreshBaseUri / clientId.toString)(_ => IO.unit)
+    fetchClient.get(RefreshBaseUri / clientId.toString)(_ => IO.unit) >>
+      IO.sleep(ResyncWait) >>
+      reSync(clientId)
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
@@ -169,7 +175,8 @@ object MainApp:
       .withHooks[Unit]
       .useToastRef
       .useStateView(SyncStatus.OutOfSync) // UI is synced with server
-      .useResourceOnMountBy: (_, toastRef, _) => // Build AppContext
+      .useSingleEffect
+      .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
           appConfig                                  <- Resource.eval(fetchConfig)
           given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.DEBUG))
@@ -192,7 +199,7 @@ object MainApp:
           toastRef
         )
       .useStateView(Pot.pending[RootModelData])
-      .useEffectWhenDepsReady((_, _, _, ctxPot, _) => ctxPot): (_, _, _, _, rootModelData) =>
+      .useEffectWhenDepsReady((_, _, _, _, ctxPot, _) => ctxPot): (_, _, _, _, _, rootModelData) =>
         ctx => // Once AppContext is ready, proceed to attempt login.
           import ctx.given
 
@@ -205,11 +212,18 @@ object MainApp:
         // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
         // We also have to reSync in case of connection lost
         WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))
+      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _) => syncStatus.get):
+        (_, _, syncStatus, singleDispatcher, _, _, environmentPot, _) =>
+          case SyncStatus.OutOfSync =>
+            environmentPot.get.toOption
+              .map(env => singleDispatcher.submit(reSync(env.clientId)))
+              .orEmpty
+          case SyncStatus.Synced    => singleDispatcher.cancel
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
-        (_, _, _, ctxPot, rootModelDataPot, environment, wsConnection, _) =>
+        (_, _, _, _, ctxPot, rootModelDataPot, environment, wsConnection, _) =>
           (wsConnection, rootModelDataPot.toPotView, ctxPot).tupled
-      ): (_, _, syncStatus, _, _, environment, _, configApiStatus) =>
+      ): (_, _, syncStatus, _, _, _, environment, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
 
@@ -225,18 +239,21 @@ object MainApp:
             .map(_.cancel)
       // RootModel is not initialized until RootModelData and Environment are available
       .useStateView(Pot.pending[RootModel])
-      .useEffectWhenDepsReady((_, _, _, _, rootModelData, environment, _, _, _) =>
-        (rootModelData.get, environment.get).tupled
-      ): (_, _, _, _, _, _, _, _, rootModelPot) =>
-        // Once RootModelData and Environment are ready, build RootModel
-        (rootModelData, environment) =>
-          rootModelPot.set(RootModel(environment, rootModelData).ready)
+      .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _) =>
+        (rootModelDataPot.get, environmentPot.get)
+      ): (_, _, _, _, _, _, _, _, _, rootModelPot) =>
+        // Build RootModel from RootModelData and Environment
+        (rootModelDataPot, environmentPot) =>
+          rootModelPot.set:
+            (rootModelDataPot, environmentPot).mapN: (rootModelData, environment) =>
+              RootModel(environment, rootModelData)
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (
           _,
           toastRef,
           isSynced,
+          _,
           ctxPot,
           _,
           environmentPot,
@@ -249,9 +266,8 @@ object MainApp:
             (rootModelPot.toPotView.toOption,
              rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
              permitPot.toOption,
-             ctxPot.toOption,
-             environmentPot.toPotView.toOption
-            ).mapN: (rootModel, token, permit, ctx, environment) =>
+             ctxPot.toOption
+            ).mapN: (rootModel, token, permit, ctx) =>
               import ctx.given
 
               ConfigApiImpl(
@@ -270,11 +286,10 @@ object MainApp:
                       )
                     )
                     .to[IO] >>
-                    isSynced.async.set(SyncStatus.OutOfSync) >>
                     rootModel.async
                       .zoom(RootModel.log)
                       .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                    reSync(environment.get.clientId)
+                    isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
               )
 
           def provideApiCtx(children: VdomNode*) =
