@@ -42,7 +42,6 @@ object ObservationProgressBar extends ProgressLabel:
         ObservationProgress
           .Regular(
             obsId = Observation.Id.fromLong(133742).get,
-            // obsName = "Test observation",
             stepId = props.stepId,
             total = TimeSpan.unsafeFromMicroseconds(1200000000L),
             remaining = TimeSpan.unsafeFromMicroseconds(932000000L),

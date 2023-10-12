@@ -42,7 +42,7 @@ import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
-import observe.ui.model.enums.AppTab
+import observe.ui.model.enums.*
 import observe.ui.services.ConfigApi
 import observe.ui.services.ConfigApiImpl
 import org.http4s.Uri
@@ -140,12 +140,12 @@ object MainApp:
       case _                     => fs2.Stream.empty
 
   def processStreamEvent(
-    environment:        View[Pot[Environment]],
-    rootModelData:      View[RootModelData],
-    isSynced:           View[Boolean],
-    configApiIsBlocked: View[Boolean]
+    environment:     View[Pot[Environment]],
+    rootModelData:   View[RootModelData],
+    syncStatus:      View[SyncStatus],
+    configApiStatus: View[ApiStatus]
   )(
-    event:              ClientEvent
+    event:           ClientEvent
   )(using Logger[IO]): IO[Unit] =
     event match
       case ClientEvent.InitialEvent(env)                           =>
@@ -153,8 +153,8 @@ object MainApp:
       case ClientEvent.ObserveState(sequenceExecution, conditions) =>
         rootModelData.zoom(RootModelData.sequenceExecution).async.set(sequenceExecution) >>
           rootModelData.zoom(RootModelData.conditions).async.set(conditions) >>
-          isSynced.async.set(true) >>
-          configApiIsBlocked.async.set(false)
+          syncStatus.async.set(SyncStatus.Synced) >>
+          configApiStatus.async.set(ApiStatus.Idle)
 
   def processStreamError(
     rootModelData: View[RootModelData]
@@ -168,7 +168,7 @@ object MainApp:
     ScalaFnComponent
       .withHooks[Unit]
       .useToastRef
-      .useStateView(false) // UI is synced with server
+      .useStateView(SyncStatus.OutOfSync) // UI is synced with server
       .useResourceOnMountBy: (_, toastRef, _) => // Build AppContext
         for
           appConfig                                  <- Resource.eval(fetchConfig)
@@ -203,12 +203,13 @@ object MainApp:
       // TODO Reconnecting middleware
       .useResourceOnMount:
         // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
+        // We also have to reSync in case of connection lost
         WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))
-      .useStateView(false) // ConfigApi.isBlocked
+      .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, ctxPot, rootModelDataPot, environment, wsConnection, _) =>
           (wsConnection, rootModelDataPot.toPotView, ctxPot).tupled
-      ): (_, _, isSynced, _, _, environment, _, configApiIsBlocked) =>
+      ): (_, _, syncStatus, _, _, environment, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
 
@@ -216,7 +217,7 @@ object MainApp:
             .through(parseClientEvents)
             .evalMap: // Process client event stream
               case Right(event) =>
-                processStreamEvent(environment, rootModelData, isSynced, configApiIsBlocked)(event)
+                processStreamEvent(environment, rootModelData, syncStatus, configApiStatus)(event)
               case Left(error)  => processStreamError(rootModelData)(error)
             .compile
             .drain
@@ -240,7 +241,7 @@ object MainApp:
           _,
           environmentPot,
           _,
-          configApiIsBlocked,
+          configApiStatus,
           rootModelPot,
           permitPot
         ) =>
@@ -257,7 +258,7 @@ object MainApp:
                 client = fetchClient,
                 baseUri = ApiBaseUri,
                 token = token,
-                isBlockedView = configApiIsBlocked,
+                apiStatus = configApiStatus,
                 latch = permit,
                 onError = t =>
                   toastRef
@@ -269,7 +270,7 @@ object MainApp:
                       )
                     )
                     .to[IO] >>
-                    isSynced.async.set(false) >>
+                    isSynced.async.set(SyncStatus.OutOfSync) >>
                     rootModel.async
                       .zoom(RootModel.log)
                       .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
@@ -286,12 +287,10 @@ object MainApp:
                 Dialog(
                   header = "Reestablishing connection to server...",
                   closable = false,
-                  visible = !isSynced.get,
+                  visible = isSynced.get == SyncStatus.OutOfSync,
                   onHide = Callback.empty,
                   clazz = ObserveStyles.SyncingPanel
-                )(
-                  SolarProgress()
-                ),
+                )(SolarProgress()),
                 router(rootModel)
               )
             )
