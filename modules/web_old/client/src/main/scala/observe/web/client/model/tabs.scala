@@ -25,7 +25,7 @@ import observe.web.client.model.ModelOps.*
 import shapeless.tag.@@
 
 final case class AvailableTab(
-  obsId:             Observation.Id,
+  obsId:              Observation.Id,
   status:             SequenceState,
   instrument:         Instrument,
   runningStep:        Option[RunningStep],
