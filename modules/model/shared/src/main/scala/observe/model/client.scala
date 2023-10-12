@@ -12,11 +12,14 @@ import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import io.circe.syntax.*
 import lucuma.core.model.Observation
+import lucuma.core.util.Enumerated
 import observe.model.Conditions
 import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
+import observe.model.StepId
+import observe.model.enums.Resource
 
 sealed trait ClientEvent derives Eq
 
@@ -32,6 +35,11 @@ extension (q: SequenceView)
     ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Nil)
 
 object ClientEvent:
+  enum SingleActionState(val tag: String) derives Eq, Enumerated:
+    case Started   extends SingleActionState("started")
+    case Completed extends SingleActionState("completed")
+    case Failed    extends SingleActionState("failed")
+
   case class InitialEvent(environment: Environment) extends ClientEvent
       derives Eq,
         Encoder.AsObject,
@@ -45,12 +53,25 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
+  case class SingleActionEvent(
+    sid:      Observation.Id,
+    stepId:   StepId,
+    resource: Resource,
+    state:    SingleActionState,
+    error:    Option[String]
+  ) extends ClientEvent
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
+
   given Encoder[ClientEvent] = Encoder.instance:
-    case e @ InitialEvent(_)    => e.asJson
-    case e @ ObserveState(_, _) => e.asJson
+    case e @ InitialEvent(_)                  => e.asJson
+    case e @ ObserveState(_, _)               => e.asJson
+    case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
       Decoder[InitialEvent].widen,
-      Decoder[ObserveState].widen
+      Decoder[ObserveState].widen,
+      Decoder[SingleActionEvent].widen
     ).reduceLeft(_ or _)

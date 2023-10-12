@@ -18,13 +18,7 @@ import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.dsl.*
 import org.http4s.server.middleware.GZip
-// import observe.web.server.http4s.OptionalRunOverride
-// import observe.web.server.http4s.encoder.*
-// import observe.web.server.security.AuthenticationService
-// import observe.web.server.security.Http4sAuthentication
-// import observe.web.server.security.TokenRefresher
-// import lucuma.core.model.Observation.{Id => ObsId}
-// import lucuma.core.model.sequence.Step.{Id => StepId}
+// import observe.model.enums.RunOverride
 
 /**
  * Rest Endpoints under the /api route
@@ -34,29 +28,27 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   oe:        ObserveEngine[F]
 ) extends Http4sDsl[F] {
 
-  // Handles authentication
-  // private val httpAuthentication = new Http4sAuthentication(auth)
-
   given EntityDecoder[F, WaterVapor]      = jsonOf[F, WaterVapor]
   given EntityDecoder[F, ImageQuality]    = jsonOf[F, ImageQuality]
   given EntityDecoder[F, SkyBackground]   = jsonOf[F, SkyBackground]
   given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
 
-  private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] { // AuthedRoutes.of {
-    // case POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
+  private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] {
+    // case req @ POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
     //       clientId
-    //     ) :? OptionalRunOverride(
-    //       runOverride
-    //     ) as user =>
-    //   se.start(inputQueue,
-    //            obsId,
-    //            user,
-    //            obs,
-    //            clientId,
-    //            runOverride.getOrElse(RunOverride.Default)
-    //   ) *>
-    //     Ok(s"Started sequence $obsId")
-    //
+    //   ) :? OptionalRunOverride(runOverride) =>
+    // ssoClient.require(req) { user =>
+    //   oe.start(obsId, user, obs, clientId, runOverride.getOrElse(RunOverride.Default)) *>
+    //     NoContent()
+    // }
+
+    case req @ POST -> Root / ObsIdVar(oid) / "execute" / StepIdVar(step) /
+        ResourceVar(resource) / ObserverVar(obs) / ClientIDVar(clientId) =>
+      ssoClient.require(req) { user =>
+        oe.configSystem(oid, obs, user, step, resource, clientId) *>
+          Ok(s"Run ${resource.show} from config at $oid/$step by ${user.displayName}/${obs.value}")
+      }
+
     // case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(
     //       obs
     //     ) / ClientIDVar(
@@ -177,8 +169,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
           observer
         ) / ClientIDVar(clientId) =>
       ssoClient.require(req) { user =>
-        oe.selectSequence(i, obsId, observer, user, clientId) *>
-          Ok(s"Set selected sequence $obsId for $i")
+        oe.selectSequence(i, obsId, observer, user, clientId) *> NoContent()
       }
 
     // case POST -> Root / "unload" / "all" as user         =>
@@ -218,11 +209,6 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //     se.stopQueue(inputQueue, qid, clientId) *>
     //       Ok(s"Stopped from queue $qid")
     //
-    //   case POST -> Root / "execute" / ObsIdVar(oid) / StepId(step) / ResourceVar(
-    //         resource
-    //       ) / ObserverVar(obs) / ClientIDVar(clientId) as user =>
-    //     se.configSystem(inputQueue, oid, obs, user, step, resource, clientId) *>
-    //       Ok(s"Run ${resource.show} from config at $oid/$step by ${user.username}/${obs.value}")
     //
     // }
     //

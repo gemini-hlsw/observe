@@ -190,6 +190,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .settings(
     libraryDependencies ++= Seq(
       Squants.value,
+      PPrint.value,
       Mouse.value,
       CatsTime.value
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value

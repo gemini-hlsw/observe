@@ -138,6 +138,27 @@ extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
     case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case ObserverUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SingleActionEvent(v)    =>
+      v match {
+        case SingleActionOp.Started(sid, stepId, resource)    =>
+          ClientEvent
+            .SingleActionEvent(sid, stepId, resource, ClientEvent.SingleActionState.Started, none)
+            .some
+        case SingleActionOp.Completed(sid, stepId, resource)  =>
+          ClientEvent
+            .SingleActionEvent(sid, stepId, resource, ClientEvent.SingleActionState.Completed, none)
+            .some
+        case SingleActionOp.Error(sid, stepId, resource, msg) =>
+          ClientEvent
+            .SingleActionEvent(sid,
+                               stepId,
+                               resource,
+                               ClientEvent.SingleActionState.Failed,
+                               msg.some
+            )
+            .some
+      }
     case SequenceLoaded(_, v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case _                       => none
   }).map { u =>
