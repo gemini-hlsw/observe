@@ -12,6 +12,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
@@ -29,7 +30,6 @@ import observe.engine.Action.ActionState
 import observe.engine.*
 import observe.model.Observation
 import observe.model.dhs.*
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.model.{ObservationProgress as _, *}
 import observe.server.InstrumentSystem.*
@@ -117,16 +117,17 @@ object SeqTranslate {
         stepType:  StepType
       ): SequenceGen.StepGen[F] = {
 
-        val configs: Map[Resource, SystemOverrides => Action[F]] = otherSysf.map { case (r, sf) =>
-          val kind = ActionType.Configure(r)
-          r -> { (ov: SystemOverrides) =>
-            sf(ov).configure.as(Response.Configured(r)).toAction(kind)
-          }
-        } + (insSpec.instrument -> { (ov: SystemOverrides) =>
-          instf(ov).configure
-            .as(Response.Configured(insSpec.instrument))
-            .toAction(ActionType.Configure(insSpec.instrument))
-        })
+        val configs: Map[Resource | Instrument, SystemOverrides => Action[F]] =
+          otherSysf.map { case (r, sf) =>
+            val kind = ActionType.Configure(r)
+            r -> { (ov: SystemOverrides) =>
+              sf(ov).configure.as(Response.Configured(r)).toAction(kind)
+            }
+          } + (insSpec.instrument -> { (ov: SystemOverrides) =>
+            instf(ov).configure
+              .as(Response.Configured(insSpec.instrument))
+              .toAction(ActionType.Configure(insSpec.instrument))
+          })
 
         def rest(ctx: HeaderExtraData, ov: SystemOverrides): List[ParallelActions[F]] = {
           val inst = instf(ov)
@@ -214,7 +215,7 @@ object SeqTranslate {
              .map(
                SequenceGen(
                  sequence,
-                 Instrument.GmosN,
+                 Instrument.GmosNorth,
                  data.static,
                  atom.id,
                  _

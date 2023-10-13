@@ -23,3 +23,4 @@ package object arb:
       with ArbObservationProgress
       with ArbUserPrompt
       with ArbLength
+      with ArbSystem

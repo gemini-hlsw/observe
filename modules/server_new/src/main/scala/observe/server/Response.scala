@@ -3,6 +3,7 @@
 
 package observe.server
 
+import lucuma.core.enums.Instrument
 import observe.engine.Result.RetVal
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Resource
@@ -11,7 +12,7 @@ sealed trait Response extends RetVal with Product with Serializable
 
 object Response {
 
-  final case class Configured(resource: Resource) extends Response
+  final case class Configured(resource: Resource | Instrument) extends Response
 
   final case class Observed(fileId: ImageFileId) extends Response
 

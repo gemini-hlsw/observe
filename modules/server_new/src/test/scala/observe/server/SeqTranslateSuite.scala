@@ -8,6 +8,7 @@ import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
 import observe.common.test.*
@@ -18,7 +19,6 @@ import observe.model.ActionType
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.dhs.*
-import observe.model.enums.Instrument
 import observe.server.Response.Observed
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
@@ -42,7 +42,7 @@ class SeqTranslateSuite extends TestCommon {
       SequenceGen.PendingStepGen(
         stepId(1),
         Monoid.empty[DataId],
-        Set(Instrument.GmosN),
+        Set(Instrument.GmosNorth),
         _ => InstrumentSystem.Uncontrollable,
         SequenceGen.StepActionsGen(Map.empty,
                                    (_, _) => List(observeActions(Action.ActionState.Idle))
@@ -56,7 +56,7 @@ class SeqTranslateSuite extends TestCommon {
 
   private val baseState: EngineState[IO] =
     (ODBSequencesLoader
-      .loadSequenceEndo[IO](None, seqg, EngineState.instrumentLoaded(Instrument.GmosN)) >>>
+      .loadSequenceEndo[IO](None, seqg, EngineState.instrumentLoaded(Instrument.GmosNorth)) >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])

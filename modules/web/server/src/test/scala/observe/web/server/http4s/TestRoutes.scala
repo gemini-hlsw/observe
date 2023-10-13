@@ -4,11 +4,6 @@
 package observe.web.server.http4s
 
 import cats.effect.IO
-import cats.effect.Ref
-import cats.effect.std.Queue
-import fs2.concurrent.Topic
-import giapi.client.GiapiStatusDb
-import lucuma.core.enums.Site
 import lucuma.core.model.OrcidId
 import lucuma.core.model.OrcidProfile
 import lucuma.core.model.StandardRole
@@ -16,22 +11,16 @@ import lucuma.core.model.StandardUser
 import lucuma.core.model.User
 import lucuma.refined.*
 import lucuma.sso.client.SsoClient.AbstractSsoClient
-import observe.model.config.*
-import observe.model.events.*
-import observe.server.{*, given}
+import observe.server.*
 import org.http4s.*
 import org.http4s.headers.Authorization
-import org.http4s.implicits.*
-import org.http4s.server.websocket.WebSocketBuilder2
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
-
-import scala.concurrent.duration.*
 
 trait TestRoutes {
   given logger: Logger[IO] = NoOpLogger.impl[IO]
 
-  private val statusDb = GiapiStatusDb.simulatedDb[IO]
+  // private val statusDb = GiapiStatusDb.simulatedDb[IO]
   // private val config      =
   //   AuthenticationConfig(FiniteDuration(8, HOURS), "token", "abc", useSsl = false, Nil)
   // private val authService = AuthenticationService[IO](Mode.Development, config)

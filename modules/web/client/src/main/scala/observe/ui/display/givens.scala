@@ -4,6 +4,8 @@
 package observe.ui.display
 
 // import cats.syntax.eq.*
+import lucuma.core.enums.Instrument
+import lucuma.core.syntax.display.*
 import lucuma.core.util.Display
 import observe.model.RunningStep
 import observe.model.enums.*
@@ -19,5 +21,16 @@ import observe.model.enums.*
 // given Display[WaterVapor]      = conditionDisplay(_.toInt, _.label)
 
 given Display[Resource] = Display.byShortName(_.label)
+
+given Display[Resource | Instrument] = Display.by(
+  {
+    case r: Resource   => r.shortName
+    case i: Instrument => i.shortName
+  },
+  {
+    case r: Resource   => r.longName
+    case i: Instrument => i.longName
+  }
+)
 
 given Display[RunningStep] = Display.byShortName(u => s"${u.last + 1}/${u.total}")

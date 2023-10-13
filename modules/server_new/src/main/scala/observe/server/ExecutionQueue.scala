@@ -4,12 +4,12 @@
 package observe.server
 
 import cats.Eq
+import lucuma.core.enums.Instrument
 import monocle.Focus
 import monocle.Lens
 import observe.model.BatchCommandState
 import observe.model.Observation
 import observe.model.SequenceState
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.server.ExecutionQueue.SequenceInQueue
 
@@ -24,7 +24,7 @@ object ExecutionQueue {
     obsId:      Observation.Id,
     instrument: Instrument,
     state:      SequenceState,
-    resources:  Set[Resource]
+    resources:  Set[Resource | Instrument]
   )
 
   def init(name: String): ExecutionQueue =

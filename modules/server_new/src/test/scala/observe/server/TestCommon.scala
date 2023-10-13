@@ -25,6 +25,7 @@ import lucuma.core.enums.GmosXBinning
 import lucuma.core.enums.GmosYBinning
 import lucuma.core.enums.GuideState
 import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
 import lucuma.core.enums.ObsActiveStatus
 import lucuma.core.enums.ObsStatus
@@ -65,7 +66,6 @@ import observe.model.Observation
 import observe.model.SystemOverrides
 import observe.model.config.*
 import observe.model.dhs.*
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.server.SequenceGen.StepStatusGen
 import org.http4s.Uri
@@ -147,20 +147,20 @@ object TestCommon {
     32
   )
 
-  def configure[F[_]: Applicative](resource: Resource): F[Result] =
+  def configure[F[_]: Applicative](resource: Resource | Instrument): F[Result] =
     Result.OK(Response.Configured(resource)).pure[F].widen
 
-  def pendingAction[F[_]: Applicative](resource: Resource): Action[F] =
+  def pendingAction[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     engine.fromF[F](ActionType.Configure(resource), configure(resource))
 
   Action.State(Action.ActionState.Started, Nil)
 
-  def running[F[_]: Applicative](resource: Resource): Action[F] =
+  def running[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
       .state[F]
       .replace(Action.State(Action.ActionState.Started, Nil))(pendingAction(resource))
 
-  def done[F[_]: Applicative](resource: Resource): Action[F] =
+  def done[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
       .state[F]
       .replace(Action.State(Action.ActionState.Completed(Response.Configured(resource)), Nil))(
@@ -328,18 +328,18 @@ object TestCommon {
         )
       )
     ),
-    instrument = Instrument.GmosN,
+    instrument = Instrument.GmosNorth,
     staticCfg1,
     atomId1,
     steps = List(
       SequenceGen.PendingStepGen(
         id = stepId(1),
         Monoid.empty[DataId],
-        resources = Set(Instrument.GmosN, Resource.TCS),
+        resources = Set(Instrument.GmosNorth, Resource.TCS),
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
           configs = Map(),
-          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosN)))
+          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
         ),
         StepStatusGen.Null,
         dynamicCfg1,
@@ -406,7 +406,7 @@ object TestCommon {
         )
       )
     ),
-    instrument = Instrument.GmosN,
+    instrument = Instrument.GmosNorth,
     staticCfg1,
     atomId1,
     steps = List
@@ -415,11 +415,11 @@ object TestCommon {
         SequenceGen.PendingStepGen(
           id = stepId(i),
           Monoid.empty[DataId],
-          resources = Set(Instrument.GmosN, Resource.TCS),
+          resources = Set(Instrument.GmosNorth, Resource.TCS),
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
             configs = Map(),
-            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosN)))
+            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
           ),
           StepStatusGen.Null,
           dynamicCfg1,
@@ -431,7 +431,7 @@ object TestCommon {
   def sequenceWithResources(
     id:        Observation.Id,
     ins:       Instrument,
-    resources: Set[Resource]
+    resources: Set[Resource | Instrument]
   ): SequenceGen[IO] = SequenceGen[IO](
     ODBObservation(
       id = id,
@@ -479,7 +479,7 @@ object TestCommon {
         )
       )
     ),
-    instrument = Instrument.GmosN,
+    instrument = Instrument.GmosNorth,
     staticCfg1,
     atomId1,
     steps = List(
