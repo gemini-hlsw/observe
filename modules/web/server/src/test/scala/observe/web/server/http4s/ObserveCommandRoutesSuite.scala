@@ -101,7 +101,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                   Request[IO](
                     method = Method.POST,
                     uri = Uri.unsafeFromString(
-                      s"/load/GmosS/${obsId.show}/${clientId.value}/observer"
+                      s"/load/GmosSouth/${obsId.show}/${clientId.value}/observer"
                     )
                   )
                 ).value
