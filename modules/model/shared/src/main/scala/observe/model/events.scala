@@ -6,6 +6,7 @@ package observe.model.events
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.User
 import observe.model.*
 import observe.model.dhs.ImageFileId

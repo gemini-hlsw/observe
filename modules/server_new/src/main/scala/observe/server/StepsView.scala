@@ -3,9 +3,11 @@
 
 package observe.server
 
-import cats.Order.*
+import cats.Order.given
 import cats.data.NonEmptyList
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
+import lucuma.core.enums.Instrument.*
 import observe.engine
 import observe.engine.Action
 import observe.engine.Action.ActionState
@@ -17,9 +19,8 @@ import observe.model.Step
 import observe.model.StepState
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
-import observe.model.enums.Instrument
-import observe.model.enums.Instrument.*
 import observe.model.enums.Resource
+import observe.model.given
 import observe.server.gmos.GmosStepsView
 
 trait StepsView[F[_]] {
@@ -31,13 +32,13 @@ trait StepsView[F[_]] {
   def stepView(
     stepg:         SequenceGen.StepGen[F],
     step:          engine.Step[F],
-    altCfgStatus:  List[(Resource, ActionStatus)],
+    altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
   ): Step
 }
 
 object StepsView {
-  private def kindToResource(kind: ActionType): List[Resource] = kind match {
+  private def kindToResource(kind: ActionType): List[Resource | Instrument] = kind match {
     case ActionType.Configure(r) => List(r)
     case _                       => Nil
   }
@@ -52,26 +53,30 @@ object StepsView {
       case _                        => true
     })
 
-  def actionsToResources[F[_]](s: NonEmptyList[Action[F]]): (List[Resource], List[Resource]) =
-    separateActions(s).bimap(_.map(_.kind).flatMap(kindToResource),
-                             _.map(_.kind).flatMap(kindToResource)
+  def actionsToResources[F[_]](
+    s: NonEmptyList[Action[F]]
+  ): (List[Resource | Instrument], List[Resource | Instrument]) =
+    separateActions(s).bimap(
+      _.map(_.kind).flatMap(kindToResource),
+      _.map(_.kind).flatMap(kindToResource)
     )
 
   private[server] def configStatus[F[_]](
     executions: List[ParallelActions[F]]
-  ): List[(Resource, ActionStatus)] = {
+  ): List[(Resource | Instrument, ActionStatus)] = {
     // Remove undefined actions
     val ex                 = executions.filter(!separateActions(_)._2.exists(_.kind === ActionType.Undefined))
     // Split where at least one is running
     val (current, pending) = splitAfter(ex)(separateActions(_)._1.nonEmpty)
 
     // Calculate the state up to the current
-    val configStatus = current.foldLeft(Map.empty[Resource, ActionStatus]) { case (s, e) =>
-      val (a, r) = separateActions(e).bimap(
-        _.flatMap(a => kindToResource(a.kind).tupleRight(ActionStatus.Running)).toMap,
-        _.flatMap(r => kindToResource(r.kind).tupleRight(ActionStatus.Completed)).toMap
-      )
-      s ++ a ++ r
+    val configStatus = current.foldLeft(Map.empty[Resource | Instrument, ActionStatus]) {
+      case (s, e) =>
+        val (a, r) = separateActions(e).bimap(
+          _.flatMap(a => kindToResource(a.kind).tupleRight(ActionStatus.Running)).toMap,
+          _.flatMap(r => kindToResource(r.kind).tupleRight(ActionStatus.Completed)).toMap
+        )
+        s ++ a ++ r
     }
 
     // Find out systems in the future
@@ -95,7 +100,7 @@ object StepsView {
    */
   private[server] def pendingConfigStatus[F[_]](
     executions: List[ParallelActions[F]]
-  ): List[(Resource, ActionStatus)] =
+  ): List[(Resource | Instrument, ActionStatus)] =
     executions
       .map(actionsToResources)
       .flatMap { case (a, b) => a ::: b }
@@ -106,7 +111,7 @@ object StepsView {
   /**
    * Overall pending status for a step
    */
-  def stepConfigStatus[F[_]](step: engine.Step[F]): List[(Resource, ActionStatus)] =
+  def stepConfigStatus[F[_]](step: engine.Step[F]): List[(Resource | Instrument, ActionStatus)] =
     step.status match {
       case StepState.Pending => pendingConfigStatus(step.executions)
       case _                 => configStatus(step.executions)
@@ -130,7 +135,7 @@ object StepsView {
     def stepView(
       stepg:         SequenceGen.StepGen[F],
       step:          engine.Step[F],
-      altCfgStatus:  List[(Resource, ActionStatus)],
+      altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
       pendingObsCmd: Option[PendingObserveCmd]
     ): Step = {
       val status       = step.status
@@ -159,7 +164,7 @@ object StepsView {
   }
 
   def stepsView[F[_]](instrument: Instrument): StepsView[F] = instrument match {
-    case GmosN | GmosS => GmosStepsView.stepsView[F]
+    case GmosNorth | GmosSouth => GmosStepsView.stepsView[F]
     // case _             => defaultStepsView[F]
   }
 }

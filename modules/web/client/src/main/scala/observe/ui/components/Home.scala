@@ -31,6 +31,7 @@ import observe.model.SequenceState
 import observe.model.SystemOverrides
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
+import observe.model.given
 import observe.queries.ObsQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
@@ -96,7 +97,7 @@ object Home:
           )
       // TODO: This will actually come from the observe server.
       .useStateView(
-        ExecutionState(SequenceState.Idle, none, none, List.empty, SystemOverrides.AllEnabled)
+        ExecutionState(SequenceState.Idle, none, none, Map.empty, SystemOverrides.AllEnabled)
       )
       .useEffectWithDepsBy((_, _, _, _, config, _) => config)((_, _, _, _, _, executionState) =>
         config =>
@@ -125,7 +126,7 @@ object Home:
           val configState = List(
             (Resource.TCS, ActionStatus.Completed),
             (Resource.Gcal, ActionStatus.Running),
-            (observe.model.enums.Instrument.GmosN, ActionStatus.Pending)
+            (Instrument.GmosNorth, ActionStatus.Pending)
           )
 
           val initialBreakpoints: Set[Step.Id] =
@@ -141,12 +142,13 @@ object Home:
 
           // TODO Verify it is correct the use of systemOverrides
           executionState.set(
-            ExecutionState(sequenceState,
-                           executingStepId,
-                           none,
-                           configState,
-                           executionState.get.systemOverrides,
-                           initialBreakpoints
+            ExecutionState(
+              sequenceState,
+              executingStepId,
+              none,
+              configState.toMap,
+              executionState.get.systemOverrides,
+              initialBreakpoints
             )
           )
       )

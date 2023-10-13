@@ -17,6 +17,7 @@ import cats.effect.std.Queue
 import cats.syntax.all.*
 import clue.ErrorPolicy
 import fs2.Stream
+import lucuma.core.enums.Instrument
 import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
@@ -75,8 +76,8 @@ package object server {
     def instrumentLoaded[F[_]](
       instrument: Instrument
     ): Lens[EngineState[F], Option[SequenceData[F]]] = instrument match {
-      case Instrument.GmosS => EngineState.selectedGmosSouth
-      case Instrument.GmosN => EngineState.selectedGmosNorth
+      case Instrument.GmosSouth => EngineState.selectedGmosSouth
+      case Instrument.GmosNorth => EngineState.selectedGmosNorth
     }
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =

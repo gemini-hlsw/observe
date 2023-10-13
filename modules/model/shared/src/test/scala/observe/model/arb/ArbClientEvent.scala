@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
@@ -16,7 +17,9 @@ import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
+import observe.model.arb.ArbEnvironment.given
 import observe.model.arb.ArbNsRunningState.given
+import observe.model.arb.ArbSystem.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.events.client.ClientEvent.SingleActionState
@@ -25,8 +28,6 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-
-import ArbEnvironment.given
 
 trait ArbClientEvent:
 
@@ -41,11 +42,11 @@ trait ArbClientEvent:
       (SequenceState,
        Option[Step.Id],
        Option[NsRunningState],
-       List[(Resource, ActionStatus)],
+       List[(Resource | Instrument, ActionStatus)],
        List[Step.Id]
       )
     ].contramap(x =>
-      (x.sequenceState, x.runningStepId, x.nsState, x.configStatus, x.breakpoints.toList)
+      (x.sequenceState, x.runningStepId, x.nsState, x.configStatus.toList, x.breakpoints.toList)
     )
 
   given Cogen[ClientEvent.ObserveState] =
@@ -63,15 +64,14 @@ trait ArbClientEvent:
     for
       o <- arbitrary[Observation.Id]
       s <- arbitrary[Step.Id]
-      r <- arbitrary[Resource]
+      r <- arbitrary[Resource | Instrument]
       t <- arbitrary[SingleActionState]
       e <- arbitrary[Option[String]]
     yield ClientEvent.SingleActionEvent(o, s, r, t, e)
 
   given Cogen[ClientEvent.SingleActionEvent] =
-    Cogen[(Observation.Id, Step.Id, Resource, SingleActionState, Option[String])].contramap(x =>
-      (x.obsId, x.stepId, x.resource, x.event, x.error)
-    )
+    Cogen[(Observation.Id, Step.Id, Resource | Instrument, SingleActionState, Option[String])]
+      .contramap(x => (x.obsId, x.stepId, x.resource, x.event, x.error))
 
   given Arbitrary[ClientEvent] = Arbitrary:
     for

@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -12,6 +13,7 @@ import lucuma.core.util.arb.ArbUid.*
 import observe.model.*
 import observe.model.arb.ArbDhsTypes.given
 import observe.model.arb.ArbStepState.given
+import observe.model.arb.ArbSystem.given
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
@@ -30,15 +32,16 @@ trait ArbStandardStep {
       f  <- arbitrary[Option[dhs.ImageFileId]]
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
-    } yield new StandardStep(id = id,
-                             instConfig = d,
-                             stepConfig = t,
-                             status = s,
-                             breakpoint = b,
-                             skip = k,
-                             fileId = f,
-                             configStatus = cs,
-                             observeStatus = os
+    } yield new StandardStep(
+      id = id,
+      instConfig = d,
+      stepConfig = t,
+      status = s,
+      breakpoint = b,
+      skip = k,
+      fileId = f,
+      configStatus = cs,
+      observeStatus = os
     )
   }
 
@@ -52,7 +55,7 @@ trait ArbStandardStep {
         Boolean,
         Boolean,
         Option[dhs.ImageFileId],
-        List[(Resource, ActionStatus)],
+        List[(Resource | Instrument, ActionStatus)],
         ActionStatus
       )
     ].contramap(s =>

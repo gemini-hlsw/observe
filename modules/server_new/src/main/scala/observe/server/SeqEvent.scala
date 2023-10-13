@@ -5,6 +5,7 @@ package observe.server
 
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User

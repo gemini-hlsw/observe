@@ -4,6 +4,7 @@
 package observe.server.gmos
 
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import mouse.all.*
 import observe.engine
 import observe.model.NodAndShuffleStep.PendingObserveCmd
@@ -17,7 +18,7 @@ final class GmosStepsView[F[_]] extends StepsView[F] {
   override def stepView(
     stepg:         SequenceGen.StepGen[F],
     step:          engine.Step[F],
-    altCfgStatus:  List[(Resource, ActionStatus)],
+    altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
   ): Step = {
     val nodAndShuffle: Option[GmosController.Config.NsConfig.NodAndShuffle] = stepg.genData match {

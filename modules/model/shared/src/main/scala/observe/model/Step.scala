@@ -5,6 +5,7 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.Enumerated
@@ -108,8 +109,8 @@ object Step {
       }
     }
 
-  def configStatus: Lens[Step, List[(Resource, ActionStatus)]] =
-    Lens[Step, List[(Resource, ActionStatus)]] {
+  def configStatus: Lens[Step, List[(Resource | Instrument, ActionStatus)]] =
+    Lens[Step, List[(Resource | Instrument, ActionStatus)]] {
       case s: StandardStep      => s.configStatus
       case s: NodAndShuffleStep => s.configStatus
     } { n =>
@@ -198,7 +199,7 @@ final case class StandardStep(
   override val breakpoint: Boolean,
   override val skip:       Boolean,
   override val fileId:     Option[ImageFileId],
-  configStatus:            List[(Resource, ActionStatus)],
+  configStatus:            List[(Resource | Instrument, ActionStatus)],
   observeStatus:           ActionStatus
 ) extends Step
 
@@ -227,7 +228,7 @@ final case class NodAndShuffleStep(
   override val breakpoint: Boolean,
   override val skip:       Boolean,
   override val fileId:     Option[ImageFileId],
-  configStatus:            List[(Resource, ActionStatus)],
+  configStatus:            List[(Resource | Instrument, ActionStatus)],
   nsStatus:                NodAndShuffleStatus,
   pendingObserveCmd:       Option[NodAndShuffleStep.PendingObserveCmd]
 ) extends Step

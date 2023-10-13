@@ -7,6 +7,7 @@ import cats.Eq
 import cats.Order.*
 import cats.derived.*
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Lens
@@ -14,6 +15,7 @@ import monocle.function.At.at
 import monocle.function.At.atSortedMap
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
+import observe.model.given
 
 import scala.collection.immutable.SortedMap
 
@@ -70,7 +72,7 @@ case class TabOperations(
   stopRequested:        StopOperation,
   abortRequested:       AbortOperation,
   startFromRequested:   StartFromOperation,
-  resourceRunRequested: SortedMap[Resource, ResourceRunOperation]
+  resourceRunRequested: SortedMap[Resource | Instrument, ResourceRunOperation]
 ) derives Eq:
   // Indicate if any resource is being executed
   def resourceInFlight(id: Step.Id): Boolean =
@@ -108,18 +110,19 @@ case class TabOperations(
       startFromRequested === StartFromOperation.StartFromInFlight
 
 object TabOperations:
-  val runRequested: Lens[TabOperations, RunOperation]                                      = Focus[TabOperations](_.runRequested)
-  val syncRequested: Lens[TabOperations, SyncOperation]                                    = Focus[TabOperations](_.syncRequested)
-  val pauseRequested: Lens[TabOperations, PauseOperation]                                  = Focus[TabOperations](_.pauseRequested)
-  val cancelPauseRequested: Lens[TabOperations, CancelPauseOperation]                      =
+  val runRequested: Lens[TabOperations, RunOperation]                 = Focus[TabOperations](_.runRequested)
+  val syncRequested: Lens[TabOperations, SyncOperation]               = Focus[TabOperations](_.syncRequested)
+  val pauseRequested: Lens[TabOperations, PauseOperation]             = Focus[TabOperations](_.pauseRequested)
+  val cancelPauseRequested: Lens[TabOperations, CancelPauseOperation] =
     Focus[TabOperations](_.cancelPauseRequested)
-  val resumeRequested: Lens[TabOperations, ResumeOperation]                                =
+  val resumeRequested: Lens[TabOperations, ResumeOperation]           =
     Focus[TabOperations](_.resumeRequested)
-  val stopRequested: Lens[TabOperations, StopOperation]                                    = Focus[TabOperations](_.stopRequested)
-  val abortRequested: Lens[TabOperations, AbortOperation]                                  = Focus[TabOperations](_.abortRequested)
-  val startFromRequested: Lens[TabOperations, StartFromOperation]                          =
+  val stopRequested: Lens[TabOperations, StopOperation]               = Focus[TabOperations](_.stopRequested)
+  val abortRequested: Lens[TabOperations, AbortOperation]             = Focus[TabOperations](_.abortRequested)
+  val startFromRequested: Lens[TabOperations, StartFromOperation]     =
     Focus[TabOperations](_.startFromRequested)
-  val resourceRunRequested: Lens[TabOperations, SortedMap[Resource, ResourceRunOperation]] =
+  val resourceRunRequested
+    : Lens[TabOperations, SortedMap[Resource | Instrument, ResourceRunOperation]] =
     Focus[TabOperations](_.resourceRunRequested)
 
   def resourceRun(r: Resource): Lens[TabOperations, Option[ResourceRunOperation]] =
@@ -132,7 +135,7 @@ object TabOperations:
     })
 
   // Set the resource operations in the map to idle.
-  def clearResourceOperations(re: Resource): TabOperations => TabOperations =
+  def clearResourceOperations(re: Resource | Instrument): TabOperations => TabOperations =
     TabOperations.resourceRunRequested.modify(_.map {
       case (r, _) if re === r => r -> ResourceRunOperation.ResourceRunIdle
       case r                  => r
@@ -140,7 +143,7 @@ object TabOperations:
 
   // Set the resource operations in the map to idle.
   def clearCommonResourceCompleted(
-    re: Resource
+    re: Resource | Instrument
   ): TabOperations => TabOperations =
     TabOperations.resourceRunRequested.modify(_.map {
       case (r, ResourceRunOperation.ResourceRunCompleted(_)) if re === r =>

@@ -10,6 +10,7 @@ import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
+import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.OrcidId
 import lucuma.core.model.OrcidProfile
 import lucuma.core.model.StandardRole
@@ -26,7 +27,6 @@ import observe.model.ClientId
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.StepState
-import observe.model.enums.Instrument.GmosS
 import observe.model.enums.Resource.TCS
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -68,7 +68,7 @@ class packageSpec extends munit.CatsEffectSuite {
   /**
    * Emulates Instrument configuration in the real world.
    */
-  val configureInst: Action[IO] = fromF[IO](ActionType.Configure(GmosS),
+  val configureInst: Action[IO] = fromF[IO](ActionType.Configure(GmosSouth),
                                             for {
                                               _ <- IO(Thread.sleep(200))
                                             } yield Result.OK(DummyResult)

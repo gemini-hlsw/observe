@@ -8,6 +8,7 @@ import cats.data.*
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
@@ -862,7 +863,7 @@ object TcsControllerEpicsCommon {
 
   def oiSelectionName(i: Instrument): Option[String] = i match {
 //    case Instrument.F2                                        => "F2".some
-    case Instrument.GmosS | Instrument.GmosN => "GMOS".some
+    case Instrument.GmosSouth | Instrument.GmosNorth => "GMOS".some
 //    case Instrument.Gnirs                                     => "GNIRS".some
 //    case Instrument.Niri                                      => "NIRI".some
 //    case Instrument.Nifs                                      => "NIFS".some

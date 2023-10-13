@@ -5,15 +5,16 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import observe.model.enums.Resource
 
 sealed trait ActionType extends Product with Serializable
 
 object ActionType {
 
-  case object Observe                       extends ActionType
-  case object Undefined                     extends ActionType // Used in tests
-  final case class Configure(sys: Resource) extends ActionType
+  case object Observe                                    extends ActionType
+  case object Undefined                                  extends ActionType // Used in tests
+  final case class Configure(sys: Resource | Instrument) extends ActionType
 
   given Eq[ActionType] =
     Eq.instance {

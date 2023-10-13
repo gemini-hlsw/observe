@@ -3,10 +3,11 @@
 
 package observe.ui.components.sequence.steps
 
-import cats.Order.*
+import cats.Order.given
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.syntax.display.*
@@ -15,6 +16,7 @@ import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.floatingui.syntax.*
 import lucuma.react.primereact.*
 import observe.model.enums.*
+import observe.model.given
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.display.given
@@ -29,8 +31,8 @@ import scala.collection.immutable.SortedMap
 case class SubsystemControls(
   obsId:          Observation.Id,
   stepId:         Step.Id,
-  resources:      List[Resource],
-  resourcesCalls: SortedMap[Resource, ResourceRunOperation],
+  resources:      List[Resource | Instrument],
+  resourcesCalls: SortedMap[Resource | Instrument, ResourceRunOperation],
   clientMode:     ClientMode
 ) extends ReactFnProps(SubsystemControls.component)
 
@@ -75,7 +77,8 @@ object SubsystemControls:
 
   private val component = ScalaFnComponent[Props]: props =>
     <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
-      props.resources.sorted
+      props.resources
+        .sorted[Resource | Instrument]
         .map: resource =>
           val resourceState: Option[ResourceRunOperation] = props.resourcesCalls.get(resource)
           val buttonIcon: Option[FontAwesomeIcon]         = determineIcon(resourceState)

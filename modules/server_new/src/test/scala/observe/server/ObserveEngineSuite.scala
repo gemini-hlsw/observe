@@ -8,6 +8,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.*
 import lucuma.core.math.Offset
 import lucuma.core.model.ConstraintSet
@@ -39,7 +40,6 @@ import observe.model.StepState
 import observe.model.SystemOverrides
 import observe.model.UserPrompt
 import observe.model.dhs.DataId
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.model.enums.Resource.Gcal
 import observe.model.enums.Resource.TCS
@@ -115,9 +115,10 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine setObserver should set observer's name") {
     val observer = Observer("Joe")
     val s0       = ODBSequencesLoader
-      .loadSequenceEndo[IO](None,
-                            sequence(seqObsId1),
-                            EngineState.instrumentLoaded(Instrument.GmosN)
+      .loadSequenceEndo[IO](
+        None,
+        sequence(seqObsId1),
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
       )
       .apply(EngineState.default[IO])
     (for {
@@ -136,13 +137,13 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = (
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosN)
+        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
       ) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](
           None,
-          sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS, TCS)),
-          EngineState.instrumentLoaded(Instrument.GmosS)
+          sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
+          EngineState.instrumentLoaded(Instrument.GmosSouth)
         ) >>>
         EngineState
           .sequenceStateIndex[IO](seqObsId1)
@@ -166,13 +167,13 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = (
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosN)
+        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
       ) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](
           None,
-          sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS)),
-          EngineState.instrumentLoaded(Instrument.GmosS)
+          sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth)),
+          EngineState.instrumentLoaded(Instrument.GmosSouth)
         ) >>>
         EngineState
           .sequenceStateIndex[IO](seqObsId1)
@@ -203,8 +204,8 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = ODBSequencesLoader
       .loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosN)
+        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
       )
       .apply(EngineState.default[IO])
 
@@ -234,8 +235,8 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine should not run a system configuration if sequence is running") {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosN)
+      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
@@ -267,13 +268,13 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine should not run a system configuration if system is in use") {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosN)
+      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosS)
+        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
+        EngineState.instrumentLoaded(Instrument.GmosSouth)
       ) >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
@@ -310,13 +311,13 @@ class ObserveEngineSuite extends TestCommon {
   ) {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosN)
+      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosN, Gcal)),
-        EngineState.instrumentLoaded(Instrument.GmosS)
+        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosNorth, Gcal)),
+        EngineState.instrumentLoaded(Instrument.GmosSouth)
       ) >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
@@ -348,9 +349,10 @@ class ObserveEngineSuite extends TestCommon {
 
   test("ObserveEngine startFrom should start a sequence from an arbitrary step") {
     val s0        = ODBSequencesLoader
-      .loadSequenceEndo[IO](None,
-                            sequenceNSteps(seqObsId1, 5),
-                            EngineState.instrumentLoaded(Instrument.GmosN)
+      .loadSequenceEndo[IO](
+        None,
+        sequenceNSteps(seqObsId1, 5),
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
       )
       .apply(EngineState.default[IO])
     val runStepId = stepId(3)
@@ -382,13 +384,13 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine startFrom should not start the sequence if there is a resource conflict") {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosN, Set(Instrument.GmosN, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosN)
+      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId2, Instrument.GmosS, Set(Instrument.GmosS, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosS)
+        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
+        EngineState.instrumentLoaded(Instrument.GmosSouth)
       ) >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
@@ -836,7 +838,7 @@ class ObserveEngineSuite extends TestCommon {
 //   }
 
   private val testConditionsSequence: SequenceGen[IO] = {
-    val resources: Set[Resource] = Set(Instrument.GmosN, TCS)
+    val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
@@ -894,7 +896,7 @@ class ObserveEngineSuite extends TestCommon {
           )
         )
       ),
-      instrument = Instrument.GmosN,
+      instrument = Instrument.GmosNorth,
       staticCfg1,
       atomId1,
       steps = stepList.map { step =>
@@ -920,9 +922,10 @@ class ObserveEngineSuite extends TestCommon {
 
     val seq = testConditionsSequence
 
-    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](None,
-                                                      seq,
-                                                      EngineState.instrumentLoaded(Instrument.GmosN)
+    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
+      None,
+      seq,
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.PointTwo.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Median.some) >>>
@@ -953,9 +956,10 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine start should not start the sequence if it fails the conditions check") {
     val seq = testConditionsSequence
 
-    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](None,
-                                                      seq,
-                                                      EngineState.instrumentLoaded(Instrument.GmosN)
+    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
+      None,
+      seq,
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
@@ -1000,9 +1004,10 @@ class ObserveEngineSuite extends TestCommon {
 
     val seq = testConditionsSequence
 
-    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](None,
-                                                      seq,
-                                                      EngineState.instrumentLoaded(Instrument.GmosN)
+    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
+      None,
+      seq,
+      EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
       EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.OnePointZero.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>

@@ -6,8 +6,8 @@ package observe.server.tcs
 import cats.Order
 import cats.data.NonEmptySet
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import mouse.boolean.*
-import observe.model.enums.Instrument
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem
 import squants.Ratio
@@ -45,8 +45,8 @@ object TcsSettleTimeCalculator {
   )
 
   val oiwfsSettleTimeCalculators: Map[Instrument, SettleTimeCalculator] = Map(
-    Instrument.GmosN -> constantSettleTime(1.seconds),
-    Instrument.GmosS -> constantSettleTime(1.seconds)
+    Instrument.GmosNorth -> constantSettleTime(1.seconds),
+    Instrument.GmosSouth -> constantSettleTime(1.seconds)
 //    Instrument.F2    -> constantSettleTime(1.seconds),
 //    Instrument.Nifs  -> constantSettleTime(4.seconds),
 //    Instrument.Niri  -> constantSettleTime(4.seconds),

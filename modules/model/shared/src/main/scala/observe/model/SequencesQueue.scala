@@ -4,11 +4,11 @@
 package observe.model
 
 import cats.*
+import lucuma.core.enums.Instrument
 import monocle.Focus
 import monocle.Getter
 import monocle.Traversal
 import monocle.function.Each.*
-import observe.model.enums.Instrument
 
 import scala.collection.immutable.SortedMap
 

@@ -6,7 +6,7 @@ package observe.server.altair
 import cats.Eq
 import cats.Show
 import cats.syntax.all.*
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 import observe.server.tcs.Gaos.GuideCapabilities
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.ResumeConditionSet

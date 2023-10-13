@@ -8,6 +8,7 @@ import cats.effect.IO
 import cats.effect.Ref
 import cats.implicits.*
 import fs2.Stream
+import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.sequence.Atom
 import munit.CatsEffectSuite
 import observe.common.test.*
@@ -18,7 +19,6 @@ import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
 import observe.model.StepState
-import observe.model.enums.Instrument.GmosS
 import observe.model.enums.Resource
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -108,7 +108,7 @@ class StepSuite extends CatsEffectSuite {
    * Emulates Instrument configuration in the real world.
    */
   val configureInst: Action[IO] = fromF[IO](
-    ActionType.Configure(GmosS),
+    ActionType.Configure(GmosSouth),
     for {
       _ <- L.info("System: Start Instrument configuration")
       _ <- IO.sleep(new FiniteDuration(150, MILLISECONDS))

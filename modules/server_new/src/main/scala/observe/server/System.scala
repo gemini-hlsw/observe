@@ -3,10 +3,11 @@
 
 package observe.server
 
+import lucuma.core.enums.Instrument
 import observe.model.enums.Resource
 
 trait System[F[_]] {
-  val resource: Resource
+  val resource: Resource | Instrument
 
   /**
    * Called to configure a system

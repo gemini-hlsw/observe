@@ -30,7 +30,7 @@ case class StepProgressCell(
   obsId:         Observation.Id,
   tabOperations: TabOperations,
   sequenceState: SequenceState,
-  configStatus:  List[(Resource, ActionStatus)],
+  configStatus:  Map[Resource | Instrument, ActionStatus],
   selectedStep:  Option[Step.Id],
   isPreview:     Boolean
 ) extends ReactFnProps(StepProgressCell.component):
@@ -112,7 +112,7 @@ object StepProgressCell:
       SubsystemControls(
         props.obsId,
         props.stepId,
-        props.configStatus.map(_._1),
+        props.configStatus.map(_._1).toList,
         TabOperations.resourceRunRequested.get(props.tabOperations),
         props.clientMode
       ),

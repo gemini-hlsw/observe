@@ -5,8 +5,8 @@ package observe.server
 
 import cats.*
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepConfig
-import observe.model.enums.Instrument
 
 sealed trait StepType extends Product with Serializable {
   def instrument: Instrument

@@ -10,7 +10,6 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import observe.model.SequenceState
-import observe.model.enums.{Instrument => ObserveInstrument}
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
 import observe.ui.model.TabOperations
@@ -32,18 +31,15 @@ object StepControlButtons:
   private type Props = StepControlButtons
 
   protected val component = ScalaFnComponent[Props]: props =>
-    ObserveInstrument
-      .fromCoreInstrument(props.instrument)
-      .map: instrument =>
-        ControlButtons(
-          props.obsId,
-          instrument.operations(
-            OperationLevel.Observation,
-            props.isObservePaused,
-            props.isMultiLevel
-          ),
-          props.sequenceState,
-          props.stepId,
-          props.isObservePaused,
-          props.tabOperations
-        ): VdomNode
+    ControlButtons(
+      props.obsId,
+      props.instrument.operations(
+        OperationLevel.Observation,
+        props.isObservePaused,
+        props.isMultiLevel
+      ),
+      props.sequenceState,
+      props.stepId,
+      props.isObservePaused,
+      props.tabOperations
+    ): VdomNode

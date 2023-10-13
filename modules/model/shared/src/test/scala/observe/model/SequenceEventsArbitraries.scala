@@ -4,6 +4,7 @@
 package observe.model
 
 import lucuma.core.arb.ArbTime.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.*
 import lucuma.core.util.arb.ArbEnumerated.*
