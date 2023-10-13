@@ -3,7 +3,7 @@
 
 package observe.server
 
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 import squants.space.Length
 
 trait InstrumentGuide {

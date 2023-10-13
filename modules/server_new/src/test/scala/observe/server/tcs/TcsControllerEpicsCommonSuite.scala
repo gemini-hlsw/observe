@@ -10,6 +10,7 @@ import cats.effect.unsafe.implicits.global
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName.Gmos
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
@@ -18,7 +19,6 @@ import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
 import observe.model.enums.ComaOption
-import observe.model.enums.Instrument
 import observe.model.enums.M1Source
 import observe.model.enums.MountGuideOption
 import observe.model.enums.TipTiltSource
@@ -83,7 +83,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       OIConfig(GuiderConfig(ProbeTrackingConfig.Off, GuiderSensorOff))
     ),
     AGConfig(LightPath(Sky, Gmos), None),
-    DummyInstrument(Instrument.GmosS, 1.millimeters.some)
+    DummyInstrument(Instrument.GmosSouth, 1.millimeters.some)
   )
 
   test("TcsControllerEpicsCommon should not pause guiding if it is not necessary") {
@@ -322,7 +322,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
                 )
               ) >>>
             BasicTcsConfig.instLensGS
-              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+              .replace(DummyInstrument(Instrument.GmosSouth, threshold.some))
         )(baseConfig)
       )
     )
@@ -352,7 +352,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
                 )
               ) >>>
             BasicTcsConfig.instLensGS
-              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+              .replace(DummyInstrument(Instrument.GmosSouth, threshold.some))
         )(baseConfig)
       )
     )
@@ -383,7 +383,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
                 )
               ) >>>
             BasicTcsConfig.instLensGS
-              .replace(DummyInstrument(Instrument.GmosS, threshold.some))
+              .replace(DummyInstrument(Instrument.GmosSouth, threshold.some))
         )(baseConfig)
       )
     )

@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.enums.Instrument
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -10,7 +11,6 @@ import observe.model.Notification
 import observe.model.Notification.*
 import observe.model.Observation
 import observe.model.StepId
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

@@ -5,7 +5,7 @@ package observe.server.altair
 
 import cats.Applicative
 import cats.syntax.all.*
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.overrideLogMessage
 import observe.server.tcs.Gaos

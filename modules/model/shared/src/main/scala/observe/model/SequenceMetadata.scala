@@ -5,7 +5,7 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 
 /** Metadata about the sequence required on the exit point */
 case class SequenceMetadata(instrument: Instrument, observer: Option[Observer], name: String)

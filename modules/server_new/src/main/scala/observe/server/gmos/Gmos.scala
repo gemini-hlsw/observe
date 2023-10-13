@@ -13,6 +13,7 @@ import lucuma.core.enums.GmosAdc
 import lucuma.core.enums.GmosEOffsetting
 import lucuma.core.enums.GmosGratingOrder
 import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
 import lucuma.core.enums.ObserveClass
 import lucuma.core.math.Wavelength
@@ -27,7 +28,6 @@ import monocle.Getter
 import observe.model.GmosParameters.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Guiding
-import observe.model.enums.Instrument
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult

@@ -98,10 +98,11 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       s      <- commandRoutes(engine)
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
-                  Request[IO](method = Method.POST,
-                              uri = Uri.unsafeFromString(
-                                s"/load/GmosS/${obsId.show}/${clientId.value}/observer"
-                              )
+                  Request[IO](
+                    method = Method.POST,
+                    uri = Uri.unsafeFromString(
+                      s"/load/GmosSouth/${obsId.show}/${clientId.value}/observer"
+                    )
                   )
                 ).value
     } yield l.map(_.status)

@@ -3,13 +3,14 @@
 
 package observe.server
 
+import lucuma.core.enums.Instrument
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import observe.model.BatchCommandState
 import observe.model.Observation
 import observe.model.ObserveModelArbitraries.given
 import observe.model.SequenceState
-import observe.model.enums.Instrument
+import observe.model.arb.ArbSystem.given
 import observe.model.enums.Resource
 import observe.server.ExecutionQueue.SequenceInQueue
 import org.scalacheck.Arbitrary
@@ -26,12 +27,12 @@ trait ObserveServerArbitraries {
       o <- arbitrary[Observation.Id]
       i <- arbitrary[Instrument]
       s <- arbitrary[SequenceState]
-      r <- arbitrary[Set[Resource]]
+      r <- arbitrary[Set[Resource | Instrument]]
     } yield SequenceInQueue(o, i, s, r)
   }
 
   given Cogen[SequenceInQueue] =
-    Cogen[(Observation.Id, Instrument, SequenceState, List[Resource])]
+    Cogen[(Observation.Id, Instrument, SequenceState, List[Resource | Instrument])]
       .contramap(x => (x.obsId, x.instrument, x.state, x.resources.toList))
 
   given Arbitrary[ExecutionQueue] = Arbitrary {

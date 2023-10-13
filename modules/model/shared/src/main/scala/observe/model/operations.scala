@@ -3,7 +3,7 @@
 
 package observe.model
 
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 
 object operations:
   enum OperationLevel:
@@ -123,8 +123,8 @@ object operations:
 
   private val instrumentOperations: Map[Instrument, SupportedOperations] = Map(
     // Instrument.F2     -> F2SupportedOperations,
-    Instrument.GmosS -> GmosSupportedOperations,
-    Instrument.GmosN -> GmosSupportedOperations
+    Instrument.GmosSouth -> GmosSupportedOperations,
+    Instrument.GmosNorth -> GmosSupportedOperations
     // Instrument.Gnirs -> GnirsSupportedOperations,
     // Instrument.Niri   -> NiriSupportedOperations,
     // Instrument.Nifs   -> NifsSupportedOperations,

@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -20,6 +21,7 @@ import observe.model.arb.ArbDhsTypes.given
 import observe.model.arb.ArbGmosParameters.given
 import observe.model.arb.ArbNsRunningState.given
 import observe.model.arb.ArbStepState.given
+import observe.model.arb.ArbSystem.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
@@ -85,7 +87,7 @@ trait ArbNodAndShuffleStep {
         Boolean,
         Boolean,
         Option[dhs.ImageFileId],
-        List[(Resource, ActionStatus)],
+        List[(Resource | Instrument, ActionStatus)],
         NodAndShuffleStatus
       )
     ].contramap(s =>

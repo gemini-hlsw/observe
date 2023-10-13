@@ -23,7 +23,6 @@ class ModelSuite extends munit.DisciplineSuite {
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)
   checkAll("Eq[List]", EqTests[List[(Resource, ActionStatus)]].eqv)
-  checkAll("Eq[Instrument]", EqTests[Instrument].eqv)
   checkAll("Eq[Operator]", EqTests[Operator].eqv)
   checkAll("Eq[StepState]", EqTests[StepState].eqv)
   checkAll("Eq[ActionStatus]", EqTests[ActionStatus].eqv)

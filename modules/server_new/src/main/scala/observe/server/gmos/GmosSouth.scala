@@ -8,6 +8,7 @@ import cats.effect.Ref
 import cats.effect.Temporal
 import cats.syntax.all.*
 import lucuma.core.enums.GmosRoi
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.MosPreImaging
 import lucuma.core.enums.ObserveClass
@@ -19,7 +20,6 @@ import lucuma.core.model.sequence.gmos.GmosNodAndShuffle
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
 import monocle.Getter
-import observe.model.enums.Instrument
 import observe.server.InstrumentSpecifics
 import observe.server.ObserveFailure
 import observe.server.StepType
@@ -47,7 +47,7 @@ final case class GmosSouth[F[_]: Temporal: Logger](
       nsCmdR,
       cfg
     ) {
-  override val resource: Instrument      = Instrument.GmosS
+  override val resource: Instrument      = Instrument.GmosSouth
   override val dhsInstrumentName: String = "GMOS-S"
   override val dhsClient: DhsClient[F]   = dhsClientProvider.dhsClient(dhsInstrumentName)
 
@@ -98,7 +98,7 @@ object GmosSouth {
     dhsClientProvider,
     nsCmdR,
     Gmos.buildConfig[F, GmosSite.South.type, StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
-      Instrument.GmosS,
+      Instrument.GmosSouth,
       stepType,
       staticCfg,
       dynamicCfg
@@ -118,7 +118,7 @@ object GmosSouth {
     GmosObsKeywordsReader(staticConfig, dynamicConfig)
 
   object specifics extends InstrumentSpecifics[StaticConfig.GmosSouth, DynamicConfig.GmosSouth] {
-    override val instrument: Instrument = Instrument.GmosS
+    override val instrument: Instrument = Instrument.GmosSouth
 
     override def calcStepType(
       stepConfig:   StepConfig,

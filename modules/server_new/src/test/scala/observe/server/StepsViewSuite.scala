@@ -9,6 +9,7 @@ import cats.effect.IO
 import cats.implicits.*
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import observe.engine.*
@@ -34,9 +35,9 @@ class StepsViewSuite extends TestCommon {
 
   test("StepsView configStatus should be all running if none has a result 2") {
     val status                                =
-      List(Resource.TCS -> ActionStatus.Running, Instrument.GmosN -> ActionStatus.Running)
+      List(Resource.TCS -> ActionStatus.Running, Instrument.GmosNorth -> ActionStatus.Running)
     val executions: List[ParallelActions[Id]] =
-      List(NonEmptyList.of(running(Resource.TCS), running(Instrument.GmosN)))
+      List(NonEmptyList.of(running(Resource.TCS), running(Instrument.GmosNorth)))
     assertEquals(StepsView.configStatus(executions), status)
   }
 
@@ -44,10 +45,10 @@ class StepsViewSuite extends TestCommon {
     "StepsView configStatus should be some complete and some running if none has a result even when the previous execution is complete"
   ) {
     val status                                =
-      List(Resource.TCS -> ActionStatus.Completed, Instrument.GmosN -> ActionStatus.Running)
+      List(Resource.TCS -> ActionStatus.Completed, Instrument.GmosNorth -> ActionStatus.Running)
     val executions: List[ParallelActions[Id]] =
       List(NonEmptyList.one(done(Resource.TCS)),
-           NonEmptyList.of(done(Resource.TCS), running(Instrument.GmosN))
+           NonEmptyList.of(done(Resource.TCS), running(Instrument.GmosNorth))
       )
     assertEquals(StepsView.configStatus(executions), status)
   }
@@ -56,21 +57,21 @@ class StepsViewSuite extends TestCommon {
     "StepsView configStatus should be some complete and some pending if one will be done in the future"
   ) {
     val status                                =
-      List(Resource.TCS -> ActionStatus.Completed, Instrument.GmosN -> ActionStatus.Running)
+      List(Resource.TCS -> ActionStatus.Completed, Instrument.GmosNorth -> ActionStatus.Running)
     val executions: List[ParallelActions[Id]] = List(
-      NonEmptyList.one(running(Instrument.GmosN)),
-      NonEmptyList.of(done(Resource.TCS), done(Instrument.GmosN))
+      NonEmptyList.one(running(Instrument.GmosNorth)),
+      NonEmptyList.of(done(Resource.TCS), done(Instrument.GmosNorth))
     )
     assertEquals(StepsView.configStatus(executions), status)
   }
 
   test("StepsView configStatus should stop at the first with running steps") {
     val executions: List[ParallelActions[Id]] = List(
-      NonEmptyList.one(running(Instrument.GmosN)),
-      NonEmptyList.of(running(Instrument.GmosN), running(Resource.TCS))
+      NonEmptyList.one(running(Instrument.GmosNorth)),
+      NonEmptyList.of(running(Instrument.GmosNorth), running(Resource.TCS))
     )
     val status                                =
-      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosN -> ActionStatus.Running)
+      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosNorth -> ActionStatus.Running)
     assertEquals(StepsView.configStatus(executions), status)
   }
 
@@ -78,16 +79,17 @@ class StepsViewSuite extends TestCommon {
     "StepsView configStatus should stop evaluating where at least one is running even while some are done"
   ) {
     val executions: List[ParallelActions[Id]] = List(
-      NonEmptyList.of(done(Resource.TCS), done(Instrument.GmosN)),
-      NonEmptyList.of(done(Resource.TCS), running(Instrument.GmosN)),
-      NonEmptyList.of(pendingAction(Resource.TCS),
-                      pendingAction(Instrument.GmosN),
-                      pendingAction(Resource.Gcal)
+      NonEmptyList.of(done(Resource.TCS), done(Instrument.GmosNorth)),
+      NonEmptyList.of(done(Resource.TCS), running(Instrument.GmosNorth)),
+      NonEmptyList.of(
+        pendingAction(Resource.TCS),
+        pendingAction(Instrument.GmosNorth),
+        pendingAction(Resource.Gcal)
       )
     )
     val status                                = List(Resource.TCS -> ActionStatus.Completed,
-                      Resource.Gcal    -> ActionStatus.Pending,
-                      Instrument.GmosN -> ActionStatus.Running
+                      Resource.Gcal        -> ActionStatus.Pending,
+                      Instrument.GmosNorth -> ActionStatus.Running
     )
     assertEquals(StepsView.configStatus(executions), status)
   }
@@ -104,34 +106,35 @@ class StepsViewSuite extends TestCommon {
 
   test("StepsView pending configStatus should build be all pending with mixed") {
     val status                                =
-      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosN -> ActionStatus.Pending)
+      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosNorth -> ActionStatus.Pending)
     val executions: List[ParallelActions[Id]] =
-      List(NonEmptyList.of(pendingAction(Resource.TCS), done(Instrument.GmosN)))
+      List(NonEmptyList.of(pendingAction(Resource.TCS), done(Instrument.GmosNorth)))
     assertEquals(StepsView.pendingConfigStatus(executions), status)
   }
 
   test("StepsView pending configStatus should build be all pending on mixed combinations") {
     val status                                =
-      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosN -> ActionStatus.Pending)
+      List(Resource.TCS -> ActionStatus.Pending, Instrument.GmosNorth -> ActionStatus.Pending)
     val executions: List[ParallelActions[Id]] =
       List(NonEmptyList.one(done(Resource.TCS)),
-           NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosN))
+           NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosNorth))
       )
     assertEquals(StepsView.pendingConfigStatus(executions), status)
   }
 
   test("StepsView pending configStatus should build be all pending with multiple resources") {
     val executions: List[ParallelActions[Id]] = List(
-      NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosN)),
-      NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosN)),
-      NonEmptyList.of(done(Resource.TCS),
-                      pendingAction(Instrument.GmosN),
-                      pendingAction(Resource.Gcal)
+      NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosNorth)),
+      NonEmptyList.of(done(Resource.TCS), pendingAction(Instrument.GmosNorth)),
+      NonEmptyList.of(
+        done(Resource.TCS),
+        pendingAction(Instrument.GmosNorth),
+        pendingAction(Resource.Gcal)
       )
     )
     val status                                = List(Resource.TCS -> ActionStatus.Pending,
-                      Resource.Gcal    -> ActionStatus.Pending,
-                      Instrument.GmosN -> ActionStatus.Pending
+                      Resource.Gcal        -> ActionStatus.Pending,
+                      Instrument.GmosNorth -> ActionStatus.Pending
     )
     assertEquals(StepsView.pendingConfigStatus(executions), status)
   }

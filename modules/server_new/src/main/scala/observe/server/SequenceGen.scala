@@ -5,6 +5,7 @@ package observe.server
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -21,7 +22,6 @@ import observe.model.StepId
 import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 
 /*
@@ -36,20 +36,20 @@ final case class SequenceGen[F[_]](
   atomId:     Atom.Id,
   steps:      List[SequenceGen.StepGen[F]]
 ) {
-  val resources: Set[Resource] = steps
+  val resources: Set[Resource | Instrument] = steps
     .collect { case p: SequenceGen.PendingStepGen[F] =>
       p.resources
     }
     .foldMap(identity)
 
-  def configActionCoord(stepId: StepId, r: Resource): Option[ActionCoordsInSeq] =
+  def configActionCoord(stepId: StepId, r: Resource | Instrument): Option[ActionCoordsInSeq] =
     steps
       .find(_.id === stepId)
       .collect { case p: SequenceGen.PendingStepGen[F] => p }
       .flatMap(_.generator.configActionCoord(r))
       .map { case (ex, ac) => ActionCoordsInSeq(stepId, ex, ac) }
 
-  def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource] =
+  def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource | Instrument] =
     steps
       .find(_.id === c.stepId)
       .collect { case p: SequenceGen.PendingStepGen[F] => p }
@@ -90,20 +90,21 @@ object SequenceGen {
   }
 
   final case class StepActionsGen[F[_]](
-    configs: Map[Resource, SystemOverrides => Action[F]],
+    configs: Map[Resource | Instrument, SystemOverrides => Action[F]],
     post:    (HeaderExtraData, SystemOverrides) => List[ParallelActions[F]]
   ) {
     def generate(ctx: HeaderExtraData, overrides: SystemOverrides): List[ParallelActions[F]] =
       NonEmptyList.fromList(configs.values.toList.map(_(overrides))).toList ++
         post(ctx, overrides)
 
-    def configActionCoord(r: Resource): Option[(ExecutionIndex, ActionIndex)]   = {
+    def configActionCoord(r: Resource | Instrument): Option[(ExecutionIndex, ActionIndex)] = {
       val i = configs.keys.toIndexedSeq.indexOf(r)
       (i >= 0)
         .option(i)
         .map(i => (ExecutionIndex(0), ActionIndex(i.toLong)))
     }
-    def resourceAtCoords(ex: ExecutionIndex, ac: ActionIndex): Option[Resource] =
+
+    def resourceAtCoords(ex: ExecutionIndex, ac: ActionIndex): Option[Resource | Instrument] =
       if (ex.self === 0) configs.keys.toList.get(ac.self)
       else None
 
@@ -112,7 +113,7 @@ object SequenceGen {
   final case class PendingStepGen[F[_]](
     override val id:         StepId,
     override val dataId:     DataId,
-    resources:               Set[Resource],
+    resources:               Set[Resource | Instrument],
     obsControl:              SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:               StepActionsGen[F],
     override val genData:    StepStatusGen = StepStatusGen.Null,

@@ -4,13 +4,13 @@
 package observe.web.server.http4s
 
 import cats.syntax.all.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import observe.model.ClientId
 import observe.model.Observer
 import observe.model.SubsystemEnabled
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import org.http4s.QueryParamDecoder

@@ -6,7 +6,7 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
-import observe.model.enums.Instrument
+import lucuma.core.enums.Instrument
 import observe.model.enums.Resource
 
 enum Notification derives Eq:

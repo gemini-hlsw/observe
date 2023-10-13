@@ -6,8 +6,8 @@ package observe.server.altair
 import cats.ApplicativeThrow
 import cats.Eq
 import cats.effect.Sync
+import lucuma.core.enums.Instrument
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.server.altair.AltairController.*
 import observe.server.gems.GemsController.GemsConfig

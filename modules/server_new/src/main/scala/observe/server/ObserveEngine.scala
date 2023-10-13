@@ -16,6 +16,7 @@ import fs2.Pipe
 import fs2.Stream
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -46,7 +47,6 @@ import observe.model.UserPrompt.TargetCheckOverride
 import observe.model._
 import observe.model.config.*
 import observe.model.enums.BatchExecState
-import observe.model.enums.Instrument
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.enums.ServerLogLevel
@@ -1479,7 +1479,7 @@ object ObserveEngine {
   private def observations[F[_]](st: EngineState[F]): List[SequenceData[F]] =
     List(st.selected.gmosSouth, st.selected.gmosNorth).flattenOption
 
-  private def systemsBeingConfigured[F[_]](st: EngineState[F]): Set[Resource] =
+  private def systemsBeingConfigured[F[_]](st: EngineState[F]): Set[Resource | Instrument] =
     observations(st)
       .filter(d => d.seq.status.isError || d.seq.status.isIdle)
       .flatMap(s =>
@@ -1495,7 +1495,7 @@ object ObserveEngine {
    * Resource in use = Resources used by running sequences, plus the systems that are being
    * configured because a user commanded a manual configuration apply.
    */
-  private def resourcesInUse[F[_]](st: EngineState[F]): Set[Resource] =
+  private def resourcesInUse[F[_]](st: EngineState[F]): Set[Resource | Instrument] =
     observations(st)
       .mapFilter(s => s.seq.status.isRunning.option(s.seqGen.resources))
       .foldK ++
@@ -1504,8 +1504,8 @@ object ObserveEngine {
   /**
    * Resources reserved by running queues.
    */
-  private def resourcesReserved[F[_]](st: EngineState[F]): Set[Resource] = {
-    def reserved(q: ExecutionQueue): Set[Resource] = q.queue.collect {
+  private def resourcesReserved[F[_]](st: EngineState[F]): Set[Resource | Instrument] = {
+    def reserved(q: ExecutionQueue): Set[Resource | Instrument] = q.queue.collect {
       case s if !s.state.isCompleted => s.resources
     }.foldK
 
@@ -1594,7 +1594,7 @@ object ObserveEngine {
    *   The set of all observations in the execution queue `qid` that can be started to run in
    *   parallel.
    */
-  private def nextRunnableObservations[F[_]](qid: QueueId, freed: Set[Resource])(
+  private def nextRunnableObservations[F[_]](qid: QueueId, freed: Set[Resource | Instrument])(
     st: EngineState[F]
   ): Set[Observation.Id] = {
     // Set of all resources in use
@@ -1609,7 +1609,7 @@ object ObserveEngine {
       .orEmpty
 
     // Calculate instruments reserved by failed sequences in the queue
-    val resFailed: Set[Resource] = st.queues
+    val resFailed: Set[Instrument] = st.queues
       .get(qid)
       .map(
         _.queue.mapFilter(s => s.state.isError.option(s.instrument))
@@ -1708,22 +1708,23 @@ object ObserveEngine {
     val seq        = st.toSequence
     val instrument = obsSeq.seqGen.instrument
 
-    def resources(s: SequenceGen.StepGen[F]): List[Resource] = s match {
+    def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
       case _                                => List.empty
     }
-    def engineSteps(seq: Sequence[F]): List[Step]            =
+    def engineSteps(seq: Sequence[F]): List[Step]                         =
       obsSeq.seqGen.steps.zip(seq.steps).map { case (a, b) =>
         StepsView
           .stepsView(instrument)
-          .stepView(a,
-                    b,
-                    resources(a).mapFilter(x =>
-                      obsSeq.seqGen
-                        .configActionCoord(a.id, x)
-                        .map(i => (x, obsSeq.seq.getSingleState(i).actionStatus))
-                    ),
-                    obsSeq.pendingObsCmd
+          .stepView(
+            a,
+            b,
+            resources(a).mapFilter(x =>
+              obsSeq.seqGen
+                .configActionCoord(a.id, x)
+                .map(i => (x, obsSeq.seq.getSingleState(i).actionStatus))
+            ),
+            obsSeq.pendingObsCmd
           )
       } match {
         // The sequence could be empty
@@ -1761,8 +1762,8 @@ object ObserveEngine {
     def svs       =
       SequencesQueue(
         List(
-          qState.selected.gmosSouth.map(x => Instrument.GmosS -> x.seqGen.obsData.id),
-          qState.selected.gmosNorth.map(x => Instrument.GmosN -> x.seqGen.obsData.id)
+          qState.selected.gmosSouth.map(x => Instrument.GmosSouth -> x.seqGen.obsData.id),
+          qState.selected.gmosNorth.map(x => Instrument.GmosNorth -> x.seqGen.obsData.id)
         ).flattenOption.toMap,
         qState.conditions,
         qState.operator,
@@ -1821,16 +1822,18 @@ object ObserveEngine {
           case SystemEvent.BreakpointReached(id)                                    => Stream.emit(SequencePaused(id, svs))
           case SystemEvent.SingleRunCompleted(c, _)                                 =>
             Stream.emit(
-              singleActionEvent[F, SingleActionOp.Completed](c,
-                                                             qState,
-                                                             SingleActionOp.Completed.apply(_, _, _)
+              singleActionEvent[F, SingleActionOp.Completed](
+                c,
+                qState,
+                SingleActionOp.Completed.apply(_, _, _)
               )
             )
           case SystemEvent.SingleRunFailed(c, r)                                    =>
             Stream.emit(
-              singleActionEvent[F, SingleActionOp.Error](c,
-                                                         qState,
-                                                         SingleActionOp.Error.apply(_, _, _, r.msg)
+              singleActionEvent[F, SingleActionOp.Error](
+                c,
+                qState,
+                SingleActionOp.Error.apply(_, _, _, r.msg)
               )
             )
         }
@@ -1840,7 +1843,7 @@ object ObserveEngine {
   private def singleActionEvent[F[_], S <: SingleActionOp](
     c:      ActionCoords,
     qState: EngineState[F],
-    f:      (Observation.Id, StepId, Resource) => S
+    f:      (Observation.Id, StepId, Resource | Instrument) => S
   ): ObserveEvent =
     qState.sequences
       .get(c.sid)

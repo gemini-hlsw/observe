@@ -11,6 +11,7 @@ import io.circe.Encoder
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import io.circe.syntax.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.util.Enumerated
 import observe.model.Conditions
@@ -20,6 +21,7 @@ import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.StepId
 import observe.model.enums.Resource
+import observe.model.given
 
 sealed trait ClientEvent derives Eq
 
@@ -32,7 +34,7 @@ extension (v: SequencesQueue[SequenceView])
 
 extension (q: SequenceView)
   def executionState: ExecutionState =
-    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Nil, q.systemOverrides)
+    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Map.empty, q.systemOverrides)
 
 object ClientEvent:
   enum SingleActionState(val tag: String) derives Eq, Enumerated:
@@ -56,7 +58,7 @@ object ClientEvent:
   case class SingleActionEvent(
     obsId:    Observation.Id,
     stepId:   StepId,
-    resource: Resource,
+    resource: Resource | Instrument,
     event:    SingleActionState,
     error:    Option[String]
   ) extends ClientEvent
