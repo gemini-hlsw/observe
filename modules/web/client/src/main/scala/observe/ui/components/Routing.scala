@@ -27,6 +27,7 @@ object Routing:
             <.div(
               ConfigPanel(
                 rootModel.get.operator,
+                rootModel.zoom(RootModel.clientId).get,
                 rootModel.zoom(RootModel.conditions)
               )
             )

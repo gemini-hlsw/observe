@@ -111,27 +111,31 @@ trait ObserveEngine[F[_]] {
 
   // Systems overrides
   def setTcsEnabled(
-    seqId:   Observation.Id,
-    user:    User,
-    enabled: SubsystemEnabled
+    seqId:    Observation.Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit]
 
   def setGcalEnabled(
-    seqId:   Observation.Id,
-    user:    User,
-    enabled: SubsystemEnabled
+    seqId:    Observation.Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit]
 
   def setInstrumentEnabled(
-    seqId:   Observation.Id,
-    user:    User,
-    enabled: SubsystemEnabled
+    seqId:    Observation.Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit]
 
   def setDhsEnabled(
-    seqId:   Observation.Id,
-    user:    User,
-    enabled: SubsystemEnabled
+    seqId:    Observation.Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit]
 
   def selectSequence(
@@ -148,13 +152,13 @@ trait ObserveEngine[F[_]] {
 
   def setConditions(conditions: Conditions, user: User): F[Unit]
 
-  def setImageQuality(iq: ImageQuality, user: User): F[Unit]
+  def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit]
 
-  def setWaterVapor(wv: WaterVapor, user: User): F[Unit]
+  def setWaterVapor(wv: WaterVapor, user: User, clientId: ClientId): F[Unit]
 
-  def setSkyBackground(sb: SkyBackground, user: User): F[Unit]
+  def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit]
 
-  def setCloudExtinction(cc: CloudExtinction, user: User): F[Unit]
+  def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit]
 
   def setSkipMark(
     seqId:    Observation.Id,
@@ -718,6 +722,13 @@ object ObserveEngine {
     private def logDebugEvent(msg: String): F[Unit] =
       Event.logDebugMsgF[F, EngineState[F], SeqEvent](msg).flatMap(executeEngine.offer)
 
+    private def logDebugEvent(msg: String, user: User, clientId: ClientId): F[Unit] =
+      Event
+        .logDebugMsgF[F, EngineState[F], SeqEvent](
+          s"$msg, by ${user.displayName} from client $clientId"
+        )
+        .flatMap(executeEngine.offer)
+
     override def clearLoadedSequences(user: User): F[Unit] =
       logDebugEvent("ObserveEngine: Updating loaded sequences") *>
         executeEngine.offer(
@@ -751,8 +762,8 @@ object ObserveEngine {
         )
       )
 
-    override def setImageQuality(iq: ImageQuality, user: User): F[Unit] =
-      logDebugEvent(s"ObserveEngine: Setting image quality to $iq") *>
+    override def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit] =
+      logDebugEvent(s"ObserveEngine: Setting image quality to $iq", user, clientId) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
             (EngineState.conditions[F].andThen(Conditions.iq).replace(iq.some) >>> refreshSequences)
@@ -761,8 +772,8 @@ object ObserveEngine {
           )
         )
 
-    override def setWaterVapor(wv: WaterVapor, user: User): F[Unit] =
-      logDebugEvent(s"ObserveEngine: Setting water vapor to $wv") *>
+    override def setWaterVapor(wv: WaterVapor, user: User, clientId: ClientId): F[Unit] =
+      logDebugEvent(s"ObserveEngine: Setting water vapor to $wv", user, clientId) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
             (EngineState.conditions[F].andThen(Conditions.wv).replace(wv.some) >>> refreshSequences)
@@ -771,8 +782,8 @@ object ObserveEngine {
           )
         )
 
-    override def setSkyBackground(sb: SkyBackground, user: User): F[Unit] =
-      logDebugEvent(s"ObserveEngine: Setting sky background to $sb") *>
+    override def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit] =
+      logDebugEvent(s"ObserveEngine: Setting sky background to $sb", user, clientId) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
             (EngineState.conditions[F].andThen(Conditions.sb).replace(sb.some) >>> refreshSequences)
@@ -782,9 +793,10 @@ object ObserveEngine {
         )
 
     override def setCloudExtinction(
-      ce:   CloudExtinction,
-      user: User
-    ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $ce") *>
+      ce:       CloudExtinction,
+      user:     User,
+      clientId: ClientId
+    ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $ce", user, clientId) *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
           (EngineState.conditions[F].andThen(Conditions.ce).replace(ce.some) >>> refreshSequences)
@@ -803,7 +815,7 @@ object ObserveEngine {
 //      setObserver(seqId, user, observer) *>
 //        executeEngine.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
 //
-    override def requestRefresh(clientId: ClientId): F[Unit]              =
+    override def requestRefresh(clientId: ClientId): F[Unit]                                  =
       executeEngine.offer(Event.poll(clientId))
 
     private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] =
@@ -1373,10 +1385,13 @@ object ObserveEngine {
       event:    SeqEvent,
       seqId:    Observation.Id,
       user:     User,
-      enabled:  SubsystemEnabled
+      enabled:  SubsystemEnabled,
+      clientId: ClientId
     ): F[Unit] =
       logDebugEvent(
-        s"ObserveEngine: Setting $resource enabled flag to '$enabled' for sequence '$seqId' by ${user.id}"
+        s"ObserveEngine: Setting $resource enabled flag to '$enabled' for sequence '$seqId'",
+        user,
+        clientId
       ) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -1389,55 +1404,64 @@ object ObserveEngine {
           )
         )
     override def setTcsEnabled(
-      seqId:   Observation.Id,
-      user:    User,
-      enabled: SubsystemEnabled
+      seqId:    Observation.Id,
+      user:     User,
+      enabled:  SubsystemEnabled,
+      clientId: ClientId
     ): F[Unit] =
       toggleOverride(Resource.TCS.label,
                      (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
                      SetTcsEnabled(seqId, user.some, enabled),
                      seqId,
                      user,
-                     enabled
+                     enabled,
+                     clientId
       )
 
     override def setGcalEnabled(
-      seqId:   Observation.Id,
-      user:    User,
-      enabled: SubsystemEnabled
+      seqId:    Observation.Id,
+      user:     User,
+      enabled:  SubsystemEnabled,
+      clientId: ClientId
     ): F[Unit] =
       toggleOverride(Resource.Gcal.label,
                      (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
                      SetGcalEnabled(seqId, user.some, enabled),
                      seqId,
                      user,
-                     enabled
+                     enabled,
+                     clientId
       )
 
     override def setInstrumentEnabled(
-      seqId:   Observation.Id,
-      user:    User,
-      enabled: SubsystemEnabled
+      seqId:    Observation.Id,
+      user:     User,
+      enabled:  SubsystemEnabled,
+      clientId: ClientId
     ): F[Unit] =
-      toggleOverride("Instrument",
-                     (enabled, x) => if (enabled.value) x.enableInstrument else x.disableInstrument,
-                     SetInstrumentEnabled(seqId, user.some, enabled),
-                     seqId,
-                     user,
-                     enabled
+      toggleOverride(
+        "Instrument",
+        (enabled, x) => if (enabled.value) x.enableInstrument else x.disableInstrument,
+        SetInstrumentEnabled(seqId, user.some, enabled),
+        seqId,
+        user,
+        enabled,
+        clientId
       )
 
     override def setDhsEnabled(
-      seqId:   Observation.Id,
-      user:    User,
-      enabled: SubsystemEnabled
+      seqId:    Observation.Id,
+      user:     User,
+      enabled:  SubsystemEnabled,
+      clientId: ClientId
     ): F[Unit] =
       toggleOverride("DHS",
                      (enabled, x) => if (enabled.value) x.enableDhs else x.disableDhs,
                      SetDhsEnabled(seqId, user.some, enabled),
                      seqId,
                      user,
-                     enabled
+                     enabled,
+                     clientId: ClientId
       )
 
   }

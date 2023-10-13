@@ -11,8 +11,13 @@ import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.given
 import lucuma.core.enums.Site
+import monocle.Focus
+import monocle.Lens
 
-final case class Environment(site: Site, clientId: ClientId, version: Version)
+case class Environment(site: Site, clientId: ClientId, version: Version)
     derives Eq,
       Encoder.AsObject,
       Decoder
+
+object Environment:
+  val clientId: Lens[Environment, ClientId] = Focus[Environment](_.clientId)

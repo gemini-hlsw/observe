@@ -23,6 +23,7 @@ import observe.ui.services.ConfigApi
 
 case class ConfigPanel(
   operator:   Option[Operator],
+  clientId:   ClientId,
   conditions: View[Conditions]
 ) extends ReactFnProps(ConfigPanel.component)
 
@@ -39,22 +40,22 @@ object ConfigPanel:
       val iq: View[Option[ImageQuality]] =
         props.conditions
           .zoom(Conditions.iq)
-          .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setImageQuality(props.clientId, _)).orEmpty.runAsync)
 
       val ce: View[Option[CloudExtinction]] =
         props.conditions
           .zoom(Conditions.ce)
-          .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setCloudExtinction(props.clientId, _)).orEmpty.runAsync)
 
       val wv: View[Option[WaterVapor]] =
         props.conditions
           .zoom(Conditions.wv)
-          .withOnMod(_.map(configApi.setWaterVapor).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setWaterVapor(props.clientId, _)).orEmpty.runAsync)
 
       val sb: View[Option[SkyBackground]] =
         props.conditions
           .zoom(Conditions.sb)
-          .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setSkyBackground(props.clientId, _)).orEmpty.runAsync)
 
       <.div(ObserveStyles.ConfigSection)(
         <.div(ObserveStyles.ObserverArea)(

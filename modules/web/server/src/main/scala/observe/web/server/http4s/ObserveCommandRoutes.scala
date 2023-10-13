@@ -132,49 +132,49 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "tcsEnabled" /
         SubsystemEnabledVar(tcsEnabled) =>
       ssoClient.require(req) { user =>
-        oe.setTcsEnabled(obsId, user, tcsEnabled) *>
+        oe.setTcsEnabled(obsId, user, tcsEnabled, clientId) *>
           NoContent()
       }
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "gcalEnabled" /
         SubsystemEnabledVar(gcalEnabled) =>
       ssoClient.require(req) { user =>
-        oe.setGcalEnabled(obsId, user, gcalEnabled) *>
+        oe.setGcalEnabled(obsId, user, gcalEnabled, clientId) *>
           NoContent()
       }
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "instrumentEnabled" /
         SubsystemEnabledVar(instEnabled) =>
       ssoClient.require(req) { user =>
-        oe.setInstrumentEnabled(obsId, user, instEnabled) *>
+        oe.setInstrumentEnabled(obsId, user, instEnabled, clientId) *>
           NoContent()
       }
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "dhsEnabled" /
         SubsystemEnabledVar(dhsEnabled) =>
       ssoClient.require(req) { user =>
-        oe.setDhsEnabled(obsId, user, dhsEnabled) *>
+        oe.setDhsEnabled(obsId, user, dhsEnabled, clientId) *>
           NoContent()
       }
 
     case req @ POST -> Root / ClientIDVar(clientId) / "iq" =>
       ssoClient.require(req) { u =>
-        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u) *> NoContent())
+        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u, clientId) *> NoContent())
       }
 
     case req @ POST -> Root / ClientIDVar(clientId) / "wv" =>
       ssoClient.require(req) { u =>
-        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u) *> NoContent())
+        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u, clientId) *> NoContent())
       }
 
     case req @ POST -> Root / ClientIDVar(clientId) / "sb" =>
       ssoClient.require(req) { u =>
-        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u) *> NoContent())
+        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u, clientId) *> NoContent())
       }
 
     case req @ POST -> Root / ClientIDVar(clientId) / "ce" =>
       ssoClient.require(req) { u =>
-        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u) *> NoContent())
+        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u, clientId) *> NoContent())
       }
 
     case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) /
