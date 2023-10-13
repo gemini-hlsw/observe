@@ -4,19 +4,20 @@
 package observe.model
 
 import cats.*
+import cats.derived.*
 import cats.syntax.all.*
 import monocle.Focus
 import monocle.Traversal
 import monocle.function.Each.*
 
-final case class SequenceView(
+case class SequenceView(
   obsId:           Observation.Id,
   metadata:        SequenceMetadata,
   status:          SequenceState,
   systemOverrides: SystemOverrides,
   steps:           List[Step],
   willStopIn:      Option[Int]
-) {
+) derives Eq {
 
   def progress: Option[RunningStep] =
     steps.zipWithIndex.find(!_._1.isFinished).flatMap { x =>
@@ -33,8 +34,6 @@ final case class SequenceView(
 }
 
 object SequenceView {
-  given Eq[SequenceView] =
-    Eq.by(x => (x.obsId, x.metadata, x.status, x.willStopIn))
 
   val stepT: Traversal[SequenceView, Step] =
     Focus[SequenceView](_.steps).andThen(each[List[Step], Step])

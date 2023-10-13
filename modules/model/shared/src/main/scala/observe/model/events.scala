@@ -139,6 +139,7 @@ extension (e: ObserveEvent)
     case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case ObserverUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case OverridesUpdated(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case SingleActionEvent(v)    =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>

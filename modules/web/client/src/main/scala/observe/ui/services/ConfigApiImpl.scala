@@ -50,10 +50,14 @@ case class ConfigApiImpl(
         apiStatus.async.set(ApiStatus.Idle)
     )
 
-  override def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("iq", iq)
-  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] = request("ce", ce)
-  override def setWaterVapor(wv:      WaterVapor): IO[Unit]      = request("wv", wv)
-  override def setSkyBackground(sb:   SkyBackground): IO[Unit]   = request("sb", sb)
-  override def refresh(clientId:      ClientId): IO[Unit]        = request("refresh", clientId)
+  override def setImageQuality(clientId: ClientId, iq: ImageQuality): IO[Unit]       =
+    request(s"${clientId.value}/iq", iq)
+  override def setCloudExtinction(clientId: ClientId, ce: CloudExtinction): IO[Unit] =
+    request(s"${clientId.value}/ce", ce)
+  override def setWaterVapor(clientId: ClientId, wv: WaterVapor): IO[Unit]           =
+    request(s"${clientId.value}/wv", wv)
+  override def setSkyBackground(clientId: ClientId, sb: SkyBackground): IO[Unit]     =
+    request(s"${clientId.value}/sb", sb)
+  override def refresh(clientId: ClientId): IO[Unit] = request(s"${clientId.value}/refresh", ())
 
   override def isBlocked: Boolean = apiStatus.get == ApiStatus.Busy

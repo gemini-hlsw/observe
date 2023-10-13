@@ -30,6 +30,7 @@ import observe.engine.EventResult
 import observe.engine.EventResult.Outcome
 import observe.engine.Sequence
 import observe.engine.user
+import observe.model.ClientId
 import observe.model.Conditions
 import observe.model.Observer
 import observe.model.Operator
@@ -46,9 +47,13 @@ import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
 
+import java.util.UUID
+
 class ObserveEngineSuite extends TestCommon {
 
   import TestCommon.*
+
+  val clientId = ClientId(UUID.randomUUID())
 
   test("ObserveEngine setOperator should set operator's name") {
     val operator = Operator("Joe")
@@ -67,7 +72,7 @@ class ObserveEngineSuite extends TestCommon {
 
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user), 2)
+      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
       op === iq
     }).assert
@@ -79,7 +84,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user), 2)
+      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.wv).get).exists { op =>
       op === wv
     }).assert
@@ -90,7 +95,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user), 2)
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
       op === ce
     }).assert
@@ -101,7 +106,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user), 2)
+      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.sb).get).exists { op =>
       op === sb
     }).assert

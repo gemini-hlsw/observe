@@ -17,7 +17,10 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.*
 import observe.server.TestCommon.*
 
+import java.util.UUID
+
 class StepsViewSuite extends TestCommon {
+  val clientId = ClientId(UUID.randomUUID())
 
   test("StepsView configStatus should build empty without tasks") {
     assert(StepsView.configStatus(Nil).isEmpty)
@@ -177,7 +180,7 @@ class StepsViewSuite extends TestCommon {
 
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user), 2)
+      sf <- advanceN(oe, s0, oe.setImageQuality(iq, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
       op === iq
     }).assert
@@ -188,7 +191,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user), 2)
+      sf <- advanceN(oe, s0, oe.setWaterVapor(wv, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.wv).get).exists { op =>
       op === wv
     }).assert
@@ -199,7 +202,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user), 2)
+      sf <- advanceN(oe, s0, oe.setCloudExtinction(ce, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.ce).get).exists { op =>
       op === ce
     }).assert
@@ -210,7 +213,7 @@ class StepsViewSuite extends TestCommon {
     val s0 = EngineState.default[IO]
     for {
       oe <- observeEngine
-      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user), 2)
+      sf <- advanceN(oe, s0, oe.setSkyBackground(sb, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.sb).get).exists { op =>
       op === sb
     }

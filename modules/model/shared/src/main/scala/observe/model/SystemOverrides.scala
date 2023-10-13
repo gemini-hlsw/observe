@@ -3,40 +3,38 @@
 
 package observe.model
 
-import cats.*
+import cats.Eq
+import cats.derived.*
 
 case class SystemOverrides(
-  isTcsEnabled:        Boolean,
-  isInstrumentEnabled: Boolean,
-  isGcalEnabled:       Boolean,
-  isDhsEnabled:        Boolean
-) {
-  def disableTcs: SystemOverrides = copy(isTcsEnabled = false)
+  isTcsEnabled:        SubsystemEnabled,
+  isInstrumentEnabled: SubsystemEnabled,
+  isGcalEnabled:       SubsystemEnabled,
+  isDhsEnabled:        SubsystemEnabled
+) derives Eq {
+  def disableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Disabled)
 
-  def enableTcs: SystemOverrides = copy(isTcsEnabled = true)
+  def enableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Enabled)
 
-  def disableInstrument: SystemOverrides = copy(isInstrumentEnabled = false)
+  def disableInstrument: SystemOverrides = copy(isInstrumentEnabled = SubsystemEnabled.Disabled)
 
-  def enableInstrument: SystemOverrides = copy(isInstrumentEnabled = true)
+  def enableInstrument: SystemOverrides = copy(isInstrumentEnabled = SubsystemEnabled.Enabled)
 
-  def disableGcal: SystemOverrides = copy(isGcalEnabled = false)
+  def disableGcal: SystemOverrides = copy(isGcalEnabled = SubsystemEnabled.Disabled)
 
-  def enableGcal: SystemOverrides = copy(isGcalEnabled = true)
+  def enableGcal: SystemOverrides = copy(isGcalEnabled = SubsystemEnabled.Enabled)
 
-  def disableDhs: SystemOverrides = copy(isDhsEnabled = false)
+  def disableDhs: SystemOverrides = copy(isDhsEnabled = SubsystemEnabled.Disabled)
 
-  def enableDhs: SystemOverrides = copy(isDhsEnabled = true)
+  def enableDhs: SystemOverrides = copy(isDhsEnabled = SubsystemEnabled.Enabled)
 }
 
 object SystemOverrides {
   val AllEnabled: SystemOverrides = SystemOverrides(
-    isTcsEnabled = true,
-    isInstrumentEnabled = true,
-    isGcalEnabled = true,
-    isDhsEnabled = true
+    isTcsEnabled = SubsystemEnabled.Enabled,
+    isInstrumentEnabled = SubsystemEnabled.Enabled,
+    isGcalEnabled = SubsystemEnabled.Enabled,
+    isDhsEnabled = SubsystemEnabled.Enabled
   )
-
-  given Eq[SystemOverrides] =
-    Eq.by(x => (x.isTcsEnabled, x.isInstrumentEnabled, x.isGcalEnabled, x.isDhsEnabled))
 
 }

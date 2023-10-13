@@ -54,11 +54,13 @@ case class RootModel(environment: Environment, data: RootModelData) derives Eq:
 
 object RootModel:
   private val data: Lens[RootModel, RootModelData]                            = Focus[RootModel](_.data)
+  private val environment: Lens[RootModel, Environment]                       = Focus[RootModel](_.environment)
   val userVault: Lens[RootModel, Option[UserVault]]                           = data.andThen(RootModelData.userVault)
   val sequenceExecution: Lens[RootModel, Map[Observation.Id, ExecutionState]] =
     data.andThen(RootModelData.sequenceExecution)
   val conditions: Lens[RootModel, Conditions]                                 = data.andThen(RootModelData.conditions)
   val operator: Lens[RootModel, Option[Operator]]                             = data.andThen(RootModelData.operator)
+  val clientId: Lens[RootModel, ClientId]                                     = environment.andThen(Environment.clientId)
   val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]]           =
     data.andThen(RootModelData.userSelectionMessage)
   val log: Lens[RootModel, List[NonEmptyString]]                              = data.andThen(RootModelData.log)

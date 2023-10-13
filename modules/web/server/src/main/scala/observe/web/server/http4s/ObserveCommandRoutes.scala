@@ -129,45 +129,56 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.setObserver(inputQueue, obsId, user, obs) *>
     //     Ok(s"Set observer name to '${obs.value}' for sequence $obsId")
     //
-    // case POST -> Root / ObsId(obsId) / "tcsEnabled" / BooleanVar(tcsEnabled) as user =>
-    //   se.setTcsEnabled(inputQueue, obsId, user, tcsEnabled) *>
-    //     Ok(s"Set TCS enable flag to '$tcsEnabled' for sequence $obsId")
-    //
-    // case POST -> Root / ObsId(obsId) / "gcalEnabled" / BooleanVar(gcalEnabled) as user =>
-    //   se.setGcalEnabled(inputQueue, obsId, user, gcalEnabled) *>
-    //     Ok(s"Set GCAL enable flag to '$gcalEnabled' for sequence $obsId")
-    //
-    // case POST -> Root / ObsId(obsId) / "instEnabled" / BooleanVar(instEnabled) as user =>
-    //   se.setInstrumentEnabled(inputQueue, obsId, user, instEnabled) *>
-    //     Ok(s"Set instrument enable flag to '$instEnabled' for sequence $obsId")
-    //
-    // case POST -> Root / ObsId(obsId) / "dhsEnabled" / BooleanVar(dhsEnabled) as user =>
-    //   se.setDhsEnabled(inputQueue, obsId, user, dhsEnabled) *>
-    //     Ok(s"Set DHS enable flag to '$dhsEnabled' for sequence $obsId")
-
-    case req @ POST -> Root / "iq" =>
-      ssoClient.require(req) { u =>
-        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u) *> NoContent())
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "tcsEnabled" /
+        SubsystemEnabledVar(tcsEnabled) =>
+      ssoClient.require(req) { user =>
+        oe.setTcsEnabled(obsId, user, tcsEnabled, clientId) *>
+          NoContent()
       }
 
-    case req @ POST -> Root / "wv" =>
-      ssoClient.require(req) { u =>
-        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u) *> NoContent())
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "gcalEnabled" /
+        SubsystemEnabledVar(gcalEnabled) =>
+      ssoClient.require(req) { user =>
+        oe.setGcalEnabled(obsId, user, gcalEnabled, clientId) *>
+          NoContent()
       }
 
-    case req @ POST -> Root / "sb" =>
-      ssoClient.require(req) { u =>
-        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u) *> NoContent())
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "instrumentEnabled" /
+        SubsystemEnabledVar(instEnabled) =>
+      ssoClient.require(req) { user =>
+        oe.setInstrumentEnabled(obsId, user, instEnabled, clientId) *>
+          NoContent()
       }
 
-    case req @ POST -> Root / "ce" =>
-      ssoClient.require(req) { u =>
-        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u) *> NoContent())
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "dhsEnabled" /
+        SubsystemEnabledVar(dhsEnabled) =>
+      ssoClient.require(req) { user =>
+        oe.setDhsEnabled(obsId, user, dhsEnabled, clientId) *>
+          NoContent()
       }
 
-    case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) / ObserverVar(
-          observer
-        ) / ClientIDVar(clientId) =>
+    case req @ POST -> Root / ClientIDVar(clientId) / "iq" =>
+      ssoClient.require(req) { u =>
+        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u, clientId) *> NoContent())
+      }
+
+    case req @ POST -> Root / ClientIDVar(clientId) / "wv" =>
+      ssoClient.require(req) { u =>
+        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u, clientId) *> NoContent())
+      }
+
+    case req @ POST -> Root / ClientIDVar(clientId) / "sb" =>
+      ssoClient.require(req) { u =>
+        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u, clientId) *> NoContent())
+      }
+
+    case req @ POST -> Root / ClientIDVar(clientId) / "ce" =>
+      ssoClient.require(req) { u =>
+        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u, clientId) *> NoContent())
+      }
+
+    case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) /
+        ClientIDVar(clientId) / ObserverVar(observer) =>
       ssoClient.require(req) { user =>
         oe.selectSequence(i, obsId, observer, user, clientId) *> NoContent()
       }
@@ -213,7 +224,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     // }
     //
     // val refreshCommand: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root / "refresh" / ClientIDVar(clientId) =>
+    case GET -> Root / ClientIDVar(clientId) / "refresh" =>
       oe.requestRefresh(clientId) *> NoContent()
 
     case req @ POST -> Root / "resetconditions" =>

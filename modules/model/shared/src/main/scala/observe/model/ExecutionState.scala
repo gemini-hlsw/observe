@@ -17,11 +17,12 @@ import observe.model.enums.Resource
  * This class concentrates all the execution state that is kept in the server.
  */
 case class ExecutionState(
-  sequenceState: SequenceState,
-  runningStepId: Option[Step.Id],
-  nsState:       Option[NsRunningState],
-  configStatus:  List[(Resource, ActionStatus)],
-  breakpoints:   Set[Step.Id] = Set.empty
+  sequenceState:   SequenceState,
+  runningStepId:   Option[Step.Id],
+  nsState:         Option[NsRunningState],
+  configStatus:    List[(Resource, ActionStatus)],
+  systemOverrides: SystemOverrides,
+  breakpoints:     Set[Step.Id] = Set.empty
 ) derives Eq,
       Encoder.AsObject,
       Decoder
@@ -33,3 +34,5 @@ object ExecutionState:
   val configStatus: Lens[ExecutionState, List[(Resource, ActionStatus)]] =
     Focus[ExecutionState](_.configStatus)
   val breakpoints: Lens[ExecutionState, Set[Step.Id]]                    = Focus[ExecutionState](_.breakpoints)
+  val systemOverrides: Lens[ExecutionState, SystemOverrides]             =
+    Focus[ExecutionState](_.systemOverrides)

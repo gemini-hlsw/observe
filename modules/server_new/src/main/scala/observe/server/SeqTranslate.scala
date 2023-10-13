@@ -777,27 +777,27 @@ object SeqTranslate {
 //    private val gnirsDisabled: GnirsController[F]           = new GnirsControllerDisabled[F]
 
     def tcsSouth(overrides: SystemOverrides): TcsSouthController[F] =
-      if (overrides.isTcsEnabled) systems.tcsSouth
+      if (overrides.isTcsEnabled.value) systems.tcsSouth
       else tcsSouthDisabled
 
     def tcsNorth(overrides: SystemOverrides): TcsNorthController[F] =
-      if (overrides.isTcsEnabled) systems.tcsNorth
+      if (overrides.isTcsEnabled.value) systems.tcsNorth
       else tcsNorthDisabled
 
     def gems(overrides: SystemOverrides): GemsController[F] =
-      if (overrides.isTcsEnabled) systems.gems
+      if (overrides.isTcsEnabled.value) systems.gems
       else gemsDisabled
 
     def altair(overrides: SystemOverrides): AltairController[F] =
-      if (overrides.isTcsEnabled) systems.altair
+      if (overrides.isTcsEnabled.value) systems.altair
       else altairDisabled
 
     def dhs(overrides: SystemOverrides): DhsClientProvider[F] =
-      if (overrides.isDhsEnabled) systems.dhs
+      if (overrides.isDhsEnabled.value) systems.dhs
       else dhsDisabled
 
     def gcal(overrides: SystemOverrides): GcalController[F] =
-      if (overrides.isGcalEnabled) systems.gcal
+      if (overrides.isGcalEnabled.value) systems.gcal
       else gcalDisabled
 
 //    def flamingos2(overrides: SystemOverrides): Flamingos2Controller[F] =
@@ -805,11 +805,11 @@ object SeqTranslate {
 //      else flamingos2Disabled
 
     def gmosNorth(overrides: SystemOverrides): GmosNorthController[F] =
-      if (overrides.isInstrumentEnabled) systems.gmosNorth
+      if (overrides.isInstrumentEnabled.value) systems.gmosNorth
       else gmosNorthDisabled
 
     def gmosSouth(overrides: SystemOverrides): GmosSouthController[F] =
-      if (overrides.isInstrumentEnabled) systems.gmosSouth
+      if (overrides.isInstrumentEnabled.value) systems.gmosSouth
       else gmosSouthDisabled
 
 //    def gsaoi(overrides: SystemOverrides): GsaoiController[F] =

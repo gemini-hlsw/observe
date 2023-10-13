@@ -18,12 +18,9 @@ import observe.model.Observation.Id
 import observe.model.*
 import observe.model.enums.*
 import observe.server.EngineState
-import observe.server.EventQueue
-import observe.server.EventType
 import observe.server.ObserveEngine
 import observe.server.SeqEvent
 import observe.server.Systems
-import observe.server.keywords.DhsClientDisabled
 import org.typelevel.log4cats.Logger
 
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
@@ -77,27 +74,31 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   ): F[Unit] = Applicative[F].unit
 
   override def setTcsEnabled(
-    seqId:   Id,
-    user:    User,
-    enabled: Boolean
+    seqId:    Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
   override def setGcalEnabled(
-    seqId:   Id,
-    user:    User,
-    enabled: Boolean
+    seqId:    Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
   override def setInstrumentEnabled(
-    seqId:   Id,
-    user:    User,
-    enabled: Boolean
+    seqId:    Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
   override def setDhsEnabled(
-    seqId:   Id,
-    user:    User,
-    enabled: Boolean
+    seqId:    Id,
+    user:     User,
+    enabled:  SubsystemEnabled,
+    clientId: ClientId
   ): F[Unit] = Applicative[F].unit
 
   override def selectSequence(
@@ -116,16 +117,16 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def setConditions(conditions: Conditions, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setImageQuality(iq: ImageQuality, user: User): F[Unit] =
+  override def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
-  override def setWaterVapor(wv: WaterVapor, user: User): F[Unit] =
+  override def setWaterVapor(wv: WaterVapor, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
-  override def setSkyBackground(sb: SkyBackground, user: User): F[Unit] =
+  override def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
-  override def setCloudExtinction(cc: CloudExtinction, user: User): F[Unit] =
+  override def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
   override def setSkipMark(

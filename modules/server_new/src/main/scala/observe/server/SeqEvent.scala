@@ -16,68 +16,67 @@ import observe.model.Observer
 import observe.model.Operator
 import observe.model.QueueId
 import observe.model.StepId
+import observe.model.SubsystemEnabled
 import observe.model.UserPrompt
 import observe.model.enums.*
 
 sealed trait SeqEvent extends Product with Serializable
 
 object SeqEvent {
-  final case class SetOperator(name: Operator, user: Option[User])             extends SeqEvent
-  final case class SetObserver(id: Observation.Id, user: Option[User], name: Observer)
+  case class SetOperator(name: Operator, user: Option[User])                      extends SeqEvent
+  case class SetObserver(id: Observation.Id, user: Option[User], name: Observer)  extends SeqEvent
+  case class SetTcsEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
       extends SeqEvent
-  final case class SetTcsEnabled(id: Observation.Id, user: Option[User], enabled: Boolean)
+  case class SetGcalEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
       extends SeqEvent
-  final case class SetGcalEnabled(id: Observation.Id, user: Option[User], enabled: Boolean)
-      extends SeqEvent
-  final case class SetInstrumentEnabled(
+  case class SetInstrumentEnabled(
     id:      Observation.Id,
     user:    Option[User],
-    enabled: Boolean
+    enabled: SubsystemEnabled
   ) extends SeqEvent
-  final case class SetDhsEnabled(id: Observation.Id, user: Option[User], enabled: Boolean)
+  case class SetDhsEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
       extends SeqEvent
-  final case class SetConditions(conditions: Conditions, user: Option[User])   extends SeqEvent
-  final case class LoadSequence(sid: Observation.Id)                           extends SeqEvent
-  final case class UnloadSequence(id: Observation.Id)                          extends SeqEvent
-  final case class AddLoadedSequence(
+  case class SetConditions(conditions: Conditions, user: Option[User])            extends SeqEvent
+  case class LoadSequence(sid: Observation.Id)                                    extends SeqEvent
+  case class UnloadSequence(id: Observation.Id)                                   extends SeqEvent
+  case class AddLoadedSequence(
     instrument: Instrument,
     obsId:      Observation.Id,
     user:       User,
     clientId:   ClientId
   ) extends SeqEvent
-  final case class ClearLoadedSequences(user: Option[User])                    extends SeqEvent
-  final case class SetImageQuality(iq: ImageQuality, user: Option[User])       extends SeqEvent
-  final case class SetWaterVapor(wv: WaterVapor, user: Option[User])           extends SeqEvent
-  final case class SetSkyBackground(wv: SkyBackground, user: Option[User])     extends SeqEvent
-  final case class SetCloudCover(cc: CloudExtinction, user: Option[User])      extends SeqEvent
-  final case class NotifyUser(memo: Notification, clientID: ClientId)          extends SeqEvent
-  final case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)      extends SeqEvent
-  final case class StartQueue(
+  case class ClearLoadedSequences(user: Option[User])                             extends SeqEvent
+  case class SetImageQuality(iq: ImageQuality, user: Option[User])                extends SeqEvent
+  case class SetWaterVapor(wv: WaterVapor, user: Option[User])                    extends SeqEvent
+  case class SetSkyBackground(wv: SkyBackground, user: Option[User])              extends SeqEvent
+  case class SetCloudCover(cc: CloudExtinction, user: Option[User])               extends SeqEvent
+  case class NotifyUser(memo: Notification, clientID: ClientId)                   extends SeqEvent
+  case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)               extends SeqEvent
+  case class StartQueue(
     qid:         QueueId,
     clientID:    ClientId,
     startedSeqs: List[(Observation.Id, StepId)]
   ) extends SeqEvent
-  final case class StopQueue(qid: QueueId, clientID: ClientId)                 extends SeqEvent
-  final case class UpdateQueueAdd(qid: QueueId, seqs: List[Observation.Id])    extends SeqEvent
-  final case class UpdateQueueRemove(
+  case class StopQueue(qid: QueueId, clientID: ClientId)                          extends SeqEvent
+  case class UpdateQueueAdd(qid: QueueId, seqs: List[Observation.Id])             extends SeqEvent
+  case class UpdateQueueRemove(
     qid:         QueueId,
     seqs:        List[Observation.Id],
     pos:         List[Int],
     startedSeqs: List[(Observation.Id, StepId)]
   ) extends SeqEvent
-  final case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
+  case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
       extends SeqEvent
-  final case class UpdateQueueClear(qid: QueueId)                              extends SeqEvent
-  final case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource)
-      extends SeqEvent
-  final case class Busy(obsId: Observation.Id, cid: ClientId)                  extends SeqEvent
-  final case class SequenceStart(sid: Observation.Id, stepId: StepId)          extends SeqEvent
-  final case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)]) extends SeqEvent
-  final case class ResourceBusy(
+  case class UpdateQueueClear(qid: QueueId)                                       extends SeqEvent
+  case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource) extends SeqEvent
+  case class Busy(obsId: Observation.Id, cid: ClientId)                           extends SeqEvent
+  case class SequenceStart(sid: Observation.Id, stepId: StepId)                   extends SeqEvent
+  case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])          extends SeqEvent
+  case class ResourceBusy(
     obsId:    Observation.Id,
     stepId:   StepId,
     res:      Resource,
     clientID: ClientId
   ) extends SeqEvent
-  case object NullSeqEvent                                                     extends SeqEvent
+  case object NullSeqEvent                                                        extends SeqEvent
 }
