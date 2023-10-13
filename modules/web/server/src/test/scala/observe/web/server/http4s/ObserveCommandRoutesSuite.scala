@@ -116,7 +116,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       l      <- s(
                   Request[IO](method = Method.POST,
                               uri = Uri.unsafeFromString(
-                                s"/${obsId.show}/execute/${stepId.show}/TCS/observer/${clientId.value}"
+                                s"/${obsId.show}/${stepId.show}/${clientId.value}/execute/TCS/observer"
                               )
                   )
                 ).value
@@ -184,6 +184,23 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                               )
                   )
                 ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+  }
+
+  test("set breakpoint") {
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <-
+        s(
+          Request[IO](method = Method.POST,
+                      uri = Uri.unsafeFromString(
+                        s"/${obsId.show}/${stepId.show}/${clientId.value}/breakpoint/observer/true"
+                      )
+          )
+        ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
   }
@@ -270,33 +287,6 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
       assert(s === Some(Status.Ok))
       assert(b.unsafeRunSync() === Some(s"Cancel Pause sequence ${obsId.show}"))
-    }
-  }
-
-  test("set breakpoint") {
-    val engine = mock[ObserveEngine[IO]]
-    inAnyOrder {
-      (engine.setBreakpoint _)
-        .expects(*, *, *, *, *, *)
-        .anyNumberOfTimes()
-        .returning(IO.unit)
-    }
-    forAll { (obsId: Observation.Id, toSet: StepId, set: Boolean) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/breakpoint/observer/$set")
-      val (s, b) = (for {
-        s   <- commandRoutes(engine)
-        wsb <- WebSocketBuilder2[IO]
-        t   <- newLoginToken(wsb)
-        l   <- s(
-                 Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
-               ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(
-        b.unsafeRunSync() === Some(
-          s"Set breakpoint in step $toSet of sequence ${obsId.show}"
-        )
-      )
     }
   }
 

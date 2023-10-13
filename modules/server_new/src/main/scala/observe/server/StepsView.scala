@@ -146,8 +146,8 @@ object StepsView {
         instConfig = stepg.instConfig,
         stepConfig = stepg.config,
         status = status,
-        breakpoint = step.breakpoint.self,
-        skip = step.skipMark.self,
+        breakpoint = step.breakpoint.value,
+        skip = step.skipMark.value,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {

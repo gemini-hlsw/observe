@@ -42,8 +42,8 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //     NoContent()
     // }
 
-    case req @ POST -> Root / ObsIdVar(oid) / "execute" / StepIdVar(step) /
-        ResourceVar(resource) / ObserverVar(obs) / ClientIDVar(clientId) =>
+    case req @ POST -> Root / ObsIdVar(oid) / StepIdVar(step) / ClientIDVar(clientId) / "execute" /
+        ResourceVar(resource) / ObserverVar(obs) =>
       ssoClient.require(req) { user =>
         oe.configSystem(oid, obs, user, step, resource, clientId) *>
           NoContent()
@@ -71,13 +71,12 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.requestCancelPause(inputQueue, obsId, obs, user) *>
     //     Ok(s"Cancel Pause sequence $obsId")
     //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "breakpoint" / ObserverVar(
-    //       obs
-    //     ) / BooleanVar(
-    //       bp
-    //     ) as user =>
-    //   se.setBreakpoint(inputQueue, obsId, user, obs, stepId, bp) *>
-    //     Ok(s"Set breakpoint in step $stepId of sequence $obsId")
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "breakpoint" / ObserverVar(obs) / BooleanVar(bp) =>
+      ssoClient.require(req) { user =>
+        oe.setBreakpoint(obsId, user, obs, stepId, bp) *>
+          NoContent()
+      }
     //
     // case POST -> Root / ObsId(obsId) / "sync" as _ =>
     //   for {

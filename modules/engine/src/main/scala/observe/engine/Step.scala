@@ -4,6 +4,7 @@
 package observe.engine
 
 import cats.syntax.all.*
+import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Lens
 import monocle.macros.GenLens
@@ -24,16 +25,17 @@ final case class Step[F[_]](
 
 object Step {
 
-  final case class BreakpointMark(self: Boolean) extends AnyVal
-
-  final case class SkipMark(self: Boolean) extends AnyVal
-
-  final case class Skipped(self: Boolean) extends AnyVal
+  object BreakpointMark extends NewType[Boolean]
+  type BreakpointMark = BreakpointMark.Type
+  object SkipMark extends NewType[Boolean]
+  type SkipMark = SkipMark.Type
+  object Skipped extends NewType[Boolean]
+  type Skipped = Skipped.Type
 
   def breakpointL[F[_]]: Lens[Step[F], Boolean] =
-    Focus[Step[F]](_.breakpoint).andThen(Focus[BreakpointMark](_.self))
+    Focus[Step[F]](_.breakpoint).andThen(BreakpointMark.value)
   def skippedL[F[_]]: Lens[Step[F], Boolean]    =
-    Focus[Step[F]](_.skipped).andThen(Focus[Skipped](_.self))
+    Focus[Step[F]](_.skipped).andThen(Skipped.value)
 
   def init[F[_]](id: StepId, executions: List[ParallelActions[F]]): Step[F] =
     Step(id = id,
@@ -47,7 +49,7 @@ object Step {
    * Calculate the `Step` `Status` based on the underlying `Action`s.
    */
   private def status_[F[_]](step: Step[F]): StepState =
-    if (step.skipped.self) StepState.Skipped
+    if (step.skipped.value) StepState.Skipped
     else
       // Find an error in the Step
       step.executions

@@ -136,11 +136,12 @@ case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
-    case ConditionsUpdated(v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SequenceRefreshed(v, _) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case ObserverUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case OverridesUpdated(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SingleActionEvent(v)    =>
+    case ConditionsUpdated(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SequenceRefreshed(v, _)  => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case ObserverUpdated(v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case OverridesUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case StepBreakpointChanged(v) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SingleActionEvent(v)     =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>
           ClientEvent
@@ -160,8 +161,8 @@ extension (e: ObserveEvent)
             )
             .some
       }
-    case SequenceLoaded(_, v)    => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case _                       => none
+    case SequenceLoaded(_, v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case _                        => none
   }).map { u =>
     e match {
       case e: ForClient => (e.clientId.some, u)

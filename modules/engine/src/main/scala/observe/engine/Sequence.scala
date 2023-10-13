@@ -43,7 +43,7 @@ object Sequence {
   ) {
 
     private val (toSkip, remaining): (List[Step[F]], List[Step[F]]) =
-      pending.span(st => st.skipMark.self)
+      pending.span(st => st.skipMark.value)
 
     /**
      * Runs the next execution. If the current `Step` is completed it adds the `StepZ` under focus
@@ -59,7 +59,7 @@ object Sequence {
         // Step completed
         case None      =>
           val (toSkip, remaining): (List[Step[F]], List[Step[F]]) =
-            pending.span(st => st.skipMark.self && !st.breakpoint.self)
+            pending.span(st => st.skipMark.value && !st.breakpoint.value)
           remaining match {
             case Nil             => None
             case stepp :: stepps =>
@@ -80,7 +80,7 @@ object Sequence {
 
     // Skips steps before starting a sequence.
     def skips: Option[Zipper[F]] =
-      if (focus.skipMark.self) {
+      if (focus.skipMark.value) {
         remaining match {
           case Nil             => None
           case stepp :: stepps =>
@@ -101,7 +101,7 @@ object Sequence {
      */
     val uncurrentify: Option[Sequence[F]] =
       if (remaining.isEmpty)
-        if (focus.skipMark.self)
+        if (focus.skipMark.value)
           Sequence(id,
                    atomId,
                    (done :+ focus.skip) ::: toSkip.map(_.copy(skipped = Step.Skipped(true)))
@@ -359,7 +359,7 @@ object Sequence {
       )
 
       override def getCurrentBreakpoint: Boolean =
-        zipper.focus.breakpoint.self && zipper.focus.done.isEmpty
+        zipper.focus.breakpoint.value && zipper.focus.done.isEmpty
 
       override val done: List[Step[F]] = zipper.done
 
