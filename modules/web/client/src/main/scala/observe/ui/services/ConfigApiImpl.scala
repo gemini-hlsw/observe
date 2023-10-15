@@ -10,7 +10,6 @@ import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Encoder
 import io.circe.*
-import io.circe.syntax.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
@@ -18,13 +17,10 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import observe.model.ClientId
 import observe.ui.model.enums.ApiStatus
-import org.http4s.Method
 import org.http4s.Uri
 import org.http4s.*
-import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.*
-import org.http4s.headers.Authorization
 import org.typelevel.log4cats.Logger
 
 case class ConfigApiImpl(
@@ -36,20 +32,13 @@ case class ConfigApiImpl(
   latch:     Resource[IO, Unit],
   onError:   Throwable => IO[Unit]
 )(using Logger[IO])
-    extends ConfigApi[IO]:
-  private def request[T: Encoder](path: String, data: T): IO[Unit] =
-    latch.use(_ =>
+    extends ConfigApi[IO]
+    with ApiImpl:
+  override protected def request[T: Encoder](path: String, data: T): IO[Unit] =
+    latch.use: _ =>
       apiStatus.async.set(ApiStatus.Busy) >>
-        client
-          .expect[Unit](
-            Request(Method.POST, baseUri.addPath(path))
-              .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
-              .withEntity(data.asJson)
-          )
-          .onError(onError)
-          .onCancel(onError(new Exception("There was an error modifying configuration."))) >>
+        super.request(path, data) >>
         apiStatus.async.set(ApiStatus.Idle)
-    )
 
   override def setImageQuality(iq: ImageQuality): IO[Unit]       =
     request(s"${clientId.value}/iq", iq)

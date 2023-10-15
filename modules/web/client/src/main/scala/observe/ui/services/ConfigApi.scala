@@ -13,9 +13,6 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 
 trait ConfigApi[F[_]: MonadThrow]:
-  protected val NotAuthorized: F[Unit] =
-    MonadThrow[F].raiseError(new RuntimeException("Not authorized"))
-
   def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
   def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
   def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized

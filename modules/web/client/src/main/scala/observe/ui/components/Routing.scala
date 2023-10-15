@@ -15,7 +15,7 @@ object Routing:
 
   def config: RouterWithPropsConfig[Page, View[RootModel]] =
     RouterWithPropsConfigDsl[Page, View[RootModel]].buildConfig: dsl =>
-      import dsl._
+      import dsl.*
 
       val rules =
         (emptyRule
@@ -26,7 +26,7 @@ object Routing:
           | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
             <.div(
               ConfigPanel(
-                rootModel.zoom(RootModel.operator).toOptionView,
+                rootModel.zoom(RootModel.observer).toOptionView,
                 rootModel.zoom(RootModel.conditions)
               )
             )

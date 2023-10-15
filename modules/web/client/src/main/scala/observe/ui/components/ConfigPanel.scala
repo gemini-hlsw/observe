@@ -4,32 +4,30 @@
 package observe.ui.components
 
 import cats.syntax.all.*
+import crystal.react.View
 import crystal.react.*
+import eu.timepit.refined.cats.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.optics.*
+import lucuma.core.validation.InputValidSplitEpi
 import lucuma.react.common.*
 import lucuma.react.primereact.InputText
 import lucuma.refined.*
 import lucuma.ui.primereact.FormEnumDropdownOptionalView
+import lucuma.ui.primereact.FormInputTextView
 import lucuma.ui.primereact.given
 import observe.model.*
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.services.ConfigApi
-import lucuma.ui.primereact.FormInputTextView
-import crystal.react.View
-// import lucuma.core.optics.ValidSplitEpi
-import eu.timepit.refined.cats.*
-// import eu.timepit.refined.collection.NonEmpty
-import lucuma.core.optics.*
-import lucuma.core.validation.InputValidSplitEpi
 
 case class ConfigPanel(
-  operator:   Option[View[Operator]],
+  observer:   Option[View[Observer]],
   conditions: View[Conditions]
 ) extends ReactFnProps(ConfigPanel.component)
 
@@ -64,20 +62,20 @@ object ConfigPanel:
           .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
       <.div(ObserveStyles.ConfigSection)(
-        <.div(ObserveStyles.ObserverArea)(
-          <.label(^.htmlFor := "observer")("Observer Name"),
-          InputText("observer")
-        ),
-        props.operator.map: operator =>
-          <.div(ObserveStyles.OperatorArea)(
+        props.observer.map: observer =>
+          <.div(ObserveStyles.ObserverArea)(
             FormInputTextView(
-              id = "operator".refined,
-              label = "Operator",
-              value = operator,
+              id = "observer".refined,
+              label = "Observer",
+              value = observer,
               validFormat = InputValidSplitEpi.nonEmptyString
-                .andThen(ValidSplitEpi.fromIso(Operator.value.reverse))
+                .andThen(ValidSplitEpi.fromIso(Observer.value.reverse))
             )
           ),
+        <.div(ObserveStyles.OperatorArea)(
+          <.label(^.htmlFor := "operator")("Operator Name"),
+          InputText("operator")
+        ),
         <.div(ObserveStyles.ImageQualityArea)(
           FormEnumDropdownOptionalView(
             id = "imageQuality".refined,

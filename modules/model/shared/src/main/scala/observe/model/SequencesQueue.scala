@@ -5,12 +5,12 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import eu.timepit.refined.cats.given
 import lucuma.core.enums.Instrument
 import monocle.Focus
 import monocle.Getter
 import monocle.Traversal
 import monocle.function.Each.*
-import eu.timepit.refined.cats.given
 
 import scala.collection.immutable.SortedMap
 

@@ -5,6 +5,7 @@ package observe.ui.model
 
 import cats.Eq
 import cats.derived.*
+import eu.timepit.refined.cats.given
 import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import lucuma.core.enums.Instrument

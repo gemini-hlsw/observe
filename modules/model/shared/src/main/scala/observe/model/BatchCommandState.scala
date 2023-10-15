@@ -5,6 +5,7 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.all.*
+import eu.timepit.refined.cats.given
 import lucuma.core.model.User
 
 sealed trait BatchCommandState extends Product with Serializable

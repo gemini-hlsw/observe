@@ -45,8 +45,7 @@ import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
 import observe.ui.model.reusability.given
-import observe.ui.services.ConfigApi
-import observe.ui.services.ConfigApiImpl
+import observe.ui.services.*
 import org.http4s.Uri
 import org.http4s.circe.*
 import org.http4s.client.Client
@@ -261,39 +260,54 @@ object MainApp:
           rootModelPot,
           permitPot
         ) =>
-          val configApiOpt: Option[ConfigApi[IO]] =
+          def processApiError(rootModel: View[RootModel])(using Logger[IO]): Throwable => IO[Unit] =
+            t =>
+              toastRef
+                .show:
+                  MessageItem(
+                    id = "configApiError",
+                    content = "Error saving changes",
+                    severity = Message.Severity.Error
+                  )
+                .to[IO] >>
+                rootModel.async
+                  .zoom(RootModel.log)
+                  .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
+                isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+
+          val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (rootModelPot.toPotView.toOption,
+             rootModelPot.get.toOption.flatMap(_.observer),
              rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
              permitPot.toOption,
              ctxPot.toOption,
              environmentPot.get.toOption
-            ).mapN: (rootModel, token, permit, ctx, environment) =>
+            ).mapN: (rootModel, observer, token, permit, ctx, environment) =>
               import ctx.given
 
-              ConfigApiImpl(
-                client = fetchClient,
-                baseUri = ApiBaseUri,
-                token = token,
-                clientId = environment.clientId,
-                apiStatus = configApiStatus,
-                latch = permit,
-                onError = t =>
-                  toastRef
-                    .show:
-                      MessageItem(
-                        id = "configApiError",
-                        content = "Error saving changes",
-                        severity = Message.Severity.Error
-                      )
-                    .to[IO] >>
-                    rootModel.async
-                      .zoom(RootModel.log)
-                      .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                    isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+              (
+                ConfigApiImpl(
+                  client = fetchClient,
+                  baseUri = ApiBaseUri,
+                  token = token,
+                  clientId = environment.clientId,
+                  apiStatus = configApiStatus,
+                  latch = permit,
+                  onError = processApiError(rootModel)
+                ),
+                SequenceApiImpl(
+                  client = fetchClient,
+                  baseUri = ApiBaseUri,
+                  token = token,
+                  clientId = environment.clientId,
+                  observer = observer,
+                  onError = processApiError(rootModel)
+                )
               )
 
           def provideApiCtx(children: VdomNode*) =
-            configApiOpt.fold(React.Fragment(children: _*))(ConfigApi.ctx.provide(_)(children: _*))
+            apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
+              ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
           // When both AppContext and RootModel are ready, proceed to render.
           (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>

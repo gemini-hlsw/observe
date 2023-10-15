@@ -20,6 +20,7 @@ case class RootModelData(
   userVault:            Option[UserVault],
   sequenceExecution:    Map[Observation.Id, ExecutionState],
   conditions:           Conditions,
+  observer:             Option[Observer],
   operator:             Option[Operator],
   userSelectionMessage: Option[NonEmptyString],
   log:                  List[NonEmptyString]
@@ -33,8 +34,9 @@ object RootModelData:
       userVault = vault,
       sequenceExecution = Map.empty,
       conditions = Conditions.Default,
-      operator =
-        vault.flatMap(v => NonEmptyString.from(v.user.displayName).toOption.map(Operator(_))),
+      observer =
+        vault.flatMap(v => NonEmptyString.from(v.user.displayName).toOption.map(Observer(_))),
+      operator = none,
       userSelectionMessage =
         userVault.left.toOption.map(t => NonEmptyString.unsafeFrom(t.getMessage)),
       log = List.empty
@@ -44,6 +46,7 @@ object RootModelData:
   val sequenceExecution: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
     Focus[RootModelData](_.sequenceExecution)
   val conditions: Lens[RootModelData, Conditions]                                 = Focus[RootModelData](_.conditions)
+  val observer: Lens[RootModelData, Option[Observer]]                             = Focus[RootModelData](_.observer)
   val operator: Lens[RootModelData, Option[Operator]]                             = Focus[RootModelData](_.operator)
   val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]           =
     Focus[RootModelData](_.userSelectionMessage)
@@ -61,6 +64,7 @@ object RootModel:
   val sequenceExecution: Lens[RootModel, Map[Observation.Id, ExecutionState]] =
     data.andThen(RootModelData.sequenceExecution)
   val conditions: Lens[RootModel, Conditions]                                 = data.andThen(RootModelData.conditions)
+  val observer: Lens[RootModel, Option[Observer]]                             = data.andThen(RootModelData.observer)
   val operator: Lens[RootModel, Option[Operator]]                             = data.andThen(RootModelData.operator)
   val clientId: Lens[RootModel, ClientId]                                     = environment.andThen(Environment.clientId)
   val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]]           =

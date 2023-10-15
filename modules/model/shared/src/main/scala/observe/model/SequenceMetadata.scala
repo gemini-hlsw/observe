@@ -5,6 +5,7 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import eu.timepit.refined.cats.given
 import lucuma.core.enums.Instrument
 
 /** Metadata about the sequence required on the exit point */

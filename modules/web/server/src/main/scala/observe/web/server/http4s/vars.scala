@@ -4,6 +4,7 @@
 package observe.web.server.http4s
 
 import cats.syntax.all.*
+import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -37,7 +38,7 @@ object StepIdVar:
 
 object ObserverVar:
   def unapply(str: String): Option[Observer] =
-    Observer(str).some
+    NonEmptyString.from(str).toOption.map(Observer(_))
 
 private given QueryParamDecoder[RunOverride] =
   QueryParamDecoder[Boolean].map:

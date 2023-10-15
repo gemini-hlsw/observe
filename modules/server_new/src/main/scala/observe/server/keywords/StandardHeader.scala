@@ -26,8 +26,7 @@ final case class StateKeywordsReader[F[_]: Applicative](
   observer:   Option[Observer]
 ) {
 
-  def observerName: F[String]       =
-    observer.map(_.value).filter(_.nonEmpty).getOrElse("observer").pure[F]
+  def observerName: F[String]       = observer.map(_.value.value).getOrElse("observer").pure[F]
   def operatorName: F[String]       = operator.map(_.value.value).getOrElse("ssa").pure[F]
   def rawImageQuality: F[String]    = conditions.iq.map(_.label).getOrElse("Any").pure[F]
   def rawCloudExtinction: F[String] = conditions.ce.map(_.label).getOrElse("Any").pure[F]
