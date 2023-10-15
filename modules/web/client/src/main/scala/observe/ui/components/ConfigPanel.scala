@@ -20,10 +20,17 @@ import observe.model.*
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.services.ConfigApi
+import lucuma.ui.primereact.FormInputTextView
+import crystal.react.View
+// import lucuma.core.optics.ValidSplitEpi
+import eu.timepit.refined.cats.*
+// import eu.timepit.refined.collection.NonEmpty
+import lucuma.core.optics.*
+import lucuma.core.validation.InputValidSplitEpi
 
 case class ConfigPanel(
-  operator:   Option[Operator],
   clientId:   ClientId,
+  operator:   Option[View[Operator]],
   conditions: View[Conditions]
 ) extends ReactFnProps(ConfigPanel.component)
 
@@ -62,10 +69,16 @@ object ConfigPanel:
           <.label(^.htmlFor := "observer")("Observer Name"),
           InputText("observer")
         ),
-        <.div(ObserveStyles.OperatorArea)(
-          <.label(^.htmlFor := "operator")("Operator"),
-          InputText("operator")
-        ),
+        props.operator.map: operator =>
+          <.div(ObserveStyles.OperatorArea)(
+            FormInputTextView(
+              id = "operator".refined,
+              label = "Operator",
+              value = operator,
+              validFormat = InputValidSplitEpi.nonEmptyString
+                .andThen(ValidSplitEpi.fromIso(Operator.value.reverse))
+            )
+          ),
         <.div(ObserveStyles.ImageQualityArea)(
           FormEnumDropdownOptionalView(
             id = "imageQuality".refined,

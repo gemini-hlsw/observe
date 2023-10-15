@@ -20,7 +20,7 @@ type QueueId = QueueId.Type
 object Observer extends NewType[String]
 type Observer = Observer.Type
 
-object Operator extends NewType[String]
+object Operator extends NewType[NonEmptyString]
 type Operator = Operator.Type
 
 object ImageFileId extends NewType[String]
