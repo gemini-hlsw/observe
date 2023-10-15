@@ -31,6 +31,7 @@ case class ConfigApiImpl(
   client:    Client[IO],
   baseUri:   Uri,
   token:     NonEmptyString,
+  clientId:  ClientId,
   apiStatus: View[ApiStatus],
   latch:     Resource[IO, Unit],
   onError:   Throwable => IO[Unit]
@@ -50,14 +51,15 @@ case class ConfigApiImpl(
         apiStatus.async.set(ApiStatus.Idle)
     )
 
-  override def setImageQuality(clientId: ClientId, iq: ImageQuality): IO[Unit]       =
+  override def setImageQuality(iq: ImageQuality): IO[Unit]       =
     request(s"${clientId.value}/iq", iq)
-  override def setCloudExtinction(clientId: ClientId, ce: CloudExtinction): IO[Unit] =
+  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] =
     request(s"${clientId.value}/ce", ce)
-  override def setWaterVapor(clientId: ClientId, wv: WaterVapor): IO[Unit]           =
+  override def setWaterVapor(wv: WaterVapor): IO[Unit]           =
     request(s"${clientId.value}/wv", wv)
-  override def setSkyBackground(clientId: ClientId, sb: SkyBackground): IO[Unit]     =
+  override def setSkyBackground(sb: SkyBackground): IO[Unit]     =
     request(s"${clientId.value}/sb", sb)
-  override def refresh(clientId: ClientId): IO[Unit] = request(s"${clientId.value}/refresh", ())
+  override def refresh: IO[Unit]                                 =
+    request(s"${clientId.value}/refresh", ())
 
   override def isBlocked: Boolean = apiStatus.get == ApiStatus.Busy

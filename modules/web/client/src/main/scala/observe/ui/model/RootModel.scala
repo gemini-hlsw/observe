@@ -28,11 +28,13 @@ case class RootModelData(
 
 object RootModelData:
   def initial(userVault: Either[Throwable, Option[UserVault]]): RootModelData =
+    val vault: Option[UserVault] = userVault.toOption.flatten
     RootModelData(
-      userVault = userVault.toOption.flatten,
+      userVault = vault,
       sequenceExecution = Map.empty,
       conditions = Conditions.Default,
-      operator = none,
+      operator =
+        vault.flatMap(v => NonEmptyString.from(v.user.displayName).toOption.map(Operator(_))),
       userSelectionMessage =
         userVault.left.toOption.map(t => NonEmptyString.unsafeFrom(t.getMessage)),
       log = List.empty

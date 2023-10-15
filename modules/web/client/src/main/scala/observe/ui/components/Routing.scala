@@ -26,7 +26,6 @@ object Routing:
           | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
             <.div(
               ConfigPanel(
-                rootModel.zoom(RootModel.clientId).get,
                 rootModel.zoom(RootModel.operator).toOptionView,
                 rootModel.zoom(RootModel.conditions)
               )

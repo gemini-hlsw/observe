@@ -126,7 +126,7 @@ object MainApp:
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
-    ssoClient.whoami.flatMap(userVault =>
+    ssoClient.whoami.flatMap: userVault =>
       userVault.map(_.user) match
         case Some(StandardUser(_, role, other, _)) =>
           (role +: other)
@@ -134,7 +134,6 @@ object MainApp:
             .fold(IO(userVault))(ssoClient.switchRole)
         // .map(_.orElse(throw new Exception("User is not staff")))
         case _                                     => IO(userVault)
-    )
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
@@ -266,25 +265,26 @@ object MainApp:
             (rootModelPot.toPotView.toOption,
              rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
              permitPot.toOption,
-             ctxPot.toOption
-            ).mapN: (rootModel, token, permit, ctx) =>
+             ctxPot.toOption,
+             environmentPot.get.toOption
+            ).mapN: (rootModel, token, permit, ctx, environment) =>
               import ctx.given
 
               ConfigApiImpl(
                 client = fetchClient,
                 baseUri = ApiBaseUri,
                 token = token,
+                clientId = environment.clientId,
                 apiStatus = configApiStatus,
                 latch = permit,
                 onError = t =>
                   toastRef
-                    .show(
+                    .show:
                       MessageItem(
                         id = "configApiError",
                         content = "Error saving changes",
                         severity = Message.Severity.Error
                       )
-                    )
                     .to[IO] >>
                     rootModel.async
                       .zoom(RootModel.log)

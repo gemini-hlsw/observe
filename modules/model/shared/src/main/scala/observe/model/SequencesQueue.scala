@@ -10,6 +10,7 @@ import monocle.Focus
 import monocle.Getter
 import monocle.Traversal
 import monocle.function.Each.*
+import eu.timepit.refined.cats.given
 
 import scala.collection.immutable.SortedMap
 
@@ -20,15 +21,12 @@ import scala.collection.immutable.SortedMap
 case class SequencesQueue[T](
   loaded:       Map[Instrument, Observation.Id],
   conditions:   Conditions,
-  // operator:     Option[Operator],
+  operator:     Option[Operator],
   queues:       SortedMap[QueueId, ExecutionQueueView],
   sessionQueue: List[T]
 ) derives Eq
 
 object SequencesQueue:
-  // given [T: Eq]: Eq[SequencesQueue[T]] =
-  //   Eq.by(x => (x.loaded, x.conditions, x.operator, x.queues, x.sessionQueue))
-
   def sessionQueueT[T]: Traversal[SequencesQueue[T], T] =
     Focus[SequencesQueue[T]](_.sessionQueue).andThen(each[List[T], T])
 

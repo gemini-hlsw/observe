@@ -29,7 +29,6 @@ import lucuma.core.optics.*
 import lucuma.core.validation.InputValidSplitEpi
 
 case class ConfigPanel(
-  clientId:   ClientId,
   operator:   Option[View[Operator]],
   conditions: View[Conditions]
 ) extends ReactFnProps(ConfigPanel.component)
@@ -47,22 +46,22 @@ object ConfigPanel:
       val iq: View[Option[ImageQuality]] =
         props.conditions
           .zoom(Conditions.iq)
-          .withOnMod(_.map(configApi.setImageQuality(props.clientId, _)).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
 
       val ce: View[Option[CloudExtinction]] =
         props.conditions
           .zoom(Conditions.ce)
-          .withOnMod(_.map(configApi.setCloudExtinction(props.clientId, _)).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
 
       val wv: View[Option[WaterVapor]] =
         props.conditions
           .zoom(Conditions.wv)
-          .withOnMod(_.map(configApi.setWaterVapor(props.clientId, _)).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setWaterVapor).orEmpty.runAsync)
 
       val sb: View[Option[SkyBackground]] =
         props.conditions
           .zoom(Conditions.sb)
-          .withOnMod(_.map(configApi.setSkyBackground(props.clientId, _)).orEmpty.runAsync)
+          .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
       <.div(ObserveStyles.ConfigSection)(
         <.div(ObserveStyles.ObserverArea)(
