@@ -34,7 +34,13 @@ extension (v: SequencesQueue[SequenceView])
 
 extension (q: SequenceView)
   def executionState: ExecutionState =
-    ExecutionState(q.status, q.runningStep.flatMap(_.id), None, Map.empty, q.systemOverrides)
+    ExecutionState(q.status,
+                   q.runningStep.flatMap(_.id),
+                   None,
+                   Map.empty,
+                   q.systemOverrides,
+                   q.steps.mapFilter(s => if (s.breakpoint) s.id.some else none).toSet
+    )
 
 object ClientEvent:
   enum SingleActionState(val tag: String) derives Eq, Enumerated:

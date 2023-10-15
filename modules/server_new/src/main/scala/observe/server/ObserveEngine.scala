@@ -630,94 +630,94 @@ object ObserveEngine {
       observer: Observer,
       user:     User,
       clientId: ClientId
-    ): F[Unit] = executeEngine.inject(
-      systems.odb
-        .read(sid)
-        .flatMap(translator.sequence)
-        .attempt
-        .flatMap(
-          _.fold(
-            e =>
-              Logger[F]
-                .warn(e)(s"Error loading observation $sid, by '${user.displayName}'.")
-                .as(
-                  Event.pure(
-                    SeqEvent.NotifyUser(
-                      Notification.RequestFailed(
-                        List(
-                          s"Error loading observation $sid, by '${user.displayName}'.",
-                          e.getMessage
-                        )
-                      ),
-                      clientId
-                    )
-                  )
-                ),
-            {
-              case (err, None)       =>
+    ): F[Unit] =
+      val author = s", by '${user.displayName}' on client ${clientId.value}."
+      executeEngine.inject(
+        systems.odb
+          .read(sid)
+          .flatMap(translator.sequence)
+          .attempt
+          .flatMap(
+            _.fold(
+              e =>
                 Logger[F]
-                  .warn(
-                    err.headOption
-                      .map(e =>
-                        s"Error loading observation $sid: ${e.getMessage}, by '${user.displayName}'."
-                      )
-                      .getOrElse(s"Error loading observation $sid")
-                  )
+                  .warn(e)(s"Error loading observation $sid$author")
                   .as(
                     Event.pure(
                       SeqEvent.NotifyUser(
                         Notification.RequestFailed(
                           List(
-                            s"Error loading observation $sid"
-                          ) ++ err.headOption.toList.map(e => e.getMessage)
+                            s"Error loading observation $sid$author",
+                            e.getMessage
+                          )
                         ),
                         clientId
                       )
                     )
-                  )
-              case (errs, Some(seq)) =>
-                errs.isEmpty
-                  .fold(
-                    Logger[F].warn(s"Loaded observation $sid, by '${user.displayName}'."),
-                    Logger[F]
-                      .warn(
-                        s"Loaded observation $sid with warnings: ${errs.mkString} by '${user.displayName}'."
+                  ),
+              {
+                case (err, None)       =>
+                  Logger[F]
+                    .warn(
+                      err.headOption
+                        .map(e => s"Error loading observation $sid: ${e.getMessage}$author")
+                        .getOrElse(s"Error loading observation $sid")
+                    )
+                    .as(
+                      Event.pure(
+                        SeqEvent.NotifyUser(
+                          Notification.RequestFailed(
+                            List(
+                              s"Error loading observation $sid"
+                            ) ++ err.headOption.toList.map(e => e.getMessage)
+                          ),
+                          clientId
+                        )
                       )
-                  )
-                  .as(
-                    Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                      val l = EngineState
-                        .instrumentLoaded[F](seq.instrument)
-                      if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
-                        (
-                          st.sequences
-                            .get(sid)
-                            .fold(
-                              ODBSequencesLoader
-                                .loadSequenceEndo(observer.some, seq, l)
-                            )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                          LoadSequence(sid),
+                    )
+                case (errs, Some(seq)) =>
+                  errs.isEmpty
+                    .fold(
+                      Logger[F].warn(s"Loaded observation $sid$author"),
+                      Logger[F]
+                        .warn(
+                          s"Loaded observation $sid with warnings: ${errs.mkString}$author"
                         )
-                      } else {
-                        (
-                          st,
-                          SeqEvent.NotifyUser(
-                            Notification.RequestFailed(
-                              List(
-                                s"Error loading observation $sid, by '${user.displayName}'.",
-                                s"A sequence is running on instrument ${seq.instrument}"
-                              )
-                            ),
-                            clientId
+                    )
+                    .as(
+                      Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                        val l = EngineState
+                          .instrumentLoaded[F](seq.instrument)
+                        if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
+                          (
+                            st.sequences
+                              .get(sid)
+                              .fold(
+                                ODBSequencesLoader
+                                  .loadSequenceEndo(observer.some, seq, l)
+                              )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                            LoadSequence(sid),
                           )
-                        )
-                      }
-                    }.toHandle)
-                  )
-            }
+                        } else {
+                          (
+                            st,
+                            SeqEvent.NotifyUser(
+                              Notification.RequestFailed(
+                                List(
+                                  s"Error loading observation $sid$author",
+                                  s"A sequence is running on instrument ${seq.instrument}"
+                                )
+                              ),
+                              clientId
+                            )
+                          )
+                        }
+                      }.toHandle)
+                    )
+              }
+            )
           )
-        )
-    )
+      )
 
     private def logDebugEvent(msg: String): F[Unit] =
       Event.logDebugMsgF[F, EngineState[F], SeqEvent](msg).flatMap(executeEngine.offer)
