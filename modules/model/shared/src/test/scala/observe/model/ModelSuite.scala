@@ -4,6 +4,7 @@
 package observe.model
 
 import cats.kernel.laws.discipline.*
+import eu.timepit.refined.cats.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.ObserveModelArbitraries.given
@@ -13,7 +14,6 @@ import observe.model.enums.*
 import observe.model.events.SingleActionEvent
 import squants.time.Time
 import squants.time.TimeUnit
-import eu.timepit.refined.cats.given
 
 /**
  * Tests Model typeclasses

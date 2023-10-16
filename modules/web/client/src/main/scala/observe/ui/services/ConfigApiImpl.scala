@@ -7,7 +7,6 @@ import cats.effect.IO
 import cats.effect.Resource
 import crystal.react.View
 import crystal.react.*
-import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Encoder
 import io.circe.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -19,36 +18,24 @@ import observe.model.ClientId
 import observe.ui.model.enums.ApiStatus
 import org.http4s.Uri
 import org.http4s.*
-import org.http4s.client.Client
-import org.http4s.client.*
 import org.typelevel.log4cats.Logger
 
 case class ConfigApiImpl(
-  client:    Client[IO],
-  baseUri:   Uri,
-  token:     NonEmptyString,
-  clientId:  ClientId,
+  client:    ApiClient,
   apiStatus: View[ApiStatus],
-  latch:     Resource[IO, Unit],
-  onError:   Throwable => IO[Unit]
+  latch:     Resource[IO, Unit]
 )(using Logger[IO])
-    extends ConfigApi[IO]
-    with ApiImpl:
-  override protected def request[T: Encoder](path: String, data: T): IO[Unit] =
+    extends ConfigApi[IO]:
+  private def request[T: Encoder](path: String, data: T): IO[Unit] =
     latch.use: _ =>
       apiStatus.async.set(ApiStatus.Busy) >>
-        super.request(path, data) >>
-        apiStatus.async.set(ApiStatus.Idle)
+        client
+          .post(Uri.Path.empty / client.clientId.value / path, data)
+          .flatTap(_ => apiStatus.async.set(ApiStatus.Idle))
 
-  override def setImageQuality(iq: ImageQuality): IO[Unit]       =
-    request(s"${clientId.value}/iq", iq)
-  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] =
-    request(s"${clientId.value}/ce", ce)
-  override def setWaterVapor(wv: WaterVapor): IO[Unit]           =
-    request(s"${clientId.value}/wv", wv)
-  override def setSkyBackground(sb: SkyBackground): IO[Unit]     =
-    request(s"${clientId.value}/sb", sb)
-  override def refresh: IO[Unit]                                 =
-    request(s"${clientId.value}/refresh", ())
+  override def setImageQuality(iq:    ImageQuality): IO[Unit]    = request("iq", iq)
+  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] = request("ce", ce)
+  override def setWaterVapor(wv:      WaterVapor): IO[Unit]      = request("wv", wv)
+  override def setSkyBackground(sb:   SkyBackground): IO[Unit]   = request("sb", sb)
 
   override def isBlocked: Boolean = apiStatus.get == ApiStatus.Busy

@@ -156,13 +156,15 @@ object Home:
       .render: (props, ctx, observations, selectedObsId, config, executionState, sequenceApi) =>
         import ctx.given
 
-        // TODO: Notify server of breakpoint changes
+        val breakpoints: View[Set[Step.Id]] = executionState.zoom(ExecutionState.breakpoints)
+
+        // UI is updated optimistically but it's updated again after server response is received.
         val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
           (obsId, stepId, value) =>
-            executionState
-              .zoom(ExecutionState.breakpoints)
-              .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
-              sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
+            breakpoints
+              .mod: set =>
+                if (set.contains(stepId)) set - stepId else set + stepId
+              >> sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
         val runningStepId: Option[Step.Id] = executionState.get.runningStepId
 

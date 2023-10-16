@@ -12,6 +12,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 
 trait SequenceApi[F[_]: MonadThrow]:
+  // Server returns a boolean indicating whether the breakpoint is now enabled.
   def setBreakpoint(obsId: Observation.Id, stepId: Step.Id, value: Breakpoint): F[Unit] =
     NotAuthorized
 

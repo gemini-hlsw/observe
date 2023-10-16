@@ -17,7 +17,6 @@ trait ConfigApi[F[_]: MonadThrow]:
   def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
   def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
   def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
-  def refresh: F[Unit] = NotAuthorized
 
   def isBlocked: Boolean = false
 

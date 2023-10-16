@@ -5,5 +5,5 @@ package observe.ui.services
 
 import cats.MonadThrow
 
-protected def NotAuthorized[F[_]: MonadThrow, A]: F[A] =
-  MonadThrow[F].raiseError(new RuntimeException("Not authorized"))
+trait BaseApi[F[_]: MonadThrow]:
+  def refresh: F[Unit] = NotAuthorized
