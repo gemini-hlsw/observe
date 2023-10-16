@@ -142,6 +142,11 @@ extension (e: ObserveEvent)
     case ObserverUpdated(v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case OverridesUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case StepBreakpointChanged(v) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SequenceUpdated(v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case StepExecuted(_, v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case FileIdStepExecuted(_, v) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SequenceStart(_, _, v)   => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case SequenceCompleted(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
     case SingleActionEvent(v)     =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>
