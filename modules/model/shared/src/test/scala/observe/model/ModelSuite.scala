@@ -13,12 +13,12 @@ import observe.model.enums.*
 import observe.model.events.SingleActionEvent
 import squants.time.Time
 import squants.time.TimeUnit
+import eu.timepit.refined.cats.given
 
 /**
  * Tests Model typeclasses
  */
-class ModelSuite extends munit.DisciplineSuite {
-
+class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)
@@ -68,4 +68,3 @@ class ModelSuite extends munit.DisciplineSuite {
   checkAll("Eq[NsRows]", EqTests[NsRows].eqv)
   checkAll("Eq[NsAction]", EqTests[NsAction].eqv)
   checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
-}

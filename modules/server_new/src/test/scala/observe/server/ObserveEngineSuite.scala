@@ -23,6 +23,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
@@ -46,6 +47,7 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
+import eu.timepit.refined.cats.given
 
 import java.util.UUID
 
@@ -56,7 +58,7 @@ class ObserveEngineSuite extends TestCommon {
   val clientId = ClientId(UUID.randomUUID())
 
   test("ObserveEngine setOperator should set operator's name") {
-    val operator = Operator("Joe")
+    val operator = Operator("Joe".refined)
     val s0       = EngineState.default[IO]
     (for {
       oe <- observeEngine
@@ -113,7 +115,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setObserver should set observer's name") {
-    val observer = Observer("Joe")
+    val observer = Observer("Joe".refined)
     val s0       = ODBSequencesLoader
       .loadSequenceEndo[IO](
         None,
