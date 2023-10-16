@@ -18,7 +18,7 @@ import observe.web.client.model.lenses.obsClassT
 import web.client.table.*
 
 final case class SequenceInSessionQueue(
-  obsId:        Observation.Id,
+  obsId:         Observation.Id,
   status:        SequenceState,
   instrument:    Instrument,
   active:        Boolean,

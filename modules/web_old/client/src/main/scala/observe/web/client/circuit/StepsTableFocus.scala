@@ -15,7 +15,7 @@ import observe.web.client.model.*
 import web.client.table.*
 
 final case class StepsTableFocus(
-  obsId:              Observation.Id,
+  obsId:               Observation.Id,
   instrument:          Instrument,
   state:               SequenceState,
   steps:               List[Step],

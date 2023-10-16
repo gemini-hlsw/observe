@@ -20,13 +20,13 @@ import observe.model.UserDetails
 import observe.model.config.*
 import AuthenticationService.AuthResult
 
-sealed trait AuthenticationFailure            extends Product with Serializable
+sealed trait AuthenticationFailure      extends Product with Serializable
 case class UserNotFound(user: String)   extends AuthenticationFailure
 case class BadCredentials(user: String) extends AuthenticationFailure
-case object NoAuthenticator                   extends AuthenticationFailure
+case object NoAuthenticator             extends AuthenticationFailure
 case class GenericFailure(msg: String)  extends AuthenticationFailure
 case class DecodingFailure(msg: String) extends AuthenticationFailure
-case object MissingCookie                     extends AuthenticationFailure
+case object MissingCookie               extends AuthenticationFailure
 
 /**
  * Interface for implementations that can authenticate users from a username/pwd pair

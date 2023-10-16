@@ -30,7 +30,7 @@ class NotificationsHandler[M](modelRW: ModelRW[M, UserNotificationState])
         case InstrumentInUse(obsId, _)  => Effect(Future(SequenceLoadFailed(obsId)))
         case ResourceConflict(obsId)    => Effect(Future(RunStartFailed(obsId)))
         case SubsystemBusy(obsId, _, r) => Effect(Future(ClearResourceOperations(obsId, r)))
-        case RequestFailed(_)            => VoidEffect
+        case RequestFailed(_)           => VoidEffect
       }
       updatedLE(lens, openBoxE >> modelUpdateE)
   }
