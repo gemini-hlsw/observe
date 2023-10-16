@@ -12,13 +12,13 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
 import lucuma.sso.client.SsoClient
+import observe.model.enums.RunOverride
 import observe.server
 import observe.server.ObserveEngine
 import org.http4s.*
 import org.http4s.circe.*
 import org.http4s.dsl.*
 import org.http4s.server.middleware.GZip
-// import observe.model.enums.RunOverride
 
 /**
  * Rest Endpoints under the /api route
@@ -34,13 +34,12 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
 
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] {
-    // case req @ POST -> Root / ObsIdVar(obsId) / "start" / ObserverVar(obs) / ClientIDVar(
-    //       clientId
-    //   ) :? OptionalRunOverride(runOverride) =>
-    // ssoClient.require(req) { user =>
-    //   oe.start(obsId, user, obs, clientId, runOverride.getOrElse(RunOverride.Default)) *>
-    //     NoContent()
-    // }
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "start" /
+        ObserverVar(obs) :? OptionalRunOverride(runOverride) =>
+      ssoClient.require(req) { user =>
+        oe.start(obsId, user, obs, clientId, runOverride.getOrElse(RunOverride.Default)) *>
+          NoContent()
+      }
 
     case req @ POST -> Root / ObsIdVar(oid) / StepIdVar(step) / ClientIDVar(clientId) / "execute" /
         ResourceVar(resource) / ObserverVar(obs) =>

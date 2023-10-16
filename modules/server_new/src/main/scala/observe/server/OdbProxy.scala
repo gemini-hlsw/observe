@@ -334,7 +334,6 @@ object OdbProxy {
         AddSequenceEventMutation[F]
           .execute(
             vId = visitId,
-            obsId = obsId,
             cmd = SequenceCommand.Abort
           )
           .as(true) <*
@@ -351,14 +350,14 @@ object OdbProxy {
         _   <-
           AddSequenceEventMutation[F]
             .applyP(client)
-            .execute(vId = vid, obsId = obsId, cmd = SequenceCommand.Start)
+            .execute(vId = vid, cmd = SequenceCommand.Start)
         _   <- L.debug("ODB event sequenceStart sent")
       } yield vid
 
     override def obsContinue(visitId: VisitId, obsId: Observation.Id): F[Boolean] =
       L.debug(s"Send ODB event observationContinue for obsId: $obsId") *>
         AddSequenceEventMutation[F]
-          .execute(vId = visitId, obsId = obsId, cmd = SequenceCommand.Continue)
+          .execute(vId = visitId, cmd = SequenceCommand.Continue)
           .as(true) <*
         L.debug("ODB event observationContinue sent")
 
@@ -370,7 +369,7 @@ object OdbProxy {
       L.debug(s"Send ODB event observationPause for obsId: $obsId") *>
         AddSequenceEventMutation[F]
           .applyP(client)
-          .execute(vId = visitId, obsId = obsId, cmd = SequenceCommand.Pause)
+          .execute(vId = visitId, cmd = SequenceCommand.Pause)
           .as(true) <*
         L.debug("ODB event observationPause sent")
 
@@ -381,7 +380,7 @@ object OdbProxy {
     ): F[Boolean] =
       L.debug(s"Send ODB event observationStop for obsId: $obsId") *>
         AddSequenceEventMutation[F]
-          .execute(vId = visitId, obsId = obsId, cmd = SequenceCommand.Stop)
+          .execute(vId = visitId, cmd = SequenceCommand.Stop)
           .as(true) <*
         L.debug("ODB event observationStop sent")
 

@@ -311,8 +311,8 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($vId: VisitId!, $obsId: ObservationId!, $cmd: SequenceCommand!) {
-        addSequenceEvent(input: { visitId: $vId, location: { observationId: $obsId }, payload: { command: $cmd } } ) {
+      mutation($vId: VisitId!, $cmd: SequenceCommand!) {
+        addSequenceEvent(input: { visitId: $vId, command: $cmd } ) {
           event {
             visitId
             received
