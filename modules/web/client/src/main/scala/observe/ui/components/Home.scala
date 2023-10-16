@@ -161,10 +161,8 @@ object Home:
         // UI is updated optimistically but it's updated again after server response is received.
         val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
           (obsId, stepId, value) =>
-            breakpoints
-              .mod: set =>
-                if (set.contains(stepId)) set - stepId else set + stepId
-              >> sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
+            breakpoints.mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
+              sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
         val runningStepId: Option[Step.Id] = executionState.get.runningStepId
 
