@@ -17,7 +17,7 @@ object Settings {
     val scalajsReact = "2.1.1"
 
     // Scala libraries
-    val catsEffectVersion = "3.4.11"
+    val catsEffectVersion = "3.5.2"
     val catsVersion       = "2.10.0"
     val kittens           = "3.0.0"
     val mouseVersion      = "1.2.1"
