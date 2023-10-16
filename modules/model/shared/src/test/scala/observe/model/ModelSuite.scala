@@ -4,6 +4,7 @@
 package observe.model
 
 import cats.kernel.laws.discipline.*
+import eu.timepit.refined.cats.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.ObserveModelArbitraries.given
@@ -17,8 +18,7 @@ import squants.time.TimeUnit
 /**
  * Tests Model typeclasses
  */
-class ModelSuite extends munit.DisciplineSuite {
-
+class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)
@@ -68,4 +68,3 @@ class ModelSuite extends munit.DisciplineSuite {
   checkAll("Eq[NsRows]", EqTests[NsRows].eqv)
   checkAll("Eq[NsAction]", EqTests[NsAction].eqv)
   checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
-}

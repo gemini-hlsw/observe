@@ -6,7 +6,7 @@ package observe.ui.components
 import cats.Order.given
 import cats.effect.IO
 import cats.syntax.all.*
-import crystal.react.View
+import crystal.react.*
 import crystal.react.hooks.*
 import crystal.react.syntax.pot.given
 import crystal.syntax.*
@@ -26,7 +26,6 @@ import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
-import observe.model.Observer
 import observe.model.SequenceState
 import observe.model.SystemOverrides
 import observe.model.enums.ActionStatus
@@ -43,6 +42,7 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.TabOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
+import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
 
@@ -59,7 +59,7 @@ object Home:
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useStreamResourceOnMountBy: (_, ctx) =>
+      .useStreamResourceOnMountBy: (props, ctx) =>
         import ctx.given
 
         ObsQueriesGQL
@@ -72,7 +72,7 @@ object Home:
                 SequenceState.Idle,
                 obs.instrument.getOrElse(Instrument.Visitor),
                 obs.title.some,
-                Observer("Telops").some,
+                props.rootModel.get.observer,
                 obs.subtitle.map(_.value).orEmpty,
                 ObsClass.Nighttime,
                 // obs.activeStatus === ObsActiveStatus.Active,
@@ -152,12 +152,17 @@ object Home:
             )
           )
       )
-      .render: (props, ctx, observations, selectedObsId, config, executionState) =>
-        // TODO: Notify server of breakpoint changes
-        val flipBreakPoint: Step.Id => Callback = stepId =>
-          executionState
-            .zoom(ExecutionState.breakpoints)
-            .mod(set => if (set.contains(stepId)) set - stepId else set + stepId)
+      .useContext(SequenceApi.ctx)
+      .render: (props, ctx, observations, selectedObsId, config, executionState, sequenceApi) =>
+        import ctx.given
+
+        val breakpoints: View[Set[Step.Id]] = executionState.zoom(ExecutionState.breakpoints)
+
+        // UI is updated optimistically but it's updated again after server response is received.
+        val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
+          (obsId, stepId, value) =>
+            breakpoints.mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
+              sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
         val runningStepId: Option[Step.Id] = executionState.get.runningStepId
 

@@ -194,7 +194,7 @@ object SessionQueue:
     ),
     ColDef(
       ObserverColumnId,
-      _.observer.foldMap(_.value),
+      _.observer.foldMap(_.value.value),
       header = "Observer",
       cell = linked(_.value.toString)
     )

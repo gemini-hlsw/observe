@@ -33,7 +33,8 @@ trait ObserveModelArbitraries {
 
   private val maxListSize = 2
 
-  given Arbitrary[Operator] = Arbitrary[Operator](Gen.alphaStr.map(Operator(_)))
+  given Arbitrary[Operator] = newTypeArbitrary(Operator)
+  given Cogen[Operator]     = newTypeCogen(Operator)
 
   given Arbitrary[Conditions] = Arbitrary[Conditions] {
     for {
@@ -73,7 +74,9 @@ trait ObserveModelArbitraries {
     } yield b
   }
 
-  given Arbitrary[Observer]         = Arbitrary[Observer](Gen.alphaStr.map(Observer(_)))
+  given Arbitrary[Observer] = newTypeArbitrary(Observer)
+  given Cogen[Observer]     = newTypeCogen(Observer)
+
   given Arbitrary[SequenceMetadata] = Arbitrary[SequenceMetadata] {
     for {
       i <- arbitrary[Instrument]
@@ -121,10 +124,6 @@ trait ObserveModelArbitraries {
 
   given Cogen[ActionType] =
     Cogen[String].contramap(_.productPrefix)
-
-  given Cogen[Operator] = newTypeCogen(Operator)
-
-  given Cogen[Observer] = newTypeCogen(Observer)
 
   given Cogen[SequenceState] =
     Cogen[String].contramap(_.productPrefix)

@@ -3,7 +3,9 @@
 
 package observe.model
 
-import cats.*
+import cats.Eq
+import cats.derived.*
+import eu.timepit.refined.cats.given
 import lucuma.core.enums.Instrument
 import monocle.Focus
 import monocle.Getter
@@ -22,15 +24,11 @@ case class SequencesQueue[T](
   operator:     Option[Operator],
   queues:       SortedMap[QueueId, ExecutionQueueView],
   sessionQueue: List[T]
-)
+) derives Eq
 
-object SequencesQueue {
-  given [T: Eq]: Eq[SequencesQueue[T]] =
-    Eq.by(x => (x.loaded, x.conditions, x.operator, x.queues, x.sessionQueue))
-
+object SequencesQueue:
   def sessionQueueT[T]: Traversal[SequencesQueue[T], T] =
     Focus[SequencesQueue[T]](_.sessionQueue).andThen(each[List[T], T])
 
   def queueItemG[T](pred: T => Boolean): Getter[SequencesQueue[T], Option[T]] =
     Focus[SequencesQueue[T]](_.sessionQueue).andThen(Getter[List[T], Option[T]](_.find(pred)))
-}

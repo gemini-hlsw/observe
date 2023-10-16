@@ -7,6 +7,7 @@ import cats.Monoid
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
+import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.*
@@ -23,6 +24,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
@@ -56,7 +58,7 @@ class ObserveEngineSuite extends TestCommon {
   val clientId = ClientId(UUID.randomUUID())
 
   test("ObserveEngine setOperator should set operator's name") {
-    val operator = Operator("Joe")
+    val operator = Operator("Joe".refined)
     val s0       = EngineState.default[IO]
     (for {
       oe <- observeEngine
@@ -113,7 +115,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setObserver should set observer's name") {
-    val observer = Observer("Joe")
+    val observer = Observer("Joe".refined)
     val s0       = ODBSequencesLoader
       .loadSequenceEndo[IO](
         None,
@@ -156,7 +158,7 @@ class ObserveEngineSuite extends TestCommon {
       sf <- advanceOne(
               oe,
               s0,
-              oe.start(seqObsId2, user, Observer(""), clientId, RunOverride.Default)
+              oe.start(seqObsId2, user, Observer("Joe".refined), clientId, RunOverride.Default)
             )
     } yield sf
       .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
@@ -189,7 +191,7 @@ class ObserveEngineSuite extends TestCommon {
               oe.start(
                 seqObsId2,
                 user,
-                Observer(""),
+                Observer("Joe".refined),
                 clientId,
                 RunOverride.Default
               ),
@@ -216,7 +218,7 @@ class ObserveEngineSuite extends TestCommon {
               s0,
               oe.configSystem(
                 seqObsId1,
-                Observer(""),
+                Observer("Joe".refined),
                 user,
                 stepId(1),
                 TCS,
@@ -250,7 +252,7 @@ class ObserveEngineSuite extends TestCommon {
               s0,
               oe.configSystem(
                 seqObsId1,
-                Observer(""),
+                Observer("Joe".refined),
                 user,
                 stepId(1),
                 TCS,
@@ -289,7 +291,7 @@ class ObserveEngineSuite extends TestCommon {
           s0,
           oe.configSystem(
             seqObsId2,
-            Observer(""),
+            Observer("Joe".refined),
             user,
             stepId(1),
             TCS,
@@ -333,7 +335,7 @@ class ObserveEngineSuite extends TestCommon {
           oe
             .configSystem(
               seqObsId2,
-              Observer(""),
+              Observer("Joe".refined),
               user,
               stepId(1),
               Gcal,
@@ -361,7 +363,7 @@ class ObserveEngineSuite extends TestCommon {
       oe <- observeEngine
       _  <- oe.startFrom(
               seqObsId1,
-              Observer(""),
+              Observer("Joe".refined),
               runStepId,
               clientId,
               RunOverride.Default
@@ -403,7 +405,7 @@ class ObserveEngineSuite extends TestCommon {
       oe <- observeEngine
       _  <- oe.startFrom(
               seqObsId2,
-              Observer(""),
+              Observer("Joe".refined),
               runStepId,
               clientId,
               RunOverride.Default
@@ -942,7 +944,7 @@ class ObserveEngineSuite extends TestCommon {
                          observeEngine.start(
                            seqObsId1,
                            user,
-                           Observer(""),
+                           Observer("Joe".refined),
                            clientId,
                            RunOverride.Default
                          )
@@ -974,7 +976,7 @@ class ObserveEngineSuite extends TestCommon {
         observeEngine.start(
           seqObsId1,
           user,
-          Observer(""),
+          Observer("Joe".refined),
           clientId,
           RunOverride.Default
         ) *>
@@ -1023,7 +1025,7 @@ class ObserveEngineSuite extends TestCommon {
           observeEngine,
           s0,
           observeEngine
-            .start(seqObsId1, user, Observer(""), clientId, RunOverride.Override),
+            .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override),
           3
         )
     } yield {

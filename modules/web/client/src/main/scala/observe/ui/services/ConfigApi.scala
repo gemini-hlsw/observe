@@ -11,17 +11,12 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
-import observe.model.ClientId
 
 trait ConfigApi[F[_]: MonadThrow]:
-  protected val NotAuthorized: F[Unit] =
-    MonadThrow[F].raiseError(new RuntimeException("Not authorized"))
-
-  def setImageQuality(clientId:    ClientId, iq: ImageQuality): F[Unit]    = NotAuthorized
-  def setCloudExtinction(clientId: ClientId, ce: CloudExtinction): F[Unit] = NotAuthorized
-  def setWaterVapor(clientId:      ClientId, wv: WaterVapor): F[Unit]      = NotAuthorized
-  def setSkyBackground(clientId:   ClientId, sb: SkyBackground): F[Unit]   = NotAuthorized
-  def refresh(clientId:            ClientId): F[Unit] = NotAuthorized
+  def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
+  def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
+  def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
+  def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
 
   def isBlocked: Boolean = false
 

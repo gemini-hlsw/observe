@@ -35,7 +35,6 @@ import lucuma.ui.components.SolarProgress
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.pot.*
-import observe.model.ClientId
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
 import observe.ui.ObserveStyles
@@ -46,7 +45,7 @@ import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
 import observe.ui.model.reusability.given
 import observe.ui.services.ConfigApi
-import observe.ui.services.ConfigApiImpl
+import observe.ui.services.*
 import org.http4s.Uri
 import org.http4s.circe.*
 import org.http4s.client.Client
@@ -65,11 +64,19 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 
 object MainApp:
-  private val ConfigFile: Uri     = uri"/environments.conf.json"
-  private val ApiBaseUri: Uri     = uri"/api/observe"
-  private val EventWsUri: Uri     =
-    Uri.unsafeFromString("wss://" + dom.window.location.host + ApiBaseUri + "/events")
-  private val RefreshBaseUri: Uri = ApiBaseUri / "refresh"
+  private val ConfigFile: Uri       = uri"/environments.conf.json"
+  private val ApiBasePath: Uri.Path = path"/api/observe/"
+  private val EventWsUri: Uri       =
+    Uri(
+      scheme"wss".some,
+      Uri
+        .Authority(
+          host = Uri.Host.unsafeFromString(dom.window.location.hostname),
+          port = dom.window.location.port.toIntOption
+        )
+        .some,
+      path = ApiBasePath / "events"
+    )
 
   // Set up logging
   private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
@@ -120,13 +127,9 @@ object MainApp:
               confs.find(_.hostName === "*")
         )(orElse = new Exception("Host not found in configuration."))
 
-  // This will run until canceled.
-  private def reSync(clientId: ClientId): IO[Unit] =
-    fetchClient.get(RefreshBaseUri / clientId.toString)(_ => IO.unit)
-
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
-    ssoClient.whoami.flatMap(userVault =>
+    ssoClient.whoami.flatMap: userVault =>
       userVault.map(_.user) match
         case Some(StandardUser(_, role, other, _)) =>
           (role +: other)
@@ -134,7 +137,6 @@ object MainApp:
             .fold(IO(userVault))(ssoClient.switchRole)
         // .map(_.orElse(throw new Exception("User is not staff")))
         case _                                     => IO(userVault)
-    )
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
@@ -208,22 +210,52 @@ object MainApp:
       .useStateView(Pot.pending[Environment])
       // Subscribe to client event stream (and initialize Environment)
       // TODO Reconnecting middleware
+      .localValBy: (_, toastRef, isSynced, _, ctxPot, rootModelDataPot, environmentPot) =>
+        (rootModelDataPot.toPotView.toOption,
+         rootModelDataPot.get.toOption.flatMap(_.userVault.map(_.token)),
+         ctxPot.toOption,
+         environmentPot.get.toOption
+        ).mapN: (rootModelData, token, ctx, environment) =>
+          import ctx.given
+
+          ApiClient(
+            fetchClient,
+            ApiBasePath,
+            environment.clientId,
+            token,
+            t =>
+              toastRef
+                .show:
+                  MessageItem(
+                    id = "configApiError",
+                    content = "Error saving changes",
+                    severity = Message.Severity.Error
+                  )
+                .to[IO] >>
+                rootModelData.async
+                  .zoom(RootModelData.log)
+                  .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
+                IO.println(t.getMessage) >>
+                isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+          )
       .useResourceOnMount:
         // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
         // We also have to reSync in case of connection lost
         WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))
-      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _) => syncStatus.get):
-        (_, _, syncStatus, singleDispatcher, _, _, environmentPot, _) =>
+      // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
+      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _) => syncStatus.get):
+        (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _) =>
           case SyncStatus.OutOfSync =>
-            environmentPot.get.toOption
-              .map(env => singleDispatcher.submit(reSync(env.clientId)))
+            apiClientOpt
+              .map: client =>
+                singleDispatcher.submit(client.refresh)
               .orEmpty
           case SyncStatus.Synced    => singleDispatcher.cancel
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
-        (_, _, _, _, ctxPot, rootModelDataPot, environment, wsConnection, _) =>
+        (_, _, _, _, ctxPot, rootModelDataPot, environment, _, wsConnection, _) =>
           (wsConnection, rootModelDataPot.toPotView, ctxPot).tupled
-      ): (_, _, syncStatus, _, _, _, environment, _, configApiStatus) =>
+      ): (_, _, syncStatus, _, _, _, environment, _, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
 
@@ -239,9 +271,9 @@ object MainApp:
             .map(_.cancel)
       // RootModel is not initialized until RootModelData and Environment are available
       .useStateView(Pot.pending[RootModel])
-      .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _) =>
+      .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _, _) =>
         (rootModelDataPot.get, environmentPot.get)
-      ): (_, _, _, _, _, _, _, _, _, rootModelPot) =>
+      ): (_, _, _, _, _, _, _, _, _, _, rootModelPot) =>
         // Build RootModel from RootModelData and Environment
         (rootModelDataPot, environmentPot) =>
           rootModelPot.set:
@@ -257,43 +289,29 @@ object MainApp:
           ctxPot,
           _,
           environmentPot,
+          apiClientOpt,
           _,
           configApiStatus,
           rootModelPot,
           permitPot
         ) =>
-          val configApiOpt: Option[ConfigApi[IO]] =
-            (rootModelPot.toPotView.toOption,
-             rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
+          val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
+            (apiClientOpt,
+             rootModelPot.get.toOption.flatMap(_.observer),
+             //  rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
              permitPot.toOption,
-             ctxPot.toOption
-            ).mapN: (rootModel, token, permit, ctx) =>
+             ctxPot.toOption,
+             //  environmentPot.get.toOption
+            ).mapN: (client, observer, permit, ctx) =>
               import ctx.given
-
-              ConfigApiImpl(
-                client = fetchClient,
-                baseUri = ApiBaseUri,
-                token = token,
-                apiStatus = configApiStatus,
-                latch = permit,
-                onError = t =>
-                  toastRef
-                    .show(
-                      MessageItem(
-                        id = "configApiError",
-                        content = "Error saving changes",
-                        severity = Message.Severity.Error
-                      )
-                    )
-                    .to[IO] >>
-                    rootModel.async
-                      .zoom(RootModel.log)
-                      .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                    isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+              (
+                ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
+                SequenceApiImpl(client = client, observer = observer)
               )
 
           def provideApiCtx(children: VdomNode*) =
-            configApiOpt.fold(React.Fragment(children: _*))(ConfigApi.ctx.provide(_)(children: _*))
+            apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
+              ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
           // When both AppContext and RootModel are ready, proceed to render.
           (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>

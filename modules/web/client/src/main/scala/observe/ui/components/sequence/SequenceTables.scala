@@ -7,6 +7,7 @@ import cats.Eq
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
@@ -43,7 +44,7 @@ sealed trait SequenceTables[S, D](
   def executionState: ExecutionState
   def tabOperations: TabOperations
   def isPreview: Boolean
-  def flipBreakpoint: Step.Id => Callback
+  def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 
   // TODO: nextAtom will actually come from the observe server.
   private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
@@ -67,7 +68,7 @@ case class GmosNorthSequenceTables(
   executionState: ExecutionState,
   tabOperations:  TabOperations,
   isPreview:      Boolean,
-  flipBreakpoint: Step.Id => Callback
+  flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosNorthSequenceTables.component)
     with SequenceTables[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -81,7 +82,7 @@ case class GmosSouthSequenceTables(
   executionState: ExecutionState,
   tabOperations:  TabOperations,
   isPreview:      Boolean,
-  flipBreakpoint: Step.Id => Callback
+  flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosSouthSequenceTables.component)
     with SequenceTables[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -208,7 +209,15 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                 <.div(
                   <.div(
                     ObserveStyles.BreakpointHandle,
-                    stepId.map(^.onClick --> props.flipBreakpoint(_)).whenDefined
+                    stepId
+                      .map: sId =>
+                        ^.onClick --> props.flipBreakpoint(
+                          obsId,
+                          sId,
+                          if (executionState.breakpoints.contains(sId)) Breakpoint.Disabled
+                          else Breakpoint.Enabled
+                        )
+                      .whenDefined
                   )(
                     Icons.CircleSolid
                       .withFixedWidth()

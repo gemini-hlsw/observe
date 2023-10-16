@@ -7,11 +7,13 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits.*
+import eu.timepit.refined.cats.given
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.refined.*
 import observe.engine.*
 import observe.model.*
 import observe.model.enums.Resource.TCS
@@ -165,7 +167,7 @@ class StepsViewSuite extends TestCommon {
   }
 
   test("StepsView setOperator should set operator's name") {
-    val operator = Operator("Joe")
+    val operator = Operator("Joe".refined)
     val s0       = EngineState.default[IO]
     (for {
       oe <- observeEngine
