@@ -92,7 +92,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r.map(_._1), Some(Status.NoContent)) *>
       assertIO(r.map(_._2), Some(s""))
 
-  test("load sequence") {
+  test("load sequence"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -107,9 +107,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("execute sequence step/resource") {
+  test("execute sequence step/resource"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -123,9 +122,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("disable tcs") {
+  test("disable tcs"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -139,9 +137,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("disable gcal") {
+  test("disable gcal"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -155,9 +152,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("disable instrument") {
+  test("disable instrument"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -171,9 +167,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("disable dhs") {
+  test("disable dhs"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -187,9 +182,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  test("set breakpoint") {
+  test("set breakpoint"):
     val r = for {
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -204,30 +198,55 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
         ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-  }
 
-  //
-  // test("start sequence") {
-  //   forAll { (obsId: Observation.Id, clientId: ClientId) =>
-  //     val (s, b) = (for {
-  //       engine <- TestObserveEngine.build[IO]
-  //       s      <- commandRoutes(engine)
-  //       wsb    <- WebSocketBuilder2[IO]
-  //       t      <- newLoginToken(wsb)
-  //       l      <- s(
-  //                   Request[IO](method = Method.POST,
-  //                               uri = Uri.unsafeFromString(
-  //                                 s"/${obsId.show}/start/observer/${clientId.self}"
-  //                               )
-  //                   )
-  //                     .addCookie("token", t)
-  //                 ).value
-  //     } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-  //     assert(s === Some(Status.Ok))
-  //     assert(b.unsafeRunSync() === Some(s"Started sequence ${obsId.show}"))
-  //   }
-  // }
-  //
+  test("start"):
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <-
+        s(
+          Request[IO](method = Method.POST,
+                      uri = Uri.unsafeFromString(
+                        s"/${obsId.show}/${clientId.value}/start/observer?overrideTargetCheck=true"
+                      )
+          )
+        ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+
+  test("set operator"):
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <-
+        s(
+          Request[IO](method = Method.POST,
+                      uri = Uri.unsafeFromString(
+                        s"/${clientId.value}/operator/Anybody"
+                      )
+          )
+        ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+
+  test("set observer"):
+    val r = for {
+      engine <- TestObserveEngine.build[IO]
+      s      <- commandRoutes(engine)
+      wsb    <- WebSocketBuilder2[IO]
+      l      <-
+        s(
+          Request[IO](method = Method.POST,
+                      uri = Uri.unsafeFromString(
+                        s"/${obsId.show}/${clientId.value}/observer/Anybody"
+                      )
+          )
+        ).value
+    } yield l.map(_.status)
+    assertIO(r, Some(Status.NoContent))
+
   // test("start sequence from") {
   //   forAll { (obsId: Observation.Id, startFrom: StepId, clientId: ClientId) =>
   //     val uri    = Uri.unsafeFromString(
@@ -481,31 +500,4 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     }
   }
 
-  test("operator") {
-    val engine = mock[ObserveEngine[IO]]
-    inAnyOrder {
-      (engine.setObserver _)
-        .expects(*, *, *, *)
-        .anyNumberOfTimes()
-        .returning(IO.unit)
-    }
-    forAll { (obsId: Observation.Id, obs: String) =>
-      val uri    = Uri.unsafeFromString(
-        s"/${obsId.show}/observer/${URLEncoder.encode(obs, "UTF-8")}"
-      )
-      val (s, b) = (for {
-        s   <- commandRoutes(engine)
-        wsb <- WebSocketBuilder2[IO]
-        t   <- newLoginToken(wsb)
-        l   <- s(
-                 Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
-               ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(
-        b.unsafeRunSync() === Some(
-          s"Set observer name to '$obs' for sequence ${obsId.show}"
-        )
-      )
-    }
   }*/

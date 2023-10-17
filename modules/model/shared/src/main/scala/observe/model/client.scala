@@ -6,10 +6,12 @@ package observe.model.events.client
 import cats.*
 import cats.derived.*
 import cats.syntax.all.*
+import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
+import io.circe.refined.*
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
@@ -17,6 +19,7 @@ import lucuma.core.util.Enumerated
 import observe.model.Conditions
 import observe.model.Environment
 import observe.model.ExecutionState
+import observe.model.Operator
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.StepId
@@ -34,12 +37,14 @@ extension (v: SequencesQueue[SequenceView])
 
 extension (q: SequenceView)
   def executionState: ExecutionState =
-    ExecutionState(q.status,
-                   q.runningStep.flatMap(_.id),
-                   None,
-                   Map.empty,
-                   q.systemOverrides,
-                   q.steps.mapFilter(s => if (s.breakpoint) s.id.some else none).toSet
+    ExecutionState(
+      q.status,
+      q.metadata.observer,
+      q.runningStep.flatMap(_.id),
+      None,
+      Map.empty,
+      q.systemOverrides,
+      q.steps.mapFilter(s => if (s.breakpoint) s.id.some else none).toSet
     )
 
 object ClientEvent:
@@ -55,7 +60,8 @@ object ClientEvent:
 
   case class ObserveState(
     sequenceExecution: Map[Observation.Id, ExecutionState],
-    conditions:        Conditions
+    conditions:        Conditions,
+    operator:          Option[Operator]
   ) extends ClientEvent
       derives Eq,
         Encoder.AsObject,
@@ -74,7 +80,7 @@ object ClientEvent:
 
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ InitialEvent(_)                  => e.asJson
-    case e @ ObserveState(_, _)               => e.asJson
+    case e @ ObserveState(_, _, _)            => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
 
   given Decoder[ClientEvent] =

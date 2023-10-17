@@ -11,6 +11,7 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import observe.model.ClientId
 import observe.model.Observer
+import observe.model.Operator
 import observe.model.SubsystemEnabled
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
@@ -36,9 +37,17 @@ object StepIdVar:
   def unapply(str: String): Option[Step.Id] =
     Step.Id.parse(str)
 
+private object NonEmptyStringVar:
+  def unapply(str: String): Option[NonEmptyString] =
+    NonEmptyString.from(str).toOption
+
 object ObserverVar:
   def unapply(str: String): Option[Observer] =
-    NonEmptyString.from(str).toOption.map(Observer(_))
+    NonEmptyStringVar.unapply(str).map(Observer(_))
+
+object OperatorVar:
+  def unapply(str: String): Option[Operator] =
+    NonEmptyStringVar.unapply(str).map(Operator(_))
 
 private given QueryParamDecoder[RunOverride] =
   QueryParamDecoder[Boolean].map:

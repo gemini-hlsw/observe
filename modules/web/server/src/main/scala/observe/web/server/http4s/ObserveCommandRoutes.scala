@@ -120,13 +120,17 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.resumeObserve(inputQueue, obsId, obs, user) *>
     //     Ok(s"Resume observation requested for $obsId on step $stepId")
     //
-    // case POST -> Root / "operator" / OperatorVar(op) as user =>
-    //   se.setOperator(inputQueue, user, op) *> Ok(s"Set operator name to '${op.value}'")
-    //
-    // case POST -> Root / ObsId(obsId) / "observer" / ObserverVar(obs) as user =>
-    //   se.setObserver(inputQueue, obsId, user, obs) *>
-    //     Ok(s"Set observer name to '${obs.value}' for sequence $obsId")
-    //
+    case req @ POST -> Root / ClientIDVar(clientId) / "operator" / OperatorVar(op) =>
+      ssoClient.require(req) { user =>
+        oe.setOperator(user, op) *> NoContent()
+      }
+
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "observer" /
+        ObserverVar(obs) =>
+      ssoClient.require(req) { user =>
+        oe.setObserver(obsId, user, obs) *> NoContent()
+      }
+
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "tcsEnabled" /
         SubsystemEnabledVar(tcsEnabled) =>
       ssoClient.require(req) { user =>

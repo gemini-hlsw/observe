@@ -137,16 +137,28 @@ case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
-    case ConditionsUpdated(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SequenceRefreshed(v, _)  => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case ObserverUpdated(v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case OverridesUpdated(v)      => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case StepBreakpointChanged(v) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SequenceUpdated(v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case StepExecuted(_, v)       => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case FileIdStepExecuted(_, v) => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SequenceStart(_, _, v)   => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case SequenceCompleted(v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
+    case ConditionsUpdated(v)     =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case SequenceRefreshed(v, _)  =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case ObserverUpdated(v)       =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case OverridesUpdated(v)      =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case StepBreakpointChanged(v) =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case SequenceUpdated(v)       =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case StepExecuted(_, v)       =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case FileIdStepExecuted(_, v) =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case SequenceStart(_, _, v)   =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case SequenceCompleted(v)     =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case OperatorUpdated(v)       =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
     case SingleActionEvent(v)     =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>
@@ -167,8 +179,10 @@ extension (e: ObserveEvent)
             )
             .some
       }
-    case SequenceLoaded(_, v)     => ClientEvent.ObserveState(v.sequencesState, v.conditions).some
-    case _                        => none
+    case SequenceLoaded(_, v)     =>
+      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case _                        =>
+      none
   }).map { u =>
     e match {
       case e: ForClient => (e.clientId.some, u)

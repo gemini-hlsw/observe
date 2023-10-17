@@ -14,6 +14,7 @@ import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.NsRunningState
 import observe.model.ObserveModelArbitraries.given
+import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
@@ -35,7 +36,8 @@ trait ArbClientEvent:
     for
       s <- arbitrary[SequencesQueue[SequenceView]]
       c <- arbitrary[Conditions]
-    yield ClientEvent.ObserveState(s.sequencesState, c)
+      o <- arbitrary[Option[Operator]]
+    yield ClientEvent.ObserveState(s.sequencesState, c, o)
 
   given Cogen[ExecutionState] =
     Cogen[
