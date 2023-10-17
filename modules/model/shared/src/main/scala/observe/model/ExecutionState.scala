@@ -5,8 +5,10 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
+import io.circe.refined.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
@@ -20,6 +22,7 @@ import observe.model.enums.Resource
  */
 case class ExecutionState(
   sequenceState:   SequenceState,
+  observer:        Option[Observer],
   runningStepId:   Option[Step.Id],
   nsState:         Option[NsRunningState],
   configStatus:    Map[Resource | Instrument, ActionStatus],
@@ -38,3 +41,4 @@ object ExecutionState:
   val systemOverrides: Lens[ExecutionState, SystemOverrides]                       =
     Focus[ExecutionState](_.systemOverrides)
   val breakpoints: Lens[ExecutionState, Set[Step.Id]]                              = Focus[ExecutionState](_.breakpoints)
+  val observer: Lens[ExecutionState, Option[Observer]]                             = Focus[ExecutionState](_.observer)

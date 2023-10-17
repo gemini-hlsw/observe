@@ -153,14 +153,15 @@ object MainApp:
     event:           ClientEvent
   )(using Logger[IO]): IO[Unit] =
     event match
-      case ClientEvent.InitialEvent(env)                           =>
+      case ClientEvent.InitialEvent(env)                                     =>
         environment.async.set(env.ready)
-      case ClientEvent.SingleActionEvent(_, _, _, _, _)            =>
+      case ClientEvent.SingleActionEvent(_, _, _, _, _)                      =>
         // TODO Update the UI
         IO.unit
-      case ClientEvent.ObserveState(sequenceExecution, conditions) =>
+      case ClientEvent.ObserveState(sequenceExecution, conditions, operator) =>
         rootModelData.zoom(RootModelData.sequenceExecution).async.set(sequenceExecution) >>
           rootModelData.zoom(RootModelData.conditions).async.set(conditions) >>
+          rootModelData.zoom(RootModelData.operator).async.set(operator) >>
           syncStatus.async.set(SyncStatus.Synced) >>
           configApiStatus.async.set(ApiStatus.Idle)
 

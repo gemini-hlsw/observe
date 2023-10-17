@@ -97,7 +97,7 @@ object Home:
           )
       // TODO: This will actually come from the observe server.
       .useStateView(
-        ExecutionState(SequenceState.Idle, none, none, Map.empty, SystemOverrides.AllEnabled)
+        ExecutionState(SequenceState.Idle, none, none, none, Map.empty, SystemOverrides.AllEnabled)
       )
       .useEffectWithDepsBy((_, _, _, _, config, _) => config)((_, _, _, _, _, executionState) =>
         config =>
@@ -144,6 +144,7 @@ object Home:
           executionState.set(
             ExecutionState(
               sequenceState,
+              none,
               executingStepId,
               none,
               configState.toMap,
