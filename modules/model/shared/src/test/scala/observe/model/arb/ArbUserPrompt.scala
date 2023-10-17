@@ -87,11 +87,10 @@ trait ArbUserPrompt {
 
   given checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
     for {
-      sid   <- arbitrary[Observation.Id]
-      stid  <- arbitrary[StepId]
-      stidx <- Gen.posNum[Int]
-      chks  <- checksGen
-    } yield ChecksOverride(sid, stid, stidx, chks)
+      sid  <- arbitrary[Observation.Id]
+      stid <- arbitrary[StepId]
+      chks <- checksGen
+    } yield ChecksOverride(sid, stid, chks)
   }
 
   given checksOverrideCogen: Cogen[ChecksOverride] =

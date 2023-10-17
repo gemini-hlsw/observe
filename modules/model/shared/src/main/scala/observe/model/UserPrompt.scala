@@ -5,54 +5,55 @@ package observe.model
 
 import cats.Eq
 import cats.data.NonEmptyList
+import cats.derived.*
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.syntax.*
 
 sealed trait UserPrompt extends Product with Serializable
 
 object UserPrompt {
-  sealed trait PromptButtonColor
-
-  object PromptButtonColor {
-    case object DefaultOk     extends PromptButtonColor
-    case object DefaultCancel extends PromptButtonColor
-    case object WarningOk     extends PromptButtonColor
-    case object WarningCancel extends PromptButtonColor
-  }
 
   sealed trait SeqCheck extends Product with Serializable;
 
-  object SeqCheck {
-    given Eq[SeqCheck] = Eq.instance {
+  object SeqCheck:
+    given Eq[SeqCheck] = Eq.instance:
       case (a: TargetCheckOverride, b: TargetCheckOverride)               => a === b
       case (a: ObsConditionsCheckOverride, b: ObsConditionsCheckOverride) => a === b
       case _                                                              => false
-    }
-  }
 
-  final case class Discrepancy[A](actual: A, required: A)
+    given Encoder[SeqCheck] = Encoder.instance:
+      case e @ TargetCheckOverride(_)                 => e.asJson
+      case e @ ObsConditionsCheckOverride(_, _, _, _) => e.asJson
+
+    given Decoder[SeqCheck] =
+      List[Decoder[SeqCheck]](
+        Decoder[TargetCheckOverride].widen,
+        Decoder[ObsConditionsCheckOverride].widen
+      ).reduceLeft(_ or _)
+
+  case class Discrepancy[A](actual: A, required: A)
 
   object Discrepancy {
     given [A: Eq]: Eq[Discrepancy[A]] = Eq.by(x => (x.actual, x.required))
   }
 
-  final case class TargetCheckOverride(self: Discrepancy[String]) extends SeqCheck
-
-  object TargetCheckOverride {
-    given Eq[TargetCheckOverride] =
-      Eq.by(_.self)
-  }
+  case class TargetCheckOverride(self: Discrepancy[String]) extends SeqCheck
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
 
   // UserPrompt whether to override the observing conditions
-  final case class ObsConditionsCheckOverride(
+  case class ObsConditionsCheckOverride(
     cc: Option[Discrepancy[String]],
     iq: Option[Discrepancy[String]],
     sb: Option[Discrepancy[String]],
     wv: Option[Discrepancy[String]]
   ) extends SeqCheck
-
-  object ObsConditionsCheckOverride {
-    given Eq[ObsConditionsCheckOverride] = Eq.by(x => (x.cc, x.iq, x.sb, x.wv))
-  }
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
 
   given Eq[UserPrompt] =
     Eq.instance { case (a: ChecksOverride, b: ChecksOverride) =>
@@ -60,16 +61,11 @@ object UserPrompt {
     }
 
   // UserPrompt whether to override start checks
-  final case class ChecksOverride(
-    obsId:   Observation.Id,
-    stepId:  StepId,
-    stepIdx: Int,
-    checks:  NonEmptyList[SeqCheck]
+  case class ChecksOverride(
+    obsId:  Observation.Id,
+    stepId: StepId,
+    checks: NonEmptyList[SeqCheck]
   ) extends UserPrompt
-
-  object ChecksOverride {
-    given Eq[ChecksOverride] =
-      Eq.by(x => (x.obsId, x.stepId, x.stepIdx, x.checks))
-  }
+      derives Eq
 
 }
