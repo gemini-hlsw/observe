@@ -18,9 +18,12 @@ import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
+import observe.model.UserPrompt
+import observe.model.UserPrompt.ChecksOverride
 import observe.model.arb.ArbEnvironment.given
 import observe.model.arb.ArbNsRunningState.given
 import observe.model.arb.ArbSystem.given
+import observe.model.arb.ArbUserPrompt.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.events.client.ClientEvent.SingleActionState
@@ -75,21 +78,31 @@ trait ArbClientEvent:
     Cogen[(Observation.Id, Step.Id, Resource | Instrument, SingleActionState, Option[String])]
       .contramap(x => (x.obsId, x.stepId, x.resource, x.event, x.error))
 
+  given Arbitrary[ClientEvent.ChecksOverrideEvent] = Arbitrary:
+    arbitrary[ChecksOverride].map(u => ClientEvent.ChecksOverrideEvent(u))
+
+  given Cogen[ClientEvent.ChecksOverrideEvent] =
+    Cogen[ChecksOverride].contramap(_.prompt)
+
   given Arbitrary[ClientEvent] = Arbitrary:
     for
       initial <- arbitrary[ClientEvent.InitialEvent]
       state   <- arbitrary[ClientEvent.ObserveState]
       step    <- arbitrary[ClientEvent.SingleActionEvent]
-      r       <- Gen.oneOf(initial, state, step)
+      user    <- arbitrary[ClientEvent.ChecksOverrideEvent]
+      r       <- Gen.oneOf(initial, state, step, user)
     yield r
 
   given Cogen[ClientEvent] =
     Cogen[Either[ClientEvent.InitialEvent, Either[ClientEvent.ObserveState,
-                                                  ClientEvent.SingleActionEvent
+                                                  Either[ClientEvent.SingleActionEvent,
+                                                         ClientEvent.ChecksOverrideEvent
+                                                  ]
     ]]].contramap:
-      case e: ClientEvent.InitialEvent      => Left(e)
-      case e: ClientEvent.ObserveState      => Right(Left(e))
-      case e: ClientEvent.SingleActionEvent => Right(Right(e))
+      case e: ClientEvent.InitialEvent        => Left(e)
+      case e: ClientEvent.ObserveState        => Right(Left(e))
+      case e: ClientEvent.SingleActionEvent   => Right(Right(Left(e)))
+      case e: ClientEvent.ChecksOverrideEvent => Right(Right(Right(e)))
 
 end ArbClientEvent
 

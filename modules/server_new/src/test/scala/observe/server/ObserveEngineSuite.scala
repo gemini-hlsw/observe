@@ -990,7 +990,7 @@ class ObserveEngineSuite extends TestCommon {
                 Outcome.Ok,
                 Some(
                   RequestConfirmation(
-                    UserPrompt.ChecksOverride(_, stpid, _, _),
+                    UserPrompt.ChecksOverride(_, stpid, _),
                     _
                   )
                 )

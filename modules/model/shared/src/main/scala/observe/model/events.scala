@@ -8,6 +8,7 @@ import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.User
+import observe.model.UserPrompt.ChecksOverride
 import observe.model.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
@@ -137,29 +138,31 @@ case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
-    case ConditionsUpdated(v)     =>
+    case ConditionsUpdated(v)                                   =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceRefreshed(v, _)  =>
+    case SequenceRefreshed(v, _)                                =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case ObserverUpdated(v)       =>
+    case ObserverUpdated(v)                                     =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case OverridesUpdated(v)      =>
+    case OverridesUpdated(v)                                    =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case StepBreakpointChanged(v) =>
+    case StepBreakpointChanged(v)                               =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceUpdated(v)       =>
+    case SequenceUpdated(v)                                     =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case StepExecuted(_, v)       =>
+    case StepExecuted(_, v)                                     =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case FileIdStepExecuted(_, v) =>
+    case FileIdStepExecuted(_, v)                               =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceStart(_, _, v)   =>
+    case SequenceStart(_, _, v)                                 =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceCompleted(v)     =>
+    case SequenceCompleted(v)                                   =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case OperatorUpdated(v)       =>
+    case OperatorUpdated(v)                                     =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SingleActionEvent(v)     =>
+    case UserPromptNotification(c @ ChecksOverride(_, _, _), _) =>
+      ClientEvent.ChecksOverrideEvent(c).some
+    case SingleActionEvent(v)                                   =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>
           ClientEvent
@@ -179,9 +182,9 @@ extension (e: ObserveEvent)
             )
             .some
       }
-    case SequenceLoaded(_, v)     =>
+    case SequenceLoaded(_, v)                                   =>
       ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case _                        =>
+    case _                                                      =>
       none
   }).map { u =>
     e match {

@@ -4,6 +4,7 @@
 package observe.model.events.client
 
 import cats.*
+import cats.data.NonEmptyList
 import cats.derived.*
 import cats.syntax.all.*
 import eu.timepit.refined.cats.*
@@ -23,6 +24,8 @@ import observe.model.Operator
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.StepId
+import observe.model.UserPrompt.ChecksOverride
+import observe.model.UserPrompt.SeqCheck
 import observe.model.enums.Resource
 import observe.model.given
 
@@ -78,14 +81,21 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
+  case class ChecksOverrideEvent(prompt: ChecksOverride) extends ClientEvent
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
+
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ InitialEvent(_)                  => e.asJson
     case e @ ObserveState(_, _, _)            => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
+    case e @ ChecksOverrideEvent(_)           => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
       Decoder[InitialEvent].widen,
       Decoder[ObserveState].widen,
-      Decoder[SingleActionEvent].widen
+      Decoder[SingleActionEvent].widen,
+      Decoder[ChecksOverrideEvent].widen
     ).reduceLeft(_ or _)

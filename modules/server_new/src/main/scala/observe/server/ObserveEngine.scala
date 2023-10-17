@@ -465,12 +465,10 @@ object ObserveEngine {
             executeEngine
               .liftF {
                 (for {
-                  ststp  <- findStartingStep(seq, stepId)
-                  stpidx <- seq.seqGen.stepIndex(ststp.id)
-                  sp     <- findFirstCheckRequiredStep(seq, ststp.id)
+                  ststp <- findStartingStep(seq, stepId)
+                  sp    <- findFirstCheckRequiredStep(seq, ststp.id)
                 } yield sequenceTcsTargetMatch(seq).map { tchk =>
                   (ststp.some,
-                   stpidx,
                    List(tchk,
                         observingConditionsMatch(st.conditions, seq.seqGen.obsData.constraintSet)
                    )
@@ -478,9 +476,9 @@ object ObserveEngine {
                      .widen[SeqCheck]
                   )
                 })
-                  .getOrElse((none[SequenceGen.StepGen[F]], 0, List.empty[SeqCheck]).pure[F])
+                  .getOrElse((none[SequenceGen.StepGen[F]], List.empty[SeqCheck]).pure[F])
               }
-              .flatMap { case (stpg, stpidx, checks) =>
+              .flatMap { case (stpg, checks) =>
                 (checkResources(id)(st), stpg, checks, runOverride) match {
                   // Resource check fails
                   case (false, _, _, _)                             =>
@@ -491,7 +489,7 @@ object ObserveEngine {
                   case (_, Some(stp), x :: xs, RunOverride.Default) =>
                     executeEngine.unit.as[SeqEvent](
                       RequestConfirmation(
-                        UserPrompt.ChecksOverride(id, stp.id, stpidx, NonEmptyList(x, xs)),
+                        UserPrompt.ChecksOverride(id, stp.id, NonEmptyList(x, xs)),
                         clientId
                       )
                     )
