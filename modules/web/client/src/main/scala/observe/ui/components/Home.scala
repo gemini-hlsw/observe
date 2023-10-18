@@ -8,7 +8,6 @@ import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.*
 import crystal.react.hooks.*
-import crystal.react.syntax.pot.given
 import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -22,7 +21,6 @@ import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import lucuma.react.primereact.*
-import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
@@ -43,6 +41,7 @@ import observe.ui.model.TabOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
+import observe.ui.model.LoadedObservation
 
 import scala.collection.immutable.SortedMap
 
@@ -84,23 +83,12 @@ object Home:
             )
           )
           .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
-      .useStateView(none[Observation.Id]) // selectedObsId
-      .useEffectResultWithDepsBy((_, _, _, selectedObsId) => selectedObsId.get): (_, ctx, _, _) =>
-        obsId =>
-          import ctx.given
-
-          // TODO We will have to requery under certain conditions:
-          // - After step is executed/paused/aborted.
-          // - If sequence changes... How do we know this??? Update: Shane will add a hash to the API
-          obsId.fold(IO.none)(
-            SequenceSQL.SequenceQuery[IO].query(_).map(_.observation.map(_.execution.config))
-          )
-      // TODO: This will actually come from the observe server.
-      .useStateView(
+      .useStateView:
         ExecutionState(SequenceState.Idle, none, none, none, Map.empty, SystemOverrides.AllEnabled)
-      )
-      .useEffectWithDepsBy((_, _, _, _, config, _) => config)((_, _, _, _, _, executionState) =>
-        config =>
+      .useEffectWithDepsBy((props, _, _, _) =>
+        props.rootModel.get.nighttimeObservation.flatMap(_.config.toOption)
+      ): (_, _, _, executionState) =>
+        configOpt =>
           def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
             sequence
               .map(s => s.nextAtom +: s.possibleFuture)
@@ -108,8 +96,6 @@ object Home:
               .flatMap(_.steps.toList)
               .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
               .toSet
-
-          val configOpt: Option[InstrumentExecutionConfig] = config.toOption.flatten
 
           // We simulate we are running some step.
           val executingStepId: Option[Step.Id] =
@@ -152,10 +138,15 @@ object Home:
               initialBreakpoints
             )
           )
-      )
       .useContext(SequenceApi.ctx)
-      .render: (props, ctx, observations, selectedObsId, config, executionState, sequenceApi) =>
+      .render: (props, ctx, observations, executionState, sequenceApi) =>
         import ctx.given
+
+        val selectedObsId: Option[Observation.Id] =
+          props.rootModel.get.nighttimeObservation.map(_.obsId)
+
+        val setSelectedObsId: Observation.Id => Callback = obsId =>
+          props.rootModel.zoom(RootModel.nighttimeObservation).set(LoadedObservation(obsId).some)
 
         val breakpoints: View[Set[Step.Id]] = executionState.zoom(ExecutionState.breakpoints)
 
@@ -187,13 +178,12 @@ object Home:
               SplitterPanel():
                 observations.toPot
                   .map(_.filter(_.obsClass == ObsClass.Nighttime))
-                  .renderPot(SessionQueue(_, selectedObsId))
+                  .renderPot(SessionQueue(_, selectedObsId, setSelectedObsId))
               ,
               SplitterPanel():
-                (observations.toOption, selectedObsId.get).mapN: (obsRows, obsId) =>
-                  config
-                    .map(_.toPot)
-                    .flatten
+                (observations.toOption, selectedObsId).mapN: (obsRows, obsId) =>
+                  props.rootModel.get.nighttimeObservation.toPot
+                    .flatMap(_.config)
                     .renderPot:
                       case InstrumentExecutionConfig.GmosNorth(config) =>
                         GmosNorthSequenceTables(

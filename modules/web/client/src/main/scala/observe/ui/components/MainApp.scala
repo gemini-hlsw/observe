@@ -62,6 +62,7 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
+import observe.ui.components.services.ObservationSyncer
 
 object MainApp:
   private val ConfigFile: Uri       = uri"/environments.conf.json"
@@ -328,6 +329,7 @@ object MainApp:
                   onHide = Callback.empty,
                   clazz = ObserveStyles.SyncingPanel
                 )(SolarProgress()),
+                ObservationSyncer(rootModel.zoom(RootModel.nighttimeObservation)),
                 router(rootModel)
               )
             )
