@@ -1,4 +1,4 @@
-@use '/lucuma-css/lucuma-ui-common.scss' as lucumaUICommon;
+@use "/lucuma-css/lucuma-ui-common.scss" as lucumaUICommon;
 
 html {
   font-size: 14px;
@@ -68,7 +68,6 @@ html {
     background-color: var(--orange-500);
   }
 }
-
 
 .p-accordion .p-accordion-header:not(.p-disabled) {
   &.ObserveStyles-logArea {
@@ -156,7 +155,7 @@ html {
       height: 60px;
       vertical-align: top;
 
-      td:not(.ObserveStyles-breakpointTableCell){
+      td:not(.ObserveStyles-breakpointTableCell) {
         padding-top: 6px;
       }
     }
@@ -287,13 +286,13 @@ html {
     thead {
       z-index: 1;
 
-      tr>th {
+      tr > th {
         padding: 0.5em 0.75em;
         border: 1px solid var(--surface-border);
       }
     }
 
-    tr>td {
+    tr > td {
       min-width: 20px;
       font-size: small;
       text-overflow: ellipsis;
@@ -309,14 +308,13 @@ html {
   }
 
   &.ObserveStyles-sessionTable {
-    tr>td {
+    tr > td {
       padding-top: 0.5em;
       padding-bottom: 0.5em;
     }
   }
 
   &.ObserveStyles-stepTable {
-
     tr.ObserveStyles-stepRowDone {
       pointer-events: none;
       color: var(--disabled-row-color);
@@ -359,10 +357,9 @@ html {
       @return bottom-line($outer), bottom-thick-line($inner);
     }
 
-
     tr {
       box-shadow: none !important;
-      
+
       td {
         padding-top: 1px;
         padding-bottom: 1px;
@@ -379,7 +376,9 @@ html {
       //
       //
       // SEPARATOR-SEPARATOR-SEPARATOR
-      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+      td:not(.ObserveStyles-breakpointTableCell):not(
+          .ObserveStyles-runningStateTableCell-shown
+        ) {
         box-shadow: bottom-line($separator-color) !important;
       }
 
@@ -392,7 +391,9 @@ html {
         //
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
           box-shadow: top-line($hover-color), bottom-line($hover-color) !important;
         }
       }
@@ -407,7 +408,9 @@ html {
       //
       //
       // SEPARATOR-SEPARATOR-SEPARATOR
-      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+      td:not(.ObserveStyles-breakpointTableCell):not(
+          .ObserveStyles-runningStateTableCell-shown
+        ) {
         box-shadow: top-line($atom-color), bottom-line($separator-color) !important;
       }
 
@@ -420,8 +423,11 @@ html {
         //
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-          box-shadow: top-double-line($atom-color, $hover-color), bottom-line($hover-color) !important;
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
+          box-shadow: top-double-line($atom-color, $hover-color),
+            bottom-line($hover-color) !important;
         }
       }
 
@@ -434,7 +440,9 @@ html {
         //
         //
         // BREAKPOINT-BREAKPOINT-BREAKPO
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
           box-shadow: top-line($atom-color), bottom-line($breakpoint-color) !important;
         }
 
@@ -447,8 +455,11 @@ html {
           //
           // HOVER-HOVER-HOVER-HOVER-HOVER
           // BREAKPOINT-BREAKPOINT-BREAKPO
-          td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-            box-shadow: top-double-line($atom-color, $hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+          td:not(.ObserveStyles-breakpointTableCell):not(
+              .ObserveStyles-runningStateTableCell-shown
+            ) {
+            box-shadow: top-double-line($atom-color, $hover-color),
+              bottom-double-line($breakpoint-color, $hover-color) !important;
           }
         }
       }
@@ -463,7 +474,9 @@ html {
       //
       //
       // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
-      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+      td:not(.ObserveStyles-breakpointTableCell):not(
+          .ObserveStyles-runningStateTableCell-shown
+        ) {
         box-shadow: bottom-line($atom-color) !important;
       }
 
@@ -476,8 +489,11 @@ html {
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
         // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-          box-shadow: top-line($hover-color), bottom-double-line($atom-color, $hover-color) !important;
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
+          box-shadow: top-line($hover-color),
+            bottom-double-line($atom-color, $hover-color) !important;
         }
       }
     }
@@ -491,7 +507,9 @@ html {
       //
       //
       // BREAKPOINT-BREAKPOINT-BREAKPO
-      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+      td:not(.ObserveStyles-breakpointTableCell):not(
+          .ObserveStyles-runningStateTableCell-shown
+        ) {
         box-shadow: bottom-line($breakpoint-color) !important;
       }
 
@@ -504,36 +522,48 @@ html {
         //
         // HOVER-HOVER-HOVER-HOVER-HOV
         // BREAKPOINT-BREAKPOINT-BREAK
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-          box-shadow: top-line($hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
+          box-shadow: top-line($hover-color),
+            bottom-double-line($breakpoint-color, $hover-color) !important;
         }
       }
     }
 
-    tr.ObserveStyles-stepRowWithBreakpoint, tr.ObserveStyles-stepRowWithBreakpoint:not(:first-of-type) {
+    tr.ObserveStyles-stepRowWithBreakpoint,
+    tr.ObserveStyles-stepRowWithBreakpoint:not(:first-of-type) {
       // Breakpoint row.
       // BREAKPOINT-BREAKPOINT-BREAKPO
       //
       //
       // ROW CONTENTS
       //
-      // 
+      //
       // SEPARATOR-SEPARATOR-SEPARATOR
-      td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+      td:not(.ObserveStyles-breakpointTableCell):not(
+          .ObserveStyles-runningStateTableCell-shown
+        ) {
         box-shadow: top-line($breakpoint-color), bottom-line($separator-color) !important;
       }
 
-      &:has(+ .ObserveStyles-stepRowWithBreakpoint), &:has(+ .ObserveStyles-stepRowWithBreakpoint):has(+ .ObserveStyles-stepRowFirstInAtom){
+      &:has(+ .ObserveStyles-stepRowWithBreakpoint),
+      &:has(+ .ObserveStyles-stepRowWithBreakpoint):has(
+          + .ObserveStyles-stepRowFirstInAtom
+        ) {
         // Breakpoint row with next row with breakpoint.
         // BREAKPOINT-BREAKPOINT-BREAKPO
         //
         //
         // ROW CONTENTS
         //
-        // 
+        //
         // BREAKPOINT-BREAKPOINT-BREAKPO
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-          box-shadow: top-line($breakpoint-color), bottom-line($breakpoint-color) !important;
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
+          box-shadow: top-line($breakpoint-color),
+            bottom-line($breakpoint-color) !important;
         }
       }
 
@@ -546,7 +576,9 @@ html {
         //
         //
         // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
           box-shadow: top-line($breakpoint-color), bottom-line($atom-color) !important;
         }
       }
@@ -558,10 +590,13 @@ html {
         //
         // ROW CONTENTS
         //
-        // 
+        //
         // HOVER-HOVER-HOVER-HOVER-HOVER
-        td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-          box-shadow: top-double-line($breakpoint-color, $hover-color), bottom-line($hover-color) !important;
+        td:not(.ObserveStyles-breakpointTableCell):not(
+            .ObserveStyles-runningStateTableCell-shown
+          ) {
+          box-shadow: top-double-line($breakpoint-color, $hover-color),
+            bottom-line($hover-color) !important;
         }
 
         &:has(+ .ObserveStyles-stepRowWithBreakpoint) {
@@ -573,8 +608,11 @@ html {
           //
           // HOVER-HOVER-HOVER-HOVER-HOVER
           // BREAKPOINT-BREAKPOINT-BREAKPO
-          td:not(.ObserveStyles-breakpointTableCell):not(.ObserveStyles-runningStateTableCell-shown) {
-            box-shadow: top-double-line($breakpoint-color, $hover-color), bottom-double-line($breakpoint-color, $hover-color) !important;
+          td:not(.ObserveStyles-breakpointTableCell):not(
+              .ObserveStyles-runningStateTableCell-shown
+            ) {
+            box-shadow: top-double-line($breakpoint-color, $hover-color),
+              bottom-double-line($breakpoint-color, $hover-color) !important;
           }
         }
       }
@@ -671,7 +709,6 @@ html {
       padding: 0;
       border: 0;
     }
-
   }
 }
 
@@ -898,5 +935,22 @@ html {
 
   .p-dialog-header {
     text-align: center;
+  }
+}
+
+.ObserveStyles-obsSummary {
+  margin: 15px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .ObserveStyles-obsSummary-title {
+    font-size: x-large;
+    font-weight: bold;
+  }
+
+  .ObserveStyles-obsSummary-details {
+    display: flex;
+    gap: 3em;
   }
 }

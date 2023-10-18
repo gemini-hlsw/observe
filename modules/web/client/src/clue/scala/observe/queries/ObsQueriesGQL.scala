@@ -48,4 +48,13 @@ object ObsQueriesGQL {
       }
     """
   }
+
+  @GraphQL
+  trait ObservationSummary extends GraphQLOperation[ObservationDB] {
+    val document = s"""
+      query($$obsId: ObservationId!) {
+        observation(observationId: $$obsId) $ObservationSummarySubquery
+      }
+    """
+  }
 }

@@ -64,6 +64,7 @@ lazy val root = tlCrossRootProject.aggregate(
   observe_web_client,
   observe_server,
   observe_model,
+  observe_ui_model,
   observe_engine
 )
 
@@ -105,6 +106,17 @@ lazy val observe_web_server = project
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
 
+lazy val observe_ui_model = project
+  .in(file("modules/web/client-model"))
+  .settings(lucumaGlobalSettings: _*)
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    coverageEnabled := false,
+    libraryDependencies ++= Seq(
+      LucumaSchemas.value
+    ) ++ LucumaCore.value ++ Circe.value
+  )
+
 lazy val observe_web_client = project
   .in(file("modules/web/client"))
   .settings(lucumaGlobalSettings: _*)
@@ -132,7 +144,7 @@ lazy val observe_web_client = project
     ),
     buildInfoPackage := "observe.ui"
   )
-  .dependsOn(observe_model.js)
+  .dependsOn(observe_model.js, observe_ui_model)
 
 // List all the modules and their inter dependencies
 lazy val observe_server = project

@@ -6,7 +6,6 @@ package observe.ui
 import lucuma.react.common.style.Css
 
 object ObserveStyles:
-
   val LoginTitle: Css = Css("ObserveStyles-login-title")
 
   val Centered: Css       = Css("ObserveStyles-centered")
@@ -103,3 +102,7 @@ object ObserveStyles:
   val ConfigButton: Css      = Css("ObserveStyles-configButton")
 
   val SyncingPanel: Css = Css("ObserveStyles-syncingPanel")
+
+  val ObsSummary: Css        = Css("ObserveStyles-obsSummary")
+  val ObsSummaryTitle: Css   = Css("ObserveStyles-obsSummary-title")
+  val ObsSummaryDetails: Css = Css("ObserveStyles-obsSummary-details")

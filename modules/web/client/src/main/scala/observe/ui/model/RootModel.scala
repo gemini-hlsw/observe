@@ -18,6 +18,8 @@ import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Option[UserVault],
+  nighttimeObservation: Option[LoadedObservation],
+  daytimeObservations:  List[LoadedObservation],
   sequenceExecution:    Map[Observation.Id, ExecutionState],
   conditions:           Conditions,
   observer:             Option[Observer],
@@ -32,6 +34,8 @@ object RootModelData:
     val vault: Option[UserVault] = userVault.toOption.flatten
     RootModelData(
       userVault = vault,
+      nighttimeObservation = none,
+      daytimeObservations = List.empty,
       sequenceExecution = Map.empty,
       conditions = Conditions.Default,
       observer =
@@ -43,6 +47,10 @@ object RootModelData:
     )
 
   val userVault: Lens[RootModelData, Option[UserVault]]                           = Focus[RootModelData](_.userVault)
+  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]        =
+    Focus[RootModelData](_.nighttimeObservation)
+  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]           =
+    Focus[RootModelData](_.daytimeObservations)
   val sequenceExecution: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
     Focus[RootModelData](_.sequenceExecution)
   val conditions: Lens[RootModelData, Conditions]                                 = Focus[RootModelData](_.conditions)
@@ -61,6 +69,10 @@ object RootModel:
   private val data: Lens[RootModel, RootModelData]                            = Focus[RootModel](_.data)
   private val environment: Lens[RootModel, Environment]                       = Focus[RootModel](_.environment)
   val userVault: Lens[RootModel, Option[UserVault]]                           = data.andThen(RootModelData.userVault)
+  val nighttimeObservation: Lens[RootModel, Option[LoadedObservation]]        =
+    data.andThen(RootModelData.nighttimeObservation)
+  val daytimeObservations: Lens[RootModel, List[LoadedObservation]]           =
+    data.andThen(RootModelData.daytimeObservations)
   val sequenceExecution: Lens[RootModel, Map[Observation.Id, ExecutionState]] =
     data.andThen(RootModelData.sequenceExecution)
   val conditions: Lens[RootModel, Conditions]                                 = data.andThen(RootModelData.conditions)

@@ -38,6 +38,7 @@ import lucuma.ui.syntax.pot.*
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
 import observe.ui.ObserveStyles
+import observe.ui.components.services.ObservationSyncer
 import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
 import observe.ui.model.RootModel
@@ -328,6 +329,7 @@ object MainApp:
                   onHide = Callback.empty,
                   clazz = ObserveStyles.SyncingPanel
                 )(SolarProgress()),
+                ObservationSyncer(rootModel.zoom(RootModel.nighttimeObservation)),
                 router(rootModel)
               )
             )

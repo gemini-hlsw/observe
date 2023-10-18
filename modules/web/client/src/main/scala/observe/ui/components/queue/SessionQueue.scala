@@ -4,7 +4,6 @@
 package observe.ui.components.queue
 
 import cats.syntax.all.*
-import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
@@ -25,8 +24,11 @@ import observe.ui.display.given
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 
-case class SessionQueue(queue: List[SessionQueueRow], selectedObsId: View[Option[Observation.Id]])
-    extends ReactFnProps(SessionQueue.component)
+case class SessionQueue(
+  queue:            List[SessionQueueRow],
+  selectedObsId:    Option[Observation.Id],
+  setSelectedObsId: Observation.Id => Callback
+) extends ReactFnProps(SessionQueue.component)
 
 object SessionQueue:
   private type Props = SessionQueue
@@ -203,7 +205,7 @@ object SessionQueue:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useMemoBy(props => props.selectedObsId.get)(_ => columns(_))
+      .useMemoBy(props => props.selectedObsId)(_ => columns(_))
       .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,
@@ -219,8 +221,8 @@ object SessionQueue:
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
             rowMod = row =>
               TagMod(
-                rowClass( /*row.index.toInt,*/ row.original, props.selectedObsId.get),
-                ^.onClick --> props.selectedObsId.set(row.original.obsId.some)
+                rowClass( /*row.index.toInt,*/ row.original, props.selectedObsId),
+                ^.onClick --> props.setSelectedObsId(row.original.obsId)
               ),
             overscan = 5
           )
