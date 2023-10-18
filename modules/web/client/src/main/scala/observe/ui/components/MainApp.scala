@@ -38,6 +38,7 @@ import lucuma.ui.syntax.pot.*
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
 import observe.ui.ObserveStyles
+import observe.ui.components.services.ObservationSyncer
 import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
 import observe.ui.model.RootModel
@@ -62,7 +63,6 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import observe.ui.components.services.ObservationSyncer
 
 object MainApp:
   private val ConfigFile: Uri       = uri"/environments.conf.json"

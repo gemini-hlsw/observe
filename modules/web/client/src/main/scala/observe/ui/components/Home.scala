@@ -34,6 +34,7 @@ import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
 import observe.ui.model.AppContext
+import observe.ui.model.LoadedObservation
 import observe.ui.model.ResourceRunOperation
 import observe.ui.model.RootModel
 import observe.ui.model.SessionQueueRow
@@ -41,7 +42,6 @@ import observe.ui.model.TabOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
-import observe.ui.model.LoadedObservation
 
 import scala.collection.immutable.SortedMap
 
@@ -182,31 +182,35 @@ object Home:
               ,
               SplitterPanel():
                 (observations.toOption, selectedObsId).mapN: (obsRows, obsId) =>
-                  props.rootModel.get.nighttimeObservation.toPot
-                    .flatMap(_.config)
-                    .renderPot:
-                      case InstrumentExecutionConfig.GmosNorth(config) =>
-                        GmosNorthSequenceTables(
-                          clientMode,
-                          obsId,
-                          config,
-                          executionState.get,
-                          tabOperations(config),
-                          isPreview = false,
-                          flipBreakPoint
-                        ) // TODO isPreview
-                          .withKey(obsId.toString)
-                      case InstrumentExecutionConfig.GmosSouth(config) =>
-                        GmosSouthSequenceTables(
-                          clientMode,
-                          obsId,
-                          config,
-                          executionState.get,
-                          tabOperations(config),
-                          isPreview = false,
-                          flipBreakPoint
+                  <.div(^.height := "100%", ^.key := obsId.toString)(
+                    props.rootModel.get.nighttimeObservation.toPot
+                      .flatMap(_.unPot)
+                      .renderPot: (obsId, summary, config) =>
+                        React.Fragment(
+                          ObsHeader(obsId, summary),
+                          config match
+                            case InstrumentExecutionConfig.GmosNorth(config) =>
+                              GmosNorthSequenceTables(
+                                clientMode,
+                                obsId,
+                                config,
+                                executionState.get,
+                                tabOperations(config),
+                                isPreview = false,
+                                flipBreakPoint
+                              )
+                            case InstrumentExecutionConfig.GmosSouth(config) =>
+                              GmosSouthSequenceTables(
+                                clientMode,
+                                obsId,
+                                config,
+                                executionState.get,
+                                tabOperations(config),
+                                isPreview = false,
+                                flipBreakPoint
+                              )
                         )
-                          .withKey(obsId.toString)
+                  )
             ),
             Accordion(tabs =
               List(

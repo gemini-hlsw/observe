@@ -4,11 +4,11 @@
 package observe.ui.model
 
 import cats.syntax.all.*
-import lucuma.core.model.sequence.InstrumentExecutionConfig
-import lucuma.core.model.Observation
 import crystal.Pot
-import monocle.Lens
+import lucuma.core.model.Observation
+import lucuma.core.model.sequence.InstrumentExecutionConfig
 import monocle.Focus
+import monocle.Lens
 
 case class LoadedObservation private (
   obsId:   Observation.Id,
@@ -23,9 +23,6 @@ case class LoadedObservation private (
 
   def unPot: Pot[(Observation.Id, ObsSummary, InstrumentExecutionConfig)] =
     (summary, config).mapN((s, c) => (obsId, s, c))
-
-  // def whenReady[A](f: (Observation.Id, ObsSummary, InstrumentExecutionConfig) => A): Pot[A] =
-  //   (summary, config).mapN((s, c) => f(obsId, s, c))
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
