@@ -33,6 +33,14 @@ pull_request_rules:
       add:
       - client-clue
       remove: []
+- name: Label client-model PRs
+  conditions:
+  - files~=^modules/web/client-model/
+  actions:
+    label:
+      add:
+      - client-model
+      remove: []
 - name: Label engine PRs
   conditions:
   - files~=^modules/engine/
