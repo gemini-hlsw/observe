@@ -40,6 +40,8 @@ object ObserveStyles:
   val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
   val SessionTable: Css   = Css("ObserveStyles-sessionTable")
   val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")
+  val LoadButtonCell: Css = Css("ObserveStyles-loadButton-cell")
+  val LoadButton: Css     = Css("ObserveStyles-loadButton")
 
   val ConfigSection: Css       = Css("ObserveStyles-ConfigSection")
   val ObserverArea: Css        = Css("ObserveStyles-ObserverArea")

@@ -11,6 +11,7 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
+import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
@@ -25,9 +26,9 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 
 case class SessionQueue(
-  queue:            List[SessionQueueRow],
-  selectedObsId:    Option[Observation.Id],
-  setSelectedObsId: Observation.Id => Callback
+  queue:       List[SessionQueueRow],
+  loadedObsId: Option[Observation.Id],
+  loadObs:     Observation.Id => Callback
 ) extends ReactFnProps(SessionQueue.component)
 
 object SessionQueue:
@@ -139,8 +140,12 @@ object SessionQueue:
   private val TargetColumnId: ColumnId     = ColumnId("target")
   private val ObsNameColumnId: ColumnId    = ColumnId("obsName")
   private val ObserverColumnId: ColumnId   = ColumnId("observer")
+  private val LoadSeqColumnId: ColumnId    = ColumnId("loadSequence")
 
-  private def columns(selectedObsId: Option[Observation.Id]) = List(
+  private def columns(
+    selectedObsId:    Option[Observation.Id],
+    setSelectedObsId: Observation.Id => Callback
+  ) = List(
     ColDef(
       IconColumnId,
       cell =
@@ -199,13 +204,29 @@ object SessionQueue:
       _.observer.foldMap(_.value.value),
       header = "Observer",
       cell = linked(_.value.toString)
+    ),
+    ColDef(
+      LoadSeqColumnId,
+      row => row.obsId,
+      header = "",
+      cell = cell =>
+        renderCendered(
+          Button(
+            "Load",
+            size = Button.Size.Small,
+            onClick = setSelectedObsId(cell.value),
+            clazz = ObserveStyles.LoadButton
+          )
+        ),
+      enableSorting = false
     )
   )
 
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useMemoBy(props => props.selectedObsId)(_ => columns(_))
+      .useMemoBy(props => props.loadedObsId): props =>
+        selectedObsId => columns(selectedObsId, props.loadObs)
       .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,
@@ -219,11 +240,12 @@ object SessionQueue:
             table,
             estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
-            rowMod = row =>
-              TagMod(
-                rowClass( /*row.index.toInt,*/ row.original, props.selectedObsId),
-                ^.onClick --> props.setSelectedObsId(row.original.obsId)
-              ),
+            rowMod = row => TagMod(rowClass(row.original, props.loadedObsId)),
+            cellMod = cell =>
+              ColumnId(cell.column.id) match
+                case LoadSeqColumnId => ObserveStyles.LoadButtonCell
+                case _               => TagMod.empty
+            ,
             overscan = 5
           )
         )

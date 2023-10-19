@@ -15,6 +15,7 @@ import observe.queries.ObsQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
+import observe.ui.services.SequenceApi
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -27,8 +28,9 @@ object ObservationSyncer:
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useEffectWithDepsBy((props, _) => props.nighttimeObservation.get.map(_.obsId)):
-        (props, ctx) =>
+      .useContext(SequenceApi.ctx)
+      .useEffectWithDepsBy((props, _, _) => props.nighttimeObservation.get.map(_.obsId)):
+        (props, ctx, sequenceApi) =>
           _.map: obsId =>
             import ctx.given
 
@@ -42,7 +44,7 @@ object ObservationSyncer:
                   _.flatMap:
                     _.toRight:
                       Exception(s"Observation [$obsId] not found")
-                .flatMap: obs =>
+                .flatTap: obs =>
                   props.nighttimeObservation.async.mod(_.map(_.withSummary(obs)))
 
             // TODO We will have to requery under certain conditions:
@@ -58,13 +60,14 @@ object ObservationSyncer:
                   _.flatMap:
                     _.toRight:
                       Exception(s"Execution Configuration not defined for observation [$obsId]")
-                .flatMap: config =>
+                .flatTap: config =>
                   props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-            (fetchSummary, fetchSequence).tupled.void
-            // List(fetchSequence, fetchSummary).sequence.void
-            // fetchSummary
-            // fetchSequence
+            (fetchSummary, fetchSequence).parTupled >>= ((_, configEither) =>
+              configEither.toOption // TODO Set breakpoints from ODB
+                .map(config => sequenceApi.loadObservation(obsId, config.instrument))
+                .orEmpty
+            )
           .orEmpty
       .render: _ =>
         EmptyVdom

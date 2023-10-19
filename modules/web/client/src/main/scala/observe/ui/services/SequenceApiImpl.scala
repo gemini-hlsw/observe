@@ -6,6 +6,7 @@ package observe.ui.services
 import cats.effect.IO
 import cats.syntax.eq.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.ClientId
@@ -18,6 +19,12 @@ case class SequenceApiImpl(
   observer: Observer
 )(using Logger[IO])
     extends SequenceApi[IO]:
+  override def loadObservation(obsId: Observation.Id, instrument: Instrument): IO[Unit] =
+    client.post(
+      Uri.Path.empty / "load" / instrument.tag / obsId.toString / client.clientId.value / observer.toString,
+      ()
+    )
+
   override def setBreakpoint(
     obsId:  Observation.Id,
     stepId: Step.Id,

@@ -8,11 +8,13 @@ import cats.effect.IO
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
 import lucuma.core.enums.Breakpoint
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 
 trait SequenceApi[F[_]: MonadThrow]:
-  // Server returns a boolean indicating whether the breakpoint is now enabled.
+  def loadObservation(obsId: Observation.Id, instrument: Instrument): F[Unit] = NotAuthorized
+
   def setBreakpoint(obsId: Observation.Id, stepId: Step.Id, value: Breakpoint): F[Unit] =
     NotAuthorized
 
