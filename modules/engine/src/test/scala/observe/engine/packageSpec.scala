@@ -10,6 +10,7 @@ import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.OrcidId
 import lucuma.core.model.OrcidProfile
@@ -33,6 +34,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
+import scala.concurrent.duration.*
 
 def user =
   StandardUser(
@@ -61,7 +63,7 @@ class packageSpec extends munit.CatsEffectSuite {
    */
   val configureTcs: Action[IO] = fromF[IO](ActionType.Configure(TCS),
                                            for {
-                                             _ <- IO(Thread.sleep(200))
+                                             _ <- IO.sleep(200.milliseconds)
                                            } yield Result.OK(DummyResult)
   )
 
@@ -70,7 +72,7 @@ class packageSpec extends munit.CatsEffectSuite {
    */
   val configureInst: Action[IO] = fromF[IO](ActionType.Configure(GmosSouth),
                                             for {
-                                              _ <- IO(Thread.sleep(200))
+                                              _ <- IO.sleep(200.milliseconds)
                                             } yield Result.OK(DummyResult)
   )
 
@@ -79,13 +81,13 @@ class packageSpec extends munit.CatsEffectSuite {
    */
   val observe: Action[IO] = fromF[IO](ActionType.Observe,
                                       for {
-                                        _ <- IO(Thread.sleep(200))
+                                        _ <- IO.sleep(200.milliseconds)
                                       } yield Result.OK(DummyResult)
   )
 
   val faulty: Action[IO] = fromF[IO](ActionType.Undefined,
                                      for {
-                                       _ <- IO(Thread.sleep(100))
+                                       _ <- IO.sleep(100.milliseconds)
                                      } yield Result.Error("There was an error in this action")
   )
 
@@ -530,7 +532,7 @@ class packageSpec extends munit.CatsEffectSuite {
                  .copy(skipMark = Step.SkipMark(true)),
                Step
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
+                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
                Step.init(id = stepId(3), executions = executions)
              )
            )
@@ -570,10 +572,10 @@ class packageSpec extends munit.CatsEffectSuite {
                  .copy(skipped = Step.Skipped(true)),
                Step
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
+                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
                Step
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true))
+                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled)
              )
            )
          )
@@ -614,7 +616,7 @@ class packageSpec extends munit.CatsEffectSuite {
                  .copy(skipMark = Step.SkipMark(true)),
                Step
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Step.BreakpointMark(true)),
+                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
                Step.init(id = stepId(4), executions = executions)
              )
            )

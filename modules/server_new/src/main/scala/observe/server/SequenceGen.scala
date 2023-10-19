@@ -5,6 +5,7 @@ package observe.server
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.StepConfig
@@ -29,7 +30,7 @@ import observe.model.enums.Resource
  * It is combined with header parameters to build an engine.Sequence. It allows to rebuild the
  * engine sequence whenever any of those parameters change.
  */
-final case class SequenceGen[F[_]](
+case class SequenceGen[F[_]](
   obsData:    OdbObservation,
   instrument: Instrument,
   staticCfg:  StaticConfig,
@@ -89,7 +90,7 @@ object SequenceGen {
       }
   }
 
-  final case class StepActionsGen[F[_]](
+  case class StepActionsGen[F[_]](
     configs: Map[Resource | Instrument, SystemOverrides => Action[F]],
     post:    (HeaderExtraData, SystemOverrides) => List[ParallelActions[F]]
   ) {
@@ -110,34 +111,35 @@ object SequenceGen {
 
   }
 
-  final case class PendingStepGen[F[_]](
-    override val id:         StepId,
-    override val dataId:     DataId,
-    resources:               Set[Resource | Instrument],
-    obsControl:              SystemOverrides => InstrumentSystem.ObserveControl[F],
-    generator:               StepActionsGen[F],
-    override val genData:    StepStatusGen = StepStatusGen.Null,
-    override val instConfig: DynamicConfig,
-    override val config:     StepConfig
+  case class PendingStepGen[F[_]](
+    id:         StepId,
+    dataId:     DataId,
+    resources:  Set[Resource | Instrument],
+    obsControl: SystemOverrides => InstrumentSystem.ObserveControl[F],
+    generator:  StepActionsGen[F],
+    genData:    StepStatusGen = StepStatusGen.Null,
+    instConfig: DynamicConfig,
+    config:     StepConfig,
+    breakpoint: Breakpoint
   ) extends StepGen[F]
 
-  final case class SkippedStepGen[F[_]](
-    override val id:         StepId,
-    override val dataId:     DataId,
-    override val genData:    StepStatusGen = StepStatusGen.Null,
-    override val instConfig: DynamicConfig,
-    override val config:     StepConfig
+  case class SkippedStepGen[F[_]](
+    id:         StepId,
+    dataId:     DataId,
+    genData:    StepStatusGen = StepStatusGen.Null,
+    instConfig: DynamicConfig,
+    config:     StepConfig
   ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
-  final case class CompletedStepGen[F[_]](
-    override val id:         StepId,
-    override val dataId:     DataId,
-    fileId:                  Option[ImageFileId],
-    override val genData:    StepStatusGen = StepStatusGen.Null,
-    override val instConfig: DynamicConfig,
-    override val config:     StepConfig
+  case class CompletedStepGen[F[_]](
+    id:         StepId,
+    dataId:     DataId,
+    fileId:     Option[ImageFileId],
+    genData:    StepStatusGen = StepStatusGen.Null,
+    instConfig: DynamicConfig,
+    config:     StepConfig
   ) extends StepGen[F]
 
   def stepIndex[F[_]](

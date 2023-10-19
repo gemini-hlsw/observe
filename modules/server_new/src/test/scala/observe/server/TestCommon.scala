@@ -343,7 +343,8 @@ object TestCommon {
         ),
         StepStatusGen.Null,
         dynamicCfg1,
-        stepCfg1
+        stepCfg1,
+        breakpoint = Breakpoint.Disabled
       )
     )
   )
@@ -423,7 +424,8 @@ object TestCommon {
           ),
           StepStatusGen.Null,
           dynamicCfg1,
-          stepCfg1
+          stepCfg1,
+          breakpoint = Breakpoint.Disabled
         )
       )
   )
@@ -494,7 +496,8 @@ object TestCommon {
         ),
         StepStatusGen.Null,
         dynamicCfg1,
-        stepCfg1
+        stepCfg1,
+        breakpoint = Breakpoint.Disabled
       ),
       SequenceGen.PendingStepGen(
         id = stepId(2),
@@ -507,7 +510,8 @@ object TestCommon {
         ),
         StepStatusGen.Null,
         dynamicCfg1,
-        stepCfg1
+        stepCfg1,
+        breakpoint = Breakpoint.Disabled
       )
     )
   )

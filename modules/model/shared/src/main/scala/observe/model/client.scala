@@ -14,6 +14,7 @@ import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import io.circe.refined.*
 import io.circe.syntax.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.util.Enumerated
@@ -47,7 +48,7 @@ extension (q: SequenceView)
       None,
       Map.empty,
       q.systemOverrides,
-      q.steps.mapFilter(s => if (s.breakpoint) s.id.some else none).toSet
+      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet
     )
 
 object ClientEvent:

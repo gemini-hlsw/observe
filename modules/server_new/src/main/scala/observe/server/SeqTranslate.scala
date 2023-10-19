@@ -155,7 +155,8 @@ object SeqTranslate {
           (ov: SystemOverrides) => instf(ov).observeControl,
           StepActionsGen(configs, rest),
           instConfig = step.instrumentConfig,
-          config = step.stepConfig
+          config = step.stepConfig,
+          breakpoint = step.breakpoint
         )
 
       }

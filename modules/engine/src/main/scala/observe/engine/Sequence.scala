@@ -4,6 +4,7 @@
 package observe.engine
 
 import cats.syntax.all.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step.Id as StepId
@@ -16,7 +17,7 @@ import observe.model.SequenceState
 /**
  * A list of `Step`s grouped by target and instrument.
  */
-final case class Sequence[F[_]] private (
+case class Sequence[F[_]] private (
   id:     Observation.Id,
   atomId: Option[Atom.Id],
   steps:  List[Step[F]]
@@ -34,7 +35,7 @@ object Sequence {
   /**
    * Sequence Zipper. This structure is optimized for the actual `Sequence` execution.
    */
-  final case class Zipper[F[_]](
+  case class Zipper[F[_]](
     id:      Observation.Id,
     atomId:  Option[Atom.Id],
     pending: List[Step[F]],
@@ -59,7 +60,7 @@ object Sequence {
         // Step completed
         case None      =>
           val (toSkip, remaining): (List[Step[F]], List[Step[F]]) =
-            pending.span(st => st.skipMark.value && !st.breakpoint.value)
+            pending.span(st => st.skipMark.value && !(st.breakpoint === Breakpoint.Enabled))
           remaining match {
             case Nil             => None
             case stepp :: stepps =>
@@ -188,7 +189,7 @@ object Sequence {
 
     def skips: Option[State[F]]
 
-    def setBreakpoint(stepId: StepId, v: Boolean): State[F]
+    def setBreakpoints(stepId: List[StepId], v: Breakpoint): State[F]
 
     def setSkipMark(stepId: StepId, v: Boolean): State[F]
 
@@ -306,7 +307,7 @@ object Sequence {
     /**
      * This is the `State` in Zipper mode, which means is under execution.
      */
-    final case class Zipper[F[_]](
+    case class Zipper[F[_]](
       zipper:     Sequence.Zipper[F],
       status:     SequenceState,
       singleRuns: Map[ActionCoordsInSeq, ActionState]
@@ -341,13 +342,12 @@ object Sequence {
         case Some(x) => Zipper(x, status, singleRuns).some
       }
 
-      override def setBreakpoint(stepId: StepId, v: Boolean): State[F] = self.copy(zipper =
-        zipper.copy(pending =
-          zipper.pending.map(s =>
-            if (s.id == stepId) s.copy(breakpoint = Step.BreakpointMark(v)) else s
+      override def setBreakpoints(stepId: List[StepId], v: Breakpoint): State[F] =
+        self.copy(zipper =
+          zipper.copy(pending =
+            zipper.pending.map(s => if (stepId.exists(_ === s.id)) s.copy(breakpoint = v) else s)
           )
         )
-      )
 
       override def setSkipMark(stepId: StepId, v: Boolean): State[F] = self.copy(zipper =
         if (zipper.focus.id == stepId)
@@ -359,7 +359,7 @@ object Sequence {
       )
 
       override def getCurrentBreakpoint: Boolean =
-        zipper.focus.breakpoint.value && zipper.focus.done.isEmpty
+        (zipper.focus.breakpoint === Breakpoint.Enabled) && zipper.focus.done.isEmpty
 
       override val done: List[Step[F]] = zipper.done
 
@@ -433,10 +433,9 @@ object Sequence {
     }
 
     /**
-     * Final `State`. This doesn't have any `Step` under execution, there are only completed
-     * `Step`s.
+     * `State`. This doesn't have any `Step` under execution, there are only completed `Step`s.
      */
-    final case class Final[F[_]](seq: Sequence[F], status: SequenceState) extends State[F] { self =>
+    case class Final[F[_]](seq: Sequence[F], status: SequenceState) extends State[F] { self =>
 
       override val next: Option[State[F]] = None
 
@@ -450,7 +449,7 @@ object Sequence {
 
       override def skips: Option[State[F]] = self.some
 
-      override def setBreakpoint(stepId: StepId, v: Boolean): State[F] = self
+      override def setBreakpoints(stepId: List[StepId], v: Breakpoint): State[F] = self
 
       override def setSkipMark(stepId: StepId, v: Boolean): State[F] = self
 

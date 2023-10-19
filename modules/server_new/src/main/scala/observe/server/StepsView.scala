@@ -151,7 +151,7 @@ object StepsView {
         instConfig = stepg.instConfig,
         stepConfig = stepg.config,
         status = status,
-        breakpoint = step.breakpoint.value,
+        breakpoint = step.breakpoint,
         skip = step.skipMark.value,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),

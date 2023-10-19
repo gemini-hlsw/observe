@@ -11,6 +11,7 @@ import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import lucuma.sso.client.SsoClient
 import observe.model.enums.RunOverride
 import observe.server
@@ -32,6 +33,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   given EntityDecoder[F, ImageQuality]    = jsonOf[F, ImageQuality]
   given EntityDecoder[F, SkyBackground]   = jsonOf[F, SkyBackground]
   given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
+  given EntityDecoder[F, List[Step.Id]]   = jsonOf[F, List[Step.Id]]
 
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] {
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "start" /
@@ -71,10 +73,19 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //     Ok(s"Cancel Pause sequence $obsId")
     //
     case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
-        "breakpoint" / ObserverVar(obs) / BooleanVar(bp) =>
+        "breakpoint" / ObserverVar(obs) / BreakpointVar(bp) =>
       ssoClient.require(req) { user =>
-        oe.setBreakpoint(obsId, user, obs, stepId, bp) *>
+        oe.setBreakpoints(obsId, user, obs, List(stepId), bp) *>
           NoContent()
+      }
+
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
+        "breakpoints" / ObserverVar(obs) / BreakpointVar(bp) =>
+      ssoClient.require(req) { user =>
+        req.decode[List[Step.Id]] { steps =>
+          oe.setBreakpoints(obsId, user, obs, steps, bp) *>
+            NoContent()
+        }
       }
     //
     // case POST -> Root / ObsId(obsId) / "sync" as _ =>

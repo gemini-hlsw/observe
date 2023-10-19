@@ -14,7 +14,7 @@ import observe.server.StepsView.*
 import observe.server.*
 import observe.server.gmos.GmosController.Config.*
 
-final class GmosStepsView[F[_]] extends StepsView[F] {
+class GmosStepsView[F[_]] extends StepsView[F] {
   override def stepView(
     stepg:         SequenceGen.StepGen[F],
     step:          engine.Step[F],
@@ -55,7 +55,7 @@ final class GmosStepsView[F[_]] extends StepsView[F] {
           instConfig = stepg.instConfig,
           stepConfig = stepg.config,
           status = status,
-          breakpoint = step.breakpoint.value,
+          breakpoint = step.breakpoint,
           skip = step.skipMark.value,
           configStatus = configStatus,
           nsStatus = NodAndShuffleStatus(

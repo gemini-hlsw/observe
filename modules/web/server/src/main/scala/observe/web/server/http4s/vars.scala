@@ -5,6 +5,7 @@ package observe.web.server.http4s
 
 import cats.syntax.all.*
 import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -57,16 +58,20 @@ private given QueryParamDecoder[RunOverride] =
 object OptionalRunOverride
     extends OptionalQueryParamDecoderMatcher[RunOverride]("overrideTargetCheck")
 
-object BooleanVar:
-  def unapply(str: String): Option[Boolean] =
+private trait BooleanBasedVar[A]:
+  def unapply(str: String): Option[A] =
     str.toLowerCase match
-      case "true"  => Some(true)
-      case "false" => Some(false)
-      case _       => None
-
-object SubsystemEnabledVar:
-  def unapply(str: String): Option[SubsystemEnabled] =
-    str.toLowerCase match
-      case "true"  => SubsystemEnabled.Enabled.some
-      case "false" => SubsystemEnabled.Disabled.some
+      case "true"  => item(true).some
+      case "false" => item(false).some
       case _       => none
+
+  def item(b: Boolean): A
+
+object BooleanVar extends BooleanBasedVar[Boolean]:
+  def item(b: Boolean) = b
+
+object BreakpointVar extends BooleanBasedVar[Breakpoint]:
+  def item(b: Boolean) = if b then Breakpoint.Enabled else Breakpoint.Disabled
+
+object SubsystemEnabledVar extends BooleanBasedVar[SubsystemEnabled]:
+  def item(b: Boolean) = if b then SubsystemEnabled.Enabled else SubsystemEnabled.Disabled

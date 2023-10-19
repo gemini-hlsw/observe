@@ -8,6 +8,7 @@ import cats.effect.IO
 import cats.effect.Ref
 import cats.implicits.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.sequence.Atom
 import munit.CatsEffectSuite
@@ -62,7 +63,7 @@ class StepSuite extends CatsEffectSuite {
 
     Step.Zipper(
       id = stepId(1),
-      breakpoint = Step.BreakpointMark(false),
+      breakpoint = Breakpoint.Disabled,
       skipMark = Step.SkipMark(false),
       pending = pending,
       focus = focus,
@@ -267,7 +268,7 @@ class StepSuite extends CatsEffectSuite {
                pending = Nil,
                focus = Step.Zipper(
                  id = stepId(2),
-                 breakpoint = Step.BreakpointMark(false),
+                 breakpoint = Breakpoint.Disabled,
                  skipMark = Step.SkipMark(false),
                  pending = Nil,
                  focus = Execution(List(observe)),
@@ -321,7 +322,7 @@ class StepSuite extends CatsEffectSuite {
                pending = Nil,
                focus = Step.Zipper(
                  id = stepId(2),
-                 breakpoint = Step.BreakpointMark(false),
+                 breakpoint = Breakpoint.Disabled,
                  skipMark = Step.SkipMark(false),
                  pending = Nil,
                  focus = Execution(List(observe)),
@@ -756,7 +757,7 @@ class StepSuite extends CatsEffectSuite {
       Step
         .Zipper(
           id = stepId(1),
-          breakpoint = Step.BreakpointMark(false),
+          breakpoint = Breakpoint.Disabled,
           skipMark = Step.SkipMark(false),
           pending = Nil,
           focus = Execution(List(action, actionFailed, actionCompleted)),
@@ -773,7 +774,7 @@ class StepSuite extends CatsEffectSuite {
       Step
         .Zipper(
           id = stepId(1),
-          breakpoint = Step.BreakpointMark(false),
+          breakpoint = Breakpoint.Disabled,
           skipMark = Step.SkipMark(false),
           pending = Nil,
           focus = Execution(List(actionCompleted, actionCompleted, actionCompleted)),
@@ -790,7 +791,7 @@ class StepSuite extends CatsEffectSuite {
       Step
         .Zipper(
           id = stepId(1),
-          breakpoint = Step.BreakpointMark(false),
+          breakpoint = Breakpoint.Disabled,
           skipMark = Step.SkipMark(false),
           pending = Nil,
           focus = Execution(List(actionCompleted, action, actionCompleted)),
@@ -807,7 +808,7 @@ class StepSuite extends CatsEffectSuite {
       Step
         .Zipper(
           id = stepId(1),
-          breakpoint = Step.BreakpointMark(false),
+          breakpoint = Breakpoint.Disabled,
           skipMark = Step.SkipMark(false),
           pending = Nil,
           focus = Execution(List(action, action, action)),
@@ -824,7 +825,7 @@ class StepSuite extends CatsEffectSuite {
       Step
         .Zipper(
           id = stepId(1),
-          breakpoint = Step.BreakpointMark(false),
+          breakpoint = Breakpoint.Disabled,
           skipMark = Step.SkipMark(false),
           pending = Nil,
           focus = Execution(List(action, action, action)),

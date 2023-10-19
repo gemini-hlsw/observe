@@ -104,6 +104,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
                       s"/load/GmosSouth/${obsId.show}/${clientId.value}/observer"
                     )
                   )
+                    .withEntity(List.empty[Step.Id].asJson)
                 ).value
     } yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))

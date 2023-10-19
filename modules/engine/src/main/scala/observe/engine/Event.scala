@@ -6,6 +6,7 @@ package observe.engine
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.model.User
 import observe.engine.SystemEvent.Null
 import observe.model.ClientId
@@ -33,11 +34,11 @@ object Event {
   def cancelPause[F[_], S, U](id: Observation.Id, user: User): Event[F, S, U]               =
     EventUser[F, S, U](CancelPause(id, user.some))
   def breakpoint[F[_], S, U](
-    id:   Observation.Id,
-    user: User,
-    step: StepId,
-    v:    Boolean
-  ): Event[F, S, U] = EventUser[F, S, U](Breakpoint(id, user.some, step, v))
+    id:    Observation.Id,
+    user:  User,
+    steps: List[StepId],
+    v:     Breakpoint
+  ): Event[F, S, U] = EventUser[F, S, U](Breakpoints(id, user.some, steps, v))
   def skip[F[_], S, U](
     id:   Observation.Id,
     user: User,
