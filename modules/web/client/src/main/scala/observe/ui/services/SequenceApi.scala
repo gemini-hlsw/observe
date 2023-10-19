@@ -11,11 +11,19 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import observe.model.enums.RunOverride
+import observe.model.enums.Resource
 
 trait SequenceApi[F[_]: MonadThrow]:
   def loadObservation(obsId: Observation.Id, instrument: Instrument): F[Unit] = NotAuthorized
 
   def setBreakpoint(obsId: Observation.Id, stepId: Step.Id, value: Breakpoint): F[Unit] =
+    NotAuthorized
+
+  def start(obsId: Observation.Id, runOverride: RunOverride = RunOverride.Default): F[Unit] =
+    NotAuthorized
+
+  def execute(obsId: Observation.Id, stepId: Step.Id, resource: Resource): F[Unit] =
     NotAuthorized
 
 object SequenceApi:

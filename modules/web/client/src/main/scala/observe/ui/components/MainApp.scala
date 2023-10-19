@@ -63,6 +63,7 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
+import lucuma.react.primereact.Button
 
 object MainApp:
   private val ConfigFile: Uri       = uri"/environments.conf.json"
@@ -318,17 +319,23 @@ object MainApp:
             apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
               ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
+          val resyncingPopup =
+            Dialog(
+              header = "Reestablishing connection to server...",
+              closable = false,
+              visible = isSynced.get == SyncStatus.OutOfSync,
+              onHide = Callback.empty,
+              clazz = ObserveStyles.SyncingPanel
+            )(
+              SolarProgress(),
+              Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
+            )
+
           // When both AppContext and RootModel are ready, proceed to render.
           (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>
             AppContext.ctx.provide(ctx)(
               provideApiCtx(
-                Dialog(
-                  header = "Reestablishing connection to server...",
-                  closable = false,
-                  visible = isSynced.get == SyncStatus.OutOfSync,
-                  onHide = Callback.empty,
-                  clazz = ObserveStyles.SyncingPanel
-                )(SolarProgress()),
+                resyncingPopup,
                 ObservationSyncer(rootModel.zoom(RootModel.nighttimeObservation)),
                 router(rootModel)
               )
