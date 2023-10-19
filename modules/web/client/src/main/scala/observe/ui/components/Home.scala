@@ -142,15 +142,14 @@ object Home:
       .render: (props, ctx, observations, executionState, sequenceApi) =>
         import ctx.given
 
-        val selectedObsId: Option[Observation.Id] =
+        val loadedObsId: Option[Observation.Id] =
           props.rootModel.get.nighttimeObservation.map(_.obsId)
 
-        val setSelectedObsId: Observation.Id => Callback = obsId =>
+        val loadObservation: Observation.Id => Callback = obsId =>
           props.rootModel.zoom(RootModel.nighttimeObservation).set(LoadedObservation(obsId).some)
 
         val breakpoints: View[Set[Step.Id]] = executionState.zoom(ExecutionState.breakpoints)
 
-        // UI is updated optimistically but it's updated again after server response is received.
         val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
           (obsId, stepId, value) =>
             breakpoints.mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
@@ -178,10 +177,10 @@ object Home:
               SplitterPanel():
                 observations.toPot
                   .map(_.filter(_.obsClass == ObsClass.Nighttime))
-                  .renderPot(SessionQueue(_, selectedObsId, setSelectedObsId))
+                  .renderPot(SessionQueue(_, loadedObsId, loadObservation))
               ,
               SplitterPanel():
-                (observations.toOption, selectedObsId).mapN: (obsRows, obsId) =>
+                (observations.toOption, loadedObsId).mapN: (obsRows, obsId) =>
                   <.div(^.height := "100%", ^.key := obsId.toString)(
                     props.rootModel.get.nighttimeObservation.toPot
                       .flatMap(_.unPot)

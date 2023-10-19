@@ -312,6 +312,14 @@ html {
       padding-top: 0.5em;
       padding-bottom: 0.5em;
     }
+
+    .ObserveStyles-loadButton-cell {
+      padding: 0;
+
+      .ObserveStyles-loadButton.p-component.p-button {
+        padding: 4px 10px;
+      }
+    }
   }
 
   &.ObserveStyles-stepTable {
