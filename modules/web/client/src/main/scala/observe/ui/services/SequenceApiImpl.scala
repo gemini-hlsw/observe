@@ -11,11 +11,11 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.ClientId
 import observe.model.Observer
+import observe.model.enums.Resource
+import observe.model.enums.RunOverride
+import org.http4s.Query
 import org.http4s.Uri
 import org.typelevel.log4cats.Logger
-import observe.model.enums.RunOverride
-import observe.model.enums.Resource
-import org.http4s.Query
 
 case class SequenceApiImpl(
   client:   ApiClient,

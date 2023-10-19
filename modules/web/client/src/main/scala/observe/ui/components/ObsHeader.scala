@@ -3,20 +3,20 @@
 
 package observe.ui.components
 
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
-import observe.model.Observation
-import observe.ui.ObserveStyles
-import observe.ui.model.ObsSummary
+import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.primereact.TooltipOptions
-import observe.ui.Icons
-import lucuma.react.fa.IconSize
-import observe.ui.services.SequenceApi
-import crystal.react.*
-import observe.ui.model.AppContext
+import observe.model.Observation
 import observe.model.enums.RunOverride
+import observe.ui.Icons
+import observe.ui.ObserveStyles
+import observe.ui.model.AppContext
+import observe.ui.model.ObsSummary
+import observe.ui.services.SequenceApi
 
 case class ObsHeader(
   obsId:       Observation.Id,

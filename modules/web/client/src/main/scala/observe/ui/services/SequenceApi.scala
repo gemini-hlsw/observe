@@ -11,8 +11,8 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import observe.model.enums.RunOverride
 import observe.model.enums.Resource
+import observe.model.enums.RunOverride
 
 trait SequenceApi[F[_]: MonadThrow]:
   def loadObservation(obsId: Observation.Id, instrument: Instrument): F[Unit] = NotAuthorized

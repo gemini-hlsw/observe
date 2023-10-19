@@ -143,27 +143,27 @@ object SessionQueue:
   private val LoadSeqColumnId: ColumnId    = ColumnId("loadSequence")
 
   private def columns(
-    selectedObsId:    Option[Observation.Id],
-    setSelectedObsId: Observation.Id => Callback
+    loadedObsId: Option[Observation.Id],
+    loadObs:     Observation.Id => Callback
   ) = List(
     ColDef(
       IconColumnId,
       cell =
         cell =>
-          renderCendered(statusIconRenderer(cell.row.original, selectedObsId)), // Tooltip: Control
+          renderCendered(statusIconRenderer(cell.row.original, loadedObsId)), // Tooltip: Control
       size = 25.toPx,
       enableResizing = false
     ),
     ColDef(
       AddQueueColumnId,
-      header = _ => renderCendered(Icons.CalendarDays),                         // Tooltip: Add all to queue
+      header = _ => renderCendered(Icons.CalendarDays),                       // Tooltip: Add all to queue
       cell = cell => renderCendered(addToQueueRenderer(cell.row.original)),
       size = 30.toPx,
       enableResizing = false
     ),
     ColDef(
       ClassColumnId,
-      header = _ => renderCendered(Icons.Clock),                                // Tooltip: "Obs. class"
+      header = _ => renderCendered(Icons.Clock),                              // Tooltip: "Obs. class"
       cell = cell => renderCendered(classIconRenderer(cell.row.original)),
       size = 26.toPx,
       enableResizing = false
@@ -214,8 +214,9 @@ object SessionQueue:
           Button(
             "Load",
             size = Button.Size.Small,
-            onClick = setSelectedObsId(cell.value),
-            clazz = ObserveStyles.LoadButton
+            onClick = loadObs(cell.value),
+            clazz = ObserveStyles.LoadButton,
+            disabled = loadedObsId.contains(cell.value)
           )
         ),
       enableSorting = false
@@ -226,7 +227,7 @@ object SessionQueue:
     ScalaFnComponent
       .withHooks[Props]
       .useMemoBy(props => props.loadedObsId): props =>
-        selectedObsId => columns(selectedObsId, props.loadObs)
+        loadedObsId => columns(loadedObsId, props.loadObs)
       .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,

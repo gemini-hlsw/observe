@@ -29,6 +29,7 @@ case class StepProgressCell(
   stepIndex:     Int,
   obsId:         Observation.Id,
   tabOperations: TabOperations,
+  runningStepId: Option[Step.Id],
   sequenceState: SequenceState,
   configStatus:  Map[Resource | Instrument, ActionStatus],
   selectedStep:  Option[Step.Id],
@@ -38,11 +39,6 @@ case class StepProgressCell(
     selectedStep.exists(_ === i) && !isPreview &&
       // Will we always require logging in?
       ( /*clientStatus.isLogged ||*/ tabOperations.resourceRunNotIdle(i))
-
-  private val runningStepId: Option[Step.Id] = none
-  // sequenceState match
-  // case SequenceState.Running(stepId, _, _, _) => stepId.some
-  // case _                                      => none
 
   private val isRunning =
     tabOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)

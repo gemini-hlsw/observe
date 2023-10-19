@@ -254,6 +254,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         stepIndex = cell.row.index.toInt,
                         obsId = obsId,
                         tabOperations = tabOperations,
+                        runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
                         configStatus = executionState.configStatus,
                         selectedStep = selectedStep,

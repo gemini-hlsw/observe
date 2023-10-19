@@ -3,18 +3,18 @@
 
 package observe.ui.components
 
-import crystal.react.View
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
+import observe.ui.model.RootModelData
 
 object Routing:
 
-  def config: RouterWithPropsConfig[Page, View[RootModel]] =
-    RouterWithPropsConfigDsl[Page, View[RootModel]].buildConfig: dsl =>
+  def config: RouterWithPropsConfig[Page, RootModel] =
+    RouterWithPropsConfigDsl[Page, RootModel].buildConfig: dsl =>
       import dsl.*
 
       val rules =
@@ -26,8 +26,8 @@ object Routing:
           | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
             <.div(
               ConfigPanel(
-                rootModel.zoom(RootModel.observer).toOptionView,
-                rootModel.zoom(RootModel.conditions)
+                rootModel.data.zoom(RootModelData.observer).toOptionView,
+                rootModel.data.zoom(RootModelData.conditions)
               )
             )
           )

@@ -26,6 +26,7 @@ import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.react.common.*
+import lucuma.react.primereact.Button
 import lucuma.react.primereact.Dialog
 import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
@@ -41,10 +42,10 @@ import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
+import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
-import observe.ui.model.reusability.given
 import observe.ui.services.ConfigApi
 import observe.ui.services.*
 import org.http4s.Uri
@@ -63,7 +64,6 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import lucuma.react.primereact.Button
 
 object MainApp:
   private val ConfigFile: Uri       = uri"/environments.conf.json"
@@ -164,9 +164,18 @@ object MainApp:
         // TODO Update the UI
         IO.unit
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator) =>
-        rootModelData.zoom(RootModelData.sequenceExecution).async.set(sequenceExecution) >>
-          rootModelData.zoom(RootModelData.conditions).async.set(conditions) >>
-          rootModelData.zoom(RootModelData.operator).async.set(operator) >>
+        val asyncRootModel       = rootModelData.async
+        val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
+        asyncRootModel.zoom(RootModelData.operator).set(operator) >>
+          asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
+          asyncRootModel.zoom(RootModelData.sequenceExecution).set(sequenceExecution) >>
+          asyncRootModel
+            .zoom(RootModelData.nighttimeObservation)
+            .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.
+              if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
+                nighttimeLoadedObsId.map(LoadedObservation(_))
+              else obs
+            ) >>
           syncStatus.async.set(SyncStatus.Synced) >>
           configApiStatus.async.set(ApiStatus.Idle)
 
@@ -187,7 +196,7 @@ object MainApp:
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
           appConfig                                  <- Resource.eval(fetchConfig)
-          given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.DEBUG))
+          given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.INFO))
           dispatcher                                 <- Dispatcher.parallel[IO]
           given WebSocketJSBackend[IO]                = WebSocketJSBackend[IO](dispatcher)
           given WebSocketJSClient[IO, ObservationDB] <-
@@ -244,10 +253,14 @@ object MainApp:
                 IO.println(t.getMessage) >>
                 isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
           )
-      .useResourceOnMount:
-        // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
-        // We also have to reSync in case of connection lost
-        WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))
+      // We make sure there is a logged user by checking the token, so that we can query the ODB
+      .useResourceBy((_, _, _, _, _, rootModelDataPot, _, _) =>
+        rootModelDataPot.get.map(_.isUserLogged)
+      ): (_, toastRef, isSynced, _, ctxPot, rootModelDataPot, environmentPot, _) =>
+        case Pot.Ready(true) =>
+          // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
+          WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
+        case _               => Resource.pure(none)
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _) => syncStatus.get):
         (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _) =>
@@ -260,7 +273,7 @@ object MainApp:
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, _, ctxPot, rootModelDataPot, environment, _, wsConnection, _) =>
-          (wsConnection, rootModelDataPot.toPotView, ctxPot).tupled
+          (wsConnection.map(_.toPot).flatten, rootModelDataPot.toPotView, ctxPot).tupled
       ): (_, _, syncStatus, _, _, _, environment, _, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
@@ -275,16 +288,19 @@ object MainApp:
             .drain
             .start
             .map(_.cancel)
-      // RootModel is not initialized until RootModelData and Environment are available
-      .useStateView(Pot.pending[RootModel])
-      .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _, _) =>
-        (rootModelDataPot.get, environmentPot.get)
-      ): (_, _, _, _, _, _, _, _, _, _, rootModelPot) =>
-        // Build RootModel from RootModelData and Environment
-        (rootModelDataPot, environmentPot) =>
-          rootModelPot.set:
-            (rootModelDataPot, environmentPot).mapN: (rootModelData, environment) =>
-              RootModel(environment, rootModelData)
+      // // RootModel is not initialized until RootModelData and Environment are available
+      // .useStateView(Pot.pending[RootModel])
+
+      //////////////
+      // .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _, _) =>
+      //   (rootModelDataPot.get, environmentPot.get)
+      // ): (_, _, _, _, _, _, _, _, _, _, rootModelPot) =>
+      //   // Build RootModel from RootModelData and Environment
+      //   (rootModelDataPot, environmentPot) =>
+      //     rootModelPot.set:
+      //       (rootModelDataPot, environmentPot).mapN: (rootModelData, environment) =>
+      //         RootModel(environment, rootModelData)
+      //////////////
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (
@@ -293,17 +309,20 @@ object MainApp:
           isSynced,
           _,
           ctxPot,
-          _,
+          /**/ rootModelDataPot,
           environmentPot,
           apiClientOpt,
           _,
           configApiStatus,
-          rootModelPot,
+          // rootModelPot1,
           permitPot
         ) =>
+          // val rootModel = (rootModelDataPot, environmentPot).mapN: (rootModelData, environment) =>
+          //   RootModel(environment, rootModelData)
+
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
-             rootModelPot.get.toOption.flatMap(_.observer),
+             rootModelDataPot.get.toOption.flatMap(_.observer),
              //  rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
              permitPot.toOption,
              ctxPot.toOption,
@@ -332,13 +351,14 @@ object MainApp:
             )
 
           // When both AppContext and RootModel are ready, proceed to render.
-          (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>
-            AppContext.ctx.provide(ctx)(
-              provideApiCtx(
-                resyncingPopup,
-                ObservationSyncer(rootModel.zoom(RootModel.nighttimeObservation)),
-                router(rootModel)
+          (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
+            (ctx, rootModelData, environment) =>
+              AppContext.ctx.provide(ctx)(
+                provideApiCtx(
+                  resyncingPopup,
+                  ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
+                  router(RootModel(environment, rootModelData))
+                )
               )
-            )
 
   inline def apply() = component()
