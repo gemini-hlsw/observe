@@ -281,14 +281,14 @@ object MainApp:
             WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
           case _                                                       => Resource.pure(none)
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
-      // .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
-      //   (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>
-      //     case SyncStatus.OutOfSync =>
-      //       apiClientOpt
-      //         .map: client =>
-      //           singleDispatcher.submit(client.refresh)
-      //         .orEmpty
-      //     case SyncStatus.Synced    => singleDispatcher.cancel
+      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
+        (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>
+          case SyncStatus.OutOfSync =>
+            apiClientOpt
+              .map: client =>
+                singleDispatcher.submit(client.refresh)
+              .orEmpty
+          case SyncStatus.Synced    => singleDispatcher.cancel
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, _, ctxPot, rootModelDataPot, environment, _, _, wsConnection, _) =>
