@@ -24,8 +24,8 @@ import UserEvent.*
 sealed trait Event[F[_], S, U] extends Product with Serializable
 
 object Event {
-  final case class EventUser[F[_], S, U](ue: UserEvent[F, S, U]) extends Event[F, S, U]
-  final case class EventSystem[F[_], S, U](se: SystemEvent)      extends Event[F, S, U]
+  case class EventUser[F[_], S, U](ue: UserEvent[F, S, U]) extends Event[F, S, U]
+  case class EventSystem[F[_], S, U](se: SystemEvent)      extends Event[F, S, U]
 
   def start[F[_], S, U](id: Observation.Id, user: User, clientId: ClientId): Event[F, S, U] =
     EventUser[F, S, U](Start[F, S, U](id, user.some, clientId))
@@ -33,7 +33,7 @@ object Event {
     EventUser[F, S, U](Pause(id, user.some))
   def cancelPause[F[_], S, U](id: Observation.Id, user: User): Event[F, S, U]               =
     EventUser[F, S, U](CancelPause(id, user.some))
-  def breakpoint[F[_], S, U](
+  def breakpoints[F[_], S, U](
     id:    Observation.Id,
     user:  User,
     steps: List[StepId],

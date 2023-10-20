@@ -555,8 +555,10 @@ object ObserveEngine {
       observer: Observer,
       steps:    List[StepId],
       v:        Breakpoint
-    ): F[Unit] = setObserver(seqId, user, observer) *>
-      executeEngine.offer(Event.breakpoint[F, EngineState[F], SeqEvent](seqId, user, steps, v))
+    ): F[Unit] =
+      // Set the observer after the breakpoints are set to do optimistic updates on the UI
+      executeEngine.offer(Event.breakpoints[F, EngineState[F], SeqEvent](seqId, user, steps, v)) *>
+        setObserver(seqId, user, observer)
 
     override def setOperator(user: User, name: Operator): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting Operator name to '$name' by ${user.displayName}") *>
