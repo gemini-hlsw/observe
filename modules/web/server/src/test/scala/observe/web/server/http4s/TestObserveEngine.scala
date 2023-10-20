@@ -8,6 +8,7 @@ import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
@@ -57,12 +58,12 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     user:     User
   ): F[Unit] = Applicative[F].unit
 
-  override def setBreakpoint(
+  override def setBreakpoints(
     seqId:    Id,
     user:     User,
     observer: Observer,
-    stepId:   StepId,
-    v:        Boolean
+    stepId:   List[StepId],
+    v:        Breakpoint
   ): F[Unit] = Applicative[F].unit
 
   override def setOperator(user: User, name: Operator): F[Unit] =

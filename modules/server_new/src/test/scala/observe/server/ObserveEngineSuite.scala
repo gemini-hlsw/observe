@@ -914,7 +914,8 @@ class ObserveEngineSuite extends TestCommon {
           ),
           StepStatusGen.Null,
           step.instrumentConfig,
-          step.stepConfig
+          step.stepConfig,
+          breakpoint = Breakpoint.Disabled
         )
       }.toList
     )

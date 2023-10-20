@@ -8,6 +8,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
+import lucuma.core.enums.Breakpoint
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.Observation as LObservation
 import observe.common.test.*
@@ -34,7 +35,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
-  def simpleStep(id: StepId, breakpoint: Boolean): Step[IO] =
+  def simpleStep(id: StepId, breakpoint: Breakpoint): Step[IO] =
     Step
       .init(
         id = id,
@@ -43,7 +44,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
           NonEmptyList.one(action)         // Execution
         )
       )
-      .copy(breakpoint = Step.BreakpointMark(breakpoint))
+      .copy(breakpoint = breakpoint)
 
   def isFinished(status: SequenceState): Boolean = status match {
     case SequenceState.Idle      => true
@@ -74,8 +75,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
            Sequence.State.init(
              Sequence.sequence(seqId,
                                atomId,
-                               List(simpleStep(stepId(1), breakpoint = false),
-                                    simpleStep(stepId(2), breakpoint = true)
+                               List(simpleStep(stepId(1), Breakpoint.Disabled),
+                                    simpleStep(stepId(2), Breakpoint.Enabled)
                                )
              )
            )
@@ -103,12 +104,13 @@ class SequenceSuite extends munit.CatsEffectSuite {
         sequences = Map(
           (seqId,
            Sequence.State.init(
-             Sequence.sequence(id = seqId,
-                               atomId,
-                               steps = List(simpleStep(stepId(1), breakpoint = false),
-                                            simpleStep(stepId(2), breakpoint = true),
-                                            simpleStep(stepId(3), breakpoint = false)
-                               )
+             Sequence.sequence(
+               id = seqId,
+               atomId,
+               steps = List(simpleStep(stepId(1), Breakpoint.Disabled),
+                            simpleStep(stepId(2), Breakpoint.Enabled),
+                            simpleStep(stepId(3), Breakpoint.Disabled)
+               )
              )
            )
           )
@@ -165,7 +167,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
     Step.Zipper(
       id = stepId(1),
-      breakpoint = Step.BreakpointMark(false),
+      breakpoint = Breakpoint.Disabled,
       Step.SkipMark(false),
       pending = pending,
       focus = focus,
@@ -220,8 +222,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val seq = Sequence.State.init(
       Sequence.sequence(id = seqId,
                         atomId,
-                        steps = List(simpleStep(stepId(1), breakpoint = false),
-                                     simpleStep(stepId(2), breakpoint = false)
+                        steps = List(simpleStep(stepId(1), Breakpoint.Enabled),
+                                     simpleStep(stepId(2), Breakpoint.Disabled)
                         )
       )
     )

@@ -8,6 +8,7 @@ import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
@@ -49,7 +50,8 @@ class SeqTranslateSuite extends TestCommon {
         ),
         StepStatusGen.Null,
         dynamicCfg1,
-        stepCfg1
+        stepCfg1,
+        breakpoint = Breakpoint.Disabled
       )
     )
   )

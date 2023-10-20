@@ -14,6 +14,7 @@ import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import fs2.Pipe
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
@@ -93,12 +94,12 @@ trait ObserveEngine[F[_]] {
     user:     User
   ): F[Unit]
 
-  def setBreakpoint(
+  def setBreakpoints(
     seqId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   StepId,
-    v:        Boolean
+    stepId:   List[StepId],
+    v:        Breakpoint
   ): F[Unit]
 
   def setOperator(user: User, name: Operator): F[Unit]
@@ -548,14 +549,16 @@ object ObserveEngine {
     ): F[Unit] = setObserver(seqId, user, observer) *>
       executeEngine.offer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
 
-    override def setBreakpoint(
+    override def setBreakpoints(
       seqId:    Observation.Id,
       user:     User,
       observer: Observer,
-      stepId:   StepId,
-      v:        Boolean
-    ): F[Unit] = setObserver(seqId, user, observer) *>
-      executeEngine.offer(Event.breakpoint[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
+      steps:    List[StepId],
+      v:        Breakpoint
+    ): F[Unit] =
+      // Set the observer after the breakpoints are set to do optimistic updates on the UI
+      executeEngine.offer(Event.breakpoints[F, EngineState[F], SeqEvent](seqId, user, steps, v)) *>
+        setObserver(seqId, user, observer)
 
     override def setOperator(user: User, name: Operator): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting Operator name to '$name' by ${user.displayName}") *>
@@ -1772,25 +1775,25 @@ object ObserveEngine {
     ev match {
       case UserCommandResponse(ue, _, uev) =>
         ue match {
-          case UserEvent.Start(id, _, _)        =>
+          case UserEvent.Start(id, _, _)         =>
             val rs = sequences.find(_.obsId === id).flatMap(_.runningStep.flatMap(_.id))
             rs.foldMap(x => Stream.emit(ClientSequenceStart(id, x, svs)))
-          case UserEvent.Pause(_, _)            => Stream.emit(SequencePauseRequested(svs))
-          case UserEvent.CancelPause(id, _)     => Stream.emit(SequencePauseCanceled(id, svs))
-          case UserEvent.Breakpoint(_, _, _, _) => Stream.emit(StepBreakpointChanged(svs))
-          case UserEvent.SkipMark(_, _, _, _)   => Stream.emit(StepSkipMarkChanged(svs))
-          case UserEvent.Poll(cid)              => Stream.emit(SequenceRefreshed(svs, cid))
-          case UserEvent.GetState(_)            => Stream.empty
-          case UserEvent.ModifyState(_)         => modifyStateEvent(uev.getOrElse(NullSeqEvent), svs)
-          case UserEvent.ActionStop(_, _)       => Stream.emit(ActionStopRequested(svs))
-          case UserEvent.LogDebug(_, _)         => Stream.empty
-          case UserEvent.LogInfo(m, ts)         => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
-          case UserEvent.LogWarning(m, ts)      =>
+          case UserEvent.Pause(_, _)             => Stream.emit(SequencePauseRequested(svs))
+          case UserEvent.CancelPause(id, _)      => Stream.emit(SequencePauseCanceled(id, svs))
+          case UserEvent.Breakpoints(_, _, _, _) => Stream.emit(StepBreakpointChanged(svs))
+          case UserEvent.SkipMark(_, _, _, _)    => Stream.emit(StepSkipMarkChanged(svs))
+          case UserEvent.Poll(cid)               => Stream.emit(SequenceRefreshed(svs, cid))
+          case UserEvent.GetState(_)             => Stream.empty
+          case UserEvent.ModifyState(_)          => modifyStateEvent(uev.getOrElse(NullSeqEvent), svs)
+          case UserEvent.ActionStop(_, _)        => Stream.emit(ActionStopRequested(svs))
+          case UserEvent.LogDebug(_, _)          => Stream.empty
+          case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
+          case UserEvent.LogWarning(m, ts)       =>
             Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
-          case UserEvent.LogError(m, ts)        =>
+          case UserEvent.LogError(m, ts)         =>
             Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
-          case UserEvent.ActionResume(_, _, _)  => Stream.emit(SequenceUpdated(svs))
-          case UserEvent.Pure(_)                => Stream.empty
+          case UserEvent.ActionResume(_, _, _)   => Stream.emit(SequenceUpdated(svs))
+          case UserEvent.Pure(_)                 => Stream.empty
         }
       case SystemUpdate(se, _)             =>
         se match {

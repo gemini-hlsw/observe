@@ -346,42 +346,42 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   private def send(ev: EventType): HandleType[Unit] = Handle.fromStream(Stream(ev))
 
   private def handleUserEvent(ue: UserEventType): HandleType[ResultType] = ue match {
-    case Start(id, _, _)            =>
+    case Start(id, _, _)             =>
       debug(s"Engine: Start requested for sequence $id") *> start(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
-    case Pause(id, _)               =>
+    case Pause(id, _)                =>
       debug(s"Engine: Pause requested for sequence $id") *> pause(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
-    case CancelPause(id, _)         =>
+    case CancelPause(id, _)          =>
       debug(s"Engine: Pause canceled for sequence $id") *> cancelPause(id) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
-    case Breakpoint(id, _, step, v) =>
+    case Breakpoints(id, _, step, v) =>
       debug(s"Engine: breakpoint changed for sequence $id and step $step to $v") *>
-        modifyS(id)(_.setBreakpoint(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case SkipMark(id, _, step, v)   =>
+        modifyS(id)(_.setBreakpoints(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case SkipMark(id, _, step, v)    =>
       debug(s"Engine: skip mark changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setSkipMark(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Poll(_)                    =>
+    case Poll(_)                     =>
       debug("Engine: Polling current state") *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case GetState(f)                => getState(f) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case ModifyState(f)             =>
+    case GetState(f)                 => getState(f) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case ModifyState(f)              =>
       summon[Monad[HandleType]].map(f)((r: U) => UserCommandResponse[F, U](ue, Outcome.Ok, Some(r)))
-    case ActionStop(id, f)          =>
+    case ActionStop(id, f)           =>
       debug("Engine: Action stop requested") *> actionStop(id, f) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
-    case ActionResume(id, i, cont)  =>
+    case ActionResume(id, i, cont)   =>
       debug("Engine: Action resume requested") *> actionResume(id, i, cont) *> pure(
         UserCommandResponse(ue, Outcome.Ok, None)
       )
-    case LogDebug(msg, _)           => debug(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogInfo(msg, _)            => info(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogWarning(msg, _)         => warning(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogError(msg, _)           => error(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Pure(v)                    => pure(UserCommandResponse(ue, Outcome.Ok, v.some))
+    case LogDebug(msg, _)            => debug(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case LogInfo(msg, _)             => info(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case LogWarning(msg, _)          => warning(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case LogError(msg, _)            => error(msg) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
+    case Pure(v)                     => pure(UserCommandResponse(ue, Outcome.Ok, v.some))
   }
 
   private def handleSystemEvent(

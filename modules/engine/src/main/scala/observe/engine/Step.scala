@@ -4,8 +4,10 @@
 package observe.engine
 
 import cats.syntax.all.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.util.NewType
 import monocle.Focus
+import monocle.Iso
 import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
@@ -15,9 +17,9 @@ import observe.model.StepState
 /**
  * A list of `Executions` grouped by observation.
  */
-final case class Step[F[_]](
+case class Step[F[_]](
   id:         StepId,
-  breakpoint: Step.BreakpointMark,
+  breakpoint: Breakpoint,
   skipped:    Step.Skipped,
   skipMark:   Step.SkipMark,
   executions: List[ParallelActions[F]]
@@ -25,21 +27,25 @@ final case class Step[F[_]](
 
 object Step {
 
-  object BreakpointMark extends NewType[Boolean]
-  type BreakpointMark = BreakpointMark.Type
   object SkipMark extends NewType[Boolean]
   type SkipMark = SkipMark.Type
   object Skipped extends NewType[Boolean]
   type Skipped = Skipped.Type
 
+  def isoBool: Iso[Breakpoint, Boolean] =
+    Iso[Breakpoint, Boolean](_ === Breakpoint.Enabled)(b =>
+      if (b) Breakpoint.Enabled else Breakpoint.Disabled
+    )
+
   def breakpointL[F[_]]: Lens[Step[F], Boolean] =
-    Focus[Step[F]](_.breakpoint).andThen(BreakpointMark.value)
-  def skippedL[F[_]]: Lens[Step[F], Boolean]    =
+    Focus[Step[F]](_.breakpoint).andThen(isoBool)
+
+  def skippedL[F[_]]: Lens[Step[F], Boolean] =
     Focus[Step[F]](_.skipped).andThen(Skipped.value)
 
   def init[F[_]](id: StepId, executions: List[ParallelActions[F]]): Step[F] =
     Step(id = id,
-         breakpoint = BreakpointMark(false),
+         breakpoint = Breakpoint.Disabled,
          skipped = Skipped(false),
          skipMark = SkipMark(false),
          executions = executions
@@ -80,9 +86,9 @@ object Step {
   /**
    * Step Zipper. This structure is optimized for the actual `Step` execution.
    */
-  final case class Zipper[F[_]](
+  case class Zipper[F[_]](
     id:         StepId,
-    breakpoint: BreakpointMark,
+    breakpoint: Breakpoint,
     skipMark:   SkipMark,
     pending:    List[ParallelActions[F]],
     focus:      Execution[F],

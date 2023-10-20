@@ -5,6 +5,7 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -23,7 +24,7 @@ sealed trait Step extends Product with Serializable {
   def instConfig: DynamicConfig
   def stepConfig: StepConfig
   def status: StepState
-  def breakpoint: Boolean
+  def breakpoint: Breakpoint
   def skip: Boolean
   def fileId: Option[ImageFileId]
 }
@@ -31,6 +32,10 @@ sealed trait Step extends Product with Serializable {
 object Step {
   extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
+  }
+  extension [A](l: Lens[A, Breakpoint]) {
+    def flip: A => A =
+      l.modify(b => if (b === Breakpoint.Enabled) Breakpoint.Disabled else Breakpoint.Enabled)
   }
   def standardStepP: Prism[Step, StandardStep] =
     GenPrism[Step, StandardStep]
@@ -88,8 +93,8 @@ object Step {
       }
     }
 
-  def breakpoint: Lens[Step, Boolean] =
-    Lens[Step, Boolean] {
+  def breakpoint: Lens[Step, Breakpoint] =
+    Lens[Step, Breakpoint] {
       _.breakpoint
     } { n =>
       {
@@ -133,8 +138,8 @@ object Step {
   extension (s: Step) {
     def flipBreakpoint: Step =
       s match {
-        case st: StandardStep      => Focus[StandardStep](_.breakpoint).negate(st)
-        case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.breakpoint).negate(st)
+        case st: StandardStep      => Focus[StandardStep](_.breakpoint).flip(st)
+        case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.breakpoint).flip(st)
       }
 
     def flipSkip: Step =
@@ -191,16 +196,16 @@ object Step {
   }
 }
 
-final case class StandardStep(
-  override val id:         StepId,
-  override val instConfig: DynamicConfig,
-  override val stepConfig: lucuma.core.model.sequence.StepConfig,
-  override val status:     StepState,
-  override val breakpoint: Boolean,
-  override val skip:       Boolean,
-  override val fileId:     Option[ImageFileId],
-  configStatus:            List[(Resource | Instrument, ActionStatus)],
-  observeStatus:           ActionStatus
+case class StandardStep(
+  id:            StepId,
+  instConfig:    DynamicConfig,
+  stepConfig:    lucuma.core.model.sequence.StepConfig,
+  status:        StepState,
+  breakpoint:    Breakpoint,
+  skip:          Boolean,
+  fileId:        Option[ImageFileId],
+  configStatus:  List[(Resource | Instrument, ActionStatus)],
+  observeStatus: ActionStatus
 ) extends Step
 
 object StandardStep {
@@ -220,17 +225,17 @@ object StandardStep {
 }
 
 // Other kinds of Steps to be defined.
-final case class NodAndShuffleStep(
-  override val id:         StepId,
-  override val instConfig: DynamicConfig,
-  override val stepConfig: lucuma.core.model.sequence.StepConfig,
-  override val status:     StepState,
-  override val breakpoint: Boolean,
-  override val skip:       Boolean,
-  override val fileId:     Option[ImageFileId],
-  configStatus:            List[(Resource | Instrument, ActionStatus)],
-  nsStatus:                NodAndShuffleStatus,
-  pendingObserveCmd:       Option[NodAndShuffleStep.PendingObserveCmd]
+case class NodAndShuffleStep(
+  id:                StepId,
+  instConfig:        DynamicConfig,
+  stepConfig:        lucuma.core.model.sequence.StepConfig,
+  status:            StepState,
+  breakpoint:        Breakpoint,
+  skip:              Boolean,
+  fileId:            Option[ImageFileId],
+  configStatus:      List[(Resource | Instrument, ActionStatus)],
+  nsStatus:          NodAndShuffleStatus,
+  pendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd]
 ) extends Step
 
 object NodAndShuffleStep {
