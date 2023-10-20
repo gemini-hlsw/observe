@@ -79,61 +79,6 @@ object Home:
             )
           )
           .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
-      // .useStateView:
-      //   ExecutionState(SequenceState.Idle, none, none, none, Map.empty, SystemOverrides.AllEnabled)
-      // .useEffectWithDepsBy((props, _, _, _) =>
-      //   props.rootModel.get.nighttimeObservation.flatMap(_.config.toOption)
-      // ): (_, _, _, executionState) =>
-      //   configOpt =>
-      //     def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
-      //       sequence
-      //         .map(s => s.nextAtom +: s.possibleFuture)
-      //         .orEmpty
-      //         .flatMap(_.steps.toList)
-      //         .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
-      //         .toSet
-
-      //     // We simulate we are running some step.
-      //     val executingStepId: Option[Step.Id] =
-      //       configOpt.flatMap:
-      //         case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
-      //           executionConfig.acquisition.map(_.nextAtom.steps.head.id)
-      //         case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
-      //           executionConfig.science.map(_.nextAtom.steps.head.id)
-
-      //     val sequenceState: SequenceState =
-      //       executingStepId.fold(SequenceState.Idle)(_ => SequenceState.Running(false, false))
-
-      //     // We simulate a config state.
-      //     val configState = List(
-      //       (Resource.TCS, ActionStatus.Completed),
-      //       (Resource.Gcal, ActionStatus.Running),
-      //       (Instrument.GmosNorth, ActionStatus.Pending)
-      //     )
-
-      //     val initialBreakpoints: Set[Step.Id] =
-      //       configOpt
-      //         .map:
-      //           case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
-      //             getBreakPoints(executionConfig.acquisition) ++
-      //               getBreakPoints(executionConfig.science)
-      //           case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
-      //             getBreakPoints(executionConfig.acquisition) ++
-      //               getBreakPoints(executionConfig.science)
-      //         .orEmpty
-
-      //     // TODO Verify it is correct the use of systemOverrides
-      //     executionState.set(
-      //       ExecutionState(
-      //         sequenceState,
-      //         none,
-      //         executingStepId,
-      //         none,
-      //         configState.toMap,
-      //         executionState.get.systemOverrides,
-      //         initialBreakpoints
-      //       )
-      //     )
       .useContext(SequenceApi.ctx)
       .render: (props, ctx, observations, sequenceApi) =>
         import ctx.given

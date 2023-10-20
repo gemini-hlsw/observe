@@ -34,6 +34,16 @@ case class SequenceApiImpl(
     client.postNoData:
       Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "breakpoint" / observer.toString / (value === Breakpoint.Enabled)
 
+  override def setBreakpoints(
+    obsId:   Observation.Id,
+    stepIds: List[Step.Id],
+    value:   Breakpoint
+  ): IO[Unit] =
+    client.post(
+      Uri.Path.empty / obsId.toString / client.clientId.value / "breakpoints" / observer.toString / (value === Breakpoint.Enabled),
+      stepIds
+    )
+
   override def start(
     obsId:       Observation.Id,
     runOverride: RunOverride = RunOverride.Default
