@@ -6,6 +6,8 @@ package observe.ui.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.option.*
+import crystal.Pot
+import crystal.react.View
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.ReactCats.*
@@ -15,7 +17,6 @@ import monocle.Focus
 import monocle.Lens
 import observe.model.*
 import observe.ui.model.enums.ClientMode
-import crystal.react.View
 
 case class RootModelData(
   userVault:            Option[UserVault],
@@ -67,7 +68,7 @@ object RootModelData:
 
   given Reusability[RootModelData] = Reusability.byEq
 
-case class RootModel(environment: Environment, data: View[RootModelData]) //derives Eq :
+case class RootModel(environment: Pot[Environment], data: View[RootModelData]) //derives Eq :
 // export data.*
 
 // object RootModel:

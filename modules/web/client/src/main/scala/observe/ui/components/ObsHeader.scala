@@ -3,6 +3,7 @@
 
 package observe.ui.components
 
+import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -40,7 +41,7 @@ object ObsHeader:
         <.div(ObserveStyles.ObsSummary)(
           <.div(ObserveStyles.ObsSummaryTitle)(
             Button(
-              clazz = ObserveStyles.PlayButton,
+              clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
               icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Start/Resume sequence",
               tooltipOptions = tooltipOptions,

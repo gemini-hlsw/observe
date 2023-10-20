@@ -63,12 +63,7 @@ object ObservationSyncer:
                 .flatTap: config =>
                   props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-            // TODO Find a way to actually sync this
-            // Maybe move logic to "IfLogged" ?
-            import scala.concurrent.duration.*
-            IO.println(s"SETTING TO $obsId") >>
-              IO.sleep(1.second) >>
-              (fetchSummary, fetchSequence).parTupled >>= ((_, configEither) =>
+            (fetchSummary, fetchSequence).parTupled >>= ((_, configEither) =>
               configEither.toOption // TODO Set breakpoints from ODB
                 .map(config => sequenceApi.loadObservation(obsId, config.instrument))
                 .orEmpty

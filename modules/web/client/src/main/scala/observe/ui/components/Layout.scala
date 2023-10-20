@@ -57,8 +57,8 @@ object Layout:
           ctx.ssoClient,
           props.rootModel.data.zoom(RootModelData.userVault),
           props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-          ctx.initODBClient(_),
-          ctx.closeODBClient,
+          _ => IO.unit, // MainApp takes care of connections
+          IO.unit,
           IO.unit,
           "observe".refined,
           _.event === BroadcastEvent.LogoutEventId,
@@ -69,7 +69,8 @@ object Layout:
             props.rootModel.data
               .zoom(RootModelData.userVault)
               .mapValue: (userVault: View[UserVault]) =>
-                TopBar(props.rootModel.environment, userVault, theme, IO.unit),
+                props.rootModel.environment.toOption.map: environment =>
+                  TopBar(environment, userVault, theme, IO.unit),
             Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
             SideTabs(
               "side-tabs".refined,
