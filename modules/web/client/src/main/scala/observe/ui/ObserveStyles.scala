@@ -108,3 +108,4 @@ object ObserveStyles:
   val ObsSummary: Css        = Css("ObserveStyles-obsSummary")
   val ObsSummaryTitle: Css   = Css("ObserveStyles-obsSummary-title")
   val ObsSummaryDetails: Css = Css("ObserveStyles-obsSummary-details")
+  val ObsSummaryButton: Css  = Css("ObserveStyles-obsSummary-button")

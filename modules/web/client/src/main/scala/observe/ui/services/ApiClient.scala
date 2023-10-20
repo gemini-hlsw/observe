@@ -33,15 +33,18 @@ case class ApiClient(
       .onError(onError)
       .onCancel(onError(new Exception("There was an error invoking the server.")))
 
-  def post[T: Encoder](path: Uri.Path, data: T): IO[Unit] =
+  def post[T: Encoder](path: Uri.Path, data: T, query: Query = Query.empty): IO[Unit] =
     httpClient
       .expect[Unit](
-        Request(Method.POST, Uri(path = basePath.merge(path)))
+        Request(Method.POST, Uri(path = basePath.merge(path), query = query))
           .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
           .withEntity(data.asJson)
       )
       .onError(onError)
       .onCancel(onError(new Exception("There was an error invoking the server.")))
+
+  def postNoData(path: Uri.Path, query: Query = Query.empty): IO[Unit] =
+    post(path, (), query)
 
   override def refresh: IO[Unit] =
     get(Uri.Path.empty / clientId.value / "refresh")

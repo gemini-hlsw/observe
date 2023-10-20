@@ -8,10 +8,12 @@ import cats.effect.Resource
 import cats.effect.std.Dispatcher
 import cats.effect.std.Semaphore
 import cats.syntax.all.*
+import clue.PersistentClientStatus
 import clue.js.WebSocketJSBackend
 import clue.js.WebSocketJSClient
 import clue.websocket.ReconnectionStrategy
 import crystal.Pot
+import crystal.PotOption
 import crystal.react.*
 import crystal.react.given
 import crystal.react.hooks.*
@@ -19,6 +21,7 @@ import crystal.syntax.*
 import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import io.circe.parser.decode
+import io.circe.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -26,12 +29,14 @@ import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.react.common.*
+import lucuma.react.primereact.Button
 import lucuma.react.primereact.Dialog
 import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.hooks.all.*
 import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
+import lucuma.ui.reusability.given
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.pot.*
@@ -41,6 +46,7 @@ import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
+import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
@@ -163,9 +169,18 @@ object MainApp:
         // TODO Update the UI
         IO.unit
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator) =>
-        rootModelData.zoom(RootModelData.sequenceExecution).async.set(sequenceExecution) >>
-          rootModelData.zoom(RootModelData.conditions).async.set(conditions) >>
-          rootModelData.zoom(RootModelData.operator).async.set(operator) >>
+        val asyncRootModel       = rootModelData.async
+        val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
+        asyncRootModel.zoom(RootModelData.operator).set(operator) >>
+          asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
+          asyncRootModel.zoom(RootModelData.sequenceExecution).set(sequenceExecution) >>
+          asyncRootModel
+            .zoom(RootModelData.nighttimeObservation)
+            .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.
+              if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
+                nighttimeLoadedObsId.map(LoadedObservation(_))
+              else obs
+            ) >>
           syncStatus.async.set(SyncStatus.Synced) >>
           configApiStatus.async.set(ApiStatus.Idle)
 
@@ -186,7 +201,7 @@ object MainApp:
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
           appConfig                                  <- Resource.eval(fetchConfig)
-          given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.DEBUG))
+          given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.INFO))
           dispatcher                                 <- Dispatcher.parallel[IO]
           given WebSocketJSBackend[IO]                = WebSocketJSBackend[IO](dispatcher)
           given WebSocketJSClient[IO, ObservationDB] <-
@@ -211,7 +226,19 @@ object MainApp:
           import ctx.given
 
           enforceStaffRole(ctx.ssoClient).attempt
-            .flatMap(userVault => rootModelData.async.set(RootModelData.initial(userVault).ready))
+            .flatMap: userVault =>
+              rootModelData.async.set(RootModelData.initial(userVault).ready) // >>
+      .useAsyncEffectWithDepsBy((_, _, _, _, ctxPot, rootModelData) =>
+        (ctxPot.void, rootModelData.get.map(_.userVault))
+      )((_, _, _, _, ctxPot, rootModelData) =>
+        _ =>
+          (ctxPot.toOption, rootModelData.get.toOption.flatMap(_.userVault))
+            .mapN: (ctx, userVault) =>
+              ctx
+                .initODBClient(Map("Authorization" -> userVault.authorizationHeader.asJson))
+                .as(ctx.closeODBClient) // Disconnect on logout
+            .orEmpty
+      )
       .useStateView(Pot.pending[Environment])
       // Subscribe to client event stream (and initialize Environment)
       // TODO Reconnecting middleware
@@ -243,13 +270,19 @@ object MainApp:
                 IO.println(t.getMessage) >>
                 isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
           )
-      .useResourceOnMount:
-        // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
-        // We also have to reSync in case of connection lost
-        WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))
+      // Connection to event stream is surrogated to ODB WS connection,
+      // only established whenever ODB WS is connected and initialized.
+      .useStreamBy((_, _, _, _, ctxPot, _, _, _) => ctxPot.void): (_, _, _, _, ctxPot, _, _, _) =>
+        _ => ctxPot.map(_.odbClient).toOption.foldMap(_.statusStream)
+      .useResourceBy((_, _, _, _, _, _, _, _, odbStatus) => odbStatus):
+        (_, toastRef, isSynced, _, ctxPot, rootModelDataPot, environmentPot, _, _) =>
+          case PotOption.ReadySome(PersistentClientStatus.Initialized) =>
+            // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
+            WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
+          case _                                                       => Resource.pure(none)
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
-      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _) => syncStatus.get):
-        (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _) =>
+      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
+        (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>
           case SyncStatus.OutOfSync =>
             apiClientOpt
               .map: client =>
@@ -258,9 +291,9 @@ object MainApp:
           case SyncStatus.Synced    => singleDispatcher.cancel
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
-        (_, _, _, _, ctxPot, rootModelDataPot, environment, _, wsConnection, _) =>
-          (wsConnection, rootModelDataPot.toPotView, ctxPot).tupled
-      ): (_, _, syncStatus, _, _, _, environment, _, _, configApiStatus) =>
+        (_, _, _, _, ctxPot, rootModelDataPot, environment, _, _, wsConnection, _) =>
+          (wsConnection.map(_.toPot).flatten, rootModelDataPot.toPotView, ctxPot).tupled
+      ): (_, _, syncStatus, _, _, _, environment, _, _, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
 
@@ -273,17 +306,7 @@ object MainApp:
             .compile
             .drain
             .start
-            .map(_.cancel)
-      // RootModel is not initialized until RootModelData and Environment are available
-      .useStateView(Pot.pending[RootModel])
-      .useEffectWithDepsBy((_, _, _, _, _, rootModelDataPot, environmentPot, _, _, _, _) =>
-        (rootModelDataPot.get, environmentPot.get)
-      ): (_, _, _, _, _, _, _, _, _, _, rootModelPot) =>
-        // Build RootModel from RootModelData and Environment
-        (rootModelDataPot, environmentPot) =>
-          rootModelPot.set:
-            (rootModelDataPot, environmentPot).mapN: (rootModelData, environment) =>
-              RootModel(environment, rootModelData)
+            .map(_.cancel) // Previous fiber is cancelled when effect is re-run
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (
@@ -292,21 +315,19 @@ object MainApp:
           isSynced,
           _,
           ctxPot,
-          _,
+          rootModelDataPot,
           environmentPot,
           apiClientOpt,
           _,
+          _,
           configApiStatus,
-          rootModelPot,
           permitPot
         ) =>
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
-             rootModelPot.get.toOption.flatMap(_.observer),
-             //  rootModelPot.get.toOption.flatMap(_.userVault.map(_.token)),
+             rootModelDataPot.get.toOption.flatMap(_.observer),
              permitPot.toOption,
              ctxPot.toOption,
-             //  environmentPot.get.toOption
             ).mapN: (client, observer, permit, ctx) =>
               import ctx.given
               (
@@ -318,20 +339,29 @@ object MainApp:
             apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
               ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
-          // When both AppContext and RootModel are ready, proceed to render.
-          (ctxPot, rootModelPot.toPotView).tupled.renderPot: (ctx, rootModel) =>
-            AppContext.ctx.provide(ctx)(
-              provideApiCtx(
-                Dialog(
-                  header = "Reestablishing connection to server...",
-                  closable = false,
-                  visible = isSynced.get == SyncStatus.OutOfSync,
-                  onHide = Callback.empty,
-                  clazz = ObserveStyles.SyncingPanel
-                )(SolarProgress()),
-                ObservationSyncer(rootModel.zoom(RootModel.nighttimeObservation)),
-                router(rootModel)
-              )
+          // Only show after connection has actually been established once, which we know
+          // if envrionment has been defined.
+          val resyncingPopup =
+            Dialog(
+              header = "Reestablishing connection to server...",
+              closable = false,
+              visible = environmentPot.get.isReady && isSynced.get == SyncStatus.OutOfSync,
+              onHide = Callback.empty,
+              clazz = ObserveStyles.SyncingPanel
+            )(
+              SolarProgress(),
+              Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
             )
+
+          // When both AppContext and RootModel are ready, proceed to render.
+          (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
+            (ctx, rootModelData, environment) => // TODO REMOVE POT FROM ROOTMODEL
+              AppContext.ctx.provide(ctx)(
+                provideApiCtx(
+                  resyncingPopup,
+                  ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
+                  router(RootModel(environment.ready, rootModelData))
+                )
+              )
 
   inline def apply() = component()

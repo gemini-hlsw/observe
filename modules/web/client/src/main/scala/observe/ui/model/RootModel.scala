@@ -6,6 +6,8 @@ package observe.ui.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.option.*
+import crystal.Pot
+import crystal.react.View
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.ReactCats.*
@@ -27,7 +29,11 @@ case class RootModelData(
   userSelectionMessage: Option[NonEmptyString],
   log:                  List[NonEmptyString]
 ) derives Eq:
+  // TODO Readonly mode won't depend on user logged or not, but on their permissions.
+  // For the moment we are requiring the STAFF role, so all logged users can operate.
   val clientMode: ClientMode = userVault.fold(ClientMode.ReadOnly)(_ => ClientMode.CanOperate)
+
+  val isUserLogged: Boolean = userVault.isDefined
 
 object RootModelData:
   def initial(userVault: Either[Throwable, Option[UserVault]]): RootModelData =
@@ -62,23 +68,4 @@ object RootModelData:
 
   given Reusability[RootModelData] = Reusability.byEq
 
-case class RootModel(environment: Environment, data: RootModelData) derives Eq:
-  export data.*
-
-object RootModel:
-  private val data: Lens[RootModel, RootModelData]                            = Focus[RootModel](_.data)
-  private val environment: Lens[RootModel, Environment]                       = Focus[RootModel](_.environment)
-  val userVault: Lens[RootModel, Option[UserVault]]                           = data.andThen(RootModelData.userVault)
-  val nighttimeObservation: Lens[RootModel, Option[LoadedObservation]]        =
-    data.andThen(RootModelData.nighttimeObservation)
-  val daytimeObservations: Lens[RootModel, List[LoadedObservation]]           =
-    data.andThen(RootModelData.daytimeObservations)
-  val sequenceExecution: Lens[RootModel, Map[Observation.Id, ExecutionState]] =
-    data.andThen(RootModelData.sequenceExecution)
-  val conditions: Lens[RootModel, Conditions]                                 = data.andThen(RootModelData.conditions)
-  val observer: Lens[RootModel, Option[Observer]]                             = data.andThen(RootModelData.observer)
-  val operator: Lens[RootModel, Option[Operator]]                             = data.andThen(RootModelData.operator)
-  val clientId: Lens[RootModel, ClientId]                                     = environment.andThen(Environment.clientId)
-  val userSelectionMessage: Lens[RootModel, Option[NonEmptyString]]           =
-    data.andThen(RootModelData.userSelectionMessage)
-  val log: Lens[RootModel, List[NonEmptyString]]                              = data.andThen(RootModelData.log)
+case class RootModel(environment: Pot[Environment], data: View[RootModelData])

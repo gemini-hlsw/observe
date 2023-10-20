@@ -23,10 +23,11 @@ import observe.ui.BroadcastEvent
 import observe.ui.model.AppContext
 import observe.ui.model.Page
 import observe.ui.model.RootModel
+import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
 
-case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, View[RootModel]])(
-  val rootModel: View[RootModel]
+case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
+  val rootModel: RootModel
 ) extends ReactFnProps[Layout](Layout.component)
 
 object Layout:
@@ -54,10 +55,10 @@ object Layout:
           Css.Empty,
           allowGuest = false,
           ctx.ssoClient,
-          props.rootModel.zoom(RootModel.userVault),
-          props.rootModel.zoom(RootModel.userSelectionMessage),
-          ctx.initODBClient(_),
-          ctx.closeODBClient,
+          props.rootModel.data.zoom(RootModelData.userVault),
+          props.rootModel.data.zoom(RootModelData.userSelectionMessage),
+          _ => IO.unit, // MainApp takes care of connections
+          IO.unit,
           IO.unit,
           "observe".refined,
           _.event === BroadcastEvent.LogoutEventId,
@@ -65,10 +66,11 @@ object Layout:
           BroadcastEvent.LogoutEvent(_)
         )(onLogout =>
           <.div(LayoutStyles.MainGrid)(
-            props.rootModel
-              .zoom(RootModel.userVault)
+            props.rootModel.data
+              .zoom(RootModelData.userVault)
               .mapValue: (userVault: View[UserVault]) =>
-                TopBar(props.rootModel.get.environment, userVault, theme, IO.unit),
+                props.rootModel.environment.toOption.map: environment =>
+                  TopBar(environment, userVault, theme, IO.unit),
             Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
             SideTabs(
               "side-tabs".refined,

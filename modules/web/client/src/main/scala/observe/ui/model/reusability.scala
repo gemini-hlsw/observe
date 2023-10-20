@@ -4,6 +4,7 @@
 package observe.ui.model
 
 import cats.Eq
+import clue.PersistentClientStatus
 import japgolly.scalajs.react.ReactCats.*
 import japgolly.scalajs.react.Reusability
 import lucuma.core.model.sequence.ExecutionConfig
@@ -29,3 +30,4 @@ object reusability:
   given Reusability[NodAndShuffleStatus]                   = Reusability.byEq
   given Reusability[ExecutionState]                        = Reusability.byEq
   given Reusability[Environment]                           = Reusability.byEq
+  given Reusability[PersistentClientStatus]                = Reusability.byEq
