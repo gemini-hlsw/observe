@@ -20,6 +20,9 @@ trait SequenceApi[F[_]: MonadThrow]:
   def setBreakpoint(obsId: Observation.Id, stepId: Step.Id, value: Breakpoint): F[Unit] =
     NotAuthorized
 
+  def setBreakpoints(obsId: Observation.Id, stepIds: List[Step.Id], value: Breakpoint): F[Unit] =
+    NotAuthorized
+
   def start(obsId: Observation.Id, runOverride: RunOverride = RunOverride.Default): F[Unit] =
     NotAuthorized
 
