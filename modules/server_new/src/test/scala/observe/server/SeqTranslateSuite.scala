@@ -33,7 +33,7 @@ class SeqTranslateSuite extends TestCommon {
   private def observeActions(state: Action.ActionState): NonEmptyList[Action[IO]] =
     NonEmptyList.one(
       Action(ActionType.Observe,
-             Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
+             Stream.emit(Result.OK(Observed(ImageFileId(fileId)))).covary[IO],
              Action.State(state, Nil)
       )
     )
@@ -73,11 +73,11 @@ class SeqTranslateSuite extends TestCommon {
   // Observe completed
   private val s2: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)
-    .modify(_.mark(0)(Result.OK(Observed(toImageFileId(fileId)))))(baseState)
+    .modify(_.mark(0)(Result.OK(Observed(ImageFileId(fileId)))))(baseState)
   // Observe started, but with file Id already allocated
   private val s3: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)
-    .modify(_.start(0).mark(0)(Result.Partial(FileIdAllocated(toImageFileId(fileId)))))(baseState)
+    .modify(_.start(0).mark(0)(Result.Partial(FileIdAllocated(ImageFileId(fileId)))))(baseState)
   // Observe paused
   private val s4: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)
@@ -85,9 +85,9 @@ class SeqTranslateSuite extends TestCommon {
       _.mark(0)(
         Result.Paused(
           ObserveContext[IO](
-            _ => Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
+            _ => Stream.emit(Result.OK(Observed(ImageFileId(fileId)))).covary[IO],
             _ => Stream.empty,
-            Stream.emit(Result.OK(Observed(toImageFileId(fileId)))).covary[IO],
+            Stream.emit(Result.OK(Observed(ImageFileId(fileId)))).covary[IO],
             Stream.eval(ObserveFailure.Aborted(seqObsId1).raiseError[IO, Result]),
             TimeSpan.unsafeFromDuration(1, ChronoUnit.SECONDS)
           )
@@ -101,7 +101,7 @@ class SeqTranslateSuite extends TestCommon {
   // Observe aborted
   private val s6: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)
-    .modify(_.mark(0)(Result.OKAborted(Response.Aborted(toImageFileId(fileId)))))(baseState)
+    .modify(_.mark(0)(Result.OKAborted(Response.Aborted(ImageFileId(fileId)))))(baseState)
 
   private val translator: IO[SeqTranslate[IO]] = for {
     systems <- defaultSystems

@@ -13,10 +13,10 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 // gql: import lucuma.schemas.decoders.given
 // gql: import lucuma.odb.json.all.query.given
 
-object ObsQueriesGQL {
+object ObsQueriesGQL:
 
   @GraphQL
-  trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
+  trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB]:
     val document = """
       query {
         observations(WHERE: { status: { eq: { EQ: READY } } }) {
@@ -27,10 +27,9 @@ object ObsQueriesGQL {
         }
       }
     """
-  }
 
   @GraphQL
-  trait ObsQuery extends GraphQLOperation[ObservationDB] {
+  trait ObsQuery extends GraphQLOperation[ObservationDB]:
     val document = """
       query($obsId: ObservationId!) {
         observation(observationId: $obsId) {
@@ -274,20 +273,16 @@ object ObsQueriesGQL {
       }
     """
 
-    object Data {
-      object Observation {
+    object Data:
+      object Observation:
         type Target        = model.Target
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
-        object Execution {
+        object Execution:
           type Config = InstrumentExecutionConfig
-        }
-      }
-    }
-  }
 
   @GraphQL
-  trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB] {
+  trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB]:
     val document = """
       subscription {
         observationEdit(programId:"p-2") {
@@ -295,10 +290,9 @@ object ObsQueriesGQL {
         }
       }
     """
-  }
 
   @GraphQL
-  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB] {
+  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB]:
     val document = """
       subscription($obsId: ObservationId!) {
         observationEdit(observationId: $obsId) {
@@ -306,10 +300,9 @@ object ObsQueriesGQL {
         }
       }
     """
-  }
 
   @GraphQL
-  trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB] {
+  trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($vId: VisitId!, $cmd: SequenceCommand!) {
         addSequenceEvent(input: { visitId: $vId, command: $cmd } ) {
@@ -320,36 +313,46 @@ object ObsQueriesGQL {
         }
       }
       """
-  }
 
   @GraphQL
-  trait AddStepEventMutation extends GraphQLOperation[ObservationDB] {
+  trait AddStepEventMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $seqType: SequenceType!, $stg: StepStage!)  {
-        addStepEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId }, payload: { sequenceType: $seqType, stage: $stg } } ) {
+      mutation($stepId: StepId!, $stg: StepStage!)  {
+        addStepEvent(input: { stepId: $stepId, stage: $stg } ) {
           event {
             received
           }
         }
       }
       """
-  }
 
   @GraphQL
-  trait AddDatasetEventMutation extends GraphQLOperation[ObservationDB] {
+  trait AddDatasetEventMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $dtIdx: PosInt!, $stg: DatasetStage!, $flName: DatasetFilename)  {
-        addDatasetEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId, index: $dtIdx }, payload: { datasetStage: $stg, filename: $flName } } ) {
+      mutation($datasetId: DatasetId!, $stg: DatasetStage!)  {
+        addDatasetEvent(input: { datasetId: $datasetId, datasetStage: $stg } ) {
           event {
             received
           }
         }
       }
       """
-  }
 
   @GraphQL
-  trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB] {
+  trait RecordDatasetMutation extends GraphQLOperation[ObservationDB]:
+    val document = """
+      mutation($stepId: StepId!, $filename: DatasetFilename!) {
+        recordDataset(input: { stepId: $stepId, filename: $filename } ) {
+          dataset {
+            id
+            stepId
+          }
+        }
+      }
+      """
+
+  @GraphQL
+  trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
         recordGmosNorthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
@@ -359,10 +362,9 @@ object ObsQueriesGQL {
         }
       }
       """
-  }
 
   @GraphQL
-  trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB] {
+  trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB]:
     val document =
       """
       mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
@@ -373,6 +375,3 @@ object ObsQueriesGQL {
         }
       }
       """
-  }
-
-}

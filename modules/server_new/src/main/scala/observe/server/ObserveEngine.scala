@@ -1365,7 +1365,7 @@ object ObserveEngine {
         executeEngine.updateSteps(
           toStepList(sd.seqGen,
                      sd.overrides,
-                     HeaderExtraData(conditions, operator, sd.observer, sd.visitId)
+                     HeaderExtraData(conditions, operator, sd.observer, sd.visitId, sd.datasetId)
           )
         )
       )(sd)

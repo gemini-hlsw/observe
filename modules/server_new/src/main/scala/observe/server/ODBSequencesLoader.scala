@@ -104,6 +104,7 @@ object ODBSequencesLoader {
       SequenceData[F](
         observer,
         none,
+        none,
         SystemOverrides.AllEnabled,
         seqg,
         Engine.load(
@@ -112,7 +113,7 @@ object ODBSequencesLoader {
             seqg.atomId,
             SystemOverrides.AllEnabled,
             seqg,
-            HeaderExtraData(st.conditions, st.operator, observer, None)
+            HeaderExtraData(st.conditions, st.operator, observer, None, None)
           )
         ),
         none
@@ -132,7 +133,7 @@ object ODBSequencesLoader {
             toStepList(
               seqg,
               sd.overrides,
-              HeaderExtraData(st.conditions, st.operator, sd.observer, sd.visitId)
+              HeaderExtraData(st.conditions, st.operator, sd.observer, sd.visitId, sd.datasetId)
             )
           )
         )

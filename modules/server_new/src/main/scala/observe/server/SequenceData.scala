@@ -3,6 +3,7 @@
 
 package observe.server
 
+import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
 import monocle.Lens
@@ -11,9 +12,10 @@ import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observer
 import observe.model.SystemOverrides
 
-final case class SequenceData[F[_]](
+case class SequenceData[F[_]](
   observer:      Option[Observer],
   visitId:       Option[VisitId],
+  datasetId:     Option[DatasetId],
   overrides:     SystemOverrides,
   seqGen:        SequenceGen[F],
   seq:           Sequence.State[F],
@@ -30,6 +32,9 @@ object SequenceData {
   def seq[F[_]]: Lens[SequenceData[F], Sequence.State[F]] = Focus[SequenceData[F]](_.seq)
 
   def visitId[F[_]]: Lens[SequenceData[F], Option[VisitId]] = Focus[SequenceData[F]](_.visitId)
+
+  def datasetId[F[_]]: Lens[SequenceData[F], Option[DatasetId]] =
+    Focus[SequenceData[F]](_.datasetId)
 
   def overrides[F[_]]: Lens[SequenceData[F], SystemOverrides] = Focus[SequenceData[F]](_.overrides)
 

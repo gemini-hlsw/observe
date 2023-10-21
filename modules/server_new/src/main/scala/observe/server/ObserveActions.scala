@@ -7,9 +7,9 @@ import cats.*
 import cats.effect.Concurrent
 import cats.effect.Temporal
 import cats.syntax.all.*
-import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import lucuma.core.util.TimeSpan
+import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
 import observe.model.Observation
@@ -50,36 +50,26 @@ trait ObserveActions {
    * Send the datasetStart command to the odb
    */
   private def sendDataStart[F[_]: MonadThrow](
-    odb:          OdbProxy[F],
-    visitId:      VisitId,
-    obsId:        Observation.Id,
-    stepId:       StepId,
-    datasetIndex: PosInt,
-    fileId:       ImageFileId
+    odb:    OdbProxy[F],
+    obsId:  Observation.Id,
+    stepId: StepId,
+    fileId: ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(visitId, obsId, stepId, datasetIndex, fileId)
-      .ensure(
-        ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
-      )(identity)
+      .datasetStart(obsId, stepId, fileId)
       .void
 
   /**
    * Send the datasetEnd command to the odb
    */
   private def sendDataEnd[F[_]: MonadThrow](
-    odb:          OdbProxy[F],
-    visitId:      VisitId,
-    obsId:        Observation.Id,
-    stepId:       StepId,
-    datasetIndex: PosInt,
-    fileId:       ImageFileId
+    odb:       OdbProxy[F],
+    datasetId: DatasetId,
+    obsId:     Observation.Id,
+    fileId:    ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(visitId, obsId, stepId, datasetIndex, fileId)
-      .ensure(
-        ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
-      )(identity)
+      .datasetComplete(datasetId, obsId, fileId)
       .void
 
   /**
@@ -121,9 +111,7 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- env.ctx.visitId
-             .map(sendDataStart(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
-             .getOrElse(Applicative[F].unit)
+      _ <- sendDataStart(env.odb, env.obsId, env.stepId, fileId)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
       _ <-
@@ -150,9 +138,9 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <- env.ctx.visitId
-             .map(sendDataEnd(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
-             .getOrElse(Applicative[F].unit)
+      _ <- env.ctx.datasetId
+             .map(sendDataEnd(env.odb, _, env.obsId, fileId))
+             .getOrElse(().pure[F])
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))

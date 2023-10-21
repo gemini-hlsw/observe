@@ -167,7 +167,7 @@ object TestCommon {
         pendingAction(resource)
       )
 
-  private val fileId = toImageFileId("fileId")
+  private val fileId = ImageFileId("fileId")
 
   def observing[F[_]: Applicative]: Action[F] =
     Action

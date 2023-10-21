@@ -19,6 +19,7 @@ import clue.ErrorPolicy
 import fs2.Stream
 import lucuma.core.enums.Instrument
 import lucuma.core.util.TimeSpan
+import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
 import monocle.Lens
@@ -150,10 +151,11 @@ package object server {
     conditions: Conditions,
     operator:   Option[Operator],
     observer:   Option[Observer],
-    visitId:    Option[VisitId]
+    visitId:    Option[VisitId],
+    datasetId:  Option[DatasetId]
   )
   object HeaderExtraData {
-    val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None)
+    val default: HeaderExtraData = HeaderExtraData(Conditions.Default, None, None, None, None)
   }
 
   case class ObserveContext[F[_]](
