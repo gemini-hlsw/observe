@@ -28,7 +28,7 @@ import observe.model.ExecutionState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
-import observe.ui.model.TabOperations
+import observe.ui.model.SequenceOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 
@@ -42,7 +42,9 @@ sealed trait SequenceTables[S, D](
   def obsId: Observation.Id
   def config: ExecutionConfig[S, D]
   def executionState: ExecutionState
-  def tabOperations: TabOperations
+  def selectedStepId: Option[Step.Id]
+  def setSelectedStepId: Step.Id => Callback
+  def seqOperations: SequenceOperations
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 
@@ -59,16 +61,18 @@ sealed trait SequenceTables[S, D](
   protected[sequence] lazy val scienceSteps: List[SequenceRow.FutureStep[D]] =
     config.science.map(steps).orEmpty
 
-  protected[sequence] lazy val runningStepId: Option[Step.Id] = executionState.runningStepId
+  // protected[sequence] lazy val runningStepId: Option[Step.Id] = executionState.runningStepId
 
 case class GmosNorthSequenceTables(
-  clientMode:     ClientMode,
-  obsId:          Observation.Id,
-  config:         ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
-  executionState: ExecutionState,
-  tabOperations:  TabOperations,
-  isPreview:      Boolean,
-  flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
+  clientMode:        ClientMode,
+  obsId:             Observation.Id,
+  config:            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
+  executionState:    ExecutionState,
+  selectedStepId:    Option[Step.Id],
+  setSelectedStepId: Step.Id => Callback,
+  seqOperations:     SequenceOperations,
+  isPreview:         Boolean,
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosNorthSequenceTables.component)
     with SequenceTables[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -76,13 +80,15 @@ case class GmosNorthSequenceTables(
     )
 
 case class GmosSouthSequenceTables(
-  clientMode:     ClientMode,
-  obsId:          Observation.Id,
-  config:         ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
-  executionState: ExecutionState,
-  tabOperations:  TabOperations,
-  isPreview:      Boolean,
-  flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
+  clientMode:        ClientMode,
+  obsId:             Observation.Id,
+  config:            ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
+  executionState:    ExecutionState,
+  selectedStepId:    Option[Step.Id],
+  setSelectedStepId: Step.Id => Callback,
+  seqOperations:     SequenceOperations,
+  isPreview:         Boolean,
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosSouthSequenceTables.component)
     with SequenceTables[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -182,19 +188,18 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
   protected[sequence] val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState(none[Step.Id]) // selectedStep
       .useResizeDetector()
-      .useMemoBy((props, selectedStep, _) => // cols
+      .useMemoBy((props, _) => // cols
         (props.clientMode,
          props.instrument,
          props.obsId,
-         props.tabOperations,
+         props.seqOperations,
          props.executionState,
          props.isPreview,
-         selectedStep.value
+         props.selectedStepId
         )
-      ): (props, _, _) =>
-        (clientMode, instrument, obsId, tabOperations, executionState, isPreview, selectedStep) =>
+      ): (props, _) =>
+        (clientMode, instrument, obsId, tabOperations, executionState, isPreview, selectedStepId) =>
           List(
             column(
               BreakpointColumnId,
@@ -243,8 +248,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                 val step = cell.row.original.step
 
                 (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
-                  props.runningStepId.flatMap: stepId =>
-                    Option.when(cell.row.original.step.id.contains(stepId)):
+                  props.selectedStepId
+                    .filter(_ === stepId)
+                    .map: stepId =>
                       StepProgressCell(
                         clientMode = clientMode,
                         instrument = instrument,
@@ -253,11 +259,11 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         isFinished = step.isFinished,
                         stepIndex = cell.row.index.toInt,
                         obsId = obsId,
-                        tabOperations = tabOperations,
+                        seqOperations = tabOperations,
                         runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
                         configStatus = executionState.configStatus,
-                        selectedStep = selectedStep,
+                        selectedStep = selectedStepId,
                         isPreview = isPreview
                       )
             )
@@ -278,16 +284,16 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                 cell => SettingsCell() // TODO
               )
             )
-      .useMemoBy((props, _, _, _) => (props.acquisitionSteps, props.scienceSteps))( // sequences
-        (props, _, _, _) =>
+      .useMemoBy((props, _, _) => (props.acquisitionSteps, props.scienceSteps))( // sequences
+        (props, _, _) =>
           (acquisitionSequence, scienceSequence) =>
             (
               acquisitionSequence.zipWithStepIndex.map(SequenceTableRow.apply),
               scienceSequence.zipWithStepIndex.map(SequenceTableRow.apply)
             )
       )
-      .useDynTableBy((_, _, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
-      .useReactTableBy: (props, _, resize, cols, sequences, dynTable) =>
+      .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
+      .useReactTableBy: (props, resize, cols, sequences, dynTable) =>
         TableOptions(
           cols,
           sequences.map(_._1),
@@ -300,7 +306,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .useReactTableBy: (props, _, resize, cols, sequences, dynTable, _) =>
+      .useReactTableBy: (props, resize, cols, sequences, dynTable, _) =>
         TableOptions(
           cols,
           sequences.map(_._2),
@@ -313,30 +319,34 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, _, resize, _, _, _, acquisitionTable, scienceTable) =>
+      .render: (props, resize, _, _, _, acquisitionTable, scienceTable) =>
         extension (row: SequenceTableRow)
-          def isRunning: Boolean =
-            props.runningStepId match
+          def isSelected: Boolean =
+            props.selectedStepId match
               case Some(stepId) => row.step.id.contains(stepId)
               case _            => false
 
         val tableStyle: Css =
           ObserveStyles.ObserveTable |+| ObserveStyles.StepTable |+| SequenceStyles.SequenceTable
 
-        def computeRowClass(row: raw.buildLibTypesMod.Row[SequenceTableRow]): Css =
-          val step                       = row.original.step
+        def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRow]): TagMod =
+          val tableRow                   = row.original
+          val step                       = tableRow.step
           // val index                      = row.original.index
-          val stepIdOpt: Option[Step.Id] = row.original.step.id.toOption
+          val stepIdOpt: Option[Step.Id] = step.id.toOption
 
-          (props.runningStepId match
-            case Some(stepId) if stepIdOpt.contains(stepId) => ObserveStyles.RowRunning
-            case _                                          => ObserveStyles.RowIdle
-          ) |+|
+          TagMod(
+            stepIdOpt
+              .map: stepId =>
+                (^.onClick --> props.setSelectedStepId(stepId))
+                  .unless(props.executionState.isLocked)
+              .whenDefined,
+            if (tableRow.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
             ObserveStyles.StepRowWithBreakpoint.when_(
               stepIdOpt.exists(props.executionState.breakpoints.contains)
-            ) |+|
-            ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined) |+|
-            (step match
+            ),
+            ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined),
+            step match
               // case s if s.hasError                       => ObserveStyles.StepRowError
               // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
               // case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
@@ -345,9 +355,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
               // case s if s.isFinished => ObserveStyles.RowDone
               // case _                 => ObserveStyles.StepRow
               case _ => Css.Empty
-            )
+          )
 
-        def computeHeaderCellClass(
+        def computeHeaderCellMods(
           headerCell: raw.buildLibTypesMod.Header[SequenceTableRow, Any]
         ): Css =
           headerCell.column.id match
@@ -357,25 +367,25 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
 
         def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRow, Any]): TagMod =
           cell.column.id match
-            case id if id == BreakpointColumnId.value                                  =>
+            case id if id == BreakpointColumnId.value                                   =>
               ObserveStyles.BreakpointTableCell
-            case id if id == RunningStateColumnId.value && cell.row.original.isRunning =>
+            case id if id == RunningStateColumnId.value && cell.row.original.isSelected =>
               TagMod(
-                ObserveStyles.RunningStateTableCellShown,
+                ObserveStyles.SelectedStateTableCellShown,
                 resize.width
                   .map: w =>
                     ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
                   .whenDefined
               )
-            case _                                                                     =>
+            case _                                                                      =>
               TagMod.empty
 
         val acquisition =
           PrimeTable(
             acquisitionTable,
             tableMod = tableStyle,
-            rowMod = computeRowClass,
-            headerCellMod = computeHeaderCellClass,
+            rowMod = computeRowMods,
+            headerCellMod = computeHeaderCellMods,
             cellMod = computeCellMods
           )
 
@@ -384,7 +394,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           estimateSize = _ => 25.toPx,
           containerRef = resize.ref,
           tableMod = TagMod(tableStyle, ^.marginTop := "15px"),
-          rowMod = computeRowClass,
+          rowMod = computeRowMods,
           // We display the whole acquisition table as a preamble to the science table, which is virtualized.
           // This renders as:
           //  <div outer>
@@ -393,7 +403,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           //      Science Table (virtualized)
           // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows.
           innerContainerMod = TagMod(^.width := "100%", acquisition),
-          headerCellMod = computeHeaderCellClass,
+          headerCellMod = computeHeaderCellMods,
           cellMod = computeCellMods,
           overscan = 5
         )

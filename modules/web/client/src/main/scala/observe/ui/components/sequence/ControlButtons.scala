@@ -16,7 +16,7 @@ import observe.model.operations.Operations.*
 import observe.model.operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.model.TabOperations
+import observe.ui.model.SequenceOperations
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -27,7 +27,7 @@ case class ControlButtons(
   sequenceState:   SequenceState,
   stepId:          Step.Id,
   isObservePaused: Boolean,
-  tabOperations:   TabOperations
+  tabOperations:   SequenceOperations
   // nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = None
 ) extends ReactFnProps(ControlButtons.component):
 
@@ -72,24 +72,24 @@ object ControlButtons:
               clazz = ObserveStyles.PauseButton,
               icon = Icons.Pause.withFixedWidth(), // .withSize(IconSize.LG),
               tooltip = "Pause the current exposure",
-              tooltipOptions = tooltipOptions
-              // onClick = requestObsPause(p.obsId, p.stepId)
+              tooltipOptions = tooltipOptions,
+              onClickE = _.stopPropagationCB       // >> requestObsPause(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || props.isObservePaused || isReadingOut)
           case StopObservation  =>
             Button(
               clazz = ObserveStyles.StopButton,
               icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Stop the current exposure early",
-              tooltipOptions = tooltipOptions
-              // onClick = requestStop(p.obsId, p.stepId)
+              tooltipOptions = tooltipOptions,
+              onClickE = _.stopPropagationCB // >> requestStop(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           case AbortObservation =>
             Button(
               clazz = ObserveStyles.AbortButton,
               icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Abort the current exposure",
-              tooltipOptions = tooltipOptions
-              // onClick = requestAbort(p.obsId, p.stepId),
+              tooltipOptions = tooltipOptions,
+              onClickE = _.stopPropagationCB // >> requestAbort(p.obsId, p.stepId),
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           // case ResumeObservation           =>
           //   Popup(

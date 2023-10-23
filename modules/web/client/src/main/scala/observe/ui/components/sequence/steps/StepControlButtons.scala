@@ -12,7 +12,7 @@ import lucuma.react.common.*
 import observe.model.SequenceState
 import observe.model.operations.*
 import observe.ui.components.sequence.ControlButtons
-import observe.ui.model.TabOperations
+import observe.ui.model.SequenceOperations
 
 /**
  * Contains the control buttons like stop/abort at the row level
@@ -24,7 +24,7 @@ final case class StepControlButtons(
   stepId:          Step.Id,
   isObservePaused: Boolean,
   isMultiLevel:    Boolean,
-  tabOperations:   TabOperations
+  tabOperations:   SequenceOperations
 ) extends ReactFnProps(StepControlButtons.component)
 
 object StepControlButtons:

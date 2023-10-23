@@ -16,8 +16,8 @@ import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.ui.ObserveStyles
+import observe.ui.model.SequenceOperations
 import observe.ui.model.StopOperation
-import observe.ui.model.TabOperations
 import observe.ui.model.enums.ClientMode
 
 case class StepProgressCell(
@@ -28,23 +28,23 @@ case class StepProgressCell(
   isFinished:    Boolean,
   stepIndex:     Int,
   obsId:         Observation.Id,
-  tabOperations: TabOperations,
+  seqOperations: SequenceOperations,
   runningStepId: Option[Step.Id],
   sequenceState: SequenceState,
   configStatus:  Map[Resource | Instrument, ActionStatus],
   selectedStep:  Option[Step.Id],
   isPreview:     Boolean
 ) extends ReactFnProps(StepProgressCell.component):
-  def stepSelected(i: Step.Id): Boolean =
-    selectedStep.exists(_ === i) && !isPreview &&
-      // Will we always require logging in?
-      ( /*clientStatus.isLogged ||*/ tabOperations.resourceRunNotIdle(i))
+  // def stepSelected(i: Step.Id): Boolean =
+  //   selectedStep.exists(_ === i) && !isPreview &&
+  //     // Will we always require logging in?
+  //     ( /*clientStatus.isLogged ||*/ seqOperations.resourceRunNotIdle(i))
 
   private val isRunning =
-    tabOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)
+    seqOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)
 
   val anyError: Boolean =
-    tabOperations.resourceInError(stepId)
+    seqOperations.resourceInError(stepId)
 
   val isBias: Boolean = stepType === StepTypeDisplay.Bias
 
@@ -60,13 +60,13 @@ case class StepProgressCell(
   //     DetailRows.NoDetailRows
 
   def isStopping: Boolean =
-    tabOperations.stopRequested === StopOperation.StopInFlight
+    seqOperations.stopRequested === StopOperation.StopInFlight
 
 object StepProgressCell:
   private type Props = StepProgressCell
 
-  private given ControlButtonResolver[Props] =
-    ControlButtonResolver.build(p => (p.clientMode, p.sequenceState, p.isRunning))
+  // private given ControlButtonResolver[Props] =
+  //   ControlButtonResolver.build(p => (p.clientMode, p.sequenceState, p.isRunning))
 
   private def stepControlButtons(props: Props): TagMod =
     StepControlButtons(
@@ -77,8 +77,8 @@ object StepProgressCell:
       false, // props.step.get.isObservePaused,
       false, // props.isNs,
       // props.step.get.isMultiLevel,
-      props.tabOperations
-    ).when(props.controlButtonsActive)
+      props.seqOperations
+    )        // .when(props.controlButtonsActive)
 
   // private def step.getSystemsStatus(step.get: Step): VdomElement =
   //   <.div(
@@ -97,50 +97,6 @@ object StepProgressCell:
   //         .toTagMod
   //     )
   //   )
-
-  private def stepObservationStatusAndFile(
-    props:  Props,
-    fileId: ImageFileId,
-    paused: Boolean
-  ): VdomElement =
-    <.div(ObserveStyles.ConfiguringRow)(
-      stepControlButtons(props),
-      SubsystemControls(
-        props.obsId,
-        props.stepId,
-        props.configStatus.map(_._1).toList,
-        TabOperations.resourceRunRequested.get(props.tabOperations),
-        props.clientMode
-      ),
-      if (props.isBias)
-        // BiasStatus(
-        //   props.obsIdName,
-        //   props.step.get.id,
-        //   fileId,
-        //   stopping = !paused && props.isStopping,
-        //   paused
-        // )
-        EmptyVdom
-      else
-        // props.nsStatus.fold[VdomNode] {
-        ObservationProgressBar(
-          props.obsId,
-          props.stepId,
-          fileId,
-          stopping = !paused && props.isStopping,
-          paused
-        ),
-      // } { nsStatus =>
-      //   // NodAndShuffleProgressMessage(props.obsIdName,
-      //   //                              props.step.get.id,
-      //   //                              fileId,
-      //   //                              props.isStopping,
-      //   //                              paused,
-      //   //                              nsStatus
-      //   // )
-      //   EmptyVdom
-      // },
-    )
 
   private val component = ScalaFnComponent[Props](props =>
     // (props.sequenceState, props.step.get) match
@@ -170,8 +126,51 @@ object StepProgressCell:
     // case _                                                                =>
     // <.p(ObserveStyles.ComponentLabel, props.step.get.shortName)
 
-    if (props.isRunning)
-      stepObservationStatusAndFile(props, ImageFileId(""), paused = false)
-    else
-      <.p(ObserveStyles.ComponentLabel, "Pending")
+    // if (props.isRunning)
+    //   stepObservationStatusAndFile(props, ImageFileId(""), paused = false)
+    // else
+    //   <.p(ObserveStyles.ComponentLabel, "Pending")
+
+    val fileId = ImageFileId("")
+    val paused = false
+
+    <.div(ObserveStyles.ConfiguringRow)(
+      stepControlButtons(props),
+      SubsystemControls(
+        props.obsId,
+        props.stepId,
+        props.configStatus.map(_._1).toList,
+        SequenceOperations.resourceRunRequested.get(props.seqOperations),
+        props.clientMode
+      ),
+      if (props.isBias)
+        // BiasStatus(
+        //   props.obsIdName,
+        //   props.step.get.id,
+        //   fileId,
+        //   stopping = !paused && props.isStopping,
+        //   paused
+        // )
+        EmptyVdom
+      else if (props.isRunning)
+        // props.nsStatus.fold[VdomNode] {
+        ObservationProgressBar(
+          props.obsId,
+          props.stepId,
+          fileId,
+          stopping = !paused && props.isStopping,
+          paused
+        )
+      else EmptyVdom
+      // } { nsStatus =>
+      //   // NodAndShuffleProgressMessage(props.obsIdName,
+      //   //                              props.step.get.id,
+      //   //                              fileId,
+      //   //                              props.isStopping,
+      //   //                              paused,
+      //   //                              nsStatus
+      //   // )
+      //   EmptyVdom
+      // },
+    )
   )

@@ -35,8 +35,8 @@ import observe.ui.model.LoadedObservation
 import observe.ui.model.ResourceRunOperation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
+import observe.ui.model.SequenceOperations
 import observe.ui.model.SessionQueueRow
-import observe.ui.model.TabOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
@@ -126,12 +126,22 @@ object Home:
 
                     val runningStepId: Option[Step.Id] = executionState.get.runningStepId
 
-                    def tabOperations(excutionConfig: ExecutionConfig[?, ?]): TabOperations =
-                      runningStepId.fold(TabOperations.Default): stepId =>
-                        TabOperations.Default.copy(resourceRunRequested = SortedMap.from:
+                    def seqOperations(excutionConfig: ExecutionConfig[?, ?]): SequenceOperations =
+                      runningStepId.fold(SequenceOperations.Default): stepId =>
+                        SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
                           executionState.get.configStatus.flatMap: (resource, status) =>
                             ResourceRunOperation.fromActionStatus(stepId)(status).map(resource -> _)
                         )
+
+                    val selectedStep: Option[Step.Id] =
+                      props.rootModel.data.get.obsSelectedStep(obsId)
+
+                    val setSelectedStep: Step.Id => Callback = stepId =>
+                      props.rootModel.data
+                        .zoom(RootModelData.userSelectedStep)
+                        .zoom(Iso.id[Map[Observation.Id, Step.Id]].at(obsId))
+                        .mod: oldStepId => 
+                          if(oldStepId.contains_(stepId)) none else stepId.some
 
                     <.div(^.height := "100%", ^.key := obsId.toString)(
                       props.rootModel.data.get.nighttimeObservation.toPot
@@ -146,7 +156,9 @@ object Home:
                                   obsId,
                                   config,
                                   executionState.get,
-                                  tabOperations(config),
+                                  selectedStep,
+                                  setSelectedStep,
+                                  seqOperations(config),
                                   isPreview = false,
                                   flipBreakPoint
                                 )
@@ -156,7 +168,9 @@ object Home:
                                   obsId,
                                   config,
                                   executionState.get,
-                                  tabOperations(config),
+                                  selectedStep,
+                                  setSelectedStep,
+                                  seqOperations(config),
                                   isPreview = false,
                                   flipBreakPoint
                                 )

@@ -4,6 +4,7 @@
 package observe.model
 
 import cats.Eq
+import cats.syntax.all.*
 import cats.derived.*
 import eu.timepit.refined.cats.*
 import io.circe.Decoder
@@ -30,7 +31,11 @@ case class ExecutionState(
   breakpoints:     Set[Step.Id] = Set.empty
 ) derives Eq,
       Encoder.AsObject,
-      Decoder
+      Decoder:
+
+  // If there's a running step or resource, the step is considered locked.
+  lazy val isLocked: Boolean =
+    runningStepId.isDefined || configStatus.values.exists(ActionStatus.LockedStatuses.contains_)
 
 object ExecutionState:
   val sequenceState: Lens[ExecutionState, SequenceState]                           = Focus[ExecutionState](_.sequenceState)
