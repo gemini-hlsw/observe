@@ -63,7 +63,7 @@ object ResourceRunOperation:
 /**
  * Hold transient states while excuting an operation
  */
-case class TabOperations(
+case class SequenceOperations(
   runRequested:         RunOperation,
   syncRequested:        SyncOperation,
   pauseRequested:       PauseOperation,
@@ -109,34 +109,39 @@ case class TabOperations(
       abortRequested === AbortOperation.AbortInFlight ||
       startFromRequested === StartFromOperation.StartFromInFlight
 
-object TabOperations:
-  val runRequested: Lens[TabOperations, RunOperation]                 = Focus[TabOperations](_.runRequested)
-  val syncRequested: Lens[TabOperations, SyncOperation]               = Focus[TabOperations](_.syncRequested)
-  val pauseRequested: Lens[TabOperations, PauseOperation]             = Focus[TabOperations](_.pauseRequested)
-  val cancelPauseRequested: Lens[TabOperations, CancelPauseOperation] =
-    Focus[TabOperations](_.cancelPauseRequested)
-  val resumeRequested: Lens[TabOperations, ResumeOperation]           =
-    Focus[TabOperations](_.resumeRequested)
-  val stopRequested: Lens[TabOperations, StopOperation]               = Focus[TabOperations](_.stopRequested)
-  val abortRequested: Lens[TabOperations, AbortOperation]             = Focus[TabOperations](_.abortRequested)
-  val startFromRequested: Lens[TabOperations, StartFromOperation]     =
-    Focus[TabOperations](_.startFromRequested)
+object SequenceOperations:
+  val runRequested: Lens[SequenceOperations, RunOperation]                 =
+    Focus[SequenceOperations](_.runRequested)
+  val syncRequested: Lens[SequenceOperations, SyncOperation]               =
+    Focus[SequenceOperations](_.syncRequested)
+  val pauseRequested: Lens[SequenceOperations, PauseOperation]             =
+    Focus[SequenceOperations](_.pauseRequested)
+  val cancelPauseRequested: Lens[SequenceOperations, CancelPauseOperation] =
+    Focus[SequenceOperations](_.cancelPauseRequested)
+  val resumeRequested: Lens[SequenceOperations, ResumeOperation]           =
+    Focus[SequenceOperations](_.resumeRequested)
+  val stopRequested: Lens[SequenceOperations, StopOperation]               =
+    Focus[SequenceOperations](_.stopRequested)
+  val abortRequested: Lens[SequenceOperations, AbortOperation]             =
+    Focus[SequenceOperations](_.abortRequested)
+  val startFromRequested: Lens[SequenceOperations, StartFromOperation]     =
+    Focus[SequenceOperations](_.startFromRequested)
   val resourceRunRequested
-    : Lens[TabOperations, SortedMap[Resource | Instrument, ResourceRunOperation]] =
-    Focus[TabOperations](_.resourceRunRequested)
+    : Lens[SequenceOperations, SortedMap[Resource | Instrument, ResourceRunOperation]] =
+    Focus[SequenceOperations](_.resourceRunRequested)
 
-  def resourceRun(r: Resource): Lens[TabOperations, Option[ResourceRunOperation]] =
-    TabOperations.resourceRunRequested.andThen(at(r))
+  def resourceRun(r: Resource): Lens[SequenceOperations, Option[ResourceRunOperation]] =
+    SequenceOperations.resourceRunRequested.andThen(at(r))
 
   // Set the resource operations in the map to idle.
-  def clearAllResourceOperations: TabOperations => TabOperations =
-    TabOperations.resourceRunRequested.modify(_.map { case (r, _) =>
+  def clearAllResourceOperations: SequenceOperations => SequenceOperations =
+    SequenceOperations.resourceRunRequested.modify(_.map { case (r, _) =>
       r -> ResourceRunOperation.ResourceRunIdle
     })
 
   // Set the resource operations in the map to idle.
-  def clearResourceOperations(re: Resource | Instrument): TabOperations => TabOperations =
-    TabOperations.resourceRunRequested.modify(_.map {
+  def clearResourceOperations(re: Resource | Instrument): SequenceOperations => SequenceOperations =
+    SequenceOperations.resourceRunRequested.modify(_.map {
       case (r, _) if re === r => r -> ResourceRunOperation.ResourceRunIdle
       case r                  => r
     })
@@ -144,15 +149,15 @@ object TabOperations:
   // Set the resource operations in the map to idle.
   def clearCommonResourceCompleted(
     re: Resource | Instrument
-  ): TabOperations => TabOperations =
-    TabOperations.resourceRunRequested.modify(_.map {
+  ): SequenceOperations => SequenceOperations =
+    SequenceOperations.resourceRunRequested.modify(_.map {
       case (r, ResourceRunOperation.ResourceRunCompleted(_)) if re === r =>
         r -> ResourceRunOperation.ResourceRunIdle
       case r                                                             => r
     })
 
-  val Default: TabOperations =
-    TabOperations(
+  val Default: SequenceOperations =
+    SequenceOperations(
       RunOperation.RunIdle,
       SyncOperation.SyncIdle,
       PauseOperation.PauseIdle,

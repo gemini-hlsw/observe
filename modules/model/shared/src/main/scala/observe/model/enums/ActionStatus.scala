@@ -23,3 +23,6 @@ enum ActionStatus(val tag: String) derives Enumerated:
 
   /** Action was aborted by the user */
   case Aborted extends ActionStatus("Aborted")
+
+object ActionStatus:
+  val LockedStatuses: List[ActionStatus] = List(Running, Paused)
