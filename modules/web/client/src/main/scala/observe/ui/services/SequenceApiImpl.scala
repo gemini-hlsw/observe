@@ -9,10 +9,12 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.core.util.Enumerated
 import observe.model.ClientId
 import observe.model.Observer
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
+import observe.model.given
 import org.http4s.Query
 import org.http4s.Uri
 import org.typelevel.log4cats.Logger
@@ -54,6 +56,11 @@ case class SequenceApiImpl(
       else Query.empty
     )
 
-  override def execute(obsId: Observation.Id, stepId: Step.Id, resource: Resource): IO[Unit] =
+  override def execute(
+    obsId:     Observation.Id,
+    stepId:    Step.Id,
+    subsystem: Resource | Instrument
+  ): IO[Unit] =
     client.postNoData:
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "execute" / resource.tag / observer.toString
+      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "execute" /
+        Enumerated[Resource | Instrument].tag(subsystem) / observer.toString
