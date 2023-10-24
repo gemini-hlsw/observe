@@ -16,6 +16,7 @@ import observe.model.operations.Operations.*
 import observe.model.operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.components.DefaultTooltipOptions
 import observe.ui.model.SequenceOperations
 
 /**
@@ -61,8 +62,6 @@ object ControlButtons:
     // p.connect { proxy =>
     val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
-    val tooltipOptions = TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100)
-
     <.div(ObserveStyles.ControlButtonStrip, ^.cls := "p-inputgroup")(
       // ObserveStyles.notInMobile,
       props.operations
@@ -72,7 +71,7 @@ object ControlButtons:
               clazz = ObserveStyles.PauseButton,
               icon = Icons.Pause.withFixedWidth(), // .withSize(IconSize.LG),
               tooltip = "Pause the current exposure",
-              tooltipOptions = tooltipOptions,
+              tooltipOptions = DefaultTooltipOptions,
               onClickE = _.stopPropagationCB       // >> requestObsPause(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || props.isObservePaused || isReadingOut)
           case StopObservation  =>
@@ -80,7 +79,7 @@ object ControlButtons:
               clazz = ObserveStyles.StopButton,
               icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Stop the current exposure early",
-              tooltipOptions = tooltipOptions,
+              tooltipOptions = DefaultTooltipOptions,
               onClickE = _.stopPropagationCB // >> requestStop(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           case AbortObservation =>
@@ -88,7 +87,7 @@ object ControlButtons:
               clazz = ObserveStyles.AbortButton,
               icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Abort the current exposure",
-              tooltipOptions = tooltipOptions,
+              tooltipOptions = DefaultTooltipOptions,
               onClickE = _.stopPropagationCB // >> requestAbort(p.obsId, p.stepId),
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           // case ResumeObservation           =>

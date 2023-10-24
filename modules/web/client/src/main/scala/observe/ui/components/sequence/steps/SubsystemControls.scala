@@ -14,15 +14,15 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
-import lucuma.react.floatingui.syntax.*
 import lucuma.react.primereact.*
 import observe.model.enums.*
 import observe.model.given
 import observe.ui.Icons
 import observe.ui.ObserveStyles
+import observe.ui.components.DefaultTooltipOptions
 import observe.ui.display.given
 import observe.ui.model.AppContext
-import observe.ui.model.ResourceRunOperation
+import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
 
@@ -35,7 +35,7 @@ case class SubsystemControls(
   obsId:           Observation.Id,
   stepId:          Step.Id,
   subsystems:      List[Resource | Instrument],
-  subsystemsCalls: SortedMap[Resource | Instrument, ResourceRunOperation],
+  subsystemsCalls: SortedMap[Resource | Instrument, SubsystemRunOperation],
   clientMode:      ClientMode
 ) extends ReactFnProps(SubsystemControls.component)
 
@@ -52,31 +52,29 @@ object SubsystemControls:
   //       ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, resource)))
   //       .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
-  private val CompletedIcon = Icons.Check.withFixedWidth()
-
+  private val IdleIcon = Icons.ArrowUpFromLine.withFixedWidth()
   private val RunningIcon = Icons.CircleNotch.withFixedWidth()
-
+  private val CompletedIcon = Icons.Check.withFixedWidth()
   private val FailureIcon = Icons.CircleExclamation.withFixedWidth().withInverse()
 
   // We want blue if the resource operation is idle or does not exist: these are equivalent cases.
-  private def buttonSeverity(op: Option[ResourceRunOperation]): Button.Severity =
+  private def buttonSeverity(op: Option[SubsystemRunOperation]): Button.Severity =
     op.map:
-      case ResourceRunOperation.ResourceRunIdle         => Button.Severity.Primary
-      case ResourceRunOperation.ResourceRunInFlight(_)  => Button.Severity.Warning
-      case ResourceRunOperation.ResourceRunCompleted(_) => Button.Severity.Success
-      case ResourceRunOperation.ResourceRunFailed(_)    => Button.Severity.Danger
+      case SubsystemRunOperation.SubsystemRunIdle         => Button.Severity.Primary
+      case SubsystemRunOperation.SubsystemRunInFlight(_)  => Button.Severity.Warning
+      case SubsystemRunOperation.SubsystemRunCompleted(_) => Button.Severity.Success
+      case SubsystemRunOperation.SubsystemRunFailed(_)    => Button.Severity.Danger
     .getOrElse(Button.Severity.Primary)
 
   // If we are running, we want a circular spinning icon.
   // If we are completed, we want a checkmark.
   // Otherwise, no icon.
-  private def determineIcon(op: Option[ResourceRunOperation]): Option[FontAwesomeIcon] =
+  private def determineIcon(op: Option[SubsystemRunOperation]):FontAwesomeIcon =
     op match
-      case Some(ResourceRunOperation.ResourceRunInFlight(_))  => RunningIcon.some
-      case Some(ResourceRunOperation.ResourceRunCompleted(_)) =>
-        CompletedIcon.some
-      case Some(ResourceRunOperation.ResourceRunFailed(_))    => FailureIcon.some
-      case _                                                  => none
+      case Some(SubsystemRunOperation.SubsystemRunInFlight(_))  => RunningIcon
+      case Some(SubsystemRunOperation.SubsystemRunCompleted(_)) => CompletedIcon
+      case Some(SubsystemRunOperation.SubsystemRunFailed(_))    => FailureIcon
+      case _                                                    => IdleIcon
 
   private val component = ScalaFnComponent
     .withHooks[Props]
@@ -86,27 +84,28 @@ object SubsystemControls:
       import ctx.given
 
       <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
-        // props.resources // TODO Reinstate when resources are in the state
-        List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
+        props.subsystems
           .sorted[Resource | Instrument]
           .map: subsystem =>
-            val resourceState: Option[ResourceRunOperation] = props.subsystemsCalls.get(subsystem)
-            val buttonIcon: Option[FontAwesomeIcon]         = determineIcon(resourceState)
+            val subsystemState: Option[SubsystemRunOperation] = props.subsystemsCalls.get(subsystem)
+            val buttonIcon: FontAwesomeIcon                   = determineIcon(subsystemState)
 
             <.span(
               Button(
                 size = Button.Size.Small,
-                severity = buttonSeverity(resourceState),
-                disabled = resourceState.exists:
-                  case ResourceRunOperation.ResourceRunInFlight(_) => true
+                severity = buttonSeverity(subsystemState),
+                disabled = subsystemState.exists:
+                  case SubsystemRunOperation.SubsystemRunInFlight(_) => true
                   case _                                           => false
                 ,
                 clazz = ObserveStyles.ConfigButton |+|
                   ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate),
                 onClickE = _.stopPropagationCB >> sequenceApi
                   .execute(props.obsId, props.stepId, subsystem)
-                  .runAsync
+                  .runAsync,
+                tooltip = s"Configure ${subsystem.shortName}",
+                tooltipOptions = DefaultTooltipOptions,
               )(buttonIcon, subsystem.shortName)
-            ).withTooltip(s"Configure ${subsystem.shortName}")
+            )
           .toTagMod
       )

@@ -52,7 +52,7 @@ extension (q: SequenceView)
     )
 
 object ClientEvent:
-  enum SingleActionState(val tag: String) derives Eq, Enumerated:
+  enum SingleActionState(val tag: String) derives Enumerated:
     case Started   extends SingleActionState("started")
     case Completed extends SingleActionState("completed")
     case Failed    extends SingleActionState("failed")
@@ -72,11 +72,11 @@ object ClientEvent:
         Decoder
 
   case class SingleActionEvent(
-    obsId:    Observation.Id,
-    stepId:   StepId,
-    resource: Resource | Instrument,
-    event:    SingleActionState,
-    error:    Option[String]
+    obsId:     Observation.Id,
+    stepId:    StepId,
+    subsystem: Resource | Instrument,
+    event:     SingleActionState,
+    error:     Option[String]
   ) extends ClientEvent
       derives Eq,
         Encoder.AsObject,

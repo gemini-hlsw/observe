@@ -14,7 +14,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
@@ -32,11 +31,11 @@ import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
-import observe.ui.model.ResourceRunOperation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.SequenceOperations
 import observe.ui.model.SessionQueueRow
+import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
@@ -124,13 +123,11 @@ object Home:
                           .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
                           sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-                    val runningStepId: Option[Step.Id] = executionState.get.runningStepId
-
-                    def seqOperations(excutionConfig: ExecutionConfig[?, ?]): SequenceOperations =
-                      runningStepId.fold(SequenceOperations.Default): stepId =>
+                    val seqOperations: SequenceOperations =
+                      props.rootModel.data.get.obsSelectedStep(obsId).fold(SequenceOperations.Default): stepId =>
                         SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
                           executionState.get.configStatus.flatMap: (resource, status) =>
-                            ResourceRunOperation.fromActionStatus(stepId)(status).map(resource -> _)
+                            SubsystemRunOperation.fromActionStatus(stepId)(status).map(resource -> _)
                         )
 
                     val selectedStep: Option[Step.Id] =
@@ -158,7 +155,7 @@ object Home:
                                   executionState.get,
                                   selectedStep,
                                   setSelectedStep,
-                                  seqOperations(config),
+                                  seqOperations,
                                   isPreview = false,
                                   flipBreakPoint
                                 )
@@ -170,7 +167,7 @@ object Home:
                                   executionState.get,
                                   selectedStep,
                                   setSelectedStep,
-                                  seqOperations(config),
+                                  seqOperations,
                                   isPreview = false,
                                   flipBreakPoint
                                 )
