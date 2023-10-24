@@ -140,8 +140,8 @@ object Home:
                       props.rootModel.data
                         .zoom(RootModelData.userSelectedStep)
                         .zoom(Iso.id[Map[Observation.Id, Step.Id]].at(obsId))
-                        .mod: oldStepId => 
-                          if(oldStepId.contains_(stepId)) none else stepId.some
+                        .mod: oldStepId =>
+                          if (oldStepId.contains_(stepId)) none else stepId.some
 
                     <.div(^.height := "100%", ^.key := obsId.toString)(
                       props.rootModel.data.get.nighttimeObservation.toPot
