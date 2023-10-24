@@ -4,8 +4,8 @@
 package observe.model
 
 import cats.Eq
-import cats.syntax.all.*
 import cats.derived.*
+import cats.syntax.all.*
 import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
