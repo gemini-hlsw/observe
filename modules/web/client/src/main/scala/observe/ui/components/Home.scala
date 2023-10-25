@@ -124,11 +124,15 @@ object Home:
                           sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
                     val seqOperations: SequenceOperations =
-                      props.rootModel.data.get.obsSelectedStep(obsId).fold(SequenceOperations.Default): stepId =>
-                        SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
-                          executionState.get.configStatus.flatMap: (resource, status) =>
-                            SubsystemRunOperation.fromActionStatus(stepId)(status).map(resource -> _)
-                        )
+                      props.rootModel.data.get
+                        .obsSelectedStep(obsId)
+                        .fold(SequenceOperations.Default): stepId =>
+                          SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
+                            executionState.get.configStatus.flatMap: (resource, status) =>
+                              SubsystemRunOperation
+                                .fromActionStatus(stepId)(status)
+                                .map(resource -> _)
+                          )
 
                     val selectedStep: Option[Step.Id] =
                       props.rootModel.data.get.obsSelectedStep(obsId)
