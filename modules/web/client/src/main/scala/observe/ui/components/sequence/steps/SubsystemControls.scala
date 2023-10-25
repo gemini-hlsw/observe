@@ -5,6 +5,7 @@ package observe.ui.components.sequence.steps
 
 import cats.Order.given
 import cats.syntax.all.*
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^._
 import lucuma.core.enums.Instrument
@@ -20,8 +21,10 @@ import observe.model.given
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.display.given
+import observe.ui.model.AppContext
 import observe.ui.model.ResourceRunOperation
 import observe.ui.model.enums.ClientMode
+import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
 
@@ -29,11 +32,11 @@ import scala.collection.immutable.SortedMap
  * Contains the control buttons for each subsystem
  */
 case class SubsystemControls(
-  obsId:          Observation.Id,
-  stepId:         Step.Id,
-  resources:      List[Resource | Instrument],
-  resourcesCalls: SortedMap[Resource | Instrument, ResourceRunOperation],
-  clientMode:     ClientMode
+  obsId:           Observation.Id,
+  stepId:          Step.Id,
+  subsystems:      List[Resource | Instrument],
+  subsystemsCalls: SortedMap[Resource | Instrument, ResourceRunOperation],
+  clientMode:      ClientMode
 ) extends ReactFnProps(SubsystemControls.component)
 
 object SubsystemControls:
@@ -75,28 +78,35 @@ object SubsystemControls:
       case Some(ResourceRunOperation.ResourceRunFailed(_))    => FailureIcon.some
       case _                                                  => none
 
-  private val component = ScalaFnComponent[Props]: props =>
-    <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
-      props.resources
-        .sorted[Resource | Instrument]
-        .map: resource =>
-          val resourceState: Option[ResourceRunOperation] = props.resourcesCalls.get(resource)
-          val buttonIcon: Option[FontAwesomeIcon]         = determineIcon(resourceState)
+  private val component = ScalaFnComponent
+    .withHooks[Props]
+    .useContext(AppContext.ctx)
+    .useContext(SequenceApi.ctx)
+    .render: (props, ctx, sequenceApi) =>
+      import ctx.given
 
-          <.span(
-            Button(
-              size = Button.Size.Small,
-              severity = buttonSeverity(resourceState),
-              disabled = resourceState.exists:
-                case ResourceRunOperation.ResourceRunInFlight(_) => true
-                case _                                           => false
-              ,
-              clazz = ObserveStyles.ConfigButton |+|
-                ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate)
-              //     onClickE =
-              //       if (p.canOperate) requestResourceCall(p.id, p.stepId, r)
-              //       else js.undefined,
-            )(buttonIcon, resource.shortName)
-          ).withTooltip(s"Configure ${resource.shortName}")
-        .toTagMod
-    )
+      <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
+        // props.resources // TODO Reinstate when resources are in the state
+        List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
+          .sorted[Resource | Instrument]
+          .map: subsystem =>
+            val resourceState: Option[ResourceRunOperation] = props.subsystemsCalls.get(subsystem)
+            val buttonIcon: Option[FontAwesomeIcon]         = determineIcon(resourceState)
+
+            <.span(
+              Button(
+                size = Button.Size.Small,
+                severity = buttonSeverity(resourceState),
+                disabled = resourceState.exists:
+                  case ResourceRunOperation.ResourceRunInFlight(_) => true
+                  case _                                           => false
+                ,
+                clazz = ObserveStyles.ConfigButton |+|
+                  ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate),
+                onClickE = _.stopPropagationCB >> sequenceApi
+                  .execute(props.obsId, props.stepId, subsystem)
+                  .runAsync
+              )(buttonIcon, subsystem.shortName)
+            ).withTooltip(s"Configure ${subsystem.shortName}")
+          .toTagMod
+      )

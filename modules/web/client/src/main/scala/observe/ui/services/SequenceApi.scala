@@ -26,7 +26,7 @@ trait SequenceApi[F[_]: MonadThrow]:
   def start(obsId: Observation.Id, runOverride: RunOverride = RunOverride.Default): F[Unit] =
     NotAuthorized
 
-  def execute(obsId: Observation.Id, stepId: Step.Id, resource: Resource): F[Unit] =
+  def execute(obsId: Observation.Id, stepId: Step.Id, subsystem: Resource | Instrument): F[Unit] =
     NotAuthorized
 
 object SequenceApi:

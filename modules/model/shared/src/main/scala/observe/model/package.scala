@@ -66,3 +66,12 @@ given KeyEncoder[Resource | Instrument] = KeyEncoder.instance:
   case i: Instrument => i.tag
 given KeyDecoder[Resource | Instrument] = KeyDecoder.instance: tag =>
   Enumerated[Resource].fromTag(tag).orElse(Enumerated[Instrument].fromTag(tag))
+
+given Enumerated[Resource | Instrument] = Enumerated
+  .from(
+    Enumerated[Resource].all.head,
+    (Enumerated[Resource].all.tail ++ Enumerated[Instrument].all): _*
+  )
+  .withTag:
+    case r: Resource   => r.tag
+    case i: Instrument => i.tag
