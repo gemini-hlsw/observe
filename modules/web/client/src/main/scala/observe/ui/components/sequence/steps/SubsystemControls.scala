@@ -52,10 +52,10 @@ object SubsystemControls:
   //       ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, resource)))
   //       .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
-  private val IdleIcon = Icons.ArrowUpFromLine.withFixedWidth()
-  private val RunningIcon = Icons.CircleNotch.withFixedWidth()
+  private val IdleIcon      = Icons.ArrowUpFromLine.withFixedWidth()
+  private val RunningIcon   = Icons.CircleNotch.withFixedWidth()
   private val CompletedIcon = Icons.Check.withFixedWidth()
-  private val FailureIcon = Icons.CircleExclamation.withFixedWidth().withInverse()
+  private val FailureIcon   = Icons.CircleExclamation.withFixedWidth().withInverse()
 
   // We want blue if the resource operation is idle or does not exist: these are equivalent cases.
   private def buttonSeverity(op: Option[SubsystemRunOperation]): Button.Severity =
@@ -69,7 +69,7 @@ object SubsystemControls:
   // If we are running, we want a circular spinning icon.
   // If we are completed, we want a checkmark.
   // Otherwise, no icon.
-  private def determineIcon(op: Option[SubsystemRunOperation]):FontAwesomeIcon =
+  private def determineIcon(op: Option[SubsystemRunOperation]): FontAwesomeIcon =
     op match
       case Some(SubsystemRunOperation.SubsystemRunInFlight(_))  => RunningIcon
       case Some(SubsystemRunOperation.SubsystemRunCompleted(_)) => CompletedIcon
@@ -96,7 +96,7 @@ object SubsystemControls:
                 severity = buttonSeverity(subsystemState),
                 disabled = subsystemState.exists:
                   case SubsystemRunOperation.SubsystemRunInFlight(_) => true
-                  case _                                           => false
+                  case _                                             => false
                 ,
                 clazz = ObserveStyles.ConfigButton |+|
                   ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate),
@@ -104,7 +104,7 @@ object SubsystemControls:
                   .execute(props.obsId, props.stepId, subsystem)
                   .runAsync,
                 tooltip = s"Configure ${subsystem.shortName}",
-                tooltipOptions = DefaultTooltipOptions,
+                tooltipOptions = DefaultTooltipOptions
               )(buttonIcon, subsystem.shortName)
             )
           .toTagMod

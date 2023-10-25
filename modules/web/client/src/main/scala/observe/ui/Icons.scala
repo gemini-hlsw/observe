@@ -12,7 +12,7 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faArrowUpFromLine")
   private val faArrowUpFromLine: FAIcon = js.native
-  
+
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faBan")
   private val faBan: FAIcon = js.native
@@ -148,7 +148,7 @@ object Icons:
     faXMark
   )
 
-  inline def ArrowUpFromLine       = FontAwesomeIcon(faArrowUpFromLine)
+  inline def ArrowUpFromLine   = FontAwesomeIcon(faArrowUpFromLine)
   inline def Ban               = FontAwesomeIcon(faBan)
   inline def Bars              = FontAwesomeIcon(faBars)
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)

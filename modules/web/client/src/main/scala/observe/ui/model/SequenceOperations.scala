@@ -78,27 +78,27 @@ case class SequenceOperations(
   def resourceInFlight(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
       case SubsystemRunOperation.SubsystemRunInFlight(sid) if sid === id => true
-      case _                                                            => false
+      case _                                                             => false
     )
 
   // Indicate if any resource is in error
   def resourceInError(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
       case SubsystemRunOperation.SubsystemRunFailed(sid) if sid === id => true
-      case _                                                          => false
+      case _                                                           => false
     )
 
   // Indicate if any resource has had a run requested (which may be complete or not)
   def resourceRunNotIdle(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
       case r: SubsystemRunRequested if r.stepId === id => true
-      case _                                          => false
+      case _                                           => false
     )
 
   def anyResourceInFlight: Boolean =
     resourceRunRequested.exists(_._2 match
       case SubsystemRunOperation.SubsystemRunInFlight(_) => true
-      case _                                            => false
+      case _                                             => false
     )
 
   val stepRequestInFlight: Boolean =
@@ -153,7 +153,7 @@ object SequenceOperations:
     SequenceOperations.resourceRunRequested.modify(_.map {
       case (r, SubsystemRunOperation.SubsystemRunCompleted(_)) if re === r =>
         r -> SubsystemRunOperation.SubsystemRunIdle
-      case r                                                              => r
+      case r                                                               => r
     })
 
   val Default: SequenceOperations =

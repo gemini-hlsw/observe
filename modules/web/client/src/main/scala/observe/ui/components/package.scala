@@ -18,4 +18,5 @@ def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T 
 //     import ctx.given
 //     fn(props, h1)
 
-val DefaultTooltipOptions = TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100, autoHide = false)
+val DefaultTooltipOptions =
+  TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100, autoHide = false)

@@ -74,7 +74,10 @@ trait ServerEventHandler:
                     configStatus =
                       List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
                         .foldLeft(executionStatus.configStatus)((cs, ss) =>
-                          cs.updatedWith(ss)(_.orElse(old.get(obsId).flatMap(_.configStatus.get(ss))).orElse(ActionStatus.Pending.some))
+                          cs.updatedWith(ss)(
+                            _.orElse(old.get(obsId).flatMap(_.configStatus.get(ss)))
+                              .orElse(ActionStatus.Pending.some)
+                          )
                         )
                   )
               )
