@@ -67,11 +67,11 @@ trait ArbClientEvent:
 
   given Arbitrary[ClientEvent.SingleActionEvent] = Arbitrary:
     for
-      o <- arbitrary[Observation.Id]
-      s <- arbitrary[Step.Id]
+      o  <- arbitrary[Observation.Id]
+      s  <- arbitrary[Step.Id]
       ss <- arbitrary[Resource | Instrument]
-      t <- arbitrary[SingleActionState]
-      e <- arbitrary[Option[String]]
+      t  <- arbitrary[SingleActionState]
+      e  <- arbitrary[Option[String]]
     yield ClientEvent.SingleActionEvent(o, s, ss, t, e)
 
   given Cogen[ClientEvent.SingleActionEvent] =
