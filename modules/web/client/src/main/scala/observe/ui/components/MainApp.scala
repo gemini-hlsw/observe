@@ -44,9 +44,9 @@ import observe.model.Environment
 import observe.model.events.client.ClientEvent
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
+import observe.ui.components.services.ServerEventHandler
 import observe.ui.model.AppConfig
 import observe.ui.model.AppContext
-import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
@@ -70,7 +70,7 @@ import typings.loglevel.mod.LogLevelDesc
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 
-object MainApp:
+object MainApp extends ServerEventHandler:
   private val ConfigFile: Uri       = uri"/environments.conf.json"
   private val ApiBasePath: Uri.Path = path"/api/observe/"
   private val EventWsUri: Uri       =
@@ -150,47 +150,6 @@ object MainApp:
     _.flatMap:
       case WSFrame.Text(text, _) => fs2.Stream(decode[ClientEvent](text))
       case _                     => fs2.Stream.empty
-
-  def processStreamEvent(
-    environment:     View[Pot[Environment]],
-    rootModelData:   View[RootModelData],
-    syncStatus:      View[SyncStatus],
-    configApiStatus: View[ApiStatus]
-  )(
-    event:           ClientEvent
-  )(using Logger[IO]): IO[Unit] =
-    event match
-      case ClientEvent.InitialEvent(env)                                     =>
-        environment.async.set(env.ready)
-      case ClientEvent.SingleActionEvent(_, _, _, _, _)                      =>
-        // TODO Update the UI
-        IO.unit
-      case ClientEvent.ChecksOverrideEvent(_)                                =>
-        // TODO Update the UI
-        IO.unit
-      case ClientEvent.ObserveState(sequenceExecution, conditions, operator) =>
-        val asyncRootModel       = rootModelData.async
-        val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
-        asyncRootModel.zoom(RootModelData.operator).set(operator) >>
-          asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
-          asyncRootModel.zoom(RootModelData.sequenceExecution).set(sequenceExecution) >>
-          asyncRootModel
-            .zoom(RootModelData.nighttimeObservation)
-            .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.
-              if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
-                nighttimeLoadedObsId.map(LoadedObservation(_))
-              else obs
-            ) >>
-          syncStatus.async.set(SyncStatus.Synced) >>
-          configApiStatus.async.set(ApiStatus.Idle)
-
-  def processStreamError(
-    rootModelData: View[RootModelData]
-  )(error: Throwable)(using Logger[IO]): IO[Unit] =
-    rootModelData
-      .zoom(RootModelData.log)
-      .async
-      .mod(_ :+ NonEmptyString.unsafeFrom(s"ERROR Receiving Client Event: ${error.getMessage}"))
 
   private val component =
     ScalaFnComponent

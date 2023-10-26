@@ -67,16 +67,16 @@ trait ArbClientEvent:
 
   given Arbitrary[ClientEvent.SingleActionEvent] = Arbitrary:
     for
-      o <- arbitrary[Observation.Id]
-      s <- arbitrary[Step.Id]
-      r <- arbitrary[Resource | Instrument]
-      t <- arbitrary[SingleActionState]
-      e <- arbitrary[Option[String]]
-    yield ClientEvent.SingleActionEvent(o, s, r, t, e)
+      o  <- arbitrary[Observation.Id]
+      s  <- arbitrary[Step.Id]
+      ss <- arbitrary[Resource | Instrument]
+      t  <- arbitrary[SingleActionState]
+      e  <- arbitrary[Option[String]]
+    yield ClientEvent.SingleActionEvent(o, s, ss, t, e)
 
   given Cogen[ClientEvent.SingleActionEvent] =
     Cogen[(Observation.Id, Step.Id, Resource | Instrument, SingleActionState, Option[String])]
-      .contramap(x => (x.obsId, x.stepId, x.resource, x.event, x.error))
+      .contramap(x => (x.obsId, x.stepId, x.subsystem, x.event, x.error))
 
   given Arbitrary[ClientEvent.ChecksOverrideEvent] = Arbitrary:
     arbitrary[ChecksOverride].map(u => ClientEvent.ChecksOverrideEvent(u))

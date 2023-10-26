@@ -43,21 +43,21 @@ enum SyncOperation derives Eq:
 enum StartFromOperation derives Eq:
   case StartFromInFlight, StartFromIdle
 
-sealed trait ResourceRunOperation derives Eq
-sealed trait ResourceRunRequested extends ResourceRunOperation:
+sealed trait SubsystemRunOperation derives Eq
+sealed trait SubsystemRunRequested extends SubsystemRunOperation:
   val stepId: Step.Id
 
-object ResourceRunOperation:
-  case object ResourceRunIdle                      extends ResourceRunOperation
-  case class ResourceRunInFlight(stepId: Step.Id)  extends ResourceRunRequested
-  case class ResourceRunCompleted(stepId: Step.Id) extends ResourceRunRequested
-  case class ResourceRunFailed(stepId: Step.Id)    extends ResourceRunRequested
+object SubsystemRunOperation:
+  case object SubsystemRunIdle                      extends SubsystemRunOperation
+  case class SubsystemRunInFlight(stepId: Step.Id)  extends SubsystemRunRequested
+  case class SubsystemRunCompleted(stepId: Step.Id) extends SubsystemRunRequested
+  case class SubsystemRunFailed(stepId: Step.Id)    extends SubsystemRunRequested
 
-  def fromActionStatus(stepId: Step.Id): ActionStatus => Option[ResourceRunOperation] =
-    case ActionStatus.Running   => ResourceRunOperation.ResourceRunInFlight(stepId).some
-    case ActionStatus.Paused    => ResourceRunOperation.ResourceRunInFlight(stepId).some
-    case ActionStatus.Completed => ResourceRunOperation.ResourceRunCompleted(stepId).some
-    case ActionStatus.Failed    => ResourceRunOperation.ResourceRunFailed(stepId).some
+  def fromActionStatus(stepId: Step.Id): ActionStatus => Option[SubsystemRunOperation] =
+    case ActionStatus.Running   => SubsystemRunOperation.SubsystemRunInFlight(stepId).some
+    case ActionStatus.Paused    => SubsystemRunOperation.SubsystemRunInFlight(stepId).some
+    case ActionStatus.Completed => SubsystemRunOperation.SubsystemRunCompleted(stepId).some
+    case ActionStatus.Failed    => SubsystemRunOperation.SubsystemRunFailed(stepId).some
     case _                      => none
 
 /**
@@ -72,33 +72,33 @@ case class SequenceOperations(
   stopRequested:        StopOperation,
   abortRequested:       AbortOperation,
   startFromRequested:   StartFromOperation,
-  resourceRunRequested: SortedMap[Resource | Instrument, ResourceRunOperation]
+  resourceRunRequested: SortedMap[Resource | Instrument, SubsystemRunOperation]
 ) derives Eq:
   // Indicate if any resource is being executed
   def resourceInFlight(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
-      case ResourceRunOperation.ResourceRunInFlight(sid) if sid === id => true
-      case _                                                           => false
+      case SubsystemRunOperation.SubsystemRunInFlight(sid) if sid === id => true
+      case _                                                             => false
     )
 
   // Indicate if any resource is in error
   def resourceInError(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
-      case ResourceRunOperation.ResourceRunFailed(sid) if sid === id => true
-      case _                                                         => false
+      case SubsystemRunOperation.SubsystemRunFailed(sid) if sid === id => true
+      case _                                                           => false
     )
 
   // Indicate if any resource has had a run requested (which may be complete or not)
   def resourceRunNotIdle(id: Step.Id): Boolean =
     resourceRunRequested.exists(_._2 match
-      case r: ResourceRunRequested if r.stepId === id => true
-      case _                                          => false
+      case r: SubsystemRunRequested if r.stepId === id => true
+      case _                                           => false
     )
 
   def anyResourceInFlight: Boolean =
     resourceRunRequested.exists(_._2 match
-      case ResourceRunOperation.ResourceRunInFlight(_) => true
-      case _                                           => false
+      case SubsystemRunOperation.SubsystemRunInFlight(_) => true
+      case _                                             => false
     )
 
   val stepRequestInFlight: Boolean =
@@ -127,22 +127,22 @@ object SequenceOperations:
   val startFromRequested: Lens[SequenceOperations, StartFromOperation]     =
     Focus[SequenceOperations](_.startFromRequested)
   val resourceRunRequested
-    : Lens[SequenceOperations, SortedMap[Resource | Instrument, ResourceRunOperation]] =
+    : Lens[SequenceOperations, SortedMap[Resource | Instrument, SubsystemRunOperation]] =
     Focus[SequenceOperations](_.resourceRunRequested)
 
-  def resourceRun(r: Resource): Lens[SequenceOperations, Option[ResourceRunOperation]] =
+  def resourceRun(r: Resource): Lens[SequenceOperations, Option[SubsystemRunOperation]] =
     SequenceOperations.resourceRunRequested.andThen(at(r))
 
   // Set the resource operations in the map to idle.
   def clearAllResourceOperations: SequenceOperations => SequenceOperations =
     SequenceOperations.resourceRunRequested.modify(_.map { case (r, _) =>
-      r -> ResourceRunOperation.ResourceRunIdle
+      r -> SubsystemRunOperation.SubsystemRunIdle
     })
 
   // Set the resource operations in the map to idle.
   def clearResourceOperations(re: Resource | Instrument): SequenceOperations => SequenceOperations =
     SequenceOperations.resourceRunRequested.modify(_.map {
-      case (r, _) if re === r => r -> ResourceRunOperation.ResourceRunIdle
+      case (r, _) if re === r => r -> SubsystemRunOperation.SubsystemRunIdle
       case r                  => r
     })
 
@@ -151,9 +151,9 @@ object SequenceOperations:
     re: Resource | Instrument
   ): SequenceOperations => SequenceOperations =
     SequenceOperations.resourceRunRequested.modify(_.map {
-      case (r, ResourceRunOperation.ResourceRunCompleted(_)) if re === r =>
-        r -> ResourceRunOperation.ResourceRunIdle
-      case r                                                             => r
+      case (r, SubsystemRunOperation.SubsystemRunCompleted(_)) if re === r =>
+        r -> SubsystemRunOperation.SubsystemRunIdle
+      case r                                                               => r
     })
 
   val Default: SequenceOperations =

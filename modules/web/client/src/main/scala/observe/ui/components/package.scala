@@ -3,6 +3,7 @@
 
 package observe.ui.components
 
+import lucuma.react.primereact.TooltipOptions
 import observe.ui.model.AppContext
 import org.typelevel.log4cats.Logger
 
@@ -16,3 +17,6 @@ def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T 
 //   (props, ctx, h1) =>
 //     import ctx.given
 //     fn(props, h1)
+
+val DefaultTooltipOptions =
+  TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100, autoHide = false)
