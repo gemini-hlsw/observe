@@ -28,6 +28,7 @@ import observe.model.ClientId
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.StepState
+import observe.model.enums.Resource
 import observe.model.enums.Resource.TCS
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -83,12 +84,6 @@ class packageSpec extends munit.CatsEffectSuite {
                                       for {
                                         _ <- IO.sleep(200.milliseconds)
                                       } yield Result.OK(DummyResult)
-  )
-
-  val faulty: Action[IO] = fromF[IO](ActionType.Undefined,
-                                     for {
-                                       _ <- IO.sleep(100.milliseconds)
-                                     } yield Result.Error("There was an error in this action")
   )
 
   private val clientId: ClientId = ClientId(UUID.randomUUID)
@@ -250,7 +245,9 @@ class packageSpec extends munit.CatsEffectSuite {
 
   }
 
-  test("engine should keep processing input messages regardless of how long ParallelActions take") {
+  test(
+    "engine should keep processing input messages regardless of how long ParallelActions take"
+  ) {
     val result = for {
       startedFlag <- Semaphore.apply[IO](0)
       finishFlag  <- Semaphore.apply[IO](0)
@@ -653,7 +650,7 @@ class packageSpec extends munit.CatsEffectSuite {
                Step.init(id = sId,
                          executions = List(
                            NonEmptyList.one(
-                             fromF[IO](ActionType.Undefined,
+                             fromF[IO](ActionType.Configure(Resource.TCS),
                                        IO {
                                          dummy.set(markVal)
                                          Result.OK(DummyResult)
@@ -695,7 +692,8 @@ class packageSpec extends munit.CatsEffectSuite {
         TestState.sequenceStateIndex(seqId).getOption(a).exists(_.getSingleState(c).started) &&
         TestState.sequenceStateIndex(seqId).getOption(b).exists(_.getSingleState(c).completed) &&
         dummy.get === markVal
-      case _           => false
+      case _           =>
+        false
     }.assert
   }
 

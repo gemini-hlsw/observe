@@ -134,10 +134,13 @@ object Home:
                           .obsSelectedStep(obsId)
                           .fold(SequenceOperations.Default): stepId =>
                             SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
-                              executionState.get.configStatus.flatMap: (resource, status) =>
-                                SubsystemRunOperation
-                                  .fromActionStatus(stepId)(status)
-                                  .map(resource -> _)
+                              executionState.get.stepResources
+                                .find(_._1 === stepId)
+                                .foldMap(_._2)
+                                .flatMap: (resource, status) =>
+                                  SubsystemRunOperation
+                                    .fromActionStatus(stepId)(status)
+                                    .map(resource -> _)
                             )
 
                       val selectedStep: Option[Step.Id] =

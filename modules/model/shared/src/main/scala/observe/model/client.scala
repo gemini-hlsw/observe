@@ -17,6 +17,7 @@ import io.circe.syntax.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import observe.model.Conditions
 import observe.model.Environment
@@ -46,7 +47,7 @@ extension (q: SequenceView)
       q.metadata.observer,
       q.runningStep.flatMap(_.id),
       None,
-      Map.empty,
+      q.stepResources,
       q.systemOverrides,
       q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet
     )

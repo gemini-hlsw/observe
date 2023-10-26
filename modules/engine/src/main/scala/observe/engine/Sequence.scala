@@ -230,7 +230,7 @@ object Sequence {
     val toSequence: Sequence[F]
 
     // Functions to handle single run of Actions
-    def startSingle(c: ActionCoordsInSeq): State[F]
+    def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F]
 
     def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F]
 
@@ -401,10 +401,10 @@ object Sequence {
 
       override val toSequence: Sequence[F] = zipper.toSequence
 
-      override def startSingle(c: ActionCoordsInSeq): State[F] =
+      override def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F] =
         if (zipper.done.exists(_.id === c.stepId))
           self
-        else self.copy(singleRuns = singleRuns + (c -> ActionState.Started))
+        else self.copy(singleRuns = singleRuns + (c -> ActionState.Started(r)))
 
       override def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F] =
         if (getSingleState(c).started)
@@ -423,11 +423,12 @@ object Sequence {
 
       override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState] = singleRuns
 
-      override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = for {
-        step <- toSequence.steps.find(_.id === c.stepId)
-        exec <- step.executions.get(c.execIdx.self)
-        act  <- exec.get(c.actIdx.self)
-      } yield act
+      override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] =
+        for {
+          step <- toSequence.steps.find(_.id === c.stepId)
+          exec <- step.executions.get(c.execIdx.value)
+          act  <- exec.get(c.actIdx.value)
+        } yield act
 
       override def clearSingles: State[F] = self.copy(singleRuns = Map.empty)
     }
@@ -465,7 +466,7 @@ object Sequence {
 
       override val toSequence: Sequence[F] = seq
 
-      override def startSingle(c: ActionCoordsInSeq): State[F] = self
+      override def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F] = self
 
       override def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F] = self
 

@@ -3,6 +3,7 @@
 
 package observe.ui.components.services
 
+import cats.Eq
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.*
@@ -10,9 +11,12 @@ import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Step
+import monocle.Focus
+import monocle.Iso
+import monocle.function.Index
 import observe.model.Environment
 import observe.model.ExecutionState
-import observe.model.ExecutionState.configStatus
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.events.client.ClientEvent
@@ -31,6 +35,9 @@ trait ServerEventHandler:
     msg match
       case NonEmptyString(nes) => rootModelData.async.zoom(RootModelData.log).mod(_ :+ nes)
 
+  private given Eq[Resource | Instrument] = Eq.fromUniversalEquals
+  private val actionLens                  = Focus[(Resource | Instrument, ActionStatus)](_._2)
+
   protected def processStreamEvent(
     environment:     View[Pot[Environment]],
     rootModelData:   View[RootModelData],
@@ -44,8 +51,16 @@ trait ServerEventHandler:
         environment.async.set(env.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
         (rootModelData.async
-          .zoom(RootModelData.sequenceExecution.index(obsId))
-          .zoom(ExecutionState.configStatus.index(subsystem))
+          .zoom(RootModelData.sequenceExecution)
+          .zoom(Iso.id[Map[Observation.Id, ExecutionState]].index(obsId))
+          .zoom(ExecutionState.stepResourcesT(stepId))
+          .zoom(
+            Iso
+              .id[List[(Resource | Instrument, ActionStatus)]]
+              .each
+              .filter(_._1 === subsystem)
+          )
+          .zoom(actionLens)
           .set:
             event match
               case SingleActionState.Started   => ActionStatus.Running
@@ -68,14 +83,14 @@ trait ServerEventHandler:
               sequenceExecution.map((obsId, executionStatus) =>
                 obsId ->
                   executionStatus.copy(
-                    configStatus =
-                      List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
-                        .foldLeft(executionStatus.configStatus)((cs, ss) =>
-                          cs.updatedWith(ss)(
-                            _.orElse(old.get(obsId).flatMap(_.configStatus.get(ss)))
-                              .orElse(ActionStatus.Pending.some)
-                          )
-                        )
+                    stepResources = Nil // TODO Fixme
+                    // List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
+                    //   .foldLeft(executionStatus.stepResources)((cs, ss) =>
+                    //     cs.updatedWith(ss)(
+                    //       _.orElse(old.get(obsId).flatMap(_.configStatus.get(ss)))
+                    //         .orElse(ActionStatus.Pending.some)
+                    //     )
+                    //   )
                   )
               )
             ) >>

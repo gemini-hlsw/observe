@@ -106,7 +106,7 @@ object SequenceGen {
     }
 
     def resourceAtCoords(ex: ExecutionIndex, ac: ActionIndex): Option[Resource | Instrument] =
-      if (ex.self === 0) configs.keys.toList.get(ac.self)
+      if (ex.value === 0) configs.keys.toList.get(ac.value)
       else None
 
   }

@@ -4,6 +4,7 @@
 package observe.engine
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
 
 /**
@@ -20,17 +21,14 @@ object Result {
   trait PartialVal
   trait PauseContext
 
-  final case class OK[R <: RetVal](response: R)          extends Result
-  final case class OKStopped[R <: RetVal](response: R)   extends Result
-  final case class Partial[R <: PartialVal](response: R) extends Result
-  final case class Paused(ctx: PauseContext)             extends Result
-  final case class OKAborted[R <: RetVal](response: R)   extends Result
+  case class OK[R <: RetVal](response: R)          extends Result
+  case class OKStopped[R <: RetVal](response: R)   extends Result
+  case class Partial[R <: PartialVal](response: R) extends Result
+  case class Paused(ctx: PauseContext)             extends Result
+  case class OKAborted[R <: RetVal](response: R)   extends Result
   // TODO: Replace the message by a richer Error type like `ObserveFailure`
-  final case class Error(msg: String)                    extends Result {
+  case class Error(msg: String)                    extends Result derives Eq {
     override val errMsg: Option[String] = msg.some
-  }
-  object Error {
-    given Eq[Error] = Eq.by(_.msg)
   }
 
 }

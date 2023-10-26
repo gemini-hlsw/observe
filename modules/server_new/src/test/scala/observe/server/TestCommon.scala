@@ -57,6 +57,7 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.test.*
 import observe.engine
 import observe.engine.Action
+import observe.engine.Response
 import observe.engine.Result
 import observe.engine.Result.PartialVal
 import observe.engine.Result.PauseContext
@@ -153,12 +154,12 @@ object TestCommon {
   def pendingAction[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     engine.fromF[F](ActionType.Configure(resource), configure(resource))
 
-  Action.State(Action.ActionState.Started, Nil)
-
   def running[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started, Nil))(pendingAction(resource))
+      .replace(Action.State(Action.ActionState.Started(Response.Configured(resource)), Nil))(
+        pendingAction(resource)
+      )
 
   def done[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
@@ -172,16 +173,16 @@ object TestCommon {
   def observing[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started, Nil))(
+      .replace(Action.State(Action.ActionState.Started(Response.Observed(fileId)), Nil))(
         engine.fromF[F](ActionType.Observe, Result.OK(Response.Observed(fileId)).pure[F].widen)
       )
 
-  final case class PartialValue(s: String) extends PartialVal
+  case class PartialValue(s: String) extends PartialVal
 
   def observingPartial[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started, Nil))(
+      .replace(Action.State(Action.ActionState.Started(Response.Ignored), Nil))(
         engine.fromF[F](ActionType.Observe,
                         Result.Partial(PartialValue("Value")).pure[F].widen,
                         Result.OK(Response.Ignored).pure[F].widen
@@ -191,7 +192,11 @@ object TestCommon {
   def fileIdReady[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId))))(observing)
+      .replace(
+        Action.State(Action.ActionState.Started(Response.Observed(fileId)),
+                     List(FileIdAllocated(fileId))
+        )
+      )(observing)
 
   def observed[F[_]: Applicative]: Action[F] =
     Action
@@ -205,7 +210,11 @@ object TestCommon {
   def observePartial[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId))))(
+      .replace(
+        Action.State(Action.ActionState.Started(Response.Observed(fileId)),
+                     List(FileIdAllocated(fileId))
+        )
+      )(
         observingPartial
       )
 
