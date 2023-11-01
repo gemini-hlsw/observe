@@ -194,7 +194,6 @@ object Home:
                       )
                     }
                 )
-                // )
               )
             ),
             Accordion(tabs =

@@ -25,8 +25,6 @@ case class ObsHeader(
   isRunning:   Boolean
 ) extends ReactFnProps(ObsHeader.component)
 
-// TODO Pass seqOperations and disable/animate play button
-
 object ObsHeader:
   private type Props = ObsHeader
 
