@@ -21,8 +21,11 @@ import observe.ui.services.SequenceApi
 
 case class ObsHeader(
   obsId:       Observation.Id,
-  observation: ObsSummary
+  observation: ObsSummary,
+  isRunning:   Boolean
 ) extends ReactFnProps(ObsHeader.component)
+
+// TODO Pass seqOperations and disable/animate play button
 
 object ObsHeader:
   private type Props = ObsHeader
@@ -42,10 +45,15 @@ object ObsHeader:
           <.div(ObserveStyles.ObsSummaryTitle)(
             Button(
               clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-              icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
+              icon =
+                if (props.isRunning)
+                  Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin()
+                else
+                  Icons.Play.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Start/Resume sequence",
               tooltipOptions = tooltipOptions,
-              onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync
+              onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
+              disabled = props.isRunning
             ),
             s"${props.observation.title} [${props.obsId}]"
           ),

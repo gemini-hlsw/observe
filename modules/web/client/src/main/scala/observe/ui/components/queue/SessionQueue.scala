@@ -4,6 +4,8 @@
 package observe.ui.components.queue
 
 import cats.syntax.all.*
+import crystal.Pot
+import crystal.react.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
@@ -22,14 +24,22 @@ import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.display.given
+import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
+import observe.ui.model.reusability.given
 
 case class SessionQueue(
-  queue:       List[SessionQueueRow],
-  loadedObsId: Option[Observation.Id],
-  loadObs:     Observation.Id => Callback
-) extends ReactFnProps(SessionQueue.component)
+  queue:     List[SessionQueueRow],
+  obsStates: Map[Observation.Id, SequenceState],
+  loadedObs: Option[LoadedObservation],
+  loadObs:   Observation.Id => Callback
+) extends ReactFnProps(SessionQueue.component):
+  val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(_.unPot.map(_._1))
+
+  val isProcessing: Boolean =
+    obsIdPotOpt.exists: obsIdPot =>
+      obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(_.isRunning)
 
 object SessionQueue:
   private type Props = SessionQueue
@@ -54,28 +64,27 @@ object SessionQueue:
       Css.Empty
 
   private def statusIconRenderer(
-    row:           SessionQueueRow,
-    selectedObsId: Option[Observation.Id]
+    loadingPotOpt: Option[Pot[Unit]],
+    statusOpt:     Option[SequenceState]
   ): VdomNode =
-    // <.div
-    val isFocused      = // row.active
-      selectedObsId.contains_(row.obsId)
-    // val selectedIconStyle = ObserveStyles.selectedIcon
     val icon: VdomNode =
-      row.status match
-        case SequenceState.Completed     => Icons.Check // clazz = selectedIconStyle)
-        case SequenceState.Running(_, _) => Icons.CircleNotch.withSpin(true)
-        //      loading = true,
+      (loadingPotOpt, statusOpt) match
+        case (Some(Pot.Pending), _)                                                        => Icons.CircleNotch.withSpin()
+        case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
+        case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
+          Icons.FileCheck // clazz = selectedIconStyle)
+        case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _)))                       => Icons.CircleNotch.withSpin()
         //      clazz = ObserveStyles.runningIcon
-        case SequenceState.Failed(_)     => EmptyVdom
+        case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
+          Icons.FileCross
         // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
         // case _ if b.state.rowLoading.exists(_ === index) =>
         // Spinning icon while loading
         // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-        case _ if isFocused              =>             // EmptyVdom
-          Icons.CircleCheck.copy(size = IconSize.LG)
+        // case _ if isFocused              =>                 // EmptyVdom
+        // Icons.CircleCheck.copy(size = IconSize.LG)
         // Icon(name = "dot circle outline", clazz = selectedIconStyle)
-        case _                           => EmptyVdom
+        case _                                                                             => EmptyVdom
 
     // linkTo(b.props, pageOf(row))(
     //   ObserveStyles.queueIconColumn,
@@ -121,7 +130,7 @@ object SessionQueue:
   //   // <.div(ObserveStyles.QueueText |+| css)(node)
   //   <.div(css)(node)
 
-  private def renderCendered(node: VdomNode, css: Css = Css.Empty): VdomNode =
+  private def renderCentered(node: VdomNode, css: Css = Css.Empty): VdomNode =
     <.div(ObserveStyles.Centered |+| css)(node)
 
   private def linked[T, A](
@@ -131,7 +140,8 @@ object SessionQueue:
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
 
-  private val IconColumnId: ColumnId       = ColumnId("icon")
+  // private val IconColumnId: ColumnId       = ColumnId("icon")
+  private val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
   private val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
   private val ClassColumnId: ColumnId      = ColumnId("class")
   private val ObsIdColumnId: ColumnId      = ColumnId("obsId")
@@ -140,31 +150,46 @@ object SessionQueue:
   private val TargetColumnId: ColumnId     = ColumnId("target")
   private val ObsNameColumnId: ColumnId    = ColumnId("obsName")
   private val ObserverColumnId: ColumnId   = ColumnId("observer")
-  private val LoadSeqColumnId: ColumnId    = ColumnId("loadSequence")
 
   private def columns(
-    loadedObsId: Option[Observation.Id],
-    loadObs:     Observation.Id => Callback
+    obsStates:     Map[Observation.Id, SequenceState],
+    loadingPotOpt: Option[Pot[Unit]],
+    isProcessing:  Boolean,
+    loadedObsId:   Option[Observation.Id],
+    loadObs:       Observation.Id => Callback
   ) = List(
     ColDef(
-      IconColumnId,
-      cell =
-        cell =>
-          renderCendered(statusIconRenderer(cell.row.original, loadedObsId)), // Tooltip: Control
+      StatusIconColumnId,
+      row => row.obsId,
+      header = "",
+      cell = cell =>
+        renderCentered(
+          if (loadedObsId.contains(cell.value))
+            statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
+          else
+            Button(
+              icon = Icons.FileArrowUp,
+              size = Button.Size.Small,
+              onClick = loadObs(cell.value),
+              clazz = ObserveStyles.LoadButton,
+              disabled = isProcessing
+            )
+        ),
       size = 25.toPx,
+      enableSorting = false,
       enableResizing = false
     ),
     ColDef(
       AddQueueColumnId,
-      header = _ => renderCendered(Icons.CalendarDays),                       // Tooltip: Add all to queue
-      cell = cell => renderCendered(addToQueueRenderer(cell.row.original)),
+      header = _ => renderCentered(Icons.CalendarDays), // Tooltip: Add all to queue
+      cell = cell => renderCentered(addToQueueRenderer(cell.row.original)),
       size = 30.toPx,
       enableResizing = false
     ),
     ColDef(
       ClassColumnId,
-      header = _ => renderCendered(Icons.Clock),                              // Tooltip: "Obs. class"
-      cell = cell => renderCendered(classIconRenderer(cell.row.original)),
+      header = _ => renderCentered(Icons.Clock),        // Tooltip: "Obs. class"
+      cell = cell => renderCentered(classIconRenderer(cell.row.original)),
       size = 26.toPx,
       enableResizing = false
     ),
@@ -204,30 +229,21 @@ object SessionQueue:
       _.observer.foldMap(_.value.value),
       header = "Observer",
       cell = linked(_.value.toString)
-    ),
-    ColDef(
-      LoadSeqColumnId,
-      row => row.obsId,
-      header = "",
-      cell = cell =>
-        renderCendered(
-          Button(
-            "Load",
-            size = Button.Size.Small,
-            onClick = loadObs(cell.value),
-            clazz = ObserveStyles.LoadButton,
-            disabled = loadedObsId.contains(cell.value)
-          )
-        ),
-      enableSorting = false
     )
   )
 
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useMemoBy(props => props.loadedObsId): props =>
-        loadedObsId => columns(loadedObsId, props.loadObs)
+      .useMemoBy(props =>
+        (props.obsStates,
+         props.obsIdPotOpt.map(_.void),
+         props.loadedObs.map(_.obsId),
+         props.isProcessing
+        )
+      ): props =>
+        (obsStates, loadingPotOpt, loadedObsId, isProcessing) =>
+          columns(obsStates, loadingPotOpt, isProcessing, loadedObsId, props.loadObs)
       .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,
@@ -241,11 +257,11 @@ object SessionQueue:
             table,
             estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
-            rowMod = row => TagMod(rowClass(row.original, props.loadedObsId)),
+            rowMod = row => TagMod(rowClass(row.original, props.loadedObs.map(_.obsId))),
             cellMod = cell =>
               ColumnId(cell.column.id) match
-                case LoadSeqColumnId => ObserveStyles.LoadButtonCell
-                case _               => TagMod.empty
+                case StatusIconColumnId => ObserveStyles.LoadButtonCell
+                case _                  => TagMod.empty
             ,
             overscan = 5
           )

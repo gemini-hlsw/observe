@@ -72,6 +72,7 @@ object ControlButtons:
               icon = Icons.Pause.withFixedWidth(), // .withSize(IconSize.LG),
               tooltip = "Pause the current exposure",
               tooltipOptions = DefaultTooltipOptions,
+              disabled = true,
               onClickE = _.stopPropagationCB       // >> requestObsPause(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || props.isObservePaused || isReadingOut)
           case StopObservation  =>
@@ -80,6 +81,7 @@ object ControlButtons:
               icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Stop the current exposure early",
               tooltipOptions = DefaultTooltipOptions,
+              disabled = true,
               onClickE = _.stopPropagationCB // >> requestStop(p.obsId, p.stepId)
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           case AbortObservation =>
@@ -88,6 +90,7 @@ object ControlButtons:
               icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Abort the current exposure",
               tooltipOptions = DefaultTooltipOptions,
+              disabled = true,
               onClickE = _.stopPropagationCB // >> requestAbort(p.obsId, p.stepId),
             ).withMods(^.disabled := props.requestInFlight || isReadingOut)
           // case ResumeObservation           =>
