@@ -61,7 +61,14 @@ sealed trait SequenceTables[S, D](
   protected[sequence] lazy val scienceSteps: List[SequenceRow.FutureStep[D]] =
     config.science.map(steps).orEmpty
 
-  // protected[sequence] lazy val runningStepId: Option[Step.Id] = executionState.runningStepId
+  protected[sequence] lazy val acquisitionNextAtomId: Option[Atom.Id] =
+    config.acquisition.map(_.nextAtom.id)
+
+  protected[sequence] lazy val scienceNextAtomId: Option[Atom.Id] =
+    config.science.map(_.nextAtom.id)
+
+  protected[sequence] lazy val nextAtomId: Option[Atom.Id] =
+    acquisitionNextAtomId.orElse(scienceNextAtomId)
 
 case class GmosNorthSequenceTables(
   clientMode:        ClientMode,
@@ -196,16 +203,27 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
          props.seqOperations,
          props.executionState,
          props.isPreview,
-         props.selectedStepId
+         props.selectedStepId,
+         props.nextAtomId
         )
       ): (props, _) =>
-        (clientMode, instrument, obsId, tabOperations, executionState, isPreview, selectedStepId) =>
+        (
+          clientMode,
+          instrument,
+          obsId,
+          tabOperations,
+          executionState,
+          isPreview,
+          selectedStepId,
+          nextAtomId
+        ) =>
           List(
             column(
               BreakpointColumnId,
               "",
               cell =>
-                val stepId: Option[Step.Id] = cell.row.original.step.id.toOption
+                val step: SequenceRow.FutureStep[D] = cell.row.original.step
+                val stepId: Option[Step.Id]         = step.id.toOption
                 // val canSetBreakpoint =
                 //   clientStatus.canOperate && step.get.canSetBreakpoint(
                 //     execution.map(_.steps).orEmpty
@@ -233,7 +251,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                             stepId.exists(executionState.breakpoints.contains)
                           )
                       )
-                  ).when(cell.row.index.toInt > 0)
+                  ).when(cell.row.index.toInt > 0 && nextAtomId.contains(step.atomId))
                 )
             ),
             column(
@@ -339,6 +357,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
             stepIdOpt
               .map: stepId =>
                 (^.onClick --> props.setSelectedStepId(stepId))
+                  .when(props.nextAtomId.contains(step.atomId))
                   .unless(props.executionState.isLocked)
               .whenDefined,
             if (tableRow.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
@@ -346,6 +365,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
               stepIdOpt.exists(props.executionState.breakpoints.contains)
             ),
             ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined),
+            ObserveStyles.StepRowPossibleFuture.unless_(props.nextAtomId.contains(step.atomId)),
             step match
               // case s if s.hasError                       => ObserveStyles.StepRowError
               // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
