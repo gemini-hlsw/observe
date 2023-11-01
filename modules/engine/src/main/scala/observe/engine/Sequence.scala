@@ -230,7 +230,7 @@ object Sequence {
     val toSequence: Sequence[F]
 
     // Functions to handle single run of Actions
-    def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F]
+    def startSingle(c: ActionCoordsInSeq): State[F]
 
     def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F]
 
@@ -401,10 +401,10 @@ object Sequence {
 
       override val toSequence: Sequence[F] = zipper.toSequence
 
-      override def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F] =
+      override def startSingle(c: ActionCoordsInSeq): State[F] =
         if (zipper.done.exists(_.id === c.stepId))
           self
-        else self.copy(singleRuns = singleRuns + (c -> ActionState.Started(r)))
+        else self.copy(singleRuns = singleRuns + (c -> ActionState.Started))
 
       override def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F] =
         if (getSingleState(c).started)
@@ -466,7 +466,7 @@ object Sequence {
 
       override val toSequence: Sequence[F] = seq
 
-      override def startSingle[V <: RetVal](c: ActionCoordsInSeq, r: V): State[F] = self
+      override def startSingle(c: ActionCoordsInSeq): State[F] = self
 
       override def failSingle(c: ActionCoordsInSeq, err: Result.Error): State[F] = self
 

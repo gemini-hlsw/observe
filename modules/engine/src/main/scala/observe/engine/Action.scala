@@ -56,13 +56,13 @@ object Action {
     }
 
     def active: Boolean = this match {
-      case ActionState.Paused(_) | ActionState.Started(_) => true
-      case _                                              => false
+      case ActionState.Paused(_) | ActionState.Started => true
+      case _                                           => false
     }
 
     def started: Boolean = this match {
-      case ActionState.Started(_) => true
-      case _                      => false
+      case ActionState.Started => true
+      case _                   => false
     }
 
     def aborted: Boolean = this match {
@@ -79,7 +79,7 @@ object Action {
     case object Idle                        extends ActionState {
       override val isIdle: Boolean = true
     }
-    case class Started[V <: RetVal](r: V)   extends ActionState
+    case object Started                     extends ActionState
     case class Paused(ctx: PauseContext)    extends ActionState
     case class Completed[V <: RetVal](r: V) extends ActionState
     case class Failed(e: Error)             extends ActionState
@@ -91,7 +91,7 @@ object Action {
       s match {
         case Idle         => ActionStatus.Pending
         case Completed(_) => ActionStatus.Completed
-        case Started(_)   => ActionStatus.Running
+        case Started      => ActionStatus.Running
         case Failed(_)    => ActionStatus.Failed
         case _: Paused    => ActionStatus.Paused
         case Aborted      => ActionStatus.Aborted

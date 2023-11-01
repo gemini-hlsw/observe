@@ -17,7 +17,6 @@ import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
 import observe.model.StepId
-import observe.model.enums.Resource
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -233,8 +232,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
     assert(
       seq
-        .startSingle(c, Response.Ignored)
-        .getSingleState(c) == Action.ActionState.Started(Response.Ignored)
+        .startSingle(c)
+        .getSingleState(c) == Action.ActionState.Started
     )
   }
 
@@ -279,8 +278,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
     )
     val c1   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
 
-    assert(seq1.startSingle(c1, Response.Ignored).getSingleState(c1).isIdle)
-    assert(seq2.startSingle(c1, Response.Ignored).getSingleState(c1).isIdle)
+    assert(seq1.startSingle(c1).getSingleState(c1).isIdle)
+    assert(seq2.startSingle(c1).getSingleState(c1).isIdle)
 
   }
 
@@ -301,7 +300,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
                           )
         )
       )
-      .startSingle(c, Response.Configured(Resource.TCS))
+      .startSingle(c)
     val c2  = ActionCoordsInSeq(stepId(1), ExecutionIndex(1), ActionIndex(0))
 
     assert(seq.failSingle(c, Result.Error("")).getSingleState(c).errored)
@@ -325,7 +324,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
                           )
         )
       )
-      .startSingle(c, Response.Configured(Resource.TCS))
+      .startSingle(c)
 
     assert(seq.completeSingle(c, DummyResult).getSingleState(c).completed)
   }

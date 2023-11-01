@@ -64,7 +64,7 @@ case class Execution[F[_]](execution: List[Action[F]]) {
         .focus()
         .index(i)
         .andThen(Action.runStateL[F])
-        .replace(ActionState.Started(Response.Ignored))
+        .replace(ActionState.Started)
     )
 }
 

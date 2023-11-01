@@ -12,7 +12,6 @@ import fs2.Stream
 import monocle.Optional
 import mouse.boolean.*
 import observe.engine.SystemEvent.Null
-import observe.model.ActionType
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.StepId
@@ -96,14 +95,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       seq <- stateL.sequenceStateIndex(c.sid).getOption(st)
       if (seq.status.isIdle || seq.status.isError) && !seq.getSingleState(c.actCoords).active
       act <- seq.rollback.getSingleAction(c.actCoords)
-      sys <- act.kind match {
-               case ActionType.Configure(sys) => sys.some
-               case _                         => none
-             }
-    } yield (act.gen, sys)
+    } yield act.gen
 
-    x.map { case (p, s) =>
-      modifyS(c.sid)(u => u.startSingle(c.actCoords, Response.Configured(s))) *>
+    x.map { case p =>
+      modifyS(c.sid)(u => u.startSingle(c.actCoords)) *>
         Handle
           .fromStream[F, S, EventType](
             p.attempt.flatMap {

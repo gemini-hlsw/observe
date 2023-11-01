@@ -868,6 +868,7 @@ object TcsControllerEpicsCommon {
 //    case Instrument.Niri                                      => "NIRI".some
 //    case Instrument.Nifs                                      => "NIFS".some
 //    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
+    case i                                           => sys.error(s"OI selection not supported for $i")
   }
 
   def calcMoveDistanceSquared(current: BaseEpicsTcsConfig, demand: TelescopeConfig): Option[Area] =

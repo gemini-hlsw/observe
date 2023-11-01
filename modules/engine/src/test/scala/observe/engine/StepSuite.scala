@@ -696,7 +696,7 @@ class StepSuite extends CatsEffectSuite {
         case Some(Sequence.State.Zipper(zipper, status, _)) =>
           (zipper.focus.focus.execution.headOption match {
             case Some(
-                  Action(_, _, Action.State(Action.ActionState.Started(Response.Ignored), v :: _))
+                  Action(_, _, Action.State(Action.ActionState.Started, v :: _))
                 ) =>
               v == PartialValDouble(0.5)
             case _ => false

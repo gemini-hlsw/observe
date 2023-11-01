@@ -157,7 +157,7 @@ object TestCommon {
   def running[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started(Response.Configured(resource)), Nil))(
+      .replace(Action.State(Action.ActionState.Started, Nil))(
         pendingAction(resource)
       )
 
@@ -173,7 +173,7 @@ object TestCommon {
   def observing[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started(Response.Observed(fileId)), Nil))(
+      .replace(Action.State(Action.ActionState.Started, Nil))(
         engine.fromF[F](ActionType.Observe, Result.OK(Response.Observed(fileId)).pure[F].widen)
       )
 
@@ -182,7 +182,7 @@ object TestCommon {
   def observingPartial[F[_]: Applicative]: Action[F] =
     Action
       .state[F]
-      .replace(Action.State(Action.ActionState.Started(Response.Ignored), Nil))(
+      .replace(Action.State(Action.ActionState.Started, Nil))(
         engine.fromF[F](ActionType.Observe,
                         Result.Partial(PartialValue("Value")).pure[F].widen,
                         Result.OK(Response.Ignored).pure[F].widen
@@ -193,9 +193,7 @@ object TestCommon {
     Action
       .state[F]
       .replace(
-        Action.State(Action.ActionState.Started(Response.Observed(fileId)),
-                     List(FileIdAllocated(fileId))
-        )
+        Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId)))
       )(observing)
 
   def observed[F[_]: Applicative]: Action[F] =
@@ -211,9 +209,7 @@ object TestCommon {
     Action
       .state[F]
       .replace(
-        Action.State(Action.ActionState.Started(Response.Observed(fileId)),
-                     List(FileIdAllocated(fileId))
-        )
+        Action.State(Action.ActionState.Started, List(FileIdAllocated(fileId)))
       )(
         observingPartial
       )
