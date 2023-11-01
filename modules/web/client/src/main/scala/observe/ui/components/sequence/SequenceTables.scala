@@ -216,12 +216,12 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                     ObserveStyles.BreakpointHandle,
                     stepId
                       .map: sId =>
-                        ^.onClick --> props.flipBreakpoint(
+                        ^.onClick ==> (_.stopPropagationCB >> props.flipBreakpoint(
                           obsId,
                           sId,
                           if (executionState.breakpoints.contains(sId)) Breakpoint.Disabled
                           else Breakpoint.Enabled
-                        )
+                        ))
                       .whenDefined
                   )(
                     Icons.CircleSolid

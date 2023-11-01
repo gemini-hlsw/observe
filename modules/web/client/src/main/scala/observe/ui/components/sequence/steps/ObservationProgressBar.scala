@@ -55,13 +55,14 @@ object ObservationProgressBar extends ProgressLabel:
           // TODO Smooth Progress Bar
           // val remainingMillis = p.maxValue - s.value
 
-          val totalMillis     = total.toMilliseconds.toInt
+          // val totalMillis     = total.toMilliseconds.toInt
           val remainingMillis = remaining.toMilliseconds.toInt
 
-          val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
+          // val progress = ((totalMillis - remainingMillis) * 100) / totalMillis
 
           ProgressBar(
-            value = progress.toInt,
+            mode = ProgressBar.Mode.Indeterminate, // TODO Remove when we have progress
+            // value = progress.toInt, // TODO Reinstate when we have progress
             clazz = ObserveStyles.ObservationProgressBar,
             displayValueTemplate = _ =>
               // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.

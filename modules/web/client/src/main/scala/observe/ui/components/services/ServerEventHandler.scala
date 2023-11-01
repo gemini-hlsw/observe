@@ -10,7 +10,6 @@ import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
-import monocle.Iso
 import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.ExecutionState.configStatus
@@ -45,10 +44,8 @@ trait ServerEventHandler:
         environment.async.set(env.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
         (rootModelData.async
-          .zoom(RootModelData.sequenceExecution)
-          .zoom(Iso.id[Map[Observation.Id, ExecutionState]].index(obsId))
-          .zoom(ExecutionState.configStatus)
-          .zoom(Iso.id[Map[Resource | Instrument, ActionStatus]].index(subsystem))
+          .zoom(RootModelData.sequenceExecution.index(obsId))
+          .zoom(ExecutionState.configStatus.index(subsystem))
           .set:
             event match
               case SingleActionState.Started   => ActionStatus.Running

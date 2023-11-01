@@ -19,10 +19,11 @@ import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import lucuma.react.primereact.*
+import lucuma.ui.optics.*
 import lucuma.ui.syntax.all.*
-import monocle.Iso
 import observe.model.ExecutionState
 import observe.model.SequenceState
+import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.given
 import observe.queries.ObsQueriesGQL
@@ -82,13 +83,16 @@ object Home:
       .render: (props, ctx, observations, sequenceApi) =>
         import ctx.given
 
-        val loadedObsId: Option[Observation.Id] =
-          props.rootModel.data.get.nighttimeObservation.map(_.obsId)
+        val loadedObs: Option[LoadedObservation] =
+          props.rootModel.data.get.nighttimeObservation
 
         val loadObservation: Observation.Id => Callback = obsId =>
           props.rootModel.data
             .zoom(RootModelData.nighttimeObservation)
             .set(LoadedObservation(obsId).some)
+
+        val obsStates: Map[Observation.Id, SequenceState] =
+          props.rootModel.data.get.sequenceExecution.view.mapValues(_.sequenceState).toMap
 
         val clientMode: ClientMode = props.rootModel.data.get.clientMode
 
@@ -103,81 +107,92 @@ object Home:
               SplitterPanel():
                 observations.toPot
                   .map(_.filter(_.obsClass == ObsClass.Nighttime))
-                  .renderPot(SessionQueue(_, loadedObsId, loadObservation))
+                  .renderPot(SessionQueue(_, obsStates, loadedObs, loadObservation))
               ,
               SplitterPanel()(
-                loadedObsId.map(obsId =>
+                loadedObs.map(obs =>
+                  val obsId = obs.obsId
+
                   // If for some reason sequenceExecution doesn't contain info for obsId, this could be none
                   val executionStateOpt: ViewOpt[ExecutionState] =
                     props.rootModel.data
-                      .zoom(RootModelData.sequenceExecution)
-                      .zoom(Iso.id[Map[Observation.Id, ExecutionState]].index(obsId))
+                      .zoom(RootModelData.sequenceExecution.index(obsId))
 
-                  executionStateOpt.mapValue(executionState =>
-                    val breakpoints: View[Set[Step.Id]] =
-                      executionState.zoom(ExecutionState.breakpoints)
+                  (loadedObs.toPot.flatMap(_.unPot), executionStateOpt.toOptionView.toPot).tupled
+                    .renderPot { case ((obsId, summary, config), executionState) =>
+                      val breakpoints: View[Set[Step.Id]] =
+                        executionState.zoom(ExecutionState.breakpoints)
 
-                    val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
-                      (obsId, stepId, value) =>
-                        breakpoints
-                          .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
-                          sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
+                      val flipBreakPoint: (Observation.Id, Step.Id, Breakpoint) => Callback =
+                        (obsId, stepId, value) =>
+                          breakpoints
+                            .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
+                            sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-                    val seqOperations: SequenceOperations =
-                      props.rootModel.data.get
-                        .obsSelectedStep(obsId)
-                        .fold(SequenceOperations.Default): stepId =>
-                          SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
-                            executionState.get.configStatus.flatMap: (resource, status) =>
-                              SubsystemRunOperation
-                                .fromActionStatus(stepId)(status)
-                                .map(resource -> _)
-                          )
+                      val seqOperations: SequenceOperations =
+                        props.rootModel.data.get
+                          .obsSelectedStep(obsId)
+                          .fold(SequenceOperations.Default): stepId =>
+                            SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
+                              executionState.get.configStatus.flatMap: (resource, status) =>
+                                SubsystemRunOperation
+                                  .fromActionStatus(stepId)(status)
+                                  .map(resource -> _)
+                            )
 
-                    val selectedStep: Option[Step.Id] =
-                      props.rootModel.data.get.obsSelectedStep(obsId)
+                      val selectedStep: Option[Step.Id] =
+                        props.rootModel.data.get.obsSelectedStep(obsId)
 
-                    val setSelectedStep: Step.Id => Callback = stepId =>
-                      props.rootModel.data
-                        .zoom(RootModelData.userSelectedStep)
-                        .zoom(Iso.id[Map[Observation.Id, Step.Id]].at(obsId))
-                        .mod: oldStepId =>
-                          if (oldStepId.contains_(stepId)) none else stepId.some
+                      val selectedStepAndResourcesLens =
+                        disjointZip(
+                          RootModelData.userSelectedStep.at(obsId),
+                          RootModelData.sequenceExecution.at(obsId)
+                        )
 
-                    <.div(^.height := "100%", ^.key := obsId.toString)(
-                      props.rootModel.data.get.nighttimeObservation.toPot
-                        .flatMap(_.unPot)
-                        .renderPot: (obsId, summary, config) =>
-                          React.Fragment(
-                            ObsHeader(obsId, summary),
-                            config match
-                              case InstrumentExecutionConfig.GmosNorth(config) =>
-                                GmosNorthSequenceTables(
-                                  clientMode,
-                                  obsId,
-                                  config,
-                                  executionState.get,
-                                  selectedStep,
-                                  setSelectedStep,
-                                  seqOperations,
-                                  isPreview = false,
-                                  flipBreakPoint
-                                )
-                              case InstrumentExecutionConfig.GmosSouth(config) =>
-                                GmosSouthSequenceTables(
-                                  clientMode,
-                                  obsId,
-                                  config,
-                                  executionState.get,
-                                  selectedStep,
-                                  setSelectedStep,
-                                  seqOperations,
-                                  isPreview = false,
-                                  flipBreakPoint
-                                )
-                          )
-                    )
-                  )
+                      val setSelectedStep: Step.Id => Callback = stepId =>
+                        props.rootModel.data
+                          .zoom(selectedStepAndResourcesLens)
+                          .mod: (oldStepId, executionState) =>
+                            if (oldStepId.contains_(stepId))
+                              (none, executionState)
+                            else
+                              // TODO We actually have to remember what step this belonged to before it was unselected.
+                              (stepId.some,
+                               executionState.map(
+                                 ExecutionState.configStatus
+                                   .modify(_.map((k, _) => k -> ActionStatus.Pending))
+                               )
+                              )
+
+                      <.div(^.height := "100%", ^.key := obsId.toString)(
+                        ObsHeader(obsId, summary, executionState.get.sequenceState.isRunning),
+                        config match
+                          case InstrumentExecutionConfig.GmosNorth(config) =>
+                            GmosNorthSequenceTables(
+                              clientMode,
+                              obsId,
+                              config,
+                              executionState.get,
+                              selectedStep,
+                              setSelectedStep,
+                              seqOperations,
+                              isPreview = false,
+                              flipBreakPoint
+                            )
+                          case InstrumentExecutionConfig.GmosSouth(config) =>
+                            GmosSouthSequenceTables(
+                              clientMode,
+                              obsId,
+                              config,
+                              executionState.get,
+                              selectedStep,
+                              setSelectedStep,
+                              seqOperations,
+                              isPreview = false,
+                              flipBreakPoint
+                            )
+                      )
+                    }
                 )
               )
             ),

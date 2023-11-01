@@ -78,6 +78,18 @@ object Icons:
   private val faCrosshairs: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faFileArrowUp")
+  private val faFileArrowUp: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faFileCheck")
+  private val faFileCheck: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faFileExcel")
+  private val faFileCross: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faGears")
   private val faGears: FAIcon = js.native
 
@@ -136,6 +148,9 @@ object Icons:
     faCircleSolid,
     faClock,
     faCrosshairs,
+    faFileArrowUp,
+    faFileCheck,
+    faFileCross,
     faGears,
     faMoon,
     faPause,
@@ -165,6 +180,9 @@ object Icons:
   inline def CircleSolid       = FontAwesomeIcon(faCircleSolid)
   inline def Clock             = FontAwesomeIcon(faClock)
   inline def Crosshairs        = FontAwesomeIcon(faCrosshairs)
+  inline def FileArrowUp       = FontAwesomeIcon(faFileArrowUp)
+  inline def FileCheck         = FontAwesomeIcon(faFileCheck)
+  inline def FileCross         = FontAwesomeIcon(faFileCross)
   inline def Gears             = FontAwesomeIcon(faGears)
   inline def Moon              = FontAwesomeIcon(faMoon)
   inline def Pause             = FontAwesomeIcon(faPause)
