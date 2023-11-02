@@ -60,7 +60,7 @@ object ControlButtons:
     //     case _                                                        => Icons.Stop
 
     // p.connect { proxy =>
-    val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
+    // val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
     <.div(ObserveStyles.ControlButtonStrip, ^.cls := "p-inputgroup")(
       // ObserveStyles.notInMobile,
@@ -72,27 +72,27 @@ object ControlButtons:
               icon = Icons.Pause.withFixedWidth(), // .withSize(IconSize.LG),
               tooltip = "Pause the current exposure",
               tooltipOptions = DefaultTooltipOptions,
-              disabled = true,
+              disabled = true,                     // props.requestInFlight || props.isObservePaused || isReadingOut
               onClickE = _.stopPropagationCB       // >> requestObsPause(p.obsId, p.stepId)
-            ).withMods(^.disabled := props.requestInFlight || props.isObservePaused || isReadingOut)
+            )
           case StopObservation  =>
             Button(
               clazz = ObserveStyles.StopButton,
               icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Stop the current exposure early",
               tooltipOptions = DefaultTooltipOptions,
-              disabled = true,
+              disabled = true,               // props.requestInFlight || isReadingOut
               onClickE = _.stopPropagationCB // >> requestStop(p.obsId, p.stepId)
-            ).withMods(^.disabled := props.requestInFlight || isReadingOut)
+            )
           case AbortObservation =>
             Button(
               clazz = ObserveStyles.AbortButton,
               icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
               tooltip = "Abort the current exposure",
               tooltipOptions = DefaultTooltipOptions,
-              disabled = true,
+              disabled = true,               // props.requestInFlight || isReadingOut
               onClickE = _.stopPropagationCB // >> requestAbort(p.obsId, p.stepId),
-            ).withMods(^.disabled := props.requestInFlight || isReadingOut)
+            )
           // case ResumeObservation           =>
           //   Popup(
           //     position = PopupPosition.TopRight,

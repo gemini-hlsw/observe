@@ -640,6 +640,10 @@ html {
       // }
     }
 
+    tr.ObserveStyles-stepRowPossibleFuture {
+      opacity: 0.6;
+    }
+
     // .stepWithBreakpoint(@line_color) {
     //   background-image: linear-gradient(to right, @line_color 0px, @line_color);
     //   font-size: smaller !important;
