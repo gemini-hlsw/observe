@@ -23,7 +23,6 @@ import lucuma.ui.optics.*
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.SequenceState
-import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.given
 import observe.queries.ObsQueriesGQL
@@ -161,10 +160,11 @@ object Home:
                             else
                               // TODO We actually have to remember what step this belonged to before it was unselected.
                               (stepId.some,
-                               executionState.map(
-                                 ExecutionState.configStatus
-                                   .modify(_.map((k, _) => k -> ActionStatus.Pending))
-                               )
+                               executionState.map(identity)
+                               // TODO Fixme
+                               //   ExecutionState.configStatus
+                               //     .modify(_.map((k, _) => k -> ActionStatus.Pending))
+                               // )
                               )
 
                       <.div(^.height := "100%", ^.key := obsId.toString)(
