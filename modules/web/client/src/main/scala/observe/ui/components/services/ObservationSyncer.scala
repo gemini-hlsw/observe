@@ -5,6 +5,7 @@ package observe.ui.components.services
 
 import cats.effect.IO
 import cats.syntax.all.*
+import clue.ResponseException
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -58,6 +59,9 @@ object ObservationSyncer:
               SequenceSQL
                 .SequenceQuery[IO]
                 .query(obsId)
+                .adaptError:
+                  case ResponseException(errors, _) =>
+                    Exception(errors.map(_.message).toList.mkString("\n"))
                 .map(_.observation.map(_.execution.config))
                 .attempt
                 .map:

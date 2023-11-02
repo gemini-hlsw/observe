@@ -25,6 +25,9 @@ object ObserveStyles:
   val LogArea: Css = Css("ObserveStyles-logArea")
   val Footer: Css  = Css("ObserveStyles-footer")
 
+  val ObservationArea: Css      = Css("ObserveStyles-observationArea")
+  val ObservationAreaError: Css = Css("ObserveStyles-observationAreaError")
+
   val ObserveTable: Css = Css("ObserveStyles-observeTable")
 
   val RowIdle: Css     = Css("ObserveStyles-rowIdle")
@@ -51,7 +54,6 @@ object ObserveStyles:
   val WaterVaporArea: Css      = Css("ObserveStyles-WaterVaporArea")
   val SkyBackgroundArea: Css   = Css("ObserveStyles-SkyBackgroundArea")
 
-  val SequenceTabView: Css    = Css("ObserveStyles-sequenceTabView")
   val ConfiguringRow: Css     = Css("ObserveStyles-configuringRow")
   val StepTable: Css          = Css("ObserveStyles-stepTable")
   val StepSettingsHeader: Css = Css("ObserveStyles-stepSettingsHeader")

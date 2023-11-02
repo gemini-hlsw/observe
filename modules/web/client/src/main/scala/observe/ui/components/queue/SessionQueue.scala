@@ -47,6 +47,7 @@ object SessionQueue:
   private val ColDef = ColumnDef[SessionQueueRow]
 
   private def rowClass(
+    loadingPotOpt:       Option[Pot[Unit]],
     /*index: Int,*/ row: SessionQueueRow,
     selectedObsId:       Option[Observation.Id]
   ): Css =
@@ -56,7 +57,7 @@ object SessionQueue:
       ObserveStyles.RowPositive
     else if (row.status.isRunning)
       ObserveStyles.RowWarning
-    else if (row.status.isError)
+    else if (row.status.isError || (isFocused && loadingPotOpt.exists(_.isError)))
       ObserveStyles.RowNegative
     else if (isFocused && !row.status.isInProcess)
       ObserveStyles.RowActive
@@ -70,6 +71,7 @@ object SessionQueue:
     val icon: VdomNode =
       (loadingPotOpt, statusOpt) match
         case (Some(Pot.Pending), _)                                                        => Icons.CircleNotch.withSpin()
+        case (Some(Pot.Ready(_)), None)                                                    => Icons.CircleNotch.withSpin()
         case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
         case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
           Icons.FileCheck // clazz = selectedIconStyle)
@@ -257,7 +259,10 @@ object SessionQueue:
             table,
             estimateSize = _ => 30.toPx,
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
-            rowMod = row => TagMod(rowClass(row.original, props.loadedObs.map(_.obsId))),
+            rowMod = row =>
+              TagMod(
+                rowClass(props.obsIdPotOpt.map(_.void), row.original, props.loadedObs.map(_.obsId))
+              ),
             cellMod = cell =>
               ColumnId(cell.column.id) match
                 case StatusIconColumnId => ObserveStyles.LoadButtonCell
