@@ -97,7 +97,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       act <- seq.rollback.getSingleAction(c.actCoords)
     } yield act.gen
 
-    x.map { case p =>
+    x.map { p =>
       modifyS(c.sid)(u => u.startSingle(c.actCoords)) *>
         Handle
           .fromStream[F, S, EventType](
