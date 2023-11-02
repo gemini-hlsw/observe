@@ -1688,7 +1688,10 @@ object ObserveEngine {
         )
       case StopQueue(qid, _)                  => Stream.emit(QueueUpdated(QueueManipulationOp.Stopped(qid), svs))
       case StartSysConfig(oid, stepId, res)   =>
-        Stream.emit(SingleActionEvent(SingleActionOp.Started(oid, stepId, res)))
+        Stream.emits(
+          SingleActionEvent(SingleActionOp.Started(oid, stepId, res)) ::
+            SequenceUpdated(svs) :: Nil
+        )
       case SequenceStart(oid, stepId)         => Stream.emit(ClientSequenceStart(oid, stepId, svs))
       case SequencesStart(l)                  =>
         Stream.emits(l.map { case (oid, step) => ClientSequenceStart(oid, step, svs) })
@@ -1713,18 +1716,21 @@ object ObserveEngine {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
       case _                                => List.empty
     }
-    def engineSteps(seq: Sequence[F]): List[Step]                         =
+
+    def engineSteps(seq: Sequence[F]): List[Step] =
       obsSeq.seqGen.steps.zip(seq.steps).map { case (a, b) =>
+        val stepResources =
+          resources(a).mapFilter(x =>
+            obsSeq.seqGen
+              .configActionCoord(a.id, x)
+              .map(i => (x, obsSeq.seq.getSingleState(i).actionStatus))
+          )
         StepsView
           .stepsView(instrument)
           .stepView(
             a,
             b,
-            resources(a).mapFilter(x =>
-              obsSeq.seqGen
-                .configActionCoord(a.id, x)
-                .map(i => (x, obsSeq.seq.getSingleState(i).actionStatus))
-            ),
+            stepResources,
             obsSeq.pendingObsCmd
           )
       } match {
@@ -1742,14 +1748,22 @@ object ObserveEngine {
         case x   => x
       }
 
+    val engSteps      = engineSteps(seq)
+    val stepResources = engSteps.map { s =>
+      s match
+        case StandardStep(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus
+        case NodAndShuffleStep(id, _, _, _, _, _, _, configStatus, _, _) => id -> configStatus
+    }
+
     // TODO: Implement willStopIn
     SequenceView(
       seq.id,
       SequenceMetadata(instrument, obsSeq.observer, obsSeq.seqGen.obsData.title),
       st.status,
       obsSeq.overrides,
-      engineSteps(seq),
-      None
+      engSteps,
+      None,
+      stepResources
     )
   }
 
@@ -1822,20 +1836,20 @@ object ObserveEngine {
           case SystemEvent.Paused(id, _, _)                                         => Stream.emit(ExposurePaused(id, svs))
           case SystemEvent.BreakpointReached(id)                                    => Stream.emit(SequencePaused(id, svs))
           case SystemEvent.SingleRunCompleted(c, _)                                 =>
-            Stream.emit(
+            Stream.emits(
               singleActionEvent[F, SingleActionOp.Completed](
                 c,
                 qState,
                 SingleActionOp.Completed.apply(_, _, _)
-              )
+              ) :: SequenceUpdated(svs) :: Nil
             )
           case SystemEvent.SingleRunFailed(c, r)                                    =>
-            Stream.emit(
+            Stream.emits(
               singleActionEvent[F, SingleActionOp.Error](
                 c,
                 qState,
                 SingleActionOp.Error.apply(_, _, _, r.msg)
-              )
+              ) :: SequenceUpdated(svs) :: Nil
             )
         }
     }

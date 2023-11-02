@@ -230,7 +230,11 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
     val c = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(1))
 
-    assert(seq.startSingle(c).getSingleState(c) == Action.ActionState.Started)
+    assert(
+      seq
+        .startSingle(c)
+        .getSingleState(c) == Action.ActionState.Started
+    )
   }
 
   test("startSingle should not start single Action from completed Step") {

@@ -15,9 +15,9 @@ import Action.ActionState
  * This structure holds the current `Execution` under execution. It carries information about which
  * `Action`s have been completed.
  */
-final case class Execution[F[_]](execution: List[Action[F]]) {
+case class Execution[F[_]](execution: List[Action[F]]) {
 
-  import Execution._
+  import Execution.*
 
   val isEmpty: Boolean = execution.isEmpty
 
@@ -59,7 +59,13 @@ final case class Execution[F[_]](execution: List[Action[F]]) {
     )
 
   def start(i: Int): Execution[F] =
-    Execution(execution.focus().index(i).andThen(Action.runStateL[F]).replace(ActionState.Started))
+    Execution(
+      execution
+        .focus()
+        .index(i)
+        .andThen(Action.runStateL[F])
+        .replace(ActionState.Started)
+    )
 }
 
 object Execution {

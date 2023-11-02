@@ -97,8 +97,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       act <- seq.rollback.getSingleAction(c.actCoords)
     } yield act.gen
 
-    x.map(p =>
-      modifyS(c.sid)(_.startSingle(c.actCoords)) *>
+    x.map { p =>
+      modifyS(c.sid)(u => u.startSingle(c.actCoords)) *>
         Handle
           .fromStream[F, S, EventType](
             p.attempt.flatMap {
@@ -114,7 +114,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
             }
           )
           .as[Outcome](Outcome.Ok)
-    ).getOrElse(pure[Outcome](Outcome.Failure))
+    }.getOrElse(pure[Outcome](Outcome.Failure))
 
   }
 

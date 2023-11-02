@@ -280,7 +280,10 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         seqOperations = tabOperations,
                         runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
-                        configStatus = executionState.configStatus,
+                        configStatus = executionState.stepResources
+                          .find(_._1 === stepId)
+                          .map(_._2.toMap)
+                          .getOrElse(Map.empty),
                         selectedStep = selectedStepId,
                         isPreview = isPreview
                       )

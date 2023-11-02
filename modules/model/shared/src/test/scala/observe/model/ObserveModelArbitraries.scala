@@ -15,6 +15,7 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.*
+import lucuma.core.model.sequence.{Step => CoreStep}
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -118,7 +119,8 @@ trait ObserveModelArbitraries {
       o  <- arbitrary[SystemOverrides]
       t  <- arbitrary[List[Step]]
       i  <- arbitrary[Option[Int]]
-    } yield SequenceView(id, m, s, o, t, i)
+      a  <- arbitrary[List[(CoreStep.Id, List[(Resource | Instrument, ActionStatus)])]]
+    } yield SequenceView(id, m, s, o, t, i, a)
   }
   given Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
 

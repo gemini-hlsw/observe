@@ -4,29 +4,21 @@
 package observe.engine
 
 import cats.Eq
+import cats.derived.*
+import lucuma.core.util.NewType
 import observe.model.Observation
 import observe.model.StepId
 
-final case class ActionIndex(self: Long) extends AnyVal
-object ActionIndex {
-  given Eq[ActionIndex] = Eq.by(_.self)
-}
+object ActionIndex extends NewType[Long]
+type ActionIndex = ActionIndex.Type
 
-final case class ExecutionIndex(self: Long) extends AnyVal
-object ExecutionIndex {
-  given Eq[ExecutionIndex] = Eq.by(_.self)
-}
+object ExecutionIndex extends NewType[Long]
+type ExecutionIndex = ExecutionIndex.Type
 
-final case class ActionCoordsInSeq(stepId: StepId, execIdx: ExecutionIndex, actIdx: ActionIndex)
-object ActionCoordsInSeq {
-  given Eq[ActionCoordsInSeq] =
-    Eq.by(x => (x.stepId, x.execIdx, x.actIdx))
-}
+case class ActionCoordsInSeq(stepId: StepId, execIdx: ExecutionIndex, actIdx: ActionIndex)
+    derives Eq
 
 /*
  * Class to hold the coordinates of an Action inside the engine state
  */
-final case class ActionCoords(sid: Observation.Id, actCoords: ActionCoordsInSeq)
-object ActionCoords {
-  given Eq[ActionCoords] = Eq.by(x => (x.sid, x.actCoords))
-}
+case class ActionCoords(sid: Observation.Id, actCoords: ActionCoordsInSeq) derives Eq

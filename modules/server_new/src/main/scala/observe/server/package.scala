@@ -78,6 +78,7 @@ package object server {
     ): Lens[EngineState[F], Option[SequenceData[F]]] = instrument match {
       case Instrument.GmosSouth => EngineState.selectedGmosSouth
       case Instrument.GmosNorth => EngineState.selectedGmosNorth
+      case i                    => sys.error(s"Unexpected instrument $i")
     }
 
     def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =

@@ -7,12 +7,11 @@ import cats.effect.IO
 import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import munit.CatsEffectSuite
-import stateengine.Handler.*
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
-class StateEngineSpec extends CatsEffectSuite {
+class StateEngineSuite extends CatsEffectSuite {
 
   test("StateEngine should process commands") {
     assertIO(

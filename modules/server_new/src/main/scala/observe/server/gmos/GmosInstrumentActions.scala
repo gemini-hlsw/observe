@@ -9,6 +9,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.util.TimeSpan
 import observe.engine.ParallelActions
+import observe.engine.Response
 import observe.engine.Result
 import observe.model.NsSubexposure
 import observe.model.dhs.*

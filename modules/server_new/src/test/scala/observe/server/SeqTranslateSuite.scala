@@ -14,13 +14,14 @@ import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
 import observe.common.test.*
 import observe.engine.Action
+import observe.engine.Response
+import observe.engine.Response.Observed
 import observe.engine.Result
 import observe.engine.Sequence
 import observe.model.ActionType
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.dhs.*
-import observe.server.Response.Observed
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
 
@@ -77,7 +78,9 @@ class SeqTranslateSuite extends TestCommon {
   // Observe started, but with file Id already allocated
   private val s3: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)
-    .modify(_.start(0).mark(0)(Result.Partial(FileIdAllocated(toImageFileId(fileId)))))(baseState)
+    .modify(
+      _.start(0).mark(0)(Result.Partial(FileIdAllocated(toImageFileId(fileId))))
+    )(baseState)
   // Observe paused
   private val s4: EngineState[IO] = EngineState
     .sequenceStateIndex[IO](seqObsId1)

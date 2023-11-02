@@ -423,11 +423,12 @@ object Sequence {
 
       override val getSingleActionStates: Map[ActionCoordsInSeq, ActionState] = singleRuns
 
-      override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = for {
-        step <- toSequence.steps.find(_.id === c.stepId)
-        exec <- step.executions.get(c.execIdx.self)
-        act  <- exec.get(c.actIdx.self)
-      } yield act
+      override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] =
+        for {
+          step <- toSequence.steps.find(_.id === c.stepId)
+          exec <- step.executions.get(c.execIdx.value)
+          act  <- exec.get(c.actIdx.value)
+        } yield act
 
       override def clearSingles: State[F] = self.copy(singleRuns = Map.empty)
     }

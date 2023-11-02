@@ -92,10 +92,10 @@ object SeqTranslate {
 //  }
 
   class SeqTranslateImpl[F[_]: Async: Logger](
-    site:          Site,
-    systemss:      Systems[F],
-    gmosNsCmd:     Ref[F, Option[NSObserveCommand]],
-    conditionsRef: Ref[F, Conditions]
+    site:                             Site,
+    systemss:                         Systems[F],
+    gmosNsCmd:                        Ref[F, Option[NSObserveCommand]],
+    @annotation.unused conditionsRef: Ref[F, Conditions]
   ) extends SeqTranslate[F] {
 
     private val overriddenSystems = new OverriddenSystems[F](systemss)

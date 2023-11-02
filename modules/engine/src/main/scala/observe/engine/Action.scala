@@ -86,6 +86,7 @@ object Action {
     case object Aborted                     extends ActionState {
       override val isIdle: Boolean = true
     }
+
     private def actionStateToStatus[F[_]](s: ActionState): ActionStatus =
       s match {
         case Idle         => ActionStatus.Pending
