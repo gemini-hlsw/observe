@@ -18,12 +18,9 @@ import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import lucuma.react.primereact.*
 import lucuma.ui.DefaultErrorRender
-import lucuma.ui.optics.*
 import lucuma.ui.syntax.all.*
-import monocle.Lens
 import observe.model.ExecutionState
 import observe.model.SequenceState
-import observe.model.enums.ActionStatus
 import observe.queries.ObsQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
@@ -114,28 +111,11 @@ object Home:
                         val selectedStep: Option[Step.Id] =
                           props.rootModel.data.get.obsSelectedStep(obsId)
 
-                        val selectedStepAndResourcesLens
-                          : Lens[RootModelData, (Option[Step.Id], Option[ExecutionState])] =
-                          disjointZip(
-                            RootModelData.userSelectedStep.at(obsId),
-                            RootModelData.sequenceExecution.at(obsId)
-                          )
-
                         val setSelectedStep: Step.Id => Callback = stepId =>
                           props.rootModel.data
-                            .zoom(selectedStepAndResourcesLens)
-                            .mod: (oldStepId, executionState) =>
-                              if (oldStepId.contains_(stepId))
-                                (none, executionState)
-                              else
-                                // TODO We actually have to remember what step this belonged to before it was unselected.
-                                (stepId.some,
-                                 executionState.map(identity)
-                                 // TODO Fixme
-                                 //   ExecutionState.configStatus
-                                 //     .modify(_.map((k, _) => k -> ActionStatus.Pending))
-                                 // )
-                                )
+                            .zoom(RootModelData.userSelectedStep.at(obsId))
+                            .mod: oldStepId =>
+                              if (oldStepId.contains_(stepId)) none else stepId.some
 
                         ObservationSequence(
                           obsId,

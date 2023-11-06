@@ -9,16 +9,11 @@ import cats.syntax.all.*
 import crystal.*
 import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
-import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import monocle.Focus
-import monocle.Iso
-import monocle.function.Index
 import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.enums.ActionStatus
-import observe.model.enums.Resource
 import observe.model.events.client.ClientEvent
 import observe.model.events.client.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
@@ -35,9 +30,6 @@ trait ServerEventHandler:
     msg match
       case NonEmptyString(nes) => rootModelData.async.zoom(RootModelData.log).mod(_ :+ nes)
 
-  private given Eq[Resource | Instrument] = Eq.fromUniversalEquals
-  private val actionLens                  = Focus[(Resource | Instrument, ActionStatus)](_._2)
-
   protected def processStreamEvent(
     environment:     View[Pot[Environment]],
     rootModelData:   View[RootModelData],
@@ -51,49 +43,26 @@ trait ServerEventHandler:
         environment.async.set(env.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
         (rootModelData.async
-          .zoom(RootModelData.sequenceExecution)
-          .zoom(Iso.id[Map[Observation.Id, ExecutionState]].index(obsId))
-          .zoom(ExecutionState.stepResourcesT(stepId))
-          .zoom(
-            Iso
-              .id[List[(Resource | Instrument, ActionStatus)]]
-              .each
-              .filter(_._1 === subsystem)
-          )
-          .zoom(actionLens)
+          .zoom(RootModelData.sequenceExecution.at(obsId).some)
+          .zoom(ExecutionState.stepResources.at(stepId).some.at(subsystem))
           .set:
             event match
-              case SingleActionState.Started   => ActionStatus.Running
-              case SingleActionState.Completed => ActionStatus.Completed
-              case SingleActionState.Failed    => ActionStatus.Failed
+              case SingleActionState.Started   => ActionStatus.Running.some
+              case SingleActionState.Completed => ActionStatus.Completed.some
+              case SingleActionState.Failed    => ActionStatus.Failed.some
         ) >>
           error.map(logMessage(rootModelData, _)).orEmpty
-
-      case ClientEvent.ChecksOverrideEvent(_)                                =>
+      case ClientEvent.ChecksOverrideEvent(_)                                    =>
         // TODO Update the UI
         IO.unit
-      case ClientEvent.ObserveState(sequenceExecution, conditions, operator) =>
+      case ClientEvent.ObserveState(sequenceExecution, conditions, operator)     =>
         val asyncRootModel       = rootModelData.async
         val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
         asyncRootModel.zoom(RootModelData.operator).set(operator) >>
           asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
           asyncRootModel
             .zoom(RootModelData.sequenceExecution)
-            .mod(old => // TODO Just set when resources are in the state
-              sequenceExecution.map((obsId, executionStatus) =>
-                obsId ->
-                  executionStatus.copy(
-                    stepResources = Nil // TODO Fixme
-                    // List[Resource | Instrument](Resource.TCS, Resource.Gcal, Instrument.GmosNorth)
-                    //   .foldLeft(executionStatus.stepResources)((cs, ss) =>
-                    //     cs.updatedWith(ss)(
-                    //       _.orElse(old.get(obsId).flatMap(_.configStatus.get(ss)))
-                    //         .orElse(ActionStatus.Pending.some)
-                    //     )
-                    //   )
-                  )
-              )
-            ) >>
+            .set(sequenceExecution) >>
           asyncRootModel
             .zoom(RootModelData.nighttimeObservation)
             .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.

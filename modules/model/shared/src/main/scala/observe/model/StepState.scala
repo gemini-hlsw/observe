@@ -16,35 +16,35 @@ enum StepState derives Eq:
   case Running             extends StepState
   case Paused              extends StepState
 
-  def canSetBreakpoint: Boolean = this match
+  lazy val canSetBreakpoint: Boolean = this match
     case StepState.Pending | StepState.Skipped | StepState.Paused | StepState.Running |
         StepState.Aborted =>
       true
     case _ => false
 
-  def canSetSkipmark: Boolean = this match
+  lazy val canSetSkipmark: Boolean = this match
     case StepState.Pending | StepState.Paused | StepState.Aborted => true
     case _ if hasError                                            => true
     case _                                                        => false
 
-  def hasError: Boolean = this match
+  lazy val hasError: Boolean = this match
     case StepState.Failed(_) => true
     case _                   => false
 
-  def isRunning: Boolean = this === StepState.Running
+  lazy val isRunning: Boolean = this === StepState.Running
 
-  def isPending: Boolean = this === StepState.Pending
+  lazy val isPending: Boolean = this === StepState.Pending
 
-  def runningOrComplete: Boolean = this match
+  lazy val runningOrComplete: Boolean = this match
     case StepState.Running | StepState.Completed => true
     case _                                       => false
 
-  def isFinished: Boolean = this match
+  lazy val isFinished: Boolean = this match
     case StepState.Completed | StepState.Skipped => true
     case _                                       => false
 
-  def wasSkipped: Boolean = this === StepState.Skipped
+  lazy val wasSkipped: Boolean = this === StepState.Skipped
 
-  def canConfigure: Boolean = this match
+  lazy val canConfigure: Boolean = this match
     case StepState.Pending | StepState.Paused | StepState.Failed(_) | StepState.Aborted => true
     case _                                                                              => false

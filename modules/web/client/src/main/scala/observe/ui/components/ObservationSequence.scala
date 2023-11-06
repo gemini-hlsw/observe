@@ -4,6 +4,7 @@
 package observe.ui.components
 
 import cats.Order.given
+import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -60,10 +61,14 @@ object ObservationSequence:
         props.selectedStep
           .fold(SequenceOperations.Default): stepId =>
             SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
-              props.executionState.get.configStatus.flatMap: (resource, status) =>
-                SubsystemRunOperation
-                  .fromActionStatus(stepId)(status)
-                  .map(resource -> _)
+              props.executionState.get.stepResources
+                .get(stepId)
+                .map(_.map { case (resource, status) =>
+                  SubsystemRunOperation
+                    .fromActionStatus(stepId)(status)
+                    .map(resource -> _)
+                }.toList.flatten)
+                .orEmpty
             )
 
       <.div(ObserveStyles.ObservationArea, ^.key := props.obsId.toString)(

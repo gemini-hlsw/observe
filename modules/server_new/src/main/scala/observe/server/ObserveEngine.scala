@@ -1751,9 +1751,9 @@ object ObserveEngine {
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map { s =>
       s match
-        case StandardStep(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus
-        case NodAndShuffleStep(id, _, _, _, _, _, _, configStatus, _, _) => id -> configStatus
-    }
+        case StandardStep(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+        case NodAndShuffleStep(id, _, _, _, _, _, _, configStatus, _, _) => id -> configStatus.toMap
+    }.toMap
 
     // TODO: Implement willStopIn
     SequenceView(
