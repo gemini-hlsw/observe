@@ -8,4 +8,4 @@ import cats.derived.*
 
 // TODO Eventually, we will have parameters for sharable URLs
 enum Page derives Eq:
-  case Schedule, Nighttime, Daytime, Excluded, Configuration
+  case Schedule, Nighttime, Daytime, Excluded

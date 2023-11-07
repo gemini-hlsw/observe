@@ -91,11 +91,15 @@ object Home:
               stateStorage = StateStorage.Local,
               clazz = ObserveStyles.Shrinkable
             )(
-              SplitterPanel():
+              SplitterPanel()(
                 observations.toPot
                   .map(_.filter(_.obsClass == ObsClass.Nighttime))
-                  .renderPot(SessionQueue(_, obsStates, loadedObs, loadObservation))
-              ,
+                  .renderPot(SessionQueue(_, obsStates, loadedObs, loadObservation)),
+                ConfigPanel(
+                  props.rootModel.data.zoom(RootModelData.observer).toOptionView,
+                  props.rootModel.data.zoom(RootModelData.conditions)
+                )
+              ),
               SplitterPanel()(
                 loadedObs.map(obs =>
                   val obsId = obs.obsId

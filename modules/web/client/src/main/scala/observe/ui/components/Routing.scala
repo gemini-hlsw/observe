@@ -23,14 +23,6 @@ object Routing:
           | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
           | staticRoute(root / "daytime", Daytime) ~> renderP(rootModel => <.div("Daytime"))
           | staticRoute(root / "excluded", Excluded) ~> renderP(rootModel => <.div("Excluded")))
-          | staticRoute(root / "configuration", Configuration) ~> renderP(rootModel =>
-            <.div(
-              ConfigPanel(
-                rootModel.data.zoom(RootModelData.observer).toOptionView,
-                rootModel.data.zoom(RootModelData.conditions)
-              )
-            )
-          )
 
       val configuration =
         rules
