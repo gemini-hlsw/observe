@@ -233,51 +233,90 @@ html {
 }
 
 .ObserveStyles-ConfigSection {
-  display: grid;
-  grid-template-areas:
-    "observer observer"
-    "operator operator"
-    "imageQuality cloudExtinction"
-    "waterVapor skyBackground";
-  column-gap: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: smaller;
+
+  // display: grid;
+  // grid-template-areas:
+  //   "observer observer"
+  //   "operator operator"
+  //   "imageQuality cloudExtinction"
+  //   "waterVapor skyBackground";
+  // column-gap: 15px;
 
   label {
     font-weight: bold;
-    font-size: small;
+    font-size: x-small;
     white-space: nowrap;
   }
 
   input {
     width: 100%;
+    font-size: smaller;
+  }
+
+  .p-dropdown-label,
+  .p-inputtext {
+    font-size: small;
   }
 
   .p-dropdown {
     width: 100%;
+    font-size: smaller;
   }
-}
 
-.ObserveStyles-ObserverArea {
-  grid-area: observer;
-}
+  .ObserveStyles-ConditionsSection {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
 
-.ObserveStyles-OperatorArea {
-  grid-area: operator;
-}
+    .ObserveStyles-ImageQualityArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-.ObserveStyles-ImageQualityArea {
-  grid-area: imageQuality;
-}
+    .ObserveStyles-CloudExtinctionArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-.ObserveStyles-CloudExtinctionArea {
-  grid-area: cloudExtinction;
-}
+    .ObserveStyles-WaterVaporArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-.ObserveStyles-WaterVaporArea {
-  grid-area: waterVapor;
-}
+    .ObserveStyles-SkyBackgroundArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
 
-.ObserveStyles-SkyBackgroundArea {
-  grid-area: skyBackground;
+  .ObserveStyles-NamesSection {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 15px;
+
+    .ObserveStyles-ObserverArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .ObserveStyles-OperatorArea {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
 }
 
 .ObserveStyles-observationArea {

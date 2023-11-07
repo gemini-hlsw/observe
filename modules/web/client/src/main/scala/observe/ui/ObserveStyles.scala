@@ -47,6 +47,8 @@ object ObserveStyles:
   val LoadButton: Css     = Css("ObserveStyles-loadButton")
 
   val ConfigSection: Css       = Css("ObserveStyles-ConfigSection")
+  val ConditionsSection: Css   = Css("ObserveStyles-ConditionsSection")
+  val NamesSection: Css        = Css("ObserveStyles-NamesSection")
   val ObserverArea: Css        = Css("ObserveStyles-ObserverArea")
   val OperatorArea: Css        = Css("ObserveStyles-OperatorArea")
   val ImageQualityArea: Css    = Css("ObserveStyles-ImageQualityArea")

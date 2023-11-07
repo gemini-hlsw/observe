@@ -99,7 +99,7 @@ object Home:
                   props.rootModel.data.zoom(RootModelData.observer).toOptionView,
                   props.rootModel.data.zoom(RootModelData.conditions)
                 )
-              ),
+              )(^.display.flex, ^.flexDirection.column), // TODO Move to a Style
               SplitterPanel()(
                 loadedObs.map(obs =>
                   val obsId = obs.obsId

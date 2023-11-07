@@ -62,54 +62,60 @@ object ConfigPanel:
           .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
       <.div(ObserveStyles.ConfigSection)(
-        props.observer.map: observer =>
-          <.div(ObserveStyles.ObserverArea)(
-            FormInputTextView(
-              id = "observer".refined,
-              label = "Observer",
-              value = observer,
-              validFormat = InputValidSplitEpi.nonEmptyString
-                .andThen(ValidSplitEpi.fromIso(Observer.value.reverse))
+        <.div,
+        <.div(ObserveStyles.ConditionsSection)(
+          <.span(^.fontWeight.bold, "Current Conditions"),
+          <.div(ObserveStyles.ImageQualityArea)(
+            FormEnumDropdownOptionalView(
+              id = "imageQuality".refined,
+              label = "IQ",
+              value = iq,
+              showClear = false,
+              disabled = configApi.isBlocked
             )
           ),
-        <.div(ObserveStyles.OperatorArea)(
-          <.label(^.htmlFor := "operator")("Operator Name"),
-          InputText("operator")
-        ),
-        <.div(ObserveStyles.ImageQualityArea)(
-          FormEnumDropdownOptionalView(
-            id = "imageQuality".refined,
-            label = "Image Quality",
-            value = iq,
-            showClear = false,
-            disabled = configApi.isBlocked
+          <.div(ObserveStyles.CloudExtinctionArea)(
+            FormEnumDropdownOptionalView(
+              id = "cloudExtinction".refined,
+              label = "CE",
+              value = ce,
+              showClear = false,
+              disabled = configApi.isBlocked
+            )
+          ),
+          <.div(ObserveStyles.WaterVaporArea)(
+            FormEnumDropdownOptionalView(
+              id = "waterVapor".refined,
+              label = "WV",
+              value = wv,
+              showClear = false,
+              disabled = configApi.isBlocked
+            )
+          ),
+          <.div(ObserveStyles.SkyBackgroundArea)(
+            FormEnumDropdownOptionalView(
+              id = "skyBackground".refined,
+              label = "BG",
+              value = sb,
+              showClear = false,
+              disabled = configApi.isBlocked
+            )
           )
         ),
-        <.div(ObserveStyles.CloudExtinctionArea)(
-          FormEnumDropdownOptionalView(
-            id = "cloudExtinction".refined,
-            label = "Cloud Extinction",
-            value = ce,
-            showClear = false,
-            disabled = configApi.isBlocked
-          )
-        ),
-        <.div(ObserveStyles.WaterVaporArea)(
-          FormEnumDropdownOptionalView(
-            id = "waterVapor".refined,
-            label = "Water Vapor",
-            value = wv,
-            showClear = false,
-            disabled = configApi.isBlocked
-          )
-        ),
-        <.div(ObserveStyles.SkyBackgroundArea)(
-          FormEnumDropdownOptionalView(
-            id = "skyBackground".refined,
-            label = "Sky Background",
-            value = sb,
-            showClear = false,
-            disabled = configApi.isBlocked
-          )
+        <.div(ObserveStyles.NamesSection)(
+          <.div(ObserveStyles.OperatorArea)(
+            <.label(^.htmlFor := "operator")("Operator"),
+            InputText("operator")
+          ),
+          props.observer.map: observer =>
+            <.div(ObserveStyles.ObserverArea)(
+              FormInputTextView(
+                id = "observer".refined,
+                label = "Observer",
+                value = observer,
+                validFormat = InputValidSplitEpi.nonEmptyString
+                  .andThen(ValidSplitEpi.fromIso(Observer.value.reverse))
+              )
+            )
         )
       )

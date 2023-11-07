@@ -9,7 +9,6 @@ import lucuma.react.common.*
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
-import observe.ui.model.RootModelData
 
 object Routing:
 
