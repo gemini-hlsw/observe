@@ -21,7 +21,7 @@ case class SequenceView(
   systemOverrides: SystemOverrides,
   steps:           List[Step],
   willStopIn:      Option[Int],
-  stepResources:   List[(CoreStep.Id, List[(Resource | Instrument, ActionStatus)])]
+  stepResources:   Map[CoreStep.Id, Map[Resource | Instrument, ActionStatus]]
 ) derives Eq:
 
   def progress: Option[RunningStep] =

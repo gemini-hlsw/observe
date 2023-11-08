@@ -51,7 +51,12 @@ trait ArbClientEvent:
        List[Step.Id]
       )
     ].contramap(x =>
-      (x.sequenceState, x.runningStepId, x.nsState, x.stepResources, x.breakpoints.toList)
+      (x.sequenceState,
+       x.runningStepId,
+       x.nsState,
+       x.stepResources.view.mapValues(_.toList).toList,
+       x.breakpoints.toList
+      )
     )
 
   given Cogen[ClientEvent.ObserveState] =

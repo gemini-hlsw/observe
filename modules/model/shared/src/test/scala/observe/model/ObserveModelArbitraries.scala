@@ -119,7 +119,7 @@ trait ObserveModelArbitraries {
       o  <- arbitrary[SystemOverrides]
       t  <- arbitrary[List[Step]]
       i  <- arbitrary[Option[Int]]
-      a  <- arbitrary[List[(CoreStep.Id, List[(Resource | Instrument, ActionStatus)])]]
+      a  <- arbitrary[Map[CoreStep.Id, Map[Resource | Instrument, ActionStatus]]]
     } yield SequenceView(id, m, s, o, t, i, a)
   }
   given Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
