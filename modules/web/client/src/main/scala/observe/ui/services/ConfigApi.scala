@@ -11,12 +11,18 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import observe.model.Operator
+import observe.model.Observer
+import lucuma.core.model.Observation
 
 trait ConfigApi[F[_]: MonadThrow]:
   def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
   def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
   def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
   def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
+
+  def setOperator(operator: Option[Operator]): F[Unit] = NotAuthorized
+  def setObserver(obsId:    Observation.Id, observer: Option[Observer]): F[Unit] = NotAuthorized
 
   def isBlocked: Boolean = false
 

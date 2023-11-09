@@ -6,6 +6,9 @@ package observe.ui
 import lucuma.react.common.style.Css
 
 object ObserveStyles:
+  val OnlySmallScreens = Css("OnlySmallScreens")
+  val OnlyLargeScreens = Css("OnlyLargeScreens")
+
   val LoginTitle: Css = Css("ObserveStyles-login-title")
 
   val Centered: Css       = Css("ObserveStyles-centered")
@@ -16,7 +19,7 @@ object ObserveStyles:
   val SequenceTabPanel: Css = Css("ObserveStyles-sequenceTabPanel")
 
   val TopPanel: Css              = Css("ObserveStyles-topPanel")
-  val MainPanel: Css             = Css("ObserveStyles-main-panel")
+  val MainPanel: Css             = Css("ObserveStyles-mainPanel")
   val ActiveInstrumentLabel: Css = Css("ObserveStyles-activeInstrumentLabel")
   val LabelPointer: Css          = Css("ObserveStyles-labelPointer")
   val IdleTag: Css               = Css("ObserveStyles-idleTag")
@@ -48,6 +51,7 @@ object ObserveStyles:
 
   val ConfigSection: Css       = Css("ObserveStyles-ConfigSection")
   val ConditionsSection: Css   = Css("ObserveStyles-ConditionsSection")
+  val ConditionsLabel: Css     = Css("ObserveStyles-ConditionsLabel")
   val NamesSection: Css        = Css("ObserveStyles-NamesSection")
   val ObserverArea: Css        = Css("ObserveStyles-ObserverArea")
   val OperatorArea: Css        = Css("ObserveStyles-OperatorArea")
