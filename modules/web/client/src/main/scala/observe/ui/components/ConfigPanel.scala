@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import crystal.react.View
 import crystal.react.*
 import eu.timepit.refined.cats.*
+import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.CloudExtinction
@@ -25,7 +26,6 @@ import observe.model.*
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.services.ConfigApi
-import eu.timepit.refined.types.string.NonEmptyString
 
 case class ConfigPanel(
   obsId:      Option[Observation.Id],

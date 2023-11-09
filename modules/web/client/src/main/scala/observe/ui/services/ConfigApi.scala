@@ -11,9 +11,9 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
-import observe.model.Operator
-import observe.model.Observer
 import lucuma.core.model.Observation
+import observe.model.Observer
+import observe.model.Operator
 
 trait ConfigApi[F[_]: MonadThrow]:
   def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized

@@ -5,6 +5,7 @@ package observe.ui.services
 
 import cats.effect.IO
 import cats.effect.Resource
+import cats.syntax.all.*
 import crystal.react.View
 import crystal.react.*
 import io.circe.Encoder
@@ -14,16 +15,15 @@ import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.Observation
 import observe.model.ClientId
+import observe.model.Observer
+import observe.model.Operator
 import observe.ui.model.enums.ApiStatus
 import org.http4s.Uri
+import org.http4s.Uri.Path
 import org.http4s.*
 import org.typelevel.log4cats.Logger
-import observe.model.Operator
-import observe.model.Observer
-import org.http4s.Uri.Path
-import cats.syntax.all.*
-import lucuma.core.model.Observation
 
 case class ConfigApiImpl(
   client:    ApiClient,
