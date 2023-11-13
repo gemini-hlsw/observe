@@ -42,13 +42,13 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
         oe.start(obsId, user, obs, clientId, runOverride.getOrElse(RunOverride.Default)) *>
           NoContent()
 
-    case req @ POST -> Root / ObsIdVar(oid) / StepIdVar(step) / ClientIDVar(clientId) / "execute" /
-        ResourceVar(resource) / ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "execute" / ResourceVar(resource) / ObserverVar(obs) =>
       ssoClient.require(req): user =>
-        oe.configSystem(oid, obs, user, step, resource, clientId) *> NoContent()
+        oe.configSystem(obsId, obs, user, stepId, resource, clientId) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "startFrom" /
-        ObserverVar(obs) / ClientIDVar(clientId) :? OptionalRunOverride(runOverride) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "startFrom" / ObserverVar(obs) :? OptionalRunOverride(runOverride) =>
       ssoClient.require(req): _ =>
         oe.startFrom(
           obsId,
@@ -58,11 +58,14 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
           runOverride.getOrElse(RunOverride.Default)
         ) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / "pause" / ObserverVar(obs) =>
+    // In a number of endpoints, clientId is not used but we keep it anyway so that it's logged.
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "pause" /
+        ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.requestPause(obsId, obs, user) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / "cancelpause" / ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "cancelPause" /
+        ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.requestCancelPause(obsId, obs, user) *> NoContent()
 
@@ -90,33 +93,33 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
     //     Ok(s"Set skip mark in step $stepId of sequence $obsId")
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "stop" /
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) / "stop" /
         ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.stopObserve(obsId, obs, user, graceful = false) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "stopGracefully" /
-        ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "stopGracefully" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.stopObserve(obsId, obs, user, graceful = true) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "abort" /
-        ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "abort" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.abortObserve(obsId, obs, user) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "pauseObs" /
-        ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "pauseObs" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.pauseObserve(obsId, obs, user, graceful = false) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "pauseObsGracefully" /
-        ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "pauseObsGracefully" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.pauseObserve(obsId, obs, user, graceful = true) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "resumeObs" /
-        ObserverVar(obs) =>
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+        "resumeObs" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.resumeObserve(obsId, obs, user) *> NoContent()
 
@@ -211,6 +214,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     // }
     //
     // val refreshCommand: HttpRoutes[F] = HttpRoutes.of[F] {
+
     case GET -> Root / ClientIDVar(clientId) / "refresh" =>
       oe.requestRefresh(clientId) *> NoContent()
 

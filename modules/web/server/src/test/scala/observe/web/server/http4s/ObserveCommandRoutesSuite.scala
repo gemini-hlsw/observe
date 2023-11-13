@@ -275,7 +275,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("start sequence from"):
     val uri = Uri.unsafeFromString(
-      s"/${obsId.show}/${stepId.show}/startFrom/observer/${clientId.value}"
+      s"/${obsId.show}/${stepId.show}/${clientId.value}/startFrom/observer"
     )
     val r   = for
       engine <- TestObserveEngine.build[IO]
@@ -286,7 +286,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("pause sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/pause/observer")
+    val uri = Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/pause/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -296,7 +296,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("cancelpause sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/cancelpause/observer")
+    val uri = Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/cancelPause/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -333,7 +333,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
   } */
 
   test("stop sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/stop/observer")
+    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/stop/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -343,7 +343,9 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("stop sequence gracefully"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/stopGracefully/observer")
+    val uri = Uri.unsafeFromString(
+      s"/${obsId.show}/${stepId.show}/${clientId.value}/stopGracefully/observer"
+    )
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -353,7 +355,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("abort sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/abort/observer")
+    val uri =
+      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/abort/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -363,7 +366,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("pause obs sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/pauseObs/observer")
+    val uri =
+      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/pauseObs/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -373,7 +377,9 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("pause obs gracefully"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/pauseObsGracefully/observer")
+    val uri = Uri.unsafeFromString(
+      s"/${obsId.show}/${stepId.show}/${clientId.value}/pauseObsGracefully/observer"
+    )
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -383,7 +389,8 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     assertIO(r, Some(Status.NoContent))
 
   test("resume obs"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/resumeObs/observer")
+    val uri =
+      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/resumeObs/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
