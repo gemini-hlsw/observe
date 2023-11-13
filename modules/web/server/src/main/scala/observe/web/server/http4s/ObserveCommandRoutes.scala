@@ -38,56 +38,45 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] {
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "start" /
         ObserverVar(obs) :? OptionalRunOverride(runOverride) =>
-      ssoClient.require(req) { user =>
+      ssoClient.require(req): user =>
         oe.start(obsId, user, obs, clientId, runOverride.getOrElse(RunOverride.Default)) *>
           NoContent()
-      }
 
     case req @ POST -> Root / ObsIdVar(oid) / StepIdVar(step) / ClientIDVar(clientId) / "execute" /
         ResourceVar(resource) / ObserverVar(obs) =>
-      ssoClient.require(req) { user =>
-        oe.configSystem(oid, obs, user, step, resource, clientId) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.configSystem(oid, obs, user, step, resource, clientId) *> NoContent()
 
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "startFrom" / ObserverVar(
-    //       obs
-    //     ) / ClientIDVar(
-    //       clientId
-    //     ) :? OptionalRunOverride(runOverride) as _ =>
-    //   se.startFrom(inputQueue,
-    //                obsId,
-    //                obs,
-    //                stepId,
-    //                clientId,
-    //                runOverride.getOrElse(RunOverride.Default)
-    //   ) *>
-    //     Ok(s"Started sequence $obsId from step $stepId")
-    //
-    // case POST -> Root / ObsIdVar(obsId) / "pause" / ObserverVar(obs) as user =>
-    //   se.requestPause(inputQueue, obsId, obs, user) *>
-    //     Ok(s"Pause sequence $obsId")
-    //
-    // case POST -> Root / ObsId(obsId) / "cancelpause" / ObserverVar(obs) as user =>
-    //   se.requestCancelPause(inputQueue, obsId, obs, user) *>
-    //     Ok(s"Cancel Pause sequence $obsId")
-    //
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "startFrom" /
+        ObserverVar(obs) / ClientIDVar(clientId) :? OptionalRunOverride(runOverride) =>
+      ssoClient.require(req): _ =>
+        oe.startFrom(
+          obsId,
+          obs,
+          stepId,
+          clientId,
+          runOverride.getOrElse(RunOverride.Default)
+        ) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / "pause" / ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.requestPause(obsId, obs, user) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / "cancelpause" / ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.requestCancelPause(obsId, obs, user) *> NoContent()
+
     case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
         "breakpoint" / ObserverVar(obs) / BreakpointVar(bp) =>
-      ssoClient.require(req) { user =>
-        oe.setBreakpoints(obsId, user, obs, List(stepId), bp) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.setBreakpoints(obsId, user, obs, List(stepId), bp) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "breakpoints" / ObserverVar(obs) / BreakpointVar(bp) =>
-      ssoClient.require(req) { user =>
-        req.decode[List[Step.Id]] { steps =>
-          oe.setBreakpoints(obsId, user, obs, steps, bp) *>
-            NoContent()
-        }
-      }
-    //
+      ssoClient.require(req): user =>
+        req.decode[List[Step.Id]]: steps =>
+          oe.setBreakpoints(obsId, user, obs, steps, bp) *> NoContent()
+
     // case POST -> Root / ObsId(obsId) / "sync" as _ =>
     //   for {
     //     u    <- se.sync(inputQueue, obsId).attempt
@@ -100,101 +89,86 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //     ) / BooleanVar(bp) as user =>
     //   se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
     //     Ok(s"Set skip mark in step $stepId of sequence $obsId")
-    //
-    // case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "stop" / ObserverVar(
-    //       obs
-    //     ) as user =>
-    //   se.stopObserve(inputQueue, obsId, obs, user, graceful = false) *>
-    //     Ok(s"Stop requested for $obsId on step $stepId")
-    //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "stopGracefully" / ObserverVar(
-    //       obs
-    //     ) as user =>
-    //   se.stopObserve(inputQueue, obsId, obs, user, graceful = true) *>
-    //     Ok(s"Stop gracefully requested for $obsId on step $stepId")
-    //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "abort" / ObserverVar(obs) as user =>
-    //   se.abortObserve(inputQueue, obsId, obs, user) *>
-    //     Ok(s"Abort requested for $obsId on step $stepId")
-    //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObs" / ObserverVar(obs) as user =>
-    //   se.pauseObserve(inputQueue, obsId, obs, user, graceful = false) *>
-    //     Ok(s"Pause observation requested for $obsId on step $stepId")
-    //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "pauseObsGracefully" / ObserverVar(
-    //       obs
-    //     ) as user =>
-    //   se.pauseObserve(inputQueue, obsId, obs, user, graceful = true) *>
-    //     Ok(s"Pause observation gracefully requested for $obsId on step $stepId")
-    //
-    // case POST -> Root / ObsIdVar(obsId) / StepId(stepId) / "resumeObs" / ObserverVar(obs) as user =>
-    //   se.resumeObserve(inputQueue, obsId, obs, user) *>
-    //     Ok(s"Resume observation requested for $obsId on step $stepId")
-    //
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "stop" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.stopObserve(obsId, obs, user, graceful = false) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "stopGracefully" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.stopObserve(obsId, obs, user, graceful = true) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "abort" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.abortObserve(obsId, obs, user) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "pauseObs" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.pauseObserve(obsId, obs, user, graceful = false) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "pauseObsGracefully" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.pauseObserve(obsId, obs, user, graceful = true) *> NoContent()
+
+    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / "resumeObs" /
+        ObserverVar(obs) =>
+      ssoClient.require(req): user =>
+        oe.resumeObserve(obsId, obs, user) *> NoContent()
+
     case req @ POST -> Root / ClientIDVar(clientId) / "operator" / OperatorVar(op) =>
-      ssoClient.require(req) { user =>
+      ssoClient.require(req): user =>
         oe.setOperator(user, op) *> NoContent()
-      }
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "observer" /
         ObserverVar(obs) =>
-      ssoClient.require(req) { user =>
+      ssoClient.require(req): user =>
         oe.setObserver(obsId, user, obs) *> NoContent()
-      }
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "tcsEnabled" /
         SubsystemEnabledVar(tcsEnabled) =>
-      ssoClient.require(req) { user =>
-        oe.setTcsEnabled(obsId, user, tcsEnabled, clientId) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.setTcsEnabled(obsId, user, tcsEnabled, clientId) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "gcalEnabled" /
         SubsystemEnabledVar(gcalEnabled) =>
-      ssoClient.require(req) { user =>
-        oe.setGcalEnabled(obsId, user, gcalEnabled, clientId) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.setGcalEnabled(obsId, user, gcalEnabled, clientId) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "instrumentEnabled" /
         SubsystemEnabledVar(instEnabled) =>
-      ssoClient.require(req) { user =>
-        oe.setInstrumentEnabled(obsId, user, instEnabled, clientId) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.setInstrumentEnabled(obsId, user, instEnabled, clientId) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "dhsEnabled" /
         SubsystemEnabledVar(dhsEnabled) =>
-      ssoClient.require(req) { user =>
-        oe.setDhsEnabled(obsId, user, dhsEnabled, clientId) *>
-          NoContent()
-      }
+      ssoClient.require(req): user =>
+        oe.setDhsEnabled(obsId, user, dhsEnabled, clientId) *> NoContent()
 
     case req @ POST -> Root / ClientIDVar(clientId) / "iq" =>
-      ssoClient.require(req) { u =>
-        req.decode[ImageQuality](iq => oe.setImageQuality(iq, u, clientId) *> NoContent())
-      }
+      ssoClient.require(req): user =>
+        req.decode[ImageQuality](iq => oe.setImageQuality(iq, user, clientId) *> NoContent())
 
     case req @ POST -> Root / ClientIDVar(clientId) / "wv" =>
-      ssoClient.require(req) { u =>
-        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, u, clientId) *> NoContent())
-      }
+      ssoClient.require(req): user =>
+        req.decode[WaterVapor](wv => oe.setWaterVapor(wv, user, clientId) *> NoContent())
 
     case req @ POST -> Root / ClientIDVar(clientId) / "sb" =>
-      ssoClient.require(req) { u =>
-        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, u, clientId) *> NoContent())
-      }
+      ssoClient.require(req): user =>
+        req.decode[SkyBackground](sb => oe.setSkyBackground(sb, user, clientId) *> NoContent())
 
     case req @ POST -> Root / ClientIDVar(clientId) / "ce" =>
-      ssoClient.require(req) { u =>
-        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, u, clientId) *> NoContent())
-      }
+      ssoClient.require(req): user =>
+        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, user, clientId) *> NoContent())
 
     case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) /
         ClientIDVar(clientId) / ObserverVar(observer) =>
-      ssoClient.require(req) { user =>
+      ssoClient.require(req): user =>
         oe.selectSequence(i, obsId, observer, user, clientId) *> NoContent()
-      }
 
     // case POST -> Root / "unload" / "all" as user         =>
     //   oe.clearLoadedSequences(inputQueue, user) *> Ok(s"Queue cleared")
@@ -241,9 +215,8 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
       oe.requestRefresh(clientId) *> NoContent()
 
     case req @ POST -> Root / "resetconditions" =>
-      ssoClient.require(req) { u =>
+      ssoClient.require(req): _ =>
         oe.resetConditions *> NoContent()
-      }
   }
 
   val service: HttpRoutes[F] =
