@@ -27,6 +27,7 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
+import sequence.ObsHeader
 
 case class ObservationSequence(
   obsId:           Observation.Id,
