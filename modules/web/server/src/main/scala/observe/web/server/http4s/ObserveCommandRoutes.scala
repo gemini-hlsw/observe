@@ -93,32 +93,32 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     //   se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
     //     Ok(s"Set skip mark in step $stepId of sequence $obsId")
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) / "stop" /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "stop" /
         ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.stopObserve(obsId, obs, user, graceful = false) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "stopGracefully" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.stopObserve(obsId, obs, user, graceful = true) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "abort" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.abortObserve(obsId, obs, user) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "pauseObs" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.pauseObserve(obsId, obs, user, graceful = false) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "pauseObsGracefully" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.pauseObserve(obsId, obs, user, graceful = true) *> NoContent()
 
-    case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
+    case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "resumeObs" / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.resumeObserve(obsId, obs, user) *> NoContent()
