@@ -26,6 +26,28 @@ trait SequenceApi[F[_]: MonadThrow]:
   def start(obsId: Observation.Id, runOverride: RunOverride = RunOverride.Default): F[Unit] =
     NotAuthorized
 
+  def startFrom(
+    obsId:       Observation.Id,
+    stepId:      Step.Id,
+    runOverride: RunOverride = RunOverride.Default
+  ): F[Unit] = NotAuthorized
+
+  def pause(obsId: Observation.Id): F[Unit] = NotAuthorized
+
+  def cancelPause(obsId: Observation.Id): F[Unit] = NotAuthorized
+
+  def stop(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
+  def stopGracefully(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
+  def abort(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
+  def pauseObs(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
+  def pauseObsGracefully(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
+  def resumeObs(obsId: Observation.Id, stepId: Step.Id): F[Unit] = NotAuthorized
+
   def execute(obsId: Observation.Id, stepId: Step.Id, subsystem: Resource | Instrument): F[Unit] =
     NotAuthorized
 

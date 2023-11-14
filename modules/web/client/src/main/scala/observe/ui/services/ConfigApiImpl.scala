@@ -10,7 +10,6 @@ import crystal.react.View
 import crystal.react.*
 import io.circe.Encoder
 import io.circe.*
-import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
