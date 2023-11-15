@@ -333,7 +333,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
   } */
 
   test("stop sequence"):
-    val uri = Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/stop/observer")
+    val uri = Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/stop/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -344,7 +344,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("stop sequence gracefully"):
     val uri = Uri.unsafeFromString(
-      s"/${obsId.show}/${stepId.show}/${clientId.value}/stopGracefully/observer"
+      s"/${obsId.show}/${clientId.value}/stopGracefully/observer"
     )
     val r   = for
       engine <- TestObserveEngine.build[IO]
@@ -356,7 +356,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("abort sequence"):
     val uri =
-      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/abort/observer")
+      Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/abort/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -367,7 +367,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("pause obs sequence"):
     val uri =
-      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/pauseObs/observer")
+      Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/pauseObs/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)
@@ -378,7 +378,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("pause obs gracefully"):
     val uri = Uri.unsafeFromString(
-      s"/${obsId.show}/${stepId.show}/${clientId.value}/pauseObsGracefully/observer"
+      s"/${obsId.show}/${clientId.value}/pauseObsGracefully/observer"
     )
     val r   = for
       engine <- TestObserveEngine.build[IO]
@@ -390,7 +390,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
 
   test("resume obs"):
     val uri =
-      Uri.unsafeFromString(s"/${obsId.show}/${stepId.show}/${clientId.value}/resumeObs/observer")
+      Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/resumeObs/observer")
     val r   = for
       engine <- TestObserveEngine.build[IO]
       s      <- commandRoutes(engine)

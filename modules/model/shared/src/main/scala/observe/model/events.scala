@@ -138,28 +138,8 @@ case class AlignAndCalibEvent(step: Int) extends ObserveEvent derives Eq
 
 extension (e: ObserveEvent)
   def toClientEvent: Option[(Option[ClientId], ClientEvent)] = (e match {
-    case ConditionsUpdated(v)                                   =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceRefreshed(v, _)                                =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case ObserverUpdated(v)                                     =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case OverridesUpdated(v)                                    =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case StepBreakpointChanged(v)                               =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceUpdated(v)                                     =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case StepExecuted(_, v)                                     =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case FileIdStepExecuted(_, v)                               =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceStart(_, _, v)                                 =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case SequenceCompleted(v)                                   =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
-    case OperatorUpdated(v)                                     =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
+    case a: ObserveModelUpdate                                  =>
+      ClientEvent.ObserveState(a.view.sequencesState, a.view.conditions, a.view.operator).some
     case UserPromptNotification(c @ ChecksOverride(_, _, _), _) =>
       ClientEvent.ChecksOverrideEvent(c).some
     case SingleActionEvent(v)                                   =>
@@ -182,8 +162,6 @@ extension (e: ObserveEvent)
             )
             .some
       }
-    case SequenceLoaded(_, v)                                   =>
-      ClientEvent.ObserveState(v.sequencesState, v.conditions, v.operator).some
     case _                                                      =>
       none
   }).map { u =>
