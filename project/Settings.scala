@@ -60,7 +60,7 @@ object Settings {
     val lucumaSSO     = "0.6.8"
 
     // Clue
-    val clue = "0.34.0"
+    val clue = "0.34.1"
 
     val atto = "0.9.5"
   }
