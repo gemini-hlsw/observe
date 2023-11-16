@@ -5,6 +5,7 @@ package observe.ui.components.sequence.steps
 
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
@@ -18,7 +19,6 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.DefaultTooltipOptions
 import observe.ui.model.SequenceOperations
-import lucuma.core.enums.Instrument
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -31,13 +31,6 @@ case class StepControlButtons(
   isObservePaused: Boolean,
   isMultiLevel:    Boolean,
   seqOperations:   SequenceOperations
-  // obsId:           Observation.Id,
-  // operations:      List[Operations],
-  // sequenceState:   SequenceState,
-  // stepId:          Step.Id,
-  // isObservePaused: Boolean,
-  // tabOperations:   SequenceOperations
-  // nsPendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd] = None
 ) extends ReactFnProps(StepControlButtons.component):
   val operations: List[Operations] =
     instrument.operations(OperationLevel.Observation, isObservePaused, isMultiLevel)

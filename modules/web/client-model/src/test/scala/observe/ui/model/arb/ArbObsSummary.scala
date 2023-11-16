@@ -4,21 +4,23 @@
 package observe.ui.model.arb
 
 import cats.Order.given
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import observe.ui.model.ObsSummary
 import lucuma.core.model.ConstraintSet
-import lucuma.core.model.TimingWindow
-import lucuma.core.model.arb.ArbTimingWindow.given
-import lucuma.core.model.arb.ArbConstraintSet.given
-import scala.collection.immutable.SortedSet
 import lucuma.core.model.ObsAttachment
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.TimingWindow
+import lucuma.core.model.arb.ArbConstraintSet.given
 import lucuma.core.model.arb.ArbPosAngleConstraint.given
+import lucuma.core.model.arb.ArbTimingWindow.given
+import lucuma.core.util.arb.ArbGid.given
 import lucuma.schemas.model.ObservingMode
 import lucuma.schemas.model.arb.ArbObservingMode.given
-import lucuma.core.util.arb.ArbGid.given
+import observe.ui.model.ObsSummary
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Cogen
+
 import java.time.Instant
+import scala.collection.immutable.SortedSet
 
 trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
@@ -40,6 +42,25 @@ trait ArbObsSummary:
       posAngleConstraint
     )
 
-  // TODO COGEN
+  given Cogen[ObsSummary] =
+    Cogen[
+      (String,
+       ConstraintSet,
+       List[TimingWindow],
+       List[ObsAttachment.Id],
+       Option[ObservingMode],
+       Option[Instant],
+       PosAngleConstraint
+      )
+    ]
+      .contramap: s =>
+        (s.title,
+         s.constraints,
+         s.timingWindows,
+         s.attachmentIds.toList,
+         s.observingMode,
+         s.visualizationTime,
+         s.posAngleConstraint
+        )
 
 object ArbObsSummary extends ArbObsSummary

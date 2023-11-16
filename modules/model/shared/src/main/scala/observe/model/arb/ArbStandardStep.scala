@@ -12,13 +12,14 @@ import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.*
-import ArbDhsTypes.given
-import ArbStepState.given
-import ArbSystem.given
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
+
+import ArbDhsTypes.given
+import ArbStepState.given
+import ArbSystem.given
 
 trait ArbStandardStep {
 

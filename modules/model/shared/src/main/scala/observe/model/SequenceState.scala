@@ -7,10 +7,10 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.util.Display
-import monocle.Prism
-import monocle.macros.GenPrism
 import monocle.Focus
 import monocle.Lens
+import monocle.Prism
+import monocle.macros.GenPrism
 
 enum SequenceState(val name: String) derives Eq:
   case Completed           extends SequenceState("Completed")

@@ -18,17 +18,18 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.*
-import ArbDhsTypes.given
-import ArbGmosParameters.given
-import ArbNsRunningState.given
-import ArbStepState.given
-import ArbSystem.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+
+import ArbDhsTypes.given
+import ArbGmosParameters.given
+import ArbNsRunningState.given
+import ArbStepState.given
+import ArbSystem.given
 
 trait ArbNodAndShuffleStep {
 

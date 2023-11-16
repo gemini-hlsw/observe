@@ -3,13 +3,13 @@
 
 package observe.ui.components.sequence
 
+import crystal.react.ViewOpt
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import observe.model.Observation
 import observe.ui.ObserveStyles
 import observe.ui.model.ObsSummary
-import crystal.react.ViewOpt
 import observe.ui.model.enums.OperationRequest
 
 case class ObsHeader(

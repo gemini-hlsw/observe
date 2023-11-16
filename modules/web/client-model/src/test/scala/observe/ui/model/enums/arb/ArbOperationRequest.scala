@@ -3,10 +3,10 @@
 
 package observe.ui.model.enums.arb
 
-import org.scalacheck.Arbitrary
 import observe.ui.model.enums.OperationRequest
-import org.scalacheck.Gen
+import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
+import org.scalacheck.Gen
 
 trait ArbOperationRequest:
   given Arbitrary[OperationRequest] = Arbitrary:

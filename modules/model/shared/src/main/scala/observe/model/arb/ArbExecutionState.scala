@@ -3,21 +3,22 @@
 
 package observe.model.arb
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import observe.model.ExecutionState
-import observe.model.arb.ObserveModelArbitraries.given
-import observe.model.SequenceState
-import observe.model.Observer
+import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
+import observe.model.ExecutionState
 import observe.model.NsRunningState
-import observe.model.arb.ArbNsRunningState.given
-import observe.model.enums.Resource
-import lucuma.core.enums.Instrument
-import observe.model.enums.ActionStatus
+import observe.model.Observer
+import observe.model.SequenceState
 import observe.model.SystemOverrides
+import observe.model.arb.ArbNsRunningState.given
+import observe.model.arb.ObserveModelArbitraries.given
+import observe.model.enums.ActionStatus
+import observe.model.enums.Resource
+import org.scalacheck.Arbitrary
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Cogen
 
 trait ArbExecutionState:
   given Arbitrary[ExecutionState] = Arbitrary:
@@ -38,5 +39,26 @@ trait ArbExecutionState:
       systemOverrides,
       breakpoints
     )
+
+  given Cogen[ExecutionState] =
+    Cogen[
+      (
+        SequenceState,
+        Option[Observer],
+        Option[Step.Id],
+        Option[NsRunningState],
+        List[(Step.Id, List[(Resource | Instrument, ActionStatus)])],
+        SystemOverrides,
+        List[Step.Id]
+      )
+    ].contramap: x =>
+      (x.sequenceState,
+       x.observer,
+       x.runningStepId,
+       x.nsState,
+       x.stepResources.view.mapValues(_.toList).toList,
+       x.systemOverrides,
+       x.breakpoints.toList
+      )
 
 object ArbExecutionState extends ArbExecutionState

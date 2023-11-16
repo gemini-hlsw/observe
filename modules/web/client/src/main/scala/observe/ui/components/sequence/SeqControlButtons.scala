@@ -16,23 +16,14 @@ import observe.model.enums.RunOverride
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
-import observe.ui.services.SequenceApi
 import observe.ui.model.enums.OperationRequest
+import observe.ui.services.SequenceApi
 
 case class SeqControlButtons(
   obsId:          Observation.Id,
   isRunning:      Boolean,
   pauseRequested: ViewOpt[OperationRequest]
 ) extends ReactFnProps(SeqControlButtons.component)
-
-//  runButton(obsId, partial, nextStepToRunIdx, p.canRun)
-//               .when(status.isIdle || status.isError),
-//             // Cancel pause button
-//             cancelPauseButton(obsId, p.canCancelPause)
-//               .when(status.userStopRequested),
-//             // Pause button
-//             pauseButton(obsId, p.canPause)
-//               .when(status.isRunning && !status.userStopRequested)
 
 object SeqControlButtons:
   private type Props = SeqControlButtons
@@ -49,6 +40,7 @@ object SeqControlButtons:
         import ctx.given
 
         <.span(
+          // TODO Button strip
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             icon =
@@ -64,7 +56,7 @@ object SeqControlButtons:
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
             icon =
-              // TODO Do this if pause pending
+              // TODO Overlay this if pause pending
               // if (props.isRunning)
               //   Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin()
               // else
@@ -75,4 +67,5 @@ object SeqControlButtons:
               .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
             disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
           ).when(props.isRunning)
+          // TODO Cancel pause
         )

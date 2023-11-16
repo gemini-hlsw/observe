@@ -24,11 +24,12 @@ import observe.ui.model.ObsSummary
 import observe.ui.model.SequenceOperations
 import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
+import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
+
 import sequence.ObsHeader
-import observe.ui.model.enums.OperationRequest
 
 case class ObservationSequence(
   obsId:           Observation.Id,
