@@ -4,8 +4,8 @@
 package observe.model.arb
 
 import observe.model.*
-import observe.model.arb.ArbNodAndShuffleStep.given
-import observe.model.arb.ArbStandardStep.given
+import ArbNodAndShuffleStep.given
+import ArbStandardStep.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen

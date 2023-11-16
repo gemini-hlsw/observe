@@ -17,10 +17,12 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.services.SequenceApi
+import observe.ui.model.enums.OperationRequest
 
 case class SeqControlButtons(
-  obsId:     Observation.Id,
-  isRunning: Boolean
+  obsId:          Observation.Id,
+  isRunning:      Boolean,
+  pauseRequested: ViewOpt[OperationRequest]
 ) extends ReactFnProps(SeqControlButtons.component)
 
 //  runButton(obsId, partial, nextStepToRunIdx, p.canRun)
@@ -69,7 +71,8 @@ object SeqControlButtons:
               Icons.Pause.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Pause sequence",
             tooltipOptions = tooltipOptions,
-            onClick = sequenceApi.pause(props.obsId).runAsync
-            // disabled = props.isRunning // TODO disable if pause pending
+            onClick = props.pauseRequested
+              .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
+            disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
           ).when(props.isRunning)
         )

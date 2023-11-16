@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val crystal      = "0.35.1"
+    val crystal      = "0.36.0"
     val javaTimeJS   = "2.5.0"
     val lucumaReact  = "0.47.0"
     val scalaDom     = "2.3.0"
@@ -158,7 +158,13 @@ object Settings {
     )
 
     // Client Side JS libraries
-    val Crystal        = Def.setting("edu.gemini" %%% "crystal" % LibraryVersions.crystal)
+    val Crystal = Def.setting(
+      Seq(
+        "edu.gemini" %%% "crystal"         % LibraryVersions.crystal,
+        "edu.gemini" %%% "crystal-testkit" % LibraryVersions.crystal % Test
+      )
+    )
+
     val LucumaReact    = Def.setting(
       Seq(
         "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
@@ -196,17 +202,30 @@ object Settings {
     val ACM        = "edu.gemini"  % "acm_2.13" % LibraryVersions.acm
 
     // Lucuma Libraries
-    val LucumaCore    = Def.setting(
+    val LucumaCore = Def.setting(
       Seq(
         "edu.gemini" %%% "lucuma-core"         % LibraryVersions.lucumaCore,
         "edu.gemini" %%% "lucuma-core-testkit" % LibraryVersions.lucumaCore
       )
     )
-    val LucumaUI      = Def.setting("edu.gemini" %%% "lucuma-ui" % LibraryVersions.lucumaUI)
-    val LucumaSSO     =
+
+    val LucumaUI = Def.setting(
+      Seq(
+        "edu.gemini" %%% "lucuma-ui"         % LibraryVersions.lucumaUI,
+        "edu.gemini" %%% "lucuma-ui-testkit" % LibraryVersions.lucumaUI % Test
+      )
+    )
+
+    val LucumaSSO =
       Def.setting("edu.gemini" %%% "lucuma-sso-backend-client" % LibraryVersions.lucumaSSO)
+
     val LucumaSchemas =
-      Def.setting("edu.gemini" %%% "lucuma-schemas" % LibraryVersions.lucumaSchemas)
+      Def.setting(
+        Seq(
+          "edu.gemini" %%% "lucuma-schemas"         % LibraryVersions.lucumaSchemas,
+          "edu.gemini" %%% "lucuma-schemas-testkit" % LibraryVersions.lucumaSchemas % Test
+        )
+      )
 
     val Clue          = Def.setting("edu.gemini" %%% "clue-core" % LibraryVersions.clue)
     val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue

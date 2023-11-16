@@ -18,11 +18,11 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.*
-import observe.model.arb.ArbDhsTypes.given
-import observe.model.arb.ArbGmosParameters.given
-import observe.model.arb.ArbNsRunningState.given
-import observe.model.arb.ArbStepState.given
-import observe.model.arb.ArbSystem.given
+import ArbDhsTypes.given
+import ArbGmosParameters.given
+import ArbNsRunningState.given
+import ArbStepState.given
+import ArbSystem.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import org.scalacheck.Arbitrary

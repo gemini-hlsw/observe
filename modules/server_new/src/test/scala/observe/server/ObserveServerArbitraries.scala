@@ -8,7 +8,7 @@ import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import observe.model.BatchCommandState
 import observe.model.Observation
-import observe.model.ObserveModelArbitraries.given
+import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.SequenceState
 import observe.model.arb.ArbSystem.given
 import observe.model.enums.Resource

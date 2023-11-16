@@ -9,11 +9,14 @@ import lucuma.react.common.*
 import observe.model.Observation
 import observe.ui.ObserveStyles
 import observe.ui.model.ObsSummary
+import crystal.react.ViewOpt
+import observe.ui.model.enums.OperationRequest
 
 case class ObsHeader(
-  obsId:       Observation.Id,
-  observation: ObsSummary,
-  isRunning:   Boolean
+  obsId:          Observation.Id,
+  observation:    ObsSummary,
+  isRunning:      Boolean,
+  pauseRequested: ViewOpt[OperationRequest]
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -23,7 +26,7 @@ object ObsHeader:
     ScalaFnComponent[Props]: props =>
       <.div(ObserveStyles.ObsSummary)(
         <.div(ObserveStyles.ObsSummaryTitle)(
-          SeqControlButtons(props.obsId, props.isRunning),
+          SeqControlButtons(props.obsId, props.isRunning, props.pauseRequested),
           s"${props.observation.title} [${props.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(

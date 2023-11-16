@@ -7,8 +7,8 @@ import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
 import observe.model.TelescopeGuideConfig
-import observe.model.arb.ArbM1GuideConfig.given
-import observe.model.arb.ArbM2GuideConfig.given
+import ArbM1GuideConfig.given
+import ArbM2GuideConfig.given
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

@@ -11,7 +11,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
-import observe.model.ImageFileId
+import observe.model.dhs.ImageFileId
 import observe.model.SequenceState
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource

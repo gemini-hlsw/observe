@@ -7,7 +7,7 @@ import cats.kernel.laws.discipline.*
 import eu.timepit.refined.cats.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
-import observe.model.ObserveModelArbitraries.given
+import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*

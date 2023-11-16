@@ -63,7 +63,7 @@ class SeqTranslateSuite extends TestCommon {
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.init))(EngineState.default[IO])
+        .replace(SequenceState.Running.Init))(EngineState.default[IO])
 
   // Observe started
   private val s0: EngineState[IO] = EngineState

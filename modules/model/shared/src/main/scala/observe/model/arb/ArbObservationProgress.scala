@@ -11,7 +11,7 @@ import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
 import observe.model.ObserveStage.given
 import observe.model.*
-import observe.model.arb.ArbNsSubexposure.given
+import ArbNsSubexposure.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
