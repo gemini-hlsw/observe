@@ -4,12 +4,13 @@
 package observe.model.arb
 
 import observe.model.*
-import observe.model.arb.ArbNodAndShuffleStep.given
-import observe.model.arb.ArbStandardStep.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+
+import ArbNodAndShuffleStep.given
+import ArbStandardStep.given
 
 trait ArbStep {
   given steArb: Arbitrary[Step] = Arbitrary[Step] {

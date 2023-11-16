@@ -174,7 +174,8 @@ object SessionQueue:
               size = Button.Size.Small,
               onClick = loadObs(cell.value),
               clazz = ObserveStyles.LoadButton,
-              disabled = isProcessing
+              disabled = isProcessing,
+              tooltip = "Load observation"
             )
         ),
       size = 25.toPx,

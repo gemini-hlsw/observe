@@ -23,9 +23,6 @@ type Observer = Observer.Type
 object Operator extends NewType[NonEmptyString]
 type Operator = Operator.Type
 
-object ImageFileId extends NewType[String]
-type ImageFileId = ImageFileId.Type
-
 object SubsystemEnabled extends NewType[Boolean] {
   val Enabled  = SubsystemEnabled(true)
   val Disabled = SubsystemEnabled(false)

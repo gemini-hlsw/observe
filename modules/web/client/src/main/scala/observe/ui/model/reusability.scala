@@ -33,3 +33,4 @@ object reusability:
   given Reusability[Environment]                           = Reusability.byEq
   given Reusability[PersistentClientStatus]                = Reusability.byEq
   given Reusability[Map[Observation.Id, SequenceState]]    = Reusability.map
+  given Reusability[RootModelData]                         = Reusability.byEq

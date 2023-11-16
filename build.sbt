@@ -112,10 +112,9 @@ lazy val observe_ui_model = project
   .enablePlugins(ScalaJSPlugin)
   .settings(
     coverageEnabled := false,
-    libraryDependencies ++= Seq(
-      LucumaSchemas.value
-    ) ++ LucumaCore.value ++ Circe.value
+    libraryDependencies ++= Crystal.value ++ LucumaUI.value ++ LucumaSchemas.value ++ LucumaCore.value ++ Circe.value ++ MUnit.value
   )
+  .dependsOn(observe_model.js)
 
 lazy val observe_web_client = project
   .in(file("modules/web/client"))
@@ -130,11 +129,9 @@ lazy val observe_web_client = project
       CatsEffect.value,
       Clue.value,
       ClueJs.value,
-      Crystal.value,
       Fs2.value,
-      Http4sDom.value,
-      LucumaUI.value
-    ) ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
+      Http4sDom.value
+    ) ++ Crystal.value ++ LucumaUI.value ++ LucumaSchemas.value ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs"))),
     buildInfoKeys    := Seq[BuildInfoKey](
       scalaVersion,
@@ -142,7 +139,12 @@ lazy val observe_web_client = project
       git.gitHeadCommit,
       "buildDateTime" -> System.currentTimeMillis()
     ),
-    buildInfoPackage := "observe.ui"
+    buildInfoPackage := "observe.ui",
+    // Test / scalaJSLinkerConfig ~= {
+    //   import org.scalajs.linker.interface.OutputPatterns
+    //   _.withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
+    // },
+    Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .dependsOn(observe_model.js, observe_ui_model)
 
@@ -162,11 +164,10 @@ lazy val observe_server = project
         PPrint.value,
         Clue.value,
         ClueHttp4s,
-        LucumaSchemas.value,
         Atto,
         ACM,
         GiapiScala
-      ) ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
+      ) ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server_new"

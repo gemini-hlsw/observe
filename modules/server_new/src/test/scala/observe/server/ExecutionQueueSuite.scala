@@ -4,7 +4,7 @@
 package observe.server
 
 import monocle.law.discipline.LensTests
-import observe.model.ObserveModelArbitraries.given
+import observe.model.arb.ObserveModelArbitraries.given
 import observe.server.ObserveServerArbitraries.given
 
 class ExecutionQueueSuite extends munit.DisciplineSuite {

@@ -10,8 +10,6 @@ import crystal.Pot
 import crystal.react.View
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
-import japgolly.scalajs.react.ReactCats.*
-import japgolly.scalajs.react.Reusability
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.ui.sso.UserVault
@@ -81,7 +79,5 @@ object RootModelData:
   val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]           =
     Focus[RootModelData](_.userSelectionMessage)
   val log: Lens[RootModelData, List[NonEmptyString]]                              = Focus[RootModelData](_.log)
-
-  given Reusability[RootModelData] = Reusability.byEq
 
 case class RootModel(environment: Pot[Environment], data: View[RootModelData])

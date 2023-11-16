@@ -50,7 +50,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       case Some(seq) =>
         {
           putS(id)(
-            Sequence.State.status.replace(SequenceState.Running.init)(
+            Sequence.State.status.replace(SequenceState.Running.Init)(
               seq.skips.getOrElse(seq).rollback
             )
           ) *>
@@ -77,7 +77,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
           s.setSkipMark(i, v = true)
         }
         putS(id)(
-          Sequence.State.status.replace(SequenceState.Running.init)(
+          Sequence.State.status.replace(SequenceState.Running.Init)(
             withSkips.skips.getOrElse(withSkips).rollback
           )
         ) *> send(Event.executing(id))

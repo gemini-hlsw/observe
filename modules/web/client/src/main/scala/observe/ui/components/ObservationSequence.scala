@@ -24,9 +24,12 @@ import observe.ui.model.ObsSummary
 import observe.ui.model.SequenceOperations
 import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
+import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
+
+import sequence.ObsHeader
 
 case class ObservationSequence(
   obsId:           Observation.Id,
@@ -72,7 +75,12 @@ object ObservationSequence:
             )
 
       <.div(ObserveStyles.ObservationArea, ^.key := props.obsId.toString)(
-        ObsHeader(props.obsId, props.summary, props.executionState.get.sequenceState.isRunning),
+        ObsHeader(
+          props.obsId,
+          props.summary,
+          props.executionState.get.sequenceState.isRunning,
+          props.executionState.zoom(OperationRequest.PauseState)
+        ),
         props.config match
           case InstrumentExecutionConfig.GmosNorth(config) =>
             GmosNorthSequenceTables(

@@ -10,8 +10,8 @@ import lucuma.core.optics.laws.discipline.FormatTests
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbUid.*
 import monocle.law.discipline.*
-import observe.model.ObserveModelArbitraries.given
-import observe.model.SequenceEventsArbitraries.given
+import observe.model.arb.ObserveModelArbitraries.given
+import observe.model.arb.SequenceEventsArbitraries.given
 import observe.model.arb.all.{*, given}
 import observe.model.enums.*
 import org.scalacheck.Arbitrary

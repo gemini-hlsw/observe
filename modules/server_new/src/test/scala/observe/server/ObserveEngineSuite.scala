@@ -150,7 +150,7 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateIndex[IO](seqObsId1)
           .andThen(Sequence.State.status[IO])
-          .replace(SequenceState.Running.init)
+          .replace(SequenceState.Running.Init)
     ).apply(EngineState.default[IO])
 
     (for {
@@ -180,7 +180,7 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateIndex[IO](seqObsId1)
           .andThen(Sequence.State.status[IO])
-          .replace(SequenceState.Running.init)
+          .replace(SequenceState.Running.Init)
     ).apply(EngineState.default[IO])
 
     (for {
@@ -243,7 +243,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
+        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
     (for {
       oe <- observeEngine
@@ -281,7 +281,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
+        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
     (for {
       oe <- observeEngine
@@ -324,7 +324,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
+        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
     (for {
       oe <- observeEngine
@@ -397,7 +397,7 @@ class ObserveEngineSuite extends TestCommon {
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.init)).apply(EngineState.default[IO])
+        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
     val runStepId = stepId(2)
 

@@ -7,6 +7,10 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.util.Display
+import monocle.Focus
+import monocle.Lens
+import monocle.Prism
+import monocle.macros.GenPrism
 
 enum SequenceState(val name: String) derives Eq:
   case Completed           extends SequenceState("Completed")
@@ -17,6 +21,11 @@ enum SequenceState(val name: String) derives Eq:
   )                        extends SequenceState("Running")
   case Failed(msg: String) extends SequenceState("Failed")
   case Aborted             extends SequenceState("Aborted")
+
+  def userStopRequested: Boolean =
+    this match
+      case SequenceState.Running(b, _) => b
+      case _                           => false
 
   def internalStopRequested: Boolean =
     this match
@@ -42,14 +51,17 @@ enum SequenceState(val name: String) derives Eq:
   def isIdle: Boolean =
     this === SequenceState.Idle || this === SequenceState.Aborted
 
-  def userStopRequested: Boolean =
-    this match
-      case SequenceState.Running(b, _) => b
-      case _                           => false
-
 object SequenceState:
+  given Display[SequenceState] = Display.byShortName(_.name)
+
+  val running: Prism[SequenceState, SequenceState.Running] =
+    GenPrism[SequenceState, SequenceState.Running]
+
   object Running:
-    val init: Running =
+    val Init: Running =
       SequenceState.Running(userStop = false, internalStop = false)
 
-  given Display[SequenceState] = Display.byShortName(_.name)
+    val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)
+
+    val internalStop: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.userStop)

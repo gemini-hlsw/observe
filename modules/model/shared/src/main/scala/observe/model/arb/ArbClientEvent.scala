@@ -13,17 +13,13 @@ import observe.model.Conditions
 import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.NsRunningState
-import observe.model.ObserveModelArbitraries.given
 import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.UserPrompt
 import observe.model.UserPrompt.ChecksOverride
-import observe.model.arb.ArbEnvironment.given
-import observe.model.arb.ArbNsRunningState.given
-import observe.model.arb.ArbSystem.given
-import observe.model.arb.ArbUserPrompt.given
+import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.events.client.ClientEvent.SingleActionState
@@ -32,6 +28,11 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+
+import ArbEnvironment.given
+import ArbNsRunningState.given
+import ArbSystem.given
+import ArbUserPrompt.given
 
 trait ArbClientEvent:
 

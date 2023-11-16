@@ -11,11 +11,12 @@ import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
 import observe.model.ObserveStage.given
 import observe.model.*
-import observe.model.arb.ArbNsSubexposure.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+
+import ArbNsSubexposure.given
 
 trait ArbObservationProgress:
   given Arbitrary[ObservationProgress.Regular] =

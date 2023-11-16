@@ -13,9 +13,9 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.TimeSpan
 import lucuma.react.common.*
 import lucuma.react.primereact.ProgressBar
-import observe.model.ImageFileId
 import observe.model.ObservationProgress
 import observe.model.ObserveStage
+import observe.model.dhs.ImageFileId
 import observe.ui.ObserveStyles
 
 /**

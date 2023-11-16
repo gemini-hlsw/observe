@@ -7,8 +7,8 @@ import lucuma.core.enums.Site
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.ClientId
 import observe.model.Environment
-import observe.model.ObserveModelArbitraries.given
 import observe.model.Version
+import observe.model.arb.ObserveModelArbitraries.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen

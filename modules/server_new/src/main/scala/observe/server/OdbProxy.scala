@@ -291,17 +291,17 @@ object OdbProxy {
       L.debug(
         s"Send ODB event datasetStart for obsId: $obsId, stepId: $stepId, datasetIndex: $datasetIndex, with fileId: $fileId"
       ) *>
-        AddDatasetEventMutation[F]
-          .execute(
-            visitId,
-            obsId = obsId,
-            stpId = stepId,
-            dtIdx = datasetIndex,
-            flName = normalizeFilename(fileId.value).assign,
-            stg = DatasetStage.StartObserve
-          )
-          .as(true) <*
-        L.debug("ODB event datasetStart sent")
+        // AddDatasetEventMutation[F]
+        //   .execute(
+        //     visitId,
+        //     obsId = obsId,
+        //     stpId = stepId,
+        //     dtIdx = datasetIndex,
+        //     flName = normalizeFilename(fileId.value).assign,
+        //     stg = DatasetStage.StartObserve
+        //   )
+        //   .as(true) <*
+        L.debug("ODB event datasetStart sent").as(true)
 
     override def datasetComplete(
       visitId:      VisitId,
@@ -313,17 +313,17 @@ object OdbProxy {
       L.debug(
         s"Send ODB event datasetComplete for obsId: $obsId stepId: $stepId, datasetIndex: $datasetIndex, with fileId: $fileId"
       ) *>
-        AddDatasetEventMutation[F]
-          .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
-            dtIdx = datasetIndex,
-            flName = normalizeFilename(fileId.value).assign,
-            stg = DatasetStage.EndObserve
-          )
-          .as(true) <*
-        L.debug("ODB event datasetComplete sent")
+        // AddDatasetEventMutation[F]
+        //   .execute(
+        //     vId = visitId,
+        //     obsId = obsId,
+        //     stpId = stepId,
+        //     dtIdx = datasetIndex,
+        //     flName = normalizeFilename(fileId.value).assign,
+        //     stg = DatasetStage.EndObserve
+        //   )
+        //   .as(true) <*
+        L.debug("ODB event datasetComplete sent").as(true)
 
     override def obsAbort(
       visitId: VisitId,

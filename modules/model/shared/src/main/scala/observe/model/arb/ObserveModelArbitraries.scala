@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model
+package observe.model.arb
 
 import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
@@ -19,6 +19,7 @@ import lucuma.core.model.sequence.{Step => CoreStep}
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import observe.model.*
 import observe.model.arb.all.given
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
@@ -45,6 +46,15 @@ trait ObserveModelArbitraries {
       wv <- arbitrary[Option[WaterVapor]]
     } yield Conditions(ce, iq, sb, wv)
   }
+
+  given Arbitrary[Resource | Instrument] =
+    Arbitrary:
+      Gen.oneOf(arbitrary[Resource], arbitrary[Instrument])
+
+  given Cogen[Resource | Instrument] =
+    Cogen[Either[Resource, Instrument]].contramap:
+      case r: Resource   => r.asLeft
+      case i: Instrument => i.asRight
 
   // N.B. We don't want to auto derive this to limit the size of the lists for performance reasons
   given sequencesQueueArb[A](using arb: Arbitrary[A]): Arbitrary[SequencesQueue[A]] =

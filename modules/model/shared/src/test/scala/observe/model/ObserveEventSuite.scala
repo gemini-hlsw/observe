@@ -6,6 +6,7 @@ package observe.model
 import cats.kernel.laws.discipline.*
 
 import events.*
+import arb.SequenceEventsArbitraries
 
 /**
  * Tests Event typeclasses

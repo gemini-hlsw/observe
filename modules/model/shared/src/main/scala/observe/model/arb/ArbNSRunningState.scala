@@ -5,11 +5,12 @@ package observe.model.arb
 
 import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.*
-import observe.model.arb.ArbNsSubexposure.given
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
+
+import ArbNsSubexposure.given
 
 trait ArbNsRunningState {
   given NsRunningStateArb: Arbitrary[NsRunningState] = Arbitrary[NsRunningState] {
