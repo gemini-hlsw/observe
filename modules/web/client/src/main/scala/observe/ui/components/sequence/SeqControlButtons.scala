@@ -10,6 +10,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
+import lucuma.react.primereact.InputGroup
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
 import observe.model.enums.RunOverride
@@ -39,8 +40,7 @@ object SeqControlButtons:
       .render: (props, ctx, sequenceApi) =>
         import ctx.given
 
-        <.span(
-          // TODO Button strip
+        InputGroup(
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             icon =
@@ -67,5 +67,5 @@ object SeqControlButtons:
               .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
             disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
           ).when(props.isRunning)
-          // TODO Cancel pause
         )
+    // TODO Cancel pause
