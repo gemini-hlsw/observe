@@ -65,10 +65,10 @@ object StepControlButtons:
     // p.connect { proxy =>
     // val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
-    <.div(ObserveStyles.ControlButtonStrip, ^.cls := "p-inputgroup")(
+    InputGroup(ObserveStyles.ControlButtonStrip)(
       // ObserveStyles.notInMobile,
       props.operations
-        .map[VdomNode] {
+        .map[VdomNode]:
           case PauseObservation =>
             Button(
               clazz = ObserveStyles.PauseButton,
@@ -152,7 +152,6 @@ object StepControlButtons:
           //     )(stopGracefullyIcon)
           //   )("Stop the current exposure at the end of the cycle")
           case _                => EmptyVdom
-        }
         .toTagMod
     )
   }
