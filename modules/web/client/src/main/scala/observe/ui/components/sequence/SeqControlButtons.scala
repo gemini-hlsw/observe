@@ -68,4 +68,4 @@ object SeqControlButtons:
             disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
           ).when(props.isRunning)
         )
-      // TODO Cancel pause
+    // TODO Cancel pause

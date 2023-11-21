@@ -89,3 +89,6 @@ modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
 # Web development runtime files
 modules/web/client/src/main/publicdev/
 local.conf.json
+
+# Deployment files
+modules/web/client/deploy
