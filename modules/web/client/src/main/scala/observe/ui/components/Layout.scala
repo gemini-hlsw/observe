@@ -10,25 +10,20 @@ import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.react.common.Css
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs
-import lucuma.ui.components.state.IfLogged
 import lucuma.ui.hooks.*
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
-import observe.ui.BroadcastEvent
 import observe.ui.model.AppContext
 import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
 import clue.PersistentClientStatus
-import crystal.react.syntax.view.*
-import eu.timepit.refined.types.string.NonEmptyString
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
@@ -43,10 +38,7 @@ object Layout:
       .useContext(AppContext.ctx)
       .useStreamOnMountBy((_, ctx) => ctx.odbClient.statusStream)
       .useTheme()
-      // .useEffectOnMount(Callback.log("Layout useEffectOnMount")) // TODO REMOVE
       .render: (props, ctx, odbStatus, theme) =>
-        import ctx.given
-
         val appTab: AppTab           = AppTab.from(props.resolution.page)
         val appTabView: View[AppTab] =
           View(
@@ -56,42 +48,10 @@ object Layout:
               ctx.pushPage(newTab) >> cb(newTab)
           )
 
-        // IfLogged[BroadcastEvent](
-        //   "Observe".refined,
-        //   Css.Empty,
-        //   allowGuest = false,
-        //   ctx.ssoClient,
-        //   props.rootModel.data.zoom(RootModelData.userVault),
-        //   props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-        //   _ => IO.unit, // MainApp takes care of connections
-        //   IO.unit,
-        //   IO.unit,
-        //   "observe".refined,
-        //   _.event === BroadcastEvent.LogoutEventId,
-        //   _.value.toString,
-        //   BroadcastEvent.LogoutEvent(_)
-        // ): _ =>
-        println(props.rootModel.data.get.userVault)
-
-        // props.rootModel.data.get.userVault.map: vault =>
-        //   React.Fragment(
-        //     lucuma.ui.components.state
-        //       .SSOManager(
-        //         ctx.ssoClient,
-        //         vault.expiration,
-        //         props.rootModel.data.zoom(RootModelData.userVault).async.set,
-        //         props.rootModel.data
-        //           .zoom(RootModelData.userSelectionMessage)
-        //           .async
-        //           .set
-        //           .compose((_: NonEmptyString).some)
-        //       )
-        //       .withKey("hello"), // TODO REMOVE
         if (
-          odbStatus
-            .contains_(
-              PersistentClientStatus.Initialized
-            ) && props.rootModel.environment.isReady
+          odbStatus.contains_(
+            PersistentClientStatus.Initialized
+          ) && props.rootModel.environment.isReady
         )
           <.div(LayoutStyles.MainGrid)(
             props.rootModel.data
@@ -112,4 +72,3 @@ object Layout:
           )
         else
           EmptyVdom
-    // )

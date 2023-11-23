@@ -9,10 +9,6 @@ import clue.ResponseException
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Breakpoint
-import lucuma.core.model.sequence.ExecutionSequence
-import lucuma.core.model.sequence.InstrumentExecutionConfig
-import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
@@ -73,6 +69,7 @@ object ObservationSyncer:
 
             (fetchSummary, fetchSequence).parTupled.void
             // TODO Breakpoint initialization should happen in the server, not here.
+            // Leaving the code commented here until we move it to the server.
             // >>= ((_, configEither) =>
             // configEither.toOption
             //   .map: config =>

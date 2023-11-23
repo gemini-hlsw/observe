@@ -71,7 +71,6 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import observe.ui.BroadcastEvent
 import lucuma.ui.components.state.IfLogged
 
 object MainApp extends ServerEventHandler:
@@ -88,24 +87,6 @@ object MainApp extends ServerEventHandler:
         .some,
       path = ApiBasePath / "events"
     )
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////////
-  import crystal.ViewF
-  import cats.Monad
-
-  extension [F[_]: Monad, A](view: ViewF[F, A])
-    def debug: ViewF[F, A] =
-      ViewF(view.get,
-            { (f, cb) =>
-              org.scalajs.dom.console.trace()
-              view.modCB(f,
-                         { a =>
-                           println(s"CHANGED TO $a"); cb(a)
-                         }
-              )
-            }
-      )
-  //////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // Set up logging
   private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
@@ -178,7 +159,7 @@ object MainApp extends ServerEventHandler:
     ScalaFnComponent
       .withHooks[Unit]
       .useToastRef
-      .useStateView(none[SyncStatus])                             // UI is synced with server
+      .useStateView(none[SyncStatus]) // UI is synced with server
       .useSingleEffect
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
@@ -208,7 +189,6 @@ object MainApp extends ServerEventHandler:
           import ctx.given
 
           enforceStaffRole(ctx.ssoClient).attempt
-            // .flatTap(x => IO.println(s"XXXXXXX: $x")) // TODO REMOVE
             .flatMap: userVault =>
               rootModelData.async.set(RootModelData.initial(userVault).ready)
       .useAsyncEffectWithDepsBy((_, _, _, _, ctxPot, rootModelData) =>
@@ -257,8 +237,6 @@ object MainApp extends ServerEventHandler:
       // only established whenever ODB WS is connected and initialized.
       .useStreamBy((_, _, _, _, ctxPot, _, _, _) => ctxPot.void): (_, _, _, _, ctxPot, _, _, _) =>
         _ => ctxPot.map(_.odbClient).toOption.foldMap(_.statusStream)
-      // .useResourceOnMount:
-      //   WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
       .useResourceBy((_, _, _, _, _, _, _, _, odbStatus) => odbStatus):
         (_, _, _, _, _, _, _, _, _) =>
           case PotOption.ReadySome(PersistentClientStatus.Initialized) =>
@@ -271,12 +249,11 @@ object MainApp extends ServerEventHandler:
           case Some(SyncStatus.OutOfSync) =>
             apiClientOpt
               .map: client =>
-                IO.println("RESYNCING!") >> // TODO REMOVE
-                  singleDispatcher.submit(client.refresh)
+                singleDispatcher.submit(client.refresh)
               .orEmpty
           case Some(SyncStatus.Synced)    => singleDispatcher.cancel
           case _                          => IO.unit
-      .useStateView(ApiStatus.Idle)                               // configApiStatus
+      .useStateView(ApiStatus.Idle)   // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, _, ctxPot, rootModelDataPot, _, _, _, wsConnection, _) =>
           (wsConnection.flatMap(_.toPot), rootModelDataPot.toPotView, ctxPot).tupled
@@ -295,7 +272,6 @@ object MainApp extends ServerEventHandler:
             .start
             .map(_.cancel) // Previous fiber is cancelled when effect is re-run
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
-      .useEffectOnMount(Callback.log("MainApp useEffectOnMount")) // TODO REMOVE
       .render:
         (
           _,
@@ -303,7 +279,7 @@ object MainApp extends ServerEventHandler:
           isSynced,
           _,
           ctxPot,
-          rootModelDataPot1,
+          rootModelDataPot,
           environmentPot,
           apiClientOpt,
           _,
@@ -311,11 +287,6 @@ object MainApp extends ServerEventHandler:
           configApiStatus,
           permitPot
         ) =>
-          val rootModelDataPot = rootModelDataPot1.debug
-
-          // println("MAINAPP!!!!!")
-          // println(rootModelDataPot.toPotView)
-
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
              rootModelDataPot.get.toOption.flatMap(_.observer),
@@ -371,14 +342,5 @@ object MainApp extends ServerEventHandler:
                 )
               )
             )
-    // (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
-    //   (ctx, rootModelData, environment) => // TODO REMOVE POT FROM ROOTMODEL
-    //     AppContext.ctx.provide(ctx)(
-    //       provideApiCtx(
-    //         resyncingPopup,
-    //         ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
-    //         router(RootModel(environment.ready, rootModelData))
-    //       )
-    //     )
 
   inline def apply() = component()
