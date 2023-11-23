@@ -6,6 +6,7 @@ package observe.ui.components
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.View
+import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -25,6 +26,7 @@ import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
+import clue.PersistentClientStatus
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
@@ -37,8 +39,9 @@ object Layout:
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
+      .useStreamOnMountBy((_, ctx) => ctx.odbClient.statusStream)
       .useTheme()
-      .render: (props, ctx, theme) =>
+      .render: (props, ctx, odbStatus, theme) =>
         import ctx.given
 
         val appTab: AppTab           = AppTab.from(props.resolution.page)
@@ -50,40 +53,42 @@ object Layout:
               ctx.pushPage(newTab) >> cb(newTab)
           )
 
-        println(props.rootModel.data.zoom(RootModelData.userVault))
-
-        props.resolution.renderP(props.rootModel)
-
-        // IfLogged[BroadcastEvent](
-        //   "Observe".refined,
-        //   Css.Empty,
-        //   allowGuest = false,
-        //   ctx.ssoClient,
-        //   props.rootModel.data.zoom(RootModelData.userVault),
-        //   props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-        //   _ => IO.unit, // MainApp takes care of connections
-        //   IO.unit,
-        //   IO.unit,
-        //   "observe".refined,
-        //   _.event === BroadcastEvent.LogoutEventId,
-        //   _.value.toString,
-        //   BroadcastEvent.LogoutEvent(_)
-        // )(onLogout =>
-        //   <.div(LayoutStyles.MainGrid)(
-        //     props.rootModel.data
-        //       .zoom(RootModelData.userVault)
-        //       .mapValue: (userVault: View[UserVault]) =>
-        //         props.rootModel.environment.toOption.map: environment =>
-        //           TopBar(environment, userVault, theme, IO.unit),
-        //     Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
-        //     SideTabs(
-        //       "side-tabs".refined,
-        //       appTabView,
-        //       ctx.pageUrl(_),
-        //       _ => true
-        //     ),
-        //     <.div(LayoutStyles.MainBody)(
-        //       props.resolution.renderP(props.rootModel)
-        //     )
-        //   )
-        // )
+        IfLogged[BroadcastEvent](
+          "Observe".refined,
+          Css.Empty,
+          allowGuest = false,
+          ctx.ssoClient,
+          props.rootModel.data.zoom(RootModelData.userVault),
+          props.rootModel.data.zoom(RootModelData.userSelectionMessage),
+          _ => IO.unit, // MainApp takes care of connections
+          IO.unit,
+          IO.unit,
+          "observe".refined,
+          _.event === BroadcastEvent.LogoutEventId,
+          _.value.toString,
+          BroadcastEvent.LogoutEvent(_)
+        ): _ =>
+          if (
+            odbStatus.contains_(
+              PersistentClientStatus.Initialized
+            ) && props.rootModel.environment.isReady
+          )
+            <.div(LayoutStyles.MainGrid)(
+              props.rootModel.data
+                .zoom(RootModelData.userVault)
+                .mapValue: (userVault: View[UserVault]) =>
+                  props.rootModel.environment.toOption.map: environment =>
+                    TopBar(environment, userVault, theme, IO.unit),
+              Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
+              SideTabs(
+                "side-tabs".refined,
+                appTabView,
+                ctx.pageUrl(_),
+                _ => true
+              ),
+              <.div(LayoutStyles.MainBody)(
+                props.resolution.renderP(props.rootModel)
+              )
+            )
+          else
+            EmptyVdom

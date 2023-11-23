@@ -170,7 +170,7 @@ object MainApp extends ServerEventHandler:
     ScalaFnComponent
       .withHooks[Unit]
       .useToastRef
-      .useStateView(SyncStatus.OutOfSync) // UI is synced with server
+      .useStateView(none[SyncStatus]) // UI is synced with server
       .useSingleEffect
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
@@ -200,7 +200,7 @@ object MainApp extends ServerEventHandler:
           import ctx.given
 
           enforceStaffRole(ctx.ssoClient).attempt
-            .flatTap(x => IO.println(s"XXXXXXX: $x")) // TODO REMOVE
+            // .flatTap(x => IO.println(s"XXXXXXX: $x")) // TODO REMOVE
             .flatMap: userVault =>
               rootModelData.async.set(RootModelData.initial(userVault).ready)
       .useAsyncEffectWithDepsBy((_, _, _, _, ctxPot, rootModelData) =>
@@ -243,7 +243,7 @@ object MainApp extends ServerEventHandler:
                   .zoom(RootModelData.log)
                   .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
                 IO.println(t.getMessage) >>
-                isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+                isSynced.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
           )
       // Connection to event stream is surrogated to ODB WS connection,
       // only established whenever ODB WS is connected and initialized.
@@ -260,12 +260,14 @@ object MainApp extends ServerEventHandler:
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
         (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>
-          case SyncStatus.OutOfSync =>
+          case Some(SyncStatus.OutOfSync) =>
             apiClientOpt
               .map: client =>
-                singleDispatcher.submit(client.refresh)
+                IO.println("RESYNCING!") >> // TODO REMOVE
+                  singleDispatcher.submit(client.refresh)
               .orEmpty
-          case SyncStatus.Synced    => singleDispatcher.cancel
+          case Some(SyncStatus.Synced)    => singleDispatcher.cancel
+          case _ => IO.unit
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, _, ctxPot, rootModelDataPot, _, _, _, wsConnection, _) =>
@@ -300,10 +302,10 @@ object MainApp extends ServerEventHandler:
           configApiStatus,
           permitPot
         ) =>
-          val rootModelDataPot = rootModelDataPot1.debug
+          val rootModelDataPot = rootModelDataPot1//.debug
 
-          println("MAINAPP!!!!!")
-          println(rootModelDataPot.toPotView)
+          // println("MAINAPP!!!!!")
+          // println(rootModelDataPot.toPotView)
 
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
@@ -321,13 +323,11 @@ object MainApp extends ServerEventHandler:
             apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
               ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
-          // Only show after connection has actually been established once, which we know
-          // if envrionment has been defined.
           val ResyncingPopup =
             Dialog(
               header = "Reestablishing connection to server...",
               closable = false,
-              visible = environmentPot.get.isReady && isSynced.get == SyncStatus.OutOfSync,
+              visible = isSynced.get.contains(SyncStatus.OutOfSync),
               onHide = Callback.empty,
               clazz = ObserveStyles.SyncingPanel
             )(

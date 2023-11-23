@@ -70,13 +70,19 @@ object Home:
           .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
       .useContext(SequenceApi.ctx)
       .render: (props, ctx, observations, sequenceApi) =>
+        import ctx.given
+
         val loadedObs: Option[LoadedObservation] =
           props.rootModel.data.get.nighttimeObservation
 
         val loadObservation: Observation.Id => Callback = obsId =>
-          props.rootModel.data
-            .zoom(RootModelData.nighttimeObservation)
-            .set(LoadedObservation(obsId).some)
+          observations.toOption
+            .flatMap(_.find(_.obsId === obsId))
+            .foldMap: obsRow =>
+              props.rootModel.data
+                .zoom(RootModelData.nighttimeObservation)
+                .set(LoadedObservation(obsId).some) >>
+                sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
 
         val obsStates: Map[Observation.Id, SequenceState] =
           props.rootModel.data.get.sequenceExecution.view.mapValues(_.sequenceState).toMap
