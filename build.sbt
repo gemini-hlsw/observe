@@ -116,14 +116,6 @@ lazy val observe_web_server = project
       val jar = (Compile / packageBin).value
       jar -> ("lib/" + jar.getName)
     },
-    Universal / mappings := {
-      // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (Universal / mappings).value
-      val filtered          = universalMappings.filter { case (_, name) =>
-        !name.contains("_sjs")
-      }
-      filtered
-    },
     Universal / mappings ++= {
       val clientDir   = (observe_web_client / build).value
       val clientFiles = FileTreeView.default.list(clientDir.toGlob / **).map(_._1)
@@ -131,18 +123,6 @@ lazy val observe_web_server = project
         path.toFile -> ("app/" + path.toFile.relativeTo(clientDir).get.getPath)
       )
     }
-    // Universal / mappings += {
-    //   val f = (Compile / resourceDirectory).value / "update_smartgcal"
-    //   f -> ("bin/" + f.getName)
-    // },
-    // Universal / mappings += {
-    //   val f = (Compile / resourceDirectory).value / "observe-server.env"
-    //   f -> ("systemd/" + f.getName)
-    // },
-    // Universal / mappings += {
-    //   val f = (Compile / resourceDirectory).value / "observe-server.service"
-    //   f -> ("systemd/" + f.getName)
-    // }
   )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
@@ -181,18 +161,11 @@ lazy val observe_web_client = project
       "buildDateTime" -> System.currentTimeMillis()
     ),
     buildInfoPackage := "observe.ui",
-    // Test / scalaJSLinkerConfig ~= {
-    //   import org.scalajs.linker.interface.OutputPatterns
-    //   _.withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
-    // },
     Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .settings(
     build := {
       baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
-      // if ((Process("npx" :: "vite" :: "build" :: Nil, baseDirectory.value) !) != 0)
-      //   throw new Exception("Error building web client")
-      // else baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
     },
     build := build.dependsOn(Compile / fullLinkJS).value
   )
