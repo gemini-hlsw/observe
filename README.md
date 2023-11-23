@@ -10,7 +10,7 @@ The backend is written with [http4s](http://http4s.org), it exposes a REST API a
 
 This project uses an extra plugin
 
-* [sbt-revolver](https://github.com/spray/sbt-revolver): This plugin allows to restart the web server and trigger a recompilation when the source code changes
+- [sbt-revolver](https://github.com/spray/sbt-revolver): This plugin allows to restart the web server and trigger a recompilation when the source code changes
 
 ## How to compile and start the server (Good for backend development)
 
@@ -49,9 +49,9 @@ startObserveAll
 
 Will do the following:
 
-* Launch the backend on the background
-* Pack the client going through scala.js and webpack
-* Launch webpack-dev-server with a proxy to the backend
+- Launch the backend on the background
+- Pack the client going through scala.js and webpack
+- Launch webpack-dev-server with a proxy to the backend
 
 Now you can open the client at
 
@@ -68,4 +68,10 @@ and to stop all the processes you can do
 
 ```
 stopObserveAll
+```
+
+# How to package for deployment
+
+```
+observe_web_server/Universal/packageBin
 ```

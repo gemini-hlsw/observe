@@ -165,7 +165,9 @@ lazy val observe_web_client = project
   )
   .settings(
     build := {
-      baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
+      if ((Process("npx" :: "vite" :: "build" :: Nil, baseDirectory.value) !) != 0)
+        throw new Exception("Error building web client")
+      else baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
     },
     build := build.dependsOn(Compile / fullLinkJS).value
   )
