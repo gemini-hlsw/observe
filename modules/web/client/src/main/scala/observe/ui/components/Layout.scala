@@ -50,36 +50,40 @@ object Layout:
               ctx.pushPage(newTab) >> cb(newTab)
           )
 
-        IfLogged[BroadcastEvent](
-          "Observe".refined,
-          Css.Empty,
-          allowGuest = false,
-          ctx.ssoClient,
-          props.rootModel.data.zoom(RootModelData.userVault),
-          props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-          _ => IO.unit, // MainApp takes care of connections
-          IO.unit,
-          IO.unit,
-          "observe".refined,
-          _.event === BroadcastEvent.LogoutEventId,
-          _.value.toString,
-          BroadcastEvent.LogoutEvent(_)
-        )(onLogout =>
-          <.div(LayoutStyles.MainGrid)(
-            props.rootModel.data
-              .zoom(RootModelData.userVault)
-              .mapValue: (userVault: View[UserVault]) =>
-                props.rootModel.environment.toOption.map: environment =>
-                  TopBar(environment, userVault, theme, IO.unit),
-            Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
-            SideTabs(
-              "side-tabs".refined,
-              appTabView,
-              ctx.pageUrl(_),
-              _ => true
-            ),
-            <.div(LayoutStyles.MainBody)(
-              props.resolution.renderP(props.rootModel)
-            )
-          )
-        )
+        println(props.rootModel.data.zoom(RootModelData.userVault))
+
+        props.resolution.renderP(props.rootModel)
+
+        // IfLogged[BroadcastEvent](
+        //   "Observe".refined,
+        //   Css.Empty,
+        //   allowGuest = false,
+        //   ctx.ssoClient,
+        //   props.rootModel.data.zoom(RootModelData.userVault),
+        //   props.rootModel.data.zoom(RootModelData.userSelectionMessage),
+        //   _ => IO.unit, // MainApp takes care of connections
+        //   IO.unit,
+        //   IO.unit,
+        //   "observe".refined,
+        //   _.event === BroadcastEvent.LogoutEventId,
+        //   _.value.toString,
+        //   BroadcastEvent.LogoutEvent(_)
+        // )(onLogout =>
+        //   <.div(LayoutStyles.MainGrid)(
+        //     props.rootModel.data
+        //       .zoom(RootModelData.userVault)
+        //       .mapValue: (userVault: View[UserVault]) =>
+        //         props.rootModel.environment.toOption.map: environment =>
+        //           TopBar(environment, userVault, theme, IO.unit),
+        //     Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
+        //     SideTabs(
+        //       "side-tabs".refined,
+        //       appTabView,
+        //       ctx.pageUrl(_),
+        //       _ => true
+        //     ),
+        //     <.div(LayoutStyles.MainBody)(
+        //       props.resolution.renderP(props.rootModel)
+        //     )
+        //   )
+        // )

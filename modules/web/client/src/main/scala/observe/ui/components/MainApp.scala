@@ -85,6 +85,20 @@ object MainApp extends ServerEventHandler:
       path = ApiBasePath / "events"
     )
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  import crystal.ViewF
+  import cats.Monad
+
+  extension [F[_]: Monad, A](view: ViewF[F, A])
+    def debug: ViewF[F, A] =
+      ViewF(view.get,
+            { (f, cb) =>
+              org.scalajs.dom.console.trace()
+              view.modCB(f, {a => println(s"CHANGED TO $a"); cb(a)})
+            }
+      )
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+
   // Set up logging
   private def setupLogger(level: LogLevelDesc): IO[Logger[IO]] = IO:
     LogLevelLogger.setLevel(level)
@@ -136,14 +150,15 @@ object MainApp extends ServerEventHandler:
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
-    ssoClient.whoami.flatMap: userVault =>
-      userVault.map(_.user) match
-        case Some(StandardUser(_, role, other, _)) =>
-          (role +: other)
-            .collectFirst { case StandardRole.Staff(roleId) => roleId }
-            .fold(IO(userVault))(ssoClient.switchRole)
-        // .map(_.orElse(throw new Exception("User is not staff")))
-        case _                                     => IO(userVault)
+    ssoClient.whoami
+      .flatMap: userVault =>
+        userVault.map(_.user) match
+          case Some(StandardUser(_, role, other, _)) =>
+            (role +: other)
+              .collectFirst { case StandardRole.Staff(roleId) => roleId }
+              .fold(IO(userVault))(ssoClient.switchRole)
+          // .map(_.orElse(throw new Exception("User is not staff")))
+          case _                                     => IO(userVault)
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
@@ -185,8 +200,9 @@ object MainApp extends ServerEventHandler:
           import ctx.given
 
           enforceStaffRole(ctx.ssoClient).attempt
+            .flatTap(x => IO.println(s"XXXXXXX: $x")) // TODO REMOVE
             .flatMap: userVault =>
-              rootModelData.async.set(RootModelData.initial(userVault).ready) // >>
+              rootModelData.async.set(RootModelData.initial(userVault).ready)
       .useAsyncEffectWithDepsBy((_, _, _, _, ctxPot, rootModelData) =>
         (ctxPot.void, rootModelData.get.map(_.userVault))
       )((_, _, _, _, ctxPot, rootModelData) =>
@@ -233,8 +249,10 @@ object MainApp extends ServerEventHandler:
       // only established whenever ODB WS is connected and initialized.
       .useStreamBy((_, _, _, _, ctxPot, _, _, _) => ctxPot.void): (_, _, _, _, ctxPot, _, _, _) =>
         _ => ctxPot.map(_.odbClient).toOption.foldMap(_.statusStream)
+      // .useResourceOnMount:
+      //   WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
       .useResourceBy((_, _, _, _, _, _, _, _, odbStatus) => odbStatus):
-        (_, toastRef, isSynced, _, ctxPot, rootModelDataPot, environmentPot, _, _) =>
+        (_, _, _, _, _, _, _, _, _) =>
           case PotOption.ReadySome(PersistentClientStatus.Initialized) =>
             // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
             WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
@@ -250,8 +268,8 @@ object MainApp extends ServerEventHandler:
           case SyncStatus.Synced    => singleDispatcher.cancel
       .useStateView(ApiStatus.Idle)       // configApiStatus
       .useAsyncEffectWhenDepsReady(
-        (_, _, _, _, ctxPot, rootModelDataPot, environment, _, _, wsConnection, _) =>
-          (wsConnection.map(_.toPot).flatten, rootModelDataPot.toPotView, ctxPot).tupled
+        (_, _, _, _, ctxPot, rootModelDataPot, _, _, _, wsConnection, _) =>
+          (wsConnection.flatMap(_.toPot), rootModelDataPot.toPotView, ctxPot).tupled
       ): (_, _, syncStatus, _, _, _, environment, _, _, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
@@ -274,7 +292,7 @@ object MainApp extends ServerEventHandler:
           isSynced,
           _,
           ctxPot,
-          rootModelDataPot,
+          rootModelDataPot1,
           environmentPot,
           apiClientOpt,
           _,
@@ -282,6 +300,11 @@ object MainApp extends ServerEventHandler:
           configApiStatus,
           permitPot
         ) =>
+          val rootModelDataPot = rootModelDataPot1.debug
+
+          println("MAINAPP!!!!!")
+          println(rootModelDataPot.toPotView)
+
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
              rootModelDataPot.get.toOption.flatMap(_.observer),
@@ -300,7 +323,7 @@ object MainApp extends ServerEventHandler:
 
           // Only show after connection has actually been established once, which we know
           // if envrionment has been defined.
-          val resyncingPopup =
+          val ResyncingPopup =
             Dialog(
               header = "Reestablishing connection to server...",
               closable = false,
@@ -313,14 +336,22 @@ object MainApp extends ServerEventHandler:
             )
 
           // When both AppContext and RootModel are ready, proceed to render.
-          (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
-            (ctx, rootModelData, environment) => // TODO REMOVE POT FROM ROOTMODEL
-              AppContext.ctx.provide(ctx)(
-                provideApiCtx(
-                  resyncingPopup,
-                  ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
-                  router(RootModel(environment.ready, rootModelData))
-                )
+          (ctxPot, rootModelDataPot.toPotView).tupled.renderPot: (ctx, rootModelData) =>
+            AppContext.ctx.provide(ctx)(
+              provideApiCtx(
+                ResyncingPopup,
+                ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
+                router(RootModel(environmentPot.get, rootModelData))
               )
+            )
+    // (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
+    //   (ctx, rootModelData, environment) => // TODO REMOVE POT FROM ROOTMODEL
+    //     AppContext.ctx.provide(ctx)(
+    //       provideApiCtx(
+    //         resyncingPopup,
+    //         ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
+    //         router(RootModel(environment.ready, rootModelData))
+    //       )
+    //     )
 
   inline def apply() = component()
