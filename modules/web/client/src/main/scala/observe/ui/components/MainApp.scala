@@ -12,6 +12,8 @@ import clue.PersistentClientStatus
 import clue.js.WebSocketJSBackend
 import clue.js.WebSocketJSClient
 import clue.websocket.ReconnectionStrategy
+import lucuma.refined.*
+import observe.ui.BroadcastEvent
 import crystal.Pot
 import crystal.PotOption
 import crystal.react.*
@@ -69,6 +71,8 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
+import observe.ui.BroadcastEvent
+import lucuma.ui.components.state.IfLogged
 
 object MainApp extends ServerEventHandler:
   private val ConfigFile: Uri       = uri"/environments.conf.json"
@@ -94,7 +98,11 @@ object MainApp extends ServerEventHandler:
       ViewF(view.get,
             { (f, cb) =>
               org.scalajs.dom.console.trace()
-              view.modCB(f, {a => println(s"CHANGED TO $a"); cb(a)})
+              view.modCB(f,
+                         { a =>
+                           println(s"CHANGED TO $a"); cb(a)
+                         }
+              )
             }
       )
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +178,7 @@ object MainApp extends ServerEventHandler:
     ScalaFnComponent
       .withHooks[Unit]
       .useToastRef
-      .useStateView(none[SyncStatus]) // UI is synced with server
+      .useStateView(none[SyncStatus])                             // UI is synced with server
       .useSingleEffect
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
@@ -267,8 +275,8 @@ object MainApp extends ServerEventHandler:
                   singleDispatcher.submit(client.refresh)
               .orEmpty
           case Some(SyncStatus.Synced)    => singleDispatcher.cancel
-          case _ => IO.unit
-      .useStateView(ApiStatus.Idle)       // configApiStatus
+          case _                          => IO.unit
+      .useStateView(ApiStatus.Idle)                               // configApiStatus
       .useAsyncEffectWhenDepsReady(
         (_, _, _, _, ctxPot, rootModelDataPot, _, _, _, wsConnection, _) =>
           (wsConnection.flatMap(_.toPot), rootModelDataPot.toPotView, ctxPot).tupled
@@ -287,6 +295,7 @@ object MainApp extends ServerEventHandler:
             .start
             .map(_.cancel) // Previous fiber is cancelled when effect is re-run
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
+      .useEffectOnMount(Callback.log("MainApp useEffectOnMount")) // TODO REMOVE
       .render:
         (
           _,
@@ -302,7 +311,7 @@ object MainApp extends ServerEventHandler:
           configApiStatus,
           permitPot
         ) =>
-          val rootModelDataPot = rootModelDataPot1//.debug
+          val rootModelDataPot = rootModelDataPot1.debug
 
           // println("MAINAPP!!!!!")
           // println(rootModelDataPot.toPotView)
@@ -337,11 +346,29 @@ object MainApp extends ServerEventHandler:
 
           // When both AppContext and RootModel are ready, proceed to render.
           (ctxPot, rootModelDataPot.toPotView).tupled.renderPot: (ctx, rootModelData) =>
+            import ctx.given
+
             AppContext.ctx.provide(ctx)(
-              provideApiCtx(
-                ResyncingPopup,
-                ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
-                router(RootModel(environmentPot.get, rootModelData))
+              IfLogged[BroadcastEvent](
+                "Observe".refined,
+                Css.Empty,
+                allowGuest = false,
+                ctx.ssoClient,
+                rootModelData.zoom(RootModelData.userVault),
+                rootModelData.zoom(RootModelData.userSelectionMessage),
+                _ => IO.unit, // MainApp takes care of connections
+                IO.unit,
+                IO.unit,
+                "observe".refined,
+                _.event === BroadcastEvent.LogoutEventId,
+                _.value.toString,
+                BroadcastEvent.LogoutEvent(_)
+              )(_ =>
+                provideApiCtx(
+                  ResyncingPopup,
+                  ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
+                  router(RootModel(environmentPot.get, rootModelData))
+                )
               )
             )
     // (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:

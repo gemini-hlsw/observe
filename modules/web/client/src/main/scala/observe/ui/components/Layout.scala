@@ -27,6 +27,8 @@ import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
 import clue.PersistentClientStatus
+import crystal.react.syntax.view.*
+import eu.timepit.refined.types.string.NonEmptyString
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
@@ -41,6 +43,7 @@ object Layout:
       .useContext(AppContext.ctx)
       .useStreamOnMountBy((_, ctx) => ctx.odbClient.statusStream)
       .useTheme()
+      // .useEffectOnMount(Callback.log("Layout useEffectOnMount")) // TODO REMOVE
       .render: (props, ctx, odbStatus, theme) =>
         import ctx.given
 
@@ -53,42 +56,60 @@ object Layout:
               ctx.pushPage(newTab) >> cb(newTab)
           )
 
-        IfLogged[BroadcastEvent](
-          "Observe".refined,
-          Css.Empty,
-          allowGuest = false,
-          ctx.ssoClient,
-          props.rootModel.data.zoom(RootModelData.userVault),
-          props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-          _ => IO.unit, // MainApp takes care of connections
-          IO.unit,
-          IO.unit,
-          "observe".refined,
-          _.event === BroadcastEvent.LogoutEventId,
-          _.value.toString,
-          BroadcastEvent.LogoutEvent(_)
-        ): _ =>
-          if (
-            odbStatus.contains_(
+        // IfLogged[BroadcastEvent](
+        //   "Observe".refined,
+        //   Css.Empty,
+        //   allowGuest = false,
+        //   ctx.ssoClient,
+        //   props.rootModel.data.zoom(RootModelData.userVault),
+        //   props.rootModel.data.zoom(RootModelData.userSelectionMessage),
+        //   _ => IO.unit, // MainApp takes care of connections
+        //   IO.unit,
+        //   IO.unit,
+        //   "observe".refined,
+        //   _.event === BroadcastEvent.LogoutEventId,
+        //   _.value.toString,
+        //   BroadcastEvent.LogoutEvent(_)
+        // ): _ =>
+        println(props.rootModel.data.get.userVault)
+
+        // props.rootModel.data.get.userVault.map: vault =>
+        //   React.Fragment(
+        //     lucuma.ui.components.state
+        //       .SSOManager(
+        //         ctx.ssoClient,
+        //         vault.expiration,
+        //         props.rootModel.data.zoom(RootModelData.userVault).async.set,
+        //         props.rootModel.data
+        //           .zoom(RootModelData.userSelectionMessage)
+        //           .async
+        //           .set
+        //           .compose((_: NonEmptyString).some)
+        //       )
+        //       .withKey("hello"), // TODO REMOVE
+        if (
+          odbStatus
+            .contains_(
               PersistentClientStatus.Initialized
             ) && props.rootModel.environment.isReady
-          )
-            <.div(LayoutStyles.MainGrid)(
-              props.rootModel.data
-                .zoom(RootModelData.userVault)
-                .mapValue: (userVault: View[UserVault]) =>
-                  props.rootModel.environment.toOption.map: environment =>
-                    TopBar(environment, userVault, theme, IO.unit),
-              Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
-              SideTabs(
-                "side-tabs".refined,
-                appTabView,
-                ctx.pageUrl(_),
-                _ => true
-              ),
-              <.div(LayoutStyles.MainBody)(
-                props.resolution.renderP(props.rootModel)
-              )
+        )
+          <.div(LayoutStyles.MainGrid)(
+            props.rootModel.data
+              .zoom(RootModelData.userVault)
+              .mapValue: (userVault: View[UserVault]) =>
+                props.rootModel.environment.toOption.map: environment =>
+                  TopBar(environment, userVault, theme, IO.unit),
+            Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
+            SideTabs(
+              "side-tabs".refined,
+              appTabView,
+              ctx.pageUrl(_),
+              _ => true
+            ),
+            <.div(LayoutStyles.MainBody)(
+              props.resolution.renderP(props.rootModel)
             )
-          else
-            EmptyVdom
+          )
+        else
+          EmptyVdom
+    // )
