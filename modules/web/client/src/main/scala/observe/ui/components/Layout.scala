@@ -5,6 +5,7 @@ package observe.ui.components
 
 import cats.effect.IO
 import cats.syntax.all.*
+import clue.PersistentClientStatus
 import crystal.react.View
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
@@ -23,7 +24,6 @@ import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
-import clue.PersistentClientStatus
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel

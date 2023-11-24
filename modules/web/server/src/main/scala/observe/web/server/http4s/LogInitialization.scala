@@ -8,49 +8,16 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import org.typelevel.log4cats.{Logger => TLogger}
 
-import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.logging.Level
 import java.util.logging.LogManager
 import java.util.logging.Logger
 
-trait AppBaseDir {
-
-  /**
-   * Calculates the base dir of the application based on the location of "this" class jar file It
-   * will throw an exception if unable to find the base dir
-   */
-  def baseDir[F[_]: Sync]: F[Path] = Sync[F].delay {
-    val clazz    = this.getClass
-    val fileName = clazz
-      .getResource(s"/${clazz.getName.replace(".", System.getProperty("file.separator"))}.class")
-      .getFile
-
-    // find the separator for the intra classpath location
-    fileName
-      .replace("file:", "")
-      .split("!")
-      .headOption
-      .map { (f: String) =>
-        // Find the location of the basedir relative to this class
-        // it assumes the jar is in a lib dir under base
-        val jarFile = new File(f).getParentFile
-        jarFile.getParentFile.toPath
-      }
-      .getOrElse(Paths.get(System.getProperty("user.home")))
-  }
-}
-
-trait LogInitialization extends AppBaseDir {
+trait LogInitialization:
   // Send logs from JULI (e.g. ocs) to SLF4J
-  def setupLogger[F[_]: Sync]: F[TLogger[F]] = Sync[F].delay {
+  def setupLogger[F[_]: Sync]: F[TLogger[F]] = Sync[F].delay:
     LogManager.getLogManager.reset()
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
     // Required to include debugging info, may affect performance though
     Logger.getGlobal.setLevel(Level.FINE)
     Slf4jLogger.getLoggerFromName[F]("observe")
-  }
-
-}

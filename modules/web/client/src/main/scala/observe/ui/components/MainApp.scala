@@ -12,8 +12,6 @@ import clue.PersistentClientStatus
 import clue.js.WebSocketJSBackend
 import clue.js.WebSocketJSClient
 import clue.websocket.ReconnectionStrategy
-import lucuma.refined.*
-import observe.ui.BroadcastEvent
 import crystal.Pot
 import crystal.PotOption
 import crystal.react.*
@@ -36,14 +34,17 @@ import lucuma.react.primereact.Dialog
 import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.hooks.all.*
+import lucuma.refined.*
 import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
+import lucuma.ui.components.state.IfLogged
 import lucuma.ui.reusability.given
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.pot.*
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
+import observe.ui.BroadcastEvent
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.components.services.ServerEventHandler
@@ -71,7 +72,6 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import lucuma.ui.components.state.IfLogged
 
 object MainApp extends ServerEventHandler:
   private val ConfigFile: Uri       = uri"/environments.conf.json"

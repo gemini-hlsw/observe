@@ -13,6 +13,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import fs2.compression.Compression
 import fs2.concurrent.Topic
+import fs2.io.file.Files
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
@@ -52,7 +53,6 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import scala.concurrent.duration.*
-import fs2.io.file.Files
 
 object WebServerLauncher extends IOApp with LogInitialization {
 

@@ -3,25 +3,24 @@
 
 package observe.web.server.http4s
 
-import scala.concurrent.duration._
-
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.syntax.all.*
+import fs2.compression.Compression
+import fs2.io.file.Files
+import fs2.io.file.Path
 import org.http4s.CacheDirective._
+import org.http4s.Header
 import org.http4s.HttpRoutes
 import org.http4s.Request
 import org.http4s.Response
 import org.http4s.StaticFile
+import org.http4s.Uri
 import org.http4s.headers.`Cache-Control`
 import org.http4s.server.middleware.GZip
-import org.http4s.Header
-import org.http4s.Uri
-import fs2.compression.Compression
-import fs2.io.file.Files
-import java.nio.file.Paths
-import fs2.io.file.Path
+
+import scala.concurrent.duration._
 
 class StaticRoutes[F[_]: Sync: Compression: Files]:
   private val AppDir: String = "app"
@@ -33,12 +32,13 @@ class StaticRoutes[F[_]: Sync: Compression: Files]:
   )
 
   def localFile(path: String, req: Request[F]): OptionT[F, Response[F]] =
-    // Get full path to JAR/class
-    // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
-    val runningPath = Paths.get(getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
-    // Get the current directory (should be "lib") and then go to the "app" sibling
-    val fullPath    = runningPath.getParent.resolveSibling(AppDir).resolve(path.stripPrefix("/"))
-    StaticFile.fromPath(Path.fromNioPath(fullPath), req.some) // .map(_.putHeaders())
+    OptionT
+      .liftF(baseDir)
+      .flatMap: dir =>
+        StaticFile.fromPath(
+          Path.fromNioPath(dir.resolve(AppDir).resolve(path.stripPrefix("/"))),
+          req.some
+        )
 
   implicit class ReqOps(req: Request[F]) {
     def endsWith(exts: String*): Boolean = exts.exists(req.pathInfo.toString.endsWith)
