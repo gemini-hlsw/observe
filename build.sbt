@@ -6,6 +6,8 @@ import sbt.Keys._
 import NativePackagerHelper._
 import com.typesafe.sbt.packager.docker._
 import org.scalajs.linker.interface.ModuleSplitStyle
+import scala.sys.process._
+import sbt.nio.file.FileTreeView
 
 name := "observe"
 
@@ -42,6 +44,8 @@ ThisBuild / evictionErrorLevel := Level.Info
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 enablePlugins(GitBranchPrompt)
+
+val build = taskKey[File]("Build module for deployment")
 
 lazy val esModule = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
@@ -83,14 +87,17 @@ lazy val observe_web_server = project
   .in(file("modules/web/server"))
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(GitBranchPrompt)
+  .enablePlugins(JavaServerAppPackaging)
+  .enablePlugins(UniversalPlugin)
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(UnboundId,
-                                LucumaSSO.value,
-                                JwtCore,
-                                JwtCirce,
-                                Http4sServer,
-                                Log4CatsNoop.value
+    libraryDependencies ++= Seq(
+      UnboundId,
+      LucumaSSO.value,
+      JwtCore,
+      JwtCirce,
+      Http4sServer,
+      Log4CatsNoop.value
     ) ++
       Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
@@ -102,6 +109,23 @@ lazy val observe_web_server = project
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.web.server"
+  )
+  .settings(
+    // Put the jar files in the lib dir
+    Universal / mappings += {
+      val jar = (Compile / packageBin).value
+      jar -> ("lib/" + jar.getName)
+    },
+    Universal / mappings ++= {
+      val clientDir   = (observe_web_client / build).value
+      val clientFiles = FileTreeView.default.list(clientDir.toGlob / **).map(_._1)
+      clientFiles.map(path =>
+        path.toFile -> ("app/" + path.toFile.relativeTo(clientDir).get.getPath)
+      )
+    },
+    Universal / mappings += (Compile / resourceDirectory).value / "app.conf" -> "conf/app.conf",
+    // Sample self-signed certificate - DO NOT USE IN PRODUCTION
+    Universal / mappings += baseDirectory.value / "cacerts.jks"              -> "cacerts.jks"
   )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
@@ -140,11 +164,15 @@ lazy val observe_web_client = project
       "buildDateTime" -> System.currentTimeMillis()
     ),
     buildInfoPackage := "observe.ui",
-    // Test / scalaJSLinkerConfig ~= {
-    //   import org.scalajs.linker.interface.OutputPatterns
-    //   _.withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
-    // },
     Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
+  )
+  .settings(
+    build := {
+      if ((Process("npx" :: "vite" :: "build" :: Nil, baseDirectory.value) !) != 0)
+        throw new Exception("Error building web client")
+      else baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
+    },
+    build := build.dependsOn(Compile / fullLinkJS).value
   )
   .dependsOn(observe_model.js, observe_ui_model)
 

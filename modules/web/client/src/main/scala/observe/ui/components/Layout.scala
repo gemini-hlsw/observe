@@ -5,21 +5,20 @@ package observe.ui.components
 
 import cats.effect.IO
 import cats.syntax.all.*
+import clue.PersistentClientStatus
 import crystal.react.View
+import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.react.common.Css
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs
-import lucuma.ui.components.state.IfLogged
 import lucuma.ui.hooks.*
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
-import observe.ui.BroadcastEvent
 import observe.ui.model.AppContext
 import observe.ui.model.Page
 import observe.ui.model.RootModel
@@ -37,10 +36,9 @@ object Layout:
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
+      .useStreamOnMountBy((_, ctx) => ctx.odbClient.statusStream)
       .useTheme()
-      .render: (props, ctx, theme) =>
-        import ctx.given
-
+      .render: (props, ctx, odbStatus, theme) =>
         val appTab: AppTab           = AppTab.from(props.resolution.page)
         val appTabView: View[AppTab] =
           View(
@@ -50,21 +48,11 @@ object Layout:
               ctx.pushPage(newTab) >> cb(newTab)
           )
 
-        IfLogged[BroadcastEvent](
-          "Observe".refined,
-          Css.Empty,
-          allowGuest = false,
-          ctx.ssoClient,
-          props.rootModel.data.zoom(RootModelData.userVault),
-          props.rootModel.data.zoom(RootModelData.userSelectionMessage),
-          _ => IO.unit, // MainApp takes care of connections
-          IO.unit,
-          IO.unit,
-          "observe".refined,
-          _.event === BroadcastEvent.LogoutEventId,
-          _.value.toString,
-          BroadcastEvent.LogoutEvent(_)
-        )(onLogout =>
+        if (
+          odbStatus.contains_(
+            PersistentClientStatus.Initialized
+          ) && props.rootModel.environment.isReady
+        )
           <.div(LayoutStyles.MainGrid)(
             props.rootModel.data
               .zoom(RootModelData.userVault)
@@ -82,4 +70,5 @@ object Layout:
               props.resolution.renderP(props.rootModel)
             )
           )
-        )
+        else
+          EmptyVdom

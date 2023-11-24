@@ -9,10 +9,6 @@ import clue.ResponseException
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Breakpoint
-import lucuma.core.model.sequence.ExecutionSequence
-import lucuma.core.model.sequence.InstrumentExecutionConfig
-import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
@@ -71,30 +67,32 @@ object ObservationSyncer:
                 .flatTap: config =>
                   props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-            (fetchSummary, fetchSequence).parTupled >>= ((_, configEither) =>
-              configEither.toOption
-                .map: config =>
-                  def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
-                    sequence
-                      .map(s => s.nextAtom +: s.possibleFuture)
-                      .orEmpty
-                      .flatMap(_.steps.toList)
-                      .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
-                      .toSet
+            (fetchSummary, fetchSequence).parTupled.void
+            // TODO Breakpoint initialization should happen in the server, not here.
+            // Leaving the code commented here until we move it to the server.
+            // >>= ((_, configEither) =>
+            // configEither.toOption
+            //   .map: config =>
+            //     def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
+            //       sequence
+            //         .map(s => s.nextAtom +: s.possibleFuture)
+            //         .orEmpty
+            //         .flatMap(_.steps.toList)
+            //         .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
+            //         .toSet
 
-                  val initialBreakpoints: Set[Step.Id] =
-                    config match
-                      case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
-                        getBreakPoints(executionConfig.acquisition) ++
-                          getBreakPoints(executionConfig.science)
-                      case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
-                        getBreakPoints(executionConfig.acquisition) ++
-                          getBreakPoints(executionConfig.science)
+            //     val initialBreakpoints: Set[Step.Id] =
+            //       config match
+            //         case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
+            //           getBreakPoints(executionConfig.acquisition) ++
+            //             getBreakPoints(executionConfig.science)
+            //         case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
+            //           getBreakPoints(executionConfig.acquisition) ++
+            //             getBreakPoints(executionConfig.science)
 
-                  sequenceApi.loadObservation(obsId, config.instrument) >>
-                    sequenceApi.setBreakpoints(obsId, initialBreakpoints.toList, Breakpoint.Enabled)
-                .orEmpty
-            )
+            //     sequenceApi.setBreakpoints(obsId, initialBreakpoints.toList, Breakpoint.Enabled)
+            // .orEmpty
+            // )
           .orEmpty
       .render: _ =>
         EmptyVdom

@@ -12,7 +12,9 @@ configuration to the `web-server` configuration section:
 ```
 
 On production these settings shouldn't be on github. Instead they are stored
-in the server and referred from the configurationFile
+in the server and referred from the configurationFile.
+
+The web server ships with a self-signed certificate WHICH SHOULD NOT BE USED IN PRODUCTION.
 
 # Keystore creation
 

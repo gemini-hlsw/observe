@@ -139,7 +139,7 @@ export default defineConfig(async ({ mode }) => {
       https: true,
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:7070',
+          target: 'https://127.0.0.1:7070',
           changeOrigin: true,
           secure: false,
           ws: true
@@ -161,7 +161,7 @@ export default defineConfig(async ({ mode }) => {
     build: {
       emptyOutDir: true,
       chunkSizeWarningLimit: 20000,
-      outDir: path.resolve(__dirname, 'deploy/static'),
+      outDir: path.resolve(__dirname, 'deploy'),
     },
     plugins: [
       mkcert({ hosts: ['localhost', 'local.lucuma.xyz'] }),

@@ -34,14 +34,17 @@ import lucuma.react.primereact.Dialog
 import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.hooks.all.*
+import lucuma.refined.*
 import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
+import lucuma.ui.components.state.IfLogged
 import lucuma.ui.reusability.given
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.pot.*
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
+import observe.ui.BroadcastEvent
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.components.services.ServerEventHandler
@@ -136,14 +139,15 @@ object MainApp extends ServerEventHandler:
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
-    ssoClient.whoami.flatMap: userVault =>
-      userVault.map(_.user) match
-        case Some(StandardUser(_, role, other, _)) =>
-          (role +: other)
-            .collectFirst { case StandardRole.Staff(roleId) => roleId }
-            .fold(IO(userVault))(ssoClient.switchRole)
-        // .map(_.orElse(throw new Exception("User is not staff")))
-        case _                                     => IO(userVault)
+    ssoClient.whoami
+      .flatMap: userVault =>
+        userVault.map(_.user) match
+          case Some(StandardUser(_, role, other, _)) =>
+            (role +: other)
+              .collectFirst { case StandardRole.Staff(roleId) => roleId }
+              .fold(IO(userVault))(ssoClient.switchRole)
+          // .map(_.orElse(throw new Exception("User is not staff")))
+          case _                                     => IO(userVault)
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
@@ -155,7 +159,7 @@ object MainApp extends ServerEventHandler:
     ScalaFnComponent
       .withHooks[Unit]
       .useToastRef
-      .useStateView(SyncStatus.OutOfSync) // UI is synced with server
+      .useStateView(none[SyncStatus]) // UI is synced with server
       .useSingleEffect
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
         for
@@ -186,7 +190,7 @@ object MainApp extends ServerEventHandler:
 
           enforceStaffRole(ctx.ssoClient).attempt
             .flatMap: userVault =>
-              rootModelData.async.set(RootModelData.initial(userVault).ready) // >>
+              rootModelData.async.set(RootModelData.initial(userVault).ready)
       .useAsyncEffectWithDepsBy((_, _, _, _, ctxPot, rootModelData) =>
         (ctxPot.void, rootModelData.get.map(_.userVault))
       )((_, _, _, _, ctxPot, rootModelData) =>
@@ -227,14 +231,14 @@ object MainApp extends ServerEventHandler:
                   .zoom(RootModelData.log)
                   .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
                 IO.println(t.getMessage) >>
-                isSynced.async.set(SyncStatus.OutOfSync) // Triggers reSync
+                isSynced.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
           )
       // Connection to event stream is surrogated to ODB WS connection,
       // only established whenever ODB WS is connected and initialized.
       .useStreamBy((_, _, _, _, ctxPot, _, _, _) => ctxPot.void): (_, _, _, _, ctxPot, _, _, _) =>
         _ => ctxPot.map(_.odbClient).toOption.foldMap(_.statusStream)
       .useResourceBy((_, _, _, _, _, _, _, _, odbStatus) => odbStatus):
-        (_, toastRef, isSynced, _, ctxPot, rootModelDataPot, environmentPot, _, _) =>
+        (_, _, _, _, _, _, _, _, _) =>
           case PotOption.ReadySome(PersistentClientStatus.Initialized) =>
             // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
             WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
@@ -242,16 +246,17 @@ object MainApp extends ServerEventHandler:
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
         (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>
-          case SyncStatus.OutOfSync =>
+          case Some(SyncStatus.OutOfSync) =>
             apiClientOpt
               .map: client =>
                 singleDispatcher.submit(client.refresh)
               .orEmpty
-          case SyncStatus.Synced    => singleDispatcher.cancel
-      .useStateView(ApiStatus.Idle)       // configApiStatus
+          case Some(SyncStatus.Synced)    => singleDispatcher.cancel
+          case _                          => IO.unit
+      .useStateView(ApiStatus.Idle)   // configApiStatus
       .useAsyncEffectWhenDepsReady(
-        (_, _, _, _, ctxPot, rootModelDataPot, environment, _, _, wsConnection, _) =>
-          (wsConnection.map(_.toPot).flatten, rootModelDataPot.toPotView, ctxPot).tupled
+        (_, _, _, _, ctxPot, rootModelDataPot, _, _, _, wsConnection, _) =>
+          (wsConnection.flatMap(_.toPot), rootModelDataPot.toPotView, ctxPot).tupled
       ): (_, _, syncStatus, _, _, _, environment, _, _, _, configApiStatus) =>
         (wsConnection, rootModelData, ctx) =>
           import ctx.given
@@ -298,13 +303,11 @@ object MainApp extends ServerEventHandler:
             apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
               ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
 
-          // Only show after connection has actually been established once, which we know
-          // if envrionment has been defined.
-          val resyncingPopup =
+          val ResyncingPopup =
             Dialog(
               header = "Reestablishing connection to server...",
               closable = false,
-              visible = environmentPot.get.isReady && isSynced.get == SyncStatus.OutOfSync,
+              visible = isSynced.get.contains(SyncStatus.OutOfSync),
               onHide = Callback.empty,
               clazz = ObserveStyles.SyncingPanel
             )(
@@ -313,14 +316,31 @@ object MainApp extends ServerEventHandler:
             )
 
           // When both AppContext and RootModel are ready, proceed to render.
-          (ctxPot, rootModelDataPot.toPotView, environmentPot.get).tupled.renderPot:
-            (ctx, rootModelData, environment) => // TODO REMOVE POT FROM ROOTMODEL
-              AppContext.ctx.provide(ctx)(
+          (ctxPot, rootModelDataPot.toPotView).tupled.renderPot: (ctx, rootModelData) =>
+            import ctx.given
+
+            AppContext.ctx.provide(ctx)(
+              IfLogged[BroadcastEvent](
+                "Observe".refined,
+                Css.Empty,
+                allowGuest = false,
+                ctx.ssoClient,
+                rootModelData.zoom(RootModelData.userVault),
+                rootModelData.zoom(RootModelData.userSelectionMessage),
+                _ => IO.unit, // MainApp takes care of connections
+                IO.unit,
+                IO.unit,
+                "observe".refined,
+                _.event === BroadcastEvent.LogoutEventId,
+                _.value.toString,
+                BroadcastEvent.LogoutEvent(_)
+              )(_ =>
                 provideApiCtx(
-                  resyncingPopup,
+                  ResyncingPopup,
                   ObservationSyncer(rootModelData.zoom(RootModelData.nighttimeObservation)),
-                  router(RootModel(environment.ready, rootModelData))
+                  router(RootModel(environmentPot.get, rootModelData))
                 )
               )
+            )
 
   inline def apply() = component()

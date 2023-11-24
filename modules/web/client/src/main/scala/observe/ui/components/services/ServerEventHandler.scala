@@ -33,7 +33,7 @@ trait ServerEventHandler:
   protected def processStreamEvent(
     environment:     View[Pot[Environment]],
     rootModelData:   View[RootModelData],
-    syncStatus:      View[SyncStatus],
+    syncStatus:      View[Option[SyncStatus]],
     configApiStatus: View[ApiStatus]
   )(
     event:           ClientEvent
@@ -70,7 +70,7 @@ trait ServerEventHandler:
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else obs
             ) >>
-          syncStatus.async.set(SyncStatus.Synced) >>
+          syncStatus.async.set(SyncStatus.Synced.some) >>
           configApiStatus.async.set(ApiStatus.Idle)
 
   protected def processStreamError(

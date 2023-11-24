@@ -13,6 +13,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import fs2.compression.Compression
 import fs2.concurrent.Topic
+import fs2.io.file.Files
 import fs2.io.net.Network
 import fs2.io.net.tls.TLSContext
 import fs2.io.net.tls.TLSParameters
@@ -124,7 +125,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     )
 
   /** Resource that yields the running web server */
-  private def webServer[F[_]: Logger: Async: Network: Compression](
+  private def webServer[F[_]: Logger: Async: Files: Network: Compression](
     conf:      ObserveConfiguration,
     clientsDb: ClientsSetDb[F],
     ssoClient: SsoClient[F, User],
@@ -135,10 +136,11 @@ object WebServerLauncher extends IOApp with LogInitialization {
       wsb:    WebSocketBuilder2[F],
       events: Topic[F, (Option[ClientId], ClientEvent)]
     ) = Router[F](
-      "/api/observe/guide"  -> new GuideConfigDbRoutes(oe.systems.guideDb).service,
-      "/api/observe"        -> new ObserveCommandRoutes(ssoClient, oe).service,
-      "/api/observe/ping"   -> new PingRoutes(ssoClient).service,
-      "/api/observe/events" -> new ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
+      "/"                   -> StaticRoutes().service,
+      "/api/observe/guide"  -> GuideConfigDbRoutes(oe.systems.guideDb).service,
+      "/api/observe"        -> ObserveCommandRoutes(ssoClient, oe).service,
+      "/api/observe/ping"   -> PingRoutes(ssoClient).service,
+      "/api/observe/events" -> ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
     )
 
     def builder(events: Topic[F, (Option[ClientId], ClientEvent)]) = EmberServerBuilder
