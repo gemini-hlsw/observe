@@ -40,14 +40,13 @@ class StaticRoutes[F[_]: Sync: Compression: Files]:
           req.some
         )
 
-  implicit class ReqOps(req: Request[F]) {
+  extension (req: Request[F])
     def endsWith(exts: String*): Boolean = exts.exists(req.pathInfo.toString.endsWith)
 
     def serve(path: String): F[Response[F]] =
       localFile(path, req)
         .map(_.putHeaders(CacheHeaders: _*))
         .getOrElse(Response.notFound[F])
-  }
 
   private val supportedExtension = List(
     ".html",
@@ -66,11 +65,9 @@ class StaticRoutes[F[_]: Sync: Compression: Files]:
     ".json"
   )
 
-  def service: HttpRoutes[F] = GZip {
-    HttpRoutes.of[F] {
+  def service: HttpRoutes[F] = GZip:
+    HttpRoutes.of[F]:
       case req if req.pathInfo === Uri.Path.Root       => req.serve("/index.html")
       case req if req.endsWith(supportedExtension: _*) => req.serve(req.pathInfo.toString)
       // This maybe not desired in all cases but it helps to keep client side routing cleaner
       case req if !req.pathInfo.toString.contains(".") => req.serve("/index.html")
-    }
-  }
