@@ -125,7 +125,7 @@ lazy val observe_web_server = project
     },
     Universal / mappings += (Compile / resourceDirectory).value / "app.conf" -> "conf/app.conf",
     // Sample self-signed certificate - DO NOT USE IN PRODUCTION
-    Universal / mappings += baseDirectory.value / "cacerts.jks"              -> "cacerts.jks"
+    Universal / mappings += baseDirectory.value / "cacerts.jks.dev"          -> "cacerts.jks.dev"
   )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
