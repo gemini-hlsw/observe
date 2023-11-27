@@ -15,6 +15,7 @@ import observe.model.ExecutionState
 import observe.model.NodAndShuffleStatus
 import observe.model.RunningStep
 import observe.model.SequenceState
+import observe.model.StepProgress
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
@@ -32,5 +33,6 @@ object reusability:
   given Reusability[ExecutionState]                        = Reusability.byEq
   given Reusability[Environment]                           = Reusability.byEq
   given Reusability[PersistentClientStatus]                = Reusability.byEq
+  given Reusability[StepProgress]                          = Reusability.byEq
   given Reusability[Map[Observation.Id, SequenceState]]    = Reusability.map
   given Reusability[RootModelData]                         = Reusability.byEq

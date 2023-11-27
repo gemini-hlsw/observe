@@ -13,6 +13,7 @@ import observe.model.Conditions
 import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.NsRunningState
+import observe.model.ObservationProgress
 import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceView
@@ -31,6 +32,7 @@ import org.scalacheck.Gen
 
 import ArbEnvironment.given
 import ArbNsRunningState.given
+import ArbObservationProgress.given
 import ArbSystem.given
 import ArbUserPrompt.given
 
@@ -90,25 +92,34 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.ChecksOverrideEvent] =
     Cogen[ChecksOverride].contramap(_.prompt)
 
+  given Arbitrary[ClientEvent.ProgressEvent] = Arbitrary:
+    arbitrary[ObservationProgress].map(p => ClientEvent.ProgressEvent(p))
+
+  given Cogen[ClientEvent.ProgressEvent] =
+    Cogen[ObservationProgress].contramap(_.progress)
+
   given Arbitrary[ClientEvent] = Arbitrary:
-    for
-      initial <- arbitrary[ClientEvent.InitialEvent]
-      state   <- arbitrary[ClientEvent.ObserveState]
-      step    <- arbitrary[ClientEvent.SingleActionEvent]
-      user    <- arbitrary[ClientEvent.ChecksOverrideEvent]
-      r       <- Gen.oneOf(initial, state, step, user)
-    yield r
+    Gen.oneOf(
+      arbitrary[ClientEvent.InitialEvent],
+      arbitrary[ClientEvent.ObserveState],
+      arbitrary[ClientEvent.SingleActionEvent],
+      arbitrary[ClientEvent.ChecksOverrideEvent],
+      arbitrary[ClientEvent.ProgressEvent]
+    )
 
   given Cogen[ClientEvent] =
-    Cogen[Either[ClientEvent.InitialEvent, Either[ClientEvent.ObserveState,
-                                                  Either[ClientEvent.SingleActionEvent,
-                                                         ClientEvent.ChecksOverrideEvent
-                                                  ]
-    ]]].contramap:
+    Cogen[Either[
+      ClientEvent.InitialEvent,
+      Either[ClientEvent.ObserveState, Either[
+        ClientEvent.SingleActionEvent,
+        Either[ClientEvent.ChecksOverrideEvent, ClientEvent.ProgressEvent]
+      ]]
+    ]].contramap:
       case e: ClientEvent.InitialEvent        => Left(e)
       case e: ClientEvent.ObserveState        => Right(Left(e))
       case e: ClientEvent.SingleActionEvent   => Right(Right(Left(e)))
-      case e: ClientEvent.ChecksOverrideEvent => Right(Right(Right(e)))
+      case e: ClientEvent.ChecksOverrideEvent => Right(Right(Right(Left(e))))
+      case e: ClientEvent.ProgressEvent       => Right(Right(Right(Right(e))))
 
 end ArbClientEvent
 

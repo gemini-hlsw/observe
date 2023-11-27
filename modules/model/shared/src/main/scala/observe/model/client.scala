@@ -22,6 +22,7 @@ import lucuma.core.util.Enumerated
 import observe.model.Conditions
 import observe.model.Environment
 import observe.model.ExecutionState
+import observe.model.ObservationProgress
 import observe.model.Operator
 import observe.model.SequenceView
 import observe.model.SequencesQueue
@@ -88,16 +89,23 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
+  case class ProgressEvent(progress: ObservationProgress) extends ClientEvent
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
+
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ InitialEvent(_)                  => e.asJson
     case e @ ObserveState(_, _, _)            => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
     case e @ ChecksOverrideEvent(_)           => e.asJson
+    case e @ ProgressEvent(_)                 => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
       Decoder[InitialEvent].widen,
       Decoder[ObserveState].widen,
       Decoder[SingleActionEvent].widen,
-      Decoder[ChecksOverrideEvent].widen
+      Decoder[ChecksOverrideEvent].widen,
+      Decoder[ProgressEvent].widen
     ).reduceLeft(_ or _)

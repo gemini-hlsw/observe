@@ -63,7 +63,7 @@ trait ArbRootModel:
     (x.userVault,
      x.nighttimeObservation,
      x.daytimeObservations,
-     x.sequenceExecution.toList,
+     x.executionState.toList,
      x.userSelectedStep.toList,
      x.conditions,
      x.observer,

@@ -5,6 +5,8 @@ package observe.model
 
 import cats.kernel.laws.discipline.*
 import eu.timepit.refined.cats.given
+import io.circe.testing.CodecTests
+import io.circe.testing.instances.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.arb.ObserveModelArbitraries.given
@@ -45,7 +47,9 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[UserPrompt]", EqTests[UserPrompt].eqv)
   checkAll("Eq[UserPrompt.TargetCheckOverride]", EqTests[UserPrompt.TargetCheckOverride].eqv)
   // checkAll("Eq[ExecutionQueueView]", EqTests[ExecutionQueueView].eqv)
+  checkAll("Eq[StepProgress]", EqTests[StepProgress].eqv)
   checkAll("Eq[ObservationProgress]", EqTests[ObservationProgress].eqv)
+  checkAll("Codec[ObservationProgress]", CodecTests[ObservationProgress].codec)
   checkAll("Eq[TimeUnit]", EqTests[TimeUnit].eqv)
   checkAll("Eq[Time]", EqTests[Time].eqv)
   checkAll("Eq[SingleActionOp]", EqTests[SingleActionOp].eqv)

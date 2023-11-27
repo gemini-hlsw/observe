@@ -13,6 +13,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.Environment
 import observe.model.ExecutionState
+import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
 import observe.model.events.client.ClientEvent
 import observe.model.events.client.ClientEvent.SingleActionState
@@ -38,12 +39,13 @@ trait ServerEventHandler:
   )(
     event:           ClientEvent
   )(using Logger[IO]): IO[Unit] =
+    val asyncRootModel = rootModelData.async
     event match
       case ClientEvent.InitialEvent(env)                                         =>
         environment.async.set(env.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
-        (rootModelData.async
-          .zoom(RootModelData.sequenceExecution.at(obsId).some)
+        (asyncRootModel
+          .zoom(RootModelData.executionState.at(obsId).some)
           .zoom(ExecutionState.stepResources.at(stepId).some.at(subsystem))
           .set:
             event match
@@ -56,12 +58,11 @@ trait ServerEventHandler:
         // TODO Update the UI
         IO.unit
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator)     =>
-        val asyncRootModel       = rootModelData.async
         val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
         asyncRootModel.zoom(RootModelData.operator).set(operator) >>
           asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
           asyncRootModel
-            .zoom(RootModelData.sequenceExecution)
+            .zoom(RootModelData.executionState)
             .set(sequenceExecution) >>
           asyncRootModel
             .zoom(RootModelData.nighttimeObservation)
@@ -72,6 +73,9 @@ trait ServerEventHandler:
             ) >>
           syncStatus.async.set(SyncStatus.Synced.some) >>
           configApiStatus.async.set(ApiStatus.Idle)
+      case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))   =>
+        IO.println(s"PROGRESS! $stepProgress") >>
+          asyncRootModel.zoom(RootModelData.obsProgress.at(obsId)).set(stepProgress.some)
 
   protected def processStreamError(
     rootModelData: View[RootModelData]

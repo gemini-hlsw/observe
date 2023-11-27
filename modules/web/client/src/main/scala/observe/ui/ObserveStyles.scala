@@ -118,3 +118,7 @@ object ObserveStyles:
   val ObsSummaryTitle: Css   = Css("ObserveStyles-obsSummary-title")
   val ObsSummaryDetails: Css = Css("ObserveStyles-obsSummary-details")
   val ObsSummaryButton: Css  = Css("ObserveStyles-obsSummary-button")
+
+  object Prime:
+    val EmptyProgressBar: Css      = Css("p-progressbar p-component")
+    val EmptyProgressBarLabel: Css = Css("p-progressbar-label")

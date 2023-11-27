@@ -25,6 +25,7 @@ import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
 import observe.model.ExecutionState
+import observe.model.StepProgress
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
@@ -42,6 +43,7 @@ sealed trait SequenceTables[S, D](
   def obsId: Observation.Id
   def config: ExecutionConfig[S, D]
   def executionState: ExecutionState
+  def progress: Option[StepProgress]
   def selectedStepId: Option[Step.Id]
   def setSelectedStepId: Step.Id => Callback
   def seqOperations: SequenceOperations
@@ -75,6 +77,7 @@ case class GmosNorthSequenceTables(
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
   executionState:    ExecutionState,
+  progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
   setSelectedStepId: Step.Id => Callback,
   seqOperations:     SequenceOperations,
@@ -91,6 +94,7 @@ case class GmosSouthSequenceTables(
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
   executionState:    ExecutionState,
+  progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
   setSelectedStepId: Step.Id => Callback,
   seqOperations:     SequenceOperations,
@@ -202,6 +206,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
          props.obsId,
          props.seqOperations,
          props.executionState,
+         props.progress,
          props.isPreview,
          props.selectedStepId,
          props.nextAtomId
@@ -213,6 +218,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           obsId,
           tabOperations,
           executionState,
+          progress,
           isPreview,
           selectedStepId,
           nextAtomId
@@ -284,6 +290,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                           .find(_._1 === stepId)
                           .map(_._2.toMap)
                           .getOrElse(Map.empty),
+                        progress = progress,
                         selectedStep = selectedStepId,
                         isPreview = isPreview
                       )

@@ -15,6 +15,7 @@ import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import observe.model.ExecutionState
+import observe.model.StepProgress
 import observe.model.given
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTables
@@ -36,6 +37,7 @@ case class ObservationSequence(
   summary:         ObsSummary,
   config:          InstrumentExecutionConfig,
   executionState:  View[ExecutionState],
+  progress:        Option[StepProgress],
   selectedStep:    Option[Step.Id],
   setSelectedStep: Step.Id => Callback,
   clientMode:      ClientMode
@@ -88,6 +90,7 @@ object ObservationSequence:
               props.obsId,
               config,
               props.executionState.get,
+              props.progress,
               props.selectedStep,
               props.setSelectedStep,
               seqOperations,
@@ -100,6 +103,7 @@ object ObservationSequence:
               props.obsId,
               config,
               props.executionState.get,
+              props.progress,
               props.selectedStep,
               props.setSelectedStep,
               seqOperations,
