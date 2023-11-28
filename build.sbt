@@ -34,10 +34,6 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
-// This key is used to find the JRE dir that will be bundled with packaged deployments.
-// It could/should be overridden on a user basis. E.g. add a `jres.sbt` file with your particular configuration.
-ThisBuild / packagedJreDir := Path.userHome / ".jres" / "linux" / "jdk-17.0.9+9-jre"
-
 ThisBuild / evictionErrorLevel := Level.Info
 
 // Uncomment for local gmp testing

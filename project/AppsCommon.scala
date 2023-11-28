@@ -7,8 +7,6 @@ import sbt.{Project, Resolver, _}
  * Define tasks and settings used by application definitions
  */
 object AppsCommon {
-  lazy val packagedJreDir        =
-    settingKey[File]("Directory of the JREs that will be bundled with deployment packages.")
   lazy val applicationConfName   =
     settingKey[String]("Name of the application to lookup the configuration")
   lazy val applicationConfSite   =
@@ -51,7 +49,10 @@ object AppsCommon {
   lazy val embeddedJreSettings = Seq(
     // Put the jre in the tarball
     Universal / mappings ++= {
-      val jreDir = (ThisBuild / packagedJreDir).value
+      // We look for the JRE in the project's base directory. This can be a symlink.
+      val jreDir = (ThisBuild / baseDirectory).value / "jre"
+      if (!jreDir.exists)
+        throw new Exception("JRE directory does not exist: " + jreDir)
       directory(jreDir).map { path =>
         path._1 -> ("jre/" + path._1.relativeTo(jreDir).get.getPath)
       }
