@@ -7,7 +7,8 @@ import sbt.{Project, Resolver, _}
  * Define tasks and settings used by application definitions
  */
 object AppsCommon {
-  lazy val ocsJreDir             = settingKey[File]("Directory where distribution JREs are stored.")
+  lazy val packagedJreDir        =
+    settingKey[File]("Directory of the JREs that will be bundled with deployment packages.")
   lazy val applicationConfName   =
     settingKey[String]("Name of the application to lookup the configuration")
   lazy val applicationConfSite   =
@@ -19,15 +20,6 @@ object AppsCommon {
   object LogType {
     case object ConsoleAndFiles extends LogType
     case object Files           extends LogType
-  }
-
-  sealed trait DeploymentTarget {
-    def subdir: String
-  }
-  object DeploymentTarget       {
-    case object Linux64 extends DeploymentTarget {
-      override def subdir: String = "linux"
-    }
   }
 
   sealed trait DeploymentSite {
@@ -56,15 +48,12 @@ object AppsCommon {
     }
   )
 
-  private def embeddedJreSettings(target: DeploymentTarget) = Seq(
+  lazy val embeddedJreSettings = Seq(
     // Put the jre in the tarball
     Universal / mappings ++= {
-      val jresDir    = (ThisBuild / ocsJreDir).value
-      // Map the location of jre files
-      val jreLink    = "JRE64_1.8"
-      val linux64Jre = jresDir.toPath.resolve(target.subdir).resolve(jreLink)
-      directory(linux64Jre.toFile).map { j =>
-        j._1 -> j._2.replace(jreLink, "jre")
+      val jreDir = (ThisBuild / packagedJreDir).value
+      directory(jreDir).map { path =>
+        path._1 -> ("jre/" + path._1.relativeTo(jreDir).get.getPath)
       }
     },
 
@@ -73,7 +62,4 @@ object AppsCommon {
       "-java-home ${app_home}/../jre"
     )
   )
-
-  lazy val embeddedJreSettingsLinux64 = embeddedJreSettings(DeploymentTarget.Linux64)
-
 }

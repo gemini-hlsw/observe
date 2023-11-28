@@ -34,9 +34,9 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
-// This key is used to find the JRE dir. It could/should be overridden on a user basis
-// Add e.g. a `jres.sbt` file with your particular configuration
-ThisBuild / ocsJreDir := Path.userHome / ".jres11"
+// This key is used to find the JRE dir that will be bundled with packaged deployments.
+// It could/should be overridden on a user basis. E.g. add a `jres.sbt` file with your particular configuration.
+ThisBuild / packagedJreDir := Path.userHome / ".jres" / "linux" / "jdk-11.0.21+9-jre"
 
 ThisBuild / evictionErrorLevel := Level.Info
 
@@ -110,6 +110,7 @@ lazy val observe_web_server = project
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.web.server"
   )
+  .settings(embeddedJreSettings: _*)
   .settings(
     // Put the jar files in the lib dir
     Universal / mappings += {
@@ -117,12 +118,15 @@ lazy val observe_web_server = project
       jar -> ("lib/" + jar.getName)
     },
     Universal / mappings ++= {
-      val clientDir   = (observe_web_client / build).value
-      val clientFiles = FileTreeView.default.list(clientDir.toGlob / **).map(_._1)
-      clientFiles.map(path =>
-        path.toFile -> ("app/" + path.toFile.relativeTo(clientDir).get.getPath)
+      val clientDir = (observe_web_client / build).value
+      directory(clientDir).flatMap(path =>
+        // Don't include local environment conf, if present.
+        if (path._2.endsWith("local.conf.json")) None
+        else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
       )
     },
+    // Don't include the configuration on the jar. Instead we copy it to the conf dir.
+    Universal / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
     Universal / mappings += (Compile / resourceDirectory).value / "app.conf" -> "conf/app.conf",
     // Sample self-signed certificate - DO NOT USE IN PRODUCTION
     Universal / mappings += baseDirectory.value / "cacerts.jks.dev"          -> "cacerts.jks.dev"
@@ -386,7 +390,7 @@ lazy val app_observe_server_gs_test =
         filtered
       }
     )
-    .settings(embeddedJreSettingsLinux64: _*)
+    .settings(embeddedJreSettings: _*)
     .dependsOn(observe_server)
 
 /**
@@ -415,7 +419,7 @@ lazy val app_observe_server_gn_test =
         filtered
       }
     )
-    .settings(embeddedJreSettingsLinux64: _*)
+    .settings(embeddedJreSettings: _*)
     .dependsOn(observe_server)
 
 /**
@@ -443,7 +447,7 @@ lazy val app_observe_server_gs = project
       filtered
     }
   )
-  .settings(embeddedJreSettingsLinux64: _*)
+  .settings(embeddedJreSettings: _*)
   .dependsOn(observe_server)
 
 /**
@@ -471,5 +475,5 @@ lazy val app_observe_server_gn = project
       filtered
     }
   )
-  .settings(embeddedJreSettingsLinux64: _*)
+  .settings(embeddedJreSettings: _*)
   .dependsOn(observe_server)
