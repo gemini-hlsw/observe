@@ -36,7 +36,7 @@ ThisBuild / resolvers += "Gemini Repository".at(
 
 // This key is used to find the JRE dir that will be bundled with packaged deployments.
 // It could/should be overridden on a user basis. E.g. add a `jres.sbt` file with your particular configuration.
-ThisBuild / packagedJreDir := Path.userHome / ".jres" / "linux" / "jdk-11.0.21+9-jre"
+ThisBuild / packagedJreDir := Path.userHome / ".jres" / "linux" / "jdk-17.0.9+9-jre"
 
 ThisBuild / evictionErrorLevel := Level.Info
 
