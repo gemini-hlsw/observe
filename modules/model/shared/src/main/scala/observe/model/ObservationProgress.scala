@@ -4,16 +4,17 @@
 package observe.model
 
 import cats.Eq
-import cats.derived.*
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.JsonObject
 import io.circe.syntax.*
 
-case class ObservationProgress(obsId: Observation.Id, stepProgress: StepProgress) derives Eq:
+case class ObservationProgress(obsId: Observation.Id, stepProgress: StepProgress):
   export stepProgress.*
 
 object ObservationProgress:
+  given Eq[ObservationProgress] = Eq.by(x => (x.obsId, x.stepProgress))
+
   given Encoder.AsObject[ObservationProgress] = Encoder.AsObject.instance: op =>
     JsonObject(
       "obsId"        -> op.obsId.asJson,
