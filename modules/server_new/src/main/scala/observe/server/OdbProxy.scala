@@ -396,7 +396,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.StartStep,
+            stg = StepStage.StartStep
           )
           .as(true) <*
         L.debug("ODB event stepStartStep sent")
@@ -413,7 +413,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.EndStep,
+            stg = StepStage.EndStep
           )
           .as(true) <*
         L.debug("ODB event stepEndStep sent")
@@ -430,7 +430,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.StartConfigure,
+            stg = StepStage.StartConfigure
           )
           .as(true) <*
         L.debug("ODB event stepStartConfigure sent")
@@ -447,7 +447,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.EndConfigure,
+            stg = StepStage.EndConfigure
           )
           .as(true) <*
         L.debug("ODB event stepEndConfigure sent")
@@ -464,7 +464,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.StartObserve,
+            stg = StepStage.StartObserve
           )
           .as(true) <*
         L.debug("ODB event stepStartObserve sent")
@@ -481,7 +481,7 @@ object OdbProxy {
         AddStepEventMutation[F]
           .execute(
             stepId = stepId,
-            stg = StepStage.EndObserve,
+            stg = StepStage.EndObserve
           )
           .as(true) <*
         L.debug("ODB event stepEndObserve sent")
