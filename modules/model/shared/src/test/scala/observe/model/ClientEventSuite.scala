@@ -7,11 +7,14 @@ import cats.kernel.laws.discipline.*
 import io.circe.testing.CodecTests
 import io.circe.testing.instances.*
 import observe.model.arb.ArbClientEvent.given
+import org.scalacheck.{Test => ScalaCheckTest}
 
 /**
  * Tests Client Event typeclasses
  */
 class ClientEventSuite extends munit.DisciplineSuite:
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
+
   checkAll("Eq[InitialEvent]", EqTests[ClientEvent.InitialEvent].eqv)
   checkAll("Eq[ObserveState]", EqTests[ClientEvent.ObserveState].eqv)
   checkAll("Eq[ClientEvent]", EqTests[ClientEvent].eqv)

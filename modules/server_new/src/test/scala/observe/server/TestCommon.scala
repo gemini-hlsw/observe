@@ -330,7 +330,7 @@ object TestCommon {
             ).some,
             None
           )
-        )
+        ).some
       )
     ),
     instrument = Instrument.GmosNorth,
@@ -409,7 +409,7 @@ object TestCommon {
             ).some,
             None
           )
-        )
+        ).some
       )
     ),
     instrument = Instrument.GmosNorth,
@@ -483,7 +483,7 @@ object TestCommon {
             ).some,
             None
           )
-        )
+        ).some
       )
     ),
     instrument = Instrument.GmosNorth,
