@@ -3,6 +3,7 @@
 
 package observe.ui.model.arb
 
+import cats.syntax.all.*
 import crystal.Pot
 import crystal.arb.given
 import lucuma.core.model.Observation
@@ -25,7 +26,9 @@ trait ArbLoadedObservation:
     } yield
       val base            = LoadedObservation(obsId)
       val baseWithSummary = summary.toOptionTry.fold(base)(t => base.withSummary(t.toEither))
-      config.toOptionTry.fold(baseWithSummary)(t => baseWithSummary.withConfig(t.toEither))
+      config.toOptionTry.fold(baseWithSummary)(t =>
+        baseWithSummary.withConfig(t.map(_.some).toEither)
+      )
 
   given Cogen[LoadedObservation] =
     Cogen[(Observation.Id, Pot[ObsSummary], Pot[InstrumentExecutionConfig])]

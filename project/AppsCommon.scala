@@ -32,20 +32,6 @@ object AppsCommon {
     }
   }
 
-  /**
-   * Mappings common to applications, including configuration and logging conf
-   */
-  lazy val deployedAppMappings = Seq(
-    // Don't include the configuration on the jar. Instead we copy it to the conf dir
-    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
-
-    // Copy the configuration file
-    Universal / packageZipTarball / mappings += {
-      val f = (Compile / resourceDirectory).value / "app.conf"
-      f -> ("conf/" + f.getName)
-    }
-  )
-
   lazy val embeddedJreSettings = Seq(
     // Put the jre in the tarball
     Universal / mappings ++= {

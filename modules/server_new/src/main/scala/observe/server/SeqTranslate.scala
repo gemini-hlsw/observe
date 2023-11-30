@@ -4,6 +4,7 @@
 package observe.server
 
 import cats.Applicative
+import cats.ApplicativeThrow
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.effect.Ref
@@ -173,8 +174,9 @@ object SeqTranslate {
     override def sequence(sequence: OdbObservation)(using
       tio: Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = sequence.execution.config match {
-      case c: InstrumentExecutionConfig.GmosNorth => buildSequenceGmosN(sequence, c)
-      case c: InstrumentExecutionConfig.GmosSouth => buildSequenceGmosS(sequence, c)
+      case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) => buildSequenceGmosN(sequence, c)
+      case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) => buildSequenceGmosS(sequence, c)
+      case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
     }
 
     private def buildSequence[S <: StaticConfig, D <: DynamicConfig](

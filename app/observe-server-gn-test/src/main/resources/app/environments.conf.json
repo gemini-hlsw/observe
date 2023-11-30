@@ -1,0 +1,13 @@
+[
+  {
+    "hostName": "observe.hi.gemini.edu",
+    "environment": "PRODUCTION",
+    "odbURI": "wss://lucuma-postgres-odb-production.herokuapp.com/ws",
+    "sso": {
+      "uri": "https://sso.gpp.gemini.edu",
+      "readTimeoutSeconds": 10,
+      "refreshTimeoutDeltaSeconds": 10,
+      "refreshIntervalFactor": 1
+    }
+  }
+]

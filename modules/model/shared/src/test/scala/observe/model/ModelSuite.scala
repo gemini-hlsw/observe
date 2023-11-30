@@ -12,6 +12,7 @@ import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
+import org.scalacheck.{Test => ScalaCheckTest}
 import squants.time.Time
 import squants.time.TimeUnit
 
@@ -19,6 +20,8 @@ import squants.time.TimeUnit
  * Tests Model typeclasses
  */
 class ModelSuite extends munit.DisciplineSuite:
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
+
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)

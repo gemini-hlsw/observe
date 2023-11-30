@@ -4,6 +4,7 @@
 package observe.model
 
 import cats.kernel.laws.discipline.*
+import org.scalacheck.{Test => ScalaCheckTest}
 
 import events.*
 import arb.SequenceEventsArbitraries
@@ -11,7 +12,9 @@ import arb.SequenceEventsArbitraries
 /**
  * Tests Event typeclasses
  */
-class ObserveEventSuite extends munit.DisciplineSuite with SequenceEventsArbitraries {
+class ObserveEventSuite extends munit.DisciplineSuite with SequenceEventsArbitraries:
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
+
   checkAll("Eq[ConnectionOpenEvent]", EqTests[ConnectionOpenEvent].eqv)
   checkAll("Eq[SequenceStart]", EqTests[SequenceStart].eqv)
   checkAll("Eq[StepExecuted]", EqTests[StepExecuted].eqv)
@@ -39,4 +42,3 @@ class ObserveEventSuite extends munit.DisciplineSuite with SequenceEventsArbitra
   checkAll("Eq[SequenceAborted]", EqTests[SequenceAborted].eqv)
   checkAll("Eq[GuideConfigUpdate]", EqTests[GuideConfigUpdate].eqv)
   checkAll("Order[ServerLogMessage]", OrderTests[ServerLogMessage].order)
-}

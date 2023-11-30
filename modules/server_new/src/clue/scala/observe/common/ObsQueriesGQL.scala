@@ -314,7 +314,6 @@ object ObsQueriesGQL {
       mutation($vId: VisitId!, $cmd: SequenceCommand!) {
         addSequenceEvent(input: { visitId: $vId, command: $cmd } ) {
           event {
-            visitId
             received
           }
         }
@@ -325,8 +324,8 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddStepEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $seqType: SequenceType!, $stg: StepStage!)  {
-        addStepEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId }, payload: { sequenceType: $seqType, stage: $stg } } ) {
+      mutation($stepId: StepId!, $stg: StepStage!)  {
+        addStepEvent(input: { stepId: $stepId, stage: $stg } ) {
           event {
             received
           }
@@ -338,8 +337,8 @@ object ObsQueriesGQL {
   @GraphQL
   trait AddDatasetEventMutation extends GraphQLOperation[ObservationDB] {
     val document = """
-      mutation($vId: VisitId!, $obsId: ObservationId!, $stpId: StepId!, $dtIdx: PosInt!, $stg: DatasetStage!, $flName: DatasetFilename)  {
-        addDatasetEvent(input: { visitId: $vId, location: { observationId: $obsId, stepId: $stpId, index: $dtIdx }, payload: { datasetStage: $stg, filename: $flName } } ) {
+      mutation($datasetId: DatasetId!, $stg: DatasetStage!)  {
+        addDatasetEvent(input: { datasetId: $datasetId, datasetStage: $stg } ) {
           event {
             received
           }

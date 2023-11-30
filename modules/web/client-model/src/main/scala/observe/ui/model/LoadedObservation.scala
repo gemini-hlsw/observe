@@ -18,8 +18,8 @@ case class LoadedObservation private (
   def withSummary(summary: Either[Throwable, ObsSummary]): LoadedObservation =
     copy(summary = Pot.fromTry(summary.toTry))
 
-  def withConfig(config: Either[Throwable, InstrumentExecutionConfig]): LoadedObservation =
-    copy(config = Pot.fromTry(config.toTry))
+  def withConfig(config: Either[Throwable, Option[InstrumentExecutionConfig]]): LoadedObservation =
+    copy(config = Pot.fromTry(config.map(Pot.fromOption).toTry).flatten)
 
   def unPot: Pot[(Observation.Id, ObsSummary, InstrumentExecutionConfig)] =
     (summary, config).mapN((s, c) => (obsId, s, c))
