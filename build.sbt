@@ -1,3 +1,4 @@
+import _root_.cats.effect.kernel.syntax.resource
 import Settings.Libraries._
 import Settings.LibraryVersions
 import Common._
@@ -83,8 +84,6 @@ lazy val observe_web_server = project
   .in(file("modules/web/server"))
   .enablePlugins(BuildInfoPlugin)
   .enablePlugins(GitBranchPrompt)
-  .enablePlugins(JavaServerAppPackaging)
-  .enablePlugins(UniversalPlugin)
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
@@ -106,29 +105,44 @@ lazy val observe_web_server = project
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.web.server"
   )
-  .settings(embeddedJreSettings: _*)
   .settings(
-    // Put the jar files in the lib dir
-    Universal / mappings += {
-      val jar = (Compile / packageBin).value
-      jar -> ("lib/" + jar.getName)
-    },
-    Universal / mappings ++= {
-      val clientDir = (observe_web_client / build).value
-      directory(clientDir).flatMap(path =>
-        // Don't include local environment conf, if present.
-        if (path._2.endsWith("local.conf.json")) None
-        else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
-      )
-    },
-    // Don't include the configuration on the jar. Instead we copy it to the conf dir.
-    Universal / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
-    Universal / mappings += (Compile / resourceDirectory).value / "app.conf" -> "conf/app.conf",
-    // Sample self-signed certificate - DO NOT USE IN PRODUCTION
-    Universal / mappings += baseDirectory.value / "cacerts.jks.dev"          -> "cacerts.jks.dev"
+    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
+    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith("logback.xml")) }
   )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
+
+/**
+ * Mappings common to applications, including configuration and web application
+ */
+lazy val deployedAppMappings = Seq(
+  Universal / mappings ++= {
+    val clientDir = (observe_web_client / build).value
+    directory(clientDir).flatMap(path =>
+      // Don't include environment confs, if present.
+      if (path._2.endsWith(".conf.json")) None
+      else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
+    )
+  },
+
+  // The only thing we include from the base deployment app is app.conf. We remove the "conf" path.
+  Compile / packageBin / mappings ~= {
+    _.filter(_._1.getName.endsWith(".conf")).map(mapping => mapping._1 -> mapping._1.getName)
+  }
+)
+
+// Mappings for a particular release.
+lazy val releaseAppMappings = Seq(
+  // Copy the resource directory, with customized configuration files, but first remove existing mappings.
+  Universal / mappings := { // maps =>
+    val resourceDir         = (Compile / resourceDirectory).value
+    val resourceDirMappings =
+      directory(resourceDir).map(path => path._1 -> path._1.relativeTo(resourceDir).get.getPath)
+    val resourceDirFiles    = resourceDirMappings.map(_._2)
+    (Universal / mappings).value.filterNot(map => resourceDirFiles.contains(map._2)) ++
+      resourceDirMappings
+  }
+)
 
 lazy val observe_ui_model = project
   .in(file("modules/web/client-model"))
@@ -170,7 +184,8 @@ lazy val observe_web_client = project
     build := {
       if ((Process("npx" :: "vite" :: "build" :: Nil, baseDirectory.value) !) != 0)
         throw new Exception("Error building web client")
-      else baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
+      else
+        baseDirectory.value / "deploy" // Must match directory declared in vite.config.js
     },
     build := build.dependsOn(Compile / fullLinkJS).value
   )
@@ -252,9 +267,10 @@ lazy val observe_engine = project
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
-    libraryDependencies ++= Seq(Fs2.value,
-                                CatsEffect.value,
-                                Log4Cats.value
+    libraryDependencies ++= Seq(
+      Fs2.value,
+      CatsEffect.value,
+      Log4Cats.value
     ) ++ Monocle.value ++ MUnit.value
   )
 
@@ -329,34 +345,12 @@ lazy val app_observe_server = project
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
+  .dependsOn(observe_web_server)
   .settings(observeCommonSettings: _*)
+  .settings(deployedAppMappings: _*)
+  .settings(releaseAppMappings: _*)
   .settings(
-    description          := "Observe server for local testing",
-    // Put the jar files in the lib dir
-    Universal / mappings += {
-      val jar = (Compile / packageBin).value
-      jar -> ("lib/" + jar.getName)
-    },
-    Universal / mappings := {
-      // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (Universal / mappings).value
-      val filtered          = universalMappings.filter { case (_, name) =>
-        !name.contains("_sjs")
-      }
-      filtered
-    },
-    Universal / mappings += {
-      val f = (Compile / resourceDirectory).value / "update_smartgcal"
-      f -> ("bin/" + f.getName)
-    },
-    Universal / mappings += {
-      val f = (Compile / resourceDirectory).value / "observe-server.env"
-      f -> ("systemd/" + f.getName)
-    },
-    Universal / mappings += {
-      val f = (Compile / resourceDirectory).value / "observe-server.service"
-      f -> ("systemd/" + f.getName)
-    }
+    description := "Observe server for local testing"
   )
 
 /**
@@ -372,20 +366,13 @@ lazy val app_observe_server_gs_test =
     .enablePlugins(GitBranchPrompt)
     .settings(observeCommonSettings: _*)
     .settings(observeLinux: _*)
-    .settings(deployedAppMappings: _*)
     .settings(
       description          := "Observe GS test deployment",
       applicationConfName  := "observe",
       applicationConfSite  := DeploymentSite.GS,
-      Universal / mappings := {
-        // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (app_observe_server / Universal / mappings).value
-        val filtered          = universalMappings.filter { case (_, name) =>
-          !name.contains("_sjs")
-        }
-        filtered
-      }
+      Universal / mappings := (app_observe_server / Universal / mappings).value
     )
+    .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
     .settings(embeddedJreSettings: _*)
     .dependsOn(observe_server)
 
@@ -401,20 +388,13 @@ lazy val app_observe_server_gn_test =
     .enablePlugins(GitBranchPrompt)
     .settings(observeCommonSettings: _*)
     .settings(observeLinux: _*)
-    .settings(deployedAppMappings: _*)
     .settings(
       description          := "Observe GN test deployment",
       applicationConfName  := "observe",
       applicationConfSite  := DeploymentSite.GN,
-      Universal / mappings := {
-        // filter out sjs jar files. otherwise it could generate some conflicts
-        val universalMappings = (app_observe_server / Universal / mappings).value
-        val filtered          = universalMappings.filter { case (_, name) =>
-          !name.contains("_sjs")
-        }
-        filtered
-      }
+      Universal / mappings := (app_observe_server / Universal / mappings).value
     )
+    .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
     .settings(embeddedJreSettings: _*)
     .dependsOn(observe_server)
 
@@ -429,20 +409,13 @@ lazy val app_observe_server_gs = project
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
   .settings(observeLinux: _*)
-  .settings(deployedAppMappings: _*)
   .settings(
     description          := "Observe Gemini South server production",
     applicationConfName  := "observe",
     applicationConfSite  := DeploymentSite.GS,
-    Universal / mappings := {
-      // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (app_observe_server / Universal / mappings).value
-      val filtered          = universalMappings.filter { case (_, name) =>
-        !name.contains("_sjs")
-      }
-      filtered
-    }
+    Universal / mappings := (app_observe_server / Universal / mappings).value
   )
+  .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
   .settings(embeddedJreSettings: _*)
   .dependsOn(observe_server)
 
@@ -457,19 +430,12 @@ lazy val app_observe_server_gn = project
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
   .settings(observeLinux: _*)
-  .settings(deployedAppMappings: _*)
   .settings(
     description          := "Observe Gemini North server production",
     applicationConfName  := "observe",
     applicationConfSite  := DeploymentSite.GN,
-    Universal / mappings := {
-      // filter out sjs jar files. otherwise it could generate some conflicts
-      val universalMappings = (app_observe_server / Universal / mappings).value
-      val filtered          = universalMappings.filter { case (_, name) =>
-        !name.contains("_sjs")
-      }
-      filtered
-    }
+    Universal / mappings := (app_observe_server / Universal / mappings).value
   )
+  .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
   .settings(embeddedJreSettings: _*)
   .dependsOn(observe_server)

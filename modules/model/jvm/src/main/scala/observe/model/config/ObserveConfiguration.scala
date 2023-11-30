@@ -19,14 +19,11 @@ import lucuma.core.enums.Site
  *   Web side configuration
  * @param smartGcal
  *   Configuration to reach SmartGCal
- * @param authentication
- *   Configuration to support authentication
  */
 case class ObserveConfiguration(
-  site:           Site,
-  mode:           Mode,
-  lucumaSSO:      LucumaSSOConfiguration,
-  observeEngine:  ObserveEngineConfiguration,
-  webServer:      WebServerConfiguration,
-  authentication: AuthenticationConfig
+  site:          Site,
+  mode:          Mode,
+  lucumaSSO:     LucumaSSOConfiguration,
+  observeEngine: ObserveEngineConfiguration,
+  webServer:     WebServerConfiguration
 ) derives Eq

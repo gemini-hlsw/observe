@@ -18,12 +18,6 @@ class ConfigurationLoaderSpec extends CatsEffectSuite {
   val gcal   =
     SmartGcalConfiguration(uri"gsodbtest.gemini.edu", Paths.get("/tmp/smartgcal"))
   val tls    = TLSConfig(Paths.get("file.jks"), "key", "cert")
-  val auth   = AuthenticationConfig(2.hour,
-                                  "ObserveToken",
-                                  "somekey",
-                                  false,
-                                  List(uri"ldap://sbfdc-wv1.gemini.edu:3268")
-  )
   val ws     = WebServerConfiguration("0.0.0.0", 7070, 7071, "localhost", Some(tls))
   val server = ObserveEngineConfiguration(
     uri"localhost",
@@ -60,7 +54,7 @@ class ConfigurationLoaderSpec extends CatsEffectSuite {
     5.seconds,
     10.seconds
   )
-  val ref    = ObserveConfiguration(Site.GS, Mode.Development, server, ws, gcal, auth)
+  val ref    = ObserveConfiguration(Site.GS, Mode.Development, server, ws, gcal)
 
   test("read config") {
     loadConfiguration[IO](ConfigSource.string(conf)).map(assertEquals(_, ref))
@@ -74,19 +68,6 @@ class ConfigurationLoaderSpec extends CatsEffectSuite {
 # mode can be dev in which case fake authentication is supported and the UI provides some extra tools
 mode = dev
 site = GS
-
-# Authentication related settings
-authentication {
-    # Indicates how long a session is valid in hrs
-    session-life-hrs = 2 hours
-    # Name of the cookie to store the session
-    cookie-name = "ObserveToken"
-    # Secret key for JWT tokens
-    secret-key = "somekey"
-    use-ssl = false
-    # List of LDAP servers, the list is used in a failover fashion
-    ldap-urls = ["ldap://sbfdc-wv1.gemini.edu:3268"]
-}
 
 # Web server related configuration
 web-server {

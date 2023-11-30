@@ -84,8 +84,6 @@ given ConfigReader[TLSConfig] = ConfigReader.derived
 
 given ConfigReader[WebServerConfiguration] = ConfigReader.derived
 
-given ConfigReader[AuthenticationConfig] = ConfigReader.derived
-
 given ConfigReader[LucumaSSOConfiguration] = ConfigReader.derived
 
 given ConfigReader[ObserveConfiguration] = ConfigReader.derived
