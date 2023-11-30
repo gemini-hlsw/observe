@@ -394,11 +394,9 @@ object OdbProxy {
         s"Send ODB event stepStartStep for obsId: $obsId"
       ) *>
         AddStepEventMutation[F]
-          .execute(vId = visitId,
-                   obsId = obsId,
-                   stpId = stepId,
-                   stg = StepStage.StartStep,
-                   seqType = sequenceType
+          .execute(
+            stepId = stepId,
+            stg = StepStage.StartStep,
           )
           .as(true) <*
         L.debug("ODB event stepStartStep sent")
@@ -414,11 +412,8 @@ object OdbProxy {
       ) *>
         AddStepEventMutation[F]
           .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
+            stepId = stepId,
             stg = StepStage.EndStep,
-            seqType = sequenceType
           )
           .as(true) <*
         L.debug("ODB event stepEndStep sent")
@@ -434,11 +429,8 @@ object OdbProxy {
       ) *>
         AddStepEventMutation[F]
           .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
+            stepId = stepId,
             stg = StepStage.StartConfigure,
-            seqType = sequenceType
           )
           .as(true) <*
         L.debug("ODB event stepStartConfigure sent")
@@ -454,11 +446,8 @@ object OdbProxy {
       ) *>
         AddStepEventMutation[F]
           .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
+            stepId = stepId,
             stg = StepStage.EndConfigure,
-            seqType = sequenceType
           )
           .as(true) <*
         L.debug("ODB event stepEndConfigure sent")
@@ -474,11 +463,8 @@ object OdbProxy {
       ) *>
         AddStepEventMutation[F]
           .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
+            stepId = stepId,
             stg = StepStage.StartObserve,
-            seqType = sequenceType
           )
           .as(true) <*
         L.debug("ODB event stepStartObserve sent")
@@ -494,11 +480,8 @@ object OdbProxy {
       ) *>
         AddStepEventMutation[F]
           .execute(
-            vId = visitId,
-            obsId = obsId,
-            stpId = stepId,
+            stepId = stepId,
             stg = StepStage.EndObserve,
-            seqType = sequenceType
           )
           .as(true) <*
         L.debug("ODB event stepEndObserve sent")
