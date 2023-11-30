@@ -39,7 +39,7 @@ This module contains a web-based observe client. It contains a SPA (Single-page 
 
 # How to run/develop the client
 
-For the common case we want to develop the client but we also need to run the backend.
+<!-- For the common case we want to develop the client but we also need to run the backend.
 
 an sbt task
 
@@ -55,7 +55,7 @@ Will do the following:
 
 Now you can open the client at
 
-http://localhost:9090
+http://localhost:8081
 
 if you want to update the client and get automatic reload do in sbt:
 
@@ -68,10 +68,17 @@ and to stop all the processes you can do
 
 ```
 stopObserveAll
-```
+``` -->
 
 # How to package for deployment
 
+If you haven't already, create a symlink `jre` that points to the JRE you want bundled with the deployment.
+
+To deploy, run in `sbt`:
+
 ```
-observe_web_server/Universal/packageBin
+app_observe_server_gs_test/Universal/packageZipTarball
+app_observe_server_gn_test/Universal/packageZipTarball
+app_observe_server_gs/Universal/packageZipTarball
+app_observe_server_gn/Universal/packageZipTarball
 ```
