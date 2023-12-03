@@ -292,7 +292,7 @@ object MainApp extends ServerEventHandler:
             (apiClientOpt,
              rootModelDataPot.get.toOption.flatMap(_.observer),
              permitPot.toOption,
-             ctxPot.toOption,
+             ctxPot.toOption
             ).mapN: (client, observer, permit, ctx) =>
               import ctx.given
               (

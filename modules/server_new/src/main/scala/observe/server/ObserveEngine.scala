@@ -697,7 +697,7 @@ object ObserveEngine {
                                 ODBSequencesLoader
                                   .loadSequenceEndo(observer.some, seq, l)
                               )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                            LoadSequence(sid),
+                            LoadSequence(sid)
                           )
                         } else {
                           (
