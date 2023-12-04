@@ -9,10 +9,8 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import clue.ClientAppliedF.*
 import clue.FetchClient
-import clue.data.syntax.*
 import eu.timepit.refined.types.numeric.PosInt
 import eu.timepit.refined.types.numeric.PosLong
-import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.SequenceCommand
 import lucuma.core.enums.StepStage
 import lucuma.core.model.Observation
