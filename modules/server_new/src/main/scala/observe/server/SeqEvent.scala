@@ -21,7 +21,8 @@ import observe.model.SubsystemEnabled
 import observe.model.UserPrompt
 import observe.model.enums.*
 
-sealed trait SeqEvent extends Product with Serializable
+sealed trait SeqEvent       extends Product with Serializable
+sealed trait NoUserSeqEvent extends SeqEvent
 
 object SeqEvent {
   case class SetOperator(name: Operator, user: Option[User])                     extends SeqEvent
@@ -73,6 +74,8 @@ object SeqEvent {
       extends SeqEvent
   case class Busy(obsId: Observation.Id, cid: ClientId)                          extends SeqEvent
   case class SequenceStart(sid: Observation.Id, stepId: StepId)                  extends SeqEvent
+  case class SequenceStarted(sid: Observation.Id, stepId: StepId, recordedAtomId: RecordedAtomId)
+      extends NoUserSeqEvent
   case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])         extends SeqEvent
   case class ResourceBusy(
     obsId:    Observation.Id,
@@ -80,5 +83,5 @@ object SeqEvent {
     res:      Resource | Instrument,
     clientID: ClientId
   ) extends SeqEvent
-  case object NullSeqEvent                                                       extends SeqEvent
+  case object NullSeqEvent                                                       extends NoUserSeqEvent
 }

@@ -11,9 +11,10 @@ import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observer
 import observe.model.SystemOverrides
 
-final case class SequenceData[F[_]](
+case class SequenceData[F[_]](
   observer:      Option[Observer],
   visitId:       Option[VisitId],
+  currentStepId: Option[RecordedStepId],
   overrides:     SystemOverrides,
   seqGen:        SequenceGen[F],
   seq:           Sequence.State[F],
@@ -30,6 +31,9 @@ object SequenceData {
   def seq[F[_]]: Lens[SequenceData[F], Sequence.State[F]] = Focus[SequenceData[F]](_.seq)
 
   def visitId[F[_]]: Lens[SequenceData[F], Option[VisitId]] = Focus[SequenceData[F]](_.visitId)
+
+  def currentStepId[F[_]]: Lens[SequenceData[F], Option[RecordedStepId]] =
+    Focus[SequenceData[F]](_.currentStepId)
 
   def overrides[F[_]]: Lens[SequenceData[F], SystemOverrides] = Focus[SequenceData[F]](_.overrides)
 

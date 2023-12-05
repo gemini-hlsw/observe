@@ -3,8 +3,6 @@
 
 package observe.server
 
-import eu.timepit.refined.types.numeric.PosInt
-import lucuma.schemas.ObservationDB.Scalars.StepId
 import observe.model.Observation
 import observe.server.keywords.*
 import observe.server.tcs.Tcs
@@ -13,16 +11,14 @@ import observe.server.tcs.Tcs
  * Describes the parameters for an observation
  */
 final case class ObserveEnvironment[F[_]](
-  odb:          OdbProxy[F],
-  dhs:          DhsClientProvider[F],
-  stepType:     StepType,
-  obsId:        Observation.Id,
-  stepId:       StepId,
-  datasetIndex: PosInt,
-  inst:         InstrumentSystem[F],
-  otherSys:     List[System[F]],
-  headers:      HeaderExtraData => List[Header[F]],
-  ctx:          HeaderExtraData
+  odb:      OdbProxy[F],
+  dhs:      DhsClientProvider[F],
+  stepType: StepType,
+  obsId:    Observation.Id,
+  inst:     InstrumentSystem[F],
+  otherSys: List[System[F]],
+  headers:  HeaderExtraData => List[Header[F]],
+  ctx:      HeaderExtraData
 ) {
   def getTcs: Option[Tcs[F]] = otherSys.collectFirst { case x: Tcs[F] => x }
 }

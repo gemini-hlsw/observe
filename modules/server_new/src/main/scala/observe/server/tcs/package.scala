@@ -67,12 +67,9 @@ package object tcs {
   val AoOffsetThreshold: Length = Arcseconds(0.01) / FOCAL_PLANE_SCALE
 
   given ooEq: Eq[BinaryOnOff]              = Eq.by[BinaryOnOff, Int](_.ordinal())
-//    //Eq[Int].contramap(_.ordinal())
   given ynEq: Eq[BinaryYesNo]              = Eq.by[BinaryYesNo, Int](_.ordinal())
-  // Eq[Int].contramap(_.ordinal())
   given endisEq: Eq[BinaryEnabledDisabled] = Eq.by[BinaryEnabledDisabled, Int](_.ordinal())
-//    //Eq[Int].contramap(_.ordinal())
-  given parkEq: Eq[ParkState]              = Eq.by[ParkState, Int](_.ordinal()) // Eq[Int].contramap(_.ordinal())
+  given parkEq: Eq[ParkState]              = Eq.by[ParkState, Int](_.ordinal())
 
   extension [A](v: A) {
     def withDebug(msg: String): WithDebug[A] = WithDebug(v, msg)

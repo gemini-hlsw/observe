@@ -899,6 +899,7 @@ class ObserveEngineSuite extends TestCommon {
         )
       ),
       instrument = Instrument.GmosNorth,
+      SequenceType.Science,
       staticCfg1,
       atomId1,
       steps = stepList.map { step =>

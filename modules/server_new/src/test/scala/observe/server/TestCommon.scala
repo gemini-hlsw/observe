@@ -30,6 +30,7 @@ import lucuma.core.enums.MosPreImaging
 import lucuma.core.enums.ObsActiveStatus
 import lucuma.core.enums.ObsStatus
 import lucuma.core.enums.ObserveClass
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -79,6 +80,7 @@ import scala.concurrent.duration.*
 
 trait TestCommon extends munit.CatsEffectSuite {
   import TestCommon.*
+  given Logger[IO] = NoOpLogger.impl[IO]
 
   val defaultSystems: IO[Systems[IO]] = Systems.dummy[IO]
 
@@ -334,6 +336,7 @@ object TestCommon {
       )
     ),
     instrument = Instrument.GmosNorth,
+    SequenceType.Science,
     staticCfg1,
     atomId1,
     steps = List(
@@ -413,6 +416,7 @@ object TestCommon {
       )
     ),
     instrument = Instrument.GmosNorth,
+    SequenceType.Science,
     staticCfg1,
     atomId1,
     steps = List
@@ -487,6 +491,7 @@ object TestCommon {
       )
     ),
     instrument = Instrument.GmosNorth,
+    SequenceType.Science,
     staticCfg1,
     atomId1,
     steps = List(

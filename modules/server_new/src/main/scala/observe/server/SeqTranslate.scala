@@ -15,6 +15,7 @@ import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence
@@ -133,8 +134,6 @@ object SeqTranslate {
             overriddenSystems.dhs(ov),
             stepType,
             obsCfg.id,
-            step.id,
-            dataIdx,
             instf(ov),
             otherSysf.values.toList.map(_(ov)),
             headers(ov),
@@ -185,6 +184,9 @@ object SeqTranslate {
       val nextAtom         = data.acquisition.map(_.nextAtom).orElse(data.science.map(_.nextAtom))
       val startIdx: PosInt = PosInt.unsafeFrom(1)
 
+      val sequenceType =
+        if (data.acquisition.isDefined) SequenceType.Acquisition else SequenceType.Science
+
       nextAtom
         .map(atom =>
           val (a, b) = atom.steps.toList.zipWithIndex.map { case (x, i) =>
@@ -215,6 +217,7 @@ object SeqTranslate {
                SequenceGen(
                  sequence,
                  Instrument.GmosNorth,
+                 sequenceType,
                  data.static,
                  atom.id,
                  _

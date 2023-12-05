@@ -7,6 +7,7 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -31,11 +32,12 @@ import observe.model.enums.Resource
  * engine sequence whenever any of those parameters change.
  */
 case class SequenceGen[F[_]](
-  obsData:    OdbObservation,
-  instrument: Instrument,
-  staticCfg:  StaticConfig,
-  atomId:     Atom.Id,
-  steps:      List[SequenceGen.StepGen[F]]
+  obsData:      OdbObservation,
+  instrument:   Instrument,
+  sequenceType: SequenceType,
+  staticCfg:    StaticConfig,
+  atomId:       Atom.Id,
+  steps:        List[SequenceGen.StepGen[F]]
 ) {
   val resources: Set[Resource | Instrument] = steps
     .collect { case p: SequenceGen.PendingStepGen[F] =>

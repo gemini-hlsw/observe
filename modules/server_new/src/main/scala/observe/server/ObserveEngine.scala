@@ -12,12 +12,14 @@ import cats.effect.Ref
 import cats.effect.Temporal
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Pipe
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -35,6 +37,8 @@ import observe.engine.EventResult.*
 import observe.engine.Handle
 import observe.engine.Result.Partial
 import observe.engine.SystemEvent
+import observe.engine.SystemEvent.Executed
+import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
 import observe.engine.{Step => _, _}
 import observe.model.NodAndShuffleStep.PauseGracefully
@@ -421,17 +425,23 @@ object ObserveEngine {
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval[F, EventType[F]](
                         systems.odb
-                          .sequenceStart(id, seq.seqGen.staticCfg)
+                          .sequenceStart(id,
+                                         seq.seqGen.instrument,
+                                         seq.seqGen.sequenceType,
+                                         NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
+                                         seq.seqGen.staticCfg
+                          )
                           .map { i =>
                             Event.modifyState {
                               executeEngine
-                                .modify(
+                                .modify {
+                                  println("MOTIDY")
                                   EngineState
                                     .atSequence(id)
                                     .andThen(SequenceData.visitId)
-                                    .replace(i.some)
-                                )
-                                .as[SeqEvent](SeqEvent.NullSeqEvent)
+                                    .replace(i._1.some)
+                                }
+                                .as[SeqEvent](SeqEvent.SequenceStarted(id, step.id, i._2))
                             }
                           }
                       )
@@ -863,7 +873,8 @@ object ObserveEngine {
     override def eventStream: Stream[F, ObserveEvent] =
       Stream.eval(executeEngine.offer(Event.getState(_ => heartbeatStream.some)).as(NullEvent)) ++
         stream(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
-          case Right((ev, qState)) => toObserveEvent[F](ev, qState)
+          case Right((ev, qState)) =>
+            toObserveEvent[F](ev, qState)
           case Left(x)             =>
             Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
         }
@@ -1319,49 +1330,31 @@ object ObserveEngine {
 
     def notifyODB(
       i: (EventResult[SeqEvent], EngineState[F])
-    ): F[(EventResult[SeqEvent], EngineState[F])] = i.pure[F]
-//      (i match {
-//        case (SystemUpdate(SystemEvent.Failed(id, _, e), _), st) =>
-//          st.sequences
-//            .get(id)
-//            .map { seq =>
-//              Logger[F].error(s"Error executing ${seq.name} due to $e") *>
-//                seq.visitId
-//                  .map(vid =>
-//                    systems.odb
-//                      .obsAbort(vid, Observation.Id(id, seq.name), e.msg)
-//                      .ensure(
-//                        ObserveFailure
-//                          .Unexpected("Unable to send ObservationAborted message to ODB.")
-//                      )(identity)
-//                  )
-//                  .getOrElse(Applicative[F].unit)
-//            }
-//            .getOrElse(Applicative[F].unit)
-//        case (SystemUpdate(SystemEvent.Executed(id), _), st)     =>
-//          st.sequences
-//            .get(id)
-//            .filter(_.seq.status === SequenceState.Idle)
-//            .flatMap { seq =>
-//              seq.visitId.map(vid =>
-//                systems.odb
-//                  .obsPause(vid, Observation.Id(id, seq.name), "Sequence paused by user")
-//                  .void
-//              )
-//            }
-//            .getOrElse(Applicative[F].unit)
-//        case (SystemUpdate(SystemEvent.Finished(id), _), st)     =>
-//          st.sequences
-//            .get(id)
-//            .flatMap { seq =>
-//              seq.visitId.map(vid =>
-//                systems.odb.sequenceEnd(vid, Observation.Id(id, seq.name)).void
-//              )
-//            }
-//            .getOrElse(Applicative[F].unit)
-//        case _                                                   => Applicative[F].unit
-//      }).as(i)
-//
+    ): F[(EventResult[SeqEvent], EngineState[F])] =
+      i match {
+        case (UserCommandResponse(_, Outcome.Ok, Some(SequenceStarted(oid, stepId, at))), st) =>
+          st.sequences
+            .get(oid)
+            .flatMap { seq =>
+              seq.seqGen.steps
+                .find(_.id === stepId)
+                .map(s =>
+                  systems.odb
+                    .stepStartStep(oid, s.instConfig, s.config, at, ObserveClass.Science) >>= {
+                    sid =>
+                      val upd =
+                        EngineState
+                          .selectedGmosNorth[F]
+                          .modify(_.map(_.copy(currentStepId = sid.some)))(i._2)
+                      (i._1, upd).pure[F]
+                  }
+                )
+            }
+            .getOrElse(i.pure[F])
+        case (SystemUpdate(Executed(oid), Outcome.Ok), st)                                    =>
+          i.pure[F]
+        case _                                                                                => i.pure[F]
+      }
     private def updateSequenceEndo(
       conditions: Conditions,
       operator:   Option[Operator]
@@ -1660,7 +1653,6 @@ object ObserveEngine {
     svs: => SequencesQueue[SequenceView]
   ): Stream[F, ObserveEvent] =
     v match {
-      case NullSeqEvent                       => Stream.empty
       case SetOperator(_, _)                  => Stream.emit(OperatorUpdated(svs))
       case SetObserver(_, _, _)               => Stream.emit(ObserverUpdated(svs))
       case SetTcsEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
@@ -1700,11 +1692,13 @@ object ObserveEngine {
             SequenceUpdated(svs) :: Nil
         )
       case SequenceStart(oid, stepId)         => Stream.emit(ClientSequenceStart(oid, stepId, svs))
+      case SequenceStarted(_, _, _)           => Stream.empty
       case SequencesStart(l)                  =>
         Stream.emits(l.map { case (oid, step) => ClientSequenceStart(oid, step, svs) })
       case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
       case ResourceBusy(oid, sid, res, cid)   =>
         Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
+      case _: NoUserSeqEvent                  => Stream.empty
     }
 
   private def executionQueueViews[F[_]](
