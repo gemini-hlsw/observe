@@ -49,7 +49,7 @@ object Settings {
     val munitCatsEffectVersion = "1.0.7"
 
     val acm           = "0.1.1"
-    val giapiScala    = "0.1.0"
+    val giapiScala    = "0.1.1"
     val geminiLocales = "0.7.0"
     val pprint        = "0.8.1"
 
