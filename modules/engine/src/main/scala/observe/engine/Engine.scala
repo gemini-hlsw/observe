@@ -359,7 +359,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         UserCommandResponse(ue, Outcome.Ok, None)
       )
     case Breakpoints(id, _, step, v) =>
-      debug(s"Engine: breakpoint changed for sequence $id and step $step to $v") *>
+      debug(s"Engine: breakpoints changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setBreakpoints(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case SkipMark(id, _, step, v)    =>
       debug(s"Engine: skip mark changed for sequence $id and step $step to $v") *>

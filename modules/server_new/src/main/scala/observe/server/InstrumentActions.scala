@@ -60,7 +60,7 @@ object InstrumentActions {
       )
     )
 
-  def launchObserve[F[_]](
+  private def launchObserve[F[_]](
     env:       ObserveEnvironment[F],
     doObserve: (ImageFileId, ObserveEnvironment[F]) => Stream[F, Result]
   ): Stream[F, Result] =

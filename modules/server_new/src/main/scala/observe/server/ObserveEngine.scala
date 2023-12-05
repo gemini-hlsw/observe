@@ -30,6 +30,7 @@ import monocle.Lens
 import monocle.Optional
 import monocle.function.Index.mapIndex
 import mouse.all.*
+import observe.engine
 import observe.engine.EventResult.*
 import observe.engine.Handle
 import observe.engine.Result.Partial
@@ -56,6 +57,7 @@ import observe.model.events.{SequenceStart as ClientSequenceStart, *}
 import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.unused
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.*
 
@@ -820,6 +822,7 @@ object ObserveEngine {
     override def requestRefresh(clientId: ClientId): F[Unit]                                  =
       executeEngine.offer(Event.poll(clientId))
 
+    @unused
     private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] =
       Stream.empty
 //    {
@@ -1597,6 +1600,7 @@ object ObserveEngine {
    *   The set of all observations in the execution queue `qid` that can be started to run in
    *   parallel.
    */
+  @unused
   private def nextRunnableObservations[F[_]](qid: QueueId, freed: Set[Resource | Instrument])(
     st: EngineState[F]
   ): Set[Observation.Id] = {
@@ -1632,6 +1636,7 @@ object ObserveEngine {
    * shouldSchedule checks if a set of sequences are candidates for been run in a queue. It is used
    * to check if sequences added to a queue should be started.
    */
+  @annotation.unused
   private def shouldSchedule[F[_]](qid: QueueId, sids: Set[Observation.Id])(
     st: EngineState[F]
   ): Set[Observation.Id] =

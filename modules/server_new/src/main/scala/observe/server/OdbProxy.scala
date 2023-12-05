@@ -19,10 +19,10 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Enums.SequenceType
 import lucuma.schemas.ObservationDB.Scalars.VisitId
+import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.StepId
 import observe.model.dhs.*
-import observe.server.ObsQueryInput.*
 import observe.server.given
 import org.typelevel.log4cats.Logger
 

@@ -5,18 +5,14 @@ package observe.engine
 
 sealed trait EventResult[U] extends Product with Serializable
 
-object EventResult {
-  sealed trait Outcome extends Product with Serializable
+object EventResult:
+  enum Outcome:
+    case Ok, Failure
 
-  object Outcome {
-    case object Ok      extends Outcome
-    case object Failure extends Outcome
-  }
-
-  final case class UserCommandResponse[F[_], U](
+  case class UserCommandResponse[F[_], U](
     ue:      UserEvent[F, ?, U],
     outcome: Outcome,
     ud:      Option[U]
   ) extends EventResult[U]
-  final case class SystemUpdate[F[_], U](se: SystemEvent, outcome: Outcome) extends EventResult[U]
-}
+
+  case class SystemUpdate[F[_], U](se: SystemEvent, outcome: Outcome) extends EventResult[U]
