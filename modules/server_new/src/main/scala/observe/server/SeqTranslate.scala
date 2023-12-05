@@ -88,10 +88,6 @@ trait SeqTranslate[F[_]] {
 
 object SeqTranslate {
 
-//  trait InstrumentStepBuilder[F[_], S, I] {
-//    def instStep(systems: Systems[F], staticCfg: S, insConfig: I): InstrumentSystem[F]
-//  }
-
   class SeqTranslateImpl[F[_]: Async: Logger](
     site:                             Site,
     systemss:                         Systems[F],

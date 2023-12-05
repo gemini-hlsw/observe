@@ -46,7 +46,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
 
   test("normal observation") {
     simulator
-      .observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS))
+      .observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(5, ChronoUnit.SECONDS))
       .map(assertEquals(_, ObserveCommandResult.Success))
   }
 
@@ -54,7 +54,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <-
-        sim.observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
+        sim.observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
       r <- f.joinWithNever
@@ -65,7 +65,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <-
-        sim.observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
+        sim.observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.abortObserve
       r <- f.joinWithNever
@@ -76,7 +76,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <-
-        sim.observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
+        sim.observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.stopObserve
       r <- f.joinWithNever
@@ -87,7 +87,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <- sim
-             .observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
+             .observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
              .start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
@@ -101,7 +101,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <- sim
-             .observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
+             .observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
              .start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
@@ -114,7 +114,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <-
-        sim.observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
+        sim.observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
       _ <- IO.sleep(tick) // give it enough time for at least one tick
@@ -131,7 +131,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <- sim
-             .observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
+             .observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(900, ChronoUnit.MILLIS))
              .start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
@@ -145,7 +145,7 @@ class InstrumentControllerSimSuite extends CatsEffectSuite {
     val sim = simulator
     for {
       f <-
-        sim.observe(toImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
+        sim.observe(ImageFileId("S001"), TimeSpan.unsafeFromDuration(2, ChronoUnit.SECONDS)).start
       _ <- IO.sleep(tick) // give it enough time for at least one tick
       _ <- sim.pauseObserve
       _ <- IO.sleep(tick) // give it enough time for at least one tick

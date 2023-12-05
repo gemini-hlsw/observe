@@ -3,15 +3,11 @@
 
 package observe
 
-import cats.Applicative
-import cats.ApplicativeThrow
 import cats.Endo
 import cats.Eq
-import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
 import cats.Order
-import cats.data.*
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
@@ -30,7 +26,6 @@ import observe.engine.Result.PauseContext
 import observe.engine._
 import observe.model.Observation
 import observe.model._
-import observe.model.enums.*
 import observe.server.SequenceGen.StepGen
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -172,63 +167,6 @@ package object server {
 
   type EventQueue[F[_]] = Queue[F, EventType[F]]
 
-  extension [F[_]: MonadThrow, A](
-    s: EitherT[F, ObserveFailure, A]
-  ) {
-    def liftF: F[A] =
-      s.value.flatMap(_.liftTo[F])
-  }
-
-  extension [F[_], A, B](fa: EitherT[F, A, B]) {
-    def widenRethrowT[T](using
-      me: MonadError[F, T],
-      at: A <:< T
-    ): F[B] =
-      fa.leftMap(at).rethrowT
-  }
-
-  // This assumes that there is only one instance of e in l
-  private def moveElement[T](l: List[T], e: T => Boolean, delta: Int)(using eq: Eq[T]): List[T] =
-    (l.indexWhere(e), l.find(e)) match
-      case (idx, Some(v)) if delta =!= 0 =>
-        val (h, t) = l.filterNot(e).splitAt(idx + delta)
-        (h :+ v) ++ t
-      case _                             => l
-
-  extension [F[_]](q: ExecutionQueue) {
-    def status(st: EngineState[F]): BatchExecState = {
-      val statuses: Seq[SequenceState] = q.queue.map(_.state)
-
-      q.cmdState match {
-        case BatchCommandState.Idle         => BatchExecState.Idle
-        case BatchCommandState.Run(_, _, _) =>
-          if (statuses.forall(_.isCompleted)) BatchExecState.Completed
-          else if (statuses.exists(_.isRunning)) BatchExecState.Running
-          else BatchExecState.Waiting
-        case BatchCommandState.Stop         =>
-          if (statuses.exists(_.isRunning)) BatchExecState.Stopping
-          else BatchExecState.Idle
-      }
-    }
-
-    def addSeq(s: ExecutionQueue.SequenceInQueue): ExecutionQueue = q.copy(queue = q.queue :+ s)
-    def addSeqs(ss: List[ExecutionQueue.SequenceInQueue]): ExecutionQueue =
-      q.copy(queue = q.queue ++ ss)
-    def removeSeq(sid: Observation.Id): ExecutionQueue                    =
-      q.copy(queue = q.queue.filter(_.obsId =!= sid))
-    def moveSeq(sid: Observation.Id, delta: Int): ExecutionQueue          =
-      q.copy(queue =
-        moveElement(q.queue, (x: ExecutionQueue.SequenceInQueue) => x.obsId === sid, delta)
-      )
-    def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
-  }
-
-  implicit final class ToHandle[F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
-    import Handle.toHandle
-    def toHandle: HandlerType[F, A] =
-      StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
-  }
-
   def toStepList[F[_]](
     seq:       SequenceGen[F],
     overrides: SystemOverrides,
@@ -242,25 +180,6 @@ package object server {
       MonadError[F, Throwable].raiseError(err).unlessA
     }
 
-  extension (r: Either[Throwable, Response]) {
-    def toResult[F[_]]: Result = r.fold(
-      e =>
-        e match {
-          case e: ObserveFailure => Result.Error(ObserveFailure.explain(e))
-          case e: Throwable      =>
-            Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
-        },
-      r => Result.OK(r)
-    )
-  }
-
-  extension [F[_]: ApplicativeThrow](r: F[Result]) {
-    def safeResult: F[Result] = r.recover {
-      case e: ObserveFailure => Result.Error(ObserveFailure.explain(e))
-      case e: Throwable      => Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
-    }
-  }
-
   def catchObsErrors[F[_]](t: Throwable)(using L: Logger[F]): Stream[F, Result] = t match {
     case e: ObserveFailure =>
       Stream.eval(L.error(e)(s"Observation error: ${ObserveFailure.explain(e)}")) *>
@@ -268,15 +187,6 @@ package object server {
     case e: Throwable      =>
       Stream.eval(L.error(e)(s"Observation error: ${e.getMessage}")) *>
         Stream.emit(Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e))))
-  }
-
-  extension [F[_]: ApplicativeThrow, A <: Response](x: F[A]) {
-    def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
-  }
-
-  extension [F[_]: Functor](x: F[ConfigResult[F]]) {
-    def toAction(kind: ActionType): Action[F] =
-      fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
   }
 
   // Some types defined to avoid repeating long type definitions everywhere

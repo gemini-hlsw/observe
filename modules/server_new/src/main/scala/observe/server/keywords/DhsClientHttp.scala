@@ -163,7 +163,7 @@ object DhsClientHttp {
       val s = r.downField("status").as[String]
       s.flatMap {
         case "success" =>
-          r.downField("result").as[String].map(i => toImageFileId(i).asRight)
+          r.downField("result").as[String].map(i => ImageFileId(i).asRight)
         case "error"   =>
           r.downField("errors")
             .as[List[Error]]
@@ -226,7 +226,7 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
 
   override def createImage(p: ImageParameters): F[ImageFileId] =
     counter.modify(x => (x + 1, x + 1)).map { c =>
-      toImageFileId(f"S${date.format(format)}S$c%04d")
+      ImageFileId(f"S${date.format(format)}S$c%04d")
     }
 
   override def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] = {
