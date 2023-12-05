@@ -5,6 +5,8 @@ package observe.model
 
 import cats.kernel.laws.discipline.*
 import eu.timepit.refined.cats.given
+import io.circe.testing.CodecTests
+import io.circe.testing.instances.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.arb.ObserveModelArbitraries.given
@@ -12,6 +14,7 @@ import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
+import org.scalacheck.{Test => ScalaCheckTest}
 import squants.time.Time
 import squants.time.TimeUnit
 
@@ -19,6 +22,8 @@ import squants.time.TimeUnit
  * Tests Model typeclasses
  */
 class ModelSuite extends munit.DisciplineSuite:
+  override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)
+
   checkAll("Eq[SystemName]", EqTests[SystemName].eqv)
   checkAll("Order[Resource]", OrderTests[Resource].order)
   checkAll("Eq[Resource]", EqTests[Resource].eqv)
@@ -45,7 +50,9 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[UserPrompt]", EqTests[UserPrompt].eqv)
   checkAll("Eq[UserPrompt.TargetCheckOverride]", EqTests[UserPrompt.TargetCheckOverride].eqv)
   // checkAll("Eq[ExecutionQueueView]", EqTests[ExecutionQueueView].eqv)
+  checkAll("Eq[StepProgress]", EqTests[StepProgress].eqv)
   checkAll("Eq[ObservationProgress]", EqTests[ObservationProgress].eqv)
+  checkAll("Codec[ObservationProgress]", CodecTests[ObservationProgress].codec)
   checkAll("Eq[TimeUnit]", EqTests[TimeUnit].eqv)
   checkAll("Eq[Time]", EqTests[Time].eqv)
   checkAll("Eq[SingleActionOp]", EqTests[SingleActionOp].eqv)

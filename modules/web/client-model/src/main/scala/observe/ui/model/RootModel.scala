@@ -20,13 +20,15 @@ import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator
+import observe.model.StepProgress
 import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Option[UserVault],
   nighttimeObservation: Option[LoadedObservation],
   daytimeObservations:  List[LoadedObservation],
-  sequenceExecution:    Map[Observation.Id, ExecutionState],
+  executionState:       Map[Observation.Id, ExecutionState],
+  obsProgress:          Map[Observation.Id, StepProgress],
   userSelectedStep:     Map[Observation.Id, Step.Id],
   conditions:           Conditions,
   observer:             Option[Observer],
@@ -41,10 +43,10 @@ case class RootModelData(
   val isUserLogged: Boolean = userVault.isDefined
 
   def isObsLocked(obsId: Observation.Id): Boolean =
-    sequenceExecution.get(obsId).exists(_.isLocked)
+    executionState.get(obsId).exists(_.isLocked)
 
   def obsSelectedStep(obsId: Observation.Id): Option[Step.Id] =
-    sequenceExecution.get(obsId).flatMap(_.runningStepId).orElse(userSelectedStep.get(obsId))
+    executionState.get(obsId).flatMap(_.runningStepId).orElse(userSelectedStep.get(obsId))
 
 object RootModelData:
   def initial(userVault: Either[Throwable, Option[UserVault]]): RootModelData =
@@ -53,7 +55,8 @@ object RootModelData:
       userVault = vault,
       nighttimeObservation = none,
       daytimeObservations = List.empty,
-      sequenceExecution = Map.empty,
+      executionState = Map.empty,
+      obsProgress = Map.empty,
       userSelectedStep = Map.empty,
       conditions = Conditions.Default,
       observer =
@@ -64,20 +67,22 @@ object RootModelData:
       log = List.empty
     )
 
-  val userVault: Lens[RootModelData, Option[UserVault]]                           = Focus[RootModelData](_.userVault)
-  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]        =
+  val userVault: Lens[RootModelData, Option[UserVault]]                        = Focus[RootModelData](_.userVault)
+  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]     =
     Focus[RootModelData](_.nighttimeObservation)
-  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]           =
+  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]        =
     Focus[RootModelData](_.daytimeObservations)
-  val sequenceExecution: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
-    Focus[RootModelData](_.sequenceExecution)
-  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]         =
+  val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
+    Focus[RootModelData](_.executionState)
+  val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]      =
+    Focus[RootModelData](_.obsProgress)
+  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]      =
     Focus[RootModelData](_.userSelectedStep)
-  val conditions: Lens[RootModelData, Conditions]                                 = Focus[RootModelData](_.conditions)
-  val observer: Lens[RootModelData, Option[Observer]]                             = Focus[RootModelData](_.observer)
-  val operator: Lens[RootModelData, Option[Operator]]                             = Focus[RootModelData](_.operator)
-  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]           =
+  val conditions: Lens[RootModelData, Conditions]                              = Focus[RootModelData](_.conditions)
+  val observer: Lens[RootModelData, Option[Observer]]                          = Focus[RootModelData](_.observer)
+  val operator: Lens[RootModelData, Option[Operator]]                          = Focus[RootModelData](_.operator)
+  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]        =
     Focus[RootModelData](_.userSelectionMessage)
-  val log: Lens[RootModelData, List[NonEmptyString]]                              = Focus[RootModelData](_.log)
+  val log: Lens[RootModelData, List[NonEmptyString]]                           = Focus[RootModelData](_.log)
 
 case class RootModel(environment: Pot[Environment], data: View[RootModelData])

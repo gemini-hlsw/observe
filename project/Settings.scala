@@ -36,7 +36,7 @@ object Settings {
     val slf4j            = "2.0.9"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
-    val logback          = "1.4.11"
+    val logback          = "1.4.14"
     val janino           = "3.1.10"
     val pureConfig       = "0.17.4"
     val monocleVersion   = "3.2.0"
@@ -49,15 +49,15 @@ object Settings {
     val munitCatsEffectVersion = "1.0.7"
 
     val acm           = "0.1.1"
-    val giapiScala    = "0.1.0"
+    val giapiScala    = "0.1.1"
     val geminiLocales = "0.7.0"
     val pprint        = "0.8.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.88.2"
+    val lucumaCore    = "0.90.0"
     val lucumaUI      = "0.87.0"
-    val lucumaSchemas = "0.62.0"
-    val lucumaSSO     = "0.6.8"
+    val lucumaSchemas = "0.64.0"
+    val lucumaSSO     = "0.6.10"
 
     // Clue
     val clue = "0.34.0"

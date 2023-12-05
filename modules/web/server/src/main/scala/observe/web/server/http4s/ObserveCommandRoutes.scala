@@ -43,7 +43,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
           NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
-        "execute" / ResourceVar(resource) / ObserverVar(obs) =>
+        "execute" / ResourceOrInstrumentVar(resource) / ObserverVar(obs) =>
       ssoClient.require(req): user =>
         oe.configSystem(obsId, obs, user, stepId, resource, clientId) *> NoContent()
 

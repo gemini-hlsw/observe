@@ -12,6 +12,7 @@ import observe.model.Notification.*
 import observe.model.Observation
 import observe.model.StepId
 import observe.model.enums.Resource
+import observe.model.given_Enumerated_|
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -54,7 +55,9 @@ trait ArbNotification {
   }
 
   given subsCogen: Cogen[SubsystemBusy] =
-    Cogen[(Observation.Id, StepId, Resource)].contramap(x => (x.obsId, x.stepId, x.resource))
+    Cogen[(Observation.Id, StepId, Resource | Instrument)].contramap(x =>
+      (x.obsId, x.stepId, x.resource)
+    )
 
   given notArb: Arbitrary[Notification] = Arbitrary[Notification] {
     for {

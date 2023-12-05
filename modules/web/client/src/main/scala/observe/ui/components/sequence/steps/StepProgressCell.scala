@@ -12,6 +12,7 @@ import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
 import observe.model.SequenceState
+import observe.model.StepProgress
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
@@ -32,6 +33,7 @@ case class StepProgressCell(
   runningStepId: Option[Step.Id],
   sequenceState: SequenceState,
   configStatus:  Map[Resource | Instrument, ActionStatus],
+  progress:      Option[StepProgress],
   selectedStep:  Option[Step.Id],
   isPreview:     Boolean
 ) extends ReactFnProps(StepProgressCell.component):
@@ -157,6 +159,7 @@ object StepProgressCell:
         ObservationProgressBar(
           props.obsId,
           props.stepId,
+          props.progress,
           fileId,
           stopping = !paused && props.isStopping,
           paused

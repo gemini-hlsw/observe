@@ -1,4 +1,4 @@
-val sbtLucumaVersion = "0.11.9"
+val sbtLucumaVersion = "0.11.10"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % sbtLucumaVersion)
 

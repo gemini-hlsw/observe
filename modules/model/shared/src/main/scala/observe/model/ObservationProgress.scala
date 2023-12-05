@@ -4,42 +4,25 @@
 package observe.model
 
 import cats.Eq
-import cats.derived.*
-import cats.syntax.all.*
-import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Step
-import lucuma.core.util.Enumerated
-import lucuma.core.util.TimeSpan
-import monocle.Prism
-import monocle.macros.GenPrism
+import io.circe.Decoder
+import io.circe.Encoder
+import io.circe.JsonObject
+import io.circe.syntax.*
 
-enum ObservationProgress(val isNs: Boolean) derives Eq:
-  def obsId: Observation.Id
-  def stepId: Step.Id
-  def total: TimeSpan
-  def remaining: TimeSpan
-  def stage: ObserveStage
-
-  case Regular(
-    obsId:     Observation.Id,
-    stepId:    Step.Id,
-    total:     TimeSpan,
-    remaining: TimeSpan,
-    stage:     ObserveStage
-  ) extends ObservationProgress(false)
-
-  case NodAndShuffle(
-    obsId:     Observation.Id,
-    stepId:    Step.Id,
-    total:     TimeSpan,
-    remaining: TimeSpan,
-    stage:     ObserveStage,
-    sub:       NsSubexposure
-  ) extends ObservationProgress(true)
+case class ObservationProgress(obsId: Observation.Id, stepProgress: StepProgress):
+  export stepProgress.*
 
 object ObservationProgress:
-  val regular: Prism[ObservationProgress, ObservationProgress.Regular] =
-    GenPrism[ObservationProgress, ObservationProgress.Regular]
+  given Eq[ObservationProgress] = Eq.by(x => (x.obsId, x.stepProgress))
 
-  val nodAndShuffle: Prism[ObservationProgress, ObservationProgress.NodAndShuffle] =
-    GenPrism[ObservationProgress, ObservationProgress.NodAndShuffle]
+  given Encoder.AsObject[ObservationProgress] = Encoder.AsObject.instance: op =>
+    JsonObject(
+      "obsId"        -> op.obsId.asJson,
+      "stepProgress" -> op.stepProgress.asJson
+    )
+
+  given Decoder[ObservationProgress] = Decoder.instance: c =>
+    for
+      obsId        <- c.downField("obsId").as[Observation.Id]
+      stepProgress <- c.downField("stepProgress").as[StepProgress]
+    yield ObservationProgress(obsId, stepProgress)

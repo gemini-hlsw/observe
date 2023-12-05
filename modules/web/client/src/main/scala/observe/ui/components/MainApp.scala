@@ -162,7 +162,7 @@ object MainApp extends ServerEventHandler:
       .useStateView(none[SyncStatus]) // UI is synced with server
       .useSingleEffect
       .useResourceOnMountBy: (_, toastRef, _, _) => // Build AppContext
-        for
+        (for
           appConfig                                  <- Resource.eval(fetchConfig)
           given Logger[IO]                           <- Resource.eval(setupLogger(LogLevelDesc.INFO))
           dispatcher                                 <- Dispatcher.parallel[IO]
@@ -182,7 +182,8 @@ object MainApp extends ServerEventHandler:
           (tab: AppTab) => MainApp.routerCtl.urlFor(tab.getPage).value,
           (tab: AppTab, via: SetRouteVia) => MainApp.routerCtl.set(tab.getPage, via),
           toastRef
-        )
+        )).onError:
+          case t => Resource.eval(IO(t.printStackTrace()))
       .useStateView(Pot.pending[RootModelData])
       .useEffectWhenDepsReady((_, _, _, _, ctxPot, _) => ctxPot): (_, _, _, _, _, rootModelData) =>
         ctx => // Once AppContext is ready, proceed to attempt login.
@@ -291,7 +292,7 @@ object MainApp extends ServerEventHandler:
             (apiClientOpt,
              rootModelDataPot.get.toOption.flatMap(_.observer),
              permitPot.toOption,
-             ctxPot.toOption,
+             ctxPot.toOption
             ).mapN: (client, observer, permit, ctx) =>
               import ctx.given
               (

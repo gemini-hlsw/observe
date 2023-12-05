@@ -40,6 +40,7 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
+import observe.model.ObservationProgress
 import observe.model.StepId
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
@@ -229,7 +230,7 @@ trait ObserveEngine[F[_]] {
     observer: Observer,
     user:     User,
     stepId:   StepId,
-    sys:      Resource,
+    sys:      Resource | Instrument,
     clientID: ClientId
   ): F[Unit]
 
@@ -697,7 +698,7 @@ object ObserveEngine {
                                 ODBSequencesLoader
                                   .loadSequenceEndo(observer.some, seq, l)
                               )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                            LoadSequence(sid),
+                            LoadSequence(sid)
                           )
                         } else {
                           (
@@ -1259,8 +1260,9 @@ object ObserveEngine {
 //        )
 //    }
 
-    private def configSystemCheck(sid: Observation.Id, sys: Resource)(
-      st: EngineState[F]
+    private def configSystemCheck(
+      sys: Resource | Instrument,
+      st:  EngineState[F]
     ): Boolean = {
       // Resources used by running sequences
       val used = resourcesInUse(st)
@@ -1275,11 +1277,11 @@ object ObserveEngine {
     private def configSystemHandle(
       sid:      Observation.Id,
       stepId:   StepId,
-      sys:      Resource,
+      sys:      Resource | Instrument,
       clientID: ClientId
     ): HandlerType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
-        if (configSystemCheck(sid, sys)(st)) {
+        if (configSystemCheck(sys, st)) {
           st.sequences
             .get(sid)
             .flatMap(_.seqGen.configActionCoord(stepId, sys))
@@ -1303,7 +1305,7 @@ object ObserveEngine {
       observer: Observer,
       user:     User,
       stepId:   StepId,
-      sys:      Resource,
+      sys:      Resource | Instrument,
       clientID: ClientId
     ): F[Unit] = setObserver(sid, user, observer) *>
       executeEngine.offer(
@@ -1817,10 +1819,16 @@ object ObserveEngine {
           case SystemEvent.Aborted(id, _, _, _)                                     => Stream.emit(SequenceAborted(id, svs))
           case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
-            Stream.emit(ObservationProgressEvent(ObservationProgress.Regular(i, s, t, r.self, v)))
+            Stream.emit(
+              ObservationProgressEvent(
+                ObservationProgress(i, StepProgress.Regular(s, t, r.self, v))
+              )
+            )
           case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u)))  =>
             Stream.emit(
-              ObservationProgressEvent(ObservationProgress.NodAndShuffle(i, s, t, r.self, v, u))
+              ObservationProgressEvent(
+                ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u))
+              )
             )
           case SystemEvent.PartialResult(_, _, _, Partial(FileIdAllocated(fileId))) =>
             Stream.emit(FileIdStepExecuted(fileId, svs))

@@ -895,7 +895,7 @@ class ObserveEngineSuite extends TestCommon {
               ).some,
               None
             )
-          )
+          ).some
         )
       ),
       instrument = Instrument.GmosNorth,

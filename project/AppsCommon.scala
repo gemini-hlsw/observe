@@ -7,7 +7,6 @@ import sbt.{Project, Resolver, _}
  * Define tasks and settings used by application definitions
  */
 object AppsCommon {
-  lazy val ocsJreDir             = settingKey[File]("Directory where distribution JREs are stored.")
   lazy val applicationConfName   =
     settingKey[String]("Name of the application to lookup the configuration")
   lazy val applicationConfSite   =
@@ -19,15 +18,6 @@ object AppsCommon {
   object LogType {
     case object ConsoleAndFiles extends LogType
     case object Files           extends LogType
-  }
-
-  sealed trait DeploymentTarget {
-    def subdir: String
-  }
-  object DeploymentTarget       {
-    case object Linux64 extends DeploymentTarget {
-      override def subdir: String = "linux"
-    }
   }
 
   sealed trait DeploymentSite {
@@ -42,29 +32,15 @@ object AppsCommon {
     }
   }
 
-  /**
-   * Mappings common to applications, including configuration and logging conf
-   */
-  lazy val deployedAppMappings = Seq(
-    // Don't include the configuration on the jar. Instead we copy it to the conf dir
-    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
-
-    // Copy the configuration file
-    Universal / packageZipTarball / mappings += {
-      val f = (Compile / resourceDirectory).value / "app.conf"
-      f -> ("conf/" + f.getName)
-    }
-  )
-
-  private def embeddedJreSettings(target: DeploymentTarget) = Seq(
+  lazy val embeddedJreSettings = Seq(
     // Put the jre in the tarball
     Universal / mappings ++= {
-      val jresDir    = (ThisBuild / ocsJreDir).value
-      // Map the location of jre files
-      val jreLink    = "JRE64_1.8"
-      val linux64Jre = jresDir.toPath.resolve(target.subdir).resolve(jreLink)
-      directory(linux64Jre.toFile).map { j =>
-        j._1 -> j._2.replace(jreLink, "jre")
+      // We look for the JRE in the project's base directory. This can be a symlink.
+      val jreDir = (ThisBuild / baseDirectory).value / "jre"
+      if (!jreDir.exists)
+        throw new Exception("JRE directory does not exist: " + jreDir)
+      directory(jreDir).map { path =>
+        path._1 -> ("jre/" + path._1.relativeTo(jreDir).get.getPath)
       }
     },
 
@@ -73,7 +49,4 @@ object AppsCommon {
       "-java-home ${app_home}/../jre"
     )
   )
-
-  lazy val embeddedJreSettingsLinux64 = embeddedJreSettings(DeploymentTarget.Linux64)
-
 }

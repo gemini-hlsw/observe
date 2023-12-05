@@ -15,10 +15,12 @@ import observe.model.Observation
 import observe.model.Observer
 import observe.model.SystemOverrides
 
+import scala.annotation.unused
+
 final class ODBSequencesLoader[F[_]: Async](
-  odbProxy:   OdbProxy[F],
-  translator: SeqTranslate[F],
-  execEngine: ExecEngineType[F]
+  @unused odbProxy:   OdbProxy[F],
+  @unused translator: SeqTranslate[F],
+  @unused execEngine: ExecEngineType[F]
 ) {
 
 //  private def unloadEvent(seqId: Observation.Id): EventType[F] =
