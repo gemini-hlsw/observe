@@ -8,6 +8,7 @@ import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.User
+import observe.model.ObservationProgress
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.*
 import observe.model.dhs.ImageFileId
@@ -142,6 +143,8 @@ extension (e: ObserveEvent)
       ClientEvent.ObserveState(a.view.sequencesState, a.view.conditions, a.view.operator).some
     case UserPromptNotification(c @ ChecksOverride(_, _, _), _) =>
       ClientEvent.ChecksOverrideEvent(c).some
+    case ObservationProgressEvent(p)                            =>
+      ClientEvent.ProgressEvent(p).some
     case SingleActionEvent(v)                                   =>
       v match {
         case SingleActionOp.Started(sid, stepId, resource)    =>

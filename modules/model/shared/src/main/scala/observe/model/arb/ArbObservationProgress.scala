@@ -3,63 +3,26 @@
 
 package observe.model.arb
 
-import lucuma.core.util.TimeSpan
-import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbTimeSpan.given
-import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
-import observe.model.ObserveStage.given
-import observe.model.*
+import observe.model.ObservationProgress
+import observe.model.StepProgress
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import org.scalacheck.Gen
 
-import ArbNsSubexposure.given
+import ArbStepProgress.given
 
 trait ArbObservationProgress:
-  given Arbitrary[ObservationProgress.Regular] =
-    Arbitrary:
-      for
-        o <- arbitrary[Observation.Id]
-        s <- arbitrary[StepId]
-        t <- arbitrary[TimeSpan]
-        r <- arbitrary[TimeSpan]
-        v <- arbitrary[ObserveStage]
-      yield ObservationProgress.Regular(o, s, t, r, v)
-
-  given Cogen[ObservationProgress.Regular] =
-    Cogen[(Observation.Id, StepId, TimeSpan, TimeSpan, ObserveStage)]
-      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage))
-
-  given Arbitrary[ObservationProgress.NodAndShuffle] =
-    Arbitrary:
-      for
-        o <- arbitrary[Observation.Id]
-        s <- arbitrary[StepId]
-        t <- arbitrary[TimeSpan]
-        r <- arbitrary[TimeSpan]
-        v <- arbitrary[ObserveStage]
-        u <- arbitrary[NsSubexposure]
-      yield ObservationProgress.NodAndShuffle(o, s, t, r, v, u)
-
-  given Cogen[ObservationProgress.NodAndShuffle] =
-    Cogen[(Observation.Id, StepId, TimeSpan, TimeSpan, ObserveStage, NsSubexposure)]
-      .contramap(x => (x.obsId, x.stepId, x.total, x.remaining, x.stage, x.sub))
-
   given Arbitrary[ObservationProgress] =
     Arbitrary:
       for
-        o <- arbitrary[ObservationProgress.Regular]
-        n <- arbitrary[ObservationProgress.NodAndShuffle]
-        p <- Gen.oneOf(o, n)
-      yield p
+        o <- arbitrary[Observation.Id]
+        s <- arbitrary[StepProgress]
+      yield ObservationProgress(o, s)
 
   given Cogen[ObservationProgress] =
-    Cogen[Either[ObservationProgress.Regular, ObservationProgress.NodAndShuffle]]
-      .contramap:
-        case x @ ObservationProgress.Regular(_, _, _, _, _)          => Left(x)
-        case x @ ObservationProgress.NodAndShuffle(_, _, _, _, _, _) => Right(x)
+    Cogen[(Observation.Id, StepProgress)]
+      .contramap(x => (x.obsId, x.stepProgress))
 
 object ArbObservationProgress extends ArbObservationProgress

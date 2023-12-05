@@ -17,7 +17,9 @@ import observe.model.Conditions
 import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator
+import observe.model.StepProgress
 import observe.model.arb.ArbExecutionState.given
+import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModelData
@@ -38,13 +40,14 @@ trait ArbRootModel:
       nto  <- arbitrary[Option[LoadedObservation]]
       dtos <- arbitrary[List[LoadedObservation]]
       se   <- arbitrary[Map[Observation.Id, ExecutionState]]
+      sp   <- arbitrary[Map[Observation.Id, StepProgress]]
       uss  <- arbitrary[Map[Observation.Id, Step.Id]]
       cs   <- arbitrary[Conditions]
       obs  <- arbitrary[Option[Observer]]
       op   <- arbitrary[Option[Operator]]
       usm  <- arbitrary[Option[NonEmptyString]]
       log  <- arbitrary[List[NonEmptyString]]
-    yield RootModelData(uv, nto, dtos, se, uss, cs, obs, op, usm, log)
+    yield RootModelData(uv, nto, dtos, se, sp, uss, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
     (
@@ -63,7 +66,7 @@ trait ArbRootModel:
     (x.userVault,
      x.nighttimeObservation,
      x.daytimeObservations,
-     x.sequenceExecution.toList,
+     x.executionState.toList,
      x.userSelectedStep.toList,
      x.conditions,
      x.observer,

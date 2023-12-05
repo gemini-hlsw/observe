@@ -10,6 +10,7 @@ import lucuma.core.model.arb.ArbUser.*
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import observe.model.ObservationProgress
 import observe.model.QueueManipulationOp.*
 import observe.model.*
 import observe.model.arb.ObserveModelArbitraries.given

@@ -6,6 +6,8 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.Encoder
 import observe.model.GmosParameters.*
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.NodAndShuffleStage.*
@@ -15,7 +17,9 @@ case class NsSubexposure private (
   cycle:       NsCycles,          // Cycle for this sub exposure
   stageIndex:  NsStageIndex,      // Nod or stage index (between 0 and 3)
   stage:       NodAndShuffleStage // Subexposure stage
-) derives Eq:
+) derives Eq,
+      Encoder.AsObject,
+      Decoder:
   val firstSubexposure: Boolean = cycle.value === 0 && stageIndex.value === 0
   val lastSubexposure: Boolean  =
     cycle.value === totalCycles.value - 1 && stageIndex.value === NodAndShuffleStage.NsSequence.length - 1

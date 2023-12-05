@@ -40,6 +40,7 @@ import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
+import observe.model.ObservationProgress
 import observe.model.StepId
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
@@ -1817,10 +1818,16 @@ object ObserveEngine {
           case SystemEvent.Aborted(id, _, _, _)                                     => Stream.emit(SequenceAborted(id, svs))
           case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
-            Stream.emit(ObservationProgressEvent(ObservationProgress.Regular(i, s, t, r.self, v)))
+            Stream.emit(
+              ObservationProgressEvent(
+                ObservationProgress(i, StepProgress.Regular(s, t, r.self, v))
+              )
+            )
           case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u)))  =>
             Stream.emit(
-              ObservationProgressEvent(ObservationProgress.NodAndShuffle(i, s, t, r.self, v, u))
+              ObservationProgressEvent(
+                ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u))
+              )
             )
           case SystemEvent.PartialResult(_, _, _, Partial(FileIdAllocated(fileId))) =>
             Stream.emit(FileIdStepExecuted(fileId, svs))

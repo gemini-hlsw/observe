@@ -21,6 +21,7 @@ import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.SequenceState
+import observe.model.StepProgress
 import observe.queries.ObsQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
@@ -85,7 +86,7 @@ object Home:
                 sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
 
         val obsStates: Map[Observation.Id, SequenceState] =
-          props.rootModel.data.get.sequenceExecution.view.mapValues(_.sequenceState).toMap
+          props.rootModel.data.get.executionState.view.mapValues(_.sequenceState).toMap
 
         val clientMode: ClientMode = props.rootModel.data.get.clientMode
 
@@ -112,14 +113,17 @@ object Home:
                 loadedObs.map(obs =>
                   val obsId = obs.obsId
 
-                  // If for some reason sequenceExecution doesn't contain info for obsId, this could be none
+                  // If for some reason executionState doesn't contain info for obsId, this could be none
                   val executionStateOpt: ViewOpt[ExecutionState] =
                     props.rootModel.data
-                      .zoom(RootModelData.sequenceExecution.index(obsId))
+                      .zoom(RootModelData.executionState.index(obsId))
 
                   (obs.unPot, executionStateOpt.toOptionView.toPot).tupled
                     .renderPot(
                       { case ((obsId, summary, config), executionState) =>
+                        val progress: Option[StepProgress] =
+                          props.rootModel.data.get.obsProgress.get(obsId)
+
                         val selectedStep: Option[Step.Id] =
                           props.rootModel.data.get.obsSelectedStep(obsId)
 
@@ -134,6 +138,7 @@ object Home:
                           summary,
                           config,
                           executionState,
+                          progress,
                           selectedStep,
                           setSelectedStep,
                           clientMode

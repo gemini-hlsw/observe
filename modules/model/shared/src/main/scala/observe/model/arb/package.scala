@@ -19,6 +19,7 @@ object all
     with ArbNsSubexposure
     with ArbGmosParameters
     with ArbNsRunningState
+    with ArbStepProgress
     with ArbObservationProgress
     with ArbUserPrompt
     with ArbLength
