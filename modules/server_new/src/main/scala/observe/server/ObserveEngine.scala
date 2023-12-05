@@ -230,7 +230,7 @@ trait ObserveEngine[F[_]] {
     observer: Observer,
     user:     User,
     stepId:   StepId,
-    sys:      Resource,
+    sys:      Resource | Instrument,
     clientID: ClientId
   ): F[Unit]
 
@@ -1260,8 +1260,9 @@ object ObserveEngine {
 //        )
 //    }
 
-    private def configSystemCheck(sid: Observation.Id, sys: Resource)(
-      st: EngineState[F]
+    private def configSystemCheck(
+      sys: Resource | Instrument,
+      st:  EngineState[F]
     ): Boolean = {
       // Resources used by running sequences
       val used = resourcesInUse(st)
@@ -1276,11 +1277,11 @@ object ObserveEngine {
     private def configSystemHandle(
       sid:      Observation.Id,
       stepId:   StepId,
-      sys:      Resource,
+      sys:      Resource | Instrument,
       clientID: ClientId
     ): HandlerType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
-        if (configSystemCheck(sid, sys)(st)) {
+        if (configSystemCheck(sys, st)) {
           st.sequences
             .get(sid)
             .flatMap(_.seqGen.configActionCoord(stepId, sys))
@@ -1304,7 +1305,7 @@ object ObserveEngine {
       observer: Observer,
       user:     User,
       stepId:   StepId,
-      sys:      Resource,
+      sys:      Resource | Instrument,
       clientID: ClientId
     ): F[Unit] = setObserver(sid, user, observer) *>
       executeEngine.offer(

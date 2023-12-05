@@ -24,8 +24,8 @@ import observe.model.enums.*
 sealed trait SeqEvent extends Product with Serializable
 
 object SeqEvent {
-  case class SetOperator(name: Operator, user: Option[User])                      extends SeqEvent
-  case class SetObserver(id: Observation.Id, user: Option[User], name: Observer)  extends SeqEvent
+  case class SetOperator(name: Operator, user: Option[User])                     extends SeqEvent
+  case class SetObserver(id: Observation.Id, user: Option[User], name: Observer) extends SeqEvent
   case class SetTcsEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
       extends SeqEvent
   case class SetGcalEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
@@ -37,29 +37,29 @@ object SeqEvent {
   ) extends SeqEvent
   case class SetDhsEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
       extends SeqEvent
-  case class SetConditions(conditions: Conditions, user: Option[User])            extends SeqEvent
-  case class LoadSequence(sid: Observation.Id)                                    extends SeqEvent
-  case class UnloadSequence(id: Observation.Id)                                   extends SeqEvent
+  case class SetConditions(conditions: Conditions, user: Option[User])           extends SeqEvent
+  case class LoadSequence(sid: Observation.Id)                                   extends SeqEvent
+  case class UnloadSequence(id: Observation.Id)                                  extends SeqEvent
   case class AddLoadedSequence(
     instrument: Instrument,
     obsId:      Observation.Id,
     user:       User,
     clientId:   ClientId
   ) extends SeqEvent
-  case class ClearLoadedSequences(user: Option[User])                             extends SeqEvent
-  case class SetImageQuality(iq: ImageQuality, user: Option[User])                extends SeqEvent
-  case class SetWaterVapor(wv: WaterVapor, user: Option[User])                    extends SeqEvent
-  case class SetSkyBackground(wv: SkyBackground, user: Option[User])              extends SeqEvent
-  case class SetCloudCover(cc: CloudExtinction, user: Option[User])               extends SeqEvent
-  case class NotifyUser(memo: Notification, clientID: ClientId)                   extends SeqEvent
-  case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)               extends SeqEvent
+  case class ClearLoadedSequences(user: Option[User])                            extends SeqEvent
+  case class SetImageQuality(iq: ImageQuality, user: Option[User])               extends SeqEvent
+  case class SetWaterVapor(wv: WaterVapor, user: Option[User])                   extends SeqEvent
+  case class SetSkyBackground(wv: SkyBackground, user: Option[User])             extends SeqEvent
+  case class SetCloudCover(cc: CloudExtinction, user: Option[User])              extends SeqEvent
+  case class NotifyUser(memo: Notification, clientID: ClientId)                  extends SeqEvent
+  case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)              extends SeqEvent
   case class StartQueue(
     qid:         QueueId,
     clientID:    ClientId,
     startedSeqs: List[(Observation.Id, StepId)]
   ) extends SeqEvent
-  case class StopQueue(qid: QueueId, clientID: ClientId)                          extends SeqEvent
-  case class UpdateQueueAdd(qid: QueueId, seqs: List[Observation.Id])             extends SeqEvent
+  case class StopQueue(qid: QueueId, clientID: ClientId)                         extends SeqEvent
+  case class UpdateQueueAdd(qid: QueueId, seqs: List[Observation.Id])            extends SeqEvent
   case class UpdateQueueRemove(
     qid:         QueueId,
     seqs:        List[Observation.Id],
@@ -68,16 +68,17 @@ object SeqEvent {
   ) extends SeqEvent
   case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
       extends SeqEvent
-  case class UpdateQueueClear(qid: QueueId)                                       extends SeqEvent
-  case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource) extends SeqEvent
-  case class Busy(obsId: Observation.Id, cid: ClientId)                           extends SeqEvent
-  case class SequenceStart(sid: Observation.Id, stepId: StepId)                   extends SeqEvent
-  case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])          extends SeqEvent
+  case class UpdateQueueClear(qid: QueueId)                                      extends SeqEvent
+  case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource | Instrument)
+      extends SeqEvent
+  case class Busy(obsId: Observation.Id, cid: ClientId)                          extends SeqEvent
+  case class SequenceStart(sid: Observation.Id, stepId: StepId)                  extends SeqEvent
+  case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])         extends SeqEvent
   case class ResourceBusy(
     obsId:    Observation.Id,
     stepId:   StepId,
-    res:      Resource,
+    res:      Resource | Instrument,
     clientID: ClientId
   ) extends SeqEvent
-  case object NullSeqEvent                                                        extends SeqEvent
+  case object NullSeqEvent                                                       extends SeqEvent
 }
