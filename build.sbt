@@ -127,7 +127,7 @@ lazy val deployedAppMappings = Seq(
 
   // The only thing we include from the base deployment app is app.conf. We remove the "conf" path.
   Compile / packageBin / mappings ~= {
-    _.filter(_._1.getName.endsWith(".conf")).map(mapping => mapping._1 -> mapping._1.getName)
+    _.filter(_._1.getName.endsWith(".conf.json")).map(mapping => mapping._1 -> mapping._1.getName)
   }
 )
 
@@ -223,7 +223,6 @@ lazy val observe_server = project
     buildInfoPackage          := "observe.server"
   )
   .dependsOn(observe_engine    % "compile->compile;test->test",
-//             ocs2_api.jvm,
              observe_model.jvm % "compile->compile;test->test"
   )
   .settings(
