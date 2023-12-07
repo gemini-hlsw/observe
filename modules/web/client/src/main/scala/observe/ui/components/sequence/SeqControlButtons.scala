@@ -43,11 +43,9 @@ object SeqControlButtons:
         InputGroup(
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            icon =
-              if (props.isRunning)
-                Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin()
-              else
-                Icons.Play.withFixedWidth().withSize(IconSize.LG),
+            loading = props.isRunning,
+            icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
+            loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
@@ -67,5 +65,19 @@ object SeqControlButtons:
               .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
             disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
           ).when(props.isRunning)
+          // Button(
+          //   clazz = ObserveStyles.AbortButton |+| ObserveStyles.ObsSummaryButton,
+          //   icon =
+          //     // TODO Overlay this if abort pending
+          //     // if (props.isRunning)
+          //     //   Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin()
+          //     // else
+          //     Icons.Pause.withFixedWidth().withSize(IconSize.LG),
+          //   tooltip = "Abort sequence",
+          //   tooltipOptions = tooltipOptions,
+          //   onClick = // props.pauseRequested.set(OperationRequest.InFlight) >>
+          //     sequenceApi.abort(props.obsId).runAsync,
+          //   // disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
+          // ).when(props.isRunning)
         )
     // TODO Cancel pause

@@ -77,34 +77,34 @@ case class SequenceApiImpl(
       Uri.Path.empty / obsId.toString / client.clientId.value / "cancelPause" / observer.toString
     )
 
-  override def stop(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def stop(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "stop" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "stop" / observer.toString
     )
 
-  override def stopGracefully(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def stopGracefully(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "stopGracefully" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "stopGracefully" / observer.toString
     )
 
-  override def abort(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def abort(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "abort" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "abort" / observer.toString
     )
 
-  override def pauseObs(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def pauseObs(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "pauseObs" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "pauseObs" / observer.toString
     )
 
-  override def pauseObsGracefully(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def pauseObsGracefully(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "pauseObsGracefully" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "pauseObsGracefully" / observer.toString
     )
 
-  override def resumeObs(obsId: Observation.Id, stepId: Step.Id): IO[Unit] =
+  override def resumeObs(obsId: Observation.Id): IO[Unit] =
     client.postNoData(
-      Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "resumeObs" / observer.toString
+      Uri.Path.empty / obsId.toString / client.clientId.value / "resumeObs" / observer.toString
     )
 
   override def execute(
