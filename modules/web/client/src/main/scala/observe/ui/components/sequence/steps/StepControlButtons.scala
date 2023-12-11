@@ -19,9 +19,9 @@ import observe.model.operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.DefaultTooltipOptions
+import observe.ui.model.AppContext
 import observe.ui.model.SequenceOperations
 import observe.ui.services.SequenceApi
-import observe.ui.model.AppContext
 
 /**
  * Contains a set of control buttons like stop/abort

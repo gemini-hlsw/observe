@@ -3,14 +3,11 @@
 
 package observe.ui.components
 
-import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.*
-import crystal.react.hooks.*
 import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
@@ -22,8 +19,6 @@ import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.SequenceState
 import observe.model.StepProgress
-import observe.queries.ObsQueriesGQL
-import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
 import observe.ui.model.AppContext
@@ -44,41 +39,17 @@ object Home:
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useStreamResourceOnMountBy: (props, ctx) =>
-        import ctx.given
-
-        ObsQueriesGQL
-          .ActiveObservationIdsQuery[IO]
-          .query()
-          .map(
-            _.observations.matches.map(obs =>
-              SessionQueueRow(
-                obs.id,
-                SequenceState.Idle,
-                obs.instrument.getOrElse(Instrument.Visitor),
-                obs.title.some,
-                props.rootModel.data.get.observer,
-                obs.subtitle.map(_.value).orEmpty,
-                ObsClass.Nighttime,
-                // obs.activeStatus === ObsActiveStatus.Active,
-                false,
-                none,
-                none,
-                false
-              )
-            )
-          )
-          .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
       .useContext(SequenceApi.ctx)
-      .render: (props, ctx, observations, sequenceApi) =>
+      .render: (props, ctx, sequenceApi) =>
         import ctx.given
 
-        val loadedObs: Option[LoadedObservation] =
-          props.rootModel.data.get.nighttimeObservation
+        val rootModelData: RootModelData = props.rootModel.data.get
+
+        val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
 
         val loadObservation: Observation.Id => Callback = obsId =>
-          observations.toOption
-            .flatMap(_.find(_.obsId === obsId))
+          rootModelData.readyObservationsMap
+            .get(obsId)
             .foldMap: obsRow =>
               props.rootModel.data
                 .zoom(RootModelData.nighttimeObservation)
@@ -86,11 +57,11 @@ object Home:
                 sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
 
         val obsStates: Map[Observation.Id, SequenceState] =
-          props.rootModel.data.get.executionState.view.mapValues(_.sequenceState).toMap
+          rootModelData.executionState.view.mapValues(_.sequenceState).toMap
 
-        val clientMode: ClientMode = props.rootModel.data.get.clientMode
+        val clientMode: ClientMode = rootModelData.clientMode
 
-        props.rootModel.data.get.userVault.map: userVault =>
+        rootModelData.userVault.map: userVault =>
           <.div(ObserveStyles.MainPanel)(
             Splitter(
               layout = Layout.Vertical,
@@ -99,11 +70,24 @@ object Home:
               clazz = ObserveStyles.Shrinkable
             )(
               SplitterPanel(clazz = ObserveStyles.TopPanel)(
-                observations.toPot
-                  .map(_.filter(_.obsClass == ObsClass.Nighttime))
+                rootModelData.readyObservations
+                  .map(
+                    _.map(obs =>
+                      SessionQueueRow(
+                        obs,
+                        SequenceState.Idle,
+                        props.rootModel.data.get.observer,
+                        ObsClass.Nighttime,
+                        false, // obs.activeStatus === ObsActiveStatus.Active,
+                        none,
+                        none,
+                        false
+                      )
+                    )
+                  )
                   .renderPot(SessionQueue(_, obsStates, loadedObs, loadObservation)),
                 ConfigPanel(
-                  props.rootModel.data.get.nighttimeObservation.map(_.obsId),
+                  rootModelData.nighttimeObservation.map(_.obsId),
                   props.rootModel.data.zoom(RootModelData.observer),
                   props.rootModel.data.zoom(RootModelData.operator),
                   props.rootModel.data.zoom(RootModelData.conditions)
@@ -111,21 +95,22 @@ object Home:
               ),
               SplitterPanel()(
                 loadedObs.map(obs =>
-                  val obsId = obs.obsId
+                  val obsId: Observation.Id = obs.obsId
 
                   // If for some reason executionState doesn't contain info for obsId, this could be none
                   val executionStateOpt: ViewOpt[ExecutionState] =
                     props.rootModel.data
                       .zoom(RootModelData.executionState.index(obsId))
 
-                  (obs.unPot, executionStateOpt.toOptionView.toPot).tupled
+                  (rootModelData.readyObservationsMap.get(obsId).toPot,
+                   obs.config,
+                   executionStateOpt.toOptionView.toPot
+                  ).tupled
                     .renderPot(
-                      { case ((obsId, summary, config), executionState) =>
-                        val progress: Option[StepProgress] =
-                          props.rootModel.data.get.obsProgress.get(obsId)
+                      { case (summary, config, executionState) =>
+                        val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
 
-                        val selectedStep: Option[Step.Id] =
-                          props.rootModel.data.get.obsSelectedStep(obsId)
+                        val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
 
                         val setSelectedStep: Step.Id => Callback = stepId =>
                           props.rootModel.data
@@ -134,7 +119,6 @@ object Home:
                               if (oldStepId.contains_(stepId)) none else stepId.some
 
                         ObservationSequence(
-                          obsId,
                           summary,
                           config,
                           executionState,

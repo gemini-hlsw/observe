@@ -12,7 +12,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.odb.SequenceSQL
 import lucuma.ui.reusability.given
-import observe.queries.ObsQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
@@ -35,18 +34,18 @@ object ObservationSyncer:
           _.map: obsId =>
             import ctx.given
 
-            val fetchSummary =
-              ObsQueriesGQL
-                .ObservationSummary[IO]
-                .query(obsId)
-                .map(_.observation)
-                .attempt
-                .map:
-                  _.flatMap:
-                    _.toRight:
-                      Exception(s"Observation [$obsId] not found")
-                .flatTap: obs =>
-                  props.nighttimeObservation.async.mod(_.map(_.withSummary(obs)))
+            // val fetchSummary =
+            //   ObsQueriesGQL
+            //     .ObservationSummary[IO]
+            //     .query(obsId)
+            //     .map(_.observation)
+            //     .attempt
+            //     .map:
+            //       _.flatMap:
+            //         _.toRight:
+            //           Exception(s"Observation [$obsId] not found")
+            //     .flatTap: obs =>
+            //       props.nighttimeObservation.async.mod(_.map(_.withSummary(obs)))
 
             // TODO We will have to requery under certain conditions:
             // - After step is executed/paused/aborted.
@@ -67,7 +66,8 @@ object ObservationSyncer:
                 .flatTap: config =>
                   props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-            (fetchSummary, fetchSequence).parTupled.void
+            fetchSequence.void
+            // (fetchSummary, fetchSequence).parTupled.void
             // TODO Breakpoint initialization should happen in the server, not here.
             // Leaving the code commented here until we move it to the server.
             // >>= ((_, configEither) =>

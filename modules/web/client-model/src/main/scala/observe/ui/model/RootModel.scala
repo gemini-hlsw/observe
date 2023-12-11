@@ -25,6 +25,8 @@ import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Option[UserVault],
+  readyObservations:    Pot[List[ObsSummary]],
+  selectedObservation:  Option[Observation.Id],
   nighttimeObservation: Option[LoadedObservation],
   daytimeObservations:  List[LoadedObservation],
   executionState:       Map[Observation.Id, ExecutionState],
@@ -42,6 +44,15 @@ case class RootModelData(
 
   val isUserLogged: Boolean = userVault.isDefined
 
+  lazy val readyObservationsMap: Map[Observation.Id, ObsSummary] =
+    readyObservations.toOption.orEmpty.map(o => o.obsId -> o).toMap
+
+  lazy val nighttimeDisplayedObservation: Option[ObsSummary] =
+    nighttimeObservation
+      .map(_.obsId)
+      .orElse(selectedObservation)
+      .flatMap(readyObservationsMap.get)
+
   def isObsLocked(obsId: Observation.Id): Boolean =
     executionState.get(obsId).exists(_.isLocked)
 
@@ -53,6 +64,8 @@ object RootModelData:
     val vault: Option[UserVault] = userVault.toOption.flatten
     RootModelData(
       userVault = vault,
+      readyObservations = Pot.pending,
+      selectedObservation = none,
       nighttimeObservation = none,
       daytimeObservations = List.empty,
       executionState = Map.empty,
@@ -68,6 +81,8 @@ object RootModelData:
     )
 
   val userVault: Lens[RootModelData, Option[UserVault]]                        = Focus[RootModelData](_.userVault)
+  val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]            =
+    Focus[RootModelData](_.readyObservations)
   val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]     =
     Focus[RootModelData](_.nighttimeObservation)
   val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]        =

@@ -35,7 +35,7 @@ case class SessionQueue(
   loadedObs: Option[LoadedObservation],
   loadObs:   Observation.Id => Callback
 ) extends ReactFnProps(SessionQueue.component):
-  val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(_.unPot.map(_._1))
+  val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>
@@ -217,13 +217,14 @@ object SessionQueue:
     ),
     ColDef(
       TargetColumnId,
-      _.targetName,
+      _.title,
       header = "Target",
-      cell = linked(_.value.getOrElse(UnknownTargetName))
+      cell = linked(_.value.toString)
+      // cell = linked(_.value.getOrElse(UnknownTargetName))
     ),
     ColDef(
       ObsNameColumnId,
-      _.name,
+      _.subtitle,
       header = "Obs. Name",
       cell = linked(_.value.toString)
     ),
@@ -262,7 +263,11 @@ object SessionQueue:
             tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
             rowMod = row =>
               TagMod(
-                rowClass(props.obsIdPotOpt.map(_.void), row.original, props.loadedObs.map(_.obsId))
+                rowClass(
+                  props.obsIdPotOpt.map(_.void),
+                  row.original,
+                  props.loadedObs.map(_.obsId)
+                )
               ),
             cellMod = cell =>
               ColumnId(cell.column.id) match

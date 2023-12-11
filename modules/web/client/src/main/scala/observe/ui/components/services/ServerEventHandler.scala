@@ -69,7 +69,8 @@ trait ServerEventHandler:
             .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.
               if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
-              else obs
+              else
+                obs
             ) >>
           syncStatus.async.set(SyncStatus.Synced.some) >>
           configApiStatus.async.set(ApiStatus.Idle)

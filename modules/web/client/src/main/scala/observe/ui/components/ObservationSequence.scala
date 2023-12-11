@@ -33,7 +33,6 @@ import scala.collection.immutable.SortedMap
 import sequence.ObsHeader
 
 case class ObservationSequence(
-  obsId:           Observation.Id,
   summary:         ObsSummary,
   config:          InstrumentExecutionConfig,
   executionState:  View[ExecutionState],
@@ -41,7 +40,8 @@ case class ObservationSequence(
   selectedStep:    Option[Step.Id],
   setSelectedStep: Step.Id => Callback,
   clientMode:      ClientMode
-) extends ReactFnProps(ObservationSequence.component)
+) extends ReactFnProps(ObservationSequence.component):
+  val obsId: Observation.Id = summary.obsId
 
 object ObservationSequence:
   private type Props = ObservationSequence

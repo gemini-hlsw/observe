@@ -6,6 +6,7 @@ package observe.queries
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
+import observe.ui.model.ObsSummary
 // import lucuma.core.enums.Site
 // import io.circe.{Decoder, Encoder}
 // import io.circe.generic.auto.*
@@ -16,26 +17,20 @@ import lucuma.schemas.ObservationDB
 // import lucuma.core.model.sequence.{Atom, ExecutionSequence, Step}
 // import lucuma.core.model.sequence.gmos.{DynamicConfig, GmosGratingConfig, StaticConfig}
 
-// gql: import io.circe.refined.*
-
 object ObsQueriesGQL {
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
-    val document = """
+    val document = s"""
       query {
         observations(WHERE: { status: { EQ: READY } }) {
-          matches {
-            id
-            title
-            subtitle
-            status
-            activeStatus
-            instrument
-          }
+          matches $ObservationSummarySubquery
         }
       }
     """
+
+    object Observations:
+      type Matches = ObsSummary
   }
 
   @GraphQL
@@ -49,12 +44,12 @@ object ObsQueriesGQL {
     """
   }
 
-  @GraphQL
-  trait ObservationSummary extends GraphQLOperation[ObservationDB] {
-    val document = s"""
-      query($$obsId: ObservationId!) {
-        observation(observationId: $$obsId) $ObservationSummarySubquery
-      }
-    """
-  }
+  // @GraphQL
+  // trait ObservationSummary extends GraphQLOperation[ObservationDB] {
+  //   val document = s"""
+  //     query($$obsId: ObservationId!) {
+  //       observation(observationId: $$obsId) $ObservationSummarySubquery
+  //     }
+  //   """
+  // }
 }

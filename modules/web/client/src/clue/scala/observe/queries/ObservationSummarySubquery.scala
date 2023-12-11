@@ -17,6 +17,8 @@ object ObservationSummarySubquery
         {
           id
           title
+          subtitle
+          instrument
           visualizationTime
           posAngleConstraint $PosAngleConstraintSubquery
           constraintSet $ConstraintSetSubquery

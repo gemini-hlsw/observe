@@ -7,24 +7,19 @@ import cats.syntax.all.*
 import crystal.Pot
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
-import monocle.Focus
-import monocle.Lens
 
 case class LoadedObservation private (
-  obsId:   Observation.Id,
-  summary: Pot[ObsSummary] = Pot.pending,
-  config:  Pot[InstrumentExecutionConfig] = Pot.pending
+  // summary: ObsSummary,
+  obsId:  Observation.Id,
+  config: Pot[InstrumentExecutionConfig] = Pot.pending
 ):
-  def withSummary(summary: Either[Throwable, ObsSummary]): LoadedObservation =
-    copy(summary = Pot.fromTry(summary.toTry))
+  // export summary.obsId
 
   def withConfig(config: Either[Throwable, Option[InstrumentExecutionConfig]]): LoadedObservation =
     copy(config = Pot.fromTry(config.map(Pot.fromOption).toTry).flatten)
 
-  def unPot: Pot[(Observation.Id, ObsSummary, InstrumentExecutionConfig)] =
-    (summary, config).mapN((s, c) => (obsId, s, c))
+  // def unPot: Pot[(Observation.Id, InstrumentExecutionConfig)] =
+  //   config.map(c => (obsId, c))
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
-
-  val id: Lens[LoadedObservation, Observation.Id] = Focus[LoadedObservation](_.obsId)
