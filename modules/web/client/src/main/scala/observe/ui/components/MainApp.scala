@@ -274,7 +274,6 @@ object MainApp extends ServerEventHandler:
             .drain
             .start
             .map(_.cancel) // Previous fiber is cancelled when effect is re-run
-      // .useStreamResourceOnMountBy: (props, ctx) =>
       .useAsyncEffectWhenDepsReady((_, _, _, _, ctxPot, rootModelDataPot, _, _, odbStatus, _, _) =>
         (rootModelDataPot.toPotView,
          ctxPot,

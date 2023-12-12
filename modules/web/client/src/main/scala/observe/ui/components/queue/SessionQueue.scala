@@ -219,8 +219,7 @@ object SessionQueue:
       TargetColumnId,
       _.title,
       header = "Target",
-      cell = linked(_.value.toString)
-      // cell = linked(_.value.getOrElse(UnknownTargetName))
+      cell = linked(_.value.toString.some.filter(_.nonEmpty).getOrElse(UnknownTargetName))
     ),
     ColDef(
       ObsNameColumnId,

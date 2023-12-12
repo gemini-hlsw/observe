@@ -71,8 +71,6 @@ object StepControlButtons:
       // p.connect { proxy =>
       // val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
 
-      println(s"reading out: ${props.isReadingOut}")
-
       InputGroup(ObserveStyles.ControlButtonStrip)(
         // ObserveStyles.notInMobile,
         props.operations

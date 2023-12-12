@@ -47,7 +47,6 @@ object operations:
       isObservePaused: Boolean,
       isMultiLevel:    Boolean
     ): List[Operations] =
-      println(s"QUERYING $level, $isObservePaused, $isMultiLevel")
       level match
         case Observation =>
           if (isMultiLevel)
