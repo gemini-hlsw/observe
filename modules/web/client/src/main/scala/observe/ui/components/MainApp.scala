@@ -61,13 +61,16 @@ import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.client.middleware.Retry
 import org.http4s.client.middleware.RetryPolicy
+import org.http4s.client.websocket.WSConnectionHighLevel
 import org.http4s.client.websocket.WSFrame
 import org.http4s.client.websocket.WSRequest
+import org.http4s.client.websocket.middleware.Reconnect
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.dom.WebSocketClient
 import org.http4s.syntax.all.*
 import org.scalajs.dom
 import org.typelevel.log4cats.Logger
+import retry.*
 import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
@@ -110,8 +113,13 @@ object MainApp extends ServerEventHandler:
         ).some
 
   // Only idempotent requests are retried
-  private val FetchRetryPolicy =
+  private val FetchRetryPolicy = // http4s-client middleware
     RetryPolicy[IO](RetryPolicy.exponentialBackoff(15.seconds, Int.MaxValue))
+
+  private val WSRetryPolicy = // cats-retry
+    RetryPolicies
+      .limitRetries[Resource[IO, _]](10)
+      .join(RetryPolicies.exponentialBackoff[Resource[IO, _]](10.milliseconds))
 
   // Build regular HTTP client
   private val fetchClient: Client[IO] =
@@ -239,11 +247,20 @@ object MainApp extends ServerEventHandler:
       .useStreamBy((_, _, _, _, ctxPot, _, _, _) => ctxPot.void): (_, _, _, _, ctxPot, _, _, _) =>
         _ => ctxPot.map(_.odbClient).toOption.foldMap(_.statusStream)
       .useResourceBy((_, _, _, _, _, _, _, _, odbStatus) => odbStatus):
-        (_, _, _, _, _, _, _, _, _) =>
-          case PotOption.ReadySome(PersistentClientStatus.Initialized) =>
-            // Reconnect(WebSocketClient[IO]).connectHighLevel(WSRequest(EventWsUri))
-            WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)).map(_.some)
-          case _                                                       => Resource.pure(none)
+        (_, _, syncStatus, _, ctxPot, _, _, _, _) =>
+          odbStatus =>
+            (ctxPot, odbStatus) match
+              case (Pot.Ready(ctx), PotOption.ReadySome(PersistentClientStatus.Initialized)) =>
+                import ctx.given
+
+                Reconnect(
+                  retryingOnAllErrors[WSConnectionHighLevel[IO]](
+                    policy = WSRetryPolicy,
+                    onError = (_: Throwable, _) =>
+                      syncStatus.async.set(SyncStatus.OutOfSync.some).toResource
+                  )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)))
+                ).map(_.some)
+              case _                                                                         => Resource.pure(none)
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
         (_, _, syncStatus, singleDispatcher, _, _, _, apiClientOpt, _, _) =>

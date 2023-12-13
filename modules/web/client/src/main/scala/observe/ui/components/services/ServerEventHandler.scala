@@ -74,8 +74,7 @@ trait ServerEventHandler:
           syncStatus.async.set(SyncStatus.Synced.some) >>
           configApiStatus.async.set(ApiStatus.Idle)
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))   =>
-        IO.println(s"PROGRESS! $stepProgress") >>
-          asyncRootModel.zoom(RootModelData.obsProgress.at(obsId)).set(stepProgress.some)
+        asyncRootModel.zoom(RootModelData.obsProgress.at(obsId)).set(stepProgress.some)
 
   protected def processStreamError(
     rootModelData: View[RootModelData]
