@@ -13,7 +13,6 @@ import observe.ui.model.ObsSummary
 import observe.ui.model.enums.OperationRequest
 
 case class ObsHeader(
-  obsId:          Observation.Id,
   observation:    ObsSummary,
   isRunning:      Boolean,
   pauseRequested: ViewOpt[OperationRequest]
@@ -26,8 +25,8 @@ object ObsHeader:
     ScalaFnComponent[Props]: props =>
       <.div(ObserveStyles.ObsSummary)(
         <.div(ObserveStyles.ObsSummaryTitle)(
-          SeqControlButtons(props.obsId, props.isRunning, props.pauseRequested),
-          s"${props.observation.title} [${props.obsId}]"
+          SeqControlButtons(props.observation.obsId, props.isRunning, props.pauseRequested),
+          s"${props.observation.title} [${props.observation.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
           <.span(props.observation.configurationSummary),

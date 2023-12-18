@@ -29,6 +29,8 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
+import observe.ui.components.sequence.ObsHeader
+import observe.ui.model.enums.OperationRequest
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
 
@@ -94,46 +96,92 @@ object Home:
                 )
               ),
               SplitterPanel()(
-                loadedObs.map(obs =>
-                  val obsId: Observation.Id = obs.obsId
+                rootModelData.selectedObservation
+                  .flatMap(rootModelData.readyObservationsMap.get)
+                  .map: selectedObs =>
+                    val obsId = selectedObs.obsId
 
-                  // If for some reason executionState doesn't contain info for obsId, this could be none
-                  val executionStateOpt: ViewOpt[ExecutionState] =
-                    props.rootModel.data
-                      .zoom(RootModelData.executionState.index(obsId))
+                    val executionStateOpt: ViewOpt[ExecutionState] =
+                      props.rootModel.data
+                        .zoom(RootModelData.executionState.index(obsId))
 
-                  (rootModelData.readyObservationsMap.get(obsId).toPot,
-                   obs.config,
-                   executionStateOpt.toOptionView.toPot
-                  ).tupled
-                    .renderPot(
-                      { case (summary, config, executionState) =>
-                        val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
+                    <.div(ObserveStyles.ObservationArea, ^.key := obsId.toString)(
+                      ObsHeader(
+                        selectedObs,
+                        executionStateOpt.get.exists(_.sequenceState.isRunning),
+                        executionStateOpt.zoom(OperationRequest.PauseState)
+                      ),
+                      loadedObs.map(loadedObs =>
+                        loadedObs.config.renderPot( config =>
+                          val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
 
-                        val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
+                                val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
 
-                        val setSelectedStep: Step.Id => Callback = stepId =>
-                          props.rootModel.data
-                            .zoom(RootModelData.userSelectedStep.at(obsId))
-                            .mod: oldStepId =>
-                              if (oldStepId.contains_(stepId)) none else stepId.some
+                                val setSelectedStep: Step.Id => Callback = stepId =>
+                                  props.rootModel.data
+                                    .zoom(RootModelData.userSelectedStep.at(obsId))
+                                    .mod: oldStepId =>
+                                      if (oldStepId.contains_(stepId)) none else stepId.some
 
-                        ObservationSequence(
-                          summary,
-                          config,
-                          executionState,
-                          progress,
-                          selectedStep,
-                          setSelectedStep,
-                          clientMode
-                        )
-                      },
-                      errorRender = t =>
-                        <.div(ObserveStyles.ObservationAreaError)(
-                          DefaultErrorRender(t)
-                        )
+                                ObservationSequence(
+                                  summary,
+                                  config,
+                                  executionState,
+                                  progress,
+                                  selectedStep,
+                                  setSelectedStep,
+                                  clientMode
+                                )
+                              },
+                              errorRender = t =>
+                                <.div(ObserveStyles.ObservationAreaError)(
+                                  DefaultErrorRender(t)
+                                )
+                            )
+
+                      //   loadedObs.map(obs =>
+                      //     val obsId: Observation.Id = obs.obsId
+
+                      //     // If for some reason executionState doesn't contain info for obsId, this could be none
+                      //     val executionStateOpt: ViewOpt[ExecutionState] =
+                      //       props.rootModel.data
+                      //         .zoom(RootModelData.executionState.index(obsId))
+
+                      //     (rootModelData.readyObservationsMap.get(obsId).toPot,
+                      //      obs.config,
+                      //      executionStateOpt.toOptionView.toPot
+                      //     ).tupled
+                      //       .renderPot(
+                      //         { case (summary, config, executionState) =>
+                      //           val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
+
+                      //           val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
+
+                      //           val setSelectedStep: Step.Id => Callback = stepId =>
+                      //             props.rootModel.data
+                      //               .zoom(RootModelData.userSelectedStep.at(obsId))
+                      //               .mod: oldStepId =>
+                      //                 if (oldStepId.contains_(stepId)) none else stepId.some
+
+                      //           ObservationSequence(
+                      //             summary,
+                      //             config,
+                      //             executionState,
+                      //             progress,
+                      //             selectedStep,
+                      //             setSelectedStep,
+                      //             clientMode
+                      //           )
+                      //         },
+                      //         errorRender = t =>
+                      //           <.div(ObserveStyles.ObservationAreaError)(
+                      //             DefaultErrorRender(t)
+                      //           )
+                      //       )
+                      //   )
+                      // )
+                      )
                     )
-                )
               )
             ),
             Accordion(tabs =
