@@ -7,6 +7,8 @@ import cats.syntax.all.*
 import crystal.Pot
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import monocle.Focus
+import monocle.Lens
 
 case class LoadedObservation private (
   obsId:  Observation.Id,
@@ -17,3 +19,7 @@ case class LoadedObservation private (
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
+
+  val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
+  val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
+    Focus[LoadedObservation](_.config)

@@ -4,6 +4,7 @@
 package observe.ui.components
 
 import cats.syntax.all.*
+import crystal.Pot
 import crystal.react.*
 import crystal.syntax.*
 import japgolly.scalajs.react.*
@@ -21,6 +22,7 @@ import observe.model.SequenceState
 import observe.model.StepProgress
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
+import observe.ui.components.sequence.ObsHeader
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModel
@@ -28,9 +30,8 @@ import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
-import observe.ui.services.SequenceApi
-import observe.ui.components.sequence.ObsHeader
 import observe.ui.model.enums.OperationRequest
+import observe.ui.services.SequenceApi
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
 
@@ -48,6 +49,12 @@ object Home:
         val rootModelData: RootModelData = props.rootModel.data.get
 
         val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
+
+        val selectObservation: Observation.Id => Callback =
+          obsId =>
+            props.rootModel.data
+              .zoom(RootModelData.selectedObservation)
+              .set(obsId.some)
 
         val loadObservation: Observation.Id => Callback = obsId =>
           rootModelData.readyObservationsMap
@@ -87,7 +94,9 @@ object Home:
                       )
                     )
                   )
-                  .renderPot(SessionQueue(_, obsStates, loadedObs, loadObservation)),
+                  .renderPot(
+                    SessionQueue(_, obsStates, selectObservation, loadedObs, loadObservation)
+                  ),
                 ConfigPanel(
                   rootModelData.nighttimeObservation.map(_.obsId),
                   props.rootModel.data.zoom(RootModelData.observer),
@@ -96,8 +105,7 @@ object Home:
                 )
               ),
               SplitterPanel()(
-                rootModelData.selectedObservation
-                  .flatMap(rootModelData.readyObservationsMap.get)
+                rootModelData.nighttimeDisplayedObservation
                   .map: selectedObs =>
                     val obsId = selectedObs.obsId
 
@@ -105,81 +113,51 @@ object Home:
                       props.rootModel.data
                         .zoom(RootModelData.executionState.index(obsId))
 
+                    val executionStateAndConfig: Option[
+                      Pot[(Observation.Id, InstrumentExecutionConfig, View[ExecutionState])]
+                    ] =
+                      loadedObs.map(lo =>
+                        (lo.obsId.ready, lo.config, executionStateOpt.toOptionView.toPot).tupled
+                      )
+
                     <.div(ObserveStyles.ObservationArea, ^.key := obsId.toString)(
                       ObsHeader(
                         selectedObs,
+                        executionStateAndConfig.map(_.map(_._1)),
+                        loadObservation,
                         executionStateOpt.get.exists(_.sequenceState.isRunning),
                         executionStateOpt.zoom(OperationRequest.PauseState)
                       ),
-                      loadedObs.map(loadedObs =>
-                        loadedObs.config.renderPot( config =>
-                          val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
+                      executionStateAndConfig.map(
+                        _.renderPot(
+                          { (obsId, config, executionState) =>
+                            val progress: Option[StepProgress] =
+                              rootModelData.obsProgress.get(obsId)
 
-                                val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
+                            val selectedStep: Option[Step.Id] =
+                              rootModelData.obsSelectedStep(obsId)
 
-                                val setSelectedStep: Step.Id => Callback = stepId =>
-                                  props.rootModel.data
-                                    .zoom(RootModelData.userSelectedStep.at(obsId))
-                                    .mod: oldStepId =>
-                                      if (oldStepId.contains_(stepId)) none else stepId.some
+                            val setSelectedStep: Step.Id => Callback = stepId =>
+                              props.rootModel.data
+                                .zoom(RootModelData.userSelectedStep.at(obsId))
+                                .mod: oldStepId =>
+                                  if (oldStepId.contains_(stepId)) none else stepId.some
 
-                                ObservationSequence(
-                                  summary,
-                                  config,
-                                  executionState,
-                                  progress,
-                                  selectedStep,
-                                  setSelectedStep,
-                                  clientMode
-                                )
-                              },
-                              errorRender = t =>
-                                <.div(ObserveStyles.ObservationAreaError)(
-                                  DefaultErrorRender(t)
-                                )
+                            ObservationSequence(
+                              obsId,
+                              config,
+                              executionState,
+                              progress,
+                              selectedStep,
+                              setSelectedStep,
+                              clientMode
                             )
-
-                      //   loadedObs.map(obs =>
-                      //     val obsId: Observation.Id = obs.obsId
-
-                      //     // If for some reason executionState doesn't contain info for obsId, this could be none
-                      //     val executionStateOpt: ViewOpt[ExecutionState] =
-                      //       props.rootModel.data
-                      //         .zoom(RootModelData.executionState.index(obsId))
-
-                      //     (rootModelData.readyObservationsMap.get(obsId).toPot,
-                      //      obs.config,
-                      //      executionStateOpt.toOptionView.toPot
-                      //     ).tupled
-                      //       .renderPot(
-                      //         { case (summary, config, executionState) =>
-                      //           val progress: Option[StepProgress] = rootModelData.obsProgress.get(obsId)
-
-                      //           val selectedStep: Option[Step.Id] = rootModelData.obsSelectedStep(obsId)
-
-                      //           val setSelectedStep: Step.Id => Callback = stepId =>
-                      //             props.rootModel.data
-                      //               .zoom(RootModelData.userSelectedStep.at(obsId))
-                      //               .mod: oldStepId =>
-                      //                 if (oldStepId.contains_(stepId)) none else stepId.some
-
-                      //           ObservationSequence(
-                      //             summary,
-                      //             config,
-                      //             executionState,
-                      //             progress,
-                      //             selectedStep,
-                      //             setSelectedStep,
-                      //             clientMode
-                      //           )
-                      //         },
-                      //         errorRender = t =>
-                      //           <.div(ObserveStyles.ObservationAreaError)(
-                      //             DefaultErrorRender(t)
-                      //           )
-                      //       )
-                      //   )
-                      // )
+                          },
+                          errorRender = t =>
+                            <.div(ObserveStyles.ObservationAreaError)(
+                              DefaultErrorRender(t)
+                            )
+                        )
                       )
                     )
               )

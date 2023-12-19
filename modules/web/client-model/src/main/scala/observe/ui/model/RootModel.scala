@@ -83,6 +83,8 @@ object RootModelData:
   val userVault: Lens[RootModelData, Option[UserVault]]                        = Focus[RootModelData](_.userVault)
   val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]            =
     Focus[RootModelData](_.readyObservations)
+  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]         =
+    Focus[RootModelData](_.selectedObservation)
   val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]     =
     Focus[RootModelData](_.nighttimeObservation)
   val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]        =

@@ -17,31 +17,25 @@ import lucuma.react.common.given
 import observe.model.ExecutionState
 import observe.model.StepProgress
 import observe.model.given
-import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTables
 import observe.ui.components.sequence.GmosSouthSequenceTables
 import observe.ui.model.AppContext
-import observe.ui.model.ObsSummary
 import observe.ui.model.SequenceOperations
 import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
-import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
 
-import sequence.ObsHeader
-
 case class ObservationSequence(
-  summary:         ObsSummary,
+  obsId:           Observation.Id,
   config:          InstrumentExecutionConfig,
   executionState:  View[ExecutionState],
   progress:        Option[StepProgress],
   selectedStep:    Option[Step.Id],
   setSelectedStep: Step.Id => Callback,
   clientMode:      ClientMode
-) extends ReactFnProps(ObservationSequence.component):
-  val obsId: Observation.Id = summary.obsId
+) extends ReactFnProps(ObservationSequence.component)
 
 object ObservationSequence:
   private type Props = ObservationSequence
@@ -75,13 +69,6 @@ object ObservationSequence:
                 }.toList.flatten)
                 .orEmpty
             )
-
-        // <.div(ObserveStyles.ObservationArea, ^.key := props.obsId.toString)(
-        //   ObsHeader(
-        //     props.summary,
-        //     props.executionState.get.sequenceState.isRunning,
-        //     props.executionState.zoom(OperationRequest.PauseState)
-        //   ),
 
       props.config match
         case InstrumentExecutionConfig.GmosNorth(config) =>

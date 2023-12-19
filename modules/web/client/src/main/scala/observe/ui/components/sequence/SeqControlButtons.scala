@@ -4,6 +4,8 @@
 package observe.ui.components.sequence
 
 import cats.syntax.all.*
+import crystal.Pot
+import crystal.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -22,6 +24,8 @@ import observe.ui.services.SequenceApi
 
 case class SeqControlButtons(
   obsId:          Observation.Id,
+  loadedObsId:    Option[Pot[Observation.Id]],
+  loadObs:        Observation.Id => Callback,
   isRunning:      Boolean,
   pauseRequested: ViewOpt[OperationRequest]
 ) extends ReactFnProps(SeqControlButtons.component)
@@ -40,7 +44,19 @@ object SeqControlButtons:
       .render: (props, ctx, sequenceApi) =>
         import ctx.given
 
+        val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
+
         InputGroup(
+          Button(
+            clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
+            loading = props.loadedObsId.exists(_.isPending),
+            icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
+            loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
+            tooltip = "Load sequence",
+            tooltipOptions = tooltipOptions,
+            onClick = props.loadObs(props.obsId),
+            disabled = props.loadedObsId.exists(!_.isReady)
+          ).when(!selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             loading = props.isRunning,
@@ -50,7 +66,7 @@ object SeqControlButtons:
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
             disabled = props.isRunning
-          ),
+          ).when(selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
             icon =
@@ -64,6 +80,6 @@ object SeqControlButtons:
             onClick = props.pauseRequested
               .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
             disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
-          ).when(props.isRunning)
+          ).when(selectedObsIsLoaded && props.isRunning)
         )
     // TODO Cancel pause
