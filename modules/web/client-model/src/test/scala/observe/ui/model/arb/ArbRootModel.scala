@@ -32,6 +32,8 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+import observe.ui.model.ObservationRequests
+import ArbObservationRequests.given
 
 trait ArbRootModel:
   // Make sure a known Observation.Id is generated somewhere.
@@ -48,12 +50,13 @@ trait ArbRootModel:
       se   <- arbitrary[Map[Observation.Id, ExecutionState]]
       sp   <- arbitrary[Map[Observation.Id, StepProgress]]
       uss  <- arbitrary[Map[Observation.Id, Step.Id]]
+      or   <- arbitrary[Map[Observation.Id, ObservationRequests]]
       cs   <- arbitrary[Conditions]
       obs  <- arbitrary[Option[Observer]]
       op   <- arbitrary[Option[Operator]]
       usm  <- arbitrary[Option[NonEmptyString]]
       log  <- arbitrary[List[NonEmptyString]]
-    yield RootModelData(uv, ros, so, nto, dtos, se, sp, uss, cs, obs, op, usm, log)
+    yield RootModelData(uv, ros, so, nto, dtos, se, sp, uss, or, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
     (
@@ -63,7 +66,9 @@ trait ArbRootModel:
       Option[LoadedObservation],
       List[LoadedObservation],
       List[(Observation.Id, ExecutionState)],
+      List[(Observation.Id, StepProgress)],
       List[(Observation.Id, Step.Id)],
+      List[(Observation.Id, ObservationRequests)],
       Conditions,
       Option[Observer],
       Option[Operator],
@@ -77,7 +82,9 @@ trait ArbRootModel:
      x.nighttimeObservation,
      x.daytimeObservations,
      x.executionState.toList,
+     x.obsProgress.toList,
      x.userSelectedStep.toList,
+     x.obsRequests.toList,
      x.conditions,
      x.observer,
      x.operator,

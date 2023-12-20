@@ -29,11 +29,11 @@ import observe.model.StepProgress
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
-import observe.ui.model.SequenceOperations
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 
 import scalajs.js
+import observe.ui.model.ObservationRequests
 
 sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,
@@ -46,7 +46,7 @@ sealed trait SequenceTables[S, D](
   def progress: Option[StepProgress]
   def selectedStepId: Option[Step.Id]
   def setSelectedStepId: Step.Id => Callback
-  def seqOperations: SequenceOperations
+  def requests: ObservationRequests
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 
@@ -80,7 +80,7 @@ case class GmosNorthSequenceTables(
   progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
   setSelectedStepId: Step.Id => Callback,
-  seqOperations:     SequenceOperations,
+  requests:          ObservationRequests,
   isPreview:         Boolean,
   flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosNorthSequenceTables.component)
@@ -97,7 +97,7 @@ case class GmosSouthSequenceTables(
   progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
   setSelectedStepId: Step.Id => Callback,
-  seqOperations:     SequenceOperations,
+  requests:          ObservationRequests,
   isPreview:         Boolean,
   flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosSouthSequenceTables.component)
@@ -204,7 +204,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
         (props.clientMode,
          props.instrument,
          props.obsId,
-         props.seqOperations,
+         props.requests,
          props.executionState,
          props.progress,
          props.isPreview,
@@ -216,7 +216,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           clientMode,
           instrument,
           obsId,
-          seqOperations,
+          requests,
           executionState,
           progress,
           isPreview,
@@ -283,10 +283,10 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         isFinished = step.isFinished,
                         stepIndex = cell.row.index.toInt,
                         obsId = obsId,
-                        seqOperations = seqOperations,
+                        requests = requests,
                         runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
-                        configStatus = executionState.stepResources
+                        subsystemStatus = executionState.stepResources
                           .find(_._1 === stepId)
                           .map(_._2.toMap)
                           .getOrElse(Map.empty),

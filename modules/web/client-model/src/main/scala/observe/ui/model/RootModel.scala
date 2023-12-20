@@ -29,9 +29,10 @@ case class RootModelData(
   selectedObservation:  Option[Observation.Id],
   nighttimeObservation: Option[LoadedObservation],
   daytimeObservations:  List[LoadedObservation],
-  executionState:       Map[Observation.Id, ExecutionState],
+  executionState:       Map[Observation.Id, ExecutionState], // This is the server state
   obsProgress:          Map[Observation.Id, StepProgress],
   userSelectedStep:     Map[Observation.Id, Step.Id],
+  obsRequests:          Map[Observation.Id, ObservationRequests],
   conditions:           Conditions,
   observer:             Option[Observer],
   operator:             Option[Operator],
@@ -70,6 +71,7 @@ object RootModelData:
       daytimeObservations = List.empty,
       executionState = Map.empty,
       obsProgress = Map.empty,
+      obsRequests = Map.empty,
       userSelectedStep = Map.empty,
       conditions = Conditions.Default,
       observer =
@@ -80,26 +82,28 @@ object RootModelData:
       log = List.empty
     )
 
-  val userVault: Lens[RootModelData, Option[UserVault]]                        = Focus[RootModelData](_.userVault)
-  val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]            =
+  val userVault: Lens[RootModelData, Option[UserVault]]                          = Focus[RootModelData](_.userVault)
+  val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]              =
     Focus[RootModelData](_.readyObservations)
-  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]         =
+  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]           =
     Focus[RootModelData](_.selectedObservation)
-  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]     =
+  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]       =
     Focus[RootModelData](_.nighttimeObservation)
-  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]        =
+  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]          =
     Focus[RootModelData](_.daytimeObservations)
-  val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]] =
+  val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]   =
     Focus[RootModelData](_.executionState)
-  val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]      =
+  val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]        =
     Focus[RootModelData](_.obsProgress)
-  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]      =
+  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]        =
     Focus[RootModelData](_.userSelectedStep)
-  val conditions: Lens[RootModelData, Conditions]                              = Focus[RootModelData](_.conditions)
-  val observer: Lens[RootModelData, Option[Observer]]                          = Focus[RootModelData](_.observer)
-  val operator: Lens[RootModelData, Option[Operator]]                          = Focus[RootModelData](_.operator)
-  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]        =
+  val obsRequests: Lens[RootModelData, Map[Observation.Id, ObservationRequests]] =
+    Focus[RootModelData](_.obsRequests)
+  val conditions: Lens[RootModelData, Conditions]                                = Focus[RootModelData](_.conditions)
+  val observer: Lens[RootModelData, Option[Observer]]                            = Focus[RootModelData](_.observer)
+  val operator: Lens[RootModelData, Option[Operator]]                            = Focus[RootModelData](_.operator)
+  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]          =
     Focus[RootModelData](_.userSelectionMessage)
-  val log: Lens[RootModelData, List[NonEmptyString]]                           = Focus[RootModelData](_.log)
+  val log: Lens[RootModelData, List[NonEmptyString]]                             = Focus[RootModelData](_.log)
 
 case class RootModel(environment: Pot[Environment], data: View[RootModelData])

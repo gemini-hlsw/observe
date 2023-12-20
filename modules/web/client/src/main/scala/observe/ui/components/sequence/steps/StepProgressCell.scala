@@ -18,25 +18,26 @@ import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.ui.ObserveStyles
-import observe.ui.model.SequenceOperations
-import observe.ui.model.StopOperation
+import observe.ui.model.ObservationRequests
+// import observe.ui.model.StopOperation
 import observe.ui.model.enums.ClientMode
+import observe.ui.model.enums.OperationRequest
 
 case class StepProgressCell(
-  clientMode:    ClientMode,
-  instrument:    Instrument,
-  stepId:        Step.Id,
-  stepType:      StepTypeDisplay,
-  isFinished:    Boolean,
-  stepIndex:     Int,
-  obsId:         Observation.Id,
-  seqOperations: SequenceOperations,
-  runningStepId: Option[Step.Id],
-  sequenceState: SequenceState,
-  configStatus:  Map[Resource | Instrument, ActionStatus],
-  progress:      Option[StepProgress],
-  selectedStep:  Option[Step.Id],
-  isPreview:     Boolean
+  clientMode:      ClientMode,
+  instrument:      Instrument,
+  stepId:          Step.Id,
+  stepType:        StepTypeDisplay,
+  isFinished:      Boolean,
+  stepIndex:       Int,
+  obsId:           Observation.Id,
+  requests:        ObservationRequests,
+  runningStepId:   Option[Step.Id],
+  sequenceState:   SequenceState,
+  subsystemStatus: Map[Resource | Instrument, ActionStatus],
+  progress:        Option[StepProgress],
+  selectedStep:    Option[Step.Id],
+  isPreview:       Boolean
 ) extends ReactFnProps(StepProgressCell.component):
   // def stepSelected(i: Step.Id): Boolean =
   //   selectedStep.exists(_ === i) && !isPreview &&
@@ -44,10 +45,10 @@ case class StepProgressCell(
   //     ( /*clientStatus.isLogged ||*/ seqOperations.resourceRunNotIdle(i))
 
   private val isRunning =
-    seqOperations.resourceInFlight(stepId) || runningStepId.contains_(stepId)
+    requests.subsystemInFlight(stepId) || runningStepId.contains_(stepId)
 
   val anyError: Boolean =
-    seqOperations.resourceInError(stepId)
+    subsystemStatus.exists(_._2 === ActionStatus.Failed)
 
   val isBias: Boolean = stepType === StepTypeDisplay.Bias
 
@@ -63,7 +64,7 @@ case class StepProgressCell(
   //     DetailRows.NoDetailRows
 
   def isStopping: Boolean =
-    seqOperations.stopRequested === StopOperation.StopInFlight
+    requests.stop === OperationRequest.InFlight
 
 object StepProgressCell:
   private type Props = StepProgressCell
@@ -80,7 +81,7 @@ object StepProgressCell:
       false, // props.step.get.isObservePaused,
       props.progress.exists(_.stage === ObserveStage.ReadingOut),
       false, // props.isNs,
-      props.seqOperations
+      props.requests
     )        // .when(props.controlButtonsActive)
 
   // private def step.getSystemsStatus(step.get: Step): VdomElement =
@@ -142,8 +143,9 @@ object StepProgressCell:
       SubsystemControls(
         props.obsId,
         props.stepId,
-        props.configStatus.map(_._1).toList,
-        SequenceOperations.resourceRunRequested.get(props.seqOperations),
+        props.subsystemStatus.map(_._1).toList,
+        props.subsystemStatus,
+        props.requests.subsystemRun.getOrElse(props.stepId, Map.empty),
         props.clientMode
       ),
       if (props.isBias)

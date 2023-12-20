@@ -25,6 +25,7 @@ import observe.model.StepId
 import observe.model.dhs.*
 import observe.server.given
 import org.typelevel.log4cats.Logger
+import scala.annotation.unused
 
 sealed trait OdbEventCommands[F[_]] {
   def datasetStart(
@@ -273,8 +274,8 @@ object OdbProxy {
 
     given FetchClient[F, ObservationDB] = client
 
-    private val fitsFileExtension                           = ".fits"
-    private def normalizeFilename(fileName: String): String = if (
+    private val fitsFileExtension                                   = ".fits"
+    @unused private def normalizeFilename(fileName: String): String = if (
       fileName.endsWith(fitsFileExtension)
     ) fileName
     else fileName + fitsFileExtension

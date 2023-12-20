@@ -30,8 +30,9 @@ import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
-import observe.ui.model.enums.OperationRequest
+// import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
+import observe.ui.model.ObservationRequests
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
 
@@ -107,47 +108,54 @@ object Home:
               SplitterPanel()(
                 rootModelData.nighttimeDisplayedObservation
                   .map: selectedObs =>
-                    val obsId = selectedObs.obsId
+                    val selectedObsId = selectedObs.obsId
 
                     val executionStateOpt: ViewOpt[ExecutionState] =
                       props.rootModel.data
-                        .zoom(RootModelData.executionState.index(obsId))
+                        .zoom(RootModelData.executionState.index(selectedObsId))
 
                     val executionStateAndConfig: Option[
                       Pot[(Observation.Id, InstrumentExecutionConfig, View[ExecutionState])]
                     ] =
-                      loadedObs.map(lo =>
+                      loadedObs.map: lo =>
                         (lo.obsId.ready, lo.config, executionStateOpt.toOptionView.toPot).tupled
-                      )
 
-                    <.div(ObserveStyles.ObservationArea, ^.key := obsId.toString)(
+                    <.div(ObserveStyles.ObservationArea, ^.key := selectedObsId.toString)(
                       ObsHeader(
                         selectedObs,
                         executionStateAndConfig.map(_.map(_._1)),
                         loadObservation,
-                        executionStateOpt.get.exists(_.sequenceState.isRunning),
-                        executionStateOpt.zoom(OperationRequest.PauseState)
+                        executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
+                        rootModelData.obsRequests.getOrElse(selectedObsId, ObservationRequests.Idle)
+                        // executionStateOpt.get.exists(_.sequenceState.isRunning),
+                        // executionStateOpt.zoom(OperationRequest.PauseState)
                       ),
                       executionStateAndConfig.map(
                         _.renderPot(
-                          { (obsId, config, executionState) =>
+                          { (loadedObsId, config, executionState) =>
                             val progress: Option[StepProgress] =
-                              rootModelData.obsProgress.get(obsId)
+                              rootModelData.obsProgress.get(loadedObsId)
+
+                            val requests: ObservationRequests =
+                              rootModelData.obsRequests.getOrElse(loadedObsId,
+                                                                  ObservationRequests.Idle
+                              )
 
                             val selectedStep: Option[Step.Id] =
-                              rootModelData.obsSelectedStep(obsId)
+                              rootModelData.obsSelectedStep(loadedObsId)
 
                             val setSelectedStep: Step.Id => Callback = stepId =>
                               props.rootModel.data
-                                .zoom(RootModelData.userSelectedStep.at(obsId))
+                                .zoom(RootModelData.userSelectedStep.at(loadedObsId))
                                 .mod: oldStepId =>
                                   if (oldStepId.contains_(stepId)) none else stepId.some
 
                             ObservationSequence(
-                              obsId,
+                              loadedObsId,
                               config,
                               executionState,
                               progress,
+                              requests,
                               selectedStep,
                               setSelectedStep,
                               clientMode

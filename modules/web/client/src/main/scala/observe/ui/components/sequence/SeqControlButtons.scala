@@ -21,14 +21,20 @@ import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
 import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
+import observe.ui.model.ObservationRequests
+import observe.model.SequenceState
 
 case class SeqControlButtons(
-  obsId:          Observation.Id,
-  loadedObsId:    Option[Pot[Observation.Id]],
-  loadObs:        Observation.Id => Callback,
-  isRunning:      Boolean,
-  pauseRequested: ViewOpt[OperationRequest]
-) extends ReactFnProps(SeqControlButtons.component)
+  obsId:         Observation.Id,
+  loadedObsId:   Option[Pot[Observation.Id]],
+  loadObs:       Observation.Id => Callback,
+  sequenceState: SequenceState,
+  requests:      ObservationRequests
+) extends ReactFnProps(SeqControlButtons.component):
+  val isPaused: Boolean =
+    requests.pause === OperationRequest.InFlight || sequenceState.userStopRequested
+
+  val isRunning: Boolean = sequenceState.isRunning
 
 object SeqControlButtons:
   private type Props = SeqControlButtons
@@ -77,9 +83,10 @@ object SeqControlButtons:
               Icons.Pause.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Pause sequence",
             tooltipOptions = tooltipOptions,
-            onClick = props.pauseRequested
-              .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
-            disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
+            onClick =
+              // props.pauseRequested.set(OperationRequest.InFlight) >> // TODO SET IN IMPLEMENTATION
+              sequenceApi.pause(props.obsId).runAsync,
+            disabled = props.isPaused
           ).when(selectedObsIsLoaded && props.isRunning)
         )
     // TODO Cancel pause

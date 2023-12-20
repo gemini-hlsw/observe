@@ -21,14 +21,17 @@ import lucuma.schemas.model.BasicConfiguration
 import lucuma.schemas.model.ObservingMode
 import monocle.Focus
 import org.typelevel.cats.time.*
+import io.circe.refined.given
+import eu.timepit.refined.cats.given
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
+import eu.timepit.refined.types.string.NonEmptyString
 
 case class ObsSummary(
   obsId:              Observation.Id,
   title:              String,
-  subtitle:           String,
+  subtitle:           Option[NonEmptyString],
   instrument:         Instrument,
   constraints:        ConstraintSet,
   timingWindows:      List[TimingWindow],
@@ -68,7 +71,7 @@ object ObsSummary:
     for
       id                 <- c.get[Observation.Id]("id")
       title              <- c.get[String]("title")
-      subtitle           <- c.get[String]("subtitle")
+      subtitle           <- c.get[Option[NonEmptyString]]("subtitle")
       instrument         <- c.get[Option[Instrument]]("instrument")
       constraints        <- c.get[ConstraintSet]("constraintSet")
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")

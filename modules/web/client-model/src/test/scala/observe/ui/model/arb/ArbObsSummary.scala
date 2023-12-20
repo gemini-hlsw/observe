@@ -24,13 +24,16 @@ import org.scalacheck.Cogen
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
+import eu.timepit.refined.types.string.NonEmptyString
+import eu.timepit.refined.scalacheck.string.given
+import lucuma.core.arb.cogenNonEmptyString
 
 trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
     for
       obsId              <- arbitrary[Observation.Id]
       title              <- arbitrary[String]
-      subtitle           <- arbitrary[String]
+      subtitle           <- arbitrary[Option[NonEmptyString]]
       instrument         <- arbitrary[Instrument]
       constraints        <- arbitrary[ConstraintSet]
       timingWindows      <- arbitrary[List[TimingWindow]]
@@ -55,7 +58,7 @@ trait ArbObsSummary:
     Cogen[
       (Observation.Id,
        String,
-       String,
+       Option[NonEmptyString],
        Instrument,
        ConstraintSet,
        List[TimingWindow],

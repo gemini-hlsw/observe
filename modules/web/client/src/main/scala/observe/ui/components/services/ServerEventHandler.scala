@@ -22,6 +22,8 @@ import observe.ui.model.RootModelData
 import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.SyncStatus
 import org.typelevel.log4cats.Logger
+import observe.ui.model.enums.OperationRequest
+import observe.ui.model.ObservationRequests
 
 trait ServerEventHandler:
   private def logMessage(
@@ -52,7 +54,12 @@ trait ServerEventHandler:
               case SingleActionState.Started   => ActionStatus.Running.some
               case SingleActionState.Completed => ActionStatus.Completed.some
               case SingleActionState.Failed    => ActionStatus.Failed.some
-        ) >>
+        ) >> // Reset Request
+          asyncRootModel
+            .zoom(RootModelData.obsRequests.index(obsId))
+            .zoom(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
+            .set(OperationRequest.Idle)
+          >>
           error.map(logMessage(rootModelData, _)).orEmpty
       case ClientEvent.ChecksOverrideEvent(_)                                    =>
         // TODO Update the UI
@@ -64,9 +71,14 @@ trait ServerEventHandler:
           asyncRootModel
             .zoom(RootModelData.executionState)
             .set(sequenceExecution) >>
+          // All requests are reset on every state update from the server.
+          // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
+          asyncRootModel
+            .zoom(RootModelData.obsRequests)
+            .set(Map.empty) >>
           asyncRootModel
             .zoom(RootModelData.nighttimeObservation)
-            .mod(obs => // Only set if loaded obsId changed, otherwise config and summary are lost.
+            .mod(obs => // Only set if loaded obsId changed, otherwise config is lost.
               if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else

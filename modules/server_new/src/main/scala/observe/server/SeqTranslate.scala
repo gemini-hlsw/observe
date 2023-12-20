@@ -352,14 +352,14 @@ object SeqTranslate {
             _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
               case (a, i) =>
                 a.state.runState match {
-                  case ActionState.Paused(c: ObserveContext[F]) =>
+                  case ActionState.Paused(c: ObserveContext[F] @unchecked) =>
                     (c,
                      a.state.partials.collectFirst { case x: Progress =>
                        x.progress
                      },
                      i
                     ).some
-                  case _                                        => none
+                  case _                                                   => none
                 }
             }
           )
@@ -387,13 +387,13 @@ object SeqTranslate {
           _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
             case (a, i) =>
               a.state.runState match {
-                case ActionState.Paused(c: ObserveContext[F]) =>
+                case ActionState.Paused(c: ObserveContext[F] @unchecked) =>
                   Stream
                     .eval(
                       Event.actionResume(seqId, i, l(c).handleErrorWith(catchObsErrors[F])).pure[F]
                     )
                     .some
-                case _                                        => none
+                case _                                                   => none
               }
           }
         )

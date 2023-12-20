@@ -37,6 +37,7 @@ import squants.time.TimeConversions.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import scala.annotation.unused
 
 object AltairControllerEpics {
   final case class EpicsAltairConfig(
@@ -575,7 +576,7 @@ object AltairControllerEpics {
 
   }
 
-  private def aoOffsetThreshold(instrument: Instrument): Option[Length] = none
+  private def aoOffsetThreshold(@unused instrument: Instrument): Option[Length] = none
 //  instrument match {
 //    case Instrument.Nifs  => (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
 //    case Instrument.Niri  => (Arcseconds(3.0) / FOCAL_PLANE_SCALE).some
