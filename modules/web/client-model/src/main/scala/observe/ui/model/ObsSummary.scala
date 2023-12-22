@@ -7,8 +7,11 @@ import cats.Eq
 import cats.Order.given
 import cats.derived.*
 import cats.syntax.all.*
+import eu.timepit.refined.cats.given
+import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Decoder
 import io.circe.generic.semiauto.*
+import io.circe.refined.given
 import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
@@ -21,12 +24,9 @@ import lucuma.schemas.model.BasicConfiguration
 import lucuma.schemas.model.ObservingMode
 import monocle.Focus
 import org.typelevel.cats.time.*
-import io.circe.refined.given
-import eu.timepit.refined.cats.given
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
-import eu.timepit.refined.types.string.NonEmptyString
 
 case class ObsSummary(
   obsId:              Observation.Id,

@@ -19,7 +19,6 @@ import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.ui.ObserveStyles
 import observe.ui.model.ObservationRequests
-// import observe.ui.model.StopOperation
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.OperationRequest
 

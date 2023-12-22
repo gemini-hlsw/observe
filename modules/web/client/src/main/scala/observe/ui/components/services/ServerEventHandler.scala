@@ -18,12 +18,12 @@ import observe.model.enums.ActionStatus
 import observe.model.events.client.ClientEvent
 import observe.model.events.client.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
+import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.ApiStatus
+import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import org.typelevel.log4cats.Logger
-import observe.ui.model.enums.OperationRequest
-import observe.ui.model.ObservationRequests
 
 trait ServerEventHandler:
   private def logMessage(

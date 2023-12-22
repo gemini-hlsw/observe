@@ -25,14 +25,13 @@ import observe.ui.components.queue.SessionQueue
 import observe.ui.components.sequence.ObsHeader
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
+import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
-// import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
-import observe.ui.model.ObservationRequests
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
 
@@ -127,8 +126,6 @@ object Home:
                         loadObservation,
                         executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
                         rootModelData.obsRequests.getOrElse(selectedObsId, ObservationRequests.Idle)
-                        // executionStateOpt.get.exists(_.sequenceState.isRunning),
-                        // executionStateOpt.zoom(OperationRequest.PauseState)
                       ),
                       executionStateAndConfig.map(
                         _.renderPot(

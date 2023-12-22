@@ -3,18 +3,18 @@
 
 package observe.ui.model.arb
 
+import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbUid.given
+import observe.model.enums.Resource
+import observe.model.given
+import observe.ui.model.ObservationRequests
+import observe.ui.model.enums.OperationRequest
+import observe.ui.model.enums.arb.ArbOperationRequest.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import observe.ui.model.ObservationRequests
-import observe.ui.model.enums.OperationRequest
-import lucuma.core.enums.Instrument
-import observe.model.enums.Resource
-import observe.ui.model.enums.arb.ArbOperationRequest.given
-import lucuma.core.util.arb.ArbEnumerated.given
-import observe.model.given
-import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbUid.given
 
 trait ArbObservationRequests:
   given Arbitrary[ObservationRequests] = Arbitrary:

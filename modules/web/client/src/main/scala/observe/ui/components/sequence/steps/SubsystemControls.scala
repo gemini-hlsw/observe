@@ -23,10 +23,8 @@ import observe.ui.components.DefaultTooltipOptions
 import observe.ui.display.given
 import observe.ui.model.AppContext
 import observe.ui.model.enums.ClientMode
-import observe.ui.services.SequenceApi
-
-// import scala.collection.immutable.SortedMap
 import observe.ui.model.enums.OperationRequest
+import observe.ui.services.SequenceApi
 
 /**
  * Contains the control buttons for each subsystem

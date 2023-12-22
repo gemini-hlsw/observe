@@ -5,24 +5,24 @@ package observe.ui.services
 
 import cats.effect.IO
 import cats.syntax.eq.*
+import crystal.react.View
+import crystal.react.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
+import monocle.Lens
 import observe.model.ClientId
 import observe.model.Observer
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.given
+import observe.ui.model.ObservationRequests
+import observe.ui.model.enums.OperationRequest
 import org.http4s.Query
 import org.http4s.Uri
 import org.typelevel.log4cats.Logger
-import observe.ui.model.ObservationRequests
-import crystal.react.View
-import crystal.react.syntax.all.*
-import monocle.Lens
-import observe.ui.model.enums.OperationRequest
 
 case class SequenceApiImpl(
   client:   ApiClient,

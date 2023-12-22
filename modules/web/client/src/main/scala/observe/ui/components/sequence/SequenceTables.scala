@@ -29,11 +29,11 @@ import observe.model.StepProgress
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
+import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 
 import scalajs.js
-import observe.ui.model.ObservationRequests
 
 sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,

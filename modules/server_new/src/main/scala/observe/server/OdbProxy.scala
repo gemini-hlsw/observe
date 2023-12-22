@@ -25,6 +25,7 @@ import observe.model.StepId
 import observe.model.dhs.*
 import observe.server.given
 import org.typelevel.log4cats.Logger
+
 import scala.annotation.unused
 
 sealed trait OdbEventCommands[F[_]] {

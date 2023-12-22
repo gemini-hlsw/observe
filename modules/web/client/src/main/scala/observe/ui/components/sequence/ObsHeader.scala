@@ -4,15 +4,13 @@
 package observe.ui.components.sequence
 
 import crystal.Pot
-// import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.react.common.*
+import observe.model.SequenceState
 import observe.ui.ObserveStyles
 import observe.ui.model.ObsSummary
-// import observe.ui.model.enums.OperationRequest
-import observe.model.SequenceState
 import observe.ui.model.ObservationRequests
 
 case class ObsHeader(

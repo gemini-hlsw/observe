@@ -4,6 +4,9 @@
 package observe.ui.model.arb
 
 import cats.Order.given
+import eu.timepit.refined.scalacheck.string.given
+import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.arb.cogenNonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
@@ -24,9 +27,6 @@ import org.scalacheck.Cogen
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
-import eu.timepit.refined.types.string.NonEmptyString
-import eu.timepit.refined.scalacheck.string.given
-import lucuma.core.arb.cogenNonEmptyString
 
 trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:

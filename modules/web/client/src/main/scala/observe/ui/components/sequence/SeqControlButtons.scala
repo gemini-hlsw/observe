@@ -15,14 +15,14 @@ import lucuma.react.primereact.Button
 import lucuma.react.primereact.InputGroup
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
+import observe.model.SequenceState
 import observe.model.enums.RunOverride
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
+import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
-import observe.ui.model.ObservationRequests
-import observe.model.SequenceState
 
 case class SeqControlButtons(
   obsId:         Observation.Id,
@@ -83,9 +83,7 @@ object SeqControlButtons:
               Icons.Pause.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Pause sequence",
             tooltipOptions = tooltipOptions,
-            onClick =
-              // props.pauseRequested.set(OperationRequest.InFlight) >> // TODO SET IN IMPLEMENTATION
-              sequenceApi.pause(props.obsId).runAsync,
+            onClick = sequenceApi.pause(props.obsId).runAsync,
             disabled = props.isPaused
           ).when(selectedObsIsLoaded && props.isRunning)
         )

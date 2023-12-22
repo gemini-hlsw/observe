@@ -25,6 +25,7 @@ import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObsSummary
+import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
 import observe.ui.model.arb.ArbLoadedObservation.given
 import observe.ui.model.arb.ArbObsSummary.given
@@ -32,7 +33,7 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import observe.ui.model.ObservationRequests
+
 import ArbObservationRequests.given
 
 trait ArbRootModel:
