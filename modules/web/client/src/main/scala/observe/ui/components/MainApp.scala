@@ -41,10 +41,12 @@ import lucuma.ui.components.state.IfLogged
 import lucuma.ui.reusability.given
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.UserVault
-import lucuma.ui.syntax.pot.*
+import lucuma.ui.syntax.all.*
 import observe.model.Environment
 import observe.model.events.client.ClientEvent
+import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
+import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.components.services.ServerEventHandler
@@ -289,6 +291,34 @@ object MainApp extends ServerEventHandler:
             .drain
             .start
             .map(_.cancel) // Previous fiber is cancelled when effect is re-run
+      .useAsyncEffectWhenDepsReady((_, _, _, _, ctxPot, rootModelDataPot, _, _, odbStatus, _, _) =>
+        (rootModelDataPot.toPotView,
+         ctxPot,
+         odbStatus.toPot.filter(_ === PersistentClientStatus.Initialized)
+        ).tupled
+      ): (_, _, syncStatus, _, _, _, environment, _, _, _, configApiStatus) =>
+        (rootModelData, ctx, _) =>
+          import ctx.given
+
+          val readyObservations = rootModelData
+            .zoom(RootModelData.readyObservations)
+            .async
+
+          // TODO RECONNECT ON ERRORS
+          val obsSummaryUpdaterResource =
+            for
+              obsStream <-
+                ObsQueriesGQL
+                  .ActiveObservationIdsQuery[IO]
+                  .query()
+                  .flatMap(data => readyObservations.set(data.observations.matches.ready))
+                  .recoverWith(t => readyObservations.set(Pot.error(t)))
+                  .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
+              _         <- Resource.make(obsStream.compile.drain.start)(_.cancel)
+            yield ()
+
+          obsSummaryUpdaterResource.allocated
+            .map((_, close) => close)
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (

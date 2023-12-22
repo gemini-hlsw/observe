@@ -9,8 +9,10 @@ import cats.derived.*
 import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.generic.semiauto.*
+import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
+import lucuma.core.model.Observation
 import lucuma.core.model.PosAngleConstraint
 import lucuma.core.model.TimingWindow
 import lucuma.core.util.Timestamp
@@ -24,7 +26,10 @@ import java.time.Instant
 import scala.collection.immutable.SortedSet
 
 case class ObsSummary(
+  obsId:              Observation.Id,
   title:              String,
+  subtitle:           String,
+  instrument:         Instrument,
   constraints:        ConstraintSet,
   timingWindows:      List[TimingWindow],
   attachmentIds:      SortedSet[ObsAttachment.Id],
@@ -44,7 +49,10 @@ case class ObsSummary(
     s"${constraints.imageQuality.label} ${constraints.cloudExtinction.label} ${constraints.skyBackground.label} ${constraints.waterVapor.label}"
 
 object ObsSummary:
+  val obsId              = Focus[ObsSummary](_.obsId)
   val title              = Focus[ObsSummary](_.title)
+  val subtitle           = Focus[ObsSummary](_.subtitle)
+  val instrument         = Focus[ObsSummary](_.instrument)
   val constraints        = Focus[ObsSummary](_.constraints)
   val timingWindows      = Focus[ObsSummary](_.timingWindows)
   val attachmentIds      = Focus[ObsSummary](_.attachmentIds)
@@ -58,7 +66,10 @@ object ObsSummary:
 
   given Decoder[ObsSummary] = Decoder.instance: c =>
     for
+      id                 <- c.get[Observation.Id]("id")
       title              <- c.get[String]("title")
+      subtitle           <- c.get[String]("subtitle")
+      instrument         <- c.get[Option[Instrument]]("instrument")
       constraints        <- c.get[ConstraintSet]("constraintSet")
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")
       attachmentIds      <- c.get[List[AttachmentIdWrapper]]("obsAttachments")
@@ -66,7 +77,10 @@ object ObsSummary:
       visualizationTime  <- c.get[Option[Timestamp]]("visualizationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")
     yield ObsSummary(
+      id,
       title,
+      subtitle,
+      instrument.getOrElse(Instrument.Visitor),
       constraints,
       timingWindows,
       SortedSet.from(attachmentIds.map(_.id)),

@@ -17,24 +17,18 @@ import lucuma.react.common.given
 import observe.model.ExecutionState
 import observe.model.StepProgress
 import observe.model.given
-import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTables
 import observe.ui.components.sequence.GmosSouthSequenceTables
 import observe.ui.model.AppContext
-import observe.ui.model.ObsSummary
 import observe.ui.model.SequenceOperations
 import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
-import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
 import scala.collection.immutable.SortedMap
 
-import sequence.ObsHeader
-
 case class ObservationSequence(
   obsId:           Observation.Id,
-  summary:         ObsSummary,
   config:          InstrumentExecutionConfig,
   executionState:  View[ExecutionState],
   progress:        Option[StepProgress],
@@ -76,38 +70,31 @@ object ObservationSequence:
                 .orEmpty
             )
 
-      <.div(ObserveStyles.ObservationArea, ^.key := props.obsId.toString)(
-        ObsHeader(
-          props.obsId,
-          props.summary,
-          props.executionState.get.sequenceState.isRunning,
-          props.executionState.zoom(OperationRequest.PauseState)
-        ),
-        props.config match
-          case InstrumentExecutionConfig.GmosNorth(config) =>
-            GmosNorthSequenceTables(
-              props.clientMode,
-              props.obsId,
-              config,
-              props.executionState.get,
-              props.progress,
-              props.selectedStep,
-              props.setSelectedStep,
-              seqOperations,
-              isPreview = false,
-              flipBreakPoint
-            )
-          case InstrumentExecutionConfig.GmosSouth(config) =>
-            GmosSouthSequenceTables(
-              props.clientMode,
-              props.obsId,
-              config,
-              props.executionState.get,
-              props.progress,
-              props.selectedStep,
-              props.setSelectedStep,
-              seqOperations,
-              isPreview = false,
-              flipBreakPoint
-            )
-      )
+      props.config match
+        case InstrumentExecutionConfig.GmosNorth(config) =>
+          GmosNorthSequenceTables(
+            props.clientMode,
+            props.obsId,
+            config,
+            props.executionState.get,
+            props.progress,
+            props.selectedStep,
+            props.setSelectedStep,
+            seqOperations,
+            isPreview = false,
+            flipBreakPoint
+          )
+        case InstrumentExecutionConfig.GmosSouth(config) =>
+          GmosSouthSequenceTables(
+            props.clientMode,
+            props.obsId,
+            config,
+            props.executionState.get,
+            props.progress,
+            props.selectedStep,
+            props.setSelectedStep,
+            seqOperations,
+            isPreview = false,
+            flipBreakPoint
+            // )
+          )

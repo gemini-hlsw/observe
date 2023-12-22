@@ -3,6 +3,8 @@
 
 package observe.ui.model.arb
 
+import crystal.Pot
+import crystal.arb.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.math.arb.ArbRefined.given
@@ -22,8 +24,10 @@ import observe.model.arb.ArbExecutionState.given
 import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.ui.model.LoadedObservation
+import observe.ui.model.ObsSummary
 import observe.ui.model.RootModelData
 import observe.ui.model.arb.ArbLoadedObservation.given
+import observe.ui.model.arb.ArbObsSummary.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
@@ -37,6 +41,8 @@ trait ArbRootModel:
   given Arbitrary[RootModelData] = Arbitrary:
     for
       uv   <- arbitrary[Option[UserVault]]
+      ros  <- arbitrary[Pot[List[ObsSummary]]]
+      so   <- arbitrary[Option[Observation.Id]]
       nto  <- arbitrary[Option[LoadedObservation]]
       dtos <- arbitrary[List[LoadedObservation]]
       se   <- arbitrary[Map[Observation.Id, ExecutionState]]
@@ -47,11 +53,13 @@ trait ArbRootModel:
       op   <- arbitrary[Option[Operator]]
       usm  <- arbitrary[Option[NonEmptyString]]
       log  <- arbitrary[List[NonEmptyString]]
-    yield RootModelData(uv, nto, dtos, se, sp, uss, cs, obs, op, usm, log)
+    yield RootModelData(uv, ros, so, nto, dtos, se, sp, uss, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
     (
       Option[UserVault],
+      Pot[List[ObsSummary]],
+      Option[Observation.Id],
       Option[LoadedObservation],
       List[LoadedObservation],
       List[(Observation.Id, ExecutionState)],
@@ -64,6 +72,8 @@ trait ArbRootModel:
     )
   ].contramap: x =>
     (x.userVault,
+     x.readyObservations,
+     x.selectedObservation,
      x.nighttimeObservation,
      x.daytimeObservations,
      x.executionState.toList,

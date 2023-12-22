@@ -4,13 +4,16 @@
 package observe.ui.model.arb
 
 import cats.Order.given
+import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
+import lucuma.core.model.Observation
 import lucuma.core.model.PosAngleConstraint
 import lucuma.core.model.TimingWindow
 import lucuma.core.model.arb.ArbConstraintSet.given
 import lucuma.core.model.arb.ArbPosAngleConstraint.given
 import lucuma.core.model.arb.ArbTimingWindow.given
+import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.schemas.model.ObservingMode
 import lucuma.schemas.model.arb.ArbObservingMode.given
@@ -25,7 +28,10 @@ import scala.collection.immutable.SortedSet
 trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
     for
+      obsId              <- arbitrary[Observation.Id]
       title              <- arbitrary[String]
+      subtitle           <- arbitrary[String]
+      instrument         <- arbitrary[Instrument]
       constraints        <- arbitrary[ConstraintSet]
       timingWindows      <- arbitrary[List[TimingWindow]]
       attachmentIds      <- arbitrary[List[ObsAttachment.Id]]
@@ -33,7 +39,10 @@ trait ArbObsSummary:
       visualizationTime  <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
     yield ObsSummary(
+      obsId,
       title,
+      subtitle,
+      instrument,
       constraints,
       timingWindows,
       SortedSet.from(attachmentIds),
@@ -44,7 +53,10 @@ trait ArbObsSummary:
 
   given Cogen[ObsSummary] =
     Cogen[
-      (String,
+      (Observation.Id,
+       String,
+       String,
+       Instrument,
        ConstraintSet,
        List[TimingWindow],
        List[ObsAttachment.Id],
@@ -54,7 +66,10 @@ trait ArbObsSummary:
       )
     ]
       .contramap: s =>
-        (s.title,
+        (s.obsId,
+         s.title,
+         s.subtitle,
+         s.instrument,
          s.constraints,
          s.timingWindows,
          s.attachmentIds.toList,

@@ -11,20 +11,15 @@ import monocle.Focus
 import monocle.Lens
 
 case class LoadedObservation private (
-  obsId:   Observation.Id,
-  summary: Pot[ObsSummary] = Pot.pending,
-  config:  Pot[InstrumentExecutionConfig] = Pot.pending
+  obsId:  Observation.Id,
+  config: Pot[InstrumentExecutionConfig] = Pot.pending
 ):
-  def withSummary(summary: Either[Throwable, ObsSummary]): LoadedObservation =
-    copy(summary = Pot.fromTry(summary.toTry))
-
   def withConfig(config: Either[Throwable, Option[InstrumentExecutionConfig]]): LoadedObservation =
     copy(config = Pot.fromTry(config.map(Pot.fromOption).toTry).flatten)
-
-  def unPot: Pot[(Observation.Id, ObsSummary, InstrumentExecutionConfig)] =
-    (summary, config).mapN((s, c) => (obsId, s, c))
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
 
-  val id: Lens[LoadedObservation, Observation.Id] = Focus[LoadedObservation](_.obsId)
+  val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
+  val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
+    Focus[LoadedObservation](_.config)

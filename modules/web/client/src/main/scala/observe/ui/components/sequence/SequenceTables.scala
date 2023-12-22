@@ -216,7 +216,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           clientMode,
           instrument,
           obsId,
-          tabOperations,
+          seqOperations,
           executionState,
           progress,
           isPreview,
@@ -283,7 +283,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         isFinished = step.isFinished,
                         stepIndex = cell.row.index.toInt,
                         obsId = obsId,
-                        seqOperations = tabOperations,
+                        seqOperations = seqOperations,
                         runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
                         configStatus = executionState.stepResources

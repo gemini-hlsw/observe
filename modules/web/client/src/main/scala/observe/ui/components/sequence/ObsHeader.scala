@@ -3,18 +3,20 @@
 
 package observe.ui.components.sequence
 
-import crystal.react.ViewOpt
+import crystal.Pot
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.model.Observation
 import lucuma.react.common.*
-import observe.model.Observation
 import observe.ui.ObserveStyles
 import observe.ui.model.ObsSummary
 import observe.ui.model.enums.OperationRequest
 
 case class ObsHeader(
-  obsId:          Observation.Id,
   observation:    ObsSummary,
+  loadedObsId:    Option[Pot[Observation.Id]],
+  loadObs:        Observation.Id => Callback,
   isRunning:      Boolean,
   pauseRequested: ViewOpt[OperationRequest]
 ) extends ReactFnProps(ObsHeader.component)
@@ -26,8 +28,14 @@ object ObsHeader:
     ScalaFnComponent[Props]: props =>
       <.div(ObserveStyles.ObsSummary)(
         <.div(ObserveStyles.ObsSummaryTitle)(
-          SeqControlButtons(props.obsId, props.isRunning, props.pauseRequested),
-          s"${props.observation.title} [${props.obsId}]"
+          SeqControlButtons(
+            props.observation.obsId,
+            props.loadedObsId,
+            props.loadObs,
+            props.isRunning,
+            props.pauseRequested
+          ),
+          s"${props.observation.title} [${props.observation.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
           <.span(props.observation.configurationSummary),

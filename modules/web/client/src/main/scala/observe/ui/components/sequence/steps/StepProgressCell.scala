@@ -11,6 +11,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
+import observe.model.ObserveStage
 import observe.model.SequenceState
 import observe.model.StepProgress
 import observe.model.dhs.ImageFileId
@@ -77,8 +78,8 @@ object StepProgressCell:
       props.sequenceState,
       props.stepId,
       false, // props.step.get.isObservePaused,
+      props.progress.exists(_.stage === ObserveStage.ReadingOut),
       false, // props.isNs,
-      // props.step.get.isMultiLevel,
       props.seqOperations
     )        // .when(props.controlButtonsActive)
 

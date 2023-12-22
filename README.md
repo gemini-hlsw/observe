@@ -72,7 +72,7 @@ stopObserveAll
 
 # How to package for deployment
 
-If you haven't already, create a symlink `jre` that points to the JRE you want bundled with the deployment.
+If you haven't already, create a symlink `jre` in the project directory that points to the Linux JRE you want bundled with the deployment.
 
 To deploy, run in `sbt`:
 

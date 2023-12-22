@@ -49,25 +49,23 @@ object operations:
     ): List[Operations] =
       level match
         case Observation =>
-          if (isMultiLevel) {
-            if (isObservePaused) {
+          if (isMultiLevel)
+            if (isObservePaused)
               List(Operations.ResumeObservation, Operations.AbortObservation)
-            } else {
+            else
               List(Operations.AbortObservation)
-            }
-          } else {
-            if (isObservePaused) {
-              List(Operations.ResumeObservation,
-                   Operations.StopObservation,
-                   Operations.AbortObservation
-              )
-            } else {
-              List(Operations.PauseObservation,
-                   Operations.StopObservation,
-                   Operations.AbortObservation
-              )
-            }
-          }
+          else if (isObservePaused)
+            List(
+              Operations.ResumeObservation,
+              Operations.StopObservation,
+              Operations.AbortObservation
+            )
+          else
+            List(
+              Operations.PauseObservation,
+              Operations.StopObservation,
+              Operations.AbortObservation
+            )
         case NsCycle     =>
           List(Operations.PauseGracefullyObservation, Operations.StopGracefullyObservation)
         case NsNod       =>
