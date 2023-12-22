@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // ScalaJS libraries
-    val crystal      = "0.37.0"
+    val crystal      = "0.37.1"
     val javaTimeJS   = "2.5.0"
     val lucumaReact  = "0.47.1"
     val scalaDom     = "2.3.0"
