@@ -35,6 +35,11 @@ ThisBuild / resolvers += "Gemini Repository".at(
   "https://github.com/gemini-hlsw/maven-repo/raw/master/releases"
 )
 
+// TODO Remove once we stop using http4s snapshot
+ThisBuild / resolvers += "s01-oss-sonatype-org-snapshots".at(
+  "https://s01.oss.sonatype.org/content/repositories/snapshots"
+)
+
 ThisBuild / evictionErrorLevel := Level.Info
 
 // Uncomment for local gmp testing
@@ -94,7 +99,7 @@ lazy val observe_web_server = project
       Http4sServer,
       Log4CatsNoop.value
     ) ++
-      Http4sClient ++ Http4s ++ PureConfig ++ Logging.value,
+      Http4sJDKClient.value ++ Http4s ++ PureConfig ++ Logging.value,
     // Supports launching the server in the background
     reStart / mainClass := Some("observe.web.server.http4s.WebServerLauncher")
   )
@@ -168,6 +173,7 @@ lazy val observe_web_client = project
       Clue.value,
       ClueJs.value,
       Fs2.value,
+      Http4sClient.value,
       Http4sDom.value
     ) ++ Crystal.value ++ LucumaUI.value ++ LucumaSchemas.value ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs"))),
@@ -210,7 +216,7 @@ lazy val observe_server = project
         Atto,
         ACM,
         GiapiScala
-      ) ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sClient ++ PureConfig ++ Monocle.value ++
+      ) ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server_new"

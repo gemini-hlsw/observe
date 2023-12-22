@@ -25,7 +25,7 @@ object Settings {
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
 
-    val http4sVersion              = "0.23.24"
+    val http4sVersion              = "0.23.24-25-e71f1b1-SNAPSHOT"
     val http4sDomVersion           = "0.2.11"
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.13"
@@ -127,13 +127,20 @@ object Settings {
     val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
-    val Http4s           = Seq("org.http4s" %% "http4s-dsl" % LibraryVersions.http4sVersion,
-                     "org.http4s" %% "http4s-ember-server" % LibraryVersions.http4sVersion
+    val Http4s           = Seq(
+      "org.http4s" %% "http4s-dsl"          % LibraryVersions.http4sVersion,
+      "org.http4s" %% "http4s-ember-server" % LibraryVersions.http4sVersion
     )
-    val Http4sClient     = Seq(
-      "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
-      "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
+    val Http4sClient     = Def.setting(
+      "org.http4s" %%% "http4s-client" % LibraryVersions.http4sVersion
     )
+    val Http4sJDKClient  =
+      Def.setting(
+        Seq(
+          "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
+          "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
+        )
+      )
     val Http4sCore       = "org.http4s"           %% "http4s-core"      % LibraryVersions.http4sVersion
     val Http4sServer     = "org.http4s"           %% "http4s-server"    % LibraryVersions.http4sVersion
     val Http4sCirce      = "org.http4s"           %% "http4s-circe"     % LibraryVersions.http4sVersion
