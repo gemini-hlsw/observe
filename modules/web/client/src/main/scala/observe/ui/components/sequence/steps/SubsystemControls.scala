@@ -22,22 +22,44 @@ import observe.ui.ObserveStyles
 import observe.ui.components.DefaultTooltipOptions
 import observe.ui.display.given
 import observe.ui.model.AppContext
-import observe.ui.model.SubsystemRunOperation
 import observe.ui.model.enums.ClientMode
+import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
-
-import scala.collection.immutable.SortedMap
 
 /**
  * Contains the control buttons for each subsystem
  */
 case class SubsystemControls(
-  obsId:           Observation.Id,
-  stepId:          Step.Id,
-  subsystems:      List[Resource | Instrument],
-  subsystemsCalls: SortedMap[Resource | Instrument, SubsystemRunOperation],
-  clientMode:      ClientMode
-) extends ReactFnProps(SubsystemControls.component)
+  obsId:             Observation.Id,
+  stepId:            Step.Id,
+  subsystems:        List[Resource | Instrument],
+  subsystemStatus:   Map[Resource | Instrument, ActionStatus],
+  subsystemRequests: Map[Resource | Instrument, OperationRequest],
+  clientMode:        ClientMode
+) extends ReactFnProps(SubsystemControls.component):
+  private def subsystemState(subsystem: Resource | Instrument): (ActionStatus, OperationRequest) =
+    (subsystemStatus.getOrElse(subsystem, ActionStatus.Pending),
+     subsystemRequests.getOrElse(subsystem, OperationRequest.Idle)
+    )
+
+  // We want blue if the resource operation is idle or does not exist: these are equivalent cases.
+  // If we are running, we want a circular spinning icon.
+  // If we are completed, we want a checkmark.
+  // Otherwise, no icon.
+  def buttonProperties(
+    subsystem: Resource | Instrument
+  ): (FontAwesomeIcon, Button.Severity, Boolean) = // (icon, severity, disabled)
+    subsystemState(subsystem) match
+      case (_, OperationRequest.InFlight)                  =>
+        (SubsystemControls.RunningIcon, Button.Severity.Warning, true)
+      case (ActionStatus.Running | ActionStatus.Paused, _) =>
+        (SubsystemControls.RunningIcon, Button.Severity.Warning, true)
+      case (ActionStatus.Completed, _)                     =>
+        (SubsystemControls.CompletedIcon, Button.Severity.Success, false)
+      case (ActionStatus.Failed, _)                        =>
+        (SubsystemControls.FailureIcon, Button.Severity.Danger, false)
+      case _                                               =>
+        (SubsystemControls.IdleIcon, Button.Severity.Primary, false)
 
 object SubsystemControls:
   private type Props = SubsystemControls
@@ -57,25 +79,6 @@ object SubsystemControls:
   private val CompletedIcon = Icons.Check.withFixedWidth()
   private val FailureIcon   = Icons.CircleExclamation.withFixedWidth().withInverse()
 
-  // We want blue if the resource operation is idle or does not exist: these are equivalent cases.
-  private def buttonSeverity(op: Option[SubsystemRunOperation]): Button.Severity =
-    op.map:
-      case SubsystemRunOperation.SubsystemRunIdle         => Button.Severity.Primary
-      case SubsystemRunOperation.SubsystemRunInFlight(_)  => Button.Severity.Warning
-      case SubsystemRunOperation.SubsystemRunCompleted(_) => Button.Severity.Success
-      case SubsystemRunOperation.SubsystemRunFailed(_)    => Button.Severity.Danger
-    .getOrElse(Button.Severity.Primary)
-
-  // If we are running, we want a circular spinning icon.
-  // If we are completed, we want a checkmark.
-  // Otherwise, no icon.
-  private def determineIcon(op: Option[SubsystemRunOperation]): FontAwesomeIcon =
-    op match
-      case Some(SubsystemRunOperation.SubsystemRunInFlight(_))  => RunningIcon
-      case Some(SubsystemRunOperation.SubsystemRunCompleted(_)) => CompletedIcon
-      case Some(SubsystemRunOperation.SubsystemRunFailed(_))    => FailureIcon
-      case _                                                    => IdleIcon
-
   private val component = ScalaFnComponent
     .withHooks[Props]
     .useContext(AppContext.ctx)
@@ -87,17 +90,13 @@ object SubsystemControls:
         props.subsystems
           .sorted[Resource | Instrument]
           .map: subsystem =>
-            val subsystemState: Option[SubsystemRunOperation] = props.subsystemsCalls.get(subsystem)
-            val buttonIcon: FontAwesomeIcon                   = determineIcon(subsystemState)
+            val (icon, severity, disabled) = props.buttonProperties(subsystem)
 
             <.span(
               Button(
                 size = Button.Size.Small,
-                severity = buttonSeverity(subsystemState),
-                disabled = subsystemState.exists:
-                  case SubsystemRunOperation.SubsystemRunInFlight(_) => true
-                  case _                                             => false
-                ,
+                severity = severity,
+                disabled = disabled,
                 clazz = ObserveStyles.ConfigButton |+|
                   ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate),
                 onClickE = _.stopPropagationCB >> sequenceApi
@@ -105,7 +104,7 @@ object SubsystemControls:
                   .runAsync,
                 tooltip = s"Configure ${subsystem.shortName}",
                 tooltipOptions = DefaultTooltipOptions
-              )(buttonIcon, subsystem.shortName)
+              )(icon, subsystem.shortName)
             )
           .toTagMod
       )

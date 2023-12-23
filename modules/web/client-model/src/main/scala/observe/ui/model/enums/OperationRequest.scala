@@ -7,9 +7,6 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import monocle.Iso
-import monocle.Optional
-import observe.model.ExecutionState
-import observe.model.SequenceState
 
 enum OperationRequest derives Eq:
   case Idle, InFlight
@@ -17,9 +14,3 @@ enum OperationRequest derives Eq:
 object OperationRequest:
   val IsInFlight: Iso[OperationRequest, Boolean] =
     Iso[OperationRequest, Boolean](_ === InFlight)(if (_) InFlight else Idle)
-
-  val PauseState: Optional[ExecutionState, OperationRequest] =
-    ExecutionState.sequenceState
-      .andThen(SequenceState.running)
-      .andThen(SequenceState.Running.userStop)
-      .andThen(IsInFlight.reverse)

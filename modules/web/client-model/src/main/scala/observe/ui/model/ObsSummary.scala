@@ -7,8 +7,11 @@ import cats.Eq
 import cats.Order.given
 import cats.derived.*
 import cats.syntax.all.*
+import eu.timepit.refined.cats.given
+import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Decoder
 import io.circe.generic.semiauto.*
+import io.circe.refined.given
 import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
@@ -28,7 +31,7 @@ import scala.collection.immutable.SortedSet
 case class ObsSummary(
   obsId:              Observation.Id,
   title:              String,
-  subtitle:           String,
+  subtitle:           Option[NonEmptyString],
   instrument:         Instrument,
   constraints:        ConstraintSet,
   timingWindows:      List[TimingWindow],
@@ -68,7 +71,7 @@ object ObsSummary:
     for
       id                 <- c.get[Observation.Id]("id")
       title              <- c.get[String]("title")
-      subtitle           <- c.get[String]("subtitle")
+      subtitle           <- c.get[Option[NonEmptyString]]("subtitle")
       instrument         <- c.get[Option[Instrument]]("instrument")
       constraints        <- c.get[ConstraintSet]("constraintSet")
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")

@@ -4,6 +4,9 @@
 package observe.ui.model.arb
 
 import cats.Order.given
+import eu.timepit.refined.scalacheck.string.given
+import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.arb.cogenNonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
@@ -30,7 +33,7 @@ trait ArbObsSummary:
     for
       obsId              <- arbitrary[Observation.Id]
       title              <- arbitrary[String]
-      subtitle           <- arbitrary[String]
+      subtitle           <- arbitrary[Option[NonEmptyString]]
       instrument         <- arbitrary[Instrument]
       constraints        <- arbitrary[ConstraintSet]
       timingWindows      <- arbitrary[List[TimingWindow]]
@@ -55,7 +58,7 @@ trait ArbObsSummary:
     Cogen[
       (Observation.Id,
        String,
-       String,
+       Option[NonEmptyString],
        Instrument,
        ConstraintSet,
        List[TimingWindow],

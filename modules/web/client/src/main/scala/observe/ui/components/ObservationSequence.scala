@@ -3,11 +3,9 @@
 
 package observe.ui.components
 
-import cats.Order.given
 import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
@@ -16,22 +14,19 @@ import lucuma.react.common.ReactFnProps
 import lucuma.react.common.given
 import observe.model.ExecutionState
 import observe.model.StepProgress
-import observe.model.given
 import observe.ui.components.sequence.GmosNorthSequenceTables
 import observe.ui.components.sequence.GmosSouthSequenceTables
 import observe.ui.model.AppContext
-import observe.ui.model.SequenceOperations
-import observe.ui.model.SubsystemRunOperation
+import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
-
-import scala.collection.immutable.SortedMap
 
 case class ObservationSequence(
   obsId:           Observation.Id,
   config:          InstrumentExecutionConfig,
   executionState:  View[ExecutionState],
   progress:        Option[StepProgress],
+  requests:        ObservationRequests,
   selectedStep:    Option[Step.Id],
   setSelectedStep: Step.Id => Callback,
   clientMode:      ClientMode
@@ -56,20 +51,6 @@ object ObservationSequence:
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
             sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-      val seqOperations: SequenceOperations =
-        props.selectedStep
-          .fold(SequenceOperations.Default): stepId =>
-            SequenceOperations.Default.copy(resourceRunRequested = SortedMap.from:
-              props.executionState.get.stepResources
-                .get(stepId)
-                .map(_.map { case (resource, status) =>
-                  SubsystemRunOperation
-                    .fromActionStatus(stepId)(status)
-                    .map(resource -> _)
-                }.toList.flatten)
-                .orEmpty
-            )
-
       props.config match
         case InstrumentExecutionConfig.GmosNorth(config) =>
           GmosNorthSequenceTables(
@@ -80,7 +61,7 @@ object ObservationSequence:
             props.progress,
             props.selectedStep,
             props.setSelectedStep,
-            seqOperations,
+            props.requests,
             isPreview = false,
             flipBreakPoint
           )
@@ -93,7 +74,7 @@ object ObservationSequence:
             props.progress,
             props.selectedStep,
             props.setSelectedStep,
-            seqOperations,
+            props.requests,
             isPreview = false,
             flipBreakPoint
             // )

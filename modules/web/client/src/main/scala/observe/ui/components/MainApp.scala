@@ -337,14 +337,19 @@ object MainApp extends ServerEventHandler:
         ) =>
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
             (apiClientOpt,
+             rootModelDataPot.toPotView.toOption,
              rootModelDataPot.get.toOption.flatMap(_.observer),
              permitPot.toOption,
              ctxPot.toOption
-            ).mapN: (client, observer, permit, ctx) =>
+            ).mapN: (client, rootModelDataView, observer, permit, ctx) =>
               import ctx.given
               (
                 ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
-                SequenceApiImpl(client = client, observer = observer)
+                SequenceApiImpl(
+                  client = client,
+                  observer = observer,
+                  requests = rootModelDataView.zoom(RootModelData.obsRequests)
+                )
               )
 
           def provideApiCtx(children: VdomNode*) =

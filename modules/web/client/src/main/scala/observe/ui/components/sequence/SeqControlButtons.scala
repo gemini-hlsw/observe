@@ -15,20 +15,26 @@ import lucuma.react.primereact.Button
 import lucuma.react.primereact.InputGroup
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
+import observe.model.SequenceState
 import observe.model.enums.RunOverride
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
+import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
 case class SeqControlButtons(
-  obsId:          Observation.Id,
-  loadedObsId:    Option[Pot[Observation.Id]],
-  loadObs:        Observation.Id => Callback,
-  isRunning:      Boolean,
-  pauseRequested: ViewOpt[OperationRequest]
-) extends ReactFnProps(SeqControlButtons.component)
+  obsId:         Observation.Id,
+  loadedObsId:   Option[Pot[Observation.Id]],
+  loadObs:       Observation.Id => Callback,
+  sequenceState: SequenceState,
+  requests:      ObservationRequests
+) extends ReactFnProps(SeqControlButtons.component):
+  val isPaused: Boolean =
+    requests.pause === OperationRequest.InFlight || sequenceState.userStopRequested
+
+  val isRunning: Boolean = sequenceState.isRunning
 
 object SeqControlButtons:
   private type Props = SeqControlButtons
@@ -77,9 +83,8 @@ object SeqControlButtons:
               Icons.Pause.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Pause sequence",
             tooltipOptions = tooltipOptions,
-            onClick = props.pauseRequested
-              .set(OperationRequest.InFlight) >> sequenceApi.pause(props.obsId).runAsync,
-            disabled = props.pauseRequested.get.contains_(OperationRequest.InFlight)
+            onClick = sequenceApi.pause(props.obsId).runAsync,
+            disabled = props.isPaused
           ).when(selectedObsIsLoaded && props.isRunning)
         )
     // TODO Cancel pause

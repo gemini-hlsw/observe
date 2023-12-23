@@ -23,7 +23,7 @@ import observe.ui.model.enums.OffsetsDisplay
 object reusability:
   given Reusability[ClientMode]                            = Reusability.byEq
   given Reusability[SequenceState]                         = Reusability.byEq
-  given Reusability[SequenceOperations]                    = Reusability.byEq
+  given Reusability[ObservationRequests]                   = Reusability.byEq
   given Reusability[ObsClass]                              = Reusability.byEq
   given Reusability[OffsetsDisplay]                        = Reusability.byEq
   given [S: Eq, D: Eq]: Reusability[ExecutionConfig[S, D]] = Reusability.byEq
