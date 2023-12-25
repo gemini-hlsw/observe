@@ -13,12 +13,12 @@ import monocle.Prism
 import monocle.macros.GenPrism
 
 enum SequenceState(val name: String) derives Eq:
-  case Completed           extends SequenceState("Completed")
   case Idle                extends SequenceState("Idle")
   case Running(
     userStop:     Boolean,
     internalStop: Boolean
   )                        extends SequenceState("Running")
+  case Completed           extends SequenceState("Completed")
   case Failed(msg: String) extends SequenceState("Failed")
   case Aborted             extends SequenceState("Aborted")
 

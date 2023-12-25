@@ -224,7 +224,7 @@ object SessionQueue:
     ),
     ColDef(
       ObsNameColumnId,
-      _.subtitle,
+      _.subtitle.getOrElse("-"),
       header = "Obs. Name",
       cell = linked(_.value.toString)
     ),

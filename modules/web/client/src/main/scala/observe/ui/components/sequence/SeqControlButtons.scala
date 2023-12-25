@@ -12,7 +12,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
-import lucuma.react.primereact.InputGroup
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
 import observe.model.SequenceState
@@ -52,7 +51,7 @@ object SeqControlButtons:
 
         val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
 
-        InputGroup(
+        <.span(
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             loading = props.loadedObsId.exists(_.isPending),
@@ -65,14 +64,14 @@ object SeqControlButtons:
           ).when(!selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.isRunning,
+            // loading = props.isRunning,
             icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
             loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
-            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
-            disabled = props.isRunning
-          ).when(selectedObsIsLoaded),
+            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync
+            // disabled = props.isRunning
+          ).when(selectedObsIsLoaded && !props.isRunning),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
             icon =

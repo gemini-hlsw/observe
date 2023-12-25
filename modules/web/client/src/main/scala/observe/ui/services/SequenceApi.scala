@@ -34,8 +34,6 @@ trait SequenceApi[F[_]: MonadThrow]:
 
   def pause(obsId: Observation.Id): F[Unit] = NotAuthorized
 
-  def cancelPause(obsId: Observation.Id): F[Unit] = NotAuthorized
-
   def stop(obsId: Observation.Id): F[Unit] = NotAuthorized
 
   def stopGracefully(obsId: Observation.Id): F[Unit] = NotAuthorized
@@ -43,6 +41,8 @@ trait SequenceApi[F[_]: MonadThrow]:
   def abort(obsId: Observation.Id): F[Unit] = NotAuthorized
 
   def pauseObs(obsId: Observation.Id): F[Unit] = NotAuthorized
+
+  def cancelObsPause(obsId: Observation.Id): F[Unit] = NotAuthorized
 
   def pauseObsGracefully(obsId: Observation.Id): F[Unit] = NotAuthorized
 
