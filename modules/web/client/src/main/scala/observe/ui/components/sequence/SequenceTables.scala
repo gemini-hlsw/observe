@@ -286,6 +286,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         requests = requests,
                         runningStepId = executionState.runningStepId,
                         sequenceState = executionState.sequenceState,
+                        isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
                         subsystemStatus = executionState.stepResources
                           .find(_._1 === stepId)
                           .map(_._2.toMap)

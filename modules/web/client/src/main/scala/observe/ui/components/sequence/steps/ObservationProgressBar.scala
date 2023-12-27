@@ -20,12 +20,12 @@ import observe.ui.ObserveStyles
  * Component to wrap the progress bar
  */
 case class ObservationProgressBar(
-  obsId:    Observation.Id,
-  stepId:   Step.Id,
-  progress: Option[StepProgress],
-  fileId:   ImageFileId, // TODO This can be multiple ones
-  stopping: Boolean,
-  paused:   Boolean
+  obsId:          Observation.Id,
+  stepId:         Step.Id,
+  progress:       Option[StepProgress],
+  fileId:         ImageFileId, // TODO This can be multiple ones
+  isStopping:     Boolean,
+  isPausedInStep: Boolean
 ) extends ReactFnProps(ObservationProgressBar.component)
 // TODO Substitute for a stream hook - Progress should be a Topic somewhere
 // protected[steps] val connect: ReactConnectProxy[Option[ObservationProgress]] =
@@ -58,8 +58,8 @@ object ObservationProgressBar extends ProgressLabel:
                 renderLabel(
                   props.fileId,
                   remainingMillis.some,
-                  props.stopping,
-                  props.paused,
+                  props.isStopping,
+                  props.isPausedInStep,
                   stage
                 )
               ),
@@ -69,7 +69,7 @@ object ObservationProgressBar extends ProgressLabel:
 
       case _ =>
         val msg: String =
-          List(s"${props.fileId.value}", if (props.paused) "Paused" else "Preparing...")
+          List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
             .filterNot(_.isEmpty)
             .mkString(" - ")
 

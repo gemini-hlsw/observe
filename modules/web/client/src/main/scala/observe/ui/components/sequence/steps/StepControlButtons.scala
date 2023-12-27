@@ -29,17 +29,17 @@ import observe.ui.services.SequenceApi
  * Contains a set of control buttons like stop/abort
  */
 case class StepControlButtons(
-  obsId:           Observation.Id,
-  instrument:      Instrument,
-  sequenceState:   SequenceState,
-  stepId:          Step.Id,
-  isObservePaused: Boolean,
-  isReadingOut:    Boolean,
-  isMultiLevel:    Boolean,
-  requests:        ObservationRequests
+  obsId:          Observation.Id,
+  instrument:     Instrument,
+  sequenceState:  SequenceState,
+  stepId:         Step.Id,
+  isPausedInStep: Boolean,
+  isReadingOut:   Boolean,
+  isMultiLevel:   Boolean,
+  requests:       ObservationRequests
 ) extends ReactFnProps(StepControlButtons.component):
   val operations: List[Operations] =
-    instrument.operations(OperationLevel.Observation, isObservePaused, isMultiLevel)
+    instrument.operations(OperationLevel.Observation, isPausedInStep, isMultiLevel)
 
   val isRunning: Boolean = sequenceState.isRunning
 
@@ -76,7 +76,7 @@ object StepControlButtons:
                   icon = Icons.Play.withFixedWidth(),
                   tooltip = "Resume the current exposure",
                   tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || !props.isObservePaused || props.isReadingOut,
+                  disabled = props.requestInFlight || !props.isPausedInStep || props.isReadingOut,
                   onClickE = _.stopPropagationCB >> sequenceApi.resumeObs(props.obsId).runAsync
                 )
               case PauseObservation  =>
@@ -85,7 +85,7 @@ object StepControlButtons:
                   icon = Icons.Pause.withFixedWidth(),
                   tooltip = "Pause the current exposure",
                   tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || props.isObservePaused || props.isReadingOut,
+                  disabled = props.requestInFlight || props.isPausedInStep || props.isReadingOut,
                   onClickE = _.stopPropagationCB >> sequenceApi.pauseObs(props.obsId).runAsync
                 )
               case StopObservation   =>

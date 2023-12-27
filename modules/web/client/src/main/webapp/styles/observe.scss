@@ -814,6 +814,15 @@ html {
   &.ObserveStyles-controlButtonStrip {
     height: 21px;
     width: 68px;
+
+    // Resume and pause buttons don't have a large icon, so we pad them.
+    & > .ObserveStyles-playButton,
+    & > .ObserveStyles-pauseButton {
+      & > .p-button-icon {
+        padding-left: 2.4px;
+        padding-right: 2.4px;
+      }
+    }
   }
 }
 

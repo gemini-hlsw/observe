@@ -33,6 +33,7 @@ case class StepProgressCell(
   requests:        ObservationRequests,
   runningStepId:   Option[Step.Id],
   sequenceState:   SequenceState,
+  isPausedInStep:  Boolean,
   subsystemStatus: Map[Resource | Instrument, ActionStatus],
   progress:        Option[StepProgress],
   selectedStep:    Option[Step.Id],
@@ -68,16 +69,13 @@ case class StepProgressCell(
 object StepProgressCell:
   private type Props = StepProgressCell
 
-  // private given ControlButtonResolver[Props] =
-  //   ControlButtonResolver.build(p => (p.clientMode, p.sequenceState, p.isRunning))
-
   private def stepControlButtons(props: Props): TagMod =
     StepControlButtons(
       props.obsId,
       props.instrument,
       props.sequenceState,
       props.stepId,
-      false, // props.step.get.isObservePaused,
+      props.isPausedInStep,
       props.progress.exists(_.stage === ObserveStage.ReadingOut),
       false, // props.isNs,
       props.requests
@@ -135,7 +133,6 @@ object StepProgressCell:
     //   <.p(ObserveStyles.ComponentLabel, "Pending")
 
     val fileId = ImageFileId("")
-    val paused = false
 
     <.div(ObserveStyles.ConfiguringRow)(
       stepControlButtons(props),
@@ -163,8 +160,8 @@ object StepProgressCell:
           props.stepId,
           props.progress,
           fileId,
-          stopping = !paused && props.isStopping,
-          paused
+          isStopping = !props.isPausedInStep && props.isStopping,
+          props.isPausedInStep
         )
       else EmptyVdom
       // } { nsStatus =>

@@ -11,8 +11,8 @@ trait ProgressLabel:
   protected def renderLabel(
     fileId:          ImageFileId,
     remainingMillis: Option[Int],
-    stopping:        Boolean,
-    paused:          Boolean,
+    isStopping:      Boolean,
+    isPausedInStep:  Boolean,
     stage:           ObserveStage
   ): String =
     val durationStr: String = remainingMillis
@@ -27,7 +27,7 @@ trait ProgressLabel:
           .filterNot(_.isEmpty)
           .mkString(" ")
 
-    val stageStr: String = (paused, stopping, stage) match
+    val stageStr: String = (isPausedInStep, isStopping, stage) match
       case (true, _, _)                    => "Paused"
       case (_, true, _)                    => "Stopping - Reading out..."
       case (_, _, ObserveStage.Preparing)  => "Preparing"
