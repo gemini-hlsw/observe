@@ -50,7 +50,8 @@ extension (q: SequenceView)
       None,
       q.stepResources,
       q.systemOverrides,
-      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet
+      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet,
+      q.pausedStep
     )
 
 object ClientEvent:

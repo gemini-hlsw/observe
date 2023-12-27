@@ -28,7 +28,8 @@ case class ExecutionState(
   nsState:         Option[NsRunningState],
   stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]],
   systemOverrides: SystemOverrides,
-  breakpoints:     Set[Step.Id] = Set.empty
+  breakpoints:     Set[Step.Id] = Set.empty,
+  pausedStep:      Option[PausedStep] = None
 ) derives Eq,
       Encoder.AsObject,
       Decoder:

@@ -29,3 +29,7 @@ object SubsystemEnabled extends NewType[Boolean] {
 }
 
 type SubsystemEnabled = SubsystemEnabled.Type
+
+object PausedStep extends NewType[StepId]
+
+type PausedStep = PausedStep.Type
