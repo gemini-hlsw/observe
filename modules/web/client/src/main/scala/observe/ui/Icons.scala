@@ -193,3 +193,9 @@ object Icons:
   inline def Stop              = FontAwesomeIcon(faStop)
   inline def Sun               = FontAwesomeIcon(faSun)
   inline def XMark             = FontAwesomeIcon(faXMark)
+
+  val CancelPause =
+    LayeredIcon()(
+      Pause.withSize(IconSize.SM).withClass(ObserveStyles.IconSoft),
+      Ban.withSize(IconSize.LG)
+    )

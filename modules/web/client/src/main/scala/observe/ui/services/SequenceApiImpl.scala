@@ -93,6 +93,12 @@ case class SequenceApiImpl(
         Uri.Path.empty / obsId.toString / client.clientId.value / "pause" / observer.toString
       )
 
+  override def cancelPause(obsId: Observation.Id): IO[Unit] =
+    setInFlight(obsId, ObservationRequests.cancelPause) >>
+      client.postNoData(
+        Uri.Path.empty / obsId.toString / client.clientId.value / "cancelPause" / observer.toString
+      )
+
   override def stop(obsId: Observation.Id): IO[Unit] =
     setInFlight(obsId, ObservationRequests.stop) >>
       client.postNoData(
@@ -115,12 +121,6 @@ case class SequenceApiImpl(
     setInFlight(obsId, ObservationRequests.pause) >>
       client.postNoData(
         Uri.Path.empty / obsId.toString / client.clientId.value / "pauseObs" / observer.toString
-      )
-
-  override def cancelObsPause(obsId: Observation.Id): IO[Unit] =
-    setInFlight(obsId, ObservationRequests.cancelPause) >>
-      client.postNoData(
-        Uri.Path.empty / obsId.toString / client.clientId.value / "cancelPause" / observer.toString
       )
 
   override def pauseObsGracefully(obsId: Observation.Id): IO[Unit] =

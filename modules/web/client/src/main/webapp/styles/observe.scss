@@ -833,6 +833,15 @@ html {
     }
   }
 
+  &.ObserveStyles-cancelPauseButton {
+    @include controlButton();
+    background-color: var(--orange-700);
+
+    &:enabled:hover {
+      background-color: var(--orange-800);
+    }
+  }
+
   &.ObserveStyles-stopButton {
     @include controlButton();
     background-color: var(--orange-500);
@@ -1050,4 +1059,8 @@ html {
 .p-button.p-button-icon-only.ObserveStyles-singleButton {
   padding-left: 2px;
   padding-right: 2px;
+}
+
+.ObserveStyles-iconSoft {
+  opacity: 0.8;
 }
