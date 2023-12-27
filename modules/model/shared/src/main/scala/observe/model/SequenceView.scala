@@ -11,6 +11,7 @@ import lucuma.core.model.sequence.{Step => CoreStep}
 import monocle.Focus
 import monocle.Traversal
 import monocle.function.Each.*
+import observe.model.Step.*
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 
@@ -36,6 +37,8 @@ case class SequenceView(
     case SequenceState.Failed(_)     => progress
     case SequenceState.Aborted       => progress
     case _                           => none
+
+  def pausedStep = steps.find(_.isObservePaused).map(_.id).map(PausedStep(_))
 
 object SequenceView:
 
