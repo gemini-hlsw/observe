@@ -75,9 +75,12 @@ object ObserveStyles:
   val ObservationProgressBar: Css = Css("ObserveStyles-observationProgressBar")
   val ControlButtonStrip: Css     = Css("ObserveStyles-controlButtonStrip")
   val PauseButton: Css            = Css("ObserveStyles-pauseButton")
+  val CancelPauseButton: Css      = Css("ObserveStyles-cancelPauseButton")
   val StopButton: Css             = Css("ObserveStyles-stopButton")
   val PlayButton: Css             = Css("ObserveStyles-playButton")
   val AbortButton: Css            = Css("ObserveStyles-abortButton")
+  val SingleButton: Css           = Css("ObserveStyles-singleButton")
+  val IconSoft: Css               = Css("ObserveStyles-iconSoft")
 
   val GuidingCell: Css     = Css("ObserveStyles-guidingCell")
   val OffsetsBlock: Css    = Css("ObserveStyles-offsetsBlock")

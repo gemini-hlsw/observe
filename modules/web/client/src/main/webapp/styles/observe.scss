@@ -813,7 +813,7 @@ html {
 .p-inputgroup {
   &.ObserveStyles-controlButtonStrip {
     height: 21px;
-    width: unset; // Unset p-inputgroup's width: 100%
+    width: 68px;
   }
 }
 
@@ -830,6 +830,15 @@ html {
 
     &:enabled:hover {
       background-color: var(--teal-600);
+    }
+  }
+
+  &.ObserveStyles-cancelPauseButton {
+    @include controlButton();
+    background-color: var(--orange-700);
+
+    &:enabled:hover {
+      background-color: var(--orange-800);
     }
   }
 
@@ -1045,4 +1054,13 @@ html {
 .p-button.p-button-icon-only.ObserveStyles-obsSummary-button {
   font-size: small;
   padding: 6px 4px;
+}
+
+.p-button.p-button-icon-only.ObserveStyles-singleButton {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+.ObserveStyles-iconSoft {
+  opacity: 0.8;
 }

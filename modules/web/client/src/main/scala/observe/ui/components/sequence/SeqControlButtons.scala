@@ -12,7 +12,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
-import lucuma.react.primereact.InputGroup
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
 import observe.model.SequenceState
@@ -31,8 +30,11 @@ case class SeqControlButtons(
   sequenceState: SequenceState,
   requests:      ObservationRequests
 ) extends ReactFnProps(SeqControlButtons.component):
-  val isPaused: Boolean =
-    requests.pause === OperationRequest.InFlight || sequenceState.userStopRequested
+  val isUserStopRequested: Boolean = sequenceState.userStopRequested
+
+  val isPauseInFlight: Boolean = requests.pause === OperationRequest.InFlight
+
+  val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
 
   val isRunning: Boolean = sequenceState.isRunning
 
@@ -52,7 +54,7 @@ object SeqControlButtons:
 
         val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
 
-        InputGroup(
+        <.span(
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             loading = props.loadedObsId.exists(_.isPending),
@@ -65,26 +67,26 @@ object SeqControlButtons:
           ).when(!selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.isRunning,
             icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
             loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
-            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
-            disabled = props.isRunning
-          ).when(selectedObsIsLoaded),
+            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync
+          ).when(selectedObsIsLoaded && !props.isRunning),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
-            icon =
-              // TODO Overlay this if pause pending
-              // if (props.isRunning)
-              //   Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin()
-              // else
-              Icons.Pause.withFixedWidth().withSize(IconSize.LG),
-            tooltip = "Pause sequence",
+            icon = Icons.Pause.withFixedWidth().withSize(IconSize.LG),
+            tooltip = "Pause sequence after current exposure",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.pause(props.obsId).runAsync,
-            disabled = props.isPaused
-          ).when(selectedObsIsLoaded && props.isRunning)
+            disabled = props.isPauseInFlight
+          ).when(selectedObsIsLoaded && props.isRunning && !props.isUserStopRequested),
+          Button(
+            clazz = ObserveStyles.CancelPauseButton |+| ObserveStyles.ObsSummaryButton,
+            icon = Icons.CancelPause.withFixedWidth().withSize(IconSize.LG),
+            tooltip = "Cancel process to pause the sequence",
+            tooltipOptions = tooltipOptions,
+            onClick = sequenceApi.cancelPause(props.obsId).runAsync,
+            disabled = props.isCancelPauseInFlight
+          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
         )
-    // TODO Cancel pause

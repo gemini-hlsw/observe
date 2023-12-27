@@ -9,13 +9,6 @@ object Settings {
 
   /** Library versions */
   object LibraryVersions {
-    // ScalaJS libraries
-    val crystal      = "0.37.1"
-    val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.47.1"
-    val scalaDom     = "2.3.0"
-    val scalajsReact = "2.1.1"
-
     // Scala libraries
     val catsEffectVersion = "3.5.2"
     val catsVersion       = "2.10.0"
@@ -30,6 +23,7 @@ object Settings {
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.13"
 
+    val atto             = "0.9.5"
     val squants          = "1.8.3"
     val unboundId        = "3.2.1"
     val jwt              = "9.4.5"
@@ -55,14 +49,19 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore    = "0.91.0"
-    val lucumaUI      = "0.87.0"
+    val lucumaUI      = "0.87.1"
     val lucumaSchemas = "0.68.0"
     val lucumaSSO     = "0.6.11"
 
     // Clue
     val clue = "0.35.0"
 
-    val atto = "0.9.5"
+    // ScalaJS libraries
+    val crystal      = "0.37.1"
+    val javaTimeJS   = "2.5.0"
+    val lucumaReact  = "0.47.2"
+    val scalaDom     = "2.3.0"
+    val scalajsReact = "2.1.1"
   }
 
   /**

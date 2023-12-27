@@ -127,6 +127,7 @@ object Home:
                         executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
                         rootModelData.obsRequests.getOrElse(selectedObsId, ObservationRequests.Idle)
                       ),
+                      // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
                       executionStateAndConfig.map(
                         _.renderPot(
                           { (loadedObsId, config, executionState) =>
