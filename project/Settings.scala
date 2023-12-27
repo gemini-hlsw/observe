@@ -12,7 +12,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.37.1"
     val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.47.1"
+    val lucumaReact  = "0.47.2"
     val scalaDom     = "2.3.0"
     val scalajsReact = "2.1.1"
 
