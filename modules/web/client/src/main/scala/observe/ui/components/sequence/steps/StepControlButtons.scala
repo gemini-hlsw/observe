@@ -55,13 +55,6 @@ object StepControlButtons:
     .render: (props, ctx, sequenceApi) =>
       import ctx.given
 
-      // def requestedIcon(icon: FontAwesomeIcon): VdomNode =
-      //   icon
-      // IconGroup(
-      //   icon(^.key                                                   := "main"),
-      //   IconCircleNotched.copy(loading = true, color = Yellow)(^.key := "requested")
-      // )
-
       // val pauseGracefullyIcon: VdomNode =
       //   props.nsPendingObserveCmd match
       //     case Some(NodAndShuffleStep.PendingObserveCmd.PauseGracefully) => requestedIcon(Icons.Pause)
@@ -72,8 +65,6 @@ object StepControlButtons:
       //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
       //     case _                                                        => Icons.Stop
 
-      // p.connect { proxy =>
-      // val isReadingOut = false // proxy().exists(_.stage === ObserveStage.ReadingOut)
       InputGroup(ObserveStyles.ControlButtonStrip)(
         // ObserveStyles.notInMobile,
         if (props.isRunning) {
