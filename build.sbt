@@ -213,7 +213,7 @@ lazy val observe_server = project
         PPrint.value,
         Clue.value,
         ClueHttp4s,
-        Atto,
+        CatsParse.value,
         ACM,
         GiapiScala
       ) ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++

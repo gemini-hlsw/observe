@@ -3,10 +3,13 @@
 
 package observe.server.tcs
 
-import atto.Atto.*
-import atto.*
+import cats.parse.Parser
+import cats.parse.Parser0
+import cats.parse.Rfc5234.char
 import cats.syntax.all.*
 import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.parser.EnumParsers
+import lucuma.core.parser.MiscParsers.int
 import observe.server.EpicsCodex.DecodeEpicsValue
 import observe.server.EpicsCodex.EncodeEpicsValue
 import observe.server.tcs.ScienceFold.Parked
@@ -16,28 +19,29 @@ import observe.server.tcs.TcsController.LightSource.*
 
 // Decoding and encoding the science fold position require some common definitions, therefore I
 // put them inside an object
-private[server] trait ScienceFoldPositionCodex {
+private[server] trait ScienceFoldPositionCodex:
 
   private val AO_PREFIX   = "ao2"
   private val GCAL_PREFIX = "gcal2"
   private val PARK_POS    = "park-pos"
 
-  val lightSink: Parser[LightSinkName] = LightSinkName.all.foldMap(x => string(x.name).as(x))
+  val lightSink: Parser[LightSinkName] = EnumParsers.enumBy[LightSinkName](_.name)
 
-  def prefixed(p: String, s: LightSource): Parser[ScienceFold] =
-    (string(p) ~> lightSink ~ int).map { case (ls, port) => Position(s, ls, port) }
+  def prefixed(p: String, s: LightSource): Parser0[ScienceFold] =
+    (Parser.string0(p) *> lightSink ~ int)
+      .map: (ls, port) =>
+        Position(s, ls, port)
+      .widen[ScienceFold]
 
   val park: Parser[ScienceFold] =
-    (string(PARK_POS) <~ many(anyChar)).as(Parked)
+    (Parser.string(PARK_POS) <* char.rep.?).as(Parked)
 
-  given DecodeEpicsValue[String, Option[ScienceFold]] =
-    DecodeEpicsValue((t: String) =>
-      (park | prefixed(AO_PREFIX, AO) | prefixed(GCAL_PREFIX, GCAL) | prefixed("", Sky))
-        .parseOnly(t)
-        .option
-    )
+  given DecodeEpicsValue[String, Option[ScienceFold]] = (t: String) =>
+    (park | prefixed(AO_PREFIX, AO) | prefixed(GCAL_PREFIX, GCAL) | prefixed("", Sky))
+      .parseAll(t)
+      .toOption
 
-  given EncodeEpicsValue[Position, String] = EncodeEpicsValue { (a: Position) =>
+  given EncodeEpicsValue[Position, String] = (a: Position) =>
     val instAGName = a.sink.name + a.port.toString
 
     a.source match {
@@ -45,8 +49,5 @@ private[server] trait ScienceFoldPositionCodex {
       case AO   => AO_PREFIX + instAGName
       case GCAL => GCAL_PREFIX + instAGName
     }
-  }
-
-}
 
 object ScienceFoldPositionCodex extends ScienceFoldPositionCodex
