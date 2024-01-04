@@ -116,6 +116,7 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
+      // FIXME We need access to the stepId
       // _ <- sendDataStart(env.odb, env.obsId, RecordedStepId(null), fileId)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))

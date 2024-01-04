@@ -435,7 +435,6 @@ object ObserveEngine {
                             Event.modifyState {
                               executeEngine
                                 .modify {
-                                  println("MOTIDY")
                                   EngineState
                                     .atSequence(id)
                                     .andThen(SequenceData.visitId)
@@ -1342,6 +1341,8 @@ object ObserveEngine {
                   systems.odb
                     .stepStartStep(oid, s.instConfig, s.config, at, ObserveClass.Science) >>= {
                     sid =>
+                      // TODO Set the current step id in the sequence, unfortunately it doesn't
+                      // do it at the right time and we can't use it on later events
                       val upd =
                         EngineState
                           .selectedGmosNorth[F]
