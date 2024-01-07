@@ -102,7 +102,7 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
   val protectedServices: AuthedRoutes[AuthResult, F] =
     AuthedRoutes.of {
       // Route used for testing only
-      case GET -> Root / "log" / IntVar(count) as _ if mode === Mode.Development =>
+      case GET -> Root / "log" / IntVar(count) as _ if mode =!= Mode.Production =>
         (L.info("info") *>
           L.warn("warn") *>
           L.error("error")).replicateA(min(1000, max(0, count))) *> Ok("")

@@ -1,6 +1,6 @@
 [
   {
-    "hostName": "observe.hi.gemini.edu",
+    "hostName": "*",
     "environment": "PRODUCTION",
     "odbURI": "wss://lucuma-postgres-odb-production.herokuapp.com/ws",
     "sso": {

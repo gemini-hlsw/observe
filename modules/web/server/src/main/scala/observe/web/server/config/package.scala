@@ -48,6 +48,7 @@ given ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
 given ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
   cf.asString.flatMap {
     case "production" => Mode.Production.asRight
+    case "staging"    => Mode.Staging.asRight
     case "dev"        => Mode.Development.asRight
     case s            => cf.failed(ModeValueUnknown(s))
   }

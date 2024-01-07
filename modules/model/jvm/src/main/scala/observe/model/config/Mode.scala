@@ -6,15 +6,9 @@ package observe.model.config
 import lucuma.core.util.Enumerated
 
 /**
- * Operating mode of the observe, development or production
+ * Operating mode
  */
-sealed abstract class Mode(val tag: String) extends Product with Serializable
-
-object Mode {
-  case object Production  extends Mode("Production")
-  case object Development extends Mode("Development")
-
-  given Enumerated[Mode] =
-    Enumerated.from(Production, Development).withTag(_.tag)
-
-}
+enum Mode(val tag: String) derives Enumerated:
+  case Production  extends Mode("Production")
+  case Staging     extends Mode("Staging")
+  case Development extends Mode("Development")
