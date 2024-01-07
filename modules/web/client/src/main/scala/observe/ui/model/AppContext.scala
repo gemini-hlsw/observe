@@ -3,8 +3,8 @@
 
 package observe.ui.model
 
-import cats.FlatMap
 import cats.effect.IO
+import cats.effect.kernel.Async
 import cats.syntax.all.*
 import clue.js.WebSocketJSClient
 import clue.websocket.CloseParams
@@ -26,13 +26,14 @@ import org.typelevel.log4cats.Logger
 
 import java.time.Instant
 
-case class AppContext[F[_]: FlatMap](
+case class AppContext[F[_]](
   version:       NonEmptyString,
   ssoClient:     SSOClient[F],
   pageUrl:       AppTab => String,
   setPageVia:    (AppTab, SetRouteVia) => Callback,
   toast:         ToastRef
 )(using
+  val F:         Async[F],
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
