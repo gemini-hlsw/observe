@@ -799,6 +799,7 @@ html {
     .p-progressbar-value {
       overflow: visible;
       justify-content: flex-start;
+      transition: none; // Important for smooth progress bar animation.
 
       .p-progressbar-label {
         display: flex;

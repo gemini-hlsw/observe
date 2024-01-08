@@ -158,6 +158,7 @@ object StepProgressCell:
         ObservationProgressBar(
           props.obsId,
           props.stepId,
+          props.sequenceState,
           props.progress,
           fileId,
           isStopping = !props.isPausedInStep && props.isStopping,

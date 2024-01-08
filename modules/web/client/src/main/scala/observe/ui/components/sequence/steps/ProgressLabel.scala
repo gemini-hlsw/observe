@@ -10,16 +10,16 @@ import observe.model.dhs.ImageFileId
 trait ProgressLabel:
   protected def renderLabel(
     fileId:          ImageFileId,
-    remainingMillis: Option[Int],
+    remainingMicros: Option[Long],
     isStopping:      Boolean,
     isPausedInStep:  Boolean,
     stage:           ObserveStage
   ): String =
-    val durationStr: String = remainingMillis
+    val durationStr: String = remainingMicros
       .filter(_ > 0)
-      .foldMap: millis =>
+      .foldMap: micros =>
         // s"mm:ss (s s) Remaining"
-        val remainingSecs: Int = millis / 1000
+        val remainingSecs: Int = (micros / 1000000).toInt
         val remainingMins: Int = remainingSecs / 60
         val secsRemainder: Int = remainingSecs % 60
         val onlySecs: String   = if (remainingMins == 0) "" else s"($remainingSecs s)"
