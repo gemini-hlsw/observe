@@ -18,22 +18,18 @@ import observe.model.Observation
 import observe.model.*
 import observe.model.enums.*
 
-extension [F[_]: MonadThrow, A](
-  s: EitherT[F, ObserveFailure, A]
-) {
+extension [F[_]: MonadThrow, A](s: EitherT[F, ObserveFailure, A])
   def liftF: F[A] =
     s.value.flatMap(_.liftTo[F])
-}
 
-extension [F[_], A, B](fa: EitherT[F, A, B]) {
+extension [F[_], A, B](fa: EitherT[F, A, B])
   def widenRethrowT[T](using
     me: MonadError[F, T],
     at: A <:< T
   ): F[B] =
     fa.leftMap(at).rethrowT
-}
 
-extension [F[_]](q: ExecutionQueue) {
+extension [F[_]](q: ExecutionQueue)
   // This assumes that there is only one instance of e in l
   private def moveElement[T](l: List[T], e: T => Boolean, delta: Int)(using eq: Eq[T]): List[T] =
     (l.indexWhere(e), l.find(e)) match
@@ -67,7 +63,6 @@ extension [F[_]](q: ExecutionQueue) {
       moveElement(q.queue, (x: ExecutionQueue.SequenceInQueue) => x.obsId === sid, delta)
     )
   def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
-}
 
 implicit final class ToHandle[F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
   import Handle.toHandle
@@ -76,7 +71,7 @@ implicit final class ToHandle[F[_]: Applicative, A](f: EngineState[F] => (Engine
     StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandle
 }
 
-extension (r: Either[Throwable, Response]) {
+extension (r: Either[Throwable, Response])
   def toResult[F[_]]: Result = r.fold(
     e =>
       e match {
@@ -86,20 +81,16 @@ extension (r: Either[Throwable, Response]) {
       },
     r => Result.OK(r)
   )
-}
 
-extension [F[_]: ApplicativeThrow](r: F[Result]) {
+extension [F[_]: ApplicativeThrow](r: F[Result])
   def safeResult: F[Result] = r.recover {
     case e: ObserveFailure => Result.Error(ObserveFailure.explain(e))
     case e: Throwable      => Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
   }
-}
 
-extension [F[_]: ApplicativeThrow, A <: Response](x: F[A]) {
-  def toAction(kind: ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
-}
+extension [F[_]: ApplicativeThrow, A <: Response](x: F[A])
+  def toAction(kind:                                 ActionType): Action[F] = fromF[F](kind, x.attempt.map(_.toResult))
 
-extension [F[_]: Functor](x: F[ConfigResult[F]]) {
+extension [F[_]: Functor](x: F[ConfigResult[F]])
   def toAction(kind: ActionType): Action[F] =
     fromF[F](kind, x.map(r => Result.OK(Response.Configured(r.sys.resource))))
-}

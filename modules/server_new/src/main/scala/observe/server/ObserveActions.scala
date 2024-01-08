@@ -7,13 +7,12 @@ import cats.*
 import cats.effect.Concurrent
 import cats.effect.Temporal
 import cats.syntax.all.*
-import eu.timepit.refined.types.numeric.PosInt
 import fs2.Stream
 import lucuma.core.util.TimeSpan
+import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
 import observe.model.Observation
-import observe.model.StepId
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.*
@@ -50,15 +49,13 @@ trait ObserveActions {
    * Send the datasetStart command to the odb
    */
   private def sendDataStart[F[_]: MonadThrow](
-    odb:          OdbProxy[F],
-    visitId:      VisitId,
-    obsId:        Observation.Id,
-    stepId:       StepId,
-    datasetIndex: PosInt,
-    fileId:       ImageFileId
+    odb:    OdbProxy[F],
+    obsId:  Observation.Id,
+    stepId: RecordedStepId,
+    fileId: ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(visitId, obsId, stepId, datasetIndex, fileId)
+      .datasetStart(obsId, stepId, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -68,15 +65,13 @@ trait ObserveActions {
    * Send the datasetEnd command to the odb
    */
   private def sendDataEnd[F[_]: MonadThrow](
-    odb:          OdbProxy[F],
-    visitId:      VisitId,
-    obsId:        Observation.Id,
-    stepId:       StepId,
-    datasetIndex: PosInt,
-    fileId:       ImageFileId
+    odb:       OdbProxy[F],
+    datasetId: DatasetId,
+    obsId:     Observation.Id,
+    fileId:    ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(visitId, obsId, stepId, datasetIndex, fileId)
+      .datasetComplete(datasetId, obsId, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -121,9 +116,8 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- env.ctx.visitId
-             .map(sendDataStart(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
-             .getOrElse(Applicative[F].unit)
+      // FIXME We need access to the stepId
+      // _ <- sendDataStart(env.odb, env.obsId, RecordedStepId(null), fileId)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
       _ <-
@@ -150,9 +144,7 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <- env.ctx.visitId
-             .map(sendDataEnd(env.odb, _, env.obsId, env.stepId, env.datasetIndex, fileId))
-             .getOrElse(Applicative[F].unit)
+      _ <- sendDataEnd(env.odb, null, env.obsId, fileId)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))

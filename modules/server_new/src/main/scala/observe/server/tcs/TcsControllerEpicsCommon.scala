@@ -521,6 +521,7 @@ object TcsControllerEpicsCommon {
         case Gpi                           => ports.gpiPort
         case Ghost                         => ports.ghostPort
         case Gsaoi                         => ports.gsaoiPort
+        case Igrins2                       => sys.error("IGRINS2 not supported")
         case Ac | Hr                       => BottomPort
         case Phoenix | Visitor             => InvalidPort
       }
