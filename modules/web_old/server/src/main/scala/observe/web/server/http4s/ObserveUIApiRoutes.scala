@@ -99,42 +99,6 @@ class ObserveUIApiRoutes[F[_]: Async: Dns: Compression](
   private def pingStream: Stream[F, Ping] =
     Stream.fixedRate[F](pingInterval).flatMap(_ => Stream.emit(Ping()))
 
-  val publicService: HttpRoutes[F] = GZip {
-    HttpRoutes.of {
-
-      case req @ POST -> Root / "observe" / "login" =>
-        req.decode[UserLoginRequest] { (u: UserLoginRequest) =>
-          // Try to authenticate
-          auth.authenticateUser(u.username, u.password).flatMap {
-            case Right(user) =>
-              // Log who logged in
-              // Note that the call to read a remoteAddr may do a DNS lookup
-              req.remoteHost.flatMap { x =>
-                L.info(s"${user.displayName} logged in from ${x.getOrElse("Unknown")}")
-              } *>
-                // if successful set a cookie
-                httpAuthentication.loginCookie(user) >>= { cookie =>
-                Ok(user).map(_.addCookie(cookie))
-              }
-            case Left(_)     =>
-              unauthorized
-          }
-        }
-
-      case POST -> Root / "observe" / "logout" =>
-        // Clean the auth cookie
-        val cookie = ResponseCookie(auth.config.cookieName,
-                                    "",
-                                    path = "/".some,
-                                    secure = auth.config.useSsl,
-                                    maxAge = Some(-1),
-                                    httpOnly = true
-        )
-        Ok("").map(_.removeCookie(cookie))
-
-    }
-  }
-
   val protectedServices: AuthedRoutes[AuthResult, F] =
     AuthedRoutes.of {
       // Route used for testing only

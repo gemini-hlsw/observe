@@ -18,6 +18,8 @@ import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
 
+import scala.annotation.unused
+
 /**
  * Methods usedd to generate observation related actions
  */
@@ -48,6 +50,7 @@ trait ObserveActions {
   /**
    * Send the datasetStart command to the odb
    */
+  @unused
   private def sendDataStart[F[_]: MonadThrow](
     odb:    OdbProxy[F],
     obsId:  Observation.Id,
