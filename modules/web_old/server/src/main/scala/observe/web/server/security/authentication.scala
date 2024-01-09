@@ -50,8 +50,6 @@ case class AuthenticationService[F[_]: Sync: Logger](
   private val hosts =
     config.ldapUrls.map(u => new LDAPURL(u.renderString)).map(u => (u.getHost, u.getPort))
 
-  val ldapService: AuthService[F] = new FreeLDAPAuthenticationService(hosts)
-
   given Codec[UserDetails] = deriveCodec
 
   private val authServices =
