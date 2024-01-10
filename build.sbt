@@ -2,15 +2,19 @@ import _root_.cats.effect.kernel.syntax.resource
 import Settings.Libraries._
 import Settings.LibraryVersions
 import Common._
-import AppsCommon._
 import sbt.Keys._
 import NativePackagerHelper._
-import com.typesafe.sbt.packager.docker._
 import org.scalajs.linker.interface.ModuleSplitStyle
 import scala.sys.process._
 import sbt.nio.file.FileTreeView
 
 name := "observe"
+
+ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
+ThisBuild / dockerBaseImage := "eclipse-temurin:17-jre"
+
+ThisBuild / dockerRepository   := Some("registry.heroku.com/observe-staging/web")
+ThisBuild / dockerUpdateLatest := true
 
 ThisBuild / resolvers := List(Resolver.mavenLocal)
 
@@ -187,6 +191,7 @@ lazy val observe_web_client = project
     Test / scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
   .settings(
+    build / fileInputs += (Compile / fullLinkJS / scalaJSLinkerOutputDirectory).value.toGlob,
     build := {
       if ((Process("npx" :: "vite" :: "build" :: Nil, baseDirectory.value) !) != 0)
         throw new Exception("Error building web client")
@@ -323,8 +328,7 @@ lazy val observeCommonSettings = Seq(
     "-J-XX:+ExitOnOutOfMemoryError",
     "-J-XX:+CrashOnOutOfMemoryError",
     "-J-XX:HeapDumpPath=/tmp",
-    "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n",
-    "-java-home ${app_home}/../jre" // This breaks builds without jre
+    "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
   )
 ) ++ commonSettings
 
@@ -346,9 +350,10 @@ lazy val observeLinux = Seq(
 /**
  * Project for the observe server app for development
  */
-lazy val app_observe_server = project
-  .in(file("app/observe-server"))
+lazy val deploy_observe_server_staging = project
+  .in(file("deploy/observe-server_staging"))
   .enablePlugins(NoPublishPlugin)
+  .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .dependsOn(observe_web_server)
@@ -356,92 +361,85 @@ lazy val app_observe_server = project
   .settings(deployedAppMappings: _*)
   .settings(releaseAppMappings: _*)
   .settings(
-    description := "Observe server for local testing"
+    description          := "Observe staging server",
+    Docker / packageName := "observe-staging",
+    dockerAliases += DockerAlias(Some("registry.heroku.com"), None, "observe-staging/web", None)
   )
 
 /**
  * Project for the observe test server at GS on Linux 64
  */
-lazy val app_observe_server_gs_test =
+lazy val deploy_observe_server_gs_test =
   project
-    .in(file("app/observe-server-gs-test"))
+    .in(file("deploy/observe-server-gs-test"))
     .enablePlugins(NoPublishPlugin)
-    .enablePlugins(LinuxPlugin)
+    .enablePlugins(DockerPlugin)
     .enablePlugins(JavaServerAppPackaging)
-    .enablePlugins(SystemdPlugin)
     .enablePlugins(GitBranchPrompt)
     .settings(observeCommonSettings: _*)
     .settings(observeLinux: _*)
     .settings(
       description          := "Observe GS test deployment",
-      applicationConfName  := "observe",
-      applicationConfSite  := DeploymentSite.GS,
-      Universal / mappings := (app_observe_server / Universal / mappings).value
+      Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
+      Docker / packageName := "observe-gs-test"
     )
-    .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
-    .settings(embeddedJreSettings: _*)
+    .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
     .dependsOn(observe_server)
 
 /**
  * Project for the observe test server at GN on Linux 64
  */
-lazy val app_observe_server_gn_test =
+lazy val deploy_observe_server_gn_test =
   project
-    .in(file("app/observe-server-gn-test"))
+    .in(file("deploy/observe-server-gn-test"))
     .enablePlugins(NoPublishPlugin)
-    .enablePlugins(LinuxPlugin, RpmPlugin)
+    .enablePlugins(DockerPlugin)
     .enablePlugins(JavaServerAppPackaging)
     .enablePlugins(GitBranchPrompt)
     .settings(observeCommonSettings: _*)
     .settings(observeLinux: _*)
     .settings(
       description          := "Observe GN test deployment",
-      applicationConfName  := "observe",
-      applicationConfSite  := DeploymentSite.GN,
-      Universal / mappings := (app_observe_server / Universal / mappings).value
+      Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
+      Docker / packageName := "observe-gn-test"
     )
-    .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
-    .settings(embeddedJreSettings: _*)
+    .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
     .dependsOn(observe_server)
 
 /**
  * Project for the observe server app for production on Linux 64
  */
-lazy val app_observe_server_gs = project
-  .in(file("app/observe-server-gs"))
+lazy val deploy_observe_server_gs = project
+  .in(file("deploy/observe-server-gs"))
   .enablePlugins(NoPublishPlugin)
-  .enablePlugins(LinuxPlugin, RpmPlugin)
+  .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
   .settings(observeLinux: _*)
   .settings(
     description          := "Observe Gemini South server production",
-    applicationConfName  := "observe",
-    applicationConfSite  := DeploymentSite.GS,
-    Universal / mappings := (app_observe_server / Universal / mappings).value
+    Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
+    Docker / packageName := "observe-gs"
   )
-  .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
-  .settings(embeddedJreSettings: _*)
+  .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
   .dependsOn(observe_server)
 
 /**
  * Project for the GN observe server app for production on Linux 64
  */
-lazy val app_observe_server_gn = project
-  .in(file("app/observe-server-gn"))
+lazy val deploy_observe_server_gn = project
+  .in(file("deploy/observe-server-gn"))
   .enablePlugins(NoPublishPlugin)
-  .enablePlugins(LinuxPlugin, RpmPlugin)
+  .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .settings(observeCommonSettings: _*)
   .settings(observeLinux: _*)
   .settings(
     description          := "Observe Gemini North server production",
-    applicationConfName  := "observe",
-    applicationConfSite  := DeploymentSite.GN,
-    Universal / mappings := (app_observe_server / Universal / mappings).value
+    Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
+    Docker / packageName := "observe-gn"
   )
-  .settings(releaseAppMappings: _*) // Must come after app_observe_server mappings
-  .settings(embeddedJreSettings: _*)
+  .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
   .dependsOn(observe_server)

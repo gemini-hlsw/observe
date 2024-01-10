@@ -57,17 +57,9 @@ pull_request_rules:
       add:
       - model
       remove: []
-- name: Label observe-server PRs
-  conditions:
-  - files~=^app/observe-server/
-  actions:
-    label:
-      add:
-      - observe-server
-      remove: []
 - name: Label observe-server-gn PRs
   conditions:
-  - files~=^app/observe-server-gn/
+  - files~=^deploy/observe-server-gn/
   actions:
     label:
       add:
@@ -75,7 +67,7 @@ pull_request_rules:
       remove: []
 - name: Label observe-server-gn-test PRs
   conditions:
-  - files~=^app/observe-server-gn-test/
+  - files~=^deploy/observe-server-gn-test/
   actions:
     label:
       add:
@@ -83,7 +75,7 @@ pull_request_rules:
       remove: []
 - name: Label observe-server-gs PRs
   conditions:
-  - files~=^app/observe-server-gs/
+  - files~=^deploy/observe-server-gs/
   actions:
     label:
       add:
@@ -91,11 +83,19 @@ pull_request_rules:
       remove: []
 - name: Label observe-server-gs-test PRs
   conditions:
-  - files~=^app/observe-server-gs-test/
+  - files~=^deploy/observe-server-gs-test/
   actions:
     label:
       add:
       - observe-server-gs-test
+      remove: []
+- name: Label observe-server_staging PRs
+  conditions:
+  - files~=^deploy/observe-server_staging/
+  actions:
+    label:
+      add:
+      - observe-server_staging
       remove: []
 - name: Label server PRs
   conditions:

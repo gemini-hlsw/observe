@@ -143,13 +143,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/api/observe/events" -> ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
     )
 
-    def builder(events: Topic[F, (Option[ClientId], ClientEvent)]) = EmberServerBuilder
-      .default[F]
-      .withHost(conf.webServer.host)
-      .withPort(conf.webServer.port)
-      .withHttpWebSocketApp(wsb =>
-        Http4sLogger.httpRoutes(logHeaders = false, logBody = false)(router(wsb, events)).orNotFound
-      )
+    def builder(events: Topic[F, (Option[ClientId], ClientEvent)]) =
+      EmberServerBuilder
+        .default[F]
+        .withHost(conf.webServer.host)
+        .withPort(conf.webServer.port)
+        .withHttpWebSocketApp(wsb =>
+          Http4sLogger
+            .httpRoutes(logHeaders = false, logBody = false)(router(wsb, events))
+            .orNotFound
+        )
 
     def builderWithTLS(events: Topic[F, (Option[ClientId], ClientEvent)]) =
       Resource

@@ -70,15 +70,70 @@ and to stop all the processes you can do
 stopObserveAll
 ``` -->
 
-# How to package for deployment
+# Deployment
 
-If you haven't already, create a symlink `jre` in the project directory that points to the Linux JRE you want bundled with the deployment.
+Deployment is done via Docker images.
 
-To deploy, run in `sbt`:
+## Staging
+
+Make sure you have both `docker` and `heroku` CLIs installed and working.
+
+If you haven't already, run
 
 ```
-app_observe_server_gs_test/Universal/packageZipTarball
-app_observe_server_gn_test/Universal/packageZipTarball
-app_observe_server_gs/Universal/packageZipTarball
-app_observe_server_gn/Universal/packageZipTarball
+heroku login
+heroku container:login
 ```
+
+This will give your system access to Heroku's Docker registry.
+
+To deploy to Heroku, run in `sbt`:
+
+```
+deploy_observe_server/docker:publish
+```
+
+This will build and push the image to Heroku's Docker registry, but it won't publish it yet. To publish it, run from the shell:
+
+```
+heroku container:release web -a observe-staging
+```
+
+The new version should be accessible now at [https://observe-staging.lucuma.xyz](https://observe-staging.lucuma.xyz).
+
+## Test and Production
+
+To build test and production images, run from `sbt`:
+
+```
+deploy_observe_server_gn_test/docker:publishLocal
+deploy_observe_server_gs_test/docker:publishLocal
+deploy_observe_server_gn/docker:publishLocal
+deploy_observe_server_gs/docker:publishLocal
+```
+
+These images must then be pushed to a registry reachable by the testing/production servers.
+
+In order for these images to run, their container must have a [bind mount](https://docs.docker.com/storage/bind-mounts/) providing the TLS configuration, consisting of a file called `tls.conf` containing:
+
+```
+tls {
+    key-store = "/tls/cacerts.jks"
+    key-store-pwd = "passphrase"
+    cert-pwd = "passphrase"
+}
+```
+
+as well as the file with the certificates (`cacerts.jks` in the example). The directory with these files must be mounted at `/tls` in the container.
+
+Furthermore, an environment variable `SSO_SERVICE_JWT` must be provided with the production SSO Service token for the server to access the ODB. To generate a service token, see the [lucuma-sso documentation](https://github.com/gemini-hlsw/lucuma-sso?tab=readme-ov-file#obtaining-a-service-jwt).
+
+The SSL port is by default 9090 but can be overriden by specifying the `PORT` environment variable. This port must be exposed in the container.
+
+For example:
+
+```
+docker run -p 443:9090 --mount type=bind,src=</localdir>,dst=/tls -e SSO_SERVICE_JWT=<service-token> observe-gn-test:<version>
+```
+
+where `/localdir` contains `tls.conf` and `cacerts.jks`.
