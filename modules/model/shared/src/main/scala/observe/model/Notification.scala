@@ -7,6 +7,7 @@ import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
 
 enum Notification derives Eq:
@@ -17,5 +18,5 @@ enum Notification derives Eq:
   // Notification that a request to the backend failed
   case RequestFailed(msgs: List[String])                       extends Notification
   // Notification that a resource configuration failed as the resource was busy
-  case SubsystemBusy(obsId: Observation.Id, stepId: StepId, resource: Resource | Instrument)
+  case SubsystemBusy(obsId: Observation.Id, stepId: Step.Id, resource: Resource | Instrument)
       extends Notification

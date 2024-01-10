@@ -31,7 +31,6 @@ import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
-import observe.model.StepId
 import observe.model.dhs.*
 import observe.server.given
 import org.typelevel.log4cats.Logger
@@ -72,23 +71,23 @@ sealed trait OdbEventCommands[F[_]] {
   def stepStartConfigure(recordedStepId: RecordedStepId): F[Unit]
   def stepEndStep(
     obsId:  Observation.Id,
-    stepId: StepId
+    stepId: Step.Id
   ): F[Boolean]
   def stepStartConfigure(
     obsId:  Observation.Id,
-    stepId: StepId
+    stepId: Step.Id
   ): F[Boolean]
   def stepEndConfigure(
     obsId:  Observation.Id,
-    stepId: StepId
+    stepId: Step.Id
   ): F[Boolean]
   def stepStartObserve(
     obsId:  Observation.Id,
-    stepId: StepId
+    stepId: Step.Id
   ): F[Boolean]
   def stepEndObserve(
     obsId:  Observation.Id,
-    stepId: StepId
+    stepId: Step.Id
   ): F[Boolean]
 }
 
@@ -166,27 +165,27 @@ object OdbProxy {
 
       override def stepEndStep(
         obsId:  Observation.Id,
-        stepId: StepId
+        stepId: Step.Id
       ): F[Boolean] = evCmds.stepEndStep(obsId, stepId)
 
       override def stepStartConfigure(
         obsId:  Observation.Id,
-        stepId: StepId
+        stepId: Step.Id
       ): F[Boolean] = evCmds.stepStartConfigure(obsId, stepId)
 
       override def stepEndConfigure(
         obsId:  Observation.Id,
-        stepId: StepId
+        stepId: Step.Id
       ): F[Boolean] = evCmds.stepEndConfigure(obsId, stepId)
 
       override def stepStartObserve(
         obsId:  Observation.Id,
-        stepId: StepId
+        stepId: Step.Id
       ): F[Boolean] = evCmds.stepStartObserve(obsId, stepId)
 
       override def stepEndObserve(
         obsId:  Observation.Id,
-        stepId: StepId
+        stepId: Step.Id
       ): F[Boolean] = evCmds.stepEndObserve(obsId, stepId)
     }
 
@@ -249,27 +248,27 @@ object OdbProxy {
 
     override def stepEndStep(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepStartConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepEndConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepStartObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepEndObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
   }
 
@@ -415,7 +414,7 @@ object OdbProxy {
 
     override def stepEndStep(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] =
       for {
         _ <- L.debug(s"Send ODB event stepEndStep for obsId: $obsId, step $stepId")
@@ -426,7 +425,7 @@ object OdbProxy {
 
     override def stepStartConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] =
       for {
         _ <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
@@ -437,7 +436,7 @@ object OdbProxy {
 
     override def stepEndConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] =
       for {
         _ <- L.debug(s"Send ODB event stepEndConfigure for obsId: $obsId, step $stepId")
@@ -448,7 +447,7 @@ object OdbProxy {
 
     override def stepStartObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] =
       for {
         _ <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
@@ -459,7 +458,7 @@ object OdbProxy {
 
     override def stepEndObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] =
       for {
         _ <- L.debug(s"Send ODB event stepEndConfigure for obsId: $obsId, step $stepId")
@@ -602,27 +601,27 @@ object OdbProxy {
 
     override def stepEndStep(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepStartConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepEndConfigure(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepStartObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
 
     override def stepEndObserve(
       obsId:  Observation.Id,
-      stepId: StepId
+      stepId: Step.Id
     ): F[Boolean] = false.pure[F]
   }
 

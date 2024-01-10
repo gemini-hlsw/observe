@@ -17,10 +17,10 @@ import observe.server.gmos.GmosController.Config.*
 class GmosStepsView[F[_]] extends StepsView[F] {
   override def stepView(
     stepg:         SequenceGen.StepGen[F],
-    step:          engine.Step[F],
+    step:          engine.EngineStep[F],
     altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
-  ): Step = {
+  ): ObserveStep = {
     val nodAndShuffle: Option[GmosController.Config.NsConfig.NodAndShuffle] = stepg.genData match {
       case Gmos.GmosStatusGen(ns: NsConfig.NodAndShuffle) => ns.some
       case _                                              => none

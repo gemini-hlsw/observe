@@ -55,7 +55,7 @@ trait ArbNodAndShuffleStep {
 
   given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
     for {
-      id <- arbitrary[StepId]
+      id <- arbitrary[ObserveStep.Id]
       d  <- arbitrary[DynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
@@ -82,7 +82,7 @@ trait ArbNodAndShuffleStep {
   given nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
     Cogen[
       (
-        StepId,
+        ObserveStep.Id,
         DynamicConfig,
         StepConfig,
         StepState,

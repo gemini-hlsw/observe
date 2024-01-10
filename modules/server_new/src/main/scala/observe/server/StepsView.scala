@@ -14,8 +14,8 @@ import observe.engine.Action.ActionState
 import observe.engine.ParallelActions
 import observe.model.ActionType
 import observe.model.NodAndShuffleStep.PendingObserveCmd
+import observe.model.ObserveStep
 import observe.model.StandardStep
-import observe.model.Step
 import observe.model.StepState
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
@@ -31,10 +31,10 @@ trait StepsView[F[_]] {
    */
   def stepView(
     stepg:         SequenceGen.StepGen[F],
-    step:          engine.Step[F],
+    step:          engine.EngineStep[F],
     altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
-  ): Step
+  ): ObserveStep
 }
 
 object StepsView {
@@ -111,7 +111,9 @@ object StepsView {
   /**
    * Overall pending status for a step
    */
-  def stepConfigStatus[F[_]](step: engine.Step[F]): List[(Resource | Instrument, ActionStatus)] =
+  def stepConfigStatus[F[_]](
+    step: engine.EngineStep[F]
+  ): List[(Resource | Instrument, ActionStatus)] =
     step.status match {
       case StepState.Pending => pendingConfigStatus(step.executions)
       case _                 => configStatus(step.executions)
@@ -134,10 +136,10 @@ object StepsView {
   def defaultStepsView[F[_]]: StepsView[F] = new StepsView[F] {
     def stepView(
       stepg:         SequenceGen.StepGen[F],
-      step:          engine.Step[F],
+      step:          engine.EngineStep[F],
       altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
       pendingObsCmd: Option[PendingObserveCmd]
-    ): Step = {
+    ): ObserveStep = {
       val status       = step.status
       val configStatus =
         if (status.runningOrComplete) {

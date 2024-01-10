@@ -186,7 +186,7 @@ def toStepList[F[_]](
   seq:       SequenceGen[F],
   overrides: SystemOverrides,
   d:         HeaderExtraData
-): List[engine.Step[F]] =
+): List[engine.EngineStep[F]] =
   seq.steps.map(StepGen.generate(_, overrides, d))
 
 // If f is true continue, otherwise fail

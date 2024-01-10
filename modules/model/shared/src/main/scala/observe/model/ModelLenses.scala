@@ -20,9 +20,9 @@ trait ModelLenses {
   // Some useful Monocle lenses
   val obsNameL: Lens[SequenceView, String]                                  =
     GenLens[SequenceView](_.metadata.name)
-  val eachStepT: Traversal[List[Step], Step]                                =
-    Traversal.fromTraverse[List, Step]
-  val obsStepsL: Lens[SequenceView, List[Step]]                             = GenLens[SequenceView](_.steps)
+  val eachStepT: Traversal[List[ObserveStep], ObserveStep]                  =
+    Traversal.fromTraverse[List, ObserveStep]
+  val obsStepsL: Lens[SequenceView, List[ObserveStep]]                      = GenLens[SequenceView](_.steps)
   val eachViewT: Traversal[List[SequenceView], SequenceView]                =
     Traversal.fromTraverse[List, SequenceView]
   val sessionQueueL: Lens[SequencesQueue[SequenceView], List[SequenceView]] =

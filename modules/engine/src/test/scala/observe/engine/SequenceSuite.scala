@@ -10,13 +10,13 @@ import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.Observation as LObservation
 import observe.common.test.*
 import observe.engine.TestUtil.TestState
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
-import observe.model.StepId
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -35,8 +35,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
 
-  def simpleStep(id: StepId, breakpoint: Breakpoint): Step[IO] =
-    Step
+  def simpleStep(id: Step.Id, breakpoint: Breakpoint): EngineStep[IO] =
+    EngineStep
       .init(
         id = id,
         executions = List(
@@ -155,7 +155,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     pending: List[ParallelActions[IO]],
     focus:   Execution[IO],
     done:    List[NonEmptyList[Result]]
-  ): Step.Zipper[IO] = {
+  ): EngineStep.Zipper[IO] = {
     val rollback: (Execution[IO], List[ParallelActions[IO]]) = {
       val doneParallelActions: List[ParallelActions[IO]]  = done.map(_.map(const(action)))
       val focusParallelActions: List[ParallelActions[IO]] = focus.toParallelActionsList
@@ -165,10 +165,10 @@ class SequenceSuite extends munit.CatsEffectSuite {
       }
     }
 
-    Step.Zipper(
+    EngineStep.Zipper(
       id = stepId(1),
       breakpoint = Breakpoint.Disabled,
-      Step.SkipMark(false),
+      EngineStep.SkipMark(false),
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>
@@ -179,33 +179,38 @@ class SequenceSuite extends munit.CatsEffectSuite {
     )
 
   }
-  val stepz0: Step.Zipper[IO]             = simpleStep2(Nil, Execution.empty, Nil)
-  val stepza0: Step.Zipper[IO]            = simpleStep2(List(NonEmptyList.one(action)), Execution.empty, Nil)
-  val stepza1: Step.Zipper[IO]            =
+  val stepz0: EngineStep.Zipper[IO]       = simpleStep2(Nil, Execution.empty, Nil)
+  val stepza0: EngineStep.Zipper[IO]      =
+    simpleStep2(List(NonEmptyList.one(action)), Execution.empty, Nil)
+  val stepza1: EngineStep.Zipper[IO]      =
     simpleStep2(List(NonEmptyList.one(action)), Execution(List(completedAction)), Nil)
-  val stepzr0: Step.Zipper[IO]            = simpleStep2(Nil, Execution.empty, List(NonEmptyList.one(result)))
-  val stepzr1: Step.Zipper[IO]            =
+  val stepzr0: EngineStep.Zipper[IO]      =
+    simpleStep2(Nil, Execution.empty, List(NonEmptyList.one(result)))
+  val stepzr1: EngineStep.Zipper[IO]      =
     simpleStep2(Nil, Execution(List(completedAction, completedAction)), Nil)
-  val stepzr2: Step.Zipper[IO]            = simpleStep2(Nil,
-                                             Execution(List(completedAction, completedAction)),
-                                             List(NonEmptyList.one(result))
+  val stepzr2: EngineStep.Zipper[IO]      = simpleStep2(
+    Nil,
+    Execution(List(completedAction, completedAction)),
+    List(NonEmptyList.one(result))
   )
-  val stepzar0: Step.Zipper[IO]           = simpleStep2(Nil, Execution(List(completedAction, action)), Nil)
-  val stepzar1: Step.Zipper[IO]           = simpleStep2(List(NonEmptyList.one(action)),
-                                              Execution(List(completedAction, completedAction)),
-                                              List(NonEmptyList.one(result))
+  val stepzar0: EngineStep.Zipper[IO]     =
+    simpleStep2(Nil, Execution(List(completedAction, action)), Nil)
+  val stepzar1: EngineStep.Zipper[IO]     = simpleStep2(
+    List(NonEmptyList.one(action)),
+    Execution(List(completedAction, completedAction)),
+    List(NonEmptyList.one(result))
   )
 
-  def simpleSequenceZipper(focus: Step.Zipper[IO]): Sequence.Zipper[IO] =
+  def simpleSequenceZipper(focus: EngineStep.Zipper[IO]): Sequence.Zipper[IO] =
     Sequence.Zipper(seqId, atomId.some, Nil, focus, Nil)
-  val seqz0: Sequence.Zipper[IO]                                        = simpleSequenceZipper(stepz0)
-  val seqza0: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepza0)
-  val seqza1: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepza1)
-  val seqzr0: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepzr0)
-  val seqzr1: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepzr1)
-  val seqzr2: Sequence.Zipper[IO]                                       = simpleSequenceZipper(stepzr2)
-  val seqzar0: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar0)
-  val seqzar1: Sequence.Zipper[IO]                                      = simpleSequenceZipper(stepzar1)
+  val seqz0: Sequence.Zipper[IO]                                              = simpleSequenceZipper(stepz0)
+  val seqza0: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepza0)
+  val seqza1: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepza1)
+  val seqzr0: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepzr0)
+  val seqzr1: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepzr1)
+  val seqzr2: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepzr2)
+  val seqzar0: Sequence.Zipper[IO]                                            = simpleSequenceZipper(stepzar0)
+  val seqzar1: Sequence.Zipper[IO]                                            = simpleSequenceZipper(stepzar1)
 
   test("next should be None when there are no more pending executions") {
     assert(seqz0.next.isEmpty)
@@ -243,14 +248,14 @@ class SequenceSuite extends munit.CatsEffectSuite {
         id = seqId,
         atomId,
         steps = List(
-          Step.init(
+          EngineStep.init(
             id = stepId(1),
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
             )
           ),
-          Step.init(
+          EngineStep.init(
             id = stepId(2),
             executions = List(
               NonEmptyList.of(action, action), // Execution
@@ -265,7 +270,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
         id = seqId,
         atomId,
         steps = List(
-          Step.init(
+          EngineStep.init(
             id = stepId(1),
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
@@ -287,17 +292,18 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence.sequence(id = seqId,
-                          atomId,
-                          steps = List(
-                            Step.init(
-                              id = stepId(1),
-                              executions = List(
-                                NonEmptyList.of(action, action), // Execution
-                                NonEmptyList.one(action)         // Execution
-                              )
-                            )
-                          )
+        Sequence.sequence(
+          id = seqId,
+          atomId,
+          steps = List(
+            EngineStep.init(
+              id = stepId(1),
+              executions = List(
+                NonEmptyList.of(action, action), // Execution
+                NonEmptyList.one(action)         // Execution
+              )
+            )
+          )
         )
       )
       .startSingle(c)
@@ -311,17 +317,18 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val c   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
     val seq = Sequence.State
       .init(
-        Sequence.sequence(id = seqId,
-                          atomId,
-                          steps = List(
-                            Step.init(
-                              id = stepId(1),
-                              executions = List(
-                                NonEmptyList.of(action, action), // Execution
-                                NonEmptyList.one(action)         // Execution
-                              )
-                            )
-                          )
+        Sequence.sequence(
+          id = seqId,
+          atomId,
+          steps = List(
+            EngineStep.init(
+              id = stepId(1),
+              executions = List(
+                NonEmptyList.of(action, action), // Execution
+                NonEmptyList.one(action)         // Execution
+              )
+            )
+          )
         )
       )
       .startSingle(c)

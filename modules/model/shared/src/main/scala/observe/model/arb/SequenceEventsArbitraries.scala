@@ -7,6 +7,7 @@ import lucuma.core.arb.ArbTime.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.*
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
@@ -42,7 +43,7 @@ trait SequenceEventsArbitraries {
   given Arbitrary[SequenceStart] = Arbitrary[SequenceStart] {
     for {
       id <- arbitrary[Observation.Id]
-      si <- arbitrary[StepId]
+      si <- arbitrary[Step.Id]
       sv <- arbitrary[SequencesQueue[SequenceView]]
     } yield SequenceStart(id, si, sv)
   }

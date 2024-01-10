@@ -5,27 +5,27 @@ package observe.engine
 
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Iso
 import monocle.Lens
 import monocle.macros.GenLens
 import observe.engine.Action.ActionState
-import observe.model.StepId
 import observe.model.StepState
 
 /**
  * A list of `Executions` grouped by observation.
  */
-case class Step[F[_]](
-  id:         StepId,
+case class EngineStep[F[_]](
+  id:         Step.Id,
   breakpoint: Breakpoint,
-  skipped:    Step.Skipped,
-  skipMark:   Step.SkipMark,
+  skipped:    EngineStep.Skipped,
+  skipMark:   EngineStep.SkipMark,
   executions: List[ParallelActions[F]]
 )
 
-object Step {
+object EngineStep {
 
   object SkipMark extends NewType[Boolean]
   type SkipMark = SkipMark.Type
@@ -37,24 +37,24 @@ object Step {
       if (b) Breakpoint.Enabled else Breakpoint.Disabled
     )
 
-  def breakpointL[F[_]]: Lens[Step[F], Boolean] =
-    Focus[Step[F]](_.breakpoint).andThen(isoBool)
+  def breakpointL[F[_]]: Lens[EngineStep[F], Boolean] =
+    Focus[EngineStep[F]](_.breakpoint).andThen(isoBool)
 
-  def skippedL[F[_]]: Lens[Step[F], Boolean] =
-    Focus[Step[F]](_.skipped).andThen(Skipped.value)
+  def skippedL[F[_]]: Lens[EngineStep[F], Boolean] =
+    Focus[EngineStep[F]](_.skipped).andThen(Skipped.value)
 
-  def init[F[_]](id: StepId, executions: List[ParallelActions[F]]): Step[F] =
-    Step(id = id,
-         breakpoint = Breakpoint.Disabled,
-         skipped = Skipped(false),
-         skipMark = SkipMark(false),
-         executions = executions
+  def init[F[_]](id: Step.Id, executions: List[ParallelActions[F]]): EngineStep[F] =
+    EngineStep(id = id,
+               breakpoint = Breakpoint.Disabled,
+               skipped = Skipped(false),
+               skipMark = SkipMark(false),
+               executions = executions
     )
 
   /**
    * Calculate the `Step` `Status` based on the underlying `Action`s.
    */
-  private def status_[F[_]](step: Step[F]): StepState =
+  private def status_[F[_]](step: EngineStep[F]): StepState =
     if (step.skipped.value) StepState.Skipped
     else
       // Find an error in the Step
@@ -79,15 +79,15 @@ object Step {
           else StepState.Running
         )
 
-  extension [F[_]](s: Step[F]) {
-    def status: StepState = Step.status_(s)
+  extension [F[_]](s: EngineStep[F]) {
+    def status: StepState = EngineStep.status_(s)
   }
 
   /**
    * Step Zipper. This structure is optimized for the actual `Step` execution.
    */
   case class Zipper[F[_]](
-    id:         StepId,
+    id:         Step.Id,
     breakpoint: Breakpoint,
     skipMark:   SkipMark,
     pending:    List[ParallelActions[F]],
@@ -119,17 +119,19 @@ object Step {
      * Obtain the resulting `Step` only if all `Execution`s have been completed. This is a special
      * way of *unzipping* a `Zipper`.
      */
-    val uncurrentify: Option[Step[F]] =
+    val uncurrentify: Option[EngineStep[F]] =
       if (pending.isEmpty)
-        focus.uncurrentify.map(x => Step(id, breakpoint, Skipped(false), skipMark, x.prepend(done)))
+        focus.uncurrentify.map(x =>
+          EngineStep(id, breakpoint, Skipped(false), skipMark, x.prepend(done))
+        )
       else None
 
     /**
      * Unzip a `Zipper`. This creates a single `Step` with either completed `Exection`s or pending
      * `Execution`s.
      */
-    val toStep: Step[F] =
-      Step(
+    val toStep: EngineStep[F] =
+      EngineStep(
         id = id,
         breakpoint = breakpoint,
         skipped = Skipped(false),
@@ -137,7 +139,7 @@ object Step {
         executions = done ++ focus.toParallelActionsList ++ pending
       )
 
-    val skip: Step[F] = toStep.copy(skipped = Skipped(true))
+    val skip: EngineStep[F] = toStep.copy(skipped = Skipped(true))
 
     def update(executions: List[ParallelActions[F]]): Zipper[F] =
       Zipper
@@ -168,7 +170,7 @@ object Step {
      * Make a `Zipper` from a `Step` only if all the `Execution`s in the `Step` are pending. This is
      * a special way of *zipping* a `Step`.
      */
-    def currentify[F[_]](step: Step[F]): Option[Zipper[F]] =
+    def currentify[F[_]](step: EngineStep[F]): Option[Zipper[F]] =
       calcRolledback(step.executions).map { case (x, exes) =>
         Zipper(
           step.id,

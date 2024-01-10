@@ -5,8 +5,8 @@ package observe.model.arb
 
 import cats.syntax.option.*
 import lucuma.core.util.arb.ArbUid.*
+import observe.model.ObserveStep
 import observe.model.RunningStep
-import observe.model.StepId
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -17,14 +17,14 @@ trait ArbRunningStep {
   given arbRunningStep: Arbitrary[RunningStep] =
     Arbitrary {
       for {
-        id <- arbitrary[StepId]
+        id <- arbitrary[ObserveStep.Id]
         l  <- Gen.posNum[Int]
         i  <- Gen.choose(l, Int.MaxValue)
       } yield RunningStep.fromInt(id.some, l, i).getOrElse(RunningStep.Zero)
     }
 
   given runningStepCogen: Cogen[RunningStep] =
-    Cogen[(Option[StepId], Int, Int)].contramap(x => (x.id, x.last, x.total))
+    Cogen[(Option[ObserveStep.Id], Int, Int)].contramap(x => (x.id, x.last, x.total))
 
 }
 

@@ -4,10 +4,10 @@
 package observe.model.arb
 
 import cats.data.NonEmptyList
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.Observation
-import observe.model.StepId
 import observe.model.UserPrompt
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.Discrepancy
@@ -88,13 +88,13 @@ trait ArbUserPrompt {
   given checksOverrideArb: Arbitrary[ChecksOverride] = Arbitrary[ChecksOverride] {
     for {
       sid  <- arbitrary[Observation.Id]
-      stid <- arbitrary[StepId]
+      stid <- arbitrary[Step.Id]
       chks <- checksGen
     } yield ChecksOverride(sid, stid, chks)
   }
 
   given checksOverrideCogen: Cogen[ChecksOverride] =
-    Cogen[(Observation.Id, StepId, NonEmptyList[SeqCheck])].contramap(x =>
+    Cogen[(Observation.Id, Step.Id, NonEmptyList[SeqCheck])].contramap(x =>
       (x.obsId, x.stepId, x.checks)
     )
 

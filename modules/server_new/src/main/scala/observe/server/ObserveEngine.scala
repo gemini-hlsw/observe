@@ -40,13 +40,12 @@ import observe.engine.SystemEvent
 import observe.engine.SystemEvent.Executed
 import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
-import observe.engine.{Step => _, _}
+import observe.engine.{EngineStep => _, _}
 import observe.model.NodAndShuffleStep.PauseGracefully
 import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
 import observe.model.ObservationProgress
-import observe.model.StepId
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
 import observe.model.UserPrompt.SeqCheck
@@ -84,7 +83,7 @@ trait ObserveEngine[F[_]] {
   def startFrom(
     id:          Observation.Id,
     observer:    Observer,
-    stp:         StepId,
+    stp:         ObserveStep.Id,
     clientId:    ClientId,
     runOverride: RunOverride
   ): F[Unit]
@@ -105,7 +104,7 @@ trait ObserveEngine[F[_]] {
     seqId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   List[StepId],
+    stepId:   List[ObserveStep.Id],
     v:        Breakpoint
   ): F[Unit]
 
@@ -172,7 +171,7 @@ trait ObserveEngine[F[_]] {
     seqId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   StepId,
+    stepId:   ObserveStep.Id,
     v:        Boolean
   ): F[Unit]
 
@@ -235,7 +234,7 @@ trait ObserveEngine[F[_]] {
     sid:      Observation.Id,
     observer: Observer,
     user:     User,
-    stepId:   StepId,
+    stepId:   ObserveStep.Id,
     sys:      Resource | Instrument,
     clientID: ClientId
   ): F[Unit]
@@ -294,7 +293,7 @@ object ObserveEngine {
     // Starting step is either the one given, or the first one not run
     private def findStartingStep(
       obs:    SequenceData[F],
-      stepId: Option[StepId]
+      stepId: Option[ObserveStep.Id]
     ): Option[SequenceGen.StepGen[F]] = for {
       stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
       stpGen <- obs.seqGen.steps.find(_.id === stp)
@@ -302,7 +301,7 @@ object ObserveEngine {
 
     private def findFirstCheckRequiredStep(
       obs:    SequenceData[F],
-      stepId: StepId
+      stepId: ObserveStep.Id
     ): Option[SequenceGen.StepGen[F]] =
       obs.seqGen.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
 
@@ -411,7 +410,7 @@ object ObserveEngine {
     // if there is a valid sequence with a valid current step.
     private def sequenceStart(
       id: Observation.Id
-    ): HandlerType[F, Option[(Observation.Id, StepId)]] =
+    ): HandlerType[F, Option[(Observation.Id, ObserveStep.Id)]] =
       executeEngine.get.flatMap { s =>
         EngineState
           .atSequence(id)
@@ -450,7 +449,7 @@ object ObserveEngine {
               }
             }
           }
-          .getOrElse(executeEngine.pure(none[(Observation.Id, StepId)]))
+          .getOrElse(executeEngine.pure(none[(Observation.Id, ObserveStep.Id)]))
       }
 
     private def startAfterCheck(
@@ -467,7 +466,7 @@ object ObserveEngine {
       startAction: HandlerType[F, Unit],
       id:          Observation.Id,
       clientId:    ClientId,
-      stepId:      Option[StepId],
+      stepId:      Option[ObserveStep.Id],
       runOverride: RunOverride
     ): HandlerType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
@@ -536,7 +535,7 @@ object ObserveEngine {
     override def startFrom(
       id:          Observation.Id,
       observer:    Observer,
-      stp:         StepId,
+      stp:         ObserveStep.Id,
       clientId:    ClientId,
       runOverride: RunOverride
     ): F[Unit] = executeEngine.offer(
@@ -565,7 +564,7 @@ object ObserveEngine {
       seqId:    Observation.Id,
       user:     User,
       observer: Observer,
-      steps:    List[StepId],
+      steps:    List[ObserveStep.Id],
       v:        Breakpoint
     ): F[Unit] =
       // Set the observer after the breakpoints are set to do optimistic updates on the UI
@@ -822,7 +821,7 @@ object ObserveEngine {
       seqId:    Observation.Id,
       user:     User,
       observer: Observer,
-      stepId:   StepId,
+      stepId:   ObserveStep.Id,
       v:        Boolean
     ): F[Unit] = Applicative[F].unit
 //      setObserver(seqId, user, observer) *>
@@ -944,7 +943,7 @@ object ObserveEngine {
 //    private def addSeqs(
 //      qid:    QueueId,
 //      seqIds: List[Observation.Id]
-//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
@@ -969,15 +968,15 @@ object ObserveEngine {
 //                  .andThen(mapIndex[QueueId, ExecutionQueue].index(qid))
 //                  .andThen(ExecutionQueue.cmdState)
 //                  .replace(BatchCommandState.Idle) >>> {
-//                  (_, List.empty[(Observation.Id, StepId)])
+//                  (_, List.empty[(Observation.Id, ObserveStep.Id)])
 //                }).toHandle
 //              case (BatchCommandState.Run(o, u, c), _) =>
 //                executeEngine.get.flatMap(st2 =>
 //                  runSequences(shouldSchedule(qid, seqs.toSet)(st2), o, u, c)
 //                )
-//              case _                                   => executeEngine.pure(List.empty[(Observation.Id, StepId)])
+//              case _                                   => executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)])
 //            })
-//        ).getOrElse(executeEngine.pure(List.empty[(Observation.Id, StepId)]))
+//        ).getOrElse(executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]))
 //      }
 
     override def addSequencesToQueue(
@@ -1000,7 +999,7 @@ object ObserveEngine {
 //    private def removeSeq(
 //      qid:   QueueId,
 //      seqId: Observation.Id
-//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
@@ -1012,19 +1011,19 @@ object ObserveEngine {
 //          } yield executeEngine.modify(queueO(qid).modify(_.removeSeq(seqId))) *>
 //            ((q.cmdState, q.status(st)) match {
 //              case (_, BatchExecState.Completed)       =>
-//                executeEngine.pure(List.empty[(Observation.Id, StepId)])
+//                executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)])
 //              // If removed sequence was halting the queue, then removing it frees resources to run the next sequences
 //              case (BatchCommandState.Run(o, u, c), _) =>
 //                shouldSchedule(qid, Set(seqId))(st).isEmpty.fold(
-//                  executeEngine.pure(List.empty[(Observation.Id, StepId)]),
+//                  executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]),
 //                  st.sequences
 //                    .get(seqId)
 //                    .map(x => runNextsInQueue(qid, o, u, c, x.seqGen.resources))
-//                    .getOrElse(executeEngine.pure(List.empty[(Observation.Id, StepId)]))
+//                    .getOrElse(executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]))
 //                )
-//              case _                                   => executeEngine.pure(List.empty[(Observation.Id, StepId)])
+//              case _                                   => executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)])
 //            })
-//        ).getOrElse(executeEngine.pure(List.empty[(Observation.Id, StepId)]))
+//        ).getOrElse(executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]))
 //      }
 
     override def removeSequenceFromQueue(
@@ -1130,7 +1129,7 @@ object ObserveEngine {
 //      observer: Observer,
 //      user:     User,
 //      clientId: ClientId
-//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      ss.map(sid =>
 //        setObserverAndSelect(sid, observer, user, clientId) *>
 //          executeEngine.start(sid).reversedStreamFlatMap(_ => sequenceStart(sid))
@@ -1146,7 +1145,7 @@ object ObserveEngine {
 //      observer: Observer,
 //      user:     User,
 //      clientId: ClientId
-//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get
 //        .map(findRunnableObservations(qid))
 //        .flatMap(runSequences(_, observer, user, clientId))
@@ -1166,7 +1165,7 @@ object ObserveEngine {
 //      user:     User,
 //      clientId: ClientId,
 //      freed:    Set[Resource]
-//    ): HandlerType[F, List[(Observation.Id, StepId)]] =
+//    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get
 //        .map(nextRunnableObservations(qid, freed))
 //        .flatMap(runSequences(_, observer, user, clientId))
@@ -1289,7 +1288,7 @@ object ObserveEngine {
 
     private def configSystemHandle(
       sid:      Observation.Id,
-      stepId:   StepId,
+      stepId:   ObserveStep.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
     ): HandlerType[F, SeqEvent] =
@@ -1317,7 +1316,7 @@ object ObserveEngine {
       sid:      Observation.Id,
       observer: Observer,
       user:     User,
-      stepId:   StepId,
+      stepId:   ObserveStep.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
     ): F[Unit] = setObserver(sid, user, observer) *>
@@ -1719,7 +1718,7 @@ object ObserveEngine {
       case _                                => List.empty
     }
 
-    def engineSteps(seq: Sequence[F]): List[Step] =
+    def engineSteps(seq: Sequence[F]): List[ObserveStep] =
       obsSeq.seqGen.steps.zip(seq.steps).map { case (a, b) =>
         val stepResources =
           resources(a).mapFilter(x =>
@@ -1738,15 +1737,15 @@ object ObserveEngine {
       } match {
         // The sequence could be empty
         case Nil => Nil
-        // Find first Pending Step when no Step is Running and mark it as Running
+        // Find first Pending ObserveStep when no ObserveStep is Running and mark it as Running
         case steps
             if Sequence.State.isRunning(st) && steps.forall(_.status =!= StepState.Running) =>
           val (xs, ys) = splitWhere(steps)(_.status === StepState.Pending)
-          xs ++ ys.headOption.map(Step.status.replace(StepState.Running)).toList ++ ys.tail
+          xs ++ ys.headOption.map(ObserveStep.status.replace(StepState.Running)).toList ++ ys.tail
         case steps
             if st.status === SequenceState.Idle && steps.exists(_.status === StepState.Running) =>
           val (xs, ys) = splitWhere(steps)(_.status === StepState.Running)
-          xs ++ ys.headOption.map(Step.status.replace(StepState.Paused)).toList ++ ys.tail
+          xs ++ ys.headOption.map(ObserveStep.status.replace(StepState.Paused)).toList ++ ys.tail
         case x   => x
       }
 
@@ -1866,7 +1865,7 @@ object ObserveEngine {
   private def singleActionEvent[F[_], S <: SingleActionOp](
     c:      ActionCoords,
     qState: EngineState[F],
-    f:      (Observation.Id, StepId, Resource | Instrument) => S
+    f:      (Observation.Id, ObserveStep.Id, Resource | Instrument) => S
   ): ObserveEvent =
     qState.sequences
       .get(c.sid)

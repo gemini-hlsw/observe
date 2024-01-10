@@ -10,6 +10,7 @@ import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.syntax.*
+import lucuma.core.model.sequence.Step
 
 sealed trait UserPrompt extends Product with Serializable
 
@@ -63,7 +64,7 @@ object UserPrompt {
   // UserPrompt whether to override start checks
   case class ChecksOverride(
     obsId:  Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     checks: NonEmptyList[SeqCheck]
   ) extends UserPrompt
       derives Eq

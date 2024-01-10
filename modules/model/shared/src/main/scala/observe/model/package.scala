@@ -21,7 +21,7 @@ import squants.time.TimeUnit
 
 import java.util.UUID
 
-type StepId          = lucuma.core.model.sequence.Step.Id
+// type StepId          = lucuma.core.model.sequence.Step.Id
 type ObservationName = String
 type TargetName      = String
 

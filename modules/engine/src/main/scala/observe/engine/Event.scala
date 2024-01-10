@@ -8,10 +8,10 @@ import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import observe.engine.SystemEvent.Null
 import observe.model.ClientId
 import observe.model.Observation
-import observe.model.StepId
 
 import java.time.Instant
 
@@ -36,13 +36,13 @@ object Event {
   def breakpoints[F[_], S, U](
     id:    Observation.Id,
     user:  User,
-    steps: List[StepId],
+    steps: List[Step.Id],
     v:     Breakpoint
   ): Event[F, S, U] = EventUser[F, S, U](Breakpoints(id, user.some, steps, v))
   def skip[F[_], S, U](
     id:   Observation.Id,
     user: User,
-    step: StepId,
+    step: Step.Id,
     v:    Boolean
   ): Event[F, S, U] = EventUser[F, S, U](SkipMark(id, user.some, step, v))
   def poll[F[_], S, U](clientId: ClientId): Event[F, S, U]                                  =
@@ -80,25 +80,25 @@ object Event {
     EventSystem[F, S, U](Failed(id, i, e))
   def completed[F[_], R <: Result.RetVal, S, U](
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      Result.OK[R]
   ): Event[F, S, U] = EventSystem[F, S, U](Completed(id, stepId, i, r))
   def stopCompleted[F[_], R <: Result.RetVal, S, U](
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      Result.OKStopped[R]
   ): Event[F, S, U] = EventSystem[F, S, U](StopCompleted(id, stepId, i, r))
   def aborted[F[_], R <: Result.RetVal, S, U](
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      Result.OKAborted[R]
   ): Event[F, S, U] = EventSystem[F, S, U](Aborted(id, stepId, i, r))
   def partial[F[_], R <: Result.PartialVal, S, U](
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      Result.Partial[R]
   ): Event[F, S, U] =

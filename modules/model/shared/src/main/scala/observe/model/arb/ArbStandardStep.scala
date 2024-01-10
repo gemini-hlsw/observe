@@ -25,7 +25,7 @@ trait ArbStandardStep {
 
   given stsArb: Arbitrary[StandardStep] = Arbitrary[StandardStep] {
     for {
-      id <- arbitrary[StepId]
+      id <- arbitrary[ObserveStep.Id]
       d  <- arbitrary[DynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
@@ -50,7 +50,7 @@ trait ArbStandardStep {
   given standardStepCogen: Cogen[StandardStep] =
     Cogen[
       (
-        StepId,
+        ObserveStep.Id,
         DynamicConfig,
         StepConfig,
         StepState,

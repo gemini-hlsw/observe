@@ -6,22 +6,23 @@ package observe.model
 import cats.Eq
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
 
 sealed trait SingleActionOp extends Product with Serializable {
   val sid: Observation.Id
-  val stepId: StepId
+  val stepId: Step.Id
   val resource: Resource | Instrument
 }
 
 object SingleActionOp {
-  case class Started(sid: Observation.Id, stepId: StepId, resource: Resource | Instrument)
+  case class Started(sid: Observation.Id, stepId: Step.Id, resource: Resource | Instrument)
       extends SingleActionOp
-  case class Completed(sid: Observation.Id, stepId: StepId, resource: Resource | Instrument)
+  case class Completed(sid: Observation.Id, stepId: Step.Id, resource: Resource | Instrument)
       extends SingleActionOp
   case class Error(
     sid:      Observation.Id,
-    stepId:   StepId,
+    stepId:   Step.Id,
     resource: Resource | Instrument,
     msg:      String
   ) extends SingleActionOp

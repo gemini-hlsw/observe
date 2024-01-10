@@ -4,13 +4,13 @@
 package observe.model.arb
 
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.Notification
 import observe.model.Notification.*
 import observe.model.Observation
-import observe.model.StepId
 import observe.model.enums.Resource
 import observe.model.given_Enumerated_|
 import org.scalacheck.Arbitrary
@@ -49,13 +49,13 @@ trait ArbNotification {
   given subsArb: Arbitrary[SubsystemBusy] = Arbitrary[SubsystemBusy] {
     for {
       id <- arbitrary[Observation.Id]
-      i  <- arbitrary[StepId]
+      i  <- arbitrary[Step.Id]
       r  <- arbitrary[Resource]
     } yield SubsystemBusy(id, i, r)
   }
 
   given subsCogen: Cogen[SubsystemBusy] =
-    Cogen[(Observation.Id, StepId, Resource | Instrument)].contramap(x =>
+    Cogen[(Observation.Id, Step.Id, Resource | Instrument)].contramap(x =>
       (x.obsId, x.stepId, x.resource)
     )
 

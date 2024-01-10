@@ -9,12 +9,12 @@ import cats.effect.Concurrent
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.model.sequence.Step
 import monocle.Optional
 import mouse.boolean.*
 import observe.engine.SystemEvent.Null
 import observe.model.Observation
 import observe.model.SequenceState
-import observe.model.StepId
 import org.typelevel.log4cats.Logger
 
 import Event.*
@@ -64,7 +64,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
    * be skipped and then modifying the state sequence as if it was run. If the requested step is
    * already run or marked to be skipped, the sequence will start from the next runnable step
    */
-  def startFrom(id: Observation.Id, step: StepId): HandleType[Unit] =
+  def startFrom(id: Observation.Id, step: Step.Id): HandleType[Unit] =
     getS(id).flatMap {
       case Some(seq)
           if (seq.status.isIdle || seq.status.isError) && seq.toSequence.steps.exists(
@@ -140,10 +140,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
    *   List of new steps definitions
    * @return
    */
-  def update(id: Observation.Id, steps: List[Step[F]]): Endo[S] =
+  def update(id: Observation.Id, steps: List[EngineStep[F]]): Endo[S] =
     stateL.sequenceStateIndex(id).modify(_.update(steps.map(_.executions)))
 
-  def updateSteps(steps: List[Step[F]]): Endo[Sequence.State[F]] = _.update(steps.map(_.executions))
+  def updateSteps(steps: List[EngineStep[F]]): Endo[Sequence.State[F]] =
+    _.update(steps.map(_.executions))
 
   /**
    * Adds the current `Execution` to the completed `Queue`, makes the next pending `Execution` the
@@ -191,7 +192,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   // It doesn't catch run time exceptions. If desired, the Action has to do it itself.
   private def act(
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     t:      (Stream[F, Result], Int)
   ): Stream[F, EventType] = t match {
     case (gen, i) =>
@@ -552,7 +553,7 @@ object Engine {
   /**
    * Redefines an existing sequence. Changes the step actions, removes steps, adds new steps.
    */
-  def reload[F[_]](seq: Sequence.State[F], steps: List[Step[F]]): Sequence.State[F] =
+  def reload[F[_]](seq: Sequence.State[F], steps: List[EngineStep[F]]): Sequence.State[F] =
     Sequence.State.reload(steps, seq)
 
 }

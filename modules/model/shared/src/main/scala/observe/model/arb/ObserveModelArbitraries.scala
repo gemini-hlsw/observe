@@ -15,10 +15,10 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.*
-import lucuma.core.model.sequence.{Step => CoreStep}
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbGid.*
 import lucuma.core.util.arb.ArbUid.*
+import observe.model.ObserveStep
 import observe.model.*
 import observe.model.arb.all.given
 import observe.model.enums.*
@@ -127,9 +127,9 @@ trait ObserveModelArbitraries {
       m  <- arbitrary[SequenceMetadata]
       s  <- arbitrary[SequenceState]
       o  <- arbitrary[SystemOverrides]
-      t  <- arbitrary[List[Step]]
+      t  <- arbitrary[List[ObserveStep]]
       i  <- arbitrary[Option[Int]]
-      a  <- arbitrary[Map[CoreStep.Id, Map[Resource | Instrument, ActionStatus]]]
+      a  <- arbitrary[Map[ObserveStep.Id, Map[Resource | Instrument, ActionStatus]]]
     } yield SequenceView(id, m, s, o, t, i, a)
   }
   given Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
@@ -155,7 +155,7 @@ trait ObserveModelArbitraries {
         SequenceMetadata,
         SequenceState,
         SystemOverrides,
-        List[Step],
+        List[ObserveStep],
         Option[Int]
       )
     ]
@@ -221,40 +221,40 @@ trait ObserveModelArbitraries {
     Arbitrary {
       for {
         o <- arbitrary[Observation.Id]
-        s <- arbitrary[StepId]
+        s <- arbitrary[ObserveStep.Id]
         r <- arbitrary[Resource]
       } yield SingleActionOp.Started(o, s, r)
     }
 
   given Cogen[SingleActionOp.Started] =
-    Cogen[(Observation.Id, StepId, Resource | Instrument)]
+    Cogen[(Observation.Id, ObserveStep.Id, Resource | Instrument)]
       .contramap(x => (x.sid, x.stepId, x.resource))
 
   given Arbitrary[SingleActionOp.Completed] =
     Arbitrary {
       for {
         o <- arbitrary[Observation.Id]
-        s <- arbitrary[StepId]
+        s <- arbitrary[ObserveStep.Id]
         r <- arbitrary[Resource]
       } yield SingleActionOp.Completed(o, s, r)
     }
 
   given Cogen[SingleActionOp.Completed] =
-    Cogen[(Observation.Id, StepId, Resource | Instrument)]
+    Cogen[(Observation.Id, ObserveStep.Id, Resource | Instrument)]
       .contramap(x => (x.sid, x.stepId, x.resource))
 
   given Arbitrary[SingleActionOp.Error] =
     Arbitrary {
       for {
         o <- arbitrary[Observation.Id]
-        s <- arbitrary[StepId]
+        s <- arbitrary[ObserveStep.Id]
         r <- arbitrary[Resource]
         m <- arbitrary[String]
       } yield SingleActionOp.Error(o, s, r, m)
     }
 
   given Cogen[SingleActionOp.Error] =
-    Cogen[(Observation.Id, StepId, Resource | Instrument, String)]
+    Cogen[(Observation.Id, ObserveStep.Id, Resource | Instrument, String)]
       .contramap(x => (x.sid, x.stepId, x.resource, x.msg))
 
   given Arbitrary[SingleActionOp] = Arbitrary[SingleActionOp] {
