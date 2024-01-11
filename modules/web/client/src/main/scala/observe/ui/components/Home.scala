@@ -70,109 +70,114 @@ object Home:
 
         val clientMode: ClientMode = rootModelData.clientMode
 
-        rootModelData.userVault.map(_.toPot).flatten.renderPot: userVault =>
-          <.div(ObserveStyles.MainPanel)(
-            Splitter(
-              layout = Layout.Vertical,
-              stateKey = "main-splitter",
-              stateStorage = StateStorage.Local,
-              clazz = ObserveStyles.Shrinkable
-            )(
-              SplitterPanel(clazz = ObserveStyles.TopPanel)(
-                rootModelData.readyObservations
-                  .map(
-                    _.map(obs =>
-                      SessionQueueRow(
-                        obs,
-                        SequenceState.Idle,
-                        props.rootModel.data.get.observer,
-                        ObsClass.Nighttime,
-                        false, // obs.activeStatus === ObsActiveStatus.Active,
-                        none,
-                        none,
-                        false
-                      )
-                    )
-                  )
-                  .renderPot(
-                    SessionQueue(_, obsStates, selectObservation, loadedObs, loadObservation)
-                  ),
-                ConfigPanel(
-                  rootModelData.nighttimeObservation.map(_.obsId),
-                  props.rootModel.data.zoom(RootModelData.observer),
-                  props.rootModel.data.zoom(RootModelData.operator),
-                  props.rootModel.data.zoom(RootModelData.conditions)
-                )
-              ),
-              SplitterPanel()(
-                rootModelData.nighttimeDisplayedObservation
-                  .map: selectedObs =>
-                    val selectedObsId = selectedObs.obsId
-
-                    val executionStateOpt: ViewOpt[ExecutionState] =
-                      props.rootModel.data
-                        .zoom(RootModelData.executionState.index(selectedObsId))
-
-                    val executionStateAndConfig: Option[
-                      Pot[(Observation.Id, InstrumentExecutionConfig, View[ExecutionState])]
-                    ] =
-                      loadedObs.map: lo =>
-                        (lo.obsId.ready, lo.config, executionStateOpt.toOptionView.toPot).tupled
-
-                    <.div(ObserveStyles.ObservationArea, ^.key := selectedObsId.toString)(
-                      ObsHeader(
-                        selectedObs,
-                        executionStateAndConfig.map(_.map(_._1)),
-                        loadObservation,
-                        executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
-                        rootModelData.obsRequests.getOrElse(selectedObsId, ObservationRequests.Idle)
-                      ),
-                      // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
-                      executionStateAndConfig.map(
-                        _.renderPot(
-                          { (loadedObsId, config, executionState) =>
-                            val progress: Option[StepProgress] =
-                              rootModelData.obsProgress.get(loadedObsId)
-
-                            val requests: ObservationRequests =
-                              rootModelData.obsRequests.getOrElse(loadedObsId,
-                                                                  ObservationRequests.Idle
-                              )
-
-                            val selectedStep: Option[Step.Id] =
-                              rootModelData.obsSelectedStep(loadedObsId)
-
-                            val setSelectedStep: Step.Id => Callback = stepId =>
-                              props.rootModel.data
-                                .zoom(RootModelData.userSelectedStep.at(loadedObsId))
-                                .mod: oldStepId =>
-                                  if (oldStepId.contains_(stepId)) none else stepId.some
-
-                            ObservationSequence(
-                              loadedObsId,
-                              config,
-                              executionState,
-                              progress,
-                              requests,
-                              selectedStep,
-                              setSelectedStep,
-                              clientMode
-                            )
-                          },
-                          errorRender = t =>
-                            <.div(ObserveStyles.ObservationAreaError)(
-                              DefaultErrorRender(t)
-                            )
+        rootModelData.userVault
+          .map(_.toPot)
+          .flatten
+          .renderPot: userVault =>
+            <.div(ObserveStyles.MainPanel)(
+              Splitter(
+                layout = Layout.Vertical,
+                stateKey = "main-splitter",
+                stateStorage = StateStorage.Local,
+                clazz = ObserveStyles.Shrinkable
+              )(
+                SplitterPanel(clazz = ObserveStyles.TopPanel)(
+                  rootModelData.readyObservations
+                    .map(
+                      _.map(obs =>
+                        SessionQueueRow(
+                          obs,
+                          SequenceState.Idle,
+                          props.rootModel.data.get.observer,
+                          ObsClass.Nighttime,
+                          false, // obs.activeStatus === ObsActiveStatus.Active,
+                          none,
+                          none,
+                          false
                         )
                       )
                     )
-              )
-            ),
-            Accordion(tabs =
-              List(
-                AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
-                  <.div(^.height := "200px")
+                    .renderPot(
+                      SessionQueue(_, obsStates, selectObservation, loadedObs, loadObservation)
+                    ),
+                  ConfigPanel(
+                    rootModelData.nighttimeObservation.map(_.obsId),
+                    props.rootModel.data.zoom(RootModelData.observer),
+                    props.rootModel.data.zoom(RootModelData.operator),
+                    props.rootModel.data.zoom(RootModelData.conditions)
+                  )
+                ),
+                SplitterPanel()(
+                  rootModelData.nighttimeDisplayedObservation
+                    .map: selectedObs =>
+                      val selectedObsId = selectedObs.obsId
+
+                      val executionStateOpt: ViewOpt[ExecutionState] =
+                        props.rootModel.data
+                          .zoom(RootModelData.executionState.index(selectedObsId))
+
+                      val executionStateAndConfig: Option[
+                        Pot[(Observation.Id, InstrumentExecutionConfig, View[ExecutionState])]
+                      ] =
+                        loadedObs.map: lo =>
+                          (lo.obsId.ready, lo.config, executionStateOpt.toOptionView.toPot).tupled
+
+                      <.div(ObserveStyles.ObservationArea, ^.key := selectedObsId.toString)(
+                        ObsHeader(
+                          selectedObs,
+                          executionStateAndConfig.map(_.map(_._1)),
+                          loadObservation,
+                          executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
+                          rootModelData.obsRequests.getOrElse(selectedObsId,
+                                                              ObservationRequests.Idle
+                          )
+                        ),
+                        // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
+                        executionStateAndConfig.map(
+                          _.renderPot(
+                            { (loadedObsId, config, executionState) =>
+                              val progress: Option[StepProgress] =
+                                rootModelData.obsProgress.get(loadedObsId)
+
+                              val requests: ObservationRequests =
+                                rootModelData.obsRequests.getOrElse(loadedObsId,
+                                                                    ObservationRequests.Idle
+                                )
+
+                              val selectedStep: Option[Step.Id] =
+                                rootModelData.obsSelectedStep(loadedObsId)
+
+                              val setSelectedStep: Step.Id => Callback = stepId =>
+                                props.rootModel.data
+                                  .zoom(RootModelData.userSelectedStep.at(loadedObsId))
+                                  .mod: oldStepId =>
+                                    if (oldStepId.contains_(stepId)) none else stepId.some
+
+                              ObservationSequence(
+                                loadedObsId,
+                                config,
+                                executionState,
+                                progress,
+                                requests,
+                                selectedStep,
+                                setSelectedStep,
+                                clientMode
+                              )
+                            },
+                            errorRender = t =>
+                              <.div(ObserveStyles.ObservationAreaError)(
+                                DefaultErrorRender(t)
+                              )
+                          )
+                        )
+                      )
+                )
+              ),
+              Accordion(tabs =
+                List(
+                  AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
+                    <.div(^.height := "200px")
+                  )
                 )
               )
             )
-          )
