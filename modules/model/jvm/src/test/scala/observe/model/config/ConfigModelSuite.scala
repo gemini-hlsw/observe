@@ -4,7 +4,6 @@
 package observe.model.config
 
 import cats.kernel.laws.discipline.*
-import lucuma.core.util.arb.ArbEnumerated.*
 import observe.model.config.arb.ArbSystemsControlConfiguration.given
 
 /**
@@ -12,6 +11,4 @@ import observe.model.config.arb.ArbSystemsControlConfiguration.given
  */
 class ConfigModelSuite extends munit.DisciplineSuite {
   checkAll("Eq[SystemsControlConfiguration]", EqTests[SystemsControlConfiguration].eqv)
-  checkAll("Eq[Mode]", EqTests[Mode].eqv)
-  // checkAll("Eq[AuthenticationConfig]", EqTests[AuthenticationConfig].eqv)
 }

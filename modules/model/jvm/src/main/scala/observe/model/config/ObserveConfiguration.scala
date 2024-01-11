@@ -6,23 +6,22 @@ package observe.model.config
 import cats.Eq
 import cats.derived.*
 import lucuma.core.enums.Site
+import lucuma.core.enums.ExecutionEnvironment
 
 /**
  * Top configuration of the observe
  * @param site
  *   Site this observe instance handles (GN/GS)
- * @param mode
- *   Execution mode
+ * @param environment
+ *   Execution environment
  * @param observeEngine
  *   Configuration of the engine
  * @param webServer
  *   Web side configuration
- * @param smartGcal
- *   Configuration to reach SmartGCal
  */
 case class ObserveConfiguration(
   site:          Site,
-  mode:          Mode,
+  environment:   ExecutionEnvironment,
   lucumaSSO:     LucumaSSOConfiguration,
   observeEngine: ObserveEngineConfiguration,
   webServer:     WebServerConfiguration

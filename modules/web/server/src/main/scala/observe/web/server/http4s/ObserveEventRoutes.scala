@@ -32,15 +32,20 @@ import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Pong
 import org.http4s.websocket.WebSocketFrame.Text
 import org.typelevel.log4cats.Logger
+import lucuma.core.enums.ExecutionEnvironment
 
 import java.util.UUID
 import scala.concurrent.duration.*
+import observe.model.ClientConfig
 
 /**
  * Rest Endpoints under the /api route
  */
 class ObserveEventRoutes[F[_]: Async: Compression](
   site:             Site,
+  environment:      ExecutionEnvironment,
+  odbUri:           Uri,
+  ssoUri:           Uri,
   clientsDb:        ClientsSetDb[F],
   engine:           ObserveEngine[F],
   engineOutput:     Topic[F, (Option[ClientId], ClientEvent)],
@@ -68,7 +73,14 @@ class ObserveEventRoutes[F[_]: Async: Compression](
         Stream.emit(
           toFrame(
             InitialEvent(
-              Environment(site, clientId, Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version)))
+              ClientConfig(
+                site,
+                environment,
+                odbUri,
+                ssoUri,
+                clientId,
+                Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version))
+              )
             )
           )
         )

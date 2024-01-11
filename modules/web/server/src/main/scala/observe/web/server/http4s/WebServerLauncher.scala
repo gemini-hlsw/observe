@@ -140,7 +140,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/api/observe/guide"  -> GuideConfigDbRoutes(oe.systems.guideDb).service,
       "/api/observe"        -> ObserveCommandRoutes(ssoClient, oe).service,
       "/api/observe/ping"   -> PingRoutes(ssoClient).service,
-      "/api/observe/events" -> ObserveEventRoutes(conf.site, clientsDb, oe, events, wsb).service
+      "/api/observe/events" -> ObserveEventRoutes(
+        conf.site,
+        conf.environment,
+        conf.observeEngine.odb,
+        conf.lucumaSSO.ssoUrl,
+        clientsDb,
+        oe,
+        events,
+        wsb
+      ).service
     )
 
     def builder(events: Topic[F, (Option[ClientId], ClientEvent)]) =
@@ -203,7 +212,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
 """
     val msg    =
       s"""
-      | Start web server for site ${conf.site} on ${conf.mode} mode, version ${OcsBuildInfo.version}
+      | Start web server for site ${conf.site} on ${conf.environment} environment, version ${OcsBuildInfo.version}
       | Connected to odb at ${conf.observeEngine.odb}
       |
       | Go to https://${conf.webServer.host}:${conf.webServer.port}

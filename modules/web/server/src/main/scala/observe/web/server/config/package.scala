@@ -19,13 +19,13 @@ import pureconfig.module.ip4s.*
 import java.nio.file.Path
 import java.security.PublicKey
 import scala.concurrent.duration.FiniteDuration
+import lucuma.core.util.Enumerated
 
-case class SiteValueUnknown(site: String)         extends FailureReason {
-  def description: String = s"site '$site' invalid"
+case class EnumValueUnknown(value: String, available: List[String]) extends FailureReason {
+  def description: String =
+    s"enumerated value '$value' invalid. Should be one of ${available.mkString("[", ", ", "]")}"
 }
-case class ModeValueUnknown(mode: String)         extends FailureReason {
-  def description: String = s"mode '$mode' invalid"
-}
+
 case class StrategyValueUnknown(strategy: String) extends FailureReason {
   def description: String = s"strategy '$strategy' invalid"
 }
@@ -36,23 +36,11 @@ case class PublicKeyUnknown(value: String)        extends FailureReason {
 /**
  * Settings and decoders to parse the configuration files
  */
-
-given ConfigReader[Site] = ConfigReader.fromCursor[Site] { cf =>
-  cf.asString.flatMap {
-    case "GS" => Site.GS.asRight
-    case "GN" => Site.GN.asRight
-    case s    => cf.failed(SiteValueUnknown(s))
-  }
-}
-
-given ConfigReader[Mode] = ConfigReader.fromCursor[Mode] { cf =>
-  cf.asString.flatMap {
-    case "production" => Mode.Production.asRight
-    case "staging"    => Mode.Staging.asRight
-    case "dev"        => Mode.Development.asRight
-    case s            => cf.failed(ModeValueUnknown(s))
-  }
-}
+given [A: Enumerated]: ConfigReader[A] = ConfigReader.fromCursor[A]: cf =>
+  cf.asString.flatMap: c =>
+    Enumerated[A].fromTag(c) match
+      case Some(x) => x.asRight
+      case _       => cf.failed(EnumValueUnknown(c, Enumerated[A].all.map(_.toString)))
 
 given ConfigReader[ControlStrategy] =
   ConfigReader.fromCursor[ControlStrategy] { cf =>

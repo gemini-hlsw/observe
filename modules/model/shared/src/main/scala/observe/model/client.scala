@@ -20,7 +20,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import observe.model.Conditions
-import observe.model.Environment
+import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.Operator
@@ -60,7 +60,7 @@ object ClientEvent:
     case Completed extends SingleActionState("completed")
     case Failed    extends SingleActionState("failed")
 
-  case class InitialEvent(environment: Environment) extends ClientEvent
+  case class InitialEvent(clientConfig: ClientConfig) extends ClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder

@@ -6,7 +6,7 @@ package observe.ui.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.option.*
-import crystal.Pot
+import crystal.*
 import crystal.react.View
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
@@ -16,7 +16,7 @@ import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
 import observe.model.Conditions
-import observe.model.Environment
+import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator
@@ -24,7 +24,7 @@ import observe.model.StepProgress
 import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
-  userVault:            Option[UserVault],
+  userVault:            Pot[Option[UserVault]],
   readyObservations:    Pot[List[ObsSummary]],
   selectedObservation:  Option[Observation.Id],
   nighttimeObservation: Option[LoadedObservation],
@@ -41,9 +41,10 @@ case class RootModelData(
 ) derives Eq:
   // TODO Readonly mode won't depend on user logged or not, but on their permissions.
   // For the moment we are requiring the STAFF role, so all logged users can operate.
-  val clientMode: ClientMode = userVault.fold(ClientMode.ReadOnly)(_ => ClientMode.CanOperate)
+  val clientMode: ClientMode =
+    userVault.toOption.flatten.fold(ClientMode.ReadOnly)(_ => ClientMode.CanOperate)
 
-  val isUserLogged: Boolean = userVault.isDefined
+  val isUserLogged: Boolean = userVault.toOption.flatten.isDefined
 
   lazy val readyObservationsMap: Map[Observation.Id, ObsSummary] =
     readyObservations.toOption.orEmpty.map(o => o.obsId -> o).toMap
@@ -60,11 +61,19 @@ case class RootModelData(
   def obsSelectedStep(obsId: Observation.Id): Option[Step.Id] =
     executionState.get(obsId).flatMap(_.runningStepId).orElse(userSelectedStep.get(obsId))
 
+  def withLoginResult(result: Either[Throwable, Option[UserVault]]): RootModelData =
+    val vault: Option[UserVault] = result.toOption.flatten
+    copy(
+      userVault = vault.ready,
+      observer =
+        vault.flatMap(v => NonEmptyString.from(v.user.displayName).toOption.map(Observer(_))),
+      userSelectionMessage = result.left.toOption.map(t => NonEmptyString.unsafeFrom(t.getMessage))
+    )
+
 object RootModelData:
-  def initial(userVault: Either[Throwable, Option[UserVault]]): RootModelData =
-    val vault: Option[UserVault] = userVault.toOption.flatten
+  val Initial: RootModelData =
     RootModelData(
-      userVault = vault,
+      userVault = Pot.pending,
       readyObservations = Pot.pending,
       selectedObservation = none,
       nighttimeObservation = none,
@@ -74,15 +83,13 @@ object RootModelData:
       obsRequests = Map.empty,
       userSelectedStep = Map.empty,
       conditions = Conditions.Default,
-      observer =
-        vault.flatMap(v => NonEmptyString.from(v.user.displayName).toOption.map(Observer(_))),
+      observer = none,
       operator = none,
-      userSelectionMessage =
-        userVault.left.toOption.map(t => NonEmptyString.unsafeFrom(t.getMessage)),
+      userSelectionMessage = none,
       log = List.empty
     )
 
-  val userVault: Lens[RootModelData, Option[UserVault]]                          = Focus[RootModelData](_.userVault)
+  val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
   val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]              =
     Focus[RootModelData](_.readyObservations)
   val selectedObservation: Lens[RootModelData, Option[Observation.Id]]           =
@@ -106,4 +113,4 @@ object RootModelData:
     Focus[RootModelData](_.userSelectionMessage)
   val log: Lens[RootModelData, List[NonEmptyString]]                             = Focus[RootModelData](_.log)
 
-case class RootModel(environment: Pot[Environment], data: View[RootModelData])
+case class RootModel(clientConfig: Pot[ClientConfig], data: View[RootModelData])

@@ -5,8 +5,10 @@ package observe.ui.components.services
 
 import cats.effect.IO
 import cats.syntax.all.*
+import clue.PersistentClientStatus
 import clue.ResponseException
 import crystal.react.*
+import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.ReactFnProps
@@ -15,7 +17,9 @@ import lucuma.ui.reusability.given
 import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
+import observe.ui.model.reusability.given
 import observe.ui.services.SequenceApi
+
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -29,9 +33,11 @@ object ObservationSyncer:
       .withHooks[Props]
       .useContext(AppContext.ctx)
       .useContext(SequenceApi.ctx)
-      .useEffectWithDepsBy((props, _, _) => props.nighttimeObservation.get.map(_.obsId)):
-        (props, ctx, sequenceApi) =>
-          _.map: obsId =>
+      .useStreamOnMountBy: (_, ctx, _) => 
+        ctx.odbClient.statusStream
+      .useEffectWithDepsBy((props, _, _, odbStatusPot) => (props.nighttimeObservation.get.map(_.obsId), odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)).tupled):
+        (props, ctx, sequenceApi, _) =>
+          _.map: (obsId, _) =>
             import ctx.given
 
             // TODO We will have to requery under certain conditions:

@@ -70,7 +70,7 @@ object Home:
 
         val clientMode: ClientMode = rootModelData.clientMode
 
-        rootModelData.userVault.map: userVault =>
+        rootModelData.userVault.map(_.toPot).flatten.renderPot: userVault =>
           <.div(ObserveStyles.MainPanel)(
             Splitter(
               layout = Layout.Vertical,

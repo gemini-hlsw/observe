@@ -49,7 +49,7 @@ object Settings {
     val pprint        = "0.8.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.91.0"
+    val lucumaCore    = "0.91.1"
     val lucumaUI      = "0.87.2"
     val lucumaSchemas = "0.68.0"
     val lucumaSSO     = "0.6.11"
@@ -145,9 +145,16 @@ object Settings {
           "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
         )
       )
-    val Http4sCore       = "org.http4s" %% "http4s-core"      % LibraryVersions.http4sVersion
     val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion
-    val Http4sCirce      = "org.http4s" %% "http4s-circe"     % LibraryVersions.http4sVersion
+    val Http4sCore       = Def.setting(
+      "org.http4s" %%% "http4s-core" % LibraryVersions.http4sVersion
+    )
+    val Http4sCirce      = Def.setting(
+      "org.http4s" %%% "http4s-circe" % LibraryVersions.http4sVersion
+    )
+    val Http4sLaws       = Def.setting(
+      "org.http4s" %%% "http4s-laws" % LibraryVersions.http4sVersion
+    )
     val Http4sDom        = Def.setting("org.http4s" %%% "http4s-dom" % LibraryVersions.http4sDomVersion)
     val Http4sXml        = "org.http4s" %% "http4s-scala-xml" % LibraryVersions.http4sScalaXmlVersion
     val Monocle          = Def.setting(
