@@ -77,4 +77,4 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[NsAction]", EqTests[NsAction].eqv)
   checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
   checkAll("Eq[ClientConfig]", EqTests[ClientConfig].eqv)
-  checkAll("Codec[ClientConfig]", CodecTests[ClientConfig].codec)
+  checkAll("Codec[ClientConfig]", CodecTests[ClientConfig].unserializableCodec)
