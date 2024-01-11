@@ -10,14 +10,23 @@ import eu.timepit.refined.cats.given
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.given
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
 import monocle.Focus
 import monocle.Lens
+import org.http4s.Uri
+import org.http4s.circe.given
 
-case class Environment(site: Site, clientId: ClientId, version: Version)
-    derives Eq,
+case class ClientConfig(
+  site:        Site,
+  environment: ExecutionEnvironment,
+  odbUri:      Uri,
+  ssoUri:      Uri,
+  clientId:    ClientId,
+  version:     Version
+) derives Eq,
       Encoder.AsObject,
       Decoder
 
-object Environment:
-  val clientId: Lens[Environment, ClientId] = Focus[Environment](_.clientId)
+object ClientConfig:
+  val clientId: Lens[ClientConfig, ClientId] = Focus[ClientConfig](_.clientId)

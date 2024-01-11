@@ -210,7 +210,7 @@ lazy val observe_server = project
   .settings(
     libraryDependencies ++=
       Seq(
-        Http4sCirce,
+        Http4sCirce.value,
         Squants.value,
         Http4sXml,
         Log4Cats.value,
@@ -259,13 +259,13 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       Squants.value,
       PPrint.value,
       Mouse.value,
-      CatsTime.value
+      CatsTime.value,
+      Http4sCore.value,
+      Http4sCirce.value,
+      Http4sLaws.value
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
-  .jvmSettings(
-    commonSettings,
-    libraryDependencies += Http4sCore
-  )
+  .jvmSettings(commonSettings)
   .jsSettings(
     // And add a custom one
     libraryDependencies += JavaTimeJS.value,

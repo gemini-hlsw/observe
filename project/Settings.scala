@@ -39,9 +39,9 @@ object Settings {
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "0.7.29"
+    val munitVersion           = "1.0.0-M10"
     val munitDisciplineVersion = "1.0.9"
-    val munitCatsEffectVersion = "1.0.7"
+    val munitCatsEffectVersion = "2.0.0-M4"
 
     val acm           = "0.1.1"
     val giapiScala    = "0.1.1"
@@ -49,8 +49,8 @@ object Settings {
     val pprint        = "0.8.1"
 
     // Gemini Libraries
-    val lucumaCore    = "0.91.0"
-    val lucumaUI      = "0.87.2"
+    val lucumaCore    = "0.91.1"
+    val lucumaUI      = "0.88.0"
     val lucumaSchemas = "0.68.0"
     val lucumaSSO     = "0.6.11"
 
@@ -72,9 +72,9 @@ object Settings {
     // Test Libraries
     val MUnit          = Def.setting(
       Seq(
-        "org.scalameta" %%% "munit"               % LibraryVersions.munitVersion           % Test,
-        "org.typelevel" %%% "munit-cats-effect-3" % LibraryVersions.munitCatsEffectVersion % Test,
-        "org.typelevel" %%% "discipline-munit"    % LibraryVersions.munitDisciplineVersion % Test
+        "org.scalameta" %%% "munit"             % LibraryVersions.munitVersion           % Test,
+        "org.typelevel" %%% "munit-cats-effect" % LibraryVersions.munitCatsEffectVersion % Test,
+        "org.typelevel" %%% "discipline-munit"  % LibraryVersions.munitDisciplineVersion % Test
       )
     )
     val JUnitInterface =
@@ -145,9 +145,16 @@ object Settings {
           "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
         )
       )
-    val Http4sCore       = "org.http4s" %% "http4s-core"      % LibraryVersions.http4sVersion
     val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion
-    val Http4sCirce      = "org.http4s" %% "http4s-circe"     % LibraryVersions.http4sVersion
+    val Http4sCore       = Def.setting(
+      "org.http4s" %%% "http4s-core" % LibraryVersions.http4sVersion
+    )
+    val Http4sCirce      = Def.setting(
+      "org.http4s" %%% "http4s-circe" % LibraryVersions.http4sVersion
+    )
+    val Http4sLaws       = Def.setting(
+      "org.http4s" %%% "http4s-laws" % LibraryVersions.http4sVersion
+    )
     val Http4sDom        = Def.setting("org.http4s" %%% "http4s-dom" % LibraryVersions.http4sDomVersion)
     val Http4sXml        = "org.http4s" %% "http4s-scala-xml" % LibraryVersions.http4sScalaXmlVersion
     val Monocle          = Def.setting(

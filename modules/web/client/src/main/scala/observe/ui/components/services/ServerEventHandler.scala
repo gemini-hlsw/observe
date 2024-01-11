@@ -11,7 +11,7 @@ import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import observe.model.Environment
+import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
@@ -34,7 +34,7 @@ trait ServerEventHandler:
       case NonEmptyString(nes) => rootModelData.async.zoom(RootModelData.log).mod(_ :+ nes)
 
   protected def processStreamEvent(
-    environment:     View[Pot[Environment]],
+    clientConfig:    View[Pot[ClientConfig]],
     rootModelData:   View[RootModelData],
     syncStatus:      View[Option[SyncStatus]],
     configApiStatus: View[ApiStatus]
@@ -43,8 +43,8 @@ trait ServerEventHandler:
   )(using Logger[IO]): IO[Unit] =
     val asyncRootModel = rootModelData.async
     event match
-      case ClientEvent.InitialEvent(env)                                         =>
-        environment.async.set(env.ready)
+      case ClientEvent.InitialEvent(cc)                                          =>
+        clientConfig.async.set(cc.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
         (asyncRootModel
           .zoom(RootModelData.executionState.at(obsId).some)

@@ -9,8 +9,8 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
+import observe.model.ClientConfig
 import observe.model.Conditions
-import observe.model.Environment
 import observe.model.ExecutionState
 import observe.model.NsRunningState
 import observe.model.ObservationProgress
@@ -30,11 +30,11 @@ import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
-import ArbEnvironment.given
 import ArbNsRunningState.given
 import ArbObservationProgress.given
 import ArbSystem.given
 import ArbUserPrompt.given
+import ArbClientConfig.given
 
 trait ArbClientEvent:
 
@@ -68,10 +68,10 @@ trait ArbClientEvent:
     )
 
   given Arbitrary[ClientEvent.InitialEvent] = Arbitrary:
-    arbitrary[Environment].map(ClientEvent.InitialEvent(_))
+    arbitrary[ClientConfig].map(ClientEvent.InitialEvent(_))
 
   given Cogen[ClientEvent.InitialEvent] =
-    Cogen[Environment].contramap(_.environment)
+    Cogen[ClientConfig].contramap(_.clientConfig)
 
   given Arbitrary[ClientEvent.SingleActionEvent] = Arbitrary:
     for

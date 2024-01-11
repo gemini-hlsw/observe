@@ -13,7 +13,9 @@ import fs2.compression.Compression
 import fs2.concurrent.Topic
 import io.circe.Encoder
 import io.circe.syntax.*
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import observe.model.ClientConfig
 import observe.model.ClientId
 import observe.model.*
 import observe.model.events.*
@@ -41,6 +43,9 @@ import scala.concurrent.duration.*
  */
 class ObserveEventRoutes[F[_]: Async: Compression](
   site:             Site,
+  environment:      ExecutionEnvironment,
+  odbUri:           Uri,
+  ssoUri:           Uri,
   clientsDb:        ClientsSetDb[F],
   engine:           ObserveEngine[F],
   engineOutput:     Topic[F, (Option[ClientId], ClientEvent)],
@@ -68,7 +73,14 @@ class ObserveEventRoutes[F[_]: Async: Compression](
         Stream.emit(
           toFrame(
             InitialEvent(
-              Environment(site, clientId, Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version)))
+              ClientConfig(
+                site,
+                environment,
+                odbUri,
+                ssoUri,
+                clientId,
+                Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version))
+              )
             )
           )
         )

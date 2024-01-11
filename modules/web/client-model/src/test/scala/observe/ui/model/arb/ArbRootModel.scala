@@ -43,7 +43,7 @@ trait ArbRootModel:
 
   given Arbitrary[RootModelData] = Arbitrary:
     for
-      uv   <- arbitrary[Option[UserVault]]
+      uv   <- arbitrary[Pot[Option[UserVault]]]
       ros  <- arbitrary[Pot[List[ObsSummary]]]
       so   <- arbitrary[Option[Observation.Id]]
       nto  <- arbitrary[Option[LoadedObservation]]
@@ -61,7 +61,7 @@ trait ArbRootModel:
 
   given Cogen[RootModelData] = Cogen[
     (
-      Option[UserVault],
+      Pot[Option[UserVault]],
       Pot[List[ObsSummary]],
       Option[Observation.Id],
       Option[LoadedObservation],

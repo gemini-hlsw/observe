@@ -14,9 +14,9 @@ import japgolly.scalajs.react.Callback
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.extra.router.SetRouteVia
 import japgolly.scalajs.react.feature.Context
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.react.primereact.ToastRef
 import lucuma.schemas.ObservationDB
-import lucuma.ui.enums.ExecutionEnvironment
 import lucuma.ui.sso.SSOClient
 import lucuma.ui.utils.versionDateFormatter
 import lucuma.ui.utils.versionDateTimeFormatter

@@ -63,21 +63,12 @@ export default defineConfig(async ({ mode }) => {
   if (!(await pathExists(publicDirDev))) {
     await fs.mkdir(publicDirDev);
   }
-  const localConf = path.resolve(publicDirProd, 'local.conf.json');
-  const devConf = path.resolve(publicDirProd, 'environments.conf.json');
 
   const publicDirProdFiles = (await fs.readdir(publicDirProd)).filter(
-    (file) =>
-      !file.endsWith('local.conf.json') &&
-      !file.endsWith('environments.conf.json') &&
-      !file.endsWith('README.txt'),
+    (file) => !file.endsWith('README.txt'),
   );
 
   await Promise.all([
-    fs.copyFile(
-      (await pathExists(localConf)) ? localConf : devConf,
-      path.resolve(publicDirDev, 'environments.conf.json'),
-    ),
     ...publicDirProdFiles.map((file) =>
       fs.copyFile(path.resolve(publicDirProd, file), path.resolve(publicDirDev, file)),
     ),

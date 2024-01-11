@@ -6,6 +6,7 @@ package observe.ui.components
 import cats.effect.IO
 import cats.syntax.all.*
 import clue.PersistentClientStatus
+import crystal.Pot
 import crystal.react.View
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
@@ -51,14 +52,15 @@ object Layout:
         if (
           odbStatus.contains_(
             PersistentClientStatus.Initialized
-          ) && props.rootModel.environment.isReady
+          ) && props.rootModel.clientConfig.isReady
         )
           <.div(LayoutStyles.MainGrid)(
             props.rootModel.data
               .zoom(RootModelData.userVault)
+              .zoom(Pot.readyPrism.some)
               .mapValue: (userVault: View[UserVault]) =>
-                props.rootModel.environment.toOption.map: environment =>
-                  TopBar(environment, userVault, theme, IO.unit),
+                props.rootModel.clientConfig.toOption.map: clientConfig =>
+                  TopBar(clientConfig, userVault, theme, IO.unit),
             Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
             SideTabs(
               "side-tabs".refined,

@@ -9,6 +9,7 @@ import io.circe.testing.CodecTests
 import io.circe.testing.instances.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
+import observe.model.arb.ArbClientConfig.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*
@@ -75,3 +76,5 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[NsRows]", EqTests[NsRows].eqv)
   checkAll("Eq[NsAction]", EqTests[NsAction].eqv)
   checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
+  checkAll("Eq[ClientConfig]", EqTests[ClientConfig].eqv)
+  checkAll("Codec[ClientConfig]", CodecTests[ClientConfig].unserializableCodec)
