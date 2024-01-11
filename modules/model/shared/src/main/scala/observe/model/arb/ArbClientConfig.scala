@@ -11,12 +11,22 @@ import observe.model.ClientId
 import observe.model.Version
 import observe.model.arb.ObserveModelArbitraries.given
 import org.http4s.Uri
-import org.http4s.laws.discipline.arbitrary.given
+import org.http4s.laws.discipline.arbitrary.http4sTestingCogenForUri
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 
 trait ArbClientConfig:
+  // Checks that a URI is converting to String and back to URI safely.
+  // Also, ensures that the URI has no fragment: the codec struggles with those.
+  // Retries until it finds a valid URI with these conditions, so that property testing doesn't give up.
+  given Arbitrary[Uri] = Arbitrary(
+    org.http4s.laws.discipline.arbitrary.http4sTestingArbitraryForUri.arbitrary
+      .map(uri => Uri.fromString(uri.toString).map(_.withoutFragment))
+      .retryUntil(_.isRight)
+      .map(_.toOption.get)
+  )
+
   given Arbitrary[ClientConfig] = Arbitrary:
     for
       site        <- arbitrary[Site]
@@ -28,6 +38,8 @@ trait ArbClientConfig:
     yield ClientConfig(site, environment, odbUri, ssoUri, clientId, version)
 
   given Cogen[ClientConfig] =
-    Cogen[(Site, ClientId, Version)].contramap(x => (x.site, x.clientId, x.version))
+    Cogen[(Site, ExecutionEnvironment, Uri, Uri, ClientId, Version)].contramap(x =>
+      (x.site, x.environment, x.odbUri, x.ssoUri, x.clientId, x.version)
+    )
 
 object ArbClientConfig extends ArbClientConfig

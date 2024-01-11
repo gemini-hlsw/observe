@@ -18,8 +18,6 @@ class ClientEventSuite extends munit.DisciplineSuite:
   checkAll("Eq[InitialEvent]", EqTests[ClientEvent.InitialEvent].eqv)
   checkAll("Eq[ObserveState]", EqTests[ClientEvent.ObserveState].eqv)
   checkAll("Eq[ClientEvent]", EqTests[ClientEvent].eqv)
-  // TODO: Uri codecs do not pass roundtrip tests. I will report this to the http4s project.
-  // Meanwhile, I'm commenting the tests.
-  // checkAll("Codec[InitialEvent]", CodecTests[ClientEvent.InitialEvent].unserializableCodec)
+  checkAll("Codec[InitialEvent]", CodecTests[ClientEvent.InitialEvent].unserializableCodec)
   checkAll("Codec[ObserveState]", CodecTests[ClientEvent.ObserveState].unserializableCodec)
-  // checkAll("Codec[ClientEvent]", CodecTests[ClientEvent].unserializableCodec)
+  checkAll("Codec[ClientEvent]", CodecTests[ClientEvent].unserializableCodec)
