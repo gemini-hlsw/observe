@@ -27,7 +27,6 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import log4cats.loglevel.LogLevelLogger
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
-import lucuma.ui.sso.SSOConfig
 import lucuma.react.common.*
 import lucuma.react.primereact.Button
 import lucuma.react.primereact.Dialog
@@ -39,6 +38,7 @@ import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.SSOClient
+import lucuma.ui.sso.SSOConfig
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.*
 import observe.model.ClientConfig

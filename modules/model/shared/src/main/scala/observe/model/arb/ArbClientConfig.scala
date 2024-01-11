@@ -3,18 +3,18 @@
 
 package observe.model.arb
 
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
 import lucuma.core.util.arb.ArbEnumerated.given
-import observe.model.ClientId
 import observe.model.ClientConfig
+import observe.model.ClientId
 import observe.model.Version
 import observe.model.arb.ObserveModelArbitraries.given
+import org.http4s.Uri
+import org.http4s.laws.discipline.arbitrary.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
-import lucuma.core.enums.ExecutionEnvironment
-import org.http4s.Uri
-import org.http4s.laws.discipline.arbitrary.given
 
 trait ArbClientConfig:
   given Arbitrary[ClientConfig] = Arbitrary:

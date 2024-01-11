@@ -15,8 +15,8 @@ import lucuma.core.model.sequence.Step
 import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
-import observe.model.Conditions
 import observe.model.ClientConfig
+import observe.model.Conditions
 import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator

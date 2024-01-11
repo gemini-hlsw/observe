@@ -9,8 +9,8 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
-import observe.model.Conditions
 import observe.model.ClientConfig
+import observe.model.Conditions
 import observe.model.ExecutionState
 import observe.model.NsRunningState
 import observe.model.ObservationProgress

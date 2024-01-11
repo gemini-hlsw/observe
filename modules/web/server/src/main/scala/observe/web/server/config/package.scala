@@ -6,6 +6,7 @@ package observe.web.server.config
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.Site
+import lucuma.core.util.Enumerated
 import lucuma.sso.client.util.GpgPublicKeyReader
 import observe.model.config.*
 import org.http4s.Uri
@@ -19,7 +20,6 @@ import pureconfig.module.ip4s.*
 import java.nio.file.Path
 import java.security.PublicKey
 import scala.concurrent.duration.FiniteDuration
-import lucuma.core.util.Enumerated
 
 case class EnumValueUnknown(value: String, available: List[String]) extends FailureReason {
   def description: String =

@@ -13,7 +13,9 @@ import fs2.compression.Compression
 import fs2.concurrent.Topic
 import io.circe.Encoder
 import io.circe.syntax.*
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import observe.model.ClientConfig
 import observe.model.ClientId
 import observe.model.*
 import observe.model.events.*
@@ -32,11 +34,9 @@ import org.http4s.websocket.WebSocketFrame.Ping
 import org.http4s.websocket.WebSocketFrame.Pong
 import org.http4s.websocket.WebSocketFrame.Text
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.ExecutionEnvironment
 
 import java.util.UUID
 import scala.concurrent.duration.*
-import observe.model.ClientConfig
 
 /**
  * Rest Endpoints under the /api route

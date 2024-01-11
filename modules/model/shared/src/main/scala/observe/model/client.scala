@@ -19,8 +19,8 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
-import observe.model.Conditions
 import observe.model.ClientConfig
+import observe.model.Conditions
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.Operator

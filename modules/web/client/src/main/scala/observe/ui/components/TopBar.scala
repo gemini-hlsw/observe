@@ -25,10 +25,10 @@ import lucuma.ui.enums.Theme
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.given
+import observe.model.ClientConfig
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
-import observe.model.ClientConfig
 
 case class TopBar(
   clientConfig: ClientConfig,

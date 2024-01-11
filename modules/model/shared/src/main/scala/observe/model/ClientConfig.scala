@@ -10,11 +10,11 @@ import eu.timepit.refined.cats.given
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.given
+import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
 import monocle.Focus
 import monocle.Lens
 import org.http4s.Uri
-import lucuma.core.enums.ExecutionEnvironment
 import org.http4s.circe.given
 
 case class ClientConfig(
