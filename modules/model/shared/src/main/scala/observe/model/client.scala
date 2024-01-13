@@ -45,6 +45,7 @@ extension (q: SequenceView)
     ExecutionState(
       q.status,
       q.metadata.observer,
+      q.steps,
       q.runningStep.flatMap(_.id),
       None,
       q.stepResources,

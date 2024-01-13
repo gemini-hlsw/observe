@@ -9,6 +9,7 @@ import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.ExecutionState
 import observe.model.NsRunningState
+import observe.model.ObserveStep
 import observe.model.Observer
 import observe.model.SequenceState
 import observe.model.SystemOverrides
@@ -20,11 +21,14 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 
+import ArbObserveStep.given
+
 trait ArbExecutionState:
   given Arbitrary[ExecutionState] = Arbitrary:
     for
       sequenceState   <- arbitrary[SequenceState]
       observer        <- arbitrary[Option[Observer]]
+      steps           <- arbitrary[List[ObserveStep]]
       runningStepId   <- arbitrary[Option[Step.Id]]
       nsState         <- arbitrary[Option[NsRunningState]]
       stepResources   <- arbitrary[Map[Step.Id, Map[Resource | Instrument, ActionStatus]]]
@@ -33,6 +37,7 @@ trait ArbExecutionState:
     yield ExecutionState(
       sequenceState,
       observer,
+      steps,
       runningStepId,
       nsState,
       stepResources,

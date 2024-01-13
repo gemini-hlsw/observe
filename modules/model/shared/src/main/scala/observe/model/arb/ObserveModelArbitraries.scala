@@ -10,6 +10,7 @@ import lucuma.core.arb.newTypeCogen
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
@@ -128,10 +129,11 @@ trait ObserveModelArbitraries {
       m  <- arbitrary[SequenceMetadata]
       s  <- arbitrary[SequenceState]
       o  <- arbitrary[SystemOverrides]
+      st <- arbitrary[SequenceType]
       t  <- arbitrary[List[ObserveStep]]
       i  <- arbitrary[Option[Int]]
       a  <- arbitrary[Map[Step.Id, Map[Resource | Instrument, ActionStatus]]]
-    } yield SequenceView(id, m, s, o, t, i, a)
+    } yield SequenceView(id, m, s, o, st, t, i, a)
   }
   given Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
 
@@ -156,11 +158,14 @@ trait ObserveModelArbitraries {
         SequenceMetadata,
         SequenceState,
         SystemOverrides,
+        SequenceType,
         List[ObserveStep],
         Option[Int]
       )
     ]
-      .contramap(s => (s.obsId, s.metadata, s.status, s.systemOverrides, s.steps, s.willStopIn))
+      .contramap(s =>
+        (s.obsId, s.metadata, s.status, s.systemOverrides, s.sequenceType, s.steps, s.willStopIn)
+      )
 
   given [A: Cogen]: Cogen[SequencesQueue[A]] =
     Cogen[(Conditions, Option[Operator], List[A])].contramap(s =>

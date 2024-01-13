@@ -7,9 +7,9 @@ import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
 import monocle.Lens
 import observe.engine.Sequence
-import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.Observer
 import observe.model.SystemOverrides
+import observe.model.enums.PendingObserveCmd
 
 case class SequenceData[F[_]](
   observer:      Option[Observer],

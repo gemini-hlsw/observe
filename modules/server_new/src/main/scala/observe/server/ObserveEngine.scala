@@ -42,9 +42,6 @@ import observe.engine.SystemEvent.Executed
 import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
 import observe.engine.{EngineStep => _, _}
-import observe.model.NodAndShuffleStep.PauseGracefully
-import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.Notification.*
 import observe.model.ObservationProgress
 import observe.model.UserPrompt.Discrepancy
@@ -54,6 +51,8 @@ import observe.model.UserPrompt.TargetCheckOverride
 import observe.model._
 import observe.model.config.*
 import observe.model.enums.BatchExecState
+import observe.model.enums.PendingObserveCmd
+import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.enums.ServerLogLevel
@@ -1713,6 +1712,7 @@ object ObserveEngine {
     val st         = obsSeq.seq
     val seq        = st.toSequence
     val instrument = obsSeq.seqGen.instrument
+    val seqType    = obsSeq.seqGen.sequenceType
 
     def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
@@ -1753,8 +1753,9 @@ object ObserveEngine {
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map { s =>
       s match
-        case StandardStep(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
-        case NodAndShuffleStep(id, _, _, _, _, _, _, configStatus, _, _) => id -> configStatus.toMap
+        case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+        case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
+          id -> configStatus.toMap
     }.toMap
 
     // TODO: Implement willStopIn
@@ -1763,6 +1764,7 @@ object ObserveEngine {
       SequenceMetadata(instrument, obsSeq.observer, obsSeq.seqGen.obsData.title),
       st.status,
       obsSeq.overrides,
+      seqType,
       engSteps,
       None,
       stepResources

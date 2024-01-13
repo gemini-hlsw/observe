@@ -24,7 +24,7 @@ import ArbSystem.given
 
 trait ArbStandardStep {
 
-  given stsArb: Arbitrary[StandardStep] = Arbitrary[StandardStep] {
+  given Arbitrary[ObserveStep.Standard] = Arbitrary[ObserveStep.Standard] {
     for {
       id <- arbitrary[Step.Id]
       d  <- arbitrary[DynamicConfig]
@@ -35,7 +35,7 @@ trait ArbStandardStep {
       f  <- arbitrary[Option[dhs.ImageFileId]]
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
-    } yield new StandardStep(
+    } yield ObserveStep.Standard(
       id = id,
       instConfig = d,
       stepConfig = t,
@@ -48,7 +48,7 @@ trait ArbStandardStep {
     )
   }
 
-  given standardStepCogen: Cogen[StandardStep] =
+  given Cogen[ObserveStep.Standard] =
     Cogen[
       (
         Step.Id,

@@ -13,6 +13,7 @@ import io.circe.syntax.*
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import lucuma.core.util.TimeSpan
+import lucuma.odb.json.time.transport.given
 import monocle.Prism
 import monocle.macros.GenPrism
 

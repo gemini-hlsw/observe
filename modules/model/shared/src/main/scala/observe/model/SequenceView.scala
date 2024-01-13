@@ -7,11 +7,11 @@ import cats.*
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Traversal
 import monocle.function.Each.*
-import observe.model.ObserveStep.*
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 
@@ -20,6 +20,7 @@ case class SequenceView(
   metadata:        SequenceMetadata,
   status:          SequenceState,
   systemOverrides: SystemOverrides,
+  sequenceType:    SequenceType,
   steps:           List[ObserveStep],
   willStopIn:      Option[Int],
   stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]]
