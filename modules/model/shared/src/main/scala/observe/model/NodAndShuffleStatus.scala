@@ -10,8 +10,13 @@ import monocle.Focus
 import monocle.Lens
 import observe.model.GmosParameters.*
 import observe.model.enums.*
+import io.circe.*
+import lucuma.odb.json.time.transport.given
 
-case class NsRunningState(action: NsAction, sub: NsSubexposure) derives Eq
+case class NsRunningState(action: NsAction, sub: NsSubexposure)
+    derives Eq,
+      Encoder.AsObject,
+      Decoder
 
 case class NodAndShuffleStatus(
   observing:         ActionStatus,
@@ -19,7 +24,9 @@ case class NodAndShuffleStatus(
   nodExposureTime:   TimeSpan,
   cycles:            NsCycles,
   state:             Option[NsRunningState]
-) derives Eq
+) derives Eq,
+      Encoder.AsObject,
+      Decoder
 
 object NodAndShuffleStatus:
   val observing: Lens[NodAndShuffleStatus, ActionStatus]       = Focus[NodAndShuffleStatus](_.observing)

@@ -12,11 +12,11 @@ import io.circe.Encoder
 import io.circe.refined.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.Enumerated
 import monocle.Focus
 import monocle.Lens
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
+import observe.model.{Step => ObserveStep}
 
 /**
  * This class concentrates all the execution state that is kept in the server.
@@ -24,6 +24,7 @@ import observe.model.enums.Resource
 case class ExecutionState(
   sequenceState:   SequenceState,
   observer:        Option[Observer],
+  steps:           List[ObserveStep],
   runningStepId:   Option[Step.Id],
   nsState:         Option[NsRunningState],
   stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]],

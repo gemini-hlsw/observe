@@ -262,7 +262,8 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       CatsTime.value,
       Http4sCore.value,
       Http4sCirce.value,
-      Http4sLaws.value
+      Http4sLaws.value,
+      LucumaODBSchema.value
     ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(commonSettings)

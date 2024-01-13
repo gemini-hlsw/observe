@@ -15,16 +15,16 @@ import ArbStandardStep.given
 trait ArbStep {
   given steArb: Arbitrary[Step] = Arbitrary[Step] {
     for {
-      ss <- arbitrary[StandardStep]
-      ns <- arbitrary[NodAndShuffleStep]
+      ss <- arbitrary[Step.Standard]
+      ns <- arbitrary[Step.NodAndShuffle]
       s  <- Gen.oneOf(ss, ns)
     } yield s
   }
 
   given stepCogen: Cogen[Step] =
-    Cogen[Either[StandardStep, NodAndShuffleStep]].contramap {
-      case a: StandardStep      => Left(a)
-      case a: NodAndShuffleStep => Right(a)
+    Cogen[Either[Step.Standard, Step.NodAndShuffle]].contramap {
+      case a: Step.Standard      => Left(a)
+      case a: Step.NodAndShuffle => Right(a)
     }
 }
 

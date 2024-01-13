@@ -14,9 +14,8 @@ import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.GmosParameters.*
-import observe.model.NodAndShuffleStep.PauseGracefully
-import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model.NodAndShuffleStep.StopGracefully
+import observe.model.enums.PendingObserveCmd
+import observe.model.enums.PendingObserveCmd.*
 import observe.model.*
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
@@ -53,7 +52,7 @@ trait ArbNodAndShuffleStep {
       Gen.oneOf(List(PauseGracefully, StopGracefully))
     )
 
-  given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
+  given nodShuffleStepArb: Arbitrary[Step.NodAndShuffle] = Arbitrary[Step.NodAndShuffle] {
     for {
       id <- arbitrary[StepId]
       d  <- arbitrary[DynamicConfig]
@@ -65,7 +64,7 @@ trait ArbNodAndShuffleStep {
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[NodAndShuffleStatus]
       oc <- arbitrary[Option[PendingObserveCmd]]
-    } yield new NodAndShuffleStep(
+    } yield Step.NodAndShuffle(
       id = id,
       instConfig = d,
       stepConfig = t,
@@ -79,7 +78,7 @@ trait ArbNodAndShuffleStep {
     )
   }
 
-  given nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
+  given nodShuffleStepCogen: Cogen[Step.NodAndShuffle] =
     Cogen[
       (
         StepId,

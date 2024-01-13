@@ -5,16 +5,13 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
-import eu.timepit.refined.types.numeric.NonNegLong
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
-import io.circe.refined.given
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
 import lucuma.core.util.Enumerated
-import lucuma.core.util.TimeSpan
 import observe.model.enums.Resource
 import squants.time.Time
 import squants.time.TimeUnit
@@ -78,7 +75,3 @@ given Enumerated[Resource | Instrument] = Enumerated
   .withTag:
     case r: Resource   => r.tag
     case i: Instrument => i.tag
-
-given Encoder[TimeSpan] = Encoder[NonNegLong].contramap(TimeSpan.NonNegMicroseconds.reverseGet)
-
-given Decoder[TimeSpan] = Decoder[NonNegLong].map(TimeSpan.NonNegMicroseconds.get)

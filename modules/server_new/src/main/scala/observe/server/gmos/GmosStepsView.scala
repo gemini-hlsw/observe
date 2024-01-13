@@ -7,7 +7,6 @@ import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import mouse.all.*
 import observe.engine
-import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.*
 import observe.model.enums.*
 import observe.server.StepsView.*
@@ -50,7 +49,7 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           }
         }
 
-        NodAndShuffleStep(
+        Step.NodAndShuffle(
           id = step.id,
           instConfig = stepg.instConfig,
           stepConfig = stepg.config,

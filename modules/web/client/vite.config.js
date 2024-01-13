@@ -51,35 +51,15 @@ export default defineConfig(async ({ mode }) => {
   const sjs = isProduction
     ? path.resolve(scalaClassesDir, 'observe_web_client-opt')
     : path.resolve(scalaClassesDir, 'observe_web_client-fastopt');
-  // const common = path.resolve(__dirname, 'common/');
   const common = __dirname;
   const webappCommon = path.resolve(common, 'src/main/webapp/');
   const imagesCommon = path.resolve(webappCommon, 'images');
-  const publicDirProd = path.resolve(common, 'src/main/public');
-  const publicDirDev = path.resolve(common, 'src/main/publicdev');
   const resourceDir = path.resolve(scalaClassesDir, 'classes');
   const lucumaCss = path.resolve(__dirname, 'target/lucuma-css');
-
-  if (!(await pathExists(publicDirDev))) {
-    await fs.mkdir(publicDirDev);
-  }
-
-  const publicDirProdFiles = (await fs.readdir(publicDirProd)).filter(
-    (file) => !file.endsWith('README.txt'),
-  );
-
-  await Promise.all([
-    ...publicDirProdFiles.map((file) =>
-      fs.copyFile(path.resolve(publicDirProd, file), path.resolve(publicDirDev, file)),
-    ),
-  ]);
-
-  const publicDir = mode == 'production' ? publicDirProd : publicDirDev;
 
   return {
     // TODO Remove this if we get EnvironmentPlugin to work.
     root: 'src/main/webapp',
-    publicDir: publicDir,
     envPrefix: ['VITE_', 'CATS_EFFECT_'],
     resolve: {
       dedupe: ['react-is'],

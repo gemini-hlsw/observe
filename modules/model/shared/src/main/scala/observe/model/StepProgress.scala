@@ -15,6 +15,7 @@ import lucuma.core.util.Enumerated
 import lucuma.core.util.TimeSpan
 import monocle.Prism
 import monocle.macros.GenPrism
+import lucuma.odb.json.time.transport.given
 
 enum StepProgress(val isNs: Boolean) derives Eq:
   def stepId: Step.Id

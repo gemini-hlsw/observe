@@ -19,12 +19,15 @@ import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
+import observe.model.{Step => ObserveStep}
+import observe.model.arb.ArbStep.given
 
 trait ArbExecutionState:
   given Arbitrary[ExecutionState] = Arbitrary:
     for
       sequenceState   <- arbitrary[SequenceState]
       observer        <- arbitrary[Option[Observer]]
+      steps           <- arbitrary[List[ObserveStep]]
       runningStepId   <- arbitrary[Option[Step.Id]]
       nsState         <- arbitrary[Option[NsRunningState]]
       stepResources   <- arbitrary[Map[Step.Id, Map[Resource | Instrument, ActionStatus]]]
@@ -33,6 +36,7 @@ trait ArbExecutionState:
     yield ExecutionState(
       sequenceState,
       observer,
+      steps,
       runningStepId,
       nsState,
       stepResources,

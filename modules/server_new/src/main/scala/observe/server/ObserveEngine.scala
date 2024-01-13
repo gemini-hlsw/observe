@@ -41,9 +41,8 @@ import observe.engine.SystemEvent.Executed
 import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
 import observe.engine.{Step => _, _}
-import observe.model.NodAndShuffleStep.PauseGracefully
-import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model.NodAndShuffleStep.StopGracefully
+import observe.model.enums.PendingObserveCmd
+import observe.model.enums.PendingObserveCmd.*
 import observe.model.Notification.*
 import observe.model.ObservationProgress
 import observe.model.StepId
@@ -1753,8 +1752,9 @@ object ObserveEngine {
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map { s =>
       s match
-        case StandardStep(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
-        case NodAndShuffleStep(id, _, _, _, _, _, _, configStatus, _, _) => id -> configStatus.toMap
+        case Step.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+        case Step.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
+          id -> configStatus.toMap
     }.toMap
 
     // TODO: Implement willStopIn
