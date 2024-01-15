@@ -9,12 +9,14 @@ import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.PosLong
+import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.*
 import lucuma.core.math.Offset
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.Program
+import lucuma.core.model.Target
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.ExecutionSequence
@@ -27,6 +29,7 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.FirstScienceTarget
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.test.*
 import observe.engine.EventResult
@@ -48,6 +51,9 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.tcs.DummyTargetKeywordsReader
+import observe.server.tcs.DummyTcsKeywordsReader
+import observe.server.tcs.TargetKeywordsReader
 
 import java.util.UUID
 
@@ -421,241 +427,282 @@ class ObserveEngineSuite extends TestCommon {
       .exists(_.status.isIdle)).assert
   }
 
-//   private def testTargetSequence(
-//     targetName:   String,
-//     startStepIdx: Int,
-//     obsClass:     List[ObsClass],
-//     obsType:      List[String]
-//   ): SequenceGen[IO] = {
-//     val resources = Set(Instrument.GmosS, TCS)
-//
-//     SequenceGen[IO](
-//       id = seqObsId1,
-//       "GS-ENG20210713-1",
-//       title = "",
-//       instrument = Instrument.GmosS,
-//       steps = obsClass.zip(obsType).zipWithIndex.map { case ((obC, obT), i) =>
-//         SequenceGen.PendingStepGen(
-//           stepId(startStepIdx + i),
-//           Monoid.empty[DataId],
-//           config = CleanConfig(
-//             new DefaultConfig(),
-//             Map(
-//               (TELESCOPE_KEY / "Base:name", targetName),
-//               (OBSERVE_KEY / OBS_CLASS_PROP, obC.headerValue()),
-//               (OBSERVE_KEY / OBSERVE_TYPE_PROP, obT)
-//             )
-//           ),
-//           resources = resources,
-//           _ => InstrumentSystem.Uncontrollable,
-//           generator = SequenceGen.StepActionsGen(
-//             configs = resources.map(r => r -> { _: SystemOverrides => pendingAction[IO](r) }).toMap,
-//             post = (_, _) => Nil
-//           )
-//         )
-//       }
-//     )
-//   }
-//
-//   private def simpleSequenceWithTargetName(name: String): SequenceGen[IO] =
-//     testTargetSequence(name, 1, List(ObsClass.SCIENCE), List(SCIENCE_OBSERVE_TYPE))
-//
-//   private def systemsWithTargetName(name: String): Systems[IO] =
-//     defaultSystems.copy(tcsKeywordReader =
-//       new DummyTcsKeywordsReader.DummyTcsKeywordReaderImpl[IO] {
-//         override def sourceATarget: TargetKeywordsReader[IO] =
-//           new DummyTargetKeywordsReader.DummyTargetKeywordsReaderImpl[IO] {
-//             override def objectName: IO[String] = name.pure[IO]
-//           }
-//       }
-//     )
-//
-//   test("ObserveEngine start should start the sequence if it passes the target check") {
-//     val systems = systemsWithTargetName("proof")
-//
-//     val seq = simpleSequenceWithTargetName("proof")
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Default
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isRunning)
-//     }).unsafeRunSync()
-//   }
+  private def testTargetSequence(targetName: NonEmptyString): SequenceGen[IO] = {
+    val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
-//   it should "not start the sequence if it fails the target check for science observations" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = testTargetSequence("proof", 1, List(ObsClass.SCIENCE), List(SCIENCE_OBSERVE_TYPE))
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Default
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isIdle)
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "not start the sequence if it fails the target check for night calibrations" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = testTargetSequence("proof", 1, List(ObsClass.PROG_CAL), List(SCIENCE_OBSERVE_TYPE))
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Default
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isIdle)
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "not start the sequence if it fails the target check for partner calibrations" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = testTargetSequence("proof", 1, List(ObsClass.PARTNER_CAL), List(SCIENCE_OBSERVE_TYPE))
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Default
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isIdle)
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "pass the target check for ephemeris target" in {
-//     val systems = systemsWithTargetName("proof")
-//
-//     val seq = testTargetSequence("proof.eph", 1, List(ObsClass.SCIENCE), List(SCIENCE_OBSERVE_TYPE))
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Default
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isRunning)
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "start sequence that fails target check if forced" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = simpleSequenceWithTargetName("proof")
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <- advanceOne(
-//                          q,
-//                          s0,
-//                          observeEngine.start(q,
-//                                              seqObsId1,
-//                                              user,
-//                                              Observer(""),
-//                                              clientId,
-//                                              RunOverride.Override
-//                          )
-//                        )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isRunning)
-//     }).unsafeRunSync()
-//   }
-//
+    val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
+      (ObserveClass.ProgramCal, StepConfig.Dark),
+      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, GuideState.Enabled)))
+    )
+
+    val startStepIdx  = 1
+    val reqConditions = ConstraintSet(
+      ImageQuality.PointTwo,
+      CloudExtinction.PointFive,
+      SkyBackground.Dark,
+      WaterVapor.Median,
+      ElevationRange.HourAngle.Default
+    )
+
+    val stepList: NonEmptyList[Step[DynamicConfig.GmosNorth]] = obsTypes.zipWithIndex.map {
+      case ((cl, st), idx) =>
+        Step[DynamicConfig.GmosNorth](
+          stepId(idx + startStepIdx),
+          dynamicCfg1,
+          st,
+          StepEstimate.Zero,
+          cl,
+          Breakpoint.Disabled
+        )
+    }
+
+    SequenceGen[IO](
+      ODBObservation(
+        id = seqObsId1,
+        title = "",
+        ObsStatus.Ready,
+        ObsActiveStatus.Active,
+        ODBObservation.Program(
+          Program.Id(PosLong.unsafeFrom(123)),
+          None
+        ),
+        TargetEnvironment(Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName))),
+        reqConditions,
+        List.empty,
+        Execution(
+          GmosNorth(
+            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+              staticCfg1,
+              ExecutionSequence[DynamicConfig.GmosNorth](
+                Atom[DynamicConfig.GmosNorth](
+                  atomId1,
+                  None,
+                  stepList
+                ),
+                List.empty,
+                false
+              ).some,
+              None
+            )
+          ).some
+        )
+      ),
+      instrument = Instrument.GmosNorth,
+      SequenceType.Science,
+      staticCfg1,
+      atomId1,
+      steps = stepList.map { step =>
+        SequenceGen.PendingStepGen(
+          step.id,
+          Monoid.empty[DataId],
+          resources = resources,
+          _ => InstrumentSystem.Uncontrollable,
+          generator = SequenceGen.StepActionsGen(
+            configs =
+              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+            post = (_, _) => Nil
+          ),
+          StepStatusGen.Null,
+          step.instrumentConfig,
+          step.stepConfig,
+          breakpoint = Breakpoint.Disabled
+        )
+      }.toList
+    )
+  }
+
+  private def systemsWithTargetName(name: String): IO[Systems[IO]] =
+    defaultSystems.map(
+      _.copy(tcsKeywordReader = new DummyTcsKeywordsReader.DummyTcsKeywordReaderImpl[IO] {
+        override def sourceATarget: TargetKeywordsReader[IO] =
+          new DummyTargetKeywordsReader.DummyTargetKeywordsReaderImpl[IO] {
+            override def objectName: IO[String] = name.pure[IO]
+          }
+      })
+    )
+
+  test("ObserveEngine start should start the sequence if it passes the target check") {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.start(
+                              seqObsId1,
+                              user,
+                              Observer("Joe".refined),
+                              clientId,
+                              RunOverride.Default
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isRunning)).assert
+  }
+
+  test(
+    "ObserveEngine start should not start the sequence if it fails the target check for science observations"
+  ) {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof1")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.start(
+                              seqObsId1,
+                              user,
+                              Observer("Joe".refined),
+                              clientId,
+                              RunOverride.Default
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isIdle)).assert
+  }
+
+  test(
+    "ObserveEngine start should start the sequence that fails the target check for if forced"
+  ) {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof1")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.start(
+                              seqObsId1,
+                              user,
+                              Observer("Joe".refined),
+                              clientId,
+                              RunOverride.Override
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isRunning)).assert
+  }
+
+  test("ObserveEngine start should startFrom the sequence if it passes the target check") {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.startFrom(
+                              seqObsId1,
+                              Observer("Joe".refined),
+                              stepId(2),
+                              clientId,
+                              RunOverride.Default
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isRunning)).assert
+  }
+
+  test(
+    "ObserveEngine start should not startFrom the sequence if it doesn't pass the target check"
+  ) {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof1")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.startFrom(
+                              seqObsId1,
+                              Observer("Joe".refined),
+                              stepId(2),
+                              clientId,
+                              RunOverride.Default
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isIdle)).assert
+  }
+
+  test(
+    "ObserveEngine start should startFrom the sequence if it doesn't pass the target check but forced"
+  ) {
+    val seq = testTargetSequence("proof".refined)
+
+    val s0 = ODBSequencesLoader
+      .loadSequenceEndo[IO](
+        None,
+        seq,
+        EngineState.instrumentLoaded(Instrument.GmosNorth)
+      )
+      .apply(EngineState.default[IO])
+
+    (for {
+      systems <- systemsWithTargetName("proof1")
+      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      sf      <- advanceOne(oe,
+                            s0,
+                            oe.startFrom(
+                              seqObsId1,
+                              Observer("Joe".refined),
+                              stepId(2),
+                              clientId,
+                              RunOverride.Override
+                            )
+                 )
+    } yield sf
+      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .exists(_.status.isRunning)).assert
+  }
+  // test(
 //   it should "not check target for calibrations" in {
 //     val systems = systemsWithTargetName("other")
 //
@@ -684,123 +731,6 @@ class ObserveEngineSuite extends TestCommon {
 //       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
 //     ) { case Some(status) =>
 //       assert(status.isRunning)
-//     }).unsafeRunSync()
-//   }
-//
-//   "ObserveEngine startFrom" should "start the sequence if it passes the target check" in {
-//     val systems = systemsWithTargetName("proof")
-//
-//     val seq = testTargetSequence("proof",
-//                                  1,
-//                                  List(ObsClass.ACQ, ObsClass.SCIENCE),
-//                                  List(ARC_OBSERVE_TYPE, SCIENCE_OBSERVE_TYPE)
-//     )
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <-
-//         advanceOne(q,
-//                    s0,
-//                    observeEngine.startFrom(q,
-//                                            seqObsId1,
-//                                            Observer(""),
-//                                            stepId(2),
-//                                            clientId,
-//                                            RunOverride.Default
-//                    )
-//         )
-//     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
-//     ) { case Some(status) =>
-//       assert(status.isRunning)
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "not start the sequence if it fails the target check" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = testTargetSequence("proof",
-//                                  1,
-//                                  List(ObsClass.ACQ, ObsClass.SCIENCE),
-//                                  List(ARC_OBSERVE_TYPE, SCIENCE_OBSERVE_TYPE)
-//     )
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       result        <-
-//         observeEngine.startFrom(q,
-//                                 seqObsId1,
-//                                 Observer(""),
-//                                 stepId(2),
-//                                 clientId,
-//                                 RunOverride.Default
-//         ) *>
-//           observeEngine.stream(Stream.fromQueueUnterminated(q))(s0).take(1).compile.last
-//     } yield inside(result) { case Some((out, sf)) =>
-//       inside(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).map(_.status)) {
-//         case Some(status) => assert(status.isIdle)
-//       }
-//       inside(out) {
-//         case UserCommandResponse(_,
-//                                  Outcome.Ok,
-//                                  Some(
-//                                    RequestConfirmation(
-//                                      UserPrompt.ChecksOverride(_, stpid, _, _),
-//                                      _
-//                                    )
-//                                  )
-//             ) =>
-//           assert(stpid === stepId(2))
-//       }
-//     }).unsafeRunSync()
-//   }
-//
-//   it should "start the sequence that fails target check if forced" in {
-//     val systems = systemsWithTargetName("other")
-//
-//     val seq = testTargetSequence("proof",
-//                                  1,
-//                                  List(ObsClass.ACQ, ObsClass.SCIENCE),
-//                                  List(ARC_OBSERVE_TYPE, SCIENCE_OBSERVE_TYPE)
-//     )
-//
-//     val s0 = ODBSequencesLoader
-//       .loadSequenceEndo[IO](seqObsId1, seq, executeEngine)
-//       .apply(EngineState.default[IO])
-//
-//     (for {
-//       sm            <- ObserveMetrics.build[IO](Site.GS, new CollectorRegistry())
-//       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings, sm)
-//       q             <- Queue.bounded[IO, executeEngine.EventType](10)
-//       sf            <-
-//         advanceOne(q,
-//                    s0,
-//                    observeEngine.startFrom(q,
-//                                            seqObsId1,
-//                                            Observer(""),
-//                                            stepId(2),
-//                                            clientId,
-//                                            RunOverride.Override
-//                    )
-//         )
-//     } yield inside(sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)) {
-//       case Some(s) =>
-//         assert(s.status.isRunning)
-//         inside(s.currentStep) { case Some(t) =>
-//           assert(t.id === stepId(2))
-//         }
 //     }).unsafeRunSync()
 //   }
 //
@@ -846,8 +776,9 @@ class ObserveEngineSuite extends TestCommon {
       (ObserveClass.ProgramCal, StepConfig.Dark),
       List((ObserveClass.Science, StepConfig.Science(Offset.Zero, GuideState.Enabled)))
     )
-    val startStepIdx                                       = 1
-    val reqConditions                                      = ConstraintSet(
+
+    val startStepIdx  = 1
+    val reqConditions = ConstraintSet(
       ImageQuality.PointTwo,
       CloudExtinction.PointFive,
       SkyBackground.Dark,
@@ -865,6 +796,7 @@ class ObserveEngineSuite extends TestCommon {
           cl,
           Breakpoint.Disabled
         )
+
     }
 
     SequenceGen[IO](
