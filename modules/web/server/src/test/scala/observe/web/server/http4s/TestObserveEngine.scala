@@ -15,6 +15,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import observe.engine.EventResult
 import observe.model.Observation.Id
 import observe.model.*
@@ -41,7 +42,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def startFrom(
     id:          Id,
     observer:    Observer,
-    stp:         StepId,
+    stp:         Step.Id,
     clientId:    ClientId,
     runOverride: RunOverride
   ): F[Unit] = Applicative[F].unit
@@ -62,7 +63,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     seqId:    Id,
     user:     User,
     observer: Observer,
-    stepId:   List[StepId],
+    stepId:   List[Step.Id],
     v:        Breakpoint
   ): F[Unit] = Applicative[F].unit
 
@@ -135,7 +136,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     seqId:    Id,
     user:     User,
     observer: Observer,
-    stepId:   StepId,
+    stepId:   Step.Id,
     v:        Boolean
   ): F[Unit] = Applicative[F].unit
 
@@ -199,7 +200,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     sid:      Id,
     observer: Observer,
     user:     User,
-    stepId:   StepId,
+    stepId:   Step.Id,
     sys:      Resource | Instrument,
     clientID: ClientId
   ): F[Unit] = Applicative[F].unit

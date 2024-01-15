@@ -3,10 +3,10 @@
 
 package observe.engine
 
+import lucuma.core.model.sequence.Step
 import observe.engine.Result.*
 import observe.model.ClientId
 import observe.model.Observation
-import observe.model.StepId
 
 /**
  * Events generated internally by the Engine.
@@ -14,19 +14,23 @@ import observe.model.StepId
 sealed trait SystemEvent extends Product with Serializable
 
 object SystemEvent {
-  final case class Completed[R <: RetVal](id: Observation.Id, stepId: StepId, i: Int, r: OK[R])
+  final case class Completed[R <: RetVal](id: Observation.Id, stepId: Step.Id, i: Int, r: OK[R])
       extends SystemEvent
   final case class StopCompleted[R <: RetVal](
     id:     Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      OKStopped[R]
   ) extends SystemEvent
-  final case class Aborted[R <: RetVal](id: Observation.Id, stepId: StepId, i: Int, r: OKAborted[R])
-      extends SystemEvent
+  final case class Aborted[R <: RetVal](
+    id:     Observation.Id,
+    stepId: Step.Id,
+    i:      Int,
+    r:      OKAborted[R]
+  ) extends SystemEvent
   final case class PartialResult[R <: PartialVal](
     sid:    Observation.Id,
-    stepId: StepId,
+    stepId: Step.Id,
     i:      Int,
     r:      Partial[R]
   ) extends SystemEvent

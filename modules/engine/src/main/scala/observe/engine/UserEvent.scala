@@ -7,9 +7,9 @@ import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import observe.model.ClientId
 import observe.model.Observation
-import observe.model.StepId
 
 import java.time.Instant
 
@@ -34,13 +34,13 @@ object UserEvent {
   case class Breakpoints[F[_], S, U](
     id:    Observation.Id,
     user:  Option[User],
-    steps: List[StepId],
+    steps: List[Step.Id],
     v:     Breakpoint
   ) extends UserEvent[F, S, U]
   case class SkipMark[F[_], S, U](
     id:   Observation.Id,
     user: Option[User],
-    step: StepId,
+    step: Step.Id,
     v:    Boolean
   ) extends UserEvent[F, S, U]
   case class Poll[F[_], S, U](clientId: ClientId)                      extends UserEvent[F, S, U] {

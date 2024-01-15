@@ -101,14 +101,14 @@ class packageSpec extends munit.CatsEffectSuite {
              id = observationId(2),
              atomId = atomId,
              steps = List(
-               Step.init(
+               EngineStep.init(
                  id = stepId(1),
                  executions = List(
                    NonEmptyList.of(configureTcs, configureInst), // Execution
                    NonEmptyList.one(observe)                     // Execution
                  )
                ),
-               Step.init(
+               EngineStep.init(
                  id = stepId(2),
                  executions = executions
                )
@@ -173,7 +173,7 @@ class packageSpec extends munit.CatsEffectSuite {
             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
             atomId = atomId,
             steps = List(
-              Step.init(
+              EngineStep.init(
                 id = stepId(1),
                 executions = List(
                   NonEmptyList.one(
@@ -260,7 +260,7 @@ class packageSpec extends munit.CatsEffectSuite {
                 id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
                 atomId = atomId,
                 steps = List(
-                  Step.init(
+                  EngineStep.init(
                     id = stepId(1),
                     executions = List(
                       NonEmptyList.one(
@@ -308,7 +308,7 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
              atomId = atomId,
              steps = List(
-               Step.init(
+               EngineStep.init(
                  id = stepId(1),
                  executions = List(
                    NonEmptyList.one(
@@ -342,11 +342,11 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(6)),
              atomId = atomId,
              steps = List(
-               Step
+               EngineStep
                  .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = stepId(2), executions = executions),
-               Step.init(id = stepId(3), executions = executions)
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep.init(id = stepId(2), executions = executions),
+               EngineStep.init(id = stepId(3), executions = executions)
              )
            )
          )
@@ -377,11 +377,11 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(7)),
              atomId = atomId,
              steps = List(
-               Step.init(id = stepId(1), executions = executions),
-               Step
+               EngineStep.init(id = stepId(1), executions = executions),
+               EngineStep
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = stepId(3), executions = executions)
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep.init(id = stepId(3), executions = executions)
              )
            )
          )
@@ -413,17 +413,17 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(8)),
              atomId = atomId,
              steps = List(
-               Step.init(id = stepId(1), executions = executions),
-               Step
+               EngineStep.init(id = stepId(1), executions = executions),
+               EngineStep
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep
                  .init(id = stepId(4), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step.init(id = stepId(5), executions = executions)
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep.init(id = stepId(5), executions = executions)
              )
            )
          )
@@ -457,11 +457,11 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step.init(id = stepId(1), executions = executions),
-               Step.init(id = stepId(2), executions = executions),
-               Step
+               EngineStep.init(id = stepId(1), executions = executions),
+               EngineStep.init(id = stepId(2), executions = executions),
+               EngineStep
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true))
+                 .copy(skipMark = EngineStep.SkipMark(true))
              )
            )
          )
@@ -493,9 +493,9 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step
+               EngineStep
                  .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true))
+                 .copy(skipMark = EngineStep.SkipMark(true))
              )
            )
          )
@@ -524,13 +524,13 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step
+               EngineStep
                  .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               Step.init(id = stepId(3), executions = executions)
+                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
+               EngineStep.init(id = stepId(3), executions = executions)
              )
            )
          )
@@ -564,15 +564,15 @@ class packageSpec extends munit.CatsEffectSuite {
              lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step
+               EngineStep
                  .init(id = stepId(1), executions = executions)
-                 .copy(skipped = Step.Skipped(true)),
-               Step
+                 .copy(skipped = EngineStep.Skipped(true)),
+               EngineStep
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               Step
+                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
+               EngineStep
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled)
+                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled)
              )
            )
          )
@@ -607,14 +607,14 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step.init(id = stepId(1), executions = executions),
-               Step
+               EngineStep.init(id = stepId(1), executions = executions),
+               EngineStep
                  .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true)),
-               Step
+                 .copy(skipMark = EngineStep.SkipMark(true)),
+               EngineStep
                  .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = Step.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               Step.init(id = stepId(4), executions = executions)
+                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
+               EngineStep.init(id = stepId(4), executions = executions)
              )
            )
          )
@@ -647,17 +647,17 @@ class packageSpec extends munit.CatsEffectSuite {
              id = seqId,
              atomId = atomId,
              steps = List(
-               Step.init(id = sId,
-                         executions = List(
-                           NonEmptyList.one(
-                             fromF[IO](ActionType.Configure(Resource.TCS),
-                                       IO {
-                                         dummy.set(markVal)
-                                         Result.OK(DummyResult)
-                                       }
-                             )
-                           )
-                         )
+               EngineStep.init(id = sId,
+                               executions = List(
+                                 NonEmptyList.one(
+                                   fromF[IO](ActionType.Configure(Resource.TCS),
+                                             IO {
+                                               dummy.set(markVal)
+                                               Result.OK(DummyResult)
+                                             }
+                                   )
+                                 )
+                               )
                )
              )
            )
@@ -706,7 +706,7 @@ class packageSpec extends munit.CatsEffectSuite {
              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
              atomId = atomId,
              steps = List(
-               Step.init(
+               EngineStep.init(
                  id = stepId(1),
                  executions = List(
                    NonEmptyList.one(
@@ -717,15 +717,15 @@ class packageSpec extends munit.CatsEffectSuite {
                    )
                  )
                ),
-               Step.init(
+               EngineStep.init(
                  id = stepId(2),
                  executions = executions
                ),
-               Step.init(
+               EngineStep.init(
                  id = stepId(3),
                  executions = executions
                ),
-               Step.init(
+               EngineStep.init(
                  id = stepId(4),
                  executions = executions
                )

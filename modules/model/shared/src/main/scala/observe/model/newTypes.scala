@@ -4,6 +4,7 @@
 package observe.model
 
 import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.NewType
 
 import java.util.UUID
@@ -30,6 +31,6 @@ object SubsystemEnabled extends NewType[Boolean] {
 
 type SubsystemEnabled = SubsystemEnabled.Type
 
-object PausedStep extends NewType[StepId]
+object PausedStep extends NewType[Step.Id]
 
 type PausedStep = PausedStep.Type

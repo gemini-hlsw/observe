@@ -5,6 +5,7 @@ package observe.model.arb
 
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -55,7 +56,7 @@ trait ArbNodAndShuffleStep {
 
   given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
     for {
-      id <- arbitrary[StepId]
+      id <- arbitrary[Step.Id]
       d  <- arbitrary[DynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
@@ -82,7 +83,7 @@ trait ArbNodAndShuffleStep {
   given nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
     Cogen[
       (
-        StepId,
+        Step.Id,
         DynamicConfig,
         StepConfig,
         StepState,

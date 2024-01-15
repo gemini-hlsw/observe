@@ -5,6 +5,7 @@ package observe.model.arb
 
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.*
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -25,7 +26,7 @@ trait ArbStandardStep {
 
   given stsArb: Arbitrary[StandardStep] = Arbitrary[StandardStep] {
     for {
-      id <- arbitrary[StepId]
+      id <- arbitrary[Step.Id]
       d  <- arbitrary[DynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
@@ -50,7 +51,7 @@ trait ArbStandardStep {
   given standardStepCogen: Cogen[StandardStep] =
     Cogen[
       (
-        StepId,
+        Step.Id,
         DynamicConfig,
         StepConfig,
         StepState,

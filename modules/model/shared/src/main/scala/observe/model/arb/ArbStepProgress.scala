@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbTimeSpan.given
@@ -20,20 +21,20 @@ trait ArbStepProgress:
   given Arbitrary[StepProgress.Regular] =
     Arbitrary:
       for
-        s <- arbitrary[StepId]
+        s <- arbitrary[Step.Id]
         t <- arbitrary[TimeSpan]
         r <- arbitrary[TimeSpan]
         v <- arbitrary[ObserveStage]
       yield StepProgress.Regular(s, t, r, v)
 
   given Cogen[StepProgress.Regular] =
-    Cogen[(StepId, TimeSpan, TimeSpan, ObserveStage)]
+    Cogen[(Step.Id, TimeSpan, TimeSpan, ObserveStage)]
       .contramap(x => (x.stepId, x.total, x.remaining, x.stage))
 
   given Arbitrary[StepProgress.NodAndShuffle] =
     Arbitrary:
       for
-        s <- arbitrary[StepId]
+        s <- arbitrary[Step.Id]
         t <- arbitrary[TimeSpan]
         r <- arbitrary[TimeSpan]
         v <- arbitrary[ObserveStage]
@@ -41,7 +42,7 @@ trait ArbStepProgress:
       yield StepProgress.NodAndShuffle(s, t, r, v, u)
 
   given Cogen[StepProgress.NodAndShuffle] =
-    Cogen[(StepId, TimeSpan, TimeSpan, ObserveStage, NsSubexposure)]
+    Cogen[(Step.Id, TimeSpan, TimeSpan, ObserveStage, NsSubexposure)]
       .contramap(x => (x.stepId, x.total, x.remaining, x.stage, x.sub))
 
   given Arbitrary[StepProgress] =

@@ -8,6 +8,7 @@ import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import observe.model.ObservationProgress
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.*
@@ -46,7 +47,7 @@ case class ConnectionOpenEvent(
 
 case class SequenceStart(
   obsId:  Observation.Id,
-  stepId: StepId,
+  stepId: Step.Id,
   view:   SequencesQueue[SequenceView]
 ) extends ObserveModelUpdate
     derives Eq

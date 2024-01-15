@@ -7,6 +7,7 @@ import cats.*
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.Enumerated
@@ -19,8 +20,8 @@ import monocle.syntax.all.*
 import observe.model.dhs.*
 import observe.model.enums.*
 
-sealed trait Step extends Product with Serializable {
-  def id: StepId
+sealed trait ObserveStep extends Product with Serializable {
+  def id: Step.Id
   def instConfig: DynamicConfig
   def stepConfig: StepConfig
   def status: StepState
@@ -29,7 +30,8 @@ sealed trait Step extends Product with Serializable {
   def fileId: Option[ImageFileId]
 }
 
-object Step {
+object ObserveStep {
+
   extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
   }
@@ -37,14 +39,14 @@ object Step {
     def flip: A => A =
       l.modify(b => if (b === Breakpoint.Enabled) Breakpoint.Disabled else Breakpoint.Enabled)
   }
-  def standardStepP: Prism[Step, StandardStep] =
-    GenPrism[Step, StandardStep]
+  def standardStepP: Prism[ObserveStep, StandardStep] =
+    GenPrism[ObserveStep, StandardStep]
 
-  def nsStepP: Prism[Step, NodAndShuffleStep] =
-    GenPrism[Step, NodAndShuffleStep]
+  def nsStepP: Prism[ObserveStep, NodAndShuffleStep] =
+    GenPrism[ObserveStep, NodAndShuffleStep]
 
-  def status: Lens[Step, StepState] =
-    Lens[Step, StepState] {
+  def status: Lens[ObserveStep, StepState] =
+    Lens[ObserveStep, StepState] {
       _.status
     } { n =>
       {
@@ -53,8 +55,8 @@ object Step {
       }
     }
 
-  def id: Lens[Step, StepId] =
-    Lens[Step, StepId] {
+  def id: Lens[ObserveStep, Step.Id] =
+    Lens[ObserveStep, Step.Id] {
       _.id
     } { n =>
       {
@@ -63,8 +65,8 @@ object Step {
       }
     }
 
-  def instConfig: Lens[Step, DynamicConfig] =
-    Lens[Step, DynamicConfig] {
+  def instConfig: Lens[ObserveStep, DynamicConfig] =
+    Lens[ObserveStep, DynamicConfig] {
       _.instConfig
     } { d =>
       {
@@ -73,8 +75,8 @@ object Step {
       }
     }
 
-  def stepConfig: Lens[Step, StepConfig] =
-    Lens[Step, StepConfig] {
+  def stepConfig: Lens[ObserveStep, StepConfig] =
+    Lens[ObserveStep, StepConfig] {
       _.stepConfig
     } { d =>
       {
@@ -83,8 +85,8 @@ object Step {
       }
     }
 
-  def skip: Lens[Step, Boolean] =
-    Lens[Step, Boolean] {
+  def skip: Lens[ObserveStep, Boolean] =
+    Lens[ObserveStep, Boolean] {
       _.skip
     } { n =>
       {
@@ -93,8 +95,8 @@ object Step {
       }
     }
 
-  def breakpoint: Lens[Step, Breakpoint] =
-    Lens[Step, Breakpoint] {
+  def breakpoint: Lens[ObserveStep, Breakpoint] =
+    Lens[ObserveStep, Breakpoint] {
       _.breakpoint
     } { n =>
       {
@@ -103,8 +105,8 @@ object Step {
       }
     }
 
-  def observeStatus: Optional[Step, ActionStatus] =
-    Optional[Step, ActionStatus] {
+  def observeStatus: Optional[ObserveStep, ActionStatus] =
+    Optional[ObserveStep, ActionStatus] {
       case s: StandardStep      => s.observeStatus.some
       case s: NodAndShuffleStep => s.nsStatus.observing.some
     } { n =>
@@ -114,8 +116,8 @@ object Step {
       }
     }
 
-  def configStatus: Lens[Step, List[(Resource | Instrument, ActionStatus)]] =
-    Lens[Step, List[(Resource | Instrument, ActionStatus)]] {
+  def configStatus: Lens[ObserveStep, List[(Resource | Instrument, ActionStatus)]] =
+    Lens[ObserveStep, List[(Resource | Instrument, ActionStatus)]] {
       case s: StandardStep      => s.configStatus
       case s: NodAndShuffleStep => s.configStatus
     } { n =>
@@ -125,7 +127,7 @@ object Step {
       }
     }
 
-  given Eq[Step] =
+  given Eq[ObserveStep] =
     Eq.instance {
       case (x: StandardStep, y: StandardStep)           =>
         x === y
@@ -135,14 +137,14 @@ object Step {
         false
     }
 
-  extension (s: Step) {
-    def flipBreakpoint: Step =
+  extension (s: ObserveStep) {
+    def flipBreakpoint: ObserveStep =
       s match {
         case st: StandardStep      => Focus[StandardStep](_.breakpoint).flip(st)
         case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.breakpoint).flip(st)
       }
 
-    def flipSkip: Step =
+    def flipSkip: ObserveStep =
       s match {
         case st: StandardStep      => Focus[StandardStep](_.skip).negate(st)
         case st: NodAndShuffleStep => Focus[NodAndShuffleStep](_.skip).negate(st)
@@ -150,7 +152,7 @@ object Step {
 
     def file: Option[String] = None
 
-    def canSetBreakpoint(steps: List[Step]): Boolean =
+    def canSetBreakpoint(steps: List[ObserveStep]): Boolean =
       s.status.canSetBreakpoint && steps
         .dropWhile(_.status.isFinished)
         .drop(1)
@@ -197,7 +199,7 @@ object Step {
 }
 
 case class StandardStep(
-  id:            StepId,
+  id:            Step.Id,
   instConfig:    DynamicConfig,
   stepConfig:    lucuma.core.model.sequence.StepConfig,
   status:        StepState,
@@ -206,7 +208,7 @@ case class StandardStep(
   fileId:        Option[ImageFileId],
   configStatus:  List[(Resource | Instrument, ActionStatus)],
   observeStatus: ActionStatus
-) extends Step
+) extends ObserveStep
 
 object StandardStep {
   given Eq[StandardStep] =
@@ -226,7 +228,7 @@ object StandardStep {
 
 // Other kinds of Steps to be defined.
 case class NodAndShuffleStep(
-  id:                StepId,
+  id:                Step.Id,
   instConfig:        DynamicConfig,
   stepConfig:        lucuma.core.model.sequence.StepConfig,
   status:            StepState,
@@ -236,7 +238,7 @@ case class NodAndShuffleStep(
   configStatus:      List[(Resource | Instrument, ActionStatus)],
   nsStatus:          NodAndShuffleStatus,
   pendingObserveCmd: Option[NodAndShuffleStep.PendingObserveCmd]
-) extends Step
+) extends ObserveStep
 
 object NodAndShuffleStep {
   given Eq[NodAndShuffleStep] =

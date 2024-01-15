@@ -9,6 +9,7 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
@@ -17,10 +18,9 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.Action
 import observe.engine.ActionCoordsInSeq
 import observe.engine.ActionIndex
+import observe.engine.EngineStep
 import observe.engine.ExecutionIndex
 import observe.engine.ParallelActions
-import observe.engine.Step as EngineStep
-import observe.model.StepId
 import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
@@ -45,7 +45,7 @@ case class SequenceGen[F[_]](
     }
     .foldMap(identity)
 
-  def configActionCoord(stepId: StepId, r: Resource | Instrument): Option[ActionCoordsInSeq] =
+  def configActionCoord(stepId: Step.Id, r: Resource | Instrument): Option[ActionCoordsInSeq] =
     steps
       .find(_.id === stepId)
       .collect { case p: SequenceGen.PendingStepGen[F] => p }
@@ -58,7 +58,7 @@ case class SequenceGen[F[_]](
       .collect { case p: SequenceGen.PendingStepGen[F] => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
 
-  def stepIndex(stepId: StepId): Option[Int] = SequenceGen.stepIndex(steps, stepId)
+  def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(steps, stepId)
 }
 
 object SequenceGen {
@@ -70,7 +70,7 @@ object SequenceGen {
   }
 
   sealed trait StepGen[F[_]] {
-    val id: StepId
+    val id: Step.Id
     val dataId: DataId
     val genData: StepStatusGen
     val instConfig: DynamicConfig
@@ -114,7 +114,7 @@ object SequenceGen {
   }
 
   case class PendingStepGen[F[_]](
-    id:         StepId,
+    id:         Step.Id,
     dataId:     DataId,
     resources:  Set[Resource | Instrument],
     obsControl: SystemOverrides => InstrumentSystem.ObserveControl[F],
@@ -126,7 +126,7 @@ object SequenceGen {
   ) extends StepGen[F]
 
   case class SkippedStepGen[F[_]](
-    id:         StepId,
+    id:         Step.Id,
     dataId:     DataId,
     genData:    StepStatusGen = StepStatusGen.Null,
     instConfig: DynamicConfig,
@@ -136,7 +136,7 @@ object SequenceGen {
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
   case class CompletedStepGen[F[_]](
-    id:         StepId,
+    id:         Step.Id,
     dataId:     DataId,
     fileId:     Option[ImageFileId],
     genData:    StepStatusGen = StepStatusGen.Null,
@@ -146,7 +146,7 @@ object SequenceGen {
 
   def stepIndex[F[_]](
     steps:  List[SequenceGen.StepGen[F]],
-    stepId: StepId
+    stepId: Step.Id
   ): Option[Int] =
     steps.zipWithIndex.find(_._1.id === stepId).map(_._2)
 

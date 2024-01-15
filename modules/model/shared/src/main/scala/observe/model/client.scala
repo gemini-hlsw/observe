@@ -26,7 +26,6 @@ import observe.model.ObservationProgress
 import observe.model.Operator
 import observe.model.SequenceView
 import observe.model.SequencesQueue
-import observe.model.StepId
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.SeqCheck
 import observe.model.enums.Resource
@@ -76,7 +75,7 @@ object ClientEvent:
 
   case class SingleActionEvent(
     obsId:     Observation.Id,
-    stepId:    StepId,
+    stepId:    Step.Id,
     subsystem: Resource | Instrument,
     event:     SingleActionState,
     error:     Option[String]

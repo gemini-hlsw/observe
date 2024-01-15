@@ -5,9 +5,9 @@ package observe.engine
 
 import cats.Eq
 import cats.derived.*
+import lucuma.core.model.sequence.Step
 import lucuma.core.util.NewType
 import observe.model.Observation
-import observe.model.StepId
 
 object ActionIndex extends NewType[Long]
 type ActionIndex = ActionIndex.Type
@@ -15,7 +15,7 @@ type ActionIndex = ActionIndex.Type
 object ExecutionIndex extends NewType[Long]
 type ExecutionIndex = ExecutionIndex.Type
 
-case class ActionCoordsInSeq(stepId: StepId, execIdx: ExecutionIndex, actIdx: ActionIndex)
+case class ActionCoordsInSeq(stepId: Step.Id, execIdx: ExecutionIndex, actIdx: ActionIndex)
     derives Eq
 
 /*

@@ -9,6 +9,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import observe.model.ClientId
 import observe.model.Conditions
 import observe.model.Notification
@@ -16,7 +17,6 @@ import observe.model.Observation
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.QueueId
-import observe.model.StepId
 import observe.model.SubsystemEnabled
 import observe.model.UserPrompt
 import observe.model.enums.*
@@ -57,7 +57,7 @@ object SeqEvent {
   case class StartQueue(
     qid:         QueueId,
     clientID:    ClientId,
-    startedSeqs: List[(Observation.Id, StepId)]
+    startedSeqs: List[(Observation.Id, Step.Id)]
   ) extends SeqEvent
   case class StopQueue(qid: QueueId, clientID: ClientId)                         extends SeqEvent
   case class UpdateQueueAdd(qid: QueueId, seqs: List[Observation.Id])            extends SeqEvent
@@ -65,21 +65,21 @@ object SeqEvent {
     qid:         QueueId,
     seqs:        List[Observation.Id],
     pos:         List[Int],
-    startedSeqs: List[(Observation.Id, StepId)]
+    startedSeqs: List[(Observation.Id, Step.Id)]
   ) extends SeqEvent
   case class UpdateQueueMoved(qid: QueueId, cid: ClientId, oid: Observation.Id, pos: Int)
       extends SeqEvent
   case class UpdateQueueClear(qid: QueueId)                                      extends SeqEvent
-  case class StartSysConfig(obsId: Observation.Id, stepId: StepId, res: Resource | Instrument)
+  case class StartSysConfig(obsId: Observation.Id, stepId: Step.Id, res: Resource | Instrument)
       extends SeqEvent
   case class Busy(obsId: Observation.Id, cid: ClientId)                          extends SeqEvent
-  case class SequenceStart(sid: Observation.Id, stepId: StepId)                  extends SeqEvent
-  case class SequenceStarted(sid: Observation.Id, stepId: StepId, recordedAtomId: RecordedAtomId)
+  case class SequenceStart(sid: Observation.Id, stepId: Step.Id)                 extends SeqEvent
+  case class SequenceStarted(sid: Observation.Id, stepId: Step.Id, recordedAtomId: RecordedAtomId)
       extends NoUserSeqEvent
-  case class SequencesStart(startedSeqs: List[(Observation.Id, StepId)])         extends SeqEvent
+  case class SequencesStart(startedSeqs: List[(Observation.Id, Step.Id)])        extends SeqEvent
   case class ResourceBusy(
     obsId:    Observation.Id,
-    stepId:   StepId,
+    stepId:   Step.Id,
     res:      Resource | Instrument,
     clientID: ClientId
   ) extends SeqEvent

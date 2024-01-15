@@ -13,7 +13,7 @@ import ArbNodAndShuffleStep.given
 import ArbStandardStep.given
 
 trait ArbStep {
-  given steArb: Arbitrary[Step] = Arbitrary[Step] {
+  given steArb: Arbitrary[ObserveStep] = Arbitrary[ObserveStep] {
     for {
       ss <- arbitrary[StandardStep]
       ns <- arbitrary[NodAndShuffleStep]
@@ -21,7 +21,7 @@ trait ArbStep {
     } yield s
   }
 
-  given stepCogen: Cogen[Step] =
+  given stepCogen: Cogen[ObserveStep] =
     Cogen[Either[StandardStep, NodAndShuffleStep]].contramap {
       case a: StandardStep      => Left(a)
       case a: NodAndShuffleStep => Right(a)

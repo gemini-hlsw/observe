@@ -6,9 +6,10 @@ package observe.model
 import cats.Eq
 import cats.Show
 import cats.syntax.option.*
+import lucuma.core.model.sequence.Step
 
 sealed trait RunningStep {
-  val id: Option[StepId]
+  val id: Option[Step.Id]
   val last: Int
   val total: Int
 }
@@ -16,13 +17,13 @@ sealed trait RunningStep {
 object RunningStep {
   val Zero: RunningStep = RunningStepImpl(none, 0, 0)
 
-  private final case class RunningStepImpl(id: Option[StepId], last: Int, total: Int)
+  private final case class RunningStepImpl(id: Option[Step.Id], last: Int, total: Int)
       extends RunningStep
 
-  def fromInt(id: Option[StepId], last: Int, total: Int): Option[RunningStep] =
+  def fromInt(id: Option[Step.Id], last: Int, total: Int): Option[RunningStep] =
     if (total >= last) RunningStepImpl(id, last, total).some else none
 
-  def unapply(r: RunningStep): Option[(Option[StepId], Int, Int)] =
+  def unapply(r: RunningStep): Option[(Option[Step.Id], Int, Int)] =
     Some((r.id, r.last, r.total))
 
   given Show[RunningStep] =
