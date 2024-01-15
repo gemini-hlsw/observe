@@ -7,6 +7,7 @@ import cats.*
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.Enumerated
@@ -20,7 +21,7 @@ import observe.model.dhs.*
 import observe.model.enums.*
 
 sealed trait ObserveStep extends Product with Serializable {
-  def id: ObserveStep.Id
+  def id: Step.Id
   def instConfig: DynamicConfig
   def stepConfig: StepConfig
   def status: StepState
@@ -30,7 +31,6 @@ sealed trait ObserveStep extends Product with Serializable {
 }
 
 object ObserveStep {
-  type Id = lucuma.core.model.sequence.Step.Id
 
   extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
@@ -55,8 +55,8 @@ object ObserveStep {
       }
     }
 
-  def id: Lens[ObserveStep, ObserveStep.Id] =
-    Lens[ObserveStep, ObserveStep.Id] {
+  def id: Lens[ObserveStep, Step.Id] =
+    Lens[ObserveStep, Step.Id] {
       _.id
     } { n =>
       {
@@ -199,7 +199,7 @@ object ObserveStep {
 }
 
 case class StandardStep(
-  id:            ObserveStep.Id,
+  id:            Step.Id,
   instConfig:    DynamicConfig,
   stepConfig:    lucuma.core.model.sequence.StepConfig,
   status:        StepState,
@@ -228,7 +228,7 @@ object StandardStep {
 
 // Other kinds of Steps to be defined.
 case class NodAndShuffleStep(
-  id:                ObserveStep.Id,
+  id:                Step.Id,
   instConfig:        DynamicConfig,
   stepConfig:        lucuma.core.model.sequence.StepConfig,
   status:            StepState,

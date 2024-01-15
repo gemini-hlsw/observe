@@ -26,6 +26,7 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
 import monocle.Focus
 import monocle.Lens
@@ -83,7 +84,7 @@ trait ObserveEngine[F[_]] {
   def startFrom(
     id:          Observation.Id,
     observer:    Observer,
-    stp:         ObserveStep.Id,
+    stp:         Step.Id,
     clientId:    ClientId,
     runOverride: RunOverride
   ): F[Unit]
@@ -104,7 +105,7 @@ trait ObserveEngine[F[_]] {
     seqId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   List[ObserveStep.Id],
+    stepId:   List[Step.Id],
     v:        Breakpoint
   ): F[Unit]
 
@@ -171,7 +172,7 @@ trait ObserveEngine[F[_]] {
     seqId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   ObserveStep.Id,
+    stepId:   Step.Id,
     v:        Boolean
   ): F[Unit]
 
@@ -234,7 +235,7 @@ trait ObserveEngine[F[_]] {
     sid:      Observation.Id,
     observer: Observer,
     user:     User,
-    stepId:   ObserveStep.Id,
+    stepId:   Step.Id,
     sys:      Resource | Instrument,
     clientID: ClientId
   ): F[Unit]
@@ -293,7 +294,7 @@ object ObserveEngine {
     // Starting step is either the one given, or the first one not run
     private def findStartingStep(
       obs:    SequenceData[F],
-      stepId: Option[ObserveStep.Id]
+      stepId: Option[Step.Id]
     ): Option[SequenceGen.StepGen[F]] = for {
       stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
       stpGen <- obs.seqGen.steps.find(_.id === stp)
@@ -301,7 +302,7 @@ object ObserveEngine {
 
     private def findFirstCheckRequiredStep(
       obs:    SequenceData[F],
-      stepId: ObserveStep.Id
+      stepId: Step.Id
     ): Option[SequenceGen.StepGen[F]] =
       obs.seqGen.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
 
@@ -410,7 +411,7 @@ object ObserveEngine {
     // if there is a valid sequence with a valid current step.
     private def sequenceStart(
       id: Observation.Id
-    ): HandlerType[F, Option[(Observation.Id, ObserveStep.Id)]] =
+    ): HandlerType[F, Option[(Observation.Id, Step.Id)]] =
       executeEngine.get.flatMap { s =>
         EngineState
           .atSequence(id)
@@ -449,7 +450,7 @@ object ObserveEngine {
               }
             }
           }
-          .getOrElse(executeEngine.pure(none[(Observation.Id, ObserveStep.Id)]))
+          .getOrElse(executeEngine.pure(none[(Observation.Id, Step.Id)]))
       }
 
     private def startAfterCheck(
@@ -466,7 +467,7 @@ object ObserveEngine {
       startAction: HandlerType[F, Unit],
       id:          Observation.Id,
       clientId:    ClientId,
-      stepId:      Option[ObserveStep.Id],
+      stepId:      Option[Step.Id],
       runOverride: RunOverride
     ): HandlerType[F, SeqEvent] =
       executeEngine.get.flatMap { st =>
@@ -535,7 +536,7 @@ object ObserveEngine {
     override def startFrom(
       id:          Observation.Id,
       observer:    Observer,
-      stp:         ObserveStep.Id,
+      stp:         Step.Id,
       clientId:    ClientId,
       runOverride: RunOverride
     ): F[Unit] = executeEngine.offer(
@@ -564,7 +565,7 @@ object ObserveEngine {
       seqId:    Observation.Id,
       user:     User,
       observer: Observer,
-      steps:    List[ObserveStep.Id],
+      steps:    List[Step.Id],
       v:        Breakpoint
     ): F[Unit] =
       // Set the observer after the breakpoints are set to do optimistic updates on the UI
@@ -821,7 +822,7 @@ object ObserveEngine {
       seqId:    Observation.Id,
       user:     User,
       observer: Observer,
-      stepId:   ObserveStep.Id,
+      stepId:   Step.Id,
       v:        Boolean
     ): F[Unit] = Applicative[F].unit
 //      setObserver(seqId, user, observer) *>
@@ -1288,7 +1289,7 @@ object ObserveEngine {
 
     private def configSystemHandle(
       sid:      Observation.Id,
-      stepId:   ObserveStep.Id,
+      stepId:   Step.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
     ): HandlerType[F, SeqEvent] =
@@ -1316,7 +1317,7 @@ object ObserveEngine {
       sid:      Observation.Id,
       observer: Observer,
       user:     User,
-      stepId:   ObserveStep.Id,
+      stepId:   Step.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
     ): F[Unit] = setObserver(sid, user, observer) *>
@@ -1865,7 +1866,7 @@ object ObserveEngine {
   private def singleActionEvent[F[_], S <: SingleActionOp](
     c:      ActionCoords,
     qState: EngineState[F],
-    f:      (Observation.Id, ObserveStep.Id, Resource | Instrument) => S
+    f:      (Observation.Id, Step.Id, Resource | Instrument) => S
   ): ObserveEvent =
     qState.sequences
       .get(c.sid)

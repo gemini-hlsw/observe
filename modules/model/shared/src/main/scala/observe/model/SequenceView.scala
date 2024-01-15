@@ -7,6 +7,7 @@ import cats.*
 import cats.derived.*
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Traversal
 import monocle.function.Each.*
@@ -21,7 +22,7 @@ case class SequenceView(
   systemOverrides: SystemOverrides,
   steps:           List[ObserveStep],
   willStopIn:      Option[Int],
-  stepResources:   Map[ObserveStep.Id, Map[Resource | Instrument, ActionStatus]]
+  stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]]
 ) derives Eq:
 
   def progress: Option[RunningStep] =
