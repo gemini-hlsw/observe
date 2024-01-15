@@ -325,13 +325,6 @@ object ObserveEngine {
         }
         .getOrElse(none.pure[F])
 
-    /**
-     * Extract the target name from a step configuration. Some processing is necessary to get the
-     * same string that appears in TCS.
-     */
-    // private def extractTargetName(obs: ObsQueriesGQL.ObsQuery.Data.Observation): Option[String] =
-    //   obs.targetEnvironment.firstScienceTarget.map(_.targetName.toString)
-
     private def stepRequiresChecks(stepConfig: OcsStepConfig): Boolean = stepConfig match {
       case OcsStepConfig.Gcal(_, _, _, _) => true
       case OcsStepConfig.Science(_, _)    => true

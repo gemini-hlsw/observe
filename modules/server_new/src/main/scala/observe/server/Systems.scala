@@ -34,7 +34,7 @@ import org.typelevel.log4cats.Logger
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
-case class Systems[F[_]] private (
+case class Systems[F[_]] private[server] (
   odb:                 OdbProxy[F],
   dhs:                 DhsClientProvider[F],
   tcsSouth:            TcsSouthController[F],
