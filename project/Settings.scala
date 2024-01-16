@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // Scala libraries
-    val catsEffectVersion = "3.5.2"
+    val catsEffectVersion = "3.5.3"
     val catsVersion       = "2.10.0"
     val kittens           = "3.2.0"
     val mouseVersion      = "1.2.2"
