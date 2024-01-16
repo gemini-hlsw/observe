@@ -23,11 +23,6 @@ enum StepState derives Eq, Decoder, Encoder.AsObject:
       true
     case _ => false
 
-  lazy val canSetSkipmark: Boolean = this match
-    case StepState.Pending | StepState.Paused | StepState.Aborted => true
-    case _ if hasError                                            => true
-    case _                                                        => false
-
   lazy val hasError: Boolean = this match
     case StepState.Failed(_) => true
     case _                   => false

@@ -64,7 +64,6 @@ object ObserveStyles:
   val StepTable: Css          = Css("ObserveStyles-stepTable")
   val StepSettingsHeader: Css = Css("ObserveStyles-stepSettingsHeader")
 
-  val StepRowRunning: Css        = Css("ObserveStyles-stepRowRunning")
   val StepRowWarning: Css        = Css("ObserveStyles-stepRowWarning")
   val StepRowError: Css          = Css("ObserveStyles-stepRowError")
   val StepRowDone: Css           = Css("ObserveStyles-stepRowDone")

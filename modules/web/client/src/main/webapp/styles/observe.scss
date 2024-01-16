@@ -179,72 +179,6 @@ html {
   }
 }
 
-.pl-react-table.p-datatable.p-datatable-hoverable-rows .p-datatable-tbody {
-  & > tr {
-    // .ObserveStyles-rowPositive {
-    //   background-color: @positiveBackgroundColor;
-    //   color: @positiveTextColor;
-    //   box-shadow: @positiveBoxShadow;
-    // }
-
-    // .pl-react-table.p-datatable .p-datatable-tbody>tr {
-    //   &.ObserveStyles-rowWarning {
-    //     background-color: var(--active-row-background);
-    //     // color: @warningTextColor;
-    //     // box-shadow: @warningBoxShadow;
-    //   }
-    // }
-
-    &.ObserveStyles-rowActive {
-      background-color: var(--active-row-background);
-
-      &:not(.p-highlight):not(.p-datatable-emptymessage):not(
-          .is-subcomponent
-        ):hover {
-        background-color: var(--active-row-background);
-      }
-    }
-
-    &.ObserveStyles-rowNegative {
-      background-color: var(--negative-row-background);
-      color: var(--negative-row-color);
-
-      &:not(.p-highlight):not(.p-datatable-emptymessage):not(
-          .is-subcomponent
-        ):hover {
-        background-color: var(--negative-row-background);
-        color: var(--negative-row-color);
-      }
-    }
-
-    // .ObserveStyles-rowError {
-    //   background-color: @negativeBackgroundColor;
-    //   color: @negativeTextColor;
-    //   box-shadow: @negativeBoxShadow;
-    // }
-
-    // .ObserveStyles-rowDisabled {
-    //   pointer-events: none;
-    //   background: @background;
-    //   color: @disabledTextColor;
-    // }
-
-    // .rowDone(@background_color) {
-    //   pointer-events: none;
-    //   color: fadein(@disabledTextColor, 30%);
-    //   background: @background_color;
-    // }
-
-    // .ObserveStyles-rowDone {
-    //   .rowDone(@gutter_end_color);
-    // }
-
-    // .ObserveStyles-rowNone {
-    //   background: @background;
-    // }
-  }
-}
-
 .ObserveStyles-ConfigSection {
   display: flex;
   justify-content: space-around;
@@ -346,7 +280,33 @@ html {
   padding-right: 20px;
 }
 
-.pl-react-table.p-datatable {
+.pl-react-table.p-datatable.p-datatable-hoverable-rows {
+  .p-datatable-tbody {
+    & > tr {
+      &.ObserveStyles-rowActive {
+        background-color: var(--active-row-background);
+
+        &:not(.p-highlight):not(.p-datatable-emptymessage):not(
+            .is-subcomponent
+          ):hover {
+          background-color: var(--active-row-background);
+        }
+      }
+
+      &.ObserveStyles-rowNegative {
+        background-color: var(--negative-row-background);
+        color: var(--negative-row-color);
+
+        &:not(.p-highlight):not(.p-datatable-emptymessage):not(
+            .is-subcomponent
+          ):hover {
+          background-color: var(--negative-row-background);
+          color: var(--negative-row-color);
+        }
+      }
+    }
+  }
+
   &.ObserveStyles-observeTable {
     width: 100%;
 
@@ -394,6 +354,22 @@ html {
       pointer-events: none;
       color: var(--disabled-row-color);
       background: var(--disabled-row-background);
+    }
+
+    tr.ObserveStyles-stepRowWarning {
+      background-color: var(--active-row-background);
+    }
+
+    tr.ObserveStyles-stepRowError {
+      background-color: var(--negative-row-background);
+      color: var(--negative-row-color);
+
+      &:not(.p-highlight):not(.p-datatable-emptymessage):not(
+          .is-subcomponent
+        ):hover {
+        background-color: var(--negative-row-background);
+        color: var(--negative-row-color);
+      }
     }
 
     $separator-color: var(--gray-200);
@@ -691,77 +667,11 @@ html {
           }
         }
       }
-
-      // padding-top: 4px;
-      // background-image: linear-gradient(to right, #a5673f 0px, #a5673f);
-      // background-size: 100% 4px;
-      // background-repeat: no-repeat;
-      // }
-
-      // .ObserveStyles-breakpointTableCell {
-      // transform: translateY(-7px);
-      // }
     }
 
     tr.ObserveStyles-stepRowPossibleFuture {
       opacity: 0.6;
     }
-
-    // .stepWithBreakpoint(@line_color) {
-    //   background-image: linear-gradient(to right, @line_color 0px, @line_color);
-    //   font-size: smaller !important;
-    //   text-overflow: ellipsis;
-    //   word-wrap: break-word;
-    //   white-space: nowrap;
-    //   .borderRight();
-    //   .borderTop();
-    //   background-size: 100% 4px;
-    //   background-repeat: no-repeat;
-    //   padding-top: 4px;
-    //   overflow: visible !important;
-    //   outline: none;
-    // }
-
-    // .ObserveStyles-stepRowWithBreakpoint {
-    //   .stepWithBreakpoint(@breakpoint_line_color);
-    // }
-
-    // .ObserveStyles-stepDoneWithBreakpoint {
-    //   .stepWithBreakpoint(@breakpoint_done_line_color);
-    // }
-
-    // .ObserveStyles-stepRowWithBreakpointHover {
-    //   .stepWithBreakpoint(@breakpoint_line_color);
-    //   background-color: @background;
-    //   background-image: linear-gradient(
-    //     to right,
-    //     @borderColor 0px,
-    //     @gutter_end_color 19px,
-    //     lighten(@breakpoint_line_color, 30%) 0px,
-    //     lighten(@breakpoint_line_color, 30%)
-    //   );
-    //   padding-top: 0px;
-    // }
-
-    // .stepWithBreakpointAndControl(@line_color) {
-    //   .stepWithBreakpoint(@line_color);
-    //   background-image: linear-gradient(
-    //     to right,
-    //     @borderColor 0px,
-    //     @gutter_end_color 19px,
-    //     @line_color 19px,
-    //     @line_color
-    //   );
-    //   padding-top: 4px;
-    // }
-
-    // .ObserveStyles-stepRowWithBreakpointAndControl {
-    //   .stepWithBreakpointAndControl(@breakpoint_line_color);
-    // }
-
-    // .ObserveStyles-stepDoneWithBreakpointAndControl {
-    //   .stepWithBreakpointAndControl(@breakpoint_done_line_color);
-    // }
 
     th.ObserveStyles-breakpointTableHeader {
       padding: 0;

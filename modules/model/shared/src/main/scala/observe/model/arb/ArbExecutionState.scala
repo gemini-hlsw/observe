@@ -4,6 +4,7 @@
 package observe.model.arb
 
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
@@ -28,6 +29,7 @@ trait ArbExecutionState:
     for
       sequenceState   <- arbitrary[SequenceState]
       observer        <- arbitrary[Option[Observer]]
+      sequenceType    <- arbitrary[SequenceType]
       steps           <- arbitrary[List[ObserveStep]]
       runningStepId   <- arbitrary[Option[Step.Id]]
       nsState         <- arbitrary[Option[NsRunningState]]
@@ -37,6 +39,7 @@ trait ArbExecutionState:
     yield ExecutionState(
       sequenceState,
       observer,
+      sequenceType,
       steps,
       runningStepId,
       nsState,
@@ -50,6 +53,7 @@ trait ArbExecutionState:
       (
         SequenceState,
         Option[Observer],
+        SequenceType,
         Option[Step.Id],
         Option[NsRunningState],
         List[(Step.Id, List[(Resource | Instrument, ActionStatus)])],
@@ -59,6 +63,7 @@ trait ArbExecutionState:
     ].contramap: x =>
       (x.sequenceState,
        x.observer,
+       x.sequenceType,
        x.runningStepId,
        x.nsState,
        x.stepResources.view.mapValues(_.toList).toList,

@@ -11,6 +11,7 @@ import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Step
 import monocle.Focus
 import monocle.Lens
@@ -23,6 +24,7 @@ import observe.model.enums.Resource
 case class ExecutionState(
   sequenceState:   SequenceState,
   observer:        Option[Observer],
+  sequenceType:    SequenceType,
   loadedSteps:     List[ObserveStep],
   runningStepId:   Option[Step.Id],
   nsState:         Option[NsRunningState],
@@ -42,6 +44,9 @@ case class ExecutionState(
 
 object ExecutionState:
   val sequenceState: Lens[ExecutionState, SequenceState]                                          = Focus[ExecutionState](_.sequenceState)
+  val observer: Lens[ExecutionState, Option[Observer]]                                            = Focus[ExecutionState](_.observer)
+  val sequenceType: Lens[ExecutionState, SequenceType]                                            = Focus[ExecutionState](_.sequenceType)
+  val loadedSteps: Lens[ExecutionState, List[ObserveStep]]                                        = Focus[ExecutionState](_.loadedSteps)
   val runningStepId: Lens[ExecutionState, Option[Step.Id]]                                        = Focus[ExecutionState](_.runningStepId)
   val nsState: Lens[ExecutionState, Option[NsRunningState]]                                       = Focus[ExecutionState](_.nsState)
   val stepResources: Lens[ExecutionState, Map[Step.Id, Map[Resource | Instrument, ActionStatus]]] =
@@ -49,4 +54,3 @@ object ExecutionState:
   val systemOverrides: Lens[ExecutionState, SystemOverrides]                                      =
     Focus[ExecutionState](_.systemOverrides)
   val breakpoints: Lens[ExecutionState, Set[Step.Id]]                                             = Focus[ExecutionState](_.breakpoints)
-  val observer: Lens[ExecutionState, Option[Observer]]                                            = Focus[ExecutionState](_.observer)
