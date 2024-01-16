@@ -67,8 +67,20 @@ enum ObserveStep(
 
 object ObserveStep:
   // Derivation doesn't generate instances for subtypes.
-  given Eq[Standard]      = summon[Eq[ObserveStep]].contramap(identity)
-  given Eq[NodAndShuffle] = summon[Eq[ObserveStep]].contramap(identity)
+  given Eq[Standard]      = Eq.by: x =>
+    (x.id, x.instConfig, x.stepConfig, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus)
+  given Eq[NodAndShuffle] = Eq.by: x =>
+    (x.id,
+     x.instConfig,
+     x.stepConfig,
+     x.status,
+     x.breakpoint,
+     x.skip,
+     x.fileId,
+     x.configStatus,
+     x.nsStatus,
+     x.pendingObserveCmd
+    )
 
   extension [A](l: Lens[A, Boolean]) {
     def negate: A => A = l.modify(!_)
