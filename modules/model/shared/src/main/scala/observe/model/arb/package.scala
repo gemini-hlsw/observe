@@ -9,7 +9,7 @@ object all
     with ArbM2GuideConfig
     with ArbM1GuideConfig
     with ArbTelescopeGuideConfig
-    with ArbStep
+    with ArbObserveStep
     with ArbStandardStep
     with ArbNodAndShuffleStep
     with ArbStepState

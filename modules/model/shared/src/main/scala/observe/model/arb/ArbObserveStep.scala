@@ -12,20 +12,20 @@ import org.scalacheck.Gen
 import ArbNodAndShuffleStep.given
 import ArbStandardStep.given
 
-trait ArbStep {
-  given steArb: Arbitrary[ObserveStep] = Arbitrary[ObserveStep] {
+trait ArbObserveStep {
+  given Arbitrary[ObserveStep] = Arbitrary[ObserveStep] {
     for {
-      ss <- arbitrary[StandardStep]
-      ns <- arbitrary[NodAndShuffleStep]
+      ss <- arbitrary[ObserveStep.Standard]
+      ns <- arbitrary[ObserveStep.NodAndShuffle]
       s  <- Gen.oneOf(ss, ns)
     } yield s
   }
 
-  given stepCogen: Cogen[ObserveStep] =
-    Cogen[Either[StandardStep, NodAndShuffleStep]].contramap {
-      case a: StandardStep      => Left(a)
-      case a: NodAndShuffleStep => Right(a)
+  given Cogen[ObserveStep] =
+    Cogen[Either[ObserveStep.Standard, ObserveStep.NodAndShuffle]].contramap {
+      case a: ObserveStep.Standard      => Left(a)
+      case a: ObserveStep.NodAndShuffle => Right(a)
     }
 }
 
-object ArbStep extends ArbStep
+object ArbObserveStep extends ArbObserveStep

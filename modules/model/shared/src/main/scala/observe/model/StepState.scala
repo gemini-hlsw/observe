@@ -6,8 +6,9 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
+import io.circe.*
 
-enum StepState derives Eq:
+enum StepState derives Eq, Decoder, Encoder.AsObject:
   case Pending             extends StepState
   case Completed           extends StepState
   case Skipped             extends StepState

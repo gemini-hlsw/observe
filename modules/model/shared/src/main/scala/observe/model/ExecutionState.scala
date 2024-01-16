@@ -12,7 +12,6 @@ import io.circe.Encoder
 import io.circe.refined.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.Enumerated
 import monocle.Focus
 import monocle.Lens
 import observe.model.enums.ActionStatus
@@ -24,6 +23,7 @@ import observe.model.enums.Resource
 case class ExecutionState(
   sequenceState:   SequenceState,
   observer:        Option[Observer],
+  loadedSteps:     List[ObserveStep],
   runningStepId:   Option[Step.Id],
   nsState:         Option[NsRunningState],
   stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]],

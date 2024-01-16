@@ -15,11 +15,10 @@ import lucuma.core.util.arb.ArbEnumerated.*
 import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.*
 import observe.model.GmosParameters.*
-import observe.model.NodAndShuffleStep.PauseGracefully
-import observe.model.NodAndShuffleStep.PendingObserveCmd
-import observe.model.NodAndShuffleStep.StopGracefully
 import observe.model.*
 import observe.model.enums.ActionStatus
+import observe.model.enums.PendingObserveCmd
+import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
@@ -34,7 +33,7 @@ import ArbSystem.given
 
 trait ArbNodAndShuffleStep {
 
-  given nssArb: Arbitrary[NodAndShuffleStatus] = Arbitrary[NodAndShuffleStatus] {
+  given Arbitrary[NodAndShuffleStatus] = Arbitrary[NodAndShuffleStatus] {
     for {
       as <- arbitrary[ActionStatus]
       t  <- arbitrary[TimeSpan]
@@ -44,43 +43,44 @@ trait ArbNodAndShuffleStep {
     } yield NodAndShuffleStatus(as, t, n, c, s)
   }
 
-  given nodAndShuffleStatusCogen: Cogen[NodAndShuffleStatus] =
+  given Cogen[NodAndShuffleStatus] =
     Cogen[(ActionStatus, TimeSpan, TimeSpan, NsCycles, Option[NsRunningState])].contramap { x =>
       (x.observing, x.totalExposureTime, x.nodExposureTime, x.cycles, x.state)
     }
 
-  given nodAndShufflePendingCmdArb: Arbitrary[PendingObserveCmd] =
+  given Arbitrary[PendingObserveCmd] =
     Arbitrary[PendingObserveCmd](
       Gen.oneOf(List(PauseGracefully, StopGracefully))
     )
 
-  given nodShuffleStepArb: Arbitrary[NodAndShuffleStep] = Arbitrary[NodAndShuffleStep] {
-    for {
-      id <- arbitrary[Step.Id]
-      d  <- arbitrary[DynamicConfig]
-      t  <- arbitrary[StepConfig]
-      s  <- arbitrary[StepState]
-      b  <- arbitrary[Breakpoint]
-      k  <- arbitrary[Boolean]
-      f  <- arbitrary[Option[dhs.ImageFileId]]
-      cs <- arbitrary[List[(Resource, ActionStatus)]]
-      os <- arbitrary[NodAndShuffleStatus]
-      oc <- arbitrary[Option[PendingObserveCmd]]
-    } yield new NodAndShuffleStep(
-      id = id,
-      instConfig = d,
-      stepConfig = t,
-      status = s,
-      breakpoint = b,
-      skip = k,
-      fileId = f,
-      configStatus = cs,
-      nsStatus = os,
-      pendingObserveCmd = oc
-    )
-  }
+  given nodShuffleStepArb: Arbitrary[ObserveStep.NodAndShuffle] =
+    Arbitrary[ObserveStep.NodAndShuffle] {
+      for {
+        id <- arbitrary[Step.Id]
+        d  <- arbitrary[DynamicConfig]
+        t  <- arbitrary[StepConfig]
+        s  <- arbitrary[StepState]
+        b  <- arbitrary[Breakpoint]
+        k  <- arbitrary[Boolean]
+        f  <- arbitrary[Option[dhs.ImageFileId]]
+        cs <- arbitrary[List[(Resource, ActionStatus)]]
+        os <- arbitrary[NodAndShuffleStatus]
+        oc <- arbitrary[Option[PendingObserveCmd]]
+      } yield ObserveStep.NodAndShuffle(
+        id = id,
+        instConfig = d,
+        stepConfig = t,
+        status = s,
+        breakpoint = b,
+        skip = k,
+        fileId = f,
+        configStatus = cs,
+        nsStatus = os,
+        pendingObserveCmd = oc
+      )
+    }
 
-  given nodShuffleStepCogen: Cogen[NodAndShuffleStep] =
+  given nodShuffleStepCogen: Cogen[ObserveStep.NodAndShuffle] =
     Cogen[
       (
         Step.Id,

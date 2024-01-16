@@ -13,12 +13,11 @@ import observe.engine.Action
 import observe.engine.Action.ActionState
 import observe.engine.ParallelActions
 import observe.model.ActionType
-import observe.model.NodAndShuffleStep.PendingObserveCmd
 import observe.model.ObserveStep
-import observe.model.StandardStep
 import observe.model.StepState
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
+import observe.model.enums.PendingObserveCmd
 import observe.model.enums.Resource
 import observe.model.given
 import observe.server.gmos.GmosStepsView
@@ -148,7 +147,7 @@ object StepsView {
           altCfgStatus
         }
 
-      StandardStep(
+      ObserveStep.Standard(
         id = step.id,
         instConfig = stepg.instConfig,
         stepConfig = stepg.config,
