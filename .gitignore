@@ -13,10 +13,8 @@
 yarn.lock
 .tags*
 .java-version
-package.json
 !modules/web/package.json
 !modules/web/client/package.json
-package-lock.json
 calibrations/
 .metals/
 .bloop/
@@ -79,7 +77,6 @@ smartgcal
 
 # Node modules
 node_modules/
-package-lock.json
 
 # Project specific
 modules/edu.gemini.observe.web/edu.gemini.observe.web.server/log/
@@ -93,3 +90,7 @@ local.conf.json*
 
 # Deployment files
 modules/web/client/deploy
+
+.vite/
+# TODO Remove when we remove web_old
+modules/web_old/client/package.json

@@ -15,6 +15,8 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
 
 
 concurrency:
@@ -74,3 +76,59 @@ jobs:
 
       - name: Upload code coverage data
         uses: codecov/codecov-action@v3
+
+  deploy:
+    name: Deploy staging app to Heroku
+    if: ((github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && startsWith(github.repository, 'gemini') && github.event.pull_request.merged == true)
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        scala: [3.3.1]
+        java: [temurin@17]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout current branch (fast)
+        uses: actions/checkout@v4
+
+      - name: Setup Java (temurin@17)
+        id: setup-java-temurin-17
+        if: matrix.java == 'temurin@17'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+
+      - name: sbt update
+        if: matrix.java == 'temurin@17' && steps.setup-java-temurin-17.outputs.cache-hit == 'false'
+        run: sbt -v -J-Xmx6g +update
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: modules/web/client/package-lock.json
+
+      - name: Cache node_modules
+        id: cache-node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('modules/web/client/package-lock.json') }}
+          restore-keys: node_modules
+
+      - name: npm clean-install
+        if: steps.cache-node_modules.outputs.cache-hit != 'true'
+        run: |
+          cd modules/web/client
+          npm clean-install --verbose
+
+      - name: Login to Heroku Container
+        run: 'heroku container:login'
+
+      - name: Build and deploy Docker image to Heroku
+        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy_observe_server_staging/docker:publish'
+
+      - name: Release app in Heroku
+        run: 'heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}'

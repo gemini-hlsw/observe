@@ -89,13 +89,13 @@ pull_request_rules:
       add:
       - observe-server-gs-test
       remove: []
-- name: Label observe-server_staging PRs
+- name: Label observe-server-staging PRs
   conditions:
-  - files~=^deploy/observe-server_staging/
+  - files~=^deploy/observe-server-staging/
   actions:
     label:
       add:
-      - observe-server_staging
+      - observe-server-staging
       remove: []
 - name: Label server PRs
   conditions:
