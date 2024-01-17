@@ -27,7 +27,7 @@ object Settings {
     val atto             = "0.9.5"
     val squants          = "1.8.3"
     val unboundId        = "3.2.1"
-    val jwt              = "9.4.5"
+    val jwt              = "9.4.6"
     val slf4j            = "2.0.11"
     val log4cats         = "2.6.0"
     val log4catsLogLevel = "0.3.1"
