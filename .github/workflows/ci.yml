@@ -79,7 +79,7 @@ jobs:
 
   deploy:
     name: Deploy staging app to Heroku
-    if: ((github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && startsWith(github.repository, 'gemini') && github.event.pull_request.merged == true)
+    if: (github.ref == 'refs/heads/main' && startsWith(github.repository, 'gemini'))
     strategy:
       matrix:
         os: [ubuntu-latest]
