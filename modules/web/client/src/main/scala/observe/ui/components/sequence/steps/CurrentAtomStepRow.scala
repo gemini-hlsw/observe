@@ -21,7 +21,7 @@ class CurrentAtomStepRow(
       breakpoint = breakpoint,
       isFinished = step.status.isFinished,
       // TODO This could be an estimate for pending steps, or the time it took for finished steps.
-      // In either case, we don't have the information from the
+      // In either case, we don't have the information from the server.
       stepEstimate = none,
       // TODO Propagate this information through the server
       signalToNoise = none
