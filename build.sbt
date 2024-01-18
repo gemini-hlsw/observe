@@ -95,7 +95,7 @@ ThisBuild / githubWorkflowAddedJobs +=
       Nil,
     scalas = List(scalaVersion.value),
     javas = githubWorkflowJavaVersions.value.toList.take(1),
-    cond = Some(allConds(anyConds(mainCond, prCond), geminiRepoCond, isMergedCond))
+    cond = Some(allConds(mainCond, geminiRepoCond))
   )
 
 ThisBuild / lucumaCssExts += "svg"
