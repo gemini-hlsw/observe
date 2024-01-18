@@ -198,8 +198,6 @@ object ObserveStep:
         .drop(1)
         .exists(_.id === s.id)
 
-    def canSetSkipmark: Boolean = s.status.canSetSkipmark
-
     def hasError: Boolean = s.status.hasError
 
     def isRunning: Boolean = s.status.isRunning

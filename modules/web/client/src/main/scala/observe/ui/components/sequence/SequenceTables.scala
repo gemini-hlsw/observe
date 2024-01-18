@@ -9,6 +9,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
@@ -25,7 +26,9 @@ import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
 import observe.model.ExecutionState
+import observe.model.ObserveStep
 import observe.model.StepProgress
+import observe.model.StepState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
@@ -50,27 +53,38 @@ sealed trait SequenceTables[S, D](
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 
-  // TODO: nextAtom will actually come from the observe server.
-  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
-    SequenceRow.FutureStep.fromAtoms(
-      sequence.nextAtom +: sequence.possibleFuture,
-      _ => none // TODO Pass signal to noise
-    )
+  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[DynamicConfig]] =
+    SequenceRow.FutureStep
+      .fromAtoms(
+        sequence.possibleFuture,
+        _ => none // TODO Pass signal to noise
+      )
+      .map(_.asInstanceOf[SequenceRow.FutureStep[DynamicConfig]]) // ObserveStep loses the type
 
-  protected[sequence] lazy val acquisitionSteps: List[SequenceRow.FutureStep[D]] =
-    config.acquisition.map(steps).orEmpty
+  protected[sequence] lazy val (acquisitionCurrentSteps, scienceCurrentSteps)
+    : (List[ObserveStep], List[ObserveStep]) =
+    executionState.sequenceType match
+      case SequenceType.Acquisition => (executionState.loadedSteps, List.empty)
+      case SequenceType.Science     => (List.empty, executionState.loadedSteps)
 
-  protected[sequence] lazy val scienceSteps: List[SequenceRow.FutureStep[D]] =
-    config.science.map(steps).orEmpty
+  protected[sequence] def currentStepsToRows(
+    currentSteps: List[ObserveStep]
+  ): List[CurrentAtomStepRow] =
+    currentSteps.map: step =>
+      CurrentAtomStepRow(
+        step,
+        breakpoint =
+          if (executionState.breakpoints.contains_(step.id)) Breakpoint.Enabled
+          else Breakpoint.Disabled,
+        isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
+      )
 
-  protected[sequence] lazy val acquisitionNextAtomId: Option[Atom.Id] =
-    config.acquisition.map(_.nextAtom.id)
+  // TODO Stitch past visits
+  protected[sequence] lazy val acquisitionRows: List[SequenceRow[DynamicConfig]] =
+    currentStepsToRows(acquisitionCurrentSteps) ++ config.acquisition.map(steps).orEmpty
 
-  protected[sequence] lazy val scienceNextAtomId: Option[Atom.Id] =
-    config.science.map(_.nextAtom.id)
-
-  protected[sequence] lazy val nextAtomId: Option[Atom.Id] =
-    acquisitionNextAtomId.orElse(scienceNextAtomId)
+  protected[sequence] lazy val scienceRows: List[SequenceRow[DynamicConfig]] =
+    currentStepsToRows(scienceCurrentSteps) ++ config.science.map(steps).orEmpty
 
 case class GmosNorthSequenceTables(
   clientMode:        ClientMode,
@@ -109,7 +123,7 @@ case class GmosSouthSequenceTables(
 private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
   private type Props = SequenceTables[S, D]
 
-  private case class SequenceTableRow(step: SequenceRow.FutureStep[D], index: StepIndex)
+  private case class SequenceTableRow(step: SequenceRow[DynamicConfig], index: StepIndex)
 
   private def ColDef = ColumnDef[SequenceTableRow]
 
@@ -187,6 +201,11 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
     )
   )
 
+  private def flipBreakpoint(breakpoint: Breakpoint): Breakpoint =
+    breakpoint match
+      case Breakpoint.Enabled  => Breakpoint.Disabled
+      case Breakpoint.Disabled => Breakpoint.Enabled
+
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
@@ -208,8 +227,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
          props.executionState,
          props.progress,
          props.isPreview,
-         props.selectedStepId,
-         props.nextAtomId
+         props.selectedStepId
         )
       ): (props, _) =>
         (
@@ -220,16 +238,15 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
           executionState,
           progress,
           isPreview,
-          selectedStepId,
-          nextAtomId
+          selectedStepId
         ) =>
           List(
             column(
               BreakpointColumnId,
               "",
               cell =>
-                val step: SequenceRow.FutureStep[D] = cell.row.original.step
-                val stepId: Option[Step.Id]         = step.id.toOption
+                val step: SequenceRow[DynamicConfig] = cell.row.original.step
+                val stepId: Option[Step.Id]          = step.id.toOption
                 // val canSetBreakpoint =
                 //   clientStatus.canOperate && step.get.canSetBreakpoint(
                 //     execution.map(_.steps).orEmpty
@@ -243,8 +260,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         ^.onClick ==> (_.stopPropagationCB >> props.flipBreakpoint(
                           obsId,
                           sId,
-                          if (executionState.breakpoints.contains(sId)) Breakpoint.Disabled
-                          else Breakpoint.Enabled
+                          flipBreakpoint(step.breakpoint)
                         ))
                       .whenDefined
                   )(
@@ -254,10 +270,10 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                         ObserveStyles.BreakpointIcon |+|
                           // ObserveStyles.FlippableBreakpoint.when_(canSetBreakpoint) |+|
                           ObserveStyles.ActiveBreakpoint.when_(
-                            stepId.exists(executionState.breakpoints.contains)
+                            step.breakpoint === Breakpoint.Enabled
                           )
                       )
-                  ).when(cell.row.index.toInt > 0 && nextAtomId.contains(step.atomId))
+                  ).when(cell.row.index.toInt > 0 && step.stepTime === StepTime.Present)
                 )
             ),
             column(
@@ -313,12 +329,12 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
                 cell => SettingsCell() // TODO
               )
             )
-      .useMemoBy((props, _, _) => (props.acquisitionSteps, props.scienceSteps))( // sequences
+      .useMemoBy((props, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
         (props, _, _) =>
-          (acquisitionSequence, scienceSequence) =>
+          (acquisitionRows, scienceRows) =>
             (
-              acquisitionSequence.zipWithStepIndex.map(SequenceTableRow.apply),
-              scienceSequence.zipWithStepIndex.map(SequenceTableRow.apply)
+              acquisitionRows.zipWithStepIndex.map(SequenceTableRow.apply),
+              scienceRows.zipWithStepIndex.map(SequenceTableRow.apply)
             )
       )
       .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
@@ -361,31 +377,27 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]:
         def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRow]): TagMod =
           val tableRow                   = row.original
           val step                       = tableRow.step
-          // val index                      = row.original.index
           val stepIdOpt: Option[Step.Id] = step.id.toOption
 
           TagMod(
             stepIdOpt
               .map: stepId =>
                 (^.onClick --> props.setSelectedStepId(stepId))
-                  .when(props.nextAtomId.contains(step.atomId))
+                  .when(step.stepTime === StepTime.Present)
                   .unless(props.executionState.isLocked)
               .whenDefined,
             if (tableRow.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
             ObserveStyles.StepRowWithBreakpoint.when_(
               stepIdOpt.exists(props.executionState.breakpoints.contains)
             ),
-            ObserveStyles.StepRowFirstInAtom.when_(step.firstOf.isDefined),
-            ObserveStyles.StepRowPossibleFuture.unless_(props.nextAtomId.contains(step.atomId)),
-            step match
-              // case s if s.hasError                       => ObserveStyles.StepRowError
-              // case s if s.status === StepState.Running   => ObserveStyles.StepRowRunning
-              // case s if s.status === StepState.Paused    => ObserveStyles.StepRowWarning
-              // case s if s.status === StepState.Completed => ObserveStyles.StepRowDone
-              // case s if s.status === StepState.Aborted   => ObserveStyles.RowError
-              // case s if s.isFinished => ObserveStyles.RowDone
-              // case _                 => ObserveStyles.StepRow
-              case _ => Css.Empty
+            ObserveStyles.StepRowFirstInAtom.when_(step.isFirstInAtom),
+            ObserveStyles.StepRowPossibleFuture.when_(step.stepTime === StepTime.Future),
+            step.stepState match
+              case s if s.hasError                      => ObserveStyles.StepRowError
+              case StepState.Paused | StepState.Skipped => ObserveStyles.StepRowWarning
+              case StepState.Completed                  => ObserveStyles.StepRowDone
+              case StepState.Aborted                    => ObserveStyles.StepRowError
+              case _                                    => Css.Empty
           )
 
         def computeHeaderCellMods(

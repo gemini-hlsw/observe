@@ -7,6 +7,7 @@ import cats.syntax.option.*
 import lucuma.core.enums.SmartGcalType
 import lucuma.core.model.sequence.StepConfig
 import lucuma.ui.sequence.SequenceRow
+import observe.model.StepState
 import observe.model.enums.ExecutionStepType
 
 extension [D](row: SequenceRow[D])
@@ -23,3 +24,22 @@ extension [D](row: SequenceRow[D])
       case (Some(StepConfig.SmartGcal(_)), _)                  => none // Unknown SmartGcal type
       case _                                                   => none
       // TODO ExecutionStepType.AlignAndCalib in GPI
+
+  def stepTime: StepTime =
+    if (row.isFinished) StepTime.Past
+    else
+      row match
+        case _: CurrentAtomStepRow => StepTime.Present
+        case _                     => StepTime.Future
+
+  def isFirstInAtom: Boolean =
+    row match
+      case currentStep: CurrentAtomStepRow       => currentStep.isFirstOfAtom
+      case futureStep: SequenceRow.FutureStep[?] => futureStep.firstOf.isDefined
+      case _                                     => false
+
+  def stepState: StepState =
+    row match
+      case currentStep: CurrentAtomStepRow       => currentStep.stepState
+      case futureStep: SequenceRow.FutureStep[?] => StepState.Pending
+      case _                                     => StepState.Completed
