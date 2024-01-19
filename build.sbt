@@ -8,17 +8,95 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 import scala.sys.process._
 import sbt.nio.file.FileTreeView
 
+val herokuAppName = settingKey[String]("Heroku staging app name")
+
+val build = taskKey[File]("Build module for deployment")
+
 name := "observe"
 
 ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
 ThisBuild / dockerBaseImage := "eclipse-temurin:17-jre"
 
-ThisBuild / dockerRepository   := Some("registry.heroku.com/observe-staging/web")
-ThisBuild / dockerUpdateLatest := true
-
 ThisBuild / resolvers := List(Resolver.mavenLocal)
 
+val pushCond          = "github.event_name == 'push'"
+val prCond            = "github.event_name == 'pull_request'"
+val mainCond          = "github.ref == 'refs/heads/main'"
+val notMainCond       = "github.ref != 'refs/heads/main'"
+val geminiRepoCond    = "startsWith(github.repository, 'gemini')"
+val notDependabotCond = "github.actor != 'dependabot[bot]'"
+val isMergedCond      = "github.event.pull_request.merged == true"
+def allConds(conds: String*) = conds.mkString("(", " && ", ")")
+def anyConds(conds: String*) = conds.mkString("(", " || ", ")")
+
+val faNpmAuthToken = "FONTAWESOME_NPM_AUTH_TOKEN" -> "${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}"
+val herokuToken    = "HEROKU_API_KEY"             -> "${{ secrets.HEROKU_API_KEY }}"
+
 ThisBuild / githubWorkflowSbtCommand := "sbt -v -J-Xmx6g"
+ThisBuild / githubWorkflowEnv += faNpmAuthToken
+ThisBuild / githubWorkflowEnv += herokuToken
+
+lazy val setupNodeNpmInstall =
+  List(
+    WorkflowStep.Use(
+      UseRef.Public("actions", "setup-node", "v4"),
+      name = Some("Setup Node.js"),
+      params = Map(
+        "node-version"          -> "20",
+        "cache"                 -> "npm",
+        "cache-dependency-path" -> "modules/web/client/package-lock.json"
+      )
+    ),
+    WorkflowStep.Use(
+      UseRef.Public("actions", "cache", "v3"),
+      name = Some("Cache node_modules"),
+      id = Some("cache-node_modules"),
+      params = {
+        val prefix = "node_modules"
+        val key    = s"$prefix-$${{ hashFiles('modules/web/client/package-lock.json') }}"
+        Map("path" -> "node_modules", "key" -> key, "restore-keys" -> prefix)
+      }
+    ),
+    WorkflowStep.Run(
+      List("cd modules/web/client", "npm clean-install --verbose"),
+      name = Some("npm clean-install"),
+      cond = Some("steps.cache-node_modules.outputs.cache-hit != 'true'")
+    )
+  )
+
+lazy val herokuLogin =
+  WorkflowStep.Run(
+    List("heroku container:login"),
+    name = Some("Login to Heroku Container")
+  )
+
+lazy val sbtDeploy =
+  WorkflowStep.Sbt(
+    List("deploy_observe_server_staging/docker:publish"),
+    name = Some("Build and deploy Docker image to Heroku")
+  )
+
+lazy val herokuRelease =
+  WorkflowStep.Run(
+    List("heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}"),
+    name = Some("Release app in Heroku")
+  )
+
+ThisBuild / githubWorkflowAddedJobs +=
+  WorkflowJob(
+    "deploy",
+    "Deploy staging app to Heroku",
+    WorkflowStep.Checkout ::
+      WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
+      setupNodeNpmInstall :::
+      herokuLogin ::
+      sbtDeploy ::
+      herokuRelease ::
+      Nil,
+    scalas = List(scalaVersion.value),
+    javas = githubWorkflowJavaVersions.value.toList.take(1),
+    cond = Some(allConds(mainCond, geminiRepoCond))
+  )
 
 ThisBuild / lucumaCssExts += "svg"
 
@@ -50,8 +128,6 @@ ThisBuild / evictionErrorLevel := Level.Info
 // ThisBuild / resolvers += "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
 
 enablePlugins(GitBranchPrompt)
-
-val build = taskKey[File]("Build module for deployment")
 
 lazy val esModule = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) },
@@ -352,7 +428,7 @@ lazy val observeLinux = Seq(
  * Project for the observe server app for development
  */
 lazy val deploy_observe_server_staging = project
-  .in(file("deploy/observe-server_staging"))
+  .in(file("deploy/observe-server-staging"))
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
@@ -364,7 +440,15 @@ lazy val deploy_observe_server_staging = project
   .settings(
     description          := "Observe staging server",
     Docker / packageName := "observe-staging",
-    dockerAliases += DockerAlias(Some("registry.heroku.com"), None, "observe-staging/web", None)
+    dockerRepository     := Some(s"registry.heroku.com/${herokuAppName.value}/web"),
+    dockerUpdateLatest   := true,
+    herokuAppName        := sys.env.getOrElse("HEROKU_APP_NAME", "observe-staging"),
+    dockerAliases += DockerAlias(
+      Some("registry.heroku.com"),
+      None,
+      s"${herokuAppName.value}/web",
+      None
+    )
   )
 
 /**
