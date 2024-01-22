@@ -7,6 +7,8 @@ import observe.model.Observation
 import observe.server.keywords.*
 import observe.server.tcs.Tcs
 
+import odb.OdbProxy
+
 /**
  * Describes the parameters for an observation
  */

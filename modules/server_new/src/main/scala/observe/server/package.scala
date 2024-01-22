@@ -14,9 +14,6 @@ import cats.syntax.all.*
 import clue.ErrorPolicy
 import fs2.Stream
 import lucuma.core.enums.Instrument
-import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.Step
-import lucuma.core.util.NewType
 import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import monocle.Focus
@@ -44,12 +41,6 @@ import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import squants.Length
 import squants.space.Angle
-
-object RecordedAtomId extends NewType[Atom.Id]
-type RecordedAtomId = RecordedAtomId.Type
-
-object RecordedStepId extends NewType[Step.Id]
-type RecordedStepId = RecordedStepId.Type
 
 case class Selected[F[_]](
   gmosSouth: Option[SequenceData[F]],

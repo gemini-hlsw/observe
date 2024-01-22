@@ -17,6 +17,8 @@ import observe.model.SystemOverrides
 
 import scala.annotation.unused
 
+import odb.OdbProxy
+
 final class ODBSequencesLoader[F[_]: Async](
   @unused odbProxy:   OdbProxy[F],
   @unused translator: SeqTranslate[F],

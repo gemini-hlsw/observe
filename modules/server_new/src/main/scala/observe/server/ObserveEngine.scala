@@ -417,11 +417,12 @@ object ObserveEngine {
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval[F, EventType[F]](
                         systems.odb
-                          .sequenceStart(id,
-                                         seq.seqGen.instrument,
-                                         seq.seqGen.sequenceType,
-                                         NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
-                                         seq.seqGen.staticCfg
+                          .sequenceStart(
+                            id,
+                            seq.seqGen.instrument,
+                            seq.seqGen.sequenceType,
+                            NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
+                            seq.seqGen.staticCfg
                           )
                           .map { i =>
                             Event.modifyState {
@@ -1331,15 +1332,14 @@ object ObserveEngine {
                 .find(_.id === stepId)
                 .map(s =>
                   systems.odb
-                    .stepStartStep(oid, s.instConfig, s.config, at, ObserveClass.Science) >>= {
-                    sid =>
-                      // TODO Set the current step id in the sequence, unfortunately it doesn't
-                      // do it at the right time and we can't use it on later events
-                      val upd =
-                        EngineState
-                          .selectedGmosNorth[F]
-                          .modify(_.map(_.copy(currentStepId = sid.some)))(i._2)
-                      (i._1, upd).pure[F]
+                    .stepStartStep(oid, s.instConfig, s.config, ObserveClass.Science) >>= { sid =>
+                    // TODO Set the current step id in the sequence, unfortunately it doesn't
+                    // do it at the right time and we can't use it on later events
+                    val upd =
+                      EngineState
+                        .selectedGmosNorth[F]
+                        .modify(_.map(_.copy(currentStepId = sid.some)))(i._2)
+                    (i._1, upd).pure[F]
                   }
                 )
             }
