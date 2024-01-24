@@ -12,7 +12,6 @@ import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
 import eu.timepit.refined.types.numeric.NonNegShort
-import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
@@ -39,7 +38,6 @@ import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
 
-import java.util.UUID
 import scala.annotation.unused
 
 sealed trait OdbEventCommands[F[_]] {
@@ -57,7 +55,7 @@ sealed trait OdbEventCommands[F[_]] {
     sequenceType: SequenceType,
     stepCount:    NonNegShort,
     staticCfg:    StaticConfig
-  ): F[(VisitId, RecordedAtomId)] // TODO Return F[Unit]
+  ): F[Unit]
   def obsContinue(obsId:        Observation.Id): F[Boolean]
   def obsPause(obsId:           Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:            Observation.Id, reason: String): F[Boolean]
@@ -66,7 +64,7 @@ sealed trait OdbEventCommands[F[_]] {
     dynamicConfig: DynamicConfig,
     stepConfig:    StepConfig,
     observeClass:  ObserveClass
-  ): F[RecordedStepId] // TODO No need to return this?
+  ): F[Unit]
   def stepStartConfigure(obsId: Observation.Id): F[Unit]
   def stepEndConfigure(obsId:   Observation.Id): F[Boolean]
   def stepStartObserve(obsId:   Observation.Id): F[Boolean]
@@ -131,9 +129,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort,
       staticCfg:    StaticConfig
-    ): F[(VisitId, RecordedAtomId)] =
-      (Visit.Id(PosLong.unsafeFrom(12345678)), RecordedAtomId(Atom.Id.fromUuid(UUID.randomUUID())))
-        .pure[F]
+    ): F[Unit] =
+      ().pure[F]
 
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
@@ -149,7 +146,7 @@ object OdbProxy {
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
       observeClass:  ObserveClass
-    ): F[RecordedStepId] = RecordedStepId(Step.Id.fromUuid(UUID.randomUUID())).pure[F]
+    ): F[Unit] = ().pure[F]
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
 
@@ -281,7 +278,7 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort,
       staticCfg:    StaticConfig
-    ): F[(VisitId, RecordedAtomId)] =
+    ): F[Unit] =
       for {
         // TODO Check that there are no current visits or atoms??
         _       <- L.debug(s"Record visit for obsId: $obsId")
@@ -294,7 +291,7 @@ object OdbProxy {
         _       <- L.debug(s"Send ODB event sequenceStart for obsId: $obsId, visitId: $visitId")
         _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Start)
         _       <- L.debug(s"ODB event sequenceStart sent for obsId: $obsId")
-      } yield (visitId, atomId)
+      } yield ()
 
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       for {
@@ -325,7 +322,7 @@ object OdbProxy {
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
       observeClass:  ObserveClass
-    ): F[RecordedStepId] =
+    ): F[Unit] =
       for {
         atomId <- getCurrentAtomId(obsId)
         stepId <- recordStep(atomId, dynamicConfig, stepConfig, observeClass)
@@ -334,7 +331,7 @@ object OdbProxy {
         _      <- AddStepEventMutation[F]
                     .execute(stepId = stepId.value, stg = StepStage.StartStep)
         _      <- L.debug(s"ODB event stepStartStep sent with stepId $stepId")
-      } yield stepId
+      } yield ()
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] =
       for {
@@ -473,7 +470,7 @@ object OdbProxy {
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
       observeClass:  ObserveClass
-    ): F[RecordedStepId] = RecordedStepId(Step.Id.fromUuid(UUID.randomUUID())).pure[F]
+    ): F[Unit] = ().pure[F]
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
 
