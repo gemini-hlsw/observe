@@ -51,7 +51,6 @@ trait ObserveActions {
   private def sendDataStart[F[_]: MonadThrow](
     odb:    OdbProxy[F],
     obsId:  Observation.Id,
-    // stepId: RecordedStepId,
     fileId: ImageFileId
   ): F[Unit] =
     odb

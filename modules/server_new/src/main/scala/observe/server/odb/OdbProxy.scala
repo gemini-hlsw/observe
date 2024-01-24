@@ -153,10 +153,7 @@ object OdbProxy {
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
 
-    override def stepEndStep(
-      obsId: Observation.Id
-      // stepId: Step.Id
-    ): F[Boolean] = false.pure[F]
+    override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def stepEndConfigure(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
