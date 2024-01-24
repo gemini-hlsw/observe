@@ -90,7 +90,7 @@ This will give your system access to Heroku's Docker registry.
 To deploy to Heroku, run in `sbt`:
 
 ```
-deploy_observe_server/docker:publish
+deploy_observe_server_staging/docker:publish
 ```
 
 This will build and push the image to Heroku's Docker registry, but it won't publish it yet. To publish it, run from the shell:

@@ -15,7 +15,6 @@ import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.*
 import observe.model.SequenceState
-import observe.model.enums.RunOverride
 import observe.model.operations.Operations.*
 import observe.model.operations.*
 import observe.ui.Icons
@@ -67,7 +66,7 @@ object StepControlButtons:
 
       InputGroup(ObserveStyles.ControlButtonStrip)(
         // ObserveStyles.notInMobile,
-        if (props.isRunning) {
+        TagMod.when(props.isRunning):
           props.operations
             .map[VdomNode]:
               case ResumeObservation =>
@@ -153,16 +152,4 @@ object StepControlButtons:
               //   )("Stop the current exposure at the end of the cycle")
               case _                 => EmptyVdom
             .toTagMod
-        } else
-          Button(
-            clazz = ObserveStyles.PlayButton |+| ObserveStyles.SingleButton,
-            icon = Icons.Play.withFixedWidth(),
-            tooltip = "Run from this step", // TODO Get step index
-            tooltipOptions = DefaultTooltipOptions,
-            disabled = props.requestInFlight,
-            onClickE = _.stopPropagationCB >>
-              sequenceApi
-                .startFrom(props.obsId, props.stepId, runOverride = RunOverride.Override)
-                .runAsync
-          ): VdomNode
       )
