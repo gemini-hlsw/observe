@@ -402,45 +402,42 @@ object ObserveEngine {
     // Produce a Handle that will send a SequenceStart notification to the ODB, and produces the (sequenceId, stepId)
     // if there is a valid sequence with a valid current step.
     private def sequenceStart(
-      id: Observation.Id
+      obsId: Observation.Id
     ): HandlerType[F, Option[(Observation.Id, Step.Id)]] =
       executeEngine.get.flatMap { s =>
         EngineState
-          .atSequence(id)
+          .atSequence(obsId)
           .getOption(s)
           .flatMap { seq =>
-            seq.seq.currentStep.flatMap { step =>
-              seq.visitId match {
-                case Some(_) => none
-                case None    =>
-                  Handle
-                    .fromStream[F, EngineState[F], EventType[F]](
-                      Stream.eval[F, EventType[F]](
-                        systems.odb
-                          .sequenceStart(
-                            id,
-                            seq.seqGen.instrument,
-                            seq.seqGen.sequenceType,
-                            NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
-                            seq.seqGen.staticCfg
-                          )
-                          .map { i =>
-                            Event.modifyState {
-                              executeEngine
-                                .modify {
-                                  EngineState
-                                    .atSequence(id)
-                                    .andThen(SequenceData.visitId)
-                                    .replace(i._1.some)
-                                }
-                                .as[SeqEvent](SeqEvent.SequenceStarted(id, step.id, i._2))
-                            }
-                          }
-                      )
-                    )
-                    .as((id, step.id).some)
-                    .some
-              }
+            seq.seq.currentStep.flatMap { curStep =>
+              Handle
+                .fromStream[F, EngineState[F], EventType[F]](
+                  Stream.eval[F, EventType[F]](
+                    systems.odb
+                      .sequenceStart(
+                        obsId,
+                        seq.seqGen.instrument,
+                        seq.seqGen.sequenceType,
+                        NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
+                        seq.seqGen.staticCfg
+                      ) >>
+                      seq.seqGen.steps
+                        .collectFirst {
+                          case step if step.id === curStep.id =>
+                            systems.odb
+                              .stepStartStep(
+                                obsId,
+                                step.instConfig,
+                                step.config,
+                                ObserveClass.Science // TODO Is this always Science?
+                              )
+                        }
+                        .getOrElse(Applicative[F].unit)
+                        .as(Event.nullEvent)
+                  )
+                )
+                .as((obsId, curStep.id).some)
+                .some
             }
           }
           .getOrElse(executeEngine.pure(none[(Observation.Id, Step.Id)]))
@@ -864,11 +861,8 @@ object ObserveEngine {
 
     override def eventStream: Stream[F, ObserveEvent] =
       Stream.eval(executeEngine.offer(Event.getState(_ => heartbeatStream.some)).as(NullEvent)) ++
-        stream(EngineState.default[F]).flatMap(x => Stream.eval(notifyODB(x).attempt)).flatMap {
-          case Right((ev, qState)) =>
-            toObserveEvent[F](ev, qState)
-          case Left(x)             =>
-            Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
+        stream(EngineState.default[F]).flatMap { (ev, qState) =>
+          toObserveEvent[F](ev, qState)
         }
 
     override def stream(
@@ -1320,43 +1314,16 @@ object ObserveEngine {
         )
       )
 
-    def notifyODB(
-      i: (EventResult[SeqEvent], EngineState[F])
-    ): F[(EventResult[SeqEvent], EngineState[F])] =
-      i match {
-        case (UserCommandResponse(_, Outcome.Ok, Some(SequenceStarted(oid, stepId, at))), st) =>
-          st.sequences
-            .get(oid)
-            .flatMap { seq =>
-              seq.seqGen.steps
-                .find(_.id === stepId)
-                .map(s =>
-                  systems.odb
-                    .stepStartStep(oid, s.instConfig, s.config, ObserveClass.Science) >>= { sid =>
-                    // TODO Set the current step id in the sequence, unfortunately it doesn't
-                    // do it at the right time and we can't use it on later events
-                    val upd =
-                      EngineState
-                        .selectedGmosNorth[F]
-                        .modify(_.map(_.copy(currentStepId = sid.some)))(i._2)
-                    (i._1, upd).pure[F]
-                  }
-                )
-            }
-            .getOrElse(i.pure[F])
-        case (SystemUpdate(Executed(oid), Outcome.Ok), st)                                    =>
-          i.pure[F]
-        case _                                                                                => i.pure[F]
-      }
     private def updateSequenceEndo(
       conditions: Conditions,
       operator:   Option[Operator]
     ): Endo[SequenceData[F]] = (sd: SequenceData[F]) =>
       SequenceData.seq.modify(
         executeEngine.updateSteps(
-          toStepList(sd.seqGen,
-                     sd.overrides,
-                     HeaderExtraData(conditions, operator, sd.observer, sd.visitId)
+          toStepList(
+            sd.seqGen,
+            sd.overrides,
+            HeaderExtraData(conditions, operator, sd.observer)
           )
         )
       )(sd)
@@ -1685,7 +1652,6 @@ object ObserveEngine {
             SequenceUpdated(svs) :: Nil
         )
       case SequenceStart(oid, stepId)         => Stream.emit(ClientSequenceStart(oid, stepId, svs))
-      case SequenceStarted(_, _, _)           => Stream.empty
       case SequencesStart(l)                  =>
         Stream.emits(l.map { case (oid, step) => ClientSequenceStart(oid, step, svs) })
       case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
