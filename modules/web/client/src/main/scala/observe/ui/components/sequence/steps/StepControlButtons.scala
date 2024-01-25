@@ -3,7 +3,6 @@
 
 package observe.ui.components.sequence.steps
 
-import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*

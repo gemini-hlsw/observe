@@ -20,6 +20,7 @@ import observe.model.QueueId
 import observe.model.SubsystemEnabled
 import observe.model.UserPrompt
 import observe.model.enums.*
+import observe.server.odb.RecordedAtomId
 
 sealed trait SeqEvent       extends Product with Serializable
 sealed trait NoUserSeqEvent extends SeqEvent

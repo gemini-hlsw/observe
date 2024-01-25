@@ -100,8 +100,6 @@ ThisBuild / githubWorkflowAddedJobs +=
 
 ThisBuild / lucumaCssExts += "svg"
 
-ThisBuild / tlFatalWarnings := false // TODO: Remove this when we are ready to have linting checks
-
 Global / onChangedBuildSource                   := ReloadOnSourceChanges
 ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
 ThisBuild / scalafixScalaBinaryVersion          := "2.13"

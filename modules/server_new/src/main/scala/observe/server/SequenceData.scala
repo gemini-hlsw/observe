@@ -10,6 +10,7 @@ import observe.engine.Sequence
 import observe.model.Observer
 import observe.model.SystemOverrides
 import observe.model.enums.PendingObserveCmd
+import observe.server.odb.RecordedStepId
 
 case class SequenceData[F[_]](
   observer:      Option[Observer],

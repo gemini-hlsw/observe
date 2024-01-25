@@ -8,6 +8,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.Temporal
+import cats.effect.kernel.Ref
 import cats.syntax.all.*
 import clue.*
 import clue.http4s.Http4sWebSocketBackend
@@ -19,13 +20,14 @@ import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB
 import mouse.boolean.*
 import observe.model.config.*
-import observe.server.OdbProxy.TestOdbProxy
 import observe.server.altair.*
 import observe.server.gcal.*
 import observe.server.gems.*
 import observe.server.gmos.*
 import observe.server.gsaoi.*
 import observe.server.keywords.*
+import observe.server.odb.OdbProxy
+import observe.server.odb.OdbProxy.TestOdbProxy
 import observe.server.tcs.*
 import org.http4s.client.Client
 import org.http4s.jdkhttpclient.JdkWSClient
@@ -84,17 +86,17 @@ object Systems {
           ).some
 
     def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
-      sk <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
-      _  <- sk.connect()
-      _  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
-    } yield {
+      sk                                 <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       given FetchClient[F, ObservationDB] = sk
-      OdbProxy[F](
+      _                                  <- sk.connect()
+      _                                  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
+      odbCommands                        <-
         if (settings.odbNotifications)
-          OdbProxy.OdbCommandsImpl[F](sk)
-        else new OdbProxy.DummyOdbCommands[F]
-      )
-    }
+          Ref
+            .of[F, OdbProxy.ObsRecordedIds](OdbProxy.ObsRecordedIds.Empty)
+            .map(OdbProxy.OdbCommandsImpl[F](sk, _))
+        else new OdbProxy.DummyOdbCommands[F].pure[F]
+    } yield OdbProxy[F](odbCommands)
 
     def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)

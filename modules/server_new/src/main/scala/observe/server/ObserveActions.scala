@@ -10,7 +10,6 @@ import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Scalars.DatasetId
-import lucuma.schemas.ObservationDB.Scalars.VisitId
 import observe.engine.*
 import observe.model.Observation
 import observe.model.dhs.*
@@ -19,6 +18,8 @@ import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
 
 import scala.annotation.unused
+
+import odb.OdbProxy
 
 /**
  * Methods usedd to generate observation related actions
@@ -32,20 +33,16 @@ trait ObserveActions {
    */
   def abortTail[F[_]: MonadThrow](
     odb:         OdbProxy[F],
-    visitId:     Option[VisitId],
     obsId:       Observation.Id,
     imageFileId: ImageFileId
-  ): F[Result] = visitId
-    .map(
-      odb
-        .obsAbort(_, obsId, imageFileId.value)
-        .ensure(
-          ObserveFailure
-            .Unexpected("Unable to send ObservationAborted message to ODB.")
-        )(identity)
-    )
-    .map(_.as(Result.OKAborted(Response.Aborted(imageFileId))))
-    .getOrElse(Result.OKAborted(Response.Aborted(imageFileId)).pure[F])
+  ): F[Result] =
+    odb
+      .obsAbort(obsId, imageFileId.value)
+      .ensure(
+        ObserveFailure.Unexpected("Unable to send ObservationAborted message to ODB.")
+      )(identity)
+      // TODO IS it OK to ignore the Boolean return value?
+      .as(Result.OKAborted(Response.Aborted(imageFileId)))
 
   /**
    * Send the datasetStart command to the odb
@@ -54,11 +51,10 @@ trait ObserveActions {
   private def sendDataStart[F[_]: MonadThrow](
     odb:    OdbProxy[F],
     obsId:  Observation.Id,
-    stepId: RecordedStepId,
     fileId: ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(obsId, stepId, fileId)
+      .datasetStart(obsId, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
       )(identity)
@@ -165,7 +161,7 @@ trait ObserveActions {
       case ObserveCommandResult.Stopped =>
         okTail(fileId, stopped = true, env)
       case ObserveCommandResult.Aborted =>
-        abortTail(env.odb, env.ctx.visitId, env.obsId, fileId)
+        abortTail(env.odb, env.obsId, fileId)
       case ObserveCommandResult.Paused  =>
         val totalTime = env.inst.calcObserveTime
         env.inst.observeControl match {
