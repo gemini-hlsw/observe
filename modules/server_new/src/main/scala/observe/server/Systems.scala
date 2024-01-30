@@ -26,6 +26,7 @@ import observe.server.gems.*
 import observe.server.gmos.*
 import observe.server.gsaoi.*
 import observe.server.keywords.*
+import observe.server.odb.ObsRecordedIds
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.TestOdbProxy
 import observe.server.tcs.*
@@ -93,7 +94,7 @@ object Systems {
       odbCommands                        <-
         if (settings.odbNotifications)
           Ref
-            .of[F, OdbProxy.ObsRecordedIds](OdbProxy.ObsRecordedIds.Empty)
+            .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
             .map(OdbProxy.OdbCommandsImpl[F](sk, _))
         else new OdbProxy.DummyOdbCommands[F].pure[F]
     } yield OdbProxy[F](odbCommands)
