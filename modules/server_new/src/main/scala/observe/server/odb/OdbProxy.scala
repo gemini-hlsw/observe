@@ -174,7 +174,6 @@ object OdbProxy {
       staticCfg:    StaticConfig
     ): F[Unit] =
       for {
-        // TODO Check that there are no current visits or atoms??
         _       <- L.debug(s"Record visit for obsId: $obsId")
         visitId <- recordVisit(obsId, staticCfg)
         -       <- setCurrentVisitId(obsId, visitId.some)
