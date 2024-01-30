@@ -37,6 +37,7 @@ import observe.server.given
 import org.typelevel.log4cats.Logger
 
 import scala.annotation.unused
+import alleycats.std.set
 
 sealed trait OdbEventCommands[F[_]] {
   def sequenceStart(
@@ -278,6 +279,7 @@ object OdbProxy {
         visitId <- getCurrentVisitId(obsId)
         _       <- L.debug(s"Send ODB event observationAbort for obsId: $obsId")
         _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Abort)
+        _       <- setCurrentVisitId(obsId, none)
         _       <- L.debug("ODB event observationAbort sent")
       } yield true
 
@@ -302,6 +304,7 @@ object OdbProxy {
         _       <- L.debug(s"Send ODB event observationStop for obsId: $obsId")
         visitId <- getCurrentVisitId(obsId)
         _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Stop)
+        _       <- setCurrentVisitId(obsId, none)
         _       <- L.debug("ODB event observationStop sent")
       } yield true
 
