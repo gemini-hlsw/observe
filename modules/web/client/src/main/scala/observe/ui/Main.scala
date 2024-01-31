@@ -5,10 +5,10 @@ package observe.ui
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.given
+import japgolly.scalajs.react.*
 import observe.ui.components.MainApp
 import org.scalajs.dom
 import org.scalajs.dom.Element
-import japgolly.scalajs.react.*
 
 import scala.scalajs.js.annotation.JSExport
 import scala.scalajs.js.annotation.JSExportTopLevel
