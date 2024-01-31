@@ -9,6 +9,7 @@ import cats.syntax.all.*
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Dataset
+import observe.model.dhs.ImageFileId
 import observe.server.ObserveFailure
 
 trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
@@ -71,23 +72,27 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
                 s"Existing value [$staleStepId], new attempted value [${stepId.get}]"
           case _                                     => stepId.map(RecordedStep(_))
 
-  protected def getCurrentDatasetId(obsId: Observation.Id): F[Dataset.Id] =
+  protected def getCurrentDatasetId(obsId: Observation.Id, fileId: ImageFileId): F[Dataset.Id] =
     idTracker.get
       .map:
         ObsRecordedIds
           .at(obsId)
           .get(_)
-          .flatMap(RecordedVisit.datasetId.getOption)
+          .flatMap(RecordedVisit.datasetId(fileId).getOption)
           .flatten
           .toRight(ObserveFailure.Unexpected(s"No current recorded dataset for obsId [$obsId]"))
       .rethrow
 
-  protected def setCurrentDatasetId(obsId: Observation.Id, datasetId: Option[Dataset.Id]): F[Unit] =
+  protected def setCurrentDatasetId(
+    obsId:     Observation.Id,
+    fileId:    ImageFileId,
+    datasetId: Option[Dataset.Id]
+  ): F[Unit] =
     idTracker.update:
       ObsRecordedIds
         .at(obsId)
         .some
-        .andThen(RecordedVisit.datasetId)
+        .andThen(RecordedVisit.datasetId(fileId))
         .modify:
           case Some(staleDatasetId) if datasetId.isDefined =>
             throw ObserveFailure.Unexpected:

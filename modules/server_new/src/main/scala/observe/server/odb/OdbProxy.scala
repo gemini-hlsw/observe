@@ -36,9 +36,6 @@ import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
 
-import scala.annotation.unused
-import alleycats.std.set
-
 sealed trait OdbEventCommands[F[_]] {
   def sequenceStart(
     obsId:        Observation.Id,
@@ -57,7 +54,7 @@ sealed trait OdbEventCommands[F[_]] {
   def stepEndConfigure(obsId:   Observation.Id): F[Boolean]
   def stepStartObserve(obsId:   Observation.Id): F[Boolean]
   def datasetStart(obsId:       Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetComplete(obsId:    Observation.Id): F[Boolean]
+  def datasetComplete(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
   def stepEndObserve(obsId:     Observation.Id): F[Boolean]
   def stepEndStep(obsId:        Observation.Id): F[Boolean]
   def sequenceEnd(obsId:        Observation.Id): F[Boolean]
@@ -127,7 +124,7 @@ object OdbProxy {
     override def datasetStart(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       true.pure[F]
 
-    override def datasetComplete(obsId: Observation.Id): F[Boolean] =
+    override def datasetComplete(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       true.pure[F]
 
     override def stepEndObserve(obsId: Observation.Id): F[Boolean] =
@@ -161,8 +158,8 @@ object OdbProxy {
       with IdTrackerOps[F](idTracker) {
     given FetchClient[F, ObservationDB] = client
 
-    private val fitsFileExtension                                   = ".fits"
-    @unused private def normalizeFilename(fileName: String): String = if (
+    private val fitsFileExtension                           = ".fits"
+    private def normalizeFilename(fileName: String): String = if (
       fileName.endsWith(fitsFileExtension)
     ) fileName
     else fileName + fitsFileExtension
@@ -234,20 +231,20 @@ object OdbProxy {
             s"Send ODB event datasetStart for obsId: $obsId, stepId: $stepId with fileId: $fileId"
           )
         datasetId <- recordDataset(stepId, fileId)
-        _         <- setCurrentDatasetId(obsId, datasetId.some)
+        _         <- setCurrentDatasetId(obsId, fileId, datasetId.some)
         _         <- L.debug(s"Recorded dataset id $datasetId")
         _         <- AddDatasetEventMutation[F]
                        .execute(datasetId = datasetId, stg = DatasetStage.StartObserve)
         _         <- L.debug("ODB event datasetStart sent")
       } yield true
 
-    override def datasetComplete(obsId: Observation.Id): F[Boolean] =
+    override def datasetComplete(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       for {
-        datasetId <- getCurrentDatasetId(obsId)
+        datasetId <- getCurrentDatasetId(obsId, fileId)
         _         <- L.debug(s"Send ODB event datasetComplete for obsId: $obsId datasetId: $datasetId")
         _         <- AddDatasetEventMutation[F]
                        .execute(datasetId = datasetId, stg = DatasetStage.EndObserve)
-        _         <- setCurrentDatasetId(obsId, none)
+        _         <- setCurrentDatasetId(obsId, fileId, none)
         _         <- L.debug("ODB event datasetComplete sent")
       } yield true
 

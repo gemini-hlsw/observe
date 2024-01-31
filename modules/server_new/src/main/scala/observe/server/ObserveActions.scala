@@ -63,11 +63,12 @@ trait ObserveActions {
    * Send the datasetEnd command to the odb
    */
   private def sendDataEnd[F[_]: MonadThrow](
-    odb:   OdbProxy[F],
-    obsId: Observation.Id
+    odb:    OdbProxy[F],
+    obsId:  Observation.Id,
+    fileId: ImageFileId
   ): F[Unit] =
     odb
-      .datasetComplete(obsId)
+      .datasetComplete(obsId, fileId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
       )(identity)
@@ -140,7 +141,7 @@ trait ObserveActions {
       _ <- notifyObserveEnd(env)
       _ <- env.headers(env.ctx).reverseIterator.toList.traverse(_.sendAfter(fileId))
       _ <- closeImage(fileId, env)
-      _ <- sendDataEnd(env.odb, env.obsId)
+      _ <- sendDataEnd(env.odb, env.obsId, fileId)
     } yield
       if (stopped) Result.OKStopped(Response.Observed(fileId))
       else Result.OK(Response.Observed(fileId))
