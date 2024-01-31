@@ -4,7 +4,8 @@
 package observe.ui
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits._
+import cats.effect.unsafe.implicits.given
+import japgolly.scalajs.react.*
 import observe.ui.components.MainApp
 import org.scalajs.dom
 import org.scalajs.dom.Element
@@ -26,4 +27,10 @@ object Main:
       elem
 
   private def run: IO[Unit] =
-    setupDOM.map(MainApp().renderIntoDOM(_)).void
+    setupDOM
+      .map:
+        ReactDOMClient
+          .createRoot(_)
+          .render:
+            MainApp()
+      .void
