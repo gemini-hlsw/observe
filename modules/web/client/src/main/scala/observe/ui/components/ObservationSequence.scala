@@ -11,7 +11,6 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
-import lucuma.react.common.given
 import observe.model.ExecutionState
 import observe.model.StepProgress
 import observe.ui.components.sequence.GmosNorthSequenceTables
