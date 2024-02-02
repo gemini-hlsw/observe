@@ -13,7 +13,6 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.ReactFnProps
-import lucuma.react.common.given
 import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs

@@ -13,7 +13,6 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
-import lucuma.react.common.given
 import lucuma.react.primereact.*
 import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.all.*
