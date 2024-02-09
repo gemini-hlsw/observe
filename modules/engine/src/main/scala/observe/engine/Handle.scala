@@ -27,6 +27,10 @@ object Handle {
 
   def liftF[F[_]: Monad, D, V, A](f: F[A]): Handle[F, D, V, A] = StateT.liftF[F, D, A](f).toHandle
 
+  def pure[F[_]: Monad, D, V, A](a: A): Handle[F, D, V, A] = Handle[F, D, V, A](
+    Applicative[StateT[F, D, *]].pure((a, None))
+  )
+
   given [F[_]: Monad, D, V]: Monad[Handle[F, D, V, *]] =
     new Monad[Handle[F, D, V, *]] {
       private def concatOpP(

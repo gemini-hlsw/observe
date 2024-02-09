@@ -15,3 +15,4 @@ object ActionType:
   case object Observe                              extends ActionType
   case object Undefined                            extends ActionType // Used in tests
   case class Configure(sys: Resource | Instrument) extends ActionType
+  case object OdbEvent                             extends ActionType

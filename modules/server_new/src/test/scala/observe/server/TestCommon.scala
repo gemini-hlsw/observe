@@ -156,6 +156,9 @@ object TestCommon {
   def pendingAction[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     engine.fromF[F](ActionType.Configure(resource), configure(resource))
 
+  def odbAction[F[_]: Applicative]: Action[F] =
+    engine.fromF(ActionType.OdbEvent, Result.OK(Response.Ignored).pure[F])
+
   def running[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
       .state[F]
@@ -346,8 +349,14 @@ object TestCommon {
         resources = Set(Instrument.GmosNorth, Resource.TCS),
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
           configs = Map(),
-          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,
@@ -428,8 +437,14 @@ object TestCommon {
           resources = Set(Instrument.GmosNorth, Resource.TCS),
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs = Map(),
-            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           dynamicCfg1,
@@ -501,8 +516,14 @@ object TestCommon {
         resources = resources,
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
           configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          post = (_, _) => Nil
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => Nil,
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,
@@ -515,8 +536,14 @@ object TestCommon {
         resources = resources,
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
           configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          post = (_, _) => Nil
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => Nil,
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,

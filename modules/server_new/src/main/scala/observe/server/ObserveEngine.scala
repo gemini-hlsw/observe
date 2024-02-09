@@ -36,6 +36,7 @@ import mouse.all.*
 import observe.engine
 import observe.engine.EventResult.*
 import observe.engine.Handle
+import observe.engine.Handle.given
 import observe.engine.Result.Partial
 import observe.engine.SystemEvent
 import observe.engine.SystemEvent.Executed
@@ -409,35 +410,80 @@ object ObserveEngine {
           .atSequence(obsId)
           .getOption(s)
           .flatMap { seq =>
-            seq.seq.currentStep.flatMap { curStep =>
+            val startVisit: HandlerType[F, SeqEvent] = if (!seq.visitStartDone) {
               Handle
                 .fromStream[F, EngineState[F], EventType[F]](
                   Stream.eval[F, EventType[F]](
                     systems.odb
-                      .sequenceStart(
+                      .visitStart(obsId, seq.seqGen.staticCfg)
+                      .as(
+                        Event.modifyState(
+                          executeEngine
+                            .modify {
+                              EngineState.atSequence[F](obsId).modify(_.completeVisitStart)
+                            }
+                            .as(SeqEvent.NullSeqEvent)
+                        )
+                      )
+                  )
+                )
+                .as(SeqEvent.NullSeqEvent)
+            } else
+              Handle.pure(SeqEvent.NullSeqEvent)
+
+            val startAtom: HandlerType[F, SeqEvent] = if (!seq.atomStartDone) {
+              Handle
+                .fromStream[F, EngineState[F], EventType[F]](
+                  Stream.eval[F, EventType[F]](
+                    systems.odb
+                      .atomStart(
                         obsId,
                         seq.seqGen.instrument,
                         seq.seqGen.sequenceType,
-                        NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort),
-                        seq.seqGen.staticCfg
-                      ) >>
-                      seq.seqGen.steps
-                        .collectFirst {
-                          case step if step.id === curStep.id =>
-                            systems.odb
-                              .stepStartStep(
-                                obsId,
-                                step.instConfig,
-                                step.config,
-                                ObserveClass.Science // TODO Is this always Science?
-                              )
-                        }
-                        .getOrElse(Applicative[F].unit)
-                        .as(Event.nullEvent)
+                        NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort)
+                      )
+                      .as(
+                        Event.modifyState(
+                          executeEngine
+                            .modify {
+                              EngineState
+                                .atSequence(obsId)
+                                .modify(_.completeAtomStart)
+                            }
+                            .as(SeqEvent.NullSeqEvent)
+                        )
+                      )
                   )
                 )
-                .as((obsId, curStep.id).some)
-                .some
+                .as(SeqEvent.NullSeqEvent)
+            } else
+              Handle.pure(SeqEvent.NullSeqEvent)
+
+            seq.seq.currentStep.map { curStep =>
+              (
+                startVisit *>
+                  startAtom *>
+                  Handle
+                    .fromStream[F, EngineState[F], EventType[F]](
+                      Stream.eval[F, EventType[F]](
+                        systems.odb
+                          .sequenceStart(obsId) >>
+                          seq.seqGen.steps
+                            .collectFirst {
+                              case step if step.id === curStep.id =>
+                                systems.odb
+                                  .stepStartStep(
+                                    obsId,
+                                    step.instConfig,
+                                    step.config,
+                                    ObserveClass.Science // TODO Is this always Science?
+                                  )
+                            }
+                            .getOrElse(Applicative[F].unit)
+                            .as(Event.nullEvent)
+                      )
+                    )
+              ).as((obsId, curStep.id).some)
             }
           }
           .getOrElse(executeEngine.pure(none[(Observation.Id, Step.Id)]))

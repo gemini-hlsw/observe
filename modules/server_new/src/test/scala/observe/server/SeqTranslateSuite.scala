@@ -14,10 +14,14 @@ import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
 import observe.common.test.*
 import observe.engine.Action
+import observe.engine.EngineStep
+import observe.engine.Execution
 import observe.engine.Response
+import observe.engine.Response.Ignored
 import observe.engine.Response.Observed
 import observe.engine.Result
 import observe.engine.Sequence
+import observe.engine.Sequence.State
 import observe.model.ActionType
 import observe.model.Conditions
 import observe.model.SequenceState
@@ -26,6 +30,7 @@ import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
 
 import java.time.temporal.ChronoUnit
+import scala.annotation.tailrec
 
 class SeqTranslateSuite extends TestCommon {
 
@@ -46,8 +51,15 @@ class SeqTranslateSuite extends TestCommon {
         Monoid.empty[DataId],
         Set(Instrument.GmosNorth),
         _ => InstrumentSystem.Uncontrollable,
-        SequenceGen.StepActionsGen(Map.empty,
-                                   (_, _) => List(observeActions(Action.ActionState.Idle))
+        SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
+          Map.empty,
+          odbAction[IO],
+          odbAction[IO],
+          (_, _) => List(observeActions(Action.ActionState.Idle)),
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,
@@ -57,9 +69,73 @@ class SeqTranslateSuite extends TestCommon {
     )
   )
 
-  private val baseState: EngineState[IO] =
+  // Function to advance the execution of a step up to certain Execution
+  @tailrec
+  private def advanceStepUntil[F[_]](
+    st:   EngineStep.Zipper[F],
+    cond: EngineStep.Zipper[F] => Boolean
+  ): EngineStep.Zipper[F] =
+    if (cond(st)) st
+    else
+      st match {
+        case EngineStep.Zipper(_, _, _, p :: ps, f, d, _) =>
+          advanceStepUntil(
+            st.copy(
+              pending = ps,
+              focus = Execution(p.toList),
+              done = NonEmptyList
+                .fromList(
+                  f.execution.map(a =>
+                    a.kind match {
+                      case ActionType.Observe        =>
+                        a.copy(state =
+                          Action.State(
+                            Action.ActionState.Completed(Response.Observed(ImageFileId(fileId))),
+                            List.empty
+                          )
+                        )
+                      case ActionType.Undefined      =>
+                        a.copy(state =
+                          Action.State(Action.ActionState.Completed(Response.Ignored), List.empty)
+                        )
+                      case ActionType.Configure(sys) =>
+                        a.copy(state =
+                          Action.State(Action.ActionState.Completed(Response.Configured(sys)),
+                                       List.empty
+                          )
+                        )
+                      case ActionType.OdbEvent       =>
+                        a.copy(state =
+                          Action.State(Action.ActionState.Completed(Response.Ignored), List.empty)
+                        )
+                    }
+                  )
+                )
+                .map(d.appended)
+                .getOrElse(d)
+            ),
+            cond
+          )
+        case _                                            => st
+      }
+
+  val baseState: EngineState[IO] =
     (ODBSequencesLoader
       .loadSequenceEndo[IO](None, seqg, EngineState.instrumentLoaded(Instrument.GmosNorth)) >>>
+      EngineState
+        .sequenceStateIndex[IO](seqObsId1)
+        .modify {
+          case State.Zipper(zipper, status, singleRuns) =>
+            State.Zipper(zipper.copy(focus =
+                           advanceStepUntil(zipper.focus,
+                                            _.focus.execution.exists(_.kind === ActionType.Observe)
+                           )
+                         ),
+                         status,
+                         singleRuns
+            )
+          case s @ State.Final(_, _)                    => s
+        } >>>
       EngineState
         .sequenceStateIndex[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])

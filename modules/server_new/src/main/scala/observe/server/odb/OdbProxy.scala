@@ -37,12 +37,18 @@ import observe.server.given
 import org.typelevel.log4cats.Logger
 
 sealed trait OdbEventCommands[F[_]] {
+  def visitStart(
+    obsId:     Observation.Id,
+    staticCfg: StaticConfig
+  ): F[Unit]
   def sequenceStart(
+    obsId: Observation.Id
+  ): F[Unit]
+  def atomStart(
     obsId:        Observation.Id,
     instrument:   Instrument,
     sequenceType: SequenceType,
-    stepCount:    NonNegShort,
-    staticCfg:    StaticConfig
+    stepCount:    NonNegShort
   ): F[Unit]
   def stepStartStep(
     obsId:         Observation.Id,
@@ -50,18 +56,22 @@ sealed trait OdbEventCommands[F[_]] {
     stepConfig:    StepConfig,
     observeClass:  ObserveClass
   ): F[Unit]
-  def stepStartConfigure(obsId: Observation.Id): F[Unit]
-  def stepEndConfigure(obsId:   Observation.Id): F[Boolean]
-  def stepStartObserve(obsId:   Observation.Id): F[Boolean]
-  def datasetStart(obsId:       Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetComplete(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
-  def stepEndObserve(obsId:     Observation.Id): F[Boolean]
-  def stepEndStep(obsId:        Observation.Id): F[Boolean]
-  def sequenceEnd(obsId:        Observation.Id): F[Boolean]
-  def obsAbort(obsId:           Observation.Id, reason: String): F[Boolean]
-  def obsContinue(obsId:        Observation.Id): F[Boolean]
-  def obsPause(obsId:           Observation.Id, reason: String): F[Boolean]
-  def obsStop(obsId:            Observation.Id, reason: String): F[Boolean]
+  def stepStartConfigure(obsId:   Observation.Id): F[Unit]
+  def stepEndConfigure(obsId:     Observation.Id): F[Boolean]
+  def stepStartObserve(obsId:     Observation.Id): F[Boolean]
+  def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetEndExposure(obsId:   Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetStartReadout(obsId:  Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetEndReadout(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetStartWrite(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetEndWrite(obsId:      Observation.Id, fileId: ImageFileId): F[Boolean]
+  def stepEndObserve(obsId:       Observation.Id): F[Boolean]
+  def stepEndStep(obsId:          Observation.Id): F[Boolean]
+  def sequenceEnd(obsId:          Observation.Id): F[Boolean]
+  def obsAbort(obsId:             Observation.Id, reason: String): F[Boolean]
+  def obsContinue(obsId:          Observation.Id): F[Boolean]
+  def obsPause(obsId:             Observation.Id, reason: String): F[Boolean]
+  def obsStop(obsId:              Observation.Id, reason: String): F[Boolean]
 
 }
 
@@ -98,11 +108,7 @@ object OdbProxy {
 
   class DummyOdbCommands[F[_]: Applicative] extends OdbEventCommands[F] {
     override def sequenceStart(
-      obsId:        Observation.Id,
-      instrument:   Instrument,
-      sequenceType: SequenceType,
-      stepCount:    NonNegShort,
-      staticCfg:    StaticConfig
+      obsId: Observation.Id
     ): F[Unit] =
       ().pure[F]
 
@@ -121,10 +127,10 @@ object OdbProxy {
     override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
 
-    override def datasetStart(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+    override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       true.pure[F]
 
-    override def datasetComplete(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+    override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       true.pure[F]
 
     override def stepEndObserve(obsId: Observation.Id): F[Boolean] =
@@ -146,6 +152,28 @@ object OdbProxy {
 
     override def obsStop(obsId: Observation.Id, reason: String): F[Boolean] =
       false.pure[F]
+
+    override def datasetStartReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      false.pure[F]
+
+    override def datasetEndReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      false.pure[F]
+
+    override def datasetStartWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      false.pure[F]
+
+    override def datasetEndWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      false.pure[F]
+
+    override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
+      Applicative[F].unit
+
+    override def atomStart(
+      obsId:        Observation.Id,
+      instrument:   Instrument,
+      sequenceType: SequenceType,
+      stepCount:    NonNegShort
+    ): F[Unit] = Applicative[F].unit
   }
 
   case class OdbCommandsImpl[F[_]](
@@ -164,25 +192,36 @@ object OdbProxy {
     ) fileName
     else fileName + fitsFileExtension
 
-    override def sequenceStart(
+    override def visitStart(
+      obsId:     Observation.Id,
+      staticCfg: StaticConfig
+    ): F[Unit] = for {
+      _   <- L.debug(s"Record visit for obsId: $obsId")
+      vId <- recordVisit(obsId, staticCfg)
+      -   <- setCurrentVisitId(obsId, vId.some)
+    } yield ()
+
+    override def atomStart(
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort,
-      staticCfg:    StaticConfig
-    ): F[Unit] =
-      for {
-        _       <- L.debug(s"Record visit for obsId: $obsId")
-        visitId <- recordVisit(obsId, staticCfg)
-        -       <- setCurrentVisitId(obsId, visitId.some)
-        _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
-        atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument)
-        -       <- setCurrentAtomId(obsId, atomId)
-        _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
-        _       <- L.debug(s"Send ODB event sequenceStart for obsId: $obsId, visitId: $visitId")
-        _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Start)
-        _       <- L.debug(s"ODB event sequenceStart sent for obsId: $obsId")
-      } yield ()
+      stepCount:    NonNegShort
+    ): F[Unit] = for {
+      visitId <- getCurrentVisitId(obsId)
+      _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
+      atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument)
+      -       <- setCurrentAtomId(obsId, atomId)
+      _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
+    } yield ()
+
+    override def sequenceStart(
+      obsId: Observation.Id
+    ): F[Unit] = for {
+      visitId <- getCurrentVisitId(obsId)
+      _       <- L.debug(s"Send ODB event sequenceStart for obsId: $obsId, visitId: $visitId")
+      _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Start)
+      _       <- L.debug(s"ODB event sequenceStart sent for obsId: $obsId")
+    } yield ()
 
     override def stepStartStep(
       obsId:         Observation.Id,
@@ -223,29 +262,65 @@ object OdbProxy {
         _      <- L.debug("ODB event stepStartObserve sent")
       } yield true
 
-    override def datasetStart(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+    override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       for {
         stepId    <- getCurrentStepId(obsId)
         _         <-
           L.debug(
-            s"Send ODB event datasetStart for obsId: $obsId, stepId: $stepId with fileId: $fileId"
+            s"Send ODB event datasetStartExposure for obsId: $obsId, stepId: $stepId with fileId: $fileId"
           )
         datasetId <- recordDataset(stepId, fileId)
         _         <- setCurrentDatasetId(obsId, fileId, datasetId.some)
         _         <- L.debug(s"Recorded dataset id $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.StartObserve)
-        _         <- L.debug("ODB event datasetStart sent")
+                       .execute(datasetId = datasetId, stg = DatasetStage.StartExpose)
+        _         <- L.debug("ODB event datasetStartExposure sent")
       } yield true
 
-    override def datasetComplete(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+    override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       for {
         datasetId <- getCurrentDatasetId(obsId, fileId)
-        _         <- L.debug(s"Send ODB event datasetComplete for obsId: $obsId datasetId: $datasetId")
+        _         <- L.debug(s"Send ODB event datasetEndExposure for obsId: $obsId datasetId: $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.EndObserve)
+                       .execute(datasetId = datasetId, stg = DatasetStage.EndExpose)
+        _         <- L.debug("ODB event datasetEndExposure sent")
+      } yield true
+
+    override def datasetStartReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      for {
+        datasetId <- getCurrentDatasetId(obsId, fileId)
+        _         <- L.debug(s"Send ODB event datasetStartReadout for obsId: $obsId datasetId: $datasetId")
+        _         <- AddDatasetEventMutation[F]
+                       .execute(datasetId = datasetId, stg = DatasetStage.StartReadout)
+        _         <- L.debug("ODB event datasetStartReadout sent")
+      } yield true
+
+    override def datasetEndReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      for {
+        datasetId <- getCurrentDatasetId(obsId, fileId)
+        _         <- L.debug(s"Send ODB event datasetEndReadout for obsId: $obsId datasetId: $datasetId")
+        _         <- AddDatasetEventMutation[F]
+                       .execute(datasetId = datasetId, stg = DatasetStage.EndReadout)
+        _         <- L.debug("ODB event datasetEndReadout sent")
+      } yield true
+
+    override def datasetStartWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      for {
+        datasetId <- getCurrentDatasetId(obsId, fileId)
+        _         <- L.debug(s"Send ODB event datasetStartWrite for obsId: $obsId datasetId: $datasetId")
+        _         <- AddDatasetEventMutation[F]
+                       .execute(datasetId = datasetId, stg = DatasetStage.StartWrite)
+        _         <- L.debug("ODB event datasetStartWrite sent")
+      } yield true
+
+    override def datasetEndWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+      for {
+        datasetId <- getCurrentDatasetId(obsId, fileId)
+        _         <- L.debug(s"Send ODB event datasetEndWrite for obsId: $obsId datasetId: $datasetId")
+        _         <- AddDatasetEventMutation[F]
+                       .execute(datasetId = datasetId, stg = DatasetStage.EndWrite)
         _         <- setCurrentDatasetId(obsId, fileId, none)
-        _         <- L.debug("ODB event datasetComplete sent")
+        _         <- L.debug("ODB event datasetEndWrite sent")
       } yield true
 
     override def stepEndObserve(obsId: Observation.Id): F[Boolean] =
@@ -376,6 +451,7 @@ object OdbProxy {
       RecordDatasetMutation[F]
         .execute(stepId.value, normalizeFilename(fileId.value))
         .map(_.recordDataset.dataset.id)
+
   }
 
   class TestOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
@@ -387,8 +463,12 @@ object OdbProxy {
     override def queuedSequences: F[List[Observation.Id]] = List.empty[Observation.Id].pure[F]
 
     export evCmds.{
-      datasetComplete,
-      datasetStart,
+      datasetEndExposure,
+      datasetEndReadout,
+      datasetEndWrite,
+      datasetStartExposure,
+      datasetStartReadout,
+      datasetStartWrite,
       obsAbort,
       obsContinue,
       obsPause,
@@ -402,7 +482,7 @@ object OdbProxy {
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
       observeClass:  ObserveClass
-    ): F[Unit] = ().pure[F]
+    ): F[Unit] = Applicative[F].unit
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
 
@@ -413,6 +493,16 @@ object OdbProxy {
     override def stepEndObserve(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
+      Applicative[F].unit
+
+    override def atomStart(
+      obsId:        Observation.Id,
+      instrument:   Instrument,
+      sequenceType: SequenceType,
+      stepCount:    NonNegShort
+    ): F[Unit] = Applicative[F].unit
   }
 
 }

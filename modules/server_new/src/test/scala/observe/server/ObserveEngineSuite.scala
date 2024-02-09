@@ -498,9 +498,15 @@ class ObserveEngineSuite extends TestCommon {
           resources = resources,
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs =
               resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            post = (_, _) => Nil
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           step.instrumentConfig,
@@ -841,9 +847,15 @@ class ObserveEngineSuite extends TestCommon {
           resources = resources,
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs =
               resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            post = (_, _) => Nil
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           step.instrumentConfig,
