@@ -19,7 +19,6 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -467,20 +466,8 @@ object ObserveEngine {
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval[F, EventType[F]](
                         systems.odb
-                          .sequenceStart(obsId) >>
-                          seq.seqGen.steps
-                            .collectFirst {
-                              case step if step.id === curStep.id =>
-                                systems.odb
-                                  .stepStartStep(
-                                    obsId,
-                                    step.instConfig,
-                                    step.config,
-                                    ObserveClass.Science // TODO Is this always Science?
-                                  )
-                            }
-                            .getOrElse(Applicative[F].unit)
-                            .as(Event.nullEvent)
+                          .sequenceStart(obsId)
+                          .as(Event.nullEvent)
                       )
                     )
               ).as((obsId, curStep.id).some)

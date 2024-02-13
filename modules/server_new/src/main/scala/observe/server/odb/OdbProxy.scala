@@ -75,7 +75,7 @@ sealed trait OdbEventCommands[F[_]] {
 
 }
 
-sealed trait OdbProxy[F[_]] extends OdbEventCommands[F] {
+trait OdbProxy[F[_]] extends OdbEventCommands[F] {
   def read(oid: Observation.Id): F[ObsQuery.Data.Observation]
   def queuedSequences: F[List[Observation.Id]]
 }
@@ -454,7 +454,7 @@ object OdbProxy {
 
   }
 
-  class TestOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
+  class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
     val evCmds = new DummyOdbCommands[F]
 
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
