@@ -50,7 +50,7 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore      = "0.92.0"
-    val lucumaUI        = "0.89.1"
+    val lucumaUI        = "0.90.0"
     val lucumaSchemas   = "0.72.0"
     val lucumaSSO       = "0.6.11"
     val lucumaODBSchema = "0.10.0"
@@ -61,7 +61,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.37.2"
     val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.48.1"
+    val lucumaReact  = "0.48.2"
     val scalaDom     = "2.3.0"
     val scalajsReact = "2.2.0-beta2"
   }
