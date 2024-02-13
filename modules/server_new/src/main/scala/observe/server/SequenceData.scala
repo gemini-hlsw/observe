@@ -19,8 +19,8 @@ case class SequenceData[F[_]](
   visitStartDone: Boolean,
   atomStartDone:  Boolean
 ) {
-  def completeVisitStart: SequenceData[F] = this.copy(visitStartDone = true)
-  def completeAtomStart: SequenceData[F]  = this.copy(atomStartDone = true)
+  def withCompleteVisitStart: SequenceData[F] = this.copy(visitStartDone = true)
+  def withCompleteAtomStart: SequenceData[F]  = this.copy(atomStartDone = true)
 }
 
 object SequenceData {

@@ -419,7 +419,7 @@ object ObserveEngine {
                         Event.modifyState(
                           executeEngine
                             .modify {
-                              EngineState.atSequence[F](obsId).modify(_.completeVisitStart)
+                              EngineState.atSequence[F](obsId).modify(_.withCompleteVisitStart)
                             }
                             .as(SeqEvent.NullSeqEvent)
                         )
@@ -447,7 +447,7 @@ object ObserveEngine {
                             .modify {
                               EngineState
                                 .atSequence(obsId)
-                                .modify(_.completeAtomStart)
+                                .modify(_.withCompleteAtomStart)
                             }
                             .as(SeqEvent.NullSeqEvent)
                         )
