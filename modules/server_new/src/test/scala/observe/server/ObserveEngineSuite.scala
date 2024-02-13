@@ -6,8 +6,10 @@ package observe.server
 import cats.Monoid
 import cats.data.NonEmptyList
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
+import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
@@ -51,6 +53,8 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.odb.TestOdbProxy
+import observe.server.odb.TestOdbProxy.StepStartStep
 import observe.server.tcs.DummyTargetKeywordsReader
 import observe.server.tcs.DummyTcsKeywordsReader
 import observe.server.tcs.TargetKeywordsReader
@@ -498,9 +502,15 @@ class ObserveEngineSuite extends TestCommon {
           resources = resources,
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs =
               resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            post = (_, _) => Nil
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           step.instrumentConfig,
@@ -841,9 +851,15 @@ class ObserveEngineSuite extends TestCommon {
           resources = resources,
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs =
               resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            post = (_, _) => Nil
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           step.instrumentConfig,
@@ -972,6 +988,104 @@ class ObserveEngineSuite extends TestCommon {
           .flatMap(_.currentStep)
           .exists(_.id === stepId(1))
       )
+    }
+  }
+
+  test("ObserveEngine start should run the sequence and produce the ODB events") {
+    val stepCount = 2
+
+    def isDatasetStartExposure(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetStartExposure(obsId, _) => obsId === seqObsId1
+      case _                                           => false
+    }
+
+    def isDatasetEndExposure(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetEndExposure(obsId, _) => obsId === seqObsId1
+      case _                                         => false
+    }
+
+    def isDatasetStartReadout(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetStartReadout(obsId, _) => obsId === seqObsId1
+      case _                                          => false
+    }
+
+    def isDatasetEndReadout(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetEndReadout(obsId, _) => obsId === seqObsId1
+      case _                                        => false
+    }
+
+    def isDatasetStartWrite(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetStartWrite(obsId, _) => obsId === seqObsId1
+      case _                                        => false
+    }
+
+    def isDatasetEndWrite(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
+      case TestOdbProxy.DatasetEndWrite(obsId, _) => obsId === seqObsId1
+      case _                                      => false
+    }
+
+    def assertStep(l: List[TestOdbProxy.OdbEvent]): List[TestOdbProxy.OdbEvent] = {
+      val chk = List(
+        (ev: TestOdbProxy.OdbEvent) =>
+          assertEquals(
+            ev,
+            TestOdbProxy.StepStartStep(seqObsId1, dynamicCfg1, stepCfg1, ObserveClass.Science)
+          ),
+        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
+        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
+        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartObserve(seqObsId1)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartExposure(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndExposure(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartReadout(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndReadout(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartWrite(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndWrite(ev)),
+        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndObserve(seqObsId1)),
+        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndStep(seqObsId1))
+      )
+
+      assert(l.length >= chk.length)
+      chk.zip(l).foreach { case (f, x) => f(x) }
+      l.drop(chk.length)
+    }
+
+    val firstEvents = List(
+      TestOdbProxy.VisitStart(seqObsId1, staticCfg1),
+      TestOdbProxy.AtomStart(seqObsId1,
+                             Instrument.GmosNorth,
+                             SequenceType.Acquisition,
+                             NonNegShort.unsafeFrom(stepCount.toShort)
+      ),
+      TestOdbProxy.SequenceStart(seqObsId1)
+    )
+
+    for {
+      rf            <- Ref.of[IO, List[TestOdbProxy.OdbEvent]](List.empty)
+      systems       <- defaultSystems.map(_.copy(odb = TestOdbProxy.build[IO](rf)))
+      seqo          <- generateSequence(odbObservation(seqObsId1, stepCount), systems)
+      seq           <- seqo.map(_.pure[IO]).getOrElse(IO.delay(fail("Unable to create sequence")))
+      s0             = ODBSequencesLoader
+                         .loadSequenceEndo[IO](
+                           None,
+                           seq,
+                           EngineState.instrumentLoaded(Instrument.GmosNorth)
+                         )
+                         .apply(EngineState.default[IO])
+      observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
+      _             <- observeEngine
+                         .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
+                         observeEngine
+                           .stream(s0)
+                           .drop(1)
+                           .takeThrough(_._2.sequences.get(seqObsId1).exists(x => !isFinished(x.seq.status)))
+                           .compile
+                           .last
+      res           <- rf.get
+    } yield {
+      assertEquals(res.take(firstEvents.length), firstEvents)
+      (1 until stepCount).foldLeft(assertStep(res.drop(firstEvents.length))) { case (b, _) =>
+        assertStep(b)
+      }
     }
   }
 

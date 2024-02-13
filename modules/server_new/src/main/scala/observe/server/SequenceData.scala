@@ -11,14 +11,36 @@ import observe.model.SystemOverrides
 import observe.model.enums.PendingObserveCmd
 
 case class SequenceData[F[_]](
-  observer:      Option[Observer],
-  overrides:     SystemOverrides,
-  seqGen:        SequenceGen[F],
-  seq:           Sequence.State[F],
-  pendingObsCmd: Option[PendingObserveCmd]
-)
+  observer:       Option[Observer],
+  overrides:      SystemOverrides,
+  seqGen:         SequenceGen[F],
+  seq:            Sequence.State[F],
+  pendingObsCmd:  Option[PendingObserveCmd],
+  visitStartDone: Boolean,
+  atomStartDone:  Boolean
+) {
+  def withCompleteVisitStart: SequenceData[F] = this.copy(visitStartDone = true)
+  def withCompleteAtomStart: SequenceData[F]  = this.copy(atomStartDone = true)
+}
 
 object SequenceData {
+
+  def apply[F[_]](
+    observer:      Option[Observer],
+    overrides:     SystemOverrides,
+    seqGen:        SequenceGen[F],
+    seq:           Sequence.State[F],
+    pendingObsCmd: Option[PendingObserveCmd]
+  ): SequenceData[F[_]] = SequenceData(
+    observer,
+    overrides,
+    seqGen,
+    seq,
+    pendingObsCmd,
+    false,
+    false
+  )
+
   def pendingObsCmd[F[_]]: Lens[SequenceData[F], Option[PendingObserveCmd]] =
     Focus[SequenceData[F]](_.pendingObsCmd)
 

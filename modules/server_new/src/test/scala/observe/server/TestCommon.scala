@@ -6,7 +6,9 @@ package observe.server
 import cats.Applicative
 import cats.Monoid
 import cats.data.NonEmptyList
+import cats.effect.Async
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
@@ -64,7 +66,9 @@ import observe.engine.Result.PartialVal
 import observe.engine.Result.PauseContext
 import observe.model.ActionType
 import observe.model.ClientId
+import observe.model.Conditions
 import observe.model.Observation
+import observe.model.SequenceState
 import observe.model.SystemOverrides
 import observe.model.config.*
 import observe.model.dhs.*
@@ -106,6 +110,13 @@ trait TestCommon extends munit.CatsEffectSuite {
       .compile
       .last)
       .map(_.map(_._2))
+
+  def isFinished(status: SequenceState): Boolean = status match {
+    case SequenceState.Idle      => true
+    case SequenceState.Completed => true
+    case SequenceState.Failed(_) => true
+    case _                       => false
+  }
 
 }
 
@@ -155,6 +166,9 @@ object TestCommon {
 
   def pendingAction[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     engine.fromF[F](ActionType.Configure(resource), configure(resource))
+
+  def odbAction[F[_]: Applicative]: Action[F] =
+    engine.fromF(ActionType.OdbEvent, Result.OK(Response.Ignored).pure[F])
 
   def running[F[_]: Applicative](resource: Resource | Instrument): Action[F] =
     Action
@@ -288,76 +302,7 @@ object TestCommon {
     GuideState.Enabled
   )
 
-  def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
-    ODBObservation(
-      id = id,
-      title = "",
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
-      ODBObservation.Program(
-        Program.Id(PosLong.unsafeFrom(123)),
-        None
-      ),
-      TargetEnvironment(None),
-      ConstraintSet(
-        ImageQuality.PointOne,
-        CloudExtinction.PointOne,
-        SkyBackground.Dark,
-        WaterVapor.Median,
-        ElevationRange.AirMass.Default
-      ),
-      List.empty,
-      Execution(
-        GmosNorth(
-          ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-            staticCfg1,
-            ExecutionSequence[DynamicConfig.GmosNorth](
-              Atom[DynamicConfig.GmosNorth](
-                atomId1,
-                None,
-                NonEmptyList(
-                  Step[DynamicConfig.GmosNorth](
-                    stepId(1),
-                    dynamicCfg1,
-                    stepCfg1,
-                    StepEstimate.Zero,
-                    ObserveClass.Science,
-                    Breakpoint.Disabled
-                  ),
-                  List.empty
-                )
-              ),
-              List.empty,
-              false
-            ).some,
-            None
-          )
-        ).some
-      )
-    ),
-    instrument = Instrument.GmosNorth,
-    SequenceType.Science,
-    staticCfg1,
-    atomId1,
-    steps = List(
-      SequenceGen.PendingStepGen(
-        id = stepId(1),
-        Monoid.empty[DataId],
-        resources = Set(Instrument.GmosNorth, Resource.TCS),
-        _ => InstrumentSystem.Uncontrollable,
-        generator = SequenceGen.StepActionsGen(
-          configs = Map(),
-          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
-        ),
-        StepStatusGen.Null,
-        dynamicCfg1,
-        stepCfg1,
-        breakpoint = Breakpoint.Disabled
-      )
-    )
-  )
-
-  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
+  def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =
     ODBObservation(
       id = id,
       title = "",
@@ -394,7 +339,7 @@ object TestCommon {
                     Breakpoint.Disabled
                   ),
                   List
-                    .range(2, n)
+                    .range(2, stepCount + 1)
                     .map(i =>
                       Step[DynamicConfig.GmosNorth](
                         stepId(i),
@@ -414,13 +359,46 @@ object TestCommon {
           )
         ).some
       )
-    ),
+    )
+
+  def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
+    odbObservation(id, 1),
+    instrument = Instrument.GmosNorth,
+    SequenceType.Science,
+    staticCfg1,
+    atomId1,
+    steps = List(
+      SequenceGen.PendingStepGen(
+        id = stepId(1),
+        Monoid.empty[DataId],
+        resources = Set(Instrument.GmosNorth, Resource.TCS),
+        _ => InstrumentSystem.Uncontrollable,
+        generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
+          configs = Map(),
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+          odbAction[IO],
+          odbAction[IO]
+        ),
+        StepStatusGen.Null,
+        dynamicCfg1,
+        stepCfg1,
+        breakpoint = Breakpoint.Disabled
+      )
+    )
+  )
+
+  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
+    odbObservation(id, n),
     instrument = Instrument.GmosNorth,
     SequenceType.Science,
     staticCfg1,
     atomId1,
     steps = List
-      .range(1, n)
+      .range(1, n + 1)
       .map(i =>
         SequenceGen.PendingStepGen(
           id = stepId(i),
@@ -428,8 +406,14 @@ object TestCommon {
           resources = Set(Instrument.GmosNorth, Resource.TCS),
           _ => InstrumentSystem.Uncontrollable,
           generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
             configs = Map(),
-            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth)))
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+            odbAction[IO],
+            odbAction[IO]
           ),
           StepStatusGen.Null,
           dynamicCfg1,
@@ -438,6 +422,15 @@ object TestCommon {
         )
       )
   )
+
+  def generateSequence[F[_]: Async: Logger](
+    obs:     ODBObservation,
+    systems: Systems[F]
+  ): F[Option[SequenceGen[F]]] = for {
+    c  <- Ref.of[F, Conditions](Conditions.Default)
+    st <- SeqTranslate(Site.GS, systems, c)
+    sg <- st.sequence(obs)
+  } yield sg._2
 
   def sequenceWithResources(
     id:        Observation.Id,
@@ -501,8 +494,14 @@ object TestCommon {
         resources = resources,
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
           configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          post = (_, _) => Nil
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => Nil,
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,
@@ -515,8 +514,14 @@ object TestCommon {
         resources = resources,
         _ => InstrumentSystem.Uncontrollable,
         generator = SequenceGen.StepActionsGen(
+          odbAction[IO],
+          odbAction[IO],
           configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          post = (_, _) => Nil
+          odbAction[IO],
+          odbAction[IO],
+          post = (_, _) => Nil,
+          odbAction[IO],
+          odbAction[IO]
         ),
         StepStatusGen.Null,
         dynamicCfg1,

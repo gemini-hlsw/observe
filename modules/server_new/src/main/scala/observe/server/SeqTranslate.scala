@@ -149,7 +149,34 @@ object SeqTranslate {
           dataId,
           otherSysf.keys.toSet + insSpec.instrument,
           (ov: SystemOverrides) => instf(ov).observeControl,
-          StepActionsGen(configs, rest),
+          StepActionsGen(
+            systemss.odb
+              .stepStartStep(obsCfg.id, step.instrumentConfig, step.stepConfig, step.observeClass)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent),
+            systemss.odb
+              .stepStartConfigure(obsCfg.id)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent),
+            configs,
+            systemss.odb
+              .stepEndConfigure(obsCfg.id)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent),
+            systemss.odb
+              .stepStartObserve(obsCfg.id)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent),
+            rest,
+            systemss.odb
+              .stepEndObserve(obsCfg.id)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent),
+            systemss.odb
+              .stepEndStep(obsCfg.id)
+              .as(Response.Ignored)
+              .toAction(ActionType.OdbEvent)
+          ),
           instConfig = step.instrumentConfig,
           config = step.stepConfig,
           breakpoint = step.breakpoint

@@ -93,22 +93,41 @@ object SequenceGen {
   }
 
   case class StepActionsGen[F[_]](
-    configs: Map[Resource | Instrument, SystemOverrides => Action[F]],
-    post:    (HeaderExtraData, SystemOverrides) => List[ParallelActions[F]]
+    preStep:     Action[F],
+    preConfig:   Action[F],
+    configs:     Map[Resource | Instrument, SystemOverrides => Action[F]],
+    postConfig:  Action[F],
+    preObserve:  Action[F],
+    post:        (HeaderExtraData, SystemOverrides) => List[ParallelActions[F]],
+    postObserve: Action[F],
+    postStep:    Action[F]
   ) {
     def generate(ctx: HeaderExtraData, overrides: SystemOverrides): List[ParallelActions[F]] =
-      NonEmptyList.fromList(configs.values.toList.map(_(overrides))).toList ++
-        post(ctx, overrides)
+      List(
+        NonEmptyList.one(preStep),
+        NonEmptyList.one(preConfig)
+      ) ++
+        NonEmptyList.fromList(configs.values.toList.map(_(overrides))).toList ++
+        List(
+          NonEmptyList.one(postConfig),
+          NonEmptyList.one(preObserve)
+        ) ++
+        post(ctx, overrides) ++
+        List(
+          NonEmptyList.one(postObserve),
+          NonEmptyList.one(postStep)
+        )
 
+    val ConfigsExecutionIndex: Int                                                         = 2
     def configActionCoord(r: Resource | Instrument): Option[(ExecutionIndex, ActionIndex)] = {
       val i = configs.keys.toIndexedSeq.indexOf(r)
       (i >= 0)
         .option(i)
-        .map(i => (ExecutionIndex(0), ActionIndex(i.toLong)))
+        .map(i => (ExecutionIndex(ConfigsExecutionIndex), ActionIndex(i.toLong)))
     }
 
     def resourceAtCoords(ex: ExecutionIndex, ac: ActionIndex): Option[Resource | Instrument] =
-      if (ex.value === 0) configs.keys.toList.get(ac.value)
+      if (ex.value === ConfigsExecutionIndex) configs.keys.toList.get(ac.value)
       else None
 
   }

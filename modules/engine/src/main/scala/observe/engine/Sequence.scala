@@ -65,11 +65,12 @@ object Sequence {
             case Nil             => None
             case stepp :: stepps =>
               (EngineStep.Zipper.currentify(stepp), focus.uncurrentify).mapN((curr, stepd) =>
-                Zipper(id,
-                       atomId,
-                       stepps,
-                       curr,
-                       (done :+ stepd) ::: toSkip.map(_.copy(skipped = EngineStep.Skipped(true)))
+                Zipper(
+                  id,
+                  atomId,
+                  stepps,
+                  curr,
+                  (done :+ stepd) ::: toSkip.map(_.copy(skipped = EngineStep.Skipped(true)))
                 )
               )
           }
@@ -86,11 +87,12 @@ object Sequence {
           case Nil             => None
           case stepp :: stepps =>
             (EngineStep.Zipper.currentify(stepp), focus.skip.some).mapN((curr, stepd) =>
-              Zipper(id,
-                     atomId,
-                     stepps,
-                     curr,
-                     (done :+ stepd) ::: toSkip.map(_.copy(skipped = EngineStep.Skipped(true)))
+              Zipper(
+                id,
+                atomId,
+                stepps,
+                curr,
+                (done :+ stepd) ::: toSkip.map(_.copy(skipped = EngineStep.Skipped(true)))
               )
             )
         }

@@ -53,9 +53,9 @@ trait ObserveActions {
     fileId: ImageFileId
   ): F[Unit] =
     odb
-      .datasetStart(obsId, fileId)
+      .datasetStartExposure(obsId, fileId)
       .ensure(
-        ObserveFailure.Unexpected("Unable to send DataStart message to ODB.")
+        ObserveFailure.Unexpected("Unable to send datasetStartExposure message to ODB.")
       )(identity)
       .void
 
@@ -67,12 +67,33 @@ trait ObserveActions {
     obsId:  Observation.Id,
     fileId: ImageFileId
   ): F[Unit] =
+    // TODO: link dataset events to instrument statuses
     odb
-      .datasetComplete(obsId, fileId)
+      .datasetEndExposure(obsId, fileId)
       .ensure(
-        ObserveFailure.Unexpected("Unable to send DataEnd message to ODB.")
-      )(identity)
-      .void
+        ObserveFailure.Unexpected("Unable to send datasetEndExposure message to ODB.")
+      )(identity) >>
+      odb
+        .datasetStartReadout(obsId, fileId)
+        .ensure(
+          ObserveFailure.Unexpected("Unable to send datasetStartReadout message to ODB.")
+        )(identity) >>
+      odb
+        .datasetEndReadout(obsId, fileId)
+        .ensure(
+          ObserveFailure.Unexpected("Unable to send datasetEndReadout message to ODB.")
+        )(identity) >>
+      odb
+        .datasetStartWrite(obsId, fileId)
+        .ensure(
+          ObserveFailure.Unexpected("Unable to send datasetStartWrite message to ODB.")
+        )(identity) >>
+      odb
+        .datasetEndWrite(obsId, fileId)
+        .ensure(
+          ObserveFailure.Unexpected("Unable to send datasetEndWrite message to ODB.")
+        )(identity)
+        .void
 
   /**
    * Standard progress stream for an observation
@@ -113,8 +134,7 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      // FIXME We need access to the stepId
-      // _ <- sendDataStart(env.odb, env.obsId, RecordedStepId(null), fileId)
+      _ <- sendDataStart(env.odb, env.obsId, fileId)
       _ <- notifyObserveStart(env)
       _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
       _ <-

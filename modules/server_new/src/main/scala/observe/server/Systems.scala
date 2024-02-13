@@ -28,7 +28,7 @@ import observe.server.gsaoi.*
 import observe.server.keywords.*
 import observe.server.odb.ObsRecordedIds
 import observe.server.odb.OdbProxy
-import observe.server.odb.OdbProxy.TestOdbProxy
+import observe.server.odb.OdbProxy.DummyOdbProxy
 import observe.server.tcs.*
 import org.http4s.client.Client
 import org.http4s.jdkhttpclient.JdkWSClient
@@ -442,7 +442,7 @@ object Systems {
       .newDb[F]
       .map(guideDb =>
         new Systems(
-          new TestOdbProxy[F],
+          new DummyOdbProxy[F],
           DhsClientProvider.dummy[F],
           TcsSouthControllerSim[F],
           TcsNorthControllerSim[F],
