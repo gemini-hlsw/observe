@@ -5,6 +5,7 @@ package observe.server.keywords
 
 import cats.FlatMap
 import cats.data.EitherT
+import cats.effect.Clock
 import cats.effect.Ref
 import cats.effect.Sync
 import cats.effect.Temporal
@@ -30,7 +31,10 @@ import org.http4s.client.middleware.RetryPolicy
 import org.http4s.dsl.io.*
 import org.typelevel.log4cats.Logger
 
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import scala.concurrent.duration.*
 
@@ -227,6 +231,7 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
   override def createImage(p: ImageParameters): F[ImageFileId] =
     counter.modify(x => (x + 1, x + 1)).map { c =>
       ImageFileId(f"S${date.format(format)}S$c%04d")
+
     }
 
   override def setKeywords(id: ImageFileId, keywords: KeywordBag, finalFlag: Boolean): F[Unit] = {
@@ -238,9 +243,15 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
 
 object DhsClientSim {
   def apply[F[_]: Sync: Logger]: F[DhsClient[F]] =
-    (Sync[F].delay(LocalDate.now), Ref.of[F, Int](0)).mapN(new DhsClientSim[F](_, _))
+    Clock[F].monotonic
+      .map(d => Instant.EPOCH.plusNanos(d.toNanos))
+      .map(LocalDateTime.ofInstant(_, ZoneId.systemDefault))
+      .flatMap(apply)
 
-  def apply[F[_]: Sync: Logger](date: LocalDate): F[DhsClient[F]] =
-    Ref.of[F, Int](0).map(new DhsClientSim[F](date, _))
+  def apply[F[_]: Sync: Logger](dateTime: LocalDateTime): F[DhsClient[F]] =
+    Ref // Initialize with ordinal of 10-second lapse in the day, between 0 and 8640
+      .of[F, Int](dateTime.getHour() * 360 + dateTime.getMinute() * 6 + dateTime.getSecond() / 10)
+      .map: counter =>
+        new DhsClientSim[F](dateTime.toLocalDate, counter)
 
 }

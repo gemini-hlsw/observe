@@ -273,7 +273,7 @@ object OdbProxy {
         _         <- setCurrentDatasetId(obsId, fileId, datasetId.some)
         _         <- L.debug(s"Recorded dataset id $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.StartExpose)
+                       .execute(datasetId = datasetId, stg = DatasetStage.StartObserve)
         _         <- L.debug("ODB event datasetStartExposure sent")
       } yield true
 
@@ -282,7 +282,7 @@ object OdbProxy {
         datasetId <- getCurrentDatasetId(obsId, fileId)
         _         <- L.debug(s"Send ODB event datasetEndExposure for obsId: $obsId datasetId: $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.EndExpose)
+                       .execute(datasetId = datasetId, stg = DatasetStage.EndObserve)
         _         <- L.debug("ODB event datasetEndExposure sent")
       } yield true
 

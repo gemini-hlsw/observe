@@ -27,12 +27,15 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
     idTracker.update:
       ObsRecordedIds
         .at(obsId)
-        .modify:
-          case Some(staleVisitId) if visitId.isDefined =>
-            throw ObserveFailure.Unexpected:
-              s"Attempted to set visitId for [$obsId] when it was already set. " +
-                s"Existing value [$staleVisitId], new attempted value [${visitId.get}]"
-          case _                                       => visitId.map(RecordedVisit(_))
+        .replace:
+          visitId.map(RecordedVisit(_))
+    // For the moment, we don't check if there's an existing visit, since there's no "visitEnd".
+    //     .modify:
+    //       case Some(staleVisitId) if visitId.isDefined =>
+    //         throw ObserveFailure.Unexpected:
+    //           s"Attempted to set visitId for [$obsId] when it was already set. " +
+    //             s"Existing value [$staleVisitId], new attempted value [${visitId.get}]"
+    //       case _                                       => visitId.map(RecordedVisit(_))
 
   // AtomId is never set to None, there's no "end atom" event in the engine.
   protected def getCurrentAtomId(obsId: Observation.Id): F[RecordedAtomId] =
