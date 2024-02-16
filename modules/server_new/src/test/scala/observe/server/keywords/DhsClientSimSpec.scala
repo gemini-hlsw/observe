@@ -9,13 +9,13 @@ import observe.server.keywords.DhsClient.Permanent
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 class DhsClientSimSpec extends munit.CatsEffectSuite {
   private given Logger[IO] = NoOpLogger.impl[IO]
 
   test("produce data labels for today") {
-    (DhsClientSim[IO](LocalDate.of(2016, 4, 15))
+    (DhsClientSim[IO](LocalDateTime.of(2016, 4, 15, 0, 0, 0))
       .flatMap(_.createImage(DhsClient.ImageParameters(Permanent, Nil)))
       .map(_.value)
       .unsafeRunSync(): String) match {
