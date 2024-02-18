@@ -425,8 +425,8 @@ lazy val observeLinux = Seq(
 /**
  * Project for the observe server app for development
  */
-lazy val deploy_observe_server_staging = project
-  .in(file("deploy/observe-server-staging"))
+lazy val deploy = project
+  .in(file("deploy"))
   .enablePlugins(NoPublishPlugin)
   .enablePlugins(DockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
@@ -439,90 +439,32 @@ lazy val deploy_observe_server_staging = project
     description          := "Observe staging server",
     Docker / packageName := "observe-staging",
     dockerRepository     := Some(s"registry.heroku.com/${herokuAppName.value}/web"),
-    dockerUpdateLatest   := true,
+    // dockerUpdateLatest   := true,
     herokuAppName        := sys.env.getOrElse("HEROKU_APP_NAME", "observe-staging"),
-    dockerAliases += DockerAlias(
-      Some("registry.heroku.com"),
-      None,
-      s"${herokuAppName.value}/web",
-      None
+    dockerAliases ++= List(
+      DockerAlias(
+        Some("registry.heroku.com"),
+        None,
+        s"${herokuAppName.value}/web",
+        None
+      ),
+      DockerAlias(
+        Some("registry.heroku.com"),
+        None,
+        s"${herokuAppName.value}/web",
+        Some(version.value)
+      ),
+      DockerAlias(
+        None,
+        Some("noirlab"),
+        "gpp-obs",
+        None
+      ),
+      DockerAlias(
+        None,
+        Some("noirlab"),
+        "gpp-obs",
+        Some(version.value)
+      )
     )
   )
-
-/**
- * Project for the observe test server at GS on Linux 64
- */
-lazy val deploy_observe_server_gs_test =
-  project
-    .in(file("deploy/observe-server-gs-test"))
-    .enablePlugins(NoPublishPlugin)
-    .enablePlugins(DockerPlugin)
-    .enablePlugins(JavaServerAppPackaging)
-    .enablePlugins(GitBranchPrompt)
-    .settings(observeCommonSettings: _*)
-    .settings(observeLinux: _*)
-    .settings(
-      description          := "Observe GS test deployment",
-      Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
-      Docker / packageName := "observe-gs-test"
-    )
-    .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
-    .dependsOn(observe_server)
-
-/**
- * Project for the observe test server at GN on Linux 64
- */
-lazy val deploy_observe_server_gn_test =
-  project
-    .in(file("deploy/observe-server-gn-test"))
-    .enablePlugins(NoPublishPlugin)
-    .enablePlugins(DockerPlugin)
-    .enablePlugins(JavaServerAppPackaging)
-    .enablePlugins(GitBranchPrompt)
-    .settings(observeCommonSettings: _*)
-    .settings(observeLinux: _*)
-    .settings(
-      description          := "Observe GN test deployment",
-      Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
-      Docker / packageName := "observe-gn-test"
-    )
-    .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
-    .dependsOn(observe_server)
-
-/**
- * Project for the observe server app for production on Linux 64
- */
-lazy val deploy_observe_server_gs = project
-  .in(file("deploy/observe-server-gs"))
-  .enablePlugins(NoPublishPlugin)
-  .enablePlugins(DockerPlugin)
-  .enablePlugins(JavaServerAppPackaging)
-  .enablePlugins(GitBranchPrompt)
-  .settings(observeCommonSettings: _*)
-  .settings(observeLinux: _*)
-  .settings(
-    description          := "Observe Gemini South server production",
-    Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
-    Docker / packageName := "observe-gs"
-  )
-  .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
-  .dependsOn(observe_server)
-
-/**
- * Project for the GN observe server app for production on Linux 64
- */
-lazy val deploy_observe_server_gn = project
-  .in(file("deploy/observe-server-gn"))
-  .enablePlugins(NoPublishPlugin)
-  .enablePlugins(DockerPlugin)
-  .enablePlugins(JavaServerAppPackaging)
-  .enablePlugins(GitBranchPrompt)
-  .settings(observeCommonSettings: _*)
-  .settings(observeLinux: _*)
-  .settings(
-    description          := "Observe Gemini North server production",
-    Universal / mappings := (deploy_observe_server_staging / Universal / mappings).value,
-    Docker / packageName := "observe-gn"
-  )
-  .settings(releaseAppMappings: _*) // Must come after deploy_observe_server mappings
-  .dependsOn(observe_server)
