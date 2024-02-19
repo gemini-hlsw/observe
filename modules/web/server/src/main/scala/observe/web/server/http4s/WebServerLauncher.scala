@@ -46,7 +46,6 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 
 import java.io.FileInputStream
-import java.nio.file.{Path => JavaPath}
 import java.nio.file.{Files => JavaFiles}
 import java.security.KeyStore
 import java.security.Security
