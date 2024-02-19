@@ -46,7 +46,7 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 
 import java.io.FileInputStream
-import java.nio.file.{Path => FilePath}
+import java.nio.file.{Files => JavaFiles}
 import java.security.KeyStore
 import java.security.Security
 import javax.net.ssl.KeyManagerFactory
@@ -56,18 +56,21 @@ import scala.concurrent.duration.*
 
 object WebServerLauncher extends IOApp with LogInitialization {
 
-  // Attempt to get the configuration file relative to the base dir
-  private def configurationFile[F[_]: Sync]: F[FilePath] =
-    baseDir[F].map(_.resolve("conf").resolve("app.conf"))
-
-  // Try to load config from the file and fall back to the common one in the class path
-  private def config[F[_]: Sync]: F[ConfigObjectSource] = {
-    val defaultConfig = ConfigSource.resources("app.conf").pure[F]
-    val fileConfig    = configurationFile.map(ConfigSource.file)
-
-    // ConfigSource, first attempt the file or default to the classpath file
-    (fileConfig, defaultConfig).mapN(_.optional.withFallback(_))
-  }
+  // Try to load configs for deployment and staging and fall back to the common one in the class path
+  private def config[F[_]: Sync: Logger]: F[ConfigObjectSource] =
+    for
+      confDir <- baseDir[F].map(_.resolve("conf"))
+      deploy   = confDir.resolve("local").resolve("app.conf")
+      staging  = confDir.resolve("app.conf")
+      _       <- Logger[F].info("Loading configuration:")
+      _       <- Logger[F].info(s" - $deploy (present: ${JavaFiles.exists(deploy)}), with fallback:")
+      _       <- Logger[F].info(s" - $staging (present: ${JavaFiles.exists(staging)}), with fallback:")
+      _       <- Logger[F].info(s" - <resources>/app.conf")
+    yield ConfigSource
+      .file(deploy)
+      .optional
+      .withFallback:
+        ConfigSource.file(staging).optional.withFallback(ConfigSource.resources("app.conf"))
 
   private def makeContext[F[_]: Sync](tls: TLSConfig): F[SSLContext] = Sync[F].delay {
     val ksStream   = new FileInputStream(tls.keyStore.toFile.getAbsolutePath)

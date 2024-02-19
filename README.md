@@ -76,9 +76,15 @@ Deployment is done via Docker images.
 
 ## Staging
 
-Make sure you have both `docker` and `heroku` CLIs installed and working.
+When a PR is merged into `main`, CI builds a docker image and deploys it to Heroku automatically.
 
-If you haven't already, run
+If, for some reason, you want to deploy to staging manually, do the following:
+
+### Manually deploying to Staging
+
+- Make sure you have both `docker` and `heroku` CLIs installed and working.
+
+- If you haven't already, run:
 
 ```
 heroku login
@@ -87,13 +93,15 @@ heroku container:login
 
 This will give your system access to Heroku's Docker registry.
 
-To deploy to Heroku, run in `sbt`:
+- To deploy to Heroku, run in `sbt`:
 
 ```
-deploy_observe_server_staging/docker:publish
+deploy/docker:publish
 ```
 
-This will build and push the image to Heroku's Docker registry, but it won't publish it yet. To publish it, run from the shell:
+This will build and push the image to Heroku's Docker registry, but it won't publish it yet.
+
+- To publish it, run from the shell:
 
 ```
 heroku container:release web -a observe-staging
@@ -103,37 +111,76 @@ The new version should be accessible now at [https://observe-staging.lucuma.xyz]
 
 ## Test and Production
 
-To build test and production images, run from `sbt`:
+To deploy an image to these enviornments, they must be pushed to Noirlab's account on Dockerhub. This requires that you
 
 ```
-deploy_observe_server_gn_test/docker:publishLocal
-deploy_observe_server_gs_test/docker:publishLocal
-deploy_observe_server_gn/docker:publishLocal
-deploy_observe_server_gs/docker:publishLocal
+docker login
 ```
 
-These images must then be pushed to a registry reachable by the testing/production servers.
+first with the `nlsoftware` account.
 
-In order for these images to run, their container must have a [bind mount](https://docs.docker.com/storage/bind-mounts/) providing the TLS configuration, consisting of a file called `tls.conf` containing:
+If you want to make sure that you are pushing an image that has been tested on staging, the safest way is to pull it from Heroku, tag it for deployment and push it to Dockerhub:
 
 ```
-tls {
-    key-store = "/tls/cacerts.jks"
-    key-store-pwd = "passphrase"
-    cert-pwd = "passphrase"
+docker pull registry.heroku.com/observe-staging/web:latest
+docker tag registry.heroku.com/observe-staging/web:latest <dokcerhub>noirlab/gpp-obs:latest
+docker push noirlab/gpp-obs:latest
+```
+
+(This may also be achieved with [Skopeo](https://github.com/containers/skopeo), it might be worth taking a look into it.)
+
+Otherwise, you can
+
+```
+sbt deploy/docker:publishLocal
+```
+
+which will build the image locally and tag it. Then you just need to
+
+```
+docker push -a noirlab/gpp-obs
+```
+
+# Running in Test and Production
+
+In order for these images to run, we must pass site-specific configuration to the server. For this, the server expects a directory called `conf/local` to be mounted in the container. A local directory must be [bind mounted](https://docs.docker.com/storage/bind-mounts/) into the container, providing a local `app.conf`.
+
+For example, assuming you have a local directory `/opt/observe/local` with a file `app.conf` with the following content:
+
+```
+environment = PRODUCTION
+site = GN
+
+lucuma-sso {
+  service-token = "<INSERT TOKEN HERE>"
 }
+
+web-server {
+    external-base-url = "observe.hi.gemini.edu"
+    tls {
+        key-store = "conf/local/cacerts.jks.dev"
+        key-store-pwd = "passphrase"
+        cert-pwd = "passphrase"
+    }
+}
+
+etc...
 ```
 
-as well as the file with the certificates (`cacerts.jks` in the example). The directory with these files must be mounted at `/tls` in the container.
-
-Furthermore, an environment variable `SSO_SERVICE_JWT` must be provided with the production SSO Service token for the server to access the ODB. To generate a service token, see the [lucuma-sso documentation](https://github.com/gemini-hlsw/lucuma-sso?tab=readme-ov-file#obtaining-a-service-jwt).
-
-The SSL port is by default 9090 but can be overriden by specifying the `PORT` environment variable. This port must be exposed in the container.
-
-For example:
+You can run the container with the following command:
 
 ```
-docker run -p 443:9090 --mount type=bind,src=</localdir>,dst=/tls -e SSO_SERVICE_JWT=<service-token> observe-gn-test:<version>
+docker run -p 443:9090 --mount type=bind,src=/opt/observe/local,dst=/opt/docker/conf/local noirlab/gpp-obs:latest
 ```
 
-where `/localdir` contains `tls.conf` and `cacerts.jks`.
+Notes:
+
+- The SSL port is by default 9090 but can be overriden by specifying the `PORT` environment variable. This port must be exposed in the container.
+
+- To generate a service token, see the [lucuma-sso documentation](https://github.com/gemini-hlsw/lucuma-sso?tab=readme-ov-file#obtaining-a-service-jwt).
+
+- Templates for configuration for each server (environment+site combination) are provided in `deploy/confs`. The service token is omitted from the templates in order to avoid the need to manually edit them. The service token can be passed to the container via the `SSO_SERVICE_JWT` environment variable. In the example above, this would be:
+
+```
+docker run -p 443:9090 -e SSO_SERVICE_JWT=<service-token> --mount type=bind,src=/opt/observe/local,dst=/opt/docker/conf/local noirlab/gpp-obs:latest
+```
