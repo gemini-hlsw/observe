@@ -138,7 +138,7 @@ sbt deploy/docker:publishLocal
 which will build the image locally and tag it. Then you just need to
 
 ```
-docker push noirlab/gpp-obs:latest
+docker push -a noirlab/gpp-obs
 ```
 
 # Running in Test and Production
