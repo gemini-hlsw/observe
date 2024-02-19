@@ -41,6 +41,14 @@ pull_request_rules:
       add:
       - client-model
       remove: []
+- name: Label deploy PRs
+  conditions:
+  - files~=^deploy/
+  actions:
+    label:
+      add:
+      - deploy
+      remove: []
 - name: Label engine PRs
   conditions:
   - files~=^modules/engine/
@@ -56,46 +64,6 @@ pull_request_rules:
     label:
       add:
       - model
-      remove: []
-- name: Label observe-server-gn PRs
-  conditions:
-  - files~=^deploy/observe-server-gn/
-  actions:
-    label:
-      add:
-      - observe-server-gn
-      remove: []
-- name: Label observe-server-gn-test PRs
-  conditions:
-  - files~=^deploy/observe-server-gn-test/
-  actions:
-    label:
-      add:
-      - observe-server-gn-test
-      remove: []
-- name: Label observe-server-gs PRs
-  conditions:
-  - files~=^deploy/observe-server-gs/
-  actions:
-    label:
-      add:
-      - observe-server-gs
-      remove: []
-- name: Label observe-server-gs-test PRs
-  conditions:
-  - files~=^deploy/observe-server-gs-test/
-  actions:
-    label:
-      add:
-      - observe-server-gs-test
-      remove: []
-- name: Label observe-server-staging PRs
-  conditions:
-  - files~=^deploy/observe-server-staging/
-  actions:
-    label:
-      add:
-      - observe-server-staging
       remove: []
 - name: Label server PRs
   conditions:
