@@ -323,8 +323,9 @@ object SeqTranslate {
           .exists(isObserving)
         stId   <- obsSeq.seq.currentStep.map(_.id)
         curStp <- obsSeq.seqGen.steps.find(_.id === stId)
-        obsCtr <- curStp.some.collect { case x: SequenceGen.PendingStepGen[F] =>
-                    x.obsControl
+        obsCtr <- curStp.some.collect {
+                    case SequenceGen.PendingStepGen(_, _, _, obsControl, _, _, _, _, _) =>
+                      obsControl
                   }
       } yield Stream.eval(
         f(obsCtr(obsSeq.overrides)).attempt
