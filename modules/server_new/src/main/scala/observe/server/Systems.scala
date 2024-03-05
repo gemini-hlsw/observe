@@ -371,7 +371,9 @@ object Systems {
         clt                                       <- Resource.eval(JdkWSClient.simple[IO])
         webSocketBackend                           = clue.http4s.Http4sWebSocketBackend[IO](clt)
         odbProxy                                  <-
-          Resource.eval[IO, OdbProxy[IO]](odbProxy[IO](Async[IO], Logger[IO], webSocketBackend))
+          Resource.eval[IO, OdbProxy[IO]](
+            odbProxy[IO](using Async[IO], Logger[IO], webSocketBackend)
+          )
         dhsClient                                 <- Resource.eval(dhs[IO](httpClient))
         gcdb                                      <- Resource.eval(GuideConfigDb.newDb[IO])
         gcals                                     <- Resource.eval(gcal)

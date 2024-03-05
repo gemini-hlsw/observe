@@ -1698,7 +1698,7 @@ object ObserveEngine {
   ): SortedMap[QueueId, ExecutionQueueView] =
     SortedMap(st.queues.map { case (qid, q) =>
       qid -> ExecutionQueueView(qid, q.name, q.cmdState, q.status(st), q.queue.map(_.obsId))
-    }.toList: _*)
+    }.toList*)
 
   private def viewSequence[F[_]](obsSeq: SequenceData[F]): SequenceView = {
     val st         = obsSeq.seq

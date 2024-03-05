@@ -167,15 +167,15 @@ trait ObserveModelArbitraries {
         (s.obsId, s.metadata, s.status, s.systemOverrides, s.sequenceType, s.steps, s.willStopIn)
       )
 
-  given [A: Cogen]: Cogen[SequencesQueue[A]] =
-    Cogen[(Conditions, Option[Operator], List[A])].contramap(s =>
-      (s.conditions, s.operator, s.sessionQueue)
-    )
-
   given Cogen[Conditions] =
     Cogen[
       (Option[CloudExtinction], Option[ImageQuality], Option[SkyBackground], Option[WaterVapor])
     ].contramap(c => (c.ce, c.iq, c.sb, c.wv))
+
+  given [A: Cogen]: Cogen[SequencesQueue[A]] =
+    Cogen[(Conditions, Option[Operator], List[A])].contramap(s =>
+      (s.conditions, s.operator, s.sessionQueue)
+    )
 
   given Arbitrary[BatchCommandState.Run] = Arbitrary {
     for {

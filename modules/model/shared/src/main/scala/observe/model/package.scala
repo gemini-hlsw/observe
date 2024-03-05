@@ -70,7 +70,7 @@ given KeyDecoder[Resource | Instrument] = KeyDecoder.instance: tag =>
 given Enumerated[Resource | Instrument] = Enumerated
   .from(
     Enumerated[Resource].all.head,
-    (Enumerated[Resource].all.tail ++ Enumerated[Instrument].all): _*
+    (Enumerated[Resource].all.tail ++ Enumerated[Instrument].all)*
   )
   .withTag:
     case r: Resource   => r.tag

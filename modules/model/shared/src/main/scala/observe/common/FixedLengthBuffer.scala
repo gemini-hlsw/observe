@@ -44,13 +44,13 @@ object FixedLengthBuffer {
 
   def apply[A](maxLength: Int, initial: A*): Option[FixedLengthBuffer[A]] =
     (maxLength > 0 && maxLength >= initial.length)
-      .option(FixedLengthBufferImpl[A](maxLength, Chain(initial: _*)))
+      .option(FixedLengthBufferImpl[A](maxLength, Chain(initial*)))
 
   def fromInt[A](maxLength: Int, initial: A*): Option[FixedLengthBuffer[A]] =
-    apply[A](maxLength, initial: _*)
+    apply[A](maxLength, initial*)
 
   def unsafeFromInt[A](maxLength: Int, initial: A*): FixedLengthBuffer[A] =
-    fromInt[A](maxLength, initial: _*).getOrElse(
+    fromInt[A](maxLength, initial*).getOrElse(
       sys.error(s"Invalid max length $maxLength, data length ${initial.length}")
     )
 
