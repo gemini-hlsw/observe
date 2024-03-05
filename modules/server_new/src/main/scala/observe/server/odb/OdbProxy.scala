@@ -186,12 +186,6 @@ object OdbProxy {
       with IdTrackerOps[F](idTracker) {
     given FetchClient[F, ObservationDB] = client
 
-    private val fitsFileExtension                           = ".fits"
-    private def normalizeFilename(fileName: String): String = if (
-      fileName.endsWith(fitsFileExtension)
-    ) fileName
-    else fileName + fitsFileExtension
-
     override def visitStart(
       obsId:     Observation.Id,
       staticCfg: StaticConfig
@@ -273,7 +267,7 @@ object OdbProxy {
         _         <- setCurrentDatasetId(obsId, fileId, datasetId.some)
         _         <- L.debug(s"Recorded dataset id $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.StartObserve)
+                       .execute(datasetId = datasetId, stg = DatasetStage.StartExpose)
         _         <- L.debug("ODB event datasetStartExposure sent")
       } yield true
 
@@ -282,7 +276,7 @@ object OdbProxy {
         datasetId <- getCurrentDatasetId(obsId, fileId)
         _         <- L.debug(s"Send ODB event datasetEndExposure for obsId: $obsId datasetId: $datasetId")
         _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.EndObserve)
+                       .execute(datasetId = datasetId, stg = DatasetStage.EndExpose)
         _         <- L.debug("ODB event datasetEndExposure sent")
       } yield true
 
@@ -448,10 +442,12 @@ object OdbProxy {
         .map(RecordedStepId(_))
 
     private def recordDataset(stepId: RecordedStepId, fileId: ImageFileId): F[DatasetId] =
-      RecordDatasetMutation[F]
-        .execute(stepId.value, normalizeFilename(fileId.value))
-        .map(_.recordDataset.dataset.id)
-
+      Sync[F]
+        .delay(Dataset.Filename.parse(fileId.value).get)
+        .flatMap: fileName =>
+          RecordDatasetMutation[F]
+            .execute(stepId.value, fileName)
+            .map(_.recordDataset.dataset.id)
   }
 
   class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {

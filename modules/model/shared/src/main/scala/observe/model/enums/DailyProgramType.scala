@@ -4,7 +4,6 @@
 package observe.model.enums
 
 import cats.instances.string.*
-import cats.syntax.eq.*
 import lucuma.core.enums.ProgramType
 import lucuma.core.util.Enumerated
 
@@ -12,37 +11,8 @@ import lucuma.core.util.Enumerated
  * Enumerated type for the subset of ProgramType allowed for daily science programs.
  * @group Enumerations
  */
-sealed abstract class DailyProgramType(
-  val toProgramType: ProgramType
-) {
-  val tag: String       = toProgramType.tag
-  val shortName: String = toProgramType.shortName
-  val longName: String  = toProgramType.longName
-  val obsolete: Boolean = toProgramType.obsolete
-}
+enum DailyProgramType(toProgramType: ProgramType) derives Enumerated:
+  export toProgramType.{abbreviation, tag}
 
-object DailyProgramType {
-
-  /** @group Constructors */
-  case object CAL extends DailyProgramType(ProgramType.CAL)
-
-  /** @group Constructors */
-  case object ENG extends DailyProgramType(ProgramType.ENG)
-
-  val all: List[DailyProgramType] =
-    List(CAL, ENG)
-
-  def fromTag(s: String): Option[DailyProgramType] =
-    all.find(_.tag === s)
-
-  def unsafeFromTag(s: String): DailyProgramType =
-    fromTag(s).getOrElse(throw new NoSuchElementException(s))
-
-  /** @group Typeclass Instances */
-  given Enumerated[DailyProgramType] =
-    new Enumerated[DailyProgramType] {
-      def all = DailyProgramType.all
-      def tag(a: DailyProgramType) = a.tag
-    }
-
-}
+  case CAL extends DailyProgramType(ProgramType.Calibration)
+  case ENG extends DailyProgramType(ProgramType.Engineering)
