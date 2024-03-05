@@ -17,7 +17,7 @@ trait ArbitrariesCommon {
         l <- Gen.choose(1, maxSize)
         s <- Gen.choose(0, l - 1)
         d <- Gen.listOfN(s, arbitrary[A])
-      } yield FixedLengthBuffer.unsafeFromInt(l, d: _*)
+      } yield FixedLengthBuffer.unsafeFromInt(l, d*)
     }
 
   given [A: Cogen]: Cogen[FixedLengthBuffer[A]] =
