@@ -323,8 +323,9 @@ object SeqTranslate {
           .exists(isObserving)
         stId   <- obsSeq.seq.currentStep.map(_.id)
         curStp <- obsSeq.seqGen.steps.find(_.id === stId)
-        obsCtr <- curStp.some.collect { case x: SequenceGen.PendingStepGen[F] =>
-                    x.obsControl
+        obsCtr <- curStp.some.collect {
+                    case SequenceGen.PendingStepGen(_, _, _, obsControl, _, _, _, _, _) =>
+                      obsControl
                   }
       } yield Stream.eval(
         f(obsCtr(obsSeq.overrides)).attempt
@@ -441,7 +442,7 @@ object SeqTranslate {
     import TcsController.Subsystem.*
 
     private def flatOrArcTcsSubsystems(inst: Instrument): NonEmptySet[TcsController.Subsystem] =
-      NonEmptySet.of(AGUnit, (if (inst.hasOI) List(OIWFS) else List.empty): _*)
+      NonEmptySet.of(AGUnit, (if (inst.hasOI) List(OIWFS) else List.empty)*)
 
     private def extractWavelength(s: DynamicConfig): Option[Wavelength] = s match {
       case DynamicConfig.GmosNorth(_, _, _, _, gratingConfig, filter, _) =>

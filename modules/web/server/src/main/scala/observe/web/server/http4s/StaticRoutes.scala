@@ -45,7 +45,7 @@ class StaticRoutes[F[_]: Sync: Compression: Files]:
 
     def serve(path: String): F[Response[F]] =
       localFile(path, req)
-        .map(_.putHeaders(CacheHeaders: _*))
+        .map(_.putHeaders(CacheHeaders*))
         .getOrElse(Response.notFound[F])
 
   private val supportedExtension = List(
@@ -68,6 +68,6 @@ class StaticRoutes[F[_]: Sync: Compression: Files]:
   def service: HttpRoutes[F] = GZip:
     HttpRoutes.of[F]:
       case req if req.pathInfo === Uri.Path.Root       => req.serve("/index.html")
-      case req if req.endsWith(supportedExtension: _*) => req.serve(req.pathInfo.toString)
+      case req if req.endsWith(supportedExtension*)    => req.serve(req.pathInfo.toString)
       // This maybe not desired in all cases but it helps to keep client side routing cleaner
       case req if !req.pathInfo.toString.contains(".") => req.serve("/index.html")

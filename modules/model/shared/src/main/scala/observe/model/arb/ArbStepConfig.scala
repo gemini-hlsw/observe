@@ -38,7 +38,7 @@ trait ArbStepConfig {
   val stringsOffsets: Gen[String] =
     arbitrary[Offset]
       .map(x => Angle.arcseconds.get(x.p.toAngle).toString)
-      .flatMapOneOf(Gen.const, perturbations: _*)
+      .flatMapOneOf(Gen.const, perturbations*)
 }
 
 object ArbStepConfig extends ArbStepConfig

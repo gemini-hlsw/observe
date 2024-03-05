@@ -22,5 +22,7 @@ final case class ObserveEnvironment[F[_]](
   headers:  HeaderExtraData => List[Header[F]],
   ctx:      HeaderExtraData
 ) {
-  def getTcs: Option[Tcs[F]] = otherSys.collectFirst { case x: Tcs[F] => x }
+  def getTcs: Option[Tcs[F]] = otherSys.collectFirst {
+    case x if x.isInstanceOf[Tcs[F]] => x.asInstanceOf[Tcs[F]]
+  }
 }

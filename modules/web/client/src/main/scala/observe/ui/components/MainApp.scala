@@ -319,8 +319,8 @@ object MainApp extends ServerEventHandler:
                 )
 
           def provideApiCtx(children: VdomNode*) =
-            apisOpt.fold(React.Fragment(children: _*)): (configApi, sequenceApi) =>
-              ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children: _*))
+            apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi) =>
+              ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children*))
 
           val ResyncingPopup =
             Dialog(

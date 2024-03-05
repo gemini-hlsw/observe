@@ -40,22 +40,22 @@ case class SequenceGen[F[_]](
   steps:        List[SequenceGen.StepGen[F]]
 ) {
   val resources: Set[Resource | Instrument] = steps
-    .collect { case p: SequenceGen.PendingStepGen[F] =>
-      p.resources
+    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _) =>
+      resources
     }
     .foldMap(identity)
 
   def configActionCoord(stepId: Step.Id, r: Resource | Instrument): Option[ActionCoordsInSeq] =
     steps
       .find(_.id === stepId)
-      .collect { case p: SequenceGen.PendingStepGen[F] => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.configActionCoord(r))
       .map { case (ex, ac) => ActionCoordsInSeq(stepId, ex, ac) }
 
   def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource | Instrument] =
     steps
       .find(_.id === c.stepId)
-      .collect { case p: SequenceGen.PendingStepGen[F] => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
 
   def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(steps, stepId)
