@@ -186,6 +186,12 @@ object OdbProxy {
       with IdTrackerOps[F](idTracker) {
     given FetchClient[F, ObservationDB] = client
 
+    private val fitsFileExtension                           = ".fits"
+    private def normalizeFilename(fileName: String): String = if (
+      fileName.endsWith(fitsFileExtension)
+    ) fileName
+    else fileName + fitsFileExtension
+
     override def visitStart(
       obsId:     Observation.Id,
       staticCfg: StaticConfig
@@ -443,7 +449,7 @@ object OdbProxy {
 
     private def recordDataset(stepId: RecordedStepId, fileId: ImageFileId): F[DatasetId] =
       Sync[F]
-        .delay(Dataset.Filename.parse(fileId.value).get)
+        .delay(Dataset.Filename.parse(normalizeFilename(fileId.value)).get)
         .flatMap: fileName =>
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)

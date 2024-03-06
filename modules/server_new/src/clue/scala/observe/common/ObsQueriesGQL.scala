@@ -86,7 +86,7 @@ object ObsQueriesGQL:
           execution {
             config(futureLimit: 100) {
               instrument
-              ... on GmosNorthExecutionConfig {
+              gmosNorth {
                 static {
                   stageMode
                   detector
@@ -102,7 +102,7 @@ object ObsQueriesGQL:
                   ...gmosNorthSequenceFields
                 }
               }
-              ... on GmosSouthExecutionConfig {
+              gmosSouth {
                 static {
                   stageMode
                   detector
@@ -369,8 +369,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait RecordGmosNorthStepMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($atomId: AtomId!, $instrument: GmosNorthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
-        recordGmosNorthStep(input: { atomId: $atomId, instrument: $instrument, stepConfig: $stepConfig, observeClass: $observeClass} ) {
+      mutation($atomId: AtomId!, $gmosNorth: GmosNorthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
+        recordGmosNorthStep(input: { atomId: $atomId, gmosNorth: $gmosNorth, stepConfig: $stepConfig, observeClass: $observeClass} ) {
           stepRecord {
             id
           }
@@ -382,7 +382,7 @@ object ObsQueriesGQL:
   trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
-        recordGmosNorthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+        recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg } ) {
           visit {
             id
           }
@@ -393,8 +393,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait RecordGmosSouthStepMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($atomId: AtomId!, $instrument: GmosSouthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
-        recordGmosSouthStep(input: { atomId: $atomId, instrument: $instrument, stepConfig: $stepConfig, observeClass: $observeClass } ) {
+      mutation($atomId: AtomId!, $gmosSouth: GmosSouthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
+        recordGmosSouthStep(input: { atomId: $atomId, gmosSouth: $gmosSouth, stepConfig: $stepConfig, observeClass: $observeClass } ) {
           stepRecord {
             id
           }
@@ -407,7 +407,7 @@ object ObsQueriesGQL:
     val document =
       """
       mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
-        recordGmosSouthVisit(input: { observationId: $obsId, static: $staticCfg } ) {
+        recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg } ) {
           visit {
             id
           }
