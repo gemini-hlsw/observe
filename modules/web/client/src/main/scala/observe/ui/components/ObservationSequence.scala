@@ -19,10 +19,15 @@ import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
+import lucuma.schemas.model.ExecutionVisits
+import lucuma.ui.DefaultErrorRender
+import japgolly.scalajs.react.vdom.html_<^.*
+import observe.ui.ObserveStyles
 
 case class ObservationSequence(
   obsId:           Observation.Id,
   config:          InstrumentExecutionConfig,
+  visits:          ExecutionVisits,
   executionState:  View[ExecutionState],
   progress:        Option[StepProgress],
   requests:        ObservationRequests,
@@ -50,12 +55,13 @@ object ObservationSequence:
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
             sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-      props.config match
-        case InstrumentExecutionConfig.GmosNorth(config) =>
+      (props.config, props.visits) match
+        case (InstrumentExecutionConfig.GmosNorth(config), ExecutionVisits.GmosNorth(_, visits)) =>
           GmosNorthSequenceTables(
             props.clientMode,
             props.obsId,
             config,
+            visits,
             props.executionState.get,
             props.progress,
             props.selectedStep,
@@ -64,11 +70,12 @@ object ObservationSequence:
             isPreview = false,
             flipBreakPoint
           )
-        case InstrumentExecutionConfig.GmosSouth(config) =>
+        case (InstrumentExecutionConfig.GmosSouth(config), ExecutionVisits.GmosSouth(_, visits)) =>
           GmosSouthSequenceTables(
             props.clientMode,
             props.obsId,
             config,
+            visits,
             props.executionState.get,
             props.progress,
             props.selectedStep,
@@ -76,5 +83,8 @@ object ObservationSequence:
             props.requests,
             isPreview = false,
             flipBreakPoint
-            // )
+          )
+        case _                                                                                   =>
+          <.div(ObserveStyles.ObservationAreaError)(
+            DefaultErrorRender(new Exception("Sequence <-> Visits Instrument mismatch!"))
           )
