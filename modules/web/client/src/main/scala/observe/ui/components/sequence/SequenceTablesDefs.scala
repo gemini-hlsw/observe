@@ -3,38 +3,31 @@
 
 package observe.ui.components.sequence
 
-import cats.Eq
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
 import lucuma.react.SizePx
 import lucuma.react.common.*
-import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
-import lucuma.ui.reusability.given
 import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.sequence.*
 import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
 import observe.model.ExecutionState
-import observe.model.ObserveStep
 import observe.model.StepProgress
-import observe.model.StepState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
-import observe.ui.model.reusability.given
 
 import scalajs.js
 
@@ -179,11 +172,7 @@ trait SequenceTablesDefs:
             ).when(cell.row.index.toInt > 0 && step.stepTime === StepTime.Present)
           )
       ),
-      column(
-        BreakpointSpaceColumnId,
-        "",
-        _ => EmptyVdom
-      ),
+      column(BreakpointSpaceColumnId, "", _ => EmptyVdom),
       column(
         RunningStateColumnId,
         "",

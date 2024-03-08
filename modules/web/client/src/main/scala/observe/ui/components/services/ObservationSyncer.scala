@@ -19,6 +19,11 @@ import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
 import observe.ui.model.reusability.given
 import observe.ui.services.SequenceApi
+import lucuma.ui.syntax.effect.*
+import observe.queries.ObsQueriesGQL
+import lucuma.schemas.odb.input.*
+import clue.ErrorPolicy
+import observe.queries.VisitQueriesGQL
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -34,57 +39,79 @@ object ObservationSyncer:
       .useContext(SequenceApi.ctx)
       .useStreamOnMountBy: (_, ctx, _) =>
         ctx.odbClient.statusStream
-      .useEffectWithDepsBy((props, _, _, odbStatusPot) =>
+      .useAsyncEffectWithDepsBy((props, _, _, odbStatusPot) =>
+        // Run when observation changes or ODB status changes to Initialized
         (props.nighttimeObservation.get.map(_.obsId),
          odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)
         ).tupled
       ): (props, ctx, sequenceApi, _) =>
-        _.map: (obsId, _) =>
+        deps =>
           import ctx.given
 
-          // TODO We will have to requery under certain conditions:
-          // - After step is executed/paused/aborted.
-          // - If sequence changes... How do we know this??? Update: Shane will add a hash to the API
-          SequenceSQL
-            .SequenceQuery[IO]
-            .query(obsId)
-            .adaptError:
-              case ResponseException(errors, _) =>
-                Exception(errors.map(_.message).toList.mkString("\n"))
-            .map(_.observation.map(_.execution.config))
-            .attempt
-            .map:
-              _.flatMap:
-                _.toRight:
-                  Exception(s"Execution Configuration not defined for observation [$obsId]")
-            .flatMap: config =>
-              props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
+          deps
+            .map: (obsId, _) =>
+              val sequenceUpdate =
+                SequenceSQL
+                  .SequenceQuery[IO]
+                  .query(obsId)
+                  .adaptError:
+                    case ResponseException(errors, _) =>
+                      Exception(errors.map(_.message).toList.mkString("\n"))
+                  .map(_.observation.map(_.execution.config))
+                  .attempt
+                  .map:
+                    _.flatMap:
+                      _.toRight:
+                        Exception(s"Execution Configuration not defined for observation [$obsId]")
+                  .flatMap: config =>
+                    props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-          // TODO Breakpoint initialization should happen in the server, not here.
-          // Leaving the code commented here until we move it to the server.
-          // >>= ((_, configEither) =>
-          // configEither.toOption
-          //   .map: config =>
-          //     def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
-          //       sequence
-          //         .map(s => s.nextAtom +: s.possibleFuture)
-          //         .orEmpty
-          //         .flatMap(_.steps.toList)
-          //         .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
-          //         .toSet
+              val visitsUpdate =
+                VisitQueriesGQL
+                  .ObservationVisits[IO]
+                  .query(obsId)(ErrorPolicy.IgnoreOnData)
+                  .map(_.map(_.observation.map(_.execution)))
+                  .attempt
+                  .flatMap: visits =>
+                    props.nighttimeObservation.async.mod(_.map(_.withVisits(visits.map(_.flatten))))
 
-          //     val initialBreakpoints: Set[Step.Id] =
-          //       config match
-          //         case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
-          //           getBreakPoints(executionConfig.acquisition) ++
-          //             getBreakPoints(executionConfig.science)
-          //         case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
-          //           getBreakPoints(executionConfig.acquisition) ++
-          //             getBreakPoints(executionConfig.science)
+              (sequenceUpdate, visitsUpdate).parTupled
+                .reRunOnResourceSignals:
+                  // Eventually, there will be another subscription notifying of sequence/visits changes
+                  ObsQueriesGQL.SingleObservationEditSubscription
+                    .subscribe[IO]:
+                      obsId.toObservationEditInput
+                .map(_.compile.drain)
+                .allocated
+                .map(_._2)
 
-          //     sequenceApi.setBreakpoints(obsId, initialBreakpoints.toList, Breakpoint.Enabled)
-          // .orEmpty
-          // )
-        .orEmpty
+            // TODO Breakpoint initialization should happen in the server, not here.
+            // Leaving the code commented here until we move it to the server.
+            // >>= ((_, configEither) =>
+            // configEither.toOption
+            //   .map: config =>
+            //     def getBreakPoints(sequence: Option[ExecutionSequence[?]]): Set[Step.Id] =
+            //       sequence
+            //         .map(s => s.nextAtom +: s.possibleFuture)
+            //         .orEmpty
+            //         .flatMap(_.steps.toList)
+            //         .collect { case s if s.breakpoint === Breakpoint.Enabled => s.id }
+            //         .toSet
+
+            //     val initialBreakpoints: Set[Step.Id] =
+            //       config match
+            //         case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
+            //           getBreakPoints(executionConfig.acquisition) ++
+            //             getBreakPoints(executionConfig.science)
+            //         case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
+            //           getBreakPoints(executionConfig.acquisition) ++
+            //             getBreakPoints(executionConfig.science)
+
+            //     sequenceApi.setBreakpoints(obsId, initialBreakpoints.toList, Breakpoint.Enabled)
+            // .orEmpty
+            // )
+            .getOrElse:
+              // If connection broken, or observation unselected, cleanup sequence and visits
+              props.nighttimeObservation.async.mod(_.map(_.reset)).as(IO.unit)
       .render: _ =>
         EmptyVdom
