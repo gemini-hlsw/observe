@@ -79,7 +79,6 @@ sealed trait SequenceTables[S, D](
         isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
       )
 
-  // TODO Stitch past visits
   protected[sequence] lazy val acquisitionRows: List[SequenceRow[DynamicConfig]] =
     currentStepsToRows(acquisitionCurrentSteps) ++ config.acquisition.map(steps).orEmpty
 
@@ -139,13 +138,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
         )
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
+      // TODO The next memo might not be necessary.
       .useMemoBy((props, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
-        (props, _, _) =>
-          (acquisitionRows, scienceRows) =>
-            (
-              acquisitionRows, // .zipWithStepIndex.map(SequenceTableRow.apply),
-              scienceRows      // .zipWithStepIndex.map(SequenceTableRow.apply)
-            )
+        (props, _, _) => (acquisitionRows, scienceRows) => (acquisitionRows, scienceRows)
       )
       .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
       .useReactTableBy: (props, resize, cols, sequences, dynTable) =>
