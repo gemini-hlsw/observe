@@ -20,16 +20,13 @@ import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
 import lucuma.ui.reusability.given
-import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.sequence.*
-import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
 import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
 import observe.model.StepState
-import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
@@ -37,6 +34,7 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 
 import scalajs.js
+import lucuma.schemas.model.Visit
 
 sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,
@@ -45,6 +43,7 @@ sealed trait SequenceTables[S, D](
   def clientMode: ClientMode
   def obsId: Observation.Id
   def config: ExecutionConfig[S, D]
+  def visits: List[Visit[D]]
   def executionState: ExecutionState
   def progress: Option[StepProgress]
   def selectedStepId: Option[Step.Id]
@@ -89,6 +88,7 @@ case class GmosNorthSequenceTables(
   clientMode:        ClientMode,
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
+  visits:            List[Visit.GmosNorth],
   executionState:    ExecutionState,
   progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
@@ -106,6 +106,7 @@ case class GmosSouthSequenceTables(
   clientMode:        ClientMode,
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
+  visits:            List[Visit.GmosSouth],
   executionState:    ExecutionState,
   progress:          Option[StepProgress],
   selectedStepId:    Option[Step.Id],
