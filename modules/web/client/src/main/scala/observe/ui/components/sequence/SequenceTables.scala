@@ -32,9 +32,11 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
+import lucuma.react.primereact.AccordionMultiple
 
 import scalajs.js
 import lucuma.schemas.model.Visit
+import lucuma.schemas.model.StepRecord
 
 sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,
@@ -120,7 +122,9 @@ case class GmosSouthSequenceTables(
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesDefs:
+private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
+    extends SequenceTablesDefs
+    with SequenceTablesVisits[D]:
   private type Props = SequenceTables[S, D]
 
   protected[sequence] val component =
@@ -170,7 +174,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, resize, _, _, _, acquisitionTable, scienceTable) =>
+      .render: (props, resize, cols, _, dynTable, acquisitionTable, scienceTable) =>
         extension (row: SequenceTableRow)
           def isSelected: Boolean =
             props.selectedStepId match
@@ -237,6 +241,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
             cellMod = computeCellMods
           )
 
+        val visits =
+          AccordionMultiple(tabs = renderVisits(cols, props.visits, dynTable))
+
         React.Fragment(
           // VisitsViewer(props.obsId),
           PrimeAutoHeightVirtualizedTable(
@@ -245,15 +252,19 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
             containerRef = resize.ref,
             tableMod = TagMod(tableStyle, ^.marginTop := "15px"),
             rowMod = computeRowMods,
-            // We display the whole acquisition table as a preamble to the science table, which is virtualized.
+            // We display the visits and the whole acquisition table as a preamble to the science table, which is virtualized.
             // This renders as:
             //  <div outer>
             //    <div inner>
+            //      Visits Tables
             //      Acquisition Table (complete)
             //      Science Table (virtualized)
-            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows.
-            innerContainerMod = TagMod(^.width := "100%", acquisition)
-              .unless(acquisitionTable.getRowModel().rows.isEmpty),
+            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows/visits. Might need adjustment in the predicted height of rows.
+            innerContainerMod = TagMod(
+              ^.width := "100%",
+              visits,
+              acquisition.unless(acquisitionTable.getRowModel().rows.isEmpty)
+            ),
             headerCellMod = computeHeaderCellMods,
             cellMod = computeCellMods,
             overscan = 5
@@ -261,7 +272,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
         )
 
 object GmosNorthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
+    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]:
+  override protected val renderTable = GmosNorthVisitTable.apply
 
 object GmosSouthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]
+    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
+  override protected val renderTable = GmosSouthVisitTable.apply
