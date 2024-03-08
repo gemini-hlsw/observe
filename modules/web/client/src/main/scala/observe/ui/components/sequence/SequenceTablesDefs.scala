@@ -33,13 +33,12 @@ import scalajs.js
 
 // Offload SequenceTables definitions to improve legibility.
 trait SequenceTablesDefs:
-  // protected case class SequenceTableRow(step: SequenceRow[DynamicConfig], index: StepIndex)
-  protected type SequenceTableRow = SequenceRow[DynamicConfig]
-
-  protected def ColDef = ColumnDef[SequenceTableRow]
+  protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow]]
+  protected def ColDef = ColumnDef[SequenceTableRowType]
 
   // Breakpoint column has width 0 but is translated and actually shown.
   // We display an empty BreakpointSpace column to show the space with correct borders.
+  protected val HeaderColumnId: ColumnId          = ColumnId("header")
   protected val BreakpointColumnId: ColumnId      = ColumnId("breakpoint")
   protected val BreakpointSpaceColumnId: ColumnId = ColumnId("breakpointDummy")
   protected val RunningStateColumnId: ColumnId    = ColumnId("runningState")
@@ -52,10 +51,11 @@ trait SequenceTablesDefs:
   protected val SettingsColumnId: ColumnId        = ColumnId("settings")
 
   protected val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
+    HeaderColumnId          -> FixedSize(0.toPx),
     BreakpointColumnId      -> FixedSize(0.toPx),
     BreakpointSpaceColumnId -> FixedSize(30.toPx),
     IndexAndTypeColumnId    -> FixedSize(60.toPx),
-    RunningStateColumnId    -> FixedSize(0.toPx), // Resizable(380.toPx, min = 380.toPx.some),
+    RunningStateColumnId    -> FixedSize(0.toPx),
     ExposureColumnId        -> Resizable(77.toPx, min = 77.toPx.some, max = 130.toPx.some),
     GuideColumnId           -> FixedSize(33.toPx),
     PColumnId               -> FixedSize(75.toPx),
@@ -121,9 +121,9 @@ trait SequenceTablesDefs:
     id:     ColumnId,
     header: VdomNode,
     cell:   js.UndefOr[
-      raw.buildLibCoreCellMod.CellContext[SequenceTableRow, V] => VdomNode
+      raw.buildLibCoreCellMod.CellContext[SequenceTableRowType, V] => VdomNode
     ] = js.undefined
-  ): ColumnDef[SequenceTableRow, V] =
+  ): ColumnDef[SequenceTableRowType, V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
   protected def columnDefs(flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback)(
@@ -135,78 +135,79 @@ trait SequenceTablesDefs:
     progress:       Option[StepProgress],
     isPreview:      Boolean,
     selectedStepId: Option[Step.Id]
-  ): List[ColumnDef[SequenceTableRow, ?]] =
+  ): List[ColumnDef[SequenceTableRowType, ?]] =
     List(
+      SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
       column(
         BreakpointColumnId,
         "",
         cell =>
-          val step: SequenceRow[DynamicConfig] = cell.row.original
-          val stepId: Option[Step.Id]          = step.id.toOption
-          // val canSetBreakpoint =
-          //   clientStatus.canOperate && step.get.canSetBreakpoint(
-          //     execution.map(_.steps).orEmpty
-          //   )
+          cell.row.original.value.toOption.map: stepRow =>
+            val step: SequenceRow[DynamicConfig] = stepRow.step
+            val stepId: Option[Step.Id]          = step.id.toOption
+            // val canSetBreakpoint =
+            //   clientStatus.canOperate && step.get.canSetBreakpoint(
+            //     execution.map(_.steps).orEmpty
+            //   )
 
-          <.div(
             <.div(
-              ObserveStyles.BreakpointHandle,
-              stepId
-                .map: sId =>
-                  ^.onClick ==> (_.stopPropagationCB >> flipBreakpoint(
-                    obsId,
-                    sId,
-                    flippedBreakpoint(step.breakpoint)
-                  ))
-                .whenDefined
-            )(
-              Icons.CircleSolid
-                .withFixedWidth()
-                .withClass(
-                  ObserveStyles.BreakpointIcon |+|
-                    // ObserveStyles.FlippableBreakpoint.when_(canSetBreakpoint) |+|
-                    ObserveStyles.ActiveBreakpoint.when_(
-                      step.breakpoint === Breakpoint.Enabled
-                    )
-                )
-            ).when(cell.row.index.toInt > 0 && step.stepTime === StepTime.Present)
-          )
+              <.div(
+                ObserveStyles.BreakpointHandle,
+                stepId
+                  .map: sId =>
+                    ^.onClick ==> (_.stopPropagationCB >> flipBreakpoint(
+                      obsId,
+                      sId,
+                      flippedBreakpoint(step.breakpoint)
+                    ))
+                  .whenDefined
+              )(
+                Icons.CircleSolid
+                  .withFixedWidth()
+                  .withClass(
+                    ObserveStyles.BreakpointIcon |+|
+                      // ObserveStyles.FlippableBreakpoint.when_(canSetBreakpoint) |+|
+                      ObserveStyles.ActiveBreakpoint.when_(
+                        step.breakpoint === Breakpoint.Enabled
+                      )
+                  )
+              ).when(cell.row.index.toInt > 0 && step.stepTime === StepTime.Present)
+            )
       ),
       column(BreakpointSpaceColumnId, "", _ => EmptyVdom),
       column(
         RunningStateColumnId,
         "",
-        cell =>
-          val step = cell.row.original
-
-          (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
-            selectedStepId
-              .filter(_ === stepId)
-              .map: stepId =>
-                StepProgressCell(
-                  clientMode = clientMode,
-                  instrument = instrument,
-                  stepId = stepId,
-                  stepType = stepType,
-                  isFinished = step.isFinished,
-                  stepIndex = cell.row.index.toInt,
-                  obsId = obsId,
-                  requests = requests,
-                  runningStepId = executionState.runningStepId,
-                  sequenceState = executionState.sequenceState,
-                  isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
-                  subsystemStatus = executionState.stepResources
-                    .find(_._1 === stepId)
-                    .map(_._2.toMap)
-                    .getOrElse(Map.empty),
-                  progress = progress,
-                  selectedStep = selectedStepId,
-                  isPreview = isPreview
-                )
+        _.row.original.value.toOption
+          .map(_.step)
+          .map: step =>
+            (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
+              selectedStepId
+                .filter(_ === stepId)
+                .map: stepId =>
+                  StepProgressCell(
+                    clientMode = clientMode,
+                    instrument = instrument,
+                    stepId = stepId,
+                    stepType = stepType,
+                    isFinished = step.isFinished,
+                    obsId = obsId,
+                    requests = requests,
+                    runningStepId = executionState.runningStepId,
+                    sequenceState = executionState.sequenceState,
+                    isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
+                    subsystemStatus = executionState.stepResources
+                      .find(_._1 === stepId)
+                      .map(_._2.toMap)
+                      .getOrElse(Map.empty),
+                    progress = progress,
+                    selectedStep = selectedStepId,
+                    isPreview = isPreview
+                  )
       )
     ) ++
       SequenceColumns
-        .gmosColumns(ColDef, _.some, _ => none)
+        .gmosColumns(ColDef, _._1.some, _._2.some)
         .map(colDef => colDef.setColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),

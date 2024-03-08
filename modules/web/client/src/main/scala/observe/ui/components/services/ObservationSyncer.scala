@@ -24,6 +24,7 @@ import observe.queries.ObsQueriesGQL
 import lucuma.schemas.odb.input.*
 import clue.ErrorPolicy
 import observe.queries.VisitQueriesGQL
+import cats.effect.Resource
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -81,9 +82,10 @@ object ObservationSyncer:
                   ObsQueriesGQL.SingleObservationEditSubscription
                     .subscribe[IO]:
                       obsId.toObservationEditInput
-                .map(_.compile.drain)
+                .flatMap: stream =>
+                  Resource.make(stream.compile.drain.start)(_.cancel)
                 .allocated
-                .map(_._2)
+                .map(_._2) // Update fiber will get cancelled and subscription ended if connection lost or obs changes
 
             // TODO Breakpoint initialization should happen in the server, not here.
             // Leaving the code commented here until we move it to the server.

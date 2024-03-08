@@ -28,7 +28,6 @@ case class StepProgressCell(
   stepId:          Step.Id,
   stepType:        StepTypeDisplay,
   isFinished:      Boolean,
-  stepIndex:       Int,
   obsId:           Observation.Id,
   requests:        ObservationRequests,
   runningStepId:   Option[Step.Id],

@@ -23,6 +23,7 @@ import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
+import lucuma.ui.syntax.util.given
 import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
@@ -33,10 +34,9 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 
-import scalajs.js
 import lucuma.schemas.model.Visit
 
-sealed trait SequenceTables[S, D](
+sealed trait SequenceTables[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
   protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
 ):
@@ -120,7 +120,9 @@ case class GmosSouthSequenceTables(
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesDefs:
+private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
+    extends SequenceTablesDefs
+    with SequenceTablesVisits[D]:
   private type Props = SequenceTables[S, D]
 
   protected[sequence] val component =
@@ -139,17 +141,58 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
         )
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
-      // TODO The next memo might not be necessary.
-      .useMemoBy((props, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
-        (props, _, _) => (acquisitionRows, scienceRows) => (acquisitionRows, scienceRows)
-      )
-      .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
-      .useReactTableBy: (props, resize, cols, sequences, dynTable) =>
+      .useMemoBy((props, _, _) => props.visits): (props, _, _) =>
+        visitsSequences // (List[Visit], nextIndex)
+      .useMemoBy((props, _, _, visitsData) =>
+        (props.acquisitionRows, props.scienceRows, visitsData)
+      ): (props, _, _, _) =>
+        (acquisitionSteps, scienceSteps, visitsData) =>
+          val (visits, nextIndex) = visitsData.value
+
+          val visitsRows =
+            visits.map: visit =>
+              Expandable(
+                HeaderRow(renderVisitHeader(visit)).toHeaderOrRow,
+                visit.steps.toList.map(step => Expandable(step.toHeaderOrRow))
+              )
+
+          val acquisitionRows =
+            Option
+              .when(acquisitionSteps.nonEmpty):
+                Expandable(
+                  HeaderRow("Acquisition").toHeaderOrRow,
+                  acquisitionSteps
+                    .zipWithStepIndex()
+                    ._1
+                    .map: (step, index) =>
+                      Expandable(SequenceTableRow(step, index).toHeaderOrRow)
+                )
+              .toList
+
+          val scienceRows =
+            Option
+              .when(scienceSteps.nonEmpty):
+                Expandable(
+                  HeaderRow("Science").toHeaderOrRow,
+                  scienceSteps
+                    .zipWithStepIndex()
+                    ._1
+                    .map: (step, index) =>
+                      Expandable(SequenceTableRow(step, index).toHeaderOrRow)
+                )
+              .toList
+
+          visitsRows ++ acquisitionRows ++ scienceRows
+      .useDynTableBy((_, resize, _, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
+      .useReactTableBy: (props, resize, cols, _, sequence, dynTable) =>
         TableOptions(
           cols,
-          sequences.map(_._1),
+          sequence,
           enableSorting = false,
           enableColumnResizing = true,
+          enableExpanding = true,
+          getSubRows = (row, _) => row.subRows,
+          // getId = ???
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
@@ -157,103 +200,100 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .useReactTableBy: (props, resize, cols, sequences, dynTable, _) =>
-        TableOptions(
-          cols,
-          sequences.map(_._2),
-          enableSorting = false,
-          enableColumnResizing = true,
-          columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
-          state = PartialTableState(
-            columnSizing = dynTable.columnSizing,
-            columnVisibility = dynTable.columnVisibility
-          ),
-          onColumnSizingChange = dynTable.onColumnSizingChangeHandler
-        )
-      .render: (props, resize, _, _, _, acquisitionTable, scienceTable) =>
-        extension (row: SequenceTableRow)
+      .render: (props, resize, cols, _, _, dynTable, table) =>
+        extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
-              case Some(stepId) => row.id.contains(stepId)
+              case Some(stepId) => step.id.contains(stepId)
               case _            => false
 
         val tableStyle: Css =
           ObserveStyles.ObserveTable |+| ObserveStyles.StepTable |+| SequenceStyles.SequenceTable
 
-        def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRow]): TagMod =
-          val step                       = row.original
-          val stepIdOpt: Option[Step.Id] = step.id.toOption
+        def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRowType]): TagMod =
+          row.original.value.toOption
+            .map(_.step)
+            .map: step =>
+              val stepIdOpt: Option[Step.Id] = step.id.toOption
 
-          TagMod(
-            stepIdOpt
-              .map: stepId =>
-                (^.onClick --> props.setSelectedStepId(stepId))
-                  .when(step.stepTime === StepTime.Present)
-                  .unless(props.executionState.isLocked)
-              .whenDefined,
-            if (step.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
-            ObserveStyles.StepRowWithBreakpoint.when_(
-              stepIdOpt.exists(props.executionState.breakpoints.contains)
-            ),
-            ObserveStyles.StepRowFirstInAtom.when_(step.isFirstInAtom),
-            ObserveStyles.StepRowPossibleFuture.when_(step.stepTime === StepTime.Future),
-            step.stepState match
-              case s if s.hasError                      => ObserveStyles.StepRowError
-              case StepState.Paused | StepState.Skipped => ObserveStyles.StepRowWarning
-              case StepState.Completed                  => ObserveStyles.StepRowDone
-              case StepState.Aborted                    => ObserveStyles.StepRowError
-              case _                                    => Css.Empty
-          )
+              TagMod(
+                stepIdOpt
+                  .map: stepId =>
+                    (^.onClick --> props.setSelectedStepId(stepId))
+                      .when(step.stepTime === StepTime.Present)
+                      .unless(props.executionState.isLocked)
+                  .whenDefined,
+                if (step.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
+                ObserveStyles.StepRowWithBreakpoint.when_(
+                  stepIdOpt.exists(props.executionState.breakpoints.contains)
+                ),
+                ObserveStyles.StepRowFirstInAtom.when_(step.isFirstInAtom),
+                ObserveStyles.StepRowPossibleFuture.when_(step.stepTime === StepTime.Future),
+                step.stepState match
+                  case s if s.hasError                      => ObserveStyles.StepRowError
+                  case StepState.Paused | StepState.Skipped => ObserveStyles.StepRowWarning
+                  case StepState.Completed                  => ObserveStyles.StepRowDone
+                  case StepState.Aborted                    => ObserveStyles.StepRowError
+                  case _                                    => Css.Empty
+              )
+            .orEmpty
 
         def computeHeaderCellMods(
-          headerCell: raw.buildLibTypesMod.Header[SequenceTableRow, Any]
-        ): Css =
+          headerCell: raw.buildLibTypesMod.Header[SequenceTableRowType, Any]
+        ): TagMod =
           headerCell.column.id match
+            case id if id == HeaderColumnId.value       => TagMod(^.border := "0px", ^.padding := "0px")
             case id if id == BreakpointColumnId.value   => ObserveStyles.BreakpointTableHeader
             case id if id == RunningStateColumnId.value => ObserveStyles.RunningStateTableHeader
             case _                                      => Css.Empty
 
-        def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRow, Any]): TagMod =
-          cell.column.id match
-            case id if id == BreakpointColumnId.value                                   =>
-              ObserveStyles.BreakpointTableCell
-            case id if id == RunningStateColumnId.value && cell.row.original.isSelected =>
-              TagMod(
-                ObserveStyles.SelectedStateTableCellShown,
-                resize.width
-                  .map: w =>
-                    ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
-                  .whenDefined
-              )
-            case _                                                                      =>
-              TagMod.empty
-
-        val acquisition =
-          PrimeTable(
-            acquisitionTable,
-            tableMod = tableStyle,
-            rowMod = computeRowMods,
-            headerCellMod = computeHeaderCellMods,
-            cellMod = computeCellMods
-          )
+        def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRowType, Any]): TagMod =
+          cell.row.original.value match
+            case Left(_) =>
+              cell.column.id match
+                case id if id == HeaderColumnId.value =>
+                  TagMod(^.colSpan := cols.length, ^.fontWeight.bold, ^.fontSize.larger)
+                case _                                => ^.display.none
+            case _       =>
+              cell.column.id match
+                case id if id == HeaderColumnId.value     =>
+                  TagMod(^.border := "0px", ^.padding := "0px")
+                case id if id == BreakpointColumnId.value =>
+                  ObserveStyles.BreakpointTableCell
+                case id
+                    if id == RunningStateColumnId.value &&
+                      cell.row.original.value.toOption.exists(_.step.isSelected) =>
+                  TagMod(
+                    ObserveStyles.SelectedStateTableCellShown,
+                    resize.width
+                      .map: w =>
+                        ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
+                      .whenDefined
+                  )
+                case _                                    =>
+                  TagMod.empty
 
         React.Fragment(
           // VisitsViewer(props.obsId),
           PrimeAutoHeightVirtualizedTable(
-            scienceTable,
+            table,
             estimateSize = _ => 25.toPx,
             containerRef = resize.ref,
             tableMod = TagMod(tableStyle, ^.marginTop := "15px"),
             rowMod = computeRowMods,
-            // We display the whole acquisition table as a preamble to the science table, which is virtualized.
+            // We display the visits and the whole acquisition table as a preamble to the science table, which is virtualized.
             // This renders as:
             //  <div outer>
             //    <div inner>
+            //      Visits Tables
             //      Acquisition Table (complete)
             //      Science Table (virtualized)
-            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows.
-            innerContainerMod = TagMod(^.width := "100%", acquisition)
-              .unless(acquisitionTable.getRowModel().rows.isEmpty),
+            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows/visits. Might need adjustment in the predicted height of rows.
+            // innerContainerMod = TagMod(
+            //   ^.width := "100%"
+            //   // visits,
+            //   // acquisition.unless(acquisitionTable.getRowModel().rows.isEmpty)
+            // ),
             headerCellMod = computeHeaderCellMods,
             cellMod = computeCellMods,
             overscan = 5
@@ -261,7 +301,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq] extends SequenceTablesD
         )
 
 object GmosNorthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
+    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]:
+  override protected val renderTable = GmosNorthVisitTable.apply
 
 object GmosSouthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]
+    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
+  override protected val renderTable = GmosSouthVisitTable.apply
