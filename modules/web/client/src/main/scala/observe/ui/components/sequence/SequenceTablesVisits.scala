@@ -14,6 +14,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.syntax.all.given
+import lucuma.core.util.Timestamp
 import lucuma.react.primereact.AccordionTab
 import lucuma.schemas.model.AtomRecord
 import lucuma.schemas.model.StepRecord
@@ -21,10 +22,12 @@ import lucuma.schemas.model.Visit
 
 import java.time.Duration
 import lucuma.react.table.ColumnDef
-import lucuma.ui.sequence.SequenceRow
+import lucuma.ui.sequence.*
 import lucuma.ui.table.hooks.UseDynTable
+import eu.timepit.refined.types.numeric.PosInt
+import cats.data.NonEmptyList
 
-trait SequenceTablesVisits[D]:
+trait SequenceTablesVisits[D <: DynamicConfig]:
   self: SequenceTablesDefs =>
 
   protected def renderTable: (
@@ -80,3 +83,59 @@ trait SequenceTablesVisits[D]:
       .flatMap: visit =>
         renderSequence(SequenceType.Acquisition, cols, visit.acquisitionAtoms, dynTable) ++
           renderSequence(SequenceType.Science, cols, visit.scienceAtoms, dynTable)
+
+  case class VisitData(
+    created:      Timestamp,
+    sequenceType: SequenceType,
+    steps:        NonEmptyList[SequenceTableRow],
+    datasetRange: Option[(Short, Short)]
+  )
+// val firstStepIndex: StepIndex = steps.head.index
+// val lastStepIndex: StepIndex  = steps.last.index
+
+  private def sequenceRows(
+    atoms:        List[AtomRecord[D]],
+    sequenceType: SequenceType,
+    startIndex:   StepIndex = StepIndex(PosInt.unsafeFrom(1))
+  ): (Option[VisitData], StepIndex) =
+    atoms
+      .flatMap(_.steps)
+      .some
+      .filter(_.nonEmpty)
+      .map: steps =>
+        val datasetIndices = steps.flatMap(_.datasets).map(_.index.value)
+
+        (
+          steps.head.created,
+          steps
+            .map(SequenceRow.Executed.ExecutedStep(_, _ => none))
+            .zipWithStepIndex(startIndex),
+          datasetIndices.minOption.map(min => (min, datasetIndices.max))
+        )
+      .map: (created, zipResult, datasetRange) =>
+        val (rows, nextIndex) = zipResult
+
+        (VisitData(created, sequenceType,
+        )
+         rows.map(SequenceTableRow(_, _)), datasetRange).some,
+         nextIndex
+        ) // TODO Add SignalToNoise
+      .getOrElse:
+        (none, startIndex)
+
+  def visitsSequences(visits: List[Visit[D]]): (List[VisitData], StepIndex) =
+    visits
+      .foldLeft((List.empty[List[SequenceTableRow]], StepIndex(PosInt.unsafeFrom(1))))(
+        (accum, visit) =>
+          val (seqs, index) = accum
+
+          // Acquisition indices restart at 1 in each visit.
+          // Science indices continue from one visit to the next.
+          val acquisition          = sequenceRows(visit.acquisitionAtoms)._1
+          val (science, nextIndex) = sequenceRows(visit.scienceAtoms, index)
+
+          (
+            List(acquisition, science).flattenOption,
+            nextIndex
+          )
+      )

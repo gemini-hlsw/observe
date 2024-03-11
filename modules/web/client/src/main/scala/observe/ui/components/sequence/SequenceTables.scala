@@ -143,15 +143,18 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
         )
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
-      .useMemoBy((props, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
-        (props, _, _) =>
+      .useMemoBy((props, _, _) => props.visits): (props, _, _) =>
+        _.map: visit =>
+          
+      .useMemoBy((props, _, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
+        (props, _, _, _) =>
           (acquisitionRows, scienceRows) => // TODO Initial science indices
             (acquisitionRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _)),
              scienceRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
             )
       )
-      .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
-      .useReactTableBy: (props, resize, cols, sequences, dynTable) =>
+      .useDynTableBy((_, resize, _, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
+      .useReactTableBy: (props, resize, cols, _, sequences, dynTable) =>
         TableOptions(
           cols,
           sequences.map(_._1),
@@ -164,7 +167,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .useReactTableBy: (props, resize, cols, sequences, dynTable, _) =>
+      .useReactTableBy: (props, resize, cols, _, sequences, dynTable, _) =>
         TableOptions(
           cols,
           sequences.map(_._2),
@@ -177,7 +180,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, resize, cols, _, dynTable, acquisitionTable, scienceTable) =>
+      .render: (props, resize, cols, _, _, dynTable, acquisitionTable, scienceTable) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
