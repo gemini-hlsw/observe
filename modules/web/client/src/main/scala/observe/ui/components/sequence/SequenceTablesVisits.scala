@@ -25,8 +25,10 @@ import lucuma.ui.sequence.SequenceRow
 import lucuma.ui.table.hooks.UseDynTable
 
 trait SequenceTablesVisits[D]:
+  self: SequenceTablesDefs =>
+
   protected def renderTable: (
-    Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]],
+    Reusable[List[ColumnDef[SequenceTableRow, ?]]],
     List[StepRecord[D]],
     UseDynTable
   ) => VdomNode
@@ -38,7 +40,7 @@ trait SequenceTablesVisits[D]:
 
   private def renderSequence(
     sequenceType: SequenceType,
-    cols:         Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]],
+    cols:         Reusable[List[ColumnDef[SequenceTableRow, ?]]],
     atoms:        List[AtomRecord[D]],
     dynTable:     UseDynTable
   ): Option[AccordionTab] =
@@ -70,7 +72,7 @@ trait SequenceTablesVisits[D]:
         )(renderTable(cols, steps, dynTable))
 
   def renderVisits(
-    cols:     Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]],
+    cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
     visits:   List[Visit[D]],
     dynTable: UseDynTable
   ): List[AccordionTab] =

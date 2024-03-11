@@ -24,7 +24,7 @@ import observe.ui.Icons
 import lucuma.ui.table.hooks.UseDynTable
 
 sealed trait VisitTable[D]:
-  def cols: Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]]
+  def cols: Reusable[List[ColumnDef[SequenceTableRow, ?]]]
   def steps: List[StepRecord[D]]
   def dynTable: UseDynTable
 
@@ -32,14 +32,14 @@ sealed trait VisitTable[D]:
     steps.map(SequenceRow.Executed.ExecutedStep(_, _ => none))
 
 case class GmosNorthVisitTable(
-  cols:     Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]],
+  cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
   steps:    List[StepRecord[DynamicConfig.GmosNorth]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosNorthVisitTable.component)
     with VisitTable[DynamicConfig.GmosNorth]
 
 case class GmosSouthVisitTable(
-  cols:     Reusable[List[ColumnDef[SequenceRow[DynamicConfig], ?]]],
+  cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
   steps:    List[StepRecord[DynamicConfig.GmosSouth]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosSouthVisitTable.component)
@@ -52,7 +52,7 @@ private sealed trait VisitTableBuilder[D <: DynamicConfig: Eq]:
     ScalaFnComponent
       .withHooks[Props]
       .useMemoBy(props => props.rows): _ =>
-        identity
+        _.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
       .useReactTableBy: (props, rows) =>
         TableOptions(
           props.cols,

@@ -36,7 +36,7 @@ import lucuma.react.primereact.AccordionMultiple
 
 import scalajs.js
 import lucuma.schemas.model.Visit
-import lucuma.schemas.model.StepRecord
+// import lucuma.schemas.model.StepRecord
 
 sealed trait SequenceTables[S, D](
   protected[sequence] val instrument:    Instrument,
@@ -143,9 +143,12 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
         )
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
-      // TODO The next memo might not be necessary.
       .useMemoBy((props, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
-        (props, _, _) => (acquisitionRows, scienceRows) => (acquisitionRows, scienceRows)
+        (props, _, _) =>
+          (acquisitionRows, scienceRows) => // TODO Initial science indices
+            (acquisitionRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _)),
+             scienceRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
+            )
       )
       .useDynTableBy((_, resize, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
       .useReactTableBy: (props, resize, cols, sequences, dynTable) =>
@@ -175,17 +178,17 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
       .render: (props, resize, cols, _, dynTable, acquisitionTable, scienceTable) =>
-        extension (row: SequenceTableRow)
+        extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
-              case Some(stepId) => row.id.contains(stepId)
+              case Some(stepId) => step.id.contains(stepId)
               case _            => false
 
         val tableStyle: Css =
           ObserveStyles.ObserveTable |+| ObserveStyles.StepTable |+| SequenceStyles.SequenceTable
 
         def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRow]): TagMod =
-          val step                       = row.original
+          val step                       = row.original.step
           val stepIdOpt: Option[Step.Id] = step.id.toOption
 
           TagMod(
@@ -219,9 +222,9 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
 
         def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRow, Any]): TagMod =
           cell.column.id match
-            case id if id == BreakpointColumnId.value                                   =>
+            case id if id == BreakpointColumnId.value                                        =>
               ObserveStyles.BreakpointTableCell
-            case id if id == RunningStateColumnId.value && cell.row.original.isSelected =>
+            case id if id == RunningStateColumnId.value && cell.row.original.step.isSelected =>
               TagMod(
                 ObserveStyles.SelectedStateTableCellShown,
                 resize.width
@@ -229,7 +232,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
                     ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
                   .whenDefined
               )
-            case _                                                                      =>
+            case _                                                                           =>
               TagMod.empty
 
         val acquisition =

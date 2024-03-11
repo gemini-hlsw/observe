@@ -33,9 +33,6 @@ import scalajs.js
 
 // Offload SequenceTables definitions to improve legibility.
 trait SequenceTablesDefs:
-  // protected case class SequenceTableRow(step: SequenceRow[DynamicConfig], index: StepIndex)
-  protected type SequenceTableRow = SequenceRow[DynamicConfig]
-
   protected def ColDef = ColumnDef[SequenceTableRow]
 
   // Breakpoint column has width 0 but is translated and actually shown.
@@ -141,7 +138,7 @@ trait SequenceTablesDefs:
         BreakpointColumnId,
         "",
         cell =>
-          val step: SequenceRow[DynamicConfig] = cell.row.original
+          val step: SequenceRow[DynamicConfig] = cell.row.original.step
           val stepId: Option[Step.Id]          = step.id.toOption
           // val canSetBreakpoint =
           //   clientStatus.canOperate && step.get.canSetBreakpoint(
@@ -177,7 +174,7 @@ trait SequenceTablesDefs:
         RunningStateColumnId,
         "",
         cell =>
-          val step = cell.row.original
+          val step = cell.row.original.step
 
           (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
             selectedStepId
@@ -206,7 +203,7 @@ trait SequenceTablesDefs:
       )
     ) ++
       SequenceColumns
-        .gmosColumns(ColDef, _.some, _ => none)
+        .gmosColumns(ColDef, _._1.some, _._2.some)
         .map(colDef => colDef.setColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
