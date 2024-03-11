@@ -7,7 +7,7 @@ import cats.Eq
 import cats.syntax.all.*
 // import explore.*
 // import explore.components.ui.ExploreStyles
-import lucuma.ui.format.UtcFormatter
+// import lucuma.ui.format.UtcFormatter
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 // import lucuma.core.enums.DatasetQaState
@@ -15,32 +15,30 @@ import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.react.common.ReactFnProps
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.schemas.model.StepRecord
-import lucuma.ui.reusability.given
-import lucuma.ui.sequence.*
+// import lucuma.schemas.model.StepRecord
+// import lucuma.ui.reusability.given
+// import lucuma.ui.sequence.*
 import lucuma.ui.syntax.all.given
 import lucuma.ui.table.*
-import observe.ui.Icons
+// import observe.ui.Icons
 import lucuma.ui.table.hooks.UseDynTable
+import cats.data.NonEmptyList
 
 sealed trait VisitTable[D]:
+  def rows: Reusable[NonEmptyList[SequenceTableRow]]
   def cols: Reusable[List[ColumnDef[SequenceTableRow, ?]]]
-  def steps: List[StepRecord[D]]
   def dynTable: UseDynTable
 
-  protected[sequence] lazy val rows: List[SequenceRow.Executed.ExecutedStep[D]] =
-    steps.map(SequenceRow.Executed.ExecutedStep(_, _ => none))
-
 case class GmosNorthVisitTable(
+  rows:     Reusable[NonEmptyList[SequenceTableRow]],
   cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
-  steps:    List[StepRecord[DynamicConfig.GmosNorth]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosNorthVisitTable.component)
     with VisitTable[DynamicConfig.GmosNorth]
 
 case class GmosSouthVisitTable(
+  rows:     Reusable[NonEmptyList[SequenceTableRow]],
   cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
-  steps:    List[StepRecord[DynamicConfig.GmosSouth]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosSouthVisitTable.component)
     with VisitTable[DynamicConfig.GmosSouth]
@@ -51,12 +49,12 @@ private sealed trait VisitTableBuilder[D <: DynamicConfig: Eq]:
   protected[sequence] val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useMemoBy(props => props.rows): _ =>
-        _.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
-      .useReactTableBy: (props, rows) =>
+      // .useMemoBy(props => props.rows): _ =>
+      //   _.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
+      .useReactTableBy: props =>
         TableOptions(
           props.cols,
-          rows,
+          props.rows.map(_.toList),
           enableSorting = false,
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
@@ -66,7 +64,7 @@ private sealed trait VisitTableBuilder[D <: DynamicConfig: Eq]:
           ),
           onColumnSizingChange = props.dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, _, table) =>
+      .render: (props, table) =>
         PrimeVirtualizedTable(
           table,
           estimateSize = _ => 28.toPx,

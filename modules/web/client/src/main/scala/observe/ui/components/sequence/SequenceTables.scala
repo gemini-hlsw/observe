@@ -36,9 +36,10 @@ import lucuma.react.primereact.AccordionMultiple
 
 import scalajs.js
 import lucuma.schemas.model.Visit
+import lucuma.react.primereact.AccordionTab
 // import lucuma.schemas.model.StepRecord
 
-sealed trait SequenceTables[S, D](
+sealed trait SequenceTables[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
   protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
 ):
@@ -122,7 +123,7 @@ case class GmosSouthSequenceTables(
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
+private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
     extends SequenceTablesDefs
     with SequenceTablesVisits[D]:
   private type Props = SequenceTables[S, D]
@@ -144,13 +145,14 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
       .useMemoBy((props, _, _) => props.visits): (props, _, _) =>
-        _.map: visit =>
-          
-      .useMemoBy((props, _, _, _) => (props.acquisitionRows, props.scienceRows))( // sequences
+        visitsSequences
+      .useMemoBy((props, _, _, visitsData) =>
+        (props.acquisitionRows, props.scienceRows, visitsData._2)
+      )( // sequences
         (props, _, _, _) =>
-          (acquisitionRows, scienceRows) => // TODO Initial science indices
+          (acquisitionRows, scienceRows, nextIndex) => // TODO Initial science indices
             (acquisitionRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _)),
-             scienceRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
+             scienceRows.zipWithStepIndex(nextIndex)._1.map(SequenceTableRow(_, _))
             )
       )
       .useDynTableBy((_, resize, _, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
@@ -180,7 +182,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, resize, cols, _, _, dynTable, acquisitionTable, scienceTable) =>
+      .render: (props, resize, cols, visitsData, _, dynTable, acquisitionTable, scienceTable) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -247,8 +249,19 @@ private sealed trait SequenceTablesBuilder[S: Eq, D: Eq]
             cellMod = computeCellMods
           )
 
-        val visits =
-          AccordionMultiple(tabs = renderVisits(cols, props.visits, dynTable))
+        extension [A](reusableList: Reusable[List[A]])
+          def sequenceList: List[Reusable[A]] =
+            reusableList.value.map(x => reusableList.map(_ => x))
+
+        val visitsTabs: List[AccordionTab] =
+          visitsData
+            .map(_._1)
+            .sequenceList
+            .map: visit =>
+              renderVisitSequence(visit, cols, dynTable)
+
+        val visits: AccordionMultiple =
+          AccordionMultiple(tabs = visitsTabs)
 
         React.Fragment(
           // VisitsViewer(props.obsId),
