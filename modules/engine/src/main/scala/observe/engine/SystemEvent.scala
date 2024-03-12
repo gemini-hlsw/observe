@@ -47,4 +47,7 @@ object SystemEvent {
   final case class SingleRunCompleted[R <: RetVal](actionCoords: ActionCoords, r: OK[R])
       extends SystemEvent
   final case class SingleRunFailed(actionCoords: ActionCoords, e: Result.Error) extends SystemEvent
+
+  case class AtomCompleted(id: Observation.Id) extends SystemEvent
+
 }

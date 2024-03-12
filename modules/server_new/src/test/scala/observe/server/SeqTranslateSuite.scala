@@ -12,6 +12,7 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
+import monocle.syntax.all.focus
 import observe.common.test.*
 import observe.engine.Action
 import observe.engine.EngineStep
@@ -44,30 +45,32 @@ class SeqTranslateSuite extends TestCommon {
       )
     )
 
-  private val seqg = sequence(seqObsId1).copy(
-    steps = List(
-      SequenceGen.PendingStepGen(
-        stepId(1),
-        Monoid.empty[DataId],
-        Set(Instrument.GmosNorth),
-        _ => InstrumentSystem.Uncontrollable,
-        SequenceGen.StepActionsGen(
-          odbAction[IO],
-          odbAction[IO],
-          Map.empty,
-          odbAction[IO],
-          odbAction[IO],
-          (_, _) => List(observeActions(Action.ActionState.Idle)),
-          odbAction[IO],
-          odbAction[IO]
-        ),
-        StepStatusGen.Null,
-        dynamicCfg1,
-        stepCfg1,
-        breakpoint = Breakpoint.Disabled
+  private val seqg = sequence(seqObsId1)
+    .focus(_.nextAtom.steps)
+    .replace(
+      List(
+        SequenceGen.PendingStepGen(
+          stepId(1),
+          Monoid.empty[DataId],
+          Set(Instrument.GmosNorth),
+          _ => InstrumentSystem.Uncontrollable,
+          SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
+            Map.empty,
+            odbAction[IO],
+            odbAction[IO],
+            (_, _) => List(observeActions(Action.ActionState.Idle)),
+            odbAction[IO],
+            odbAction[IO]
+          ),
+          StepStatusGen.Null,
+          dynamicCfg1,
+          stepCfg1,
+          breakpoint = Breakpoint.Disabled
+        )
       )
     )
-  )
 
   // Function to advance the execution of a step up to certain Execution
   @tailrec

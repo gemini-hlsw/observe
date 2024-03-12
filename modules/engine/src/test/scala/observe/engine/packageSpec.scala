@@ -119,7 +119,10 @@ class packageSpec extends munit.CatsEffectSuite {
       )
     )
 
-  private def executionEngine = Engine.build[IO, TestState, Unit](TestState)
+  private def executionEngine = Engine.build[IO, TestState, Unit](
+    TestState,
+    _ => Handle.unit[IO, TestState, Event[IO, TestState, Unit]].pure[IO]
+  )
 
   def isFinished(status: SequenceState): Boolean = status match {
     case SequenceState.Idle      => true

@@ -19,6 +19,7 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.StepConfig
@@ -27,7 +28,7 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.model.sequence.{Step => OdbStep}
 import lucuma.core.util.TimeSpan
 import mouse.all.*
-import observe.common.ObsQueriesGQL.ObsQuery.Data.{Observation => OdbObservation}
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.Action.ActionState
 import observe.engine.*
 import observe.model.Observation
@@ -57,7 +58,7 @@ import observe.server.gmos.GmosSouth
 import observe.server.gmos.GmosSouth.given
 import observe.server.gmos.GmosSouthController
 import observe.server.gmos.NSObserveCommand
-import observe.server.keywords._
+import observe.server.keywords.*
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import observe.server.tcs.*
@@ -68,6 +69,8 @@ trait SeqTranslate[F[_]] {
   def sequence(sequence: OdbObservation)(using
     tio: Temporal[F]
   ): F[(List[Throwable], Option[SequenceGen[F]])]
+
+  def nextAtom(sequence: OdbObservation): (List[Throwable], Option[SequenceGen.AtomGen[F]])
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
     tio: Temporal[F]
@@ -196,26 +199,27 @@ object SeqTranslate {
     override def sequence(sequence: OdbObservation)(using
       tio: Temporal[F]
     ): F[(List[Throwable], Option[SequenceGen[F]])] = sequence.execution.config match {
-      case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) => buildSequenceGmosN(sequence, c)
-      case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) => buildSequenceGmosS(sequence, c)
+      case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
+        buildSequenceGmosN(sequence, c).pure[F]
+      case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
+        buildSequenceGmosS(sequence, c).pure[F]
       case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
     }
 
-    private def buildSequence[S <: StaticConfig, D <: DynamicConfig](
+    private def buildNextAtom[S <: StaticConfig, D <: DynamicConfig](
       sequence:   OdbObservation,
       data:       ExecutionConfig[S, D],
       insSpec:    InstrumentSpecifics[S, D],
       instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
-      instHeader: D => KeywordsClient[F] => Header[F]
-    ): F[(List[Throwable], Option[SequenceGen[F]])] = {
-      val nextAtom         = data.acquisition.map(_.nextAtom).orElse(data.science.map(_.nextAtom))
-      val startIdx: PosInt = PosInt.unsafeFrom(1)
-
-      val sequenceType =
-        if (data.acquisition.isDefined) SequenceType.Acquisition else SequenceType.Science
+      instHeader: D => KeywordsClient[F] => Header[F],
+      startIdx:   PosInt = PosInt.unsafeFrom(1)
+    ): (List[Throwable], Option[SequenceGen.AtomGen[F]]) = {
+      val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) = data.acquisition
+        .map(x => (x.nextAtom.some, SequenceType.Acquisition))
+        .getOrElse((data.science.map(_.nextAtom), SequenceType.Science))
 
       nextAtom
-        .map(atom =>
+        .map { atom =>
           val (a, b) = atom.steps.toList.zipWithIndex.map { case (x, i) =>
             insSpec
               .calcStepType(
@@ -239,27 +243,51 @@ object SeqTranslate {
 
           (a,
            b.nonEmpty
-             .option(b)
-             .map(
-               SequenceGen(
-                 sequence,
-                 Instrument.GmosNorth,
-                 sequenceType,
-                 data.static,
+             .option(
+               SequenceGen.AtomGen(
                  atom.id,
-                 _
+                 sequenceType,
+                 b
                )
              )
           )
-        )
+        }
         .getOrElse((List.empty, none))
-        .pure[F]
+    }
+
+    private def buildSequence[S <: StaticConfig, D <: DynamicConfig](
+      sequence:   OdbObservation,
+      data:       ExecutionConfig[S, D],
+      insSpec:    InstrumentSpecifics[S, D],
+      instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
+      instHeader: D => KeywordsClient[F] => Header[F]
+    ): (List[Throwable], Option[SequenceGen[F]]) = {
+      val startIdx: PosInt = PosInt.unsafeFrom(1)
+      val (a, b)           = buildNextAtom[S, D](
+        sequence,
+        data,
+        insSpec,
+        instf,
+        instHeader,
+        startIdx
+      )
+
+      (a,
+       b.map(x =>
+         SequenceGen(
+           sequence,
+           Instrument.GmosNorth,
+           data.static,
+           x
+         )
+       )
+      )
     }
 
     private def buildSequenceGmosN(
       obsCfg: OdbObservation,
       data:   InstrumentExecutionConfig.GmosNorth
-    ): F[(List[Throwable], Option[SequenceGen[F]])] =
+    ): (List[Throwable], Option[SequenceGen[F]]) =
       buildSequence(
         obsCfg,
         data.executionConfig,
@@ -286,7 +314,7 @@ object SeqTranslate {
     private def buildSequenceGmosS(
       obsCfg: OdbObservation,
       data:   InstrumentExecutionConfig.GmosSouth
-    ): F[(List[Throwable], Option[SequenceGen[F]])] =
+    ): (List[Throwable], Option[SequenceGen[F]]) =
       buildSequence(
         obsCfg,
         data.executionConfig,
@@ -322,10 +350,9 @@ object SeqTranslate {
         if obsSeq.seq.current.execution
           .exists(isObserving)
         stId   <- obsSeq.seq.currentStep.map(_.id)
-        curStp <- obsSeq.seqGen.steps.find(_.id === stId)
-        obsCtr <- curStp.some.collect {
-                    case SequenceGen.PendingStepGen(_, _, _, obsControl, _, _, _, _, _) =>
-                      obsControl
+        curStp <- obsSeq.seqGen.nextAtom.steps.find(_.id === stId)
+        obsCtr <- curStp.some.collect { case x: SequenceGen.PendingStepGen[F] =>
+                    x.obsControl
                   }
       } yield Stream.eval(
         f(obsCtr(obsSeq.overrides)).attempt
@@ -766,6 +793,60 @@ object SeqTranslate {
               instHeader(kwClient)
             )
     }
+
+    override def nextAtom(
+      sequence: OdbObservation
+    ): (List[Throwable], Option[SequenceGen.AtomGen[F]]) =
+      sequence.execution.config
+        .map {
+          case InstrumentExecutionConfig.GmosNorth(executionConfig) =>
+            buildNextAtom[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+              sequence,
+              executionConfig,
+              GmosNorth.specifics,
+              (ov: SystemOverrides, t: StepType, d: DynamicConfig.GmosNorth) =>
+                GmosNorth.build(
+                  overriddenSystems.gmosNorth(ov),
+                  overriddenSystems.dhs(ov),
+                  gmosNsCmd,
+                  t,
+                  executionConfig.static,
+                  d
+                ),
+              (d: DynamicConfig.GmosNorth) =>
+                (kwClient: KeywordsClient[F]) =>
+                  GmosHeader.header(
+                    kwClient,
+                    GmosObsKeywordsReader(executionConfig.static, d),
+                    systemss.gmosKeywordReader,
+                    systemss.tcsKeywordReader
+                  )
+            )
+          case InstrumentExecutionConfig.GmosSouth(executionConfig) =>
+            buildNextAtom[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
+              sequence,
+              executionConfig,
+              GmosSouth.specifics,
+              (ov: SystemOverrides, t: StepType, d: DynamicConfig.GmosSouth) =>
+                GmosSouth.build(
+                  overriddenSystems.gmosSouth(ov),
+                  overriddenSystems.dhs(ov),
+                  gmosNsCmd,
+                  t,
+                  executionConfig.static,
+                  d
+                ),
+              (d: DynamicConfig.GmosSouth) =>
+                (kwClient: KeywordsClient[F]) =>
+                  GmosHeader.header(
+                    kwClient,
+                    GmosObsKeywordsReader(executionConfig.static, d),
+                    systemss.gmosKeywordReader,
+                    systemss.tcsKeywordReader
+                  )
+            )
+        }
+        .getOrElse((List.empty, none))
   }
 
   def apply[F[_]: Async: Logger](

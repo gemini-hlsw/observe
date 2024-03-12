@@ -38,6 +38,7 @@ import observe.engine.EventResult
 import observe.engine.EventResult.Outcome
 import observe.engine.Sequence
 import observe.engine.user
+import observe.model
 import observe.model.ClientId
 import observe.model.Conditions
 import observe.model.Observer
@@ -65,7 +66,7 @@ class ObserveEngineSuite extends TestCommon {
 
   import TestCommon.*
 
-  val clientId = ClientId(UUID.randomUUID())
+  val clientId: model.ClientId.Type = ClientId(UUID.randomUUID())
 
   test("ObserveEngine setOperator should set operator's name") {
     val operator = Operator("Joe".refined)
@@ -338,21 +339,20 @@ class ObserveEngineSuite extends TestCommon {
 
     (for {
       oe <- observeEngine
-      sf <-
-        advanceN(
-          oe,
-          s0,
-          oe
-            .configSystem(
-              seqObsId2,
-              Observer("Joe".refined),
-              user,
-              stepId(1),
-              Gcal,
-              clientId
-            ),
-          3
-        )
+      sf <- advanceN(
+              oe,
+              s0,
+              oe
+                .configSystem(
+                  seqObsId2,
+                  Observer("Joe".refined),
+                  user,
+                  stepId(1),
+                  Gcal,
+                  clientId
+                ),
+              3
+            )
     } yield sf
       .flatMap(EngineState.atSequence(seqObsId2).getOption)
       .flatMap(s => s.seqGen.configActionCoord(stepId(1), Gcal).map(s.seq.getSingleState))
@@ -370,7 +370,8 @@ class ObserveEngineSuite extends TestCommon {
     val runStepId = stepId(3)
 
     (for {
-      oe <- observeEngine
+      db <- odbWithEmptyObs
+      oe <- observeEngineWithODB(db)
       _  <- oe.startFrom(
               seqObsId1,
               Observer("Joe".refined),
@@ -492,32 +493,34 @@ class ObserveEngineSuite extends TestCommon {
         )
       ),
       instrument = Instrument.GmosNorth,
-      SequenceType.Science,
       staticCfg1,
-      atomId1,
-      steps = stepList.map { step =>
-        SequenceGen.PendingStepGen(
-          step.id,
-          Monoid.empty[DataId],
-          resources = resources,
-          _ => InstrumentSystem.Uncontrollable,
-          generator = SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            configs =
-              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            odbAction[IO],
-            odbAction[IO],
-            post = (_, _) => Nil,
-            odbAction[IO],
-            odbAction[IO]
-          ),
-          StepStatusGen.Null,
-          step.instrumentConfig,
-          step.stepConfig,
-          breakpoint = Breakpoint.Disabled
-        )
-      }.toList
+      SequenceGen.AtomGen(
+        atomId1,
+        SequenceType.Science,
+        steps = stepList.map { step =>
+          SequenceGen.PendingStepGen(
+            step.id,
+            Monoid.empty[DataId],
+            resources = resources,
+            _ => InstrumentSystem.Uncontrollable,
+            generator = SequenceGen.StepActionsGen(
+              odbAction[IO],
+              odbAction[IO],
+              configs =
+                resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+              odbAction[IO],
+              odbAction[IO],
+              post = (_, _) => Nil,
+              odbAction[IO],
+              odbAction[IO]
+            ),
+            StepStatusGen.Null,
+            step.instrumentConfig,
+            step.stepConfig,
+            breakpoint = Breakpoint.Disabled
+          )
+        }.toList
+      )
     )
   }
 
@@ -841,32 +844,34 @@ class ObserveEngineSuite extends TestCommon {
         )
       ),
       instrument = Instrument.GmosNorth,
-      SequenceType.Science,
       staticCfg1,
-      atomId1,
-      steps = stepList.map { step =>
-        SequenceGen.PendingStepGen(
-          step.id,
-          Monoid.empty[DataId],
-          resources = resources,
-          _ => InstrumentSystem.Uncontrollable,
-          generator = SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            configs =
-              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            odbAction[IO],
-            odbAction[IO],
-            post = (_, _) => Nil,
-            odbAction[IO],
-            odbAction[IO]
-          ),
-          StepStatusGen.Null,
-          step.instrumentConfig,
-          step.stepConfig,
-          breakpoint = Breakpoint.Disabled
-        )
-      }.toList
+      SequenceGen.AtomGen(
+        atomId1,
+        SequenceType.Science,
+        steps = stepList.map { step =>
+          SequenceGen.PendingStepGen(
+            step.id,
+            Monoid.empty[DataId],
+            resources = resources,
+            _ => InstrumentSystem.Uncontrollable,
+            generator = SequenceGen.StepActionsGen(
+              odbAction[IO],
+              odbAction[IO],
+              configs =
+                resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+              odbAction[IO],
+              odbAction[IO],
+              post = (_, _) => Nil,
+              odbAction[IO],
+              odbAction[IO]
+            ),
+            StepStatusGen.Null,
+            step.instrumentConfig,
+            step.stepConfig,
+            breakpoint = Breakpoint.Disabled
+          )
+        }.toList
+      )
     )
   }
 

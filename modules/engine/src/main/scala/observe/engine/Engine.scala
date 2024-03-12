@@ -30,7 +30,8 @@ import Handle.given
 class Engine[F[_]: MonadThrow: Logger, S, U] private (
   stateL:      Engine.State[F, S],
   streamQueue: Queue[F, Stream[F, Event[F, S, U]]],
-  inputQueue:  Queue[F, Event[F, S, U]]
+  inputQueue:  Queue[F, Event[F, S, U]],
+  atomLoad:    Observation.Id => F[Handle[F, S, Event[F, S, U], U]]
 ) {
   val L: Logger[F] = Logger[F]
 
@@ -161,7 +162,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
               send(finished(id))
             // Final State
             case Some(qs: Sequence.State.Final[F]) =>
-              putS(id)(qs) *> send(finished(id))
+              putS(id)(qs) *> send(atomCompleted(id))
             // Execution completed
             case Some(qs)                          =>
               putS(id)(qs) *> switch(id)(SequenceState.Idle)
@@ -173,7 +174,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
               send(finished(id))
             // Final State
             case Some(qs: Sequence.State.Final[F]) =>
-              putS(id)(qs) *> send(finished(id))
+              putS(id)(qs) *> send(atomCompleted(id))
             // Execution completed. Check breakpoint here
             case Some(qs)                          =>
               putS(id)(qs) *> (if (qs.getCurrentBreakpoint) {
@@ -183,6 +184,42 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         } else unit
       }.getOrElse(unit)
     )
+
+  private def tryNextAtom(id: Observation.Id): HandleType[Unit] = getS(id).flatMap(
+    _.map { seq =>
+      Handle.fromStream(
+        Stream.eval(
+          atomLoad(id).map { h =>
+            Event.modifyState(
+              h <*
+                getS(id).flatMap(
+                  _.map { seq =>
+                    if (Sequence.State.anyStopRequested(seq)) {
+                      seq match {
+                        // Final State
+                        case Sequence.State.Final[F](_, _) => send(finished(id))
+                        // Execution completed
+                        case _                             => switch(id)(SequenceState.Idle)
+                      }
+                    } else if (Sequence.State.isRunning(seq)) {
+                      seq match {
+                        // Final State
+                        case Sequence.State.Final[F](_, _) => send(finished(id))
+                        // Execution completed. Check breakpoint here
+                        case _                             =>
+                          if (seq.getCurrentBreakpoint) {
+                            switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
+                          } else send(executing(id))
+                      }
+                    } else unit
+                  }.getOrElse(unit)
+                )
+            )
+          }
+        )
+      )
+    }.getOrElse(unit)
+  )
 
   /**
    * Executes all actions in the `Current` `Execution` in parallel. When all are done it emits the
@@ -434,6 +471,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     case SingleRunFailed(c, e)      =>
       debug(s"Engine: single action $c failed with error $e") *>
         failSingleRun(c, e) *> pure(SystemUpdate(se, Outcome.Ok))
+    case AtomCompleted(id)          => tryNextAtom(id).as(SystemUpdate(se, Outcome.Ok))
     case Null                       => pure(SystemUpdate(se, Outcome.Ok))
   }
 
@@ -539,11 +577,12 @@ object Engine {
   }
 
   def build[F[_]: MonadThrow: Logger: Concurrent, S, U](
-    stateL: State[F, S]
+    stateL:       State[F, S],
+    loadNextAtom: Observation.Id => F[Handle[F, S, Event[F, S, U], U]]
   ): F[Engine[F, S, U]] = for {
     sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
     iq <- Queue.unbounded[F, Event[F, S, U]]
-  } yield new Engine(stateL, sq, iq)
+  } yield new Engine(stateL, sq, iq, loadNextAtom)
 
   /**
    * Builds the initial state of a sequence

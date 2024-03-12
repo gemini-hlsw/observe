@@ -172,7 +172,7 @@ def toStepList[F[_]](
   overrides: SystemOverrides,
   d:         HeaderExtraData
 ): List[engine.EngineStep[F]] =
-  seq.steps.map(StepGen.generate(_, overrides, d))
+  seq.nextAtom.steps.map(StepGen.generate(_, overrides, d))
 
 // If f is true continue, otherwise fail
 def failUnlessM[F[_]: MonadThrow](f: F[Boolean], err: Exception): F[Unit] =

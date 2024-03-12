@@ -32,36 +32,40 @@ import observe.model.enums.Resource
  * engine sequence whenever any of those parameters change.
  */
 case class SequenceGen[F[_]](
-  obsData:      OdbObservation,
-  instrument:   Instrument,
-  sequenceType: SequenceType,
-  staticCfg:    StaticConfig,
-  atomId:       Atom.Id,
-  steps:        List[SequenceGen.StepGen[F]]
+  obsData:    OdbObservation,
+  instrument: Instrument,
+  staticCfg:  StaticConfig,
+  nextAtom:   SequenceGen.AtomGen[F]
 ) {
-  val resources: Set[Resource | Instrument] = steps
-    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _) =>
-      resources
+  val resources: Set[Resource | Instrument] = nextAtom.steps
+    .collect { case p: SequenceGen.PendingStepGen[F] =>
+      p.resources
     }
     .foldMap(identity)
 
   def configActionCoord(stepId: Step.Id, r: Resource | Instrument): Option[ActionCoordsInSeq] =
-    steps
+    nextAtom.steps
       .find(_.id === stepId)
       .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.configActionCoord(r))
       .map { case (ex, ac) => ActionCoordsInSeq(stepId, ex, ac) }
 
   def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource | Instrument] =
-    steps
+    nextAtom.steps
       .find(_.id === c.stepId)
       .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
 
-  def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(steps, stepId)
+  def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(nextAtom.steps, stepId)
 }
 
 object SequenceGen {
+
+  case class AtomGen[F[_]](
+    atomId:       Atom.Id,
+    sequenceType: SequenceType,
+    steps:        List[SequenceGen.StepGen[F]]
+  )
 
   trait StepStatusGen
 
