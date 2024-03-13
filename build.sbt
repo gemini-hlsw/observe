@@ -66,7 +66,7 @@ lazy val setupNodeNpmInstall =
 
 lazy val herokuLogin =
   WorkflowStep.Run(
-    List("heroku container:login"),
+    List("heroku login", "heroku container:login"),
     name = Some("Login to Heroku Container")
   )
 
