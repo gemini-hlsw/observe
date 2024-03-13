@@ -33,7 +33,8 @@ import scalajs.js
 
 // Offload SequenceTables definitions to improve legibility.
 trait SequenceTablesDefs:
-  protected def ColDef = ColumnDef[HeaderOrRow[SequenceTableRow]]
+  protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow]]
+  protected def ColDef = ColumnDef[SequenceTableRowType]
 
   // Breakpoint column has width 0 but is translated and actually shown.
   // We display an empty BreakpointSpace column to show the space with correct borders.
@@ -120,9 +121,9 @@ trait SequenceTablesDefs:
     id:     ColumnId,
     header: VdomNode,
     cell:   js.UndefOr[
-      raw.buildLibCoreCellMod.CellContext[HeaderOrRow[SequenceTableRow], V] => VdomNode
+      raw.buildLibCoreCellMod.CellContext[SequenceTableRowType, V] => VdomNode
     ] = js.undefined
-  ): ColumnDef[HeaderOrRow[SequenceTableRow], V] =
+  ): ColumnDef[SequenceTableRowType, V] =
     ColDef[V](id, header = _ => header, cell = cell).setColumnSize(ColumnSizes(id))
 
   protected def columnDefs(flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback)(
@@ -134,14 +135,14 @@ trait SequenceTablesDefs:
     progress:       Option[StepProgress],
     isPreview:      Boolean,
     selectedStepId: Option[Step.Id]
-  ): List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]] =
+  ): List[ColumnDef[SequenceTableRowType, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
       column(
         BreakpointColumnId,
         "",
         cell =>
-          cell.row.original.toOption.map: stepRow =>
+          cell.row.original.value.toOption.map: stepRow =>
             val step: SequenceRow[DynamicConfig] = stepRow.step
             val stepId: Option[Step.Id]          = step.id.toOption
             // val canSetBreakpoint =
@@ -177,7 +178,7 @@ trait SequenceTablesDefs:
       column(
         RunningStateColumnId,
         "",
-        _.row.original.toOption
+        _.row.original.value.toOption
           .map(_.step)
           .map: step =>
             (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
