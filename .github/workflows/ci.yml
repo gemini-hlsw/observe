@@ -128,7 +128,7 @@ jobs:
         run: 'heroku container:login'
 
       - name: Build and deploy Docker image to Heroku
-        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy_observe_server_staging/docker:publish'
+        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy/docker:publish'
 
       - name: Release app in Heroku
         run: 'heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}'
