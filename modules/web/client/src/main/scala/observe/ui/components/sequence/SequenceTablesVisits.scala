@@ -22,6 +22,7 @@ import lucuma.schemas.model.Visit
 import java.time.Duration
 import lucuma.react.table.ColumnDef
 import lucuma.ui.sequence.*
+import lucuma.ui.table.*
 import lucuma.ui.table.hooks.UseDynTable
 import eu.timepit.refined.types.numeric.PosInt
 import cats.data.NonEmptyList
@@ -31,7 +32,7 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
 
   protected def renderTable: (
     Reusable[NonEmptyList[SequenceTableRow]],
-    Reusable[List[ColumnDef[SequenceTableRow, ?]]],
+    Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
     UseDynTable
   ) => VdomNode
 
@@ -44,7 +45,7 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
 
   protected def renderVisitSequence(
     visit:    Reusable[VisitData],
-    cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
+    cols:     Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
     dynTable: UseDynTable
   ): AccordionTab =
     AccordionTab(

@@ -26,19 +26,19 @@ import cats.data.NonEmptyList
 
 sealed trait VisitTable[D]:
   def rows: Reusable[NonEmptyList[SequenceTableRow]]
-  def cols: Reusable[List[ColumnDef[SequenceTableRow, ?]]]
+  def cols: Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]]
   def dynTable: UseDynTable
 
 case class GmosNorthVisitTable(
   rows:     Reusable[NonEmptyList[SequenceTableRow]],
-  cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
+  cols:     Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosNorthVisitTable.component)
     with VisitTable[DynamicConfig.GmosNorth]
 
 case class GmosSouthVisitTable(
   rows:     Reusable[NonEmptyList[SequenceTableRow]],
-  cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
+  cols:     Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
   dynTable: UseDynTable
 ) extends ReactFnProps(GmosSouthVisitTable.component)
     with VisitTable[DynamicConfig.GmosSouth]
@@ -49,12 +49,10 @@ private sealed trait VisitTableBuilder[D <: DynamicConfig: Eq]:
   protected[sequence] val component =
     ScalaFnComponent
       .withHooks[Props]
-      // .useMemoBy(props => props.rows): _ =>
-      //   _.zipWithStepIndex()._1.map(SequenceTableRow(_, _))
       .useReactTableBy: props =>
         TableOptions(
           props.cols,
-          props.rows.map(_.toList),
+          props.rows.map(_.toList.map(_.toHeaderOrRow)),
           enableSorting = false,
           enableColumnResizing = true,
           columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
