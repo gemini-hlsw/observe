@@ -125,9 +125,7 @@ jobs:
           npm clean-install --verbose
 
       - name: Login to Heroku Container
-        run: |
-          heroku login
-          heroku container:login
+        run: 'heroku container:login'
 
       - name: Build and deploy Docker image to Heroku
         run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy/docker:publish'
