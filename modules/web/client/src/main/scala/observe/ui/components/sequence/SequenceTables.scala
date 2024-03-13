@@ -13,6 +13,7 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
+import lucuma.core.syntax.all.given
 import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.resizeDetector.hooks.*
@@ -33,6 +34,8 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
+import lucuma.ui.format.{DurationFormatter, UtcFormatter}
+import lucuma.ui.display.given
 
 import lucuma.schemas.model.Visit
 
@@ -146,23 +149,45 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useMemoBy((props, _, _, visitsData) =>
         (props.acquisitionRows, props.scienceRows, visitsData)
       ): (props, _, _, _) =>
-        (acquisitionRows, scienceRows, visitsData) =>
+        (acquisitionSteps, scienceSteps, visitsData) =>
           val (visits, nextIndex) = visitsData.value
 
-          val acquisition =
-            Option
-              .when(acquisitionRows.nonEmpty)(HeaderRow("Acquisition").toHeaderOrRow)
-              .toList ++
-              acquisitionRows.zipWithStepIndex()._1.map(SequenceTableRow(_, _).toHeaderOrRow)
+          val visitsRows =
+            visits.flatMap: visit =>
+              HeaderRow(
+                <.div( /*ExploreStyles.VisitHeader*/ )( // Steps is non-empty => head is safe
+                  <.span(UtcFormatter.format(visit.created.toInstant)),
+                  <.span(visit.sequenceType.shortName),
+                  <.span(s"Steps: ${visit.steps.head.index} - ${visit.steps.last.index}"),
+                  <.span(
+                    "Files: " + visit.datasetRange
+                      .map((min, max) => s"$min - $max")
+                      .getOrElse("---")
+                  ),
+                  <.span(
+                    DurationFormatter(
+                      visit.steps
+                        .map(_.step.exposureTime.orEmpty.toDuration)
+                        .reduce(_.plus(_))
+                    )
+                  )
+                )
+              ).toHeaderOrRow +: visit.steps.toList.map(_.toHeaderOrRow)
 
-          val science =
-            Option.when(scienceRows.nonEmpty)(HeaderRow("Science").toHeaderOrRow).toList ++
-              scienceRows
+          val acquisitionRows =
+            Option
+              .when(acquisitionSteps.nonEmpty)(HeaderRow("Acquisition").toHeaderOrRow)
+              .toList ++
+              acquisitionSteps.zipWithStepIndex()._1.map(SequenceTableRow(_, _).toHeaderOrRow)
+
+          val scienceRows =
+            Option.when(scienceSteps.nonEmpty)(HeaderRow("Science").toHeaderOrRow).toList ++
+              scienceSteps
                 .zipWithStepIndex(nextIndex)
                 ._1
                 .map(SequenceTableRow(_, _).toHeaderOrRow)
 
-          acquisition ++ science
+          visitsRows ++ acquisitionRows ++ scienceRows
       .useDynTableBy((_, resize, _, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
       .useReactTableBy: (props, resize, cols, _, sequence, dynTable) =>
         TableOptions(
