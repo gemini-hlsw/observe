@@ -13,7 +13,6 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
-import lucuma.core.syntax.all.given
 import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.resizeDetector.hooks.*
@@ -34,8 +33,6 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
-import lucuma.ui.format.{DurationFormatter, UtcFormatter}
-import lucuma.ui.display.given
 
 import lucuma.schemas.model.Visit
 
@@ -154,25 +151,8 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
 
           val visitsRows =
             visits.flatMap: visit =>
-              HeaderRow(
-                <.div( /*ExploreStyles.VisitHeader*/ )( // Steps is non-empty => head is safe
-                  <.span(UtcFormatter.format(visit.created.toInstant)),
-                  <.span(visit.sequenceType.shortName),
-                  <.span(s"Steps: ${visit.steps.head.index} - ${visit.steps.last.index}"),
-                  <.span(
-                    "Files: " + visit.datasetRange
-                      .map((min, max) => s"$min - $max")
-                      .getOrElse("---")
-                  ),
-                  <.span(
-                    DurationFormatter(
-                      visit.steps
-                        .map(_.step.exposureTime.orEmpty.toDuration)
-                        .reduce(_.plus(_))
-                    )
-                  )
-                )
-              ).toHeaderOrRow +: visit.steps.toList.map(_.toHeaderOrRow)
+              HeaderRow(renderVisitHeader(visit)).toHeaderOrRow +:
+                visit.steps.toList.map(_.toHeaderOrRow)
 
           val acquisitionRows =
             Option

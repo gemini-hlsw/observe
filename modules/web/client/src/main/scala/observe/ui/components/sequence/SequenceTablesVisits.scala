@@ -15,7 +15,6 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.syntax.all.given
 import lucuma.core.util.Timestamp
-import lucuma.react.primereact.AccordionTab
 import lucuma.schemas.model.AtomRecord
 import lucuma.schemas.model.Visit
 
@@ -43,31 +42,24 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
     datasetRange: Option[(Short, Short)]
   )
 
-  protected def renderVisitSequence(
-    visit:    Reusable[VisitData],
-    cols:     Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
-    dynTable: UseDynTable
-  ): AccordionTab =
-    AccordionTab(
-      // clazz = ExploreStyles.VisitSection,
-      header = <.div( /*ExploreStyles.VisitHeader*/ )( // Steps is non-empty => head is safe
-        <.span(UtcFormatter.format(visit.created.toInstant)),
-        <.span(visit.sequenceType.shortName),
-        <.span(s"Steps: ${visit.steps.head.index} - ${visit.steps.last.index}"),
-        <.span(
-          "Files: " + visit.datasetRange
-            .map((min, max) => s"$min - $max")
-            .getOrElse("---")
-        ),
-        <.span(
-          DurationFormatter(
-            visit.steps
-              .map(_.step.exposureTime.orEmpty.toDuration)
-              .reduce(_.plus(_))
-          )
+  protected def renderVisitHeader(visit: VisitData): VdomNode =
+    <.div( /*ExploreStyles.VisitHeader*/ )( // Steps is non-empty => head is safe
+      <.span(UtcFormatter.format(visit.created.toInstant)),
+      <.span(visit.sequenceType.shortName),
+      <.span(s"Steps: ${visit.steps.head.index} - ${visit.steps.last.index}"),
+      <.span(
+        "Files: " + visit.datasetRange
+          .map((min, max) => s"$min - $max")
+          .getOrElse("---")
+      ),
+      <.span(
+        DurationFormatter(
+          visit.steps
+            .map(_.step.exposureTime.orEmpty.toDuration)
+            .reduce(_.plus(_))
         )
       )
-    )(renderTable(visit.map(_.steps), cols, dynTable))
+    )
 
   // def renderVisits(
   //   cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
