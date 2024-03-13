@@ -72,7 +72,7 @@ lazy val herokuLogin =
 
 lazy val sbtDeploy =
   WorkflowStep.Sbt(
-    List("deploy_observe_server_staging/docker:publish"),
+    List("deploy/docker:publish"),
     name = Some("Build and deploy Docker image to Heroku")
   )
 
