@@ -7,7 +7,11 @@ import cats.*
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all.*
+import coulomb.ops.algebra.all.given
+import coulomb.policy.standard.given
+import coulomb.syntax.*
 import lucuma.core.enums.Site
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
@@ -35,9 +39,6 @@ import observe.server.tcs.TcsEpics.ProbeFollowCmd
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 import observe.server.tcs.TcsSouthController.{*, given}
 import org.typelevel.log4cats.Logger
-import squants.time.TimeConversions.*
-
-import java.time.Duration
 
 /**
  * Controller of Gemini's South AO system over epics
@@ -290,9 +291,9 @@ object TcsSouthControllerEpicsAo {
         (demand.gaos.isOdgw4Used && !current.odgw4.isActive)
 
       distanceSquared.exists(dd =>
-        (isAnyGemsSourceUsed && dd > AoOffsetThreshold * AoOffsetThreshold) ||
-          (demand.gaos.isP1Used && dd > pwfs1OffsetThreshold * pwfs1OffsetThreshold) ||
-          (demand.gaos.isOIUsed && demand.inst.oiOffsetGuideThreshold.exists(t => dd > t * t))
+        (isAnyGemsSourceUsed && dd > AoOffsetThreshold.pow[2]) ||
+          (demand.gaos.isP1Used && dd > pwfs1OffsetThreshold.pow[2]) ||
+          (demand.gaos.isOIUsed && demand.inst.oiOffsetGuideThreshold.exists(t => dd > t.pow[2]))
       )
 
     }
@@ -305,12 +306,12 @@ object TcsSouthControllerEpicsAo {
 
       val becauseP1 = distanceSquared.exists(dd =>
         Tcs.calcGuiderInUse(demand.gc, TipTiltSource.PWFS1, M1Source.PWFS1)
-          && dd > pwfs1OffsetThreshold * pwfs1OffsetThreshold
+          && dd > pwfs1OffsetThreshold.pow[2]
       )
 
       val becauseOi = demand.inst.oiOffsetGuideThreshold.exists(t =>
         Tcs.calcGuiderInUse(demand.gc, TipTiltSource.OIWFS, M1Source.OIWFS) && distanceSquared
-          .exists(_ > t * t)
+          .exists(_ > t.pow[2])
       )
 
       val becauseAo = demand.gc.m1Guide match {
@@ -531,7 +532,7 @@ object TcsSouthControllerEpicsAo {
             TcsSettleTimeCalculator
               .calc(current.base.instrumentOffset, _, subsystems, tcs.inst.instrument)
           )
-          .getOrElse(0.seconds)
+          .orEmpty
 
         if (paramList.nonEmpty) {
           val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
@@ -543,17 +544,16 @@ object TcsSouthControllerEpicsAo {
             _ <- L.debug(s"TCS set because $debug").whenA(trace)
             s <- params
             _ <- epicsSys.post(TcsControllerEpicsCommon.ConfigTimeout)
-            _ <- if (mountMoves)
-                   epicsSys.waitInPosition(Duration.ofMillis(stabilizationTime.toMillis),
-                                           tcsTimeout
-                   ) *> L.debug("TCS inposition")
-                 else if (
-                   Set(Subsystem.PWFS1, Subsystem.PWFS2, Subsystem.AGUnit).exists(
-                     subsystems.contains
-                   )
-                 )
-                   epicsSys.waitAGInPosition(agTimeout) *> L.debug("AG inposition")
-                 else Applicative[F].unit
+            _ <-
+              if (mountMoves)
+                epicsSys.waitInPosition(stabilizationTime, tcsTimeout) *> L.debug("TCS inposition")
+              else if (
+                Set(Subsystem.PWFS1, Subsystem.PWFS2, Subsystem.AGUnit).exists(
+                  subsystems.contains
+                )
+              )
+                epicsSys.waitAGInPosition(agTimeout) *> L.debug("AG inposition")
+              else Applicative[F].unit
             _ <- L.debug("Completed TCS configuration")
           } yield s
         } else

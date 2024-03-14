@@ -285,7 +285,6 @@ lazy val observe_server = project
     libraryDependencies ++=
       Seq(
         Http4sCirce.value,
-        Squants.value,
         Http4sXml,
         Log4Cats.value,
         Log4CatsNoop.value,
@@ -295,7 +294,7 @@ lazy val observe_server = project
         CatsParse.value,
         ACM,
         GiapiScala
-      ) ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++
+      ) ++ Coulomb.value ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++
         Circe.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server_new"
@@ -330,7 +329,6 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .enablePlugins(GitBranchPrompt)
   .settings(
     libraryDependencies ++= Seq(
-      Squants.value,
       PPrint.value,
       Mouse.value,
       CatsTime.value,
@@ -338,7 +336,7 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
       Http4sCirce.value,
       Http4sLaws.value,
       LucumaODBSchema.value
-    ) ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
+    ) ++ Coulomb.value ++ MUnit.value ++ Monocle.value ++ LucumaCore.value ++ Circe.value
   )
   .jvmSettings(commonSettings)
   .jsSettings(

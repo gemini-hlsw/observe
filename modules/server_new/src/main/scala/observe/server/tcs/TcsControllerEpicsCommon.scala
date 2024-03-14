@@ -3,16 +3,23 @@
 
 package observe.server.tcs
 
+import algebra.instances.all.given
 import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
+import coulomb.*
+import coulomb.ops.algebra.all.given
+import coulomb.policy.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.Site
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
+import lucuma.core.math.units.Angstrom
 import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Iso
@@ -28,12 +35,7 @@ import observe.server.EpicsCommand
 import observe.server.ObserveFailure
 import observe.server.tcs.TcsController.*
 import org.typelevel.log4cats.Logger
-import squants.Length
-import squants.space.Area
-import squants.space.LengthConversions.*
-import squants.time.TimeConversions.*
 
-import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 /**
@@ -168,7 +170,7 @@ object TcsControllerEpicsCommon {
         )
     )
     // Does the offset movement surpass any of the existing thresholds ?
-    distanceSquared.exists(dd => thresholds.exists(_.exists(t => t * t < dd)))
+    distanceSquared.exists(dd => thresholds.exists(_.exists(_.pow[2] < dd)))
   }
 
   // Disable M1 guiding if source is off
@@ -628,10 +630,10 @@ object TcsControllerEpicsCommon {
 
     // Same offset is applied to all the beams
     override def setTelescopeOffset(c: FocalPlaneOffset): F[Unit] =
-      epicsSys.offsetACmd.setX(c.x.value.toMillimeters) *>
-        epicsSys.offsetACmd.setY(c.y.value.toMillimeters) *>
-        epicsSys.offsetBCmd.setX(c.x.value.toMillimeters) *>
-        epicsSys.offsetBCmd.setY(c.y.value.toMillimeters)
+      epicsSys.offsetACmd.setX(c.x.value.value) *>
+        epicsSys.offsetACmd.setY(c.y.value.value) *>
+        epicsSys.offsetBCmd.setX(c.x.value.value) *>
+        epicsSys.offsetBCmd.setY(c.y.value.value)
 
     // Same wavelength is applied to all the beams
     override def setWavelength(w: Wavelength): F[Unit] =
@@ -728,15 +730,15 @@ object TcsControllerEpicsCommon {
       tcs:        BasicTcsConfig[S]
     ): F[Unit] = {
       def sysConfig(current: BaseEpicsTcsConfig): F[BaseEpicsTcsConfig] = {
-        val mountPosParams      = configMountPos(subsystems, current, tcs.tc, Iso.id)
-        val paramList           = configBaseParams(subsystems, current, tcs) ++ mountPosParams
-        val mountMoves: Boolean = mountPosParams.nonEmpty
-        val stabilizationTime   = tcs.tc.offsetA
+        val mountPosParams              = configMountPos(subsystems, current, tcs.tc, Iso.id)
+        val paramList                   = configBaseParams(subsystems, current, tcs) ++ mountPosParams
+        val mountMoves: Boolean         = mountPosParams.nonEmpty
+        val stabilizationTime: TimeSpan = tcs.tc.offsetA
           .map(
             TcsSettleTimeCalculator
               .calc(current.instrumentOffset, _, subsystems, tcs.inst.instrument)
           )
-          .getOrElse(0.seconds)
+          .getOrElse(TimeSpan.Zero)
 
         if (paramList.nonEmpty) {
           val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
@@ -751,7 +753,7 @@ object TcsControllerEpicsCommon {
             _ <- epicsSys.post(ConfigTimeout)
             _ <- if (mountMoves)
                    epicsSys.waitInPosition(
-                     Duration.ofMillis(stabilizationTime.toMillis),
+                     stabilizationTime,
                      tcsTimeout
                    ) *> L.debug("TCS inposition")
                  else
@@ -846,21 +848,21 @@ object TcsControllerEpicsCommon {
   val DefaultTimeout: TimeSpan = TimeSpan.unsafeFromDuration(10, ChronoUnit.SECONDS)
   val ConfigTimeout: TimeSpan  = TimeSpan.unsafeFromDuration(60, ChronoUnit.SECONDS)
 
-  val OffsetTolerance: Length = 1e-6.millimeters
+  val OffsetTolerance: Quantity[Double, Millimeter] = 1e-6.withUnit[Millimeter]
 
   def offsetNear(offset: FocalPlaneOffset, other: FocalPlaneOffset): Boolean = (
-    math.pow((offset.x.value - other.x.value).toMillimeters, 2)
-      + math.pow((offset.y.value - other.y.value).toMillimeters, 2)
-      <= math.pow(OffsetTolerance.toMillimeters, 2)
+    (offset.x.value - other.x.value).pow[2]
+      + (offset.y.value - other.y.value).pow[2]
+      <= OffsetTolerance.pow[2]
   )
 
   // Wavelength status gives value as Angstroms, with no decimals
-  val WavelengthTolerance: Length = 0.5.angstroms
+  val WavelengthTolerance: Quantity[Double, Angstrom] = 0.5.withUnit[Angstrom]
 
   def wavelengthNear(wavel: Wavelength, other: Wavelength): Boolean =
     math.abs(
       wavel.toAngstroms.value.value.doubleValue - other.toAngstroms.value.value.doubleValue
-    ) <= WavelengthTolerance.toAngstroms
+    ) <= WavelengthTolerance.value
 
   def oiSelectionName(i: Instrument): Option[String] = i match {
 //    case Instrument.F2                                        => "F2".some
@@ -872,10 +874,14 @@ object TcsControllerEpicsCommon {
     case i                                           => sys.error(s"OI selection not supported for $i")
   }
 
-  def calcMoveDistanceSquared(current: BaseEpicsTcsConfig, demand: TelescopeConfig): Option[Area] =
+  def calcMoveDistanceSquared(
+    current: BaseEpicsTcsConfig,
+    demand:  TelescopeConfig
+  ): Option[Quantity[Double, SquaredMillis]] =
     demand.offsetA
       .map(_.toFocalPlaneOffset(current.iaa))
-      .map(o => (o.x.value - current.offset.x.value, o.y.value - current.offset.y.value))
-      .map(d => d._1 * d._1 + d._2 * d._2)
+      .map(o =>
+        (o.x.value - current.offset.x.value).pow[2] + (o.y.value - current.offset.y.value).pow[2]
+      )
 
 }

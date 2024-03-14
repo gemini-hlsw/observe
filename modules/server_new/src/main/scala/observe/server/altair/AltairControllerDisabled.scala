@@ -6,13 +6,13 @@ package observe.server.altair
 import cats.Applicative
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.util.TimeSpan
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.overrideLogMessage
 import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.GuideCapabilities
 import observe.server.tcs.TcsController.FocalPlaneOffset
 import org.typelevel.log4cats.Logger
-import squants.Time
 
 class AltairControllerDisabled[F[_]: Logger: Applicative] extends AltairController[F] {
   override def pauseResume(
@@ -31,7 +31,7 @@ class AltairControllerDisabled[F[_]: Logger: Applicative] extends AltairControll
       forceFreeze = true
     ).pure[F]
 
-  override def observe(expTime: Time)(cfg: AltairController.AltairConfig): F[Unit] =
+  override def observe(expTime: TimeSpan)(cfg: AltairController.AltairConfig): F[Unit] =
     overrideLogMessage("Altair", "observe")
 
   override def endObserve(cfg: AltairController.AltairConfig): F[Unit] =

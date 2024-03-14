@@ -7,7 +7,13 @@ import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.implicits.*
+import coulomb.Quantity
+import coulomb.ops.algebra.all.given
+import coulomb.policy.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.Site
+import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
@@ -29,11 +35,6 @@ import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 import observe.server.tcs.TcsControllerEpicsCommon.offsetNear
 import observe.server.tcs.TcsNorthController.{*, given}
 import org.typelevel.log4cats.Logger
-import squants.Length
-import squants.space.Area
-import squants.time.TimeConversions.*
-
-import java.time.Duration
 
 trait TcsNorthControllerEpicsAo[F[_]] {
   def applyAoConfig(
@@ -139,7 +140,7 @@ object TcsNorthControllerEpicsAo {
             TcsSettleTimeCalculator
               .calc(current.base.instrumentOffset, _, subsystems, demand.inst.instrument)
           )
-          .getOrElse(0.seconds)
+          .orEmpty
 
         if (paramList.nonEmpty || aoConfigO.isDefined) {
           val params = paramList.foldLeft(current.pure[F]) { case (c, p) => c.flatMap(p.self) }
@@ -153,17 +154,16 @@ object TcsNorthControllerEpicsAo {
             _ <- aoConfigO.getOrElse(Applicative[F].unit)
             s <- params
             _ <- epicsSys.post(TcsControllerEpicsCommon.ConfigTimeout)
-            _ <- if (mountMoves)
-                   epicsSys.waitInPosition(Duration.ofMillis(stabilizationTime.toMillis),
-                                           tcsTimeout
-                   ) *> L.debug("TCS inposition")
-                 else if (
-                   Set(Subsystem.PWFS1, Subsystem.PWFS2, Subsystem.AGUnit).exists(
-                     subsystems.contains
-                   )
-                 )
-                   epicsSys.waitAGInPosition(agTimeout) *> L.debug("AG inposition")
-                 else Applicative[F].unit
+            _ <-
+              if (mountMoves)
+                epicsSys.waitInPosition(stabilizationTime, tcsTimeout) *> L.debug("TCS inposition")
+              else if (
+                Set(Subsystem.PWFS1, Subsystem.PWFS2, Subsystem.AGUnit).exists(
+                  subsystems.contains
+                )
+              )
+                epicsSys.waitAGInPosition(agTimeout) *> L.debug("AG inposition")
+              else Applicative[F].unit
             _ <- executeTargetFilterConf(true).whenA(pauseTargetFilter && mountMoves)
             _ <- L.debug("Completed TCS configuration")
           } yield s
@@ -243,13 +243,13 @@ object TcsNorthControllerEpicsAo {
       guiderCurrent:   GuiderConfig,
       tcsGuideDemand:  TelescopeGuideConfig,
       guiderDemand:    GuiderConfig,
-      distanceSquared: Option[Area],
-      threshold:       Option[Length]
+      distanceSquared: Option[Quantity[Double, SquaredMillis]],
+      threshold:       Option[Quantity[Double, Millimeter]]
     ): GuideCapabilities = {
       val canGuideWhileOffseting = (distanceSquared, threshold) match {
         case (None, _)           => true
         case (Some(_), None)     => false
-        case (Some(d2), Some(t)) => d2 < t * t
+        case (Some(d2), Some(t)) => d2 < t.pow[2]
       }
       val guiderActive           = guiderCurrent.isActive && guiderDemand.isActive
 

@@ -8,6 +8,8 @@ import cats.Eq
 import cats.derived.*
 import cats.effect.Concurrent
 import cats.syntax.all.*
+import coulomb.syntax.*
+import coulomb.units.accepted.Millimeter
 import fs2.Stream
 import fs2.concurrent.SignallingRef
 import io.circe.Decoder
@@ -33,7 +35,6 @@ import observe.model.enums.TipTiltSource
 import observe.server.altair.AltairController.{*, given}
 import observe.server.gems.GemsController.GemsConfig.given
 import observe.server.gems.GemsController.*
-import squants.space.Millimeters
 
 case class GuideConfig(
   tcsGuide:      TelescopeGuideConfig,
@@ -101,7 +102,7 @@ object GuideConfigDb {
               blnd <- c.downField("oiBlend").as[Boolean]
               gsx  <- c.downField("aogsx").as[Double]
               gsy  <- c.downField("aogsy").as[Double]
-            } yield Ngs(blnd, (Millimeters(gsx), Millimeters(gsy)))
+            } yield Ngs(blnd, (gsx.withUnit[Millimeter], gsy.withUnit[Millimeter]))
           case "LGS" =>
             c.downField("useP1").as[Boolean].flatMap {
               if (_) Right(LgsWithP1)
@@ -114,7 +115,10 @@ object GuideConfigDb {
                       sfoLoop   <- c.downField("sfoOn").as[Boolean]
                       gsx       <- c.downField("aogsx").as[Double]
                       gsy       <- c.downField("aogsy").as[Double]
-                    } yield Lgs(strapLoop, sfoLoop, (Millimeters(gsx), Millimeters(gsy)))
+                    } yield Lgs(strapLoop,
+                                sfoLoop,
+                                (gsx.withUnit[Millimeter], gsy.withUnit[Millimeter])
+                    )
                 }
             }
           case _     => Left(DecodingFailure("AltairConfig", c.history))

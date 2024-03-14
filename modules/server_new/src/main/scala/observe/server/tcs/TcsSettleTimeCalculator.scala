@@ -3,78 +3,92 @@
 
 package observe.server.tcs
 
-import cats.Order
+import algebra.instances.all.given
 import cats.data.NonEmptySet
 import cats.syntax.all.*
+import coulomb.*
+import coulomb.policy.spire.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
 import lucuma.core.enums.Instrument
+import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.server.tcs.TcsController.InstrumentOffset
 import observe.server.tcs.TcsController.Subsystem
-import squants.Ratio
-import squants.Time
-import squants.space.Angle
-import squants.space.AngleConversions.*
-import squants.time.TimeConversions.*
+
+import scala.language.implicitConversions
 
 object TcsSettleTimeCalculator {
 
   trait SettleTimeCalculator {
-    def calc(displacement: Angle): Time
+    def calc(displacement: Quantity[Double, ArcSecond]): TimeSpan
   }
 
-  def constantSettleTime(cnst: Time): SettleTimeCalculator = (_: Angle) => cnst
+  def constantSettleTime(cnst: TimeSpan): SettleTimeCalculator = (_: Quantity[Double, ArcSecond]) =>
+    cnst
 
   // Settle time proportional to displacement
-  def linearSettleTime(scale: SettleTimeScale): SettleTimeCalculator = (displacement: Angle) =>
-    scale * displacement
+  def linearSettleTime(scale: SettleTimeScale): SettleTimeCalculator =
+    (displacement: Quantity[Double, ArcSecond]) => scale * displacement
 
-  final case class SettleTimeScale(time: Time, angle: Angle) extends Ratio[Time, Angle] {
-    override def base: Time = time
+  case class SettleTimeScale(time: TimeSpan, angle: Quantity[Double, ArcSecond]) {
+    def base: TimeSpan = time
 
-    override def counter: Angle = angle
+    def counter: Quantity[Double, ArcSecond] = angle
 
-    def times(a: Angle): Time = convertToBase(a)
-    def *(a:     Angle): Time = times(a)
+    def times(a: Quantity[Double, ArcSecond]): TimeSpan =
+      TimeSpan
+        .fromMicroseconds(
+          (time.toMicroseconds * (a / counter).value).toLong
+        )
+        .get
+
+    def *(a: Quantity[Double, ArcSecond]): TimeSpan = times(a)
   }
+
+  private val s1 = TimeSpan.fromSeconds(1.0).get
 
   // We are using constant values for now. Values are taken from old Observe
   val settleTimeCalculators: Map[Subsystem, SettleTimeCalculator] = Map(
-    Subsystem.Mount -> constantSettleTime(1.seconds),
-    Subsystem.PWFS1 -> constantSettleTime(1.seconds),
-    Subsystem.PWFS2 -> constantSettleTime(1.seconds)
+    Subsystem.Mount -> constantSettleTime(s1),
+    Subsystem.PWFS1 -> constantSettleTime(s1),
+    Subsystem.PWFS2 -> constantSettleTime(s1)
   )
 
   val oiwfsSettleTimeCalculators: Map[Instrument, SettleTimeCalculator] = Map(
-    Instrument.GmosNorth -> constantSettleTime(1.seconds),
-    Instrument.GmosSouth -> constantSettleTime(1.seconds)
+    Instrument.GmosNorth -> constantSettleTime(s1),
+    Instrument.GmosSouth -> constantSettleTime(s1)
 //    Instrument.F2    -> constantSettleTime(1.seconds),
 //    Instrument.Nifs  -> constantSettleTime(4.seconds),
 //    Instrument.Niri  -> constantSettleTime(4.seconds),
 //    Instrument.Gnirs -> constantSettleTime(4.seconds)
   )
 
-  def calcDisplacement(startOffset: InstrumentOffset, endOffset: InstrumentOffset): Angle =
+  def calcDisplacement(
+    startOffset: InstrumentOffset,
+    endOffset:   InstrumentOffset
+  ): Quantity[Double, ArcSecond] =
     math
       .sqrt(
-        math.pow((endOffset.p.value - startOffset.p.value).toArcseconds, 2.0) +
-          math.pow((endOffset.q.value - startOffset.q.value).toArcseconds, 2.0)
+        (
+          (endOffset.p.value - startOffset.p.value).pow[2] +
+            (endOffset.q.value - startOffset.q.value).pow[2]
+        ).value
       )
-      .arcseconds
-
-  given Order[Time] = Order.fromLessThan((a: Time, b: Time) => a < b)
+      .withUnit[ArcSecond]
 
   def calc(
     startOffset: InstrumentOffset,
     endOffset:   InstrumentOffset,
     subsystems:  NonEmptySet[Subsystem],
     inst:        Instrument
-  ): Time = {
+  ): TimeSpan = {
     val displacement = calcDisplacement(startOffset, endOffset)
     (subsystems.contains(Subsystem.OIWFS).option(oiwfsSettleTimeCalculators(inst))
       :: subsystems.toList.map(settleTimeCalculators.get)).flattenOption
       .map(_.calc(displacement))
       .maximumOption
-      .getOrElse(0.seconds)
+      .orEmpty
   }
 
 }

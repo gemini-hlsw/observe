@@ -5,6 +5,7 @@ package observe.model.arb
 
 import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
+import lucuma.core.arb.*
 import lucuma.core.arb.newTypeArbitrary
 import lucuma.core.arb.newTypeCogen
 import lucuma.core.enums.CloudExtinction
@@ -13,7 +14,6 @@ import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
-import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.*
 import lucuma.core.model.sequence.Step
@@ -29,7 +29,6 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import squants.time.*
 
 import scala.collection.immutable.SortedMap
 
@@ -213,15 +212,6 @@ trait ObserveModelArbitraries {
   given Cogen[ExecutionQueueView] =
     Cogen[(QueueId, String, BatchCommandState, BatchExecState, List[Observation.Id])]
       .contramap(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
-
-  given Arbitrary[TimeUnit] =
-    Arbitrary {
-      Gen.oneOf(Nanoseconds, Microseconds, Milliseconds, Seconds, Minutes, Hours, Days)
-    }
-
-  given Cogen[TimeUnit] =
-    Cogen[String]
-      .contramap(_.symbol)
 
   given Arbitrary[SingleActionOp.Started] =
     Arbitrary {

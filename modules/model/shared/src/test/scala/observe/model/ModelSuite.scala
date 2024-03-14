@@ -10,14 +10,13 @@ import io.circe.testing.instances.*
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.GmosParameters.*
 import observe.model.arb.ArbClientConfig.given
+import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
 import org.scalacheck.{Test => ScalaCheckTest}
-import squants.time.Time
-import squants.time.TimeUnit
 
 /**
  * Tests Model typeclasses
@@ -55,8 +54,6 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[StepProgress]", EqTests[StepProgress].eqv)
   checkAll("Eq[ObservationProgress]", EqTests[ObservationProgress].eqv)
   checkAll("Codec[ObservationProgress]", CodecTests[ObservationProgress].codec)
-  checkAll("Eq[TimeUnit]", EqTests[TimeUnit].eqv)
-  checkAll("Eq[Time]", EqTests[Time].eqv)
   checkAll("Eq[SingleActionOp]", EqTests[SingleActionOp].eqv)
   checkAll("Eq[SingleActionEvent]", EqTests[SingleActionEvent].eqv)
   checkAll("Eq[RunningStep]", EqTests[RunningStep].eqv)
