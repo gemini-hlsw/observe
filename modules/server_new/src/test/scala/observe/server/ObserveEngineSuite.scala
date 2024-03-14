@@ -6,7 +6,6 @@ package observe.server
 import cats.Monoid
 import cats.data.NonEmptyList
 import cats.effect.IO
-import cats.effect.Ref
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.NonNegShort
@@ -370,7 +369,7 @@ class ObserveEngineSuite extends TestCommon {
     val runStepId = stepId(3)
 
     (for {
-      db <- odbWithEmptyObs
+      db <- TestOdbProxy.build[IO](staticCfg1.some, List.empty, List.empty)
       oe <- observeEngineWithODB(db)
       _  <- oe.startFrom(
               seqObsId1,
@@ -997,6 +996,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine start should run the sequence and produce the ODB events") {
+    val atomCount = 2
     val stepCount = 2
 
     def isDatasetStartExposure(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
@@ -1029,6 +1029,26 @@ class ObserveEngineSuite extends TestCommon {
       case _                                      => false
     }
 
+    def assertAtom(
+      l:       List[TestOdbProxy.OdbEvent],
+      seqType: SequenceType
+    ): List[TestOdbProxy.OdbEvent] = {
+      assertEquals(
+        List(
+          TestOdbProxy.AtomStart(
+            seqObsId1,
+            Instrument.GmosNorth,
+            seqType,
+            NonNegShort.unsafeFrom(stepCount.toShort)
+          )
+        ),
+        l.take(1)
+      )
+      (1 until stepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
+        assertStep(b)
+      }
+    }
+
     def assertStep(l: List[TestOdbProxy.OdbEvent]): List[TestOdbProxy.OdbEvent] = {
       val chk = List(
         (ev: TestOdbProxy.OdbEvent) =>
@@ -1056,17 +1076,42 @@ class ObserveEngineSuite extends TestCommon {
 
     val firstEvents = List(
       TestOdbProxy.VisitStart(seqObsId1, staticCfg1),
-      TestOdbProxy.AtomStart(seqObsId1,
-                             Instrument.GmosNorth,
-                             SequenceType.Acquisition,
-                             NonNegShort.unsafeFrom(stepCount.toShort)
-      ),
       TestOdbProxy.SequenceStart(seqObsId1)
     )
 
+    val steps = NonEmptyList(
+      Step[DynamicConfig.GmosNorth](
+        stepId(1),
+        dynamicCfg1,
+        stepCfg1,
+        StepEstimate.Zero,
+        ObserveClass.Science,
+        Breakpoint.Disabled
+      ),
+      List
+        .range(2, stepCount + 1)
+        .map(i =>
+          Step[DynamicConfig.GmosNorth](
+            stepId(i),
+            dynamicCfg1,
+            stepCfg1,
+            StepEstimate.Zero,
+            ObserveClass.Science,
+            Breakpoint.Disabled
+          )
+        )
+    )
+
     for {
-      rf            <- Ref.of[IO, List[TestOdbProxy.OdbEvent]](List.empty)
-      systems       <- defaultSystems.map(_.copy(odb = TestOdbProxy.build[IO](rf)))
+      atomIds       <- List
+                         .fill(atomCount - 1)(IO.delay(java.util.UUID.randomUUID()))
+                         .parSequence
+                         .map(_.map(Atom.Id.fromUuid))
+      odb           <- TestOdbProxy.build[IO](staticCfg1.some,
+                                              List.empty,
+                                              atomIds.map(i => Atom[DynamicConfig.GmosNorth](i, none, steps))
+                       )
+      systems       <- defaultSystems.map(_.copy(odb = odb))
       seqo          <- generateSequence(odbObservation(seqObsId1, stepCount), systems)
       seq           <- seqo.map(_.pure[IO]).getOrElse(IO.delay(fail("Unable to create sequence")))
       s0             = ODBSequencesLoader
@@ -1085,11 +1130,13 @@ class ObserveEngineSuite extends TestCommon {
                            .takeThrough(_._2.sequences.get(seqObsId1).exists(x => !isFinished(x.seq.status)))
                            .compile
                            .last
-      res           <- rf.get
+      res           <- odb.outCapture
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
-      (1 until stepCount).foldLeft(assertStep(res.drop(firstEvents.length))) { case (b, _) =>
-        assertStep(b)
+      (1 until atomCount).foldLeft(
+        assertAtom(res.drop(firstEvents.length), SequenceType.Acquisition)
+      ) { case (b, _) =>
+        assertAtom(b, SequenceType.Science)
       }
     }
   }

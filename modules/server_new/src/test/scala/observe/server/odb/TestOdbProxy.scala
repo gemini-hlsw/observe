@@ -3,7 +3,7 @@
 
 package observe.server.odb
 
-import cats.Applicative
+import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegShort
@@ -21,107 +21,163 @@ import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.Observation
 import lucuma.core.model.Program
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.ExecutionSequence
+import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.model.dhs.ImageFileId
 
+trait TestOdbProxy[F[_]] extends OdbProxy[F] {
+  def outCapture: F[List[TestOdbProxy.OdbEvent]]
+}
+
 object TestOdbProxy {
 
-  def build[F[_]: Applicative](out: Ref[F, List[OdbEvent]]): OdbProxy[F] = new OdbProxy[F] {
-    private def addEvent(ev: OdbEvent): F[Unit] = out.modify(x => (x.appended(ev), ()))
+  case class State(
+    acquisitions: List[Atom[DynamicConfig.GmosNorth]],
+    sciences:     List[Atom[DynamicConfig.GmosNorth]],
+    out:          List[OdbEvent]
+  )
 
-    override def read(oid: Observation.Id): F[Data.Observation] = Data
-      .Observation(
-        oid,
-        "",
-        ObsStatus.Ready,
-        ObsActiveStatus.Active,
-        Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
-        Data.Observation.TargetEnvironment.apply(),
-        ConstraintSet(ImageQuality.TwoPointZero,
-                      CloudExtinction.TwoPointZero,
-                      SkyBackground.Bright,
-                      WaterVapor.Wet,
-                      ElevationRange.AirMass.Default
-        ),
-        List.empty,
-        Data.Observation.Execution.apply()
-      )
-      .pure[F]
+  def build[F[_]: Concurrent](
+    staticCfg:    Option[StaticConfig.GmosNorth] = None,
+    acquisitions: List[Atom[DynamicConfig.GmosNorth]] = List.empty,
+    sciences:     List[Atom[DynamicConfig.GmosNorth]] = List.empty
+  ): F[TestOdbProxy[F]] = Ref
+    .of[F, State](State(acquisitions, sciences, List.empty))
+    .map(rf =>
+      new TestOdbProxy[F] {
+        private def addEvent(ev: OdbEvent): F[Unit] =
+          rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
 
-    override def queuedSequences: F[List[Observation.Id]] = List.empty.pure[F]
+        override def read(oid: Observation.Id): F[Data.Observation] = rf
+          .getAndUpdate {
+            case State(x :: xx, b, c)   => State(xx, b, c)
+            case State(Nil, y :: yy, c) => State(List.empty, yy, c)
+            case st                     => st
+          }
+          .map { st =>
+            val acqAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.acquisitions.headOption
+            val sciAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.sciences.headOption
+            Data
+              .Observation(
+                oid,
+                "",
+                ObsStatus.Ready,
+                ObsActiveStatus.Active,
+                Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
+                Data.Observation.TargetEnvironment.apply(),
+                ConstraintSet(ImageQuality.TwoPointZero,
+                              CloudExtinction.TwoPointZero,
+                              SkyBackground.Bright,
+                              WaterVapor.Wet,
+                              ElevationRange.AirMass.Default
+                ),
+                List.empty,
+                Data.Observation.Execution(
+                  staticCfg.map(stc =>
+                    InstrumentExecutionConfig.GmosNorth(
+                      ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+                        stc,
+                        acqAtom.map(
+                          ExecutionSequence[DynamicConfig.GmosNorth](_,
+                                                                     st.acquisitions.tail,
+                                                                     st.acquisitions.tail.nonEmpty
+                          )
+                        ),
+                        sciAtom.map(
+                          ExecutionSequence[DynamicConfig.GmosNorth](_,
+                                                                     st.sciences.tail,
+                                                                     st.sciences.tail.nonEmpty
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+          }
 
-    override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] = addEvent(
-      VisitStart(obsId, staticCfg)
+        override def queuedSequences: F[List[Observation.Id]] = List.empty.pure[F]
+
+        override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] = addEvent(
+          VisitStart(obsId, staticCfg)
+        )
+
+        override def sequenceStart(obsId: Observation.Id): F[Unit] = addEvent(SequenceStart(obsId))
+
+        override def atomStart(
+          obsId:        Observation.Id,
+          instrument:   Instrument,
+          sequenceType: SequenceType,
+          stepCount:    NonNegShort
+        ): F[Unit] = addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
+
+        override def stepStartStep(
+          obsId:         Observation.Id,
+          dynamicConfig: DynamicConfig,
+          stepConfig:    StepConfig,
+          observeClass:  ObserveClass
+        ): F[Unit] = addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, observeClass))
+
+        override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
+          StepStartConfigure(obsId)
+        )
+
+        override def stepEndConfigure(obsId: Observation.Id): F[Boolean] =
+          addEvent(StepEndConfigure(obsId)).as(true)
+
+        override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
+          addEvent(StepStartObserve(obsId)).as(true)
+
+        override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetStartExposure(obsId, fileId)).as(true)
+
+        override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetEndExposure(obsId, fileId)).as(true)
+
+        override def datasetStartReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetStartReadout(obsId, fileId)).as(true)
+
+        override def datasetEndReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetEndReadout(obsId, fileId)).as(true)
+
+        override def datasetStartWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetStartWrite(obsId, fileId)).as(true)
+
+        override def datasetEndWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+          addEvent(DatasetEndWrite(obsId, fileId)).as(true)
+
+        override def stepEndObserve(obsId: Observation.Id): F[Boolean] =
+          addEvent(StepEndObserve(obsId)).as(true)
+
+        override def stepEndStep(obsId: Observation.Id): F[Boolean] =
+          addEvent(StepEndStep(obsId)).as(true)
+
+        override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
+          addEvent(SequenceEnd(obsId)).as(true)
+
+        override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
+          addEvent(ObsAbort(obsId, reason)).as(true)
+
+        override def obsContinue(obsId: Observation.Id): F[Boolean] =
+          addEvent(ObsContinue(obsId)).as(true)
+
+        override def obsPause(obsId: Observation.Id, reason: String): F[Boolean] =
+          addEvent(ObsPause(obsId, reason)).as(true)
+
+        override def obsStop(obsId: Observation.Id, reason: String): F[Boolean] =
+          addEvent(ObsStop(obsId, reason)).as(true)
+
+        override def outCapture: F[List[OdbEvent]] = rf.get.map(_.out)
+      }
     )
-
-    override def sequenceStart(obsId: Observation.Id): F[Unit] = addEvent(SequenceStart(obsId))
-
-    override def atomStart(
-      obsId:        Observation.Id,
-      instrument:   Instrument,
-      sequenceType: SequenceType,
-      stepCount:    NonNegShort
-    ): F[Unit] = addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
-
-    override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass
-    ): F[Unit] = addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, observeClass))
-
-    override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
-      StepStartConfigure(obsId)
-    )
-
-    override def stepEndConfigure(obsId: Observation.Id): F[Boolean] =
-      addEvent(StepEndConfigure(obsId)).as(true)
-
-    override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
-      addEvent(StepStartObserve(obsId)).as(true)
-
-    override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetStartExposure(obsId, fileId)).as(true)
-
-    override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetEndExposure(obsId, fileId)).as(true)
-
-    override def datasetStartReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetStartReadout(obsId, fileId)).as(true)
-
-    override def datasetEndReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetEndReadout(obsId, fileId)).as(true)
-
-    override def datasetStartWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetStartWrite(obsId, fileId)).as(true)
-
-    override def datasetEndWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      addEvent(DatasetEndWrite(obsId, fileId)).as(true)
-
-    override def stepEndObserve(obsId: Observation.Id): F[Boolean] =
-      addEvent(StepEndObserve(obsId)).as(true)
-
-    override def stepEndStep(obsId: Observation.Id): F[Boolean] =
-      addEvent(StepEndStep(obsId)).as(true)
-
-    override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-      addEvent(SequenceEnd(obsId)).as(true)
-
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-      addEvent(ObsAbort(obsId, reason)).as(true)
-
-    override def obsContinue(obsId: Observation.Id): F[Boolean] =
-      addEvent(ObsContinue(obsId)).as(true)
-
-    override def obsPause(obsId: Observation.Id, reason: String): F[Boolean] =
-      addEvent(ObsPause(obsId, reason)).as(true)
-
-    override def obsStop(obsId: Observation.Id, reason: String): F[Boolean] =
-      addEvent(ObsStop(obsId, reason)).as(true)
-  }
 
   sealed trait OdbEvent
   case class VisitStart(obsId: Observation.Id, staticCfg: StaticConfig)       extends OdbEvent

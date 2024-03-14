@@ -465,7 +465,6 @@ object ObserveEngine {
             seq.seq.currentStep.map { curStep =>
               (
                 startVisit *>
-                  startAtom *>
                   Handle
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval[F, EventType[F]](
@@ -473,7 +472,8 @@ object ObserveEngine {
                           .sequenceStart(obsId)
                           .as(Event.nullEvent)
                       )
-                    )
+                    ) *>
+                  startAtom
               ).as((obsId, curStep.id).some)
             }
           }
@@ -1897,7 +1897,7 @@ object ObserveEngine {
                     seq
                       .focus(_.seq)
                       .modify(s =>
-                        Sequence.State.init(
+                        val ns = Sequence.State.init(
                           Sequence.sequence[F](
                             obsId,
                             atm.atomId,
@@ -1907,6 +1907,7 @@ object ObserveEngine {
                             )
                           )
                         )
+                        Sequence.State.status.replace(s.status)(ns)
                       )
                   }(st)
               } *>

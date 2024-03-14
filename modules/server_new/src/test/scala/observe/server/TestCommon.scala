@@ -368,36 +368,6 @@ object TestCommon {
       )
     )
 
-  def odbEmptyObservation(id: Observation.Id): ODBObservation =
-    ODBObservation(
-      id = id,
-      title = "",
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
-      ODBObservation.Program(
-        Program.Id(PosLong.unsafeFrom(123)),
-        None
-      ),
-      TargetEnvironment(None),
-      ConstraintSet(
-        ImageQuality.PointOne,
-        CloudExtinction.PointOne,
-        SkyBackground.Dark,
-        WaterVapor.Median,
-        ElevationRange.AirMass.Default
-      ),
-      List.empty,
-      Execution(
-        GmosNorth(
-          ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-            staticCfg1,
-            None,
-            None
-          )
-        ).some
-      )
-    )
-
   def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
     odbObservation(id, 1),
     instrument = Instrument.GmosNorth,
@@ -575,9 +545,5 @@ object TestCommon {
       )
     )
   )
-
-  def odbWithEmptyObs: IO[OdbProxy[IO]] = new DummyOdbProxy[IO] {
-    override def read(oid: Observation.Id): IO[ODBObservation] = odbEmptyObservation(oid).pure[IO]
-  }.pure[IO]
 
 }
