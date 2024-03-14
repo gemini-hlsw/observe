@@ -30,8 +30,8 @@ class TcsSuite extends munit.DisciplineSuite with TcsArbitraries:
   assertEquals(pwfs1OffsetThreshold, 0.006205629747306757.withUnit[Millimeter])
   assertEquals(pwfs2OffsetThreshold, 0.006205629747306757.withUnit[Millimeter])
   assertEquals(AoOffsetThreshold, 0.006205629747306757.withUnit[Millimeter])
-  assertEquals(0.01.withUnit[Millimeter] ** FOCAL_PLANE_SCALE, 0.0161144.withUnit[ArcSecond])
-  assertEquals(0.032.withUnit[ArcSecond] %% FOCAL_PLANE_SCALE,
+  assertEquals(0.01.withUnit[Millimeter] :* FOCAL_PLANE_SCALE, 0.0161144.withUnit[ArcSecond])
+  assertEquals(0.032.withUnit[ArcSecond] :\ FOCAL_PLANE_SCALE,
                0.019858015191381622.withUnit[Millimeter]
   )
 

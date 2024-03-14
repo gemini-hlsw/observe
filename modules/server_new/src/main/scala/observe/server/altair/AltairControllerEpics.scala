@@ -86,7 +86,7 @@ object AltairControllerEpics {
     private def validControlMatrix(
       mtxPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
     )(newPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])): Boolean = {
-      val limit = 5.0.withUnit[ArcSecond] %% FOCAL_PLANE_SCALE
+      val limit = 5.0.withUnit[ArcSecond] :\ FOCAL_PLANE_SCALE
 
       val diff = newPos.bimap(_ - mtxPos._1, _ - mtxPos._2)
       limit.pow[2]
@@ -542,7 +542,7 @@ object AltairControllerEpics {
           epicsTcs.aoStatistics.setSamples(1) *>
           epicsTcs.aoStatistics.setFileName(
             "aostats" + date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-          )).whenA(expTime.toSeconds > 5) && cfg =!= AltairOff)
+          )).whenA(expTime.toSeconds > 5 && cfg =!= AltairOff)
       )
 
     override def endObserve(cfg: AltairConfig): F[Unit] = Applicative[F].unit

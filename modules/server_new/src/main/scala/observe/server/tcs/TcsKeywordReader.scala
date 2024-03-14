@@ -389,7 +389,7 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
       sys.targetA
         .map(v =>
           v.get(xoffIndex)
-            .map(_.withUnit[Millimeter] ** FOCAL_PLANE_SCALE)
+            .map(_.withUnit[Millimeter] :* FOCAL_PLANE_SCALE)
             .map(x => Angle.fromDoubleArcseconds(x.value))
         )
         .handleError(_ => none)
@@ -401,7 +401,7 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
       sys.targetA
         .map(v =>
           v.get(yoffIndex)
-            .map(_.withUnit[Millimeter] ** FOCAL_PLANE_SCALE)
+            .map(_.withUnit[Millimeter] :* FOCAL_PLANE_SCALE)
             .map(y => Angle.fromDoubleArcseconds(y.value))
         )
         .handleError(_ => none)
@@ -411,15 +411,6 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
 
     private val raoffIndex  = 2L
     private val decoffIndex = 3L
-
-    // private def normalizeSignedAngle(v: Angle): Angle = {
-    //   val r = v.value % 360.0
-    //   Degrees(
-    //     if (r < -180.0) r + 360.0
-    //     else if (r >= 180.0) r - 360.0
-    //     else r
-    //   )
-    // }
 
     override def trackingRAOffset: F[Double] = {
       def raOffset(off: Angle, dec: Angle): Angle = off * dec.cos

@@ -31,6 +31,12 @@ extension (i: Instrument)
     case Instrument.GmosSouth => true
     case Instrument.GmosNorth => true
     case _                    => false
+//      case Instrument.Nifs  => true
+//      case Instrument.Niri  => true
+//      case Instrument.Gnirs => true
+//      case Instrument.Gsaoi => false
+//      case Instrument.Gpi   => true
+//      case Instrument.Ghost => false
 
 // Resources come before Instruments
 given Order[Resource | Instrument] = Order.from:

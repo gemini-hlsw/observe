@@ -140,6 +140,6 @@ object GmosNorth {
 
     // TODO Use different value if using electronic offsets
     override val oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] =
-      (0.01.withUnit[ArcSecond] %% FOCAL_PLANE_SCALE).some
+      (0.01.withUnit[ArcSecond] :\ FOCAL_PLANE_SCALE).some
   }
 }

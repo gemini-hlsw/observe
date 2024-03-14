@@ -94,12 +94,12 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
   )
 
   def doubleInstrumentOffset(threshold: Quantity[Double, Millimeter]): InstrumentOffset =
-    InstrumentOffset(OffsetP((threshold * 2) ** FOCAL_PLANE_SCALE),
+    InstrumentOffset(OffsetP((threshold * 2) :* FOCAL_PLANE_SCALE),
                      OffsetQ(0.0.withUnit[ArcSecond])
     )
 
   def halfInstrumentOffset(threshold: Quantity[Double, Millimeter]): InstrumentOffset =
-    InstrumentOffset(OffsetP((threshold / 2) ** FOCAL_PLANE_SCALE),
+    InstrumentOffset(OffsetP((threshold / 2) :* FOCAL_PLANE_SCALE),
                      OffsetQ(0.0.withUnit[ArcSecond])
     )
 
