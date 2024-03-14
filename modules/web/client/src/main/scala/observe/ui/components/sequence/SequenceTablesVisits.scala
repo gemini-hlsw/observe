@@ -4,9 +4,6 @@
 package observe.ui.components.sequence
 
 import cats.syntax.all.*
-// import explore.*
-// import explore.components.ui.ExploreStyles
-// import explore.model.AppContext
 import lucuma.ui.format.{DurationFormatter, UtcFormatter}
 import lucuma.ui.display.given
 import japgolly.scalajs.react.*
@@ -43,7 +40,7 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
   )
 
   protected def renderVisitHeader(visit: VisitData): VdomNode =
-    <.div( /*ExploreStyles.VisitHeader*/ )( // Steps is non-empty => head is safe
+    <.div(SequenceStyles.VisitHeader)( // Steps is non-empty => head is safe
       <.span(UtcFormatter.format(visit.created.toInstant)),
       <.span(visit.sequenceType.shortName),
       <.span(s"Steps: ${visit.steps.head.index} - ${visit.steps.last.index}"),
@@ -60,16 +57,6 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
         )
       )
     )
-
-  // def renderVisits(
-  //   cols:     Reusable[List[ColumnDef[SequenceTableRow, ?]]],
-  //   visits:   List[Visit[D]],
-  //   dynTable: UseDynTable
-  // ): List[AccordionTab] =
-  //   visits
-  //     .flatMap: visit =>
-  //       renderSequence(SequenceType.Acquisition, cols, visit.acquisitionAtoms, dynTable) ++
-  //         renderSequence(SequenceType.Science, cols, visit.scienceAtoms, dynTable)
 
   private def sequenceRows(
     atoms:        List[AtomRecord[D]],
