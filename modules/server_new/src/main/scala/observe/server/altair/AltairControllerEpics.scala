@@ -542,7 +542,7 @@ object AltairControllerEpics {
           epicsTcs.aoStatistics.setSamples(1) *>
           epicsTcs.aoStatistics.setFileName(
             "aostats" + date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-          )).whenA(TimeSpan.fromSeconds(5).exists(expTime > _) && cfg =!= AltairOff)
+          )).whenA(expTime.toSeconds > 5) && cfg =!= AltairOff)
       )
 
     override def endObserve(cfg: AltairConfig): F[Unit] = Applicative[F].unit
