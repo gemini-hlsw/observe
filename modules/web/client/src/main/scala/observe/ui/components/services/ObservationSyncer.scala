@@ -25,6 +25,7 @@ import lucuma.schemas.odb.input.*
 import clue.ErrorPolicy
 import observe.queries.VisitQueriesGQL
 import cats.effect.Resource
+import lucuma.core.model.Observation
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -40,52 +41,58 @@ object ObservationSyncer:
       .useContext(SequenceApi.ctx)
       .useStreamOnMountBy: (_, ctx, _) =>
         ctx.odbClient.statusStream
-      .useAsyncEffectWithDepsBy((props, _, _, odbStatusPot) =>
+      .useRef(none[Observation.Id])
+      .useAsyncEffectWithDepsBy((props, _, _, odbStatusPot, _) =>
         // Run when observation changes or ODB status changes to Initialized
         (props.nighttimeObservation.get.map(_.obsId),
          odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)
         ).tupled
-      ): (props, ctx, sequenceApi, _) =>
+      ): (props, ctx, sequenceApi, _, subscribedObsId) =>
         deps =>
           import ctx.given
 
           deps
             .map: (obsId, _) =>
-              val sequenceUpdate =
-                SequenceSQL
-                  .SequenceQuery[IO]
-                  .query(obsId)
-                  .adaptError:
-                    case ResponseException(errors, _) =>
-                      Exception(errors.map(_.message).toList.mkString("\n"))
-                  .map(_.observation.map(_.execution.config))
-                  .attempt
-                  .map:
-                    _.flatMap:
-                      _.toRight:
-                        Exception(s"Execution Configuration not defined for observation [$obsId]")
-                  .flatMap: config =>
-                    props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
+              if (!subscribedObsId.value.contains(obsId))
+                val sequenceUpdate =
+                  SequenceSQL
+                    .SequenceQuery[IO]
+                    .query(obsId)
+                    .adaptError:
+                      case ResponseException(errors, _) =>
+                        Exception(errors.map(_.message).toList.mkString("\n"))
+                    .map(_.observation.map(_.execution.config))
+                    .attempt
+                    .map:
+                      _.flatMap:
+                        _.toRight:
+                          Exception(s"Execution Configuration not defined for observation [$obsId]")
+                    .flatMap: config =>
+                      props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-              val visitsUpdate =
-                VisitQueriesGQL
-                  .ObservationVisits[IO]
-                  .query(obsId)(ErrorPolicy.IgnoreOnData)
-                  .map(_.map(_.observation.map(_.execution)))
-                  .attempt
-                  .flatMap: visits =>
-                    props.nighttimeObservation.async.mod(_.map(_.withVisits(visits.map(_.flatten))))
+                val visitsUpdate =
+                  VisitQueriesGQL
+                    .ObservationVisits[IO]
+                    .query(obsId)(ErrorPolicy.IgnoreOnData)
+                    .map(_.map(_.observation.map(_.execution)))
+                    .attempt
+                    .flatMap: visits =>
+                      props.nighttimeObservation.async.mod:
+                        _.map(_.withVisits(visits.map(_.flatten)))
 
-              (sequenceUpdate, visitsUpdate).parTupled
-                .reRunOnResourceSignals:
-                  // Eventually, there will be another subscription notifying of sequence/visits changes
-                  ObsQueriesGQL.SingleObservationEditSubscription
-                    .subscribe[IO]:
-                      obsId.toObservationEditInput
-                .flatMap: stream =>
-                  Resource.make(stream.compile.drain.start)(_.cancel)
-                .allocated
-                .map(_._2) // Update fiber will get cancelled and subscription ended if connection lost or obs changes
+                IO.println(s"SUBSCRIBING FOR [$obsId]") >>
+                  subscribedObsId.setAsync(obsId.some) >>
+                  (sequenceUpdate, visitsUpdate).parTupled
+                    .reRunOnResourceSignals:
+                      // Eventually, there will be another subscription notifying of sequence/visits changes
+                      ObsQueriesGQL.SingleObservationEditSubscription
+                        .subscribe[IO]:
+                          obsId.toObservationEditInput
+                    .flatMap: stream =>
+                      Resource.make(stream.compile.drain.start)(_.cancel)
+                    .allocated
+                    .map(_._2) // Update fiber will get cancelled and subscription ended if connection lost or obs changes
+              else IO(IO.unit)
 
             // TODO Breakpoint initialization should happen in the server, not here.
             // Leaving the code commented here until we move it to the server.
