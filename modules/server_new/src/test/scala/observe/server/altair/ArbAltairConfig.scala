@@ -3,12 +3,13 @@
 
 package observe.server.altair
 
-import observe.model.arb.all.given
+import coulomb.Quantity
+import coulomb.testkit.given
+import coulomb.units.accepted.Millimeter
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import squants.Length
 
 import AltairController.{AltairConfig, AltairOff, Lgs, LgsWithOi, LgsWithP1, Ngs}
 
@@ -18,26 +19,29 @@ trait ArbAltairConfig {
     for {
       st <- arbitrary[Boolean]
       sf <- arbitrary[Boolean]
-      l1 <- arbitrary[Length]
-      l2 <- arbitrary[Length]
+      l1 <- arbitrary[Quantity[Double, Millimeter]]
+      l2 <- arbitrary[Quantity[Double, Millimeter]]
     } yield Lgs(st, sf, (l1, l2))
   }
 
-  given Cogen[Lgs] = Cogen[(Boolean, Boolean, Length, Length)].contramap { x =>
-    (x.strap, x.sfo, x.starPos._1, x.starPos._2)
-  }
+  given Cogen[Lgs] =
+    Cogen[(Boolean, Boolean, Quantity[Double, Millimeter], Quantity[Double, Millimeter])]
+      .contramap { x =>
+        (x.strap, x.sfo, x.starPos._1, x.starPos._2)
+      }
 
   given Arbitrary[Ngs] = Arbitrary {
     for {
       b  <- arbitrary[Boolean]
-      l1 <- arbitrary[Length]
-      l2 <- arbitrary[Length]
+      l1 <- arbitrary[Quantity[Double, Millimeter]]
+      l2 <- arbitrary[Quantity[Double, Millimeter]]
     } yield Ngs(b, (l1, l2))
   }
 
-  given Cogen[Ngs] = Cogen[(Boolean, Length, Length)].contramap { x =>
-    (x.blend, x.starPos._1, x.starPos._2)
-  }
+  given Cogen[Ngs] =
+    Cogen[(Boolean, Quantity[Double, Millimeter], Quantity[Double, Millimeter])].contramap { x =>
+      (x.blend, x.starPos._1, x.starPos._2)
+    }
 
   given Arbitrary[AltairConfig] = Arbitrary {
     Gen.oneOf(arbitrary[Lgs],
@@ -49,7 +53,13 @@ trait ArbAltairConfig {
   }
 
   given Cogen[AltairConfig] = Cogen[Option[
-    Option[Option[Either[(Boolean, Boolean, Length, Length), (Boolean, Length, Length)]]]
+    Option[Option[Either[(Boolean,
+                          Boolean,
+                          Quantity[Double, Millimeter],
+                          Quantity[Double, Millimeter]
+                         ),
+                         (Boolean, Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+    ]]]
   ]].contramap {
     case AltairOff    => None
     case LgsWithP1    => Some(None)

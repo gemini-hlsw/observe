@@ -4,6 +4,9 @@
 package observe.server.tcs
 
 import cats.effect.IO
+import coulomb.Quantity
+import coulomb.syntax.*
+import coulomb.units.accepted.Millimeter
 import io.circe.parser.*
 import monocle.law.discipline.LensTests
 import monocle.law.discipline.OptionalTests
@@ -29,7 +32,6 @@ import observe.server.gems.GemsController.P1Usage
 import observe.server.tcs.GuideConfig.given
 import observe.server.tcs.GuideConfigDb.given
 import org.scalacheck.Arbitrary.*
-import squants.space.Millimeters
 
 final class GuideConfigDbSuite
     extends munit.CatsEffectSuite
@@ -98,7 +100,14 @@ final class GuideConfigDbSuite
       M1GuideConfig.M1GuideOn(M1Source.PWFS1),
       M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1))
     ),
-    Some(Left(Lgs(strap = true, sfo = true, starPos = (Millimeters(-5.0), Millimeters(3.0))))),
+    Some(
+      Left(
+        Lgs(strap = true,
+            sfo = true,
+            starPos = (-5.0.withUnit[Millimeter], 3.0.withUnit[Millimeter])
+        )
+      )
+    ),
     gemsSkyPaused = false
   )
 

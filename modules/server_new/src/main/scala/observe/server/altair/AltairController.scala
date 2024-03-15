@@ -6,13 +6,14 @@ package observe.server.altair
 import cats.Eq
 import cats.Show
 import cats.syntax.all.*
+import coulomb.Quantity
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.Instrument
+import lucuma.core.util.TimeSpan
 import observe.server.tcs.Gaos.GuideCapabilities
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.TcsController.FocalPlaneOffset
-import squants.Time
-import squants.space.Length
 
 trait AltairController[F[_]] {
   import AltairController._
@@ -24,7 +25,7 @@ trait AltairController[F[_]] {
     instrument:    Instrument
   )(cfg: AltairConfig): F[AltairPauseResume[F]]
 
-  def observe(expTime: Time)(cfg: AltairConfig): F[Unit]
+  def observe(expTime: TimeSpan)(cfg: AltairConfig): F[Unit]
 
   def endObserve(cfg: AltairConfig): F[Unit]
 
@@ -36,11 +37,18 @@ object AltairController {
 
   sealed trait AltairConfig
 
-  case object AltairOff                                                         extends AltairConfig
-  final case class Ngs(blend: Boolean, starPos: (Length, Length))               extends AltairConfig
-  final case class Lgs(strap: Boolean, sfo: Boolean, starPos: (Length, Length)) extends AltairConfig
-  case object LgsWithP1                                                         extends AltairConfig
-  case object LgsWithOi                                                         extends AltairConfig
+  case object AltairOff extends AltairConfig
+  final case class Ngs(
+    blend:   Boolean,
+    starPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+  ) extends AltairConfig
+  final case class Lgs(
+    strap:   Boolean,
+    sfo:     Boolean,
+    starPos: (Quantity[Double, Millimeter], Quantity[Double, Millimeter])
+  ) extends AltairConfig
+  case object LgsWithP1 extends AltairConfig
+  case object LgsWithOi extends AltairConfig
 
   sealed trait FieldLens extends Product with Serializable
   object FieldLens {

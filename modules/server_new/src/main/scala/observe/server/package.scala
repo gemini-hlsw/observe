@@ -4,10 +4,8 @@
 package observe.server
 
 import cats.Endo
-import cats.Eq
 import cats.MonadError
 import cats.MonadThrow
-import cats.Order
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
@@ -38,8 +36,6 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.SequenceGen.StepGen
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import squants.Length
-import squants.space.Angle
 
 case class Selected[F[_]](
   gmosSouth: Option[SequenceData[F]],
@@ -176,7 +172,7 @@ def toStepList[F[_]](
   overrides: SystemOverrides,
   d:         HeaderExtraData
 ): List[engine.EngineStep[F]] =
-  seq.steps.map(StepGen.generate(_, overrides, d))
+  seq.nextAtom.steps.map(StepGen.generate(_, overrides, d))
 
 // If f is true continue, otherwise fail
 def failUnlessM[F[_]: MonadThrow](f: F[Boolean], err: Exception): F[Unit] =
@@ -202,6 +198,3 @@ def overrideLogMessage[F[_]: Logger](systemName: String, op: String): F[Unit] =
   Logger[F].info(s"System $systemName overridden. Operation $op skipped.")
 
 given DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
-
-given Order[Length] = Order.by(_.value)
-given Order[Angle]  = Order.by(_.value)

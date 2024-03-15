@@ -8,6 +8,7 @@ import cats.Eq
 import cats.MonadThrow
 import cats.syntax.all.*
 import lucuma.core.enums.GuideState
+import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.Gems.GemsWfsState
@@ -30,7 +31,6 @@ import observe.server.tcs.Gaos.ResumeConditionSet
 import observe.server.tcs.GuideConfig
 import observe.server.tcs.GuideConfigDb
 import org.typelevel.log4cats.Logger
-import squants.Time
 
 trait Gems[F[_]] extends Gaos[F] {
   val cfg: GemsConfig
@@ -55,7 +55,7 @@ object Gems {
 
     override val cfg: GemsConfig = config
 
-    override def observe(config: Either[AltairConfig, GemsConfig], expTime: Time): F[Unit] =
+    override def observe(config: Either[AltairConfig, GemsConfig], expTime: TimeSpan): F[Unit] =
       ().pure[F]
 
     override def endObserve(config: Either[AltairConfig, GemsConfig]): F[Unit] = ().pure[F]

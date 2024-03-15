@@ -23,11 +23,8 @@ import observe.server.*
 import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.NSObserveCommand.*
 import observe.server.gmos.NSPartial.*
-import observe.server.tcs.TcsController.InstrumentOffset
-import observe.server.tcs.TcsController.OffsetP
-import observe.server.tcs.TcsController.OffsetQ
+import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
-import squants.space.AngleConversions.*
 
 /**
  * Gmos needs different actions for N&S
@@ -173,10 +170,7 @@ class GmosInstrumentActions[F[_]: Temporal: Logger, A <: GmosController.GmosSite
           tcs
             .nod(
               sub.stage,
-              InstrumentOffset(
-                OffsetP(nsPos.offset.p.toSignedDoubleRadians.radians),
-                OffsetQ(nsPos.offset.q.toSignedDoubleRadians.radians)
-              ),
+              nsPos.offset.toInstrumentOffset,
               nsPos.guide === Guiding.Guide
             )
             .as(Result.Partial(NSTCSNodComplete(sub)))

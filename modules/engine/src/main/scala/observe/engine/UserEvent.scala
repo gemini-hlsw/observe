@@ -92,4 +92,5 @@ object UserEvent {
   case class Pure[F[_], S, U](ev: U) extends UserEvent[F, S, U] {
     val user: Option[User] = None
   }
+
 }

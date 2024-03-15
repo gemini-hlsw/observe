@@ -11,6 +11,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.math.Angle
 import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Getter
@@ -21,10 +22,7 @@ import observe.server.TestEpicsCommand.*
 import observe.server.tcs.TcsEpics.*
 import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoCorrectCmd
 import observe.server.tcs.TestTcsEpics.TestTcsEvent.AoPrepareMatrix
-import squants.Angle
-import squants.space.AngleConversions.*
 
-import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 case class TestTcsEpics[F[_]: Async](
@@ -446,7 +444,7 @@ case class TestTcsEpics[F[_]: Async](
   override val oiwfsProbeGuideConfig: ProbeGuideConfig[F] =
     probeGuideConfigGetters(state, State.oiwfsProbeGuideConfig.asGetter)
 
-  override def waitInPosition(stabilizationTime: Duration, timeout: TimeSpan)(using
+  override def waitInPosition(stabilizationTime: TimeSpan, timeout: TimeSpan)(using
     T: Temporal[F]
   ): F[Unit] =
     Applicative[F].unit
@@ -1330,7 +1328,7 @@ object TestTcsEpics {
     pwfs1Target = TargetVals.default,
     pwfs2Target = TargetVals.default,
     oiwfsTarget = TargetVals.default,
-    parallacticAngle = 0.0.radians,
+    parallacticAngle = Angle.Angle0,
     m2UserFocusOffset = 0.0,
     pwfs1IntegrationTime = 0.0,
     pwfs2IntegrationTime = 0.0,

@@ -112,7 +112,7 @@ object ODBSequencesLoader {
         Engine.load(
           toEngineSequence(
             seqg.obsData.id,
-            seqg.atomId,
+            seqg.nextAtom.atomId,
             SystemOverrides.AllEnabled,
             seqg,
             HeaderExtraData(st.conditions, st.operator, observer)

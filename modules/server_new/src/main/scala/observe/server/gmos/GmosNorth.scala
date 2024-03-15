@@ -7,6 +7,10 @@ import cats.MonadThrow
 import cats.effect.Ref
 import cats.effect.Temporal
 import cats.syntax.all.*
+import coulomb.Quantity
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.GmosRoi
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName
@@ -32,10 +36,9 @@ import observe.server.gmos.GmosController.GmosSite.Grating
 import observe.server.gmos.GmosController.GmosSite.StageMode
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsClientProvider
-import observe.server.tcs.FOCAL_PLANE_SCALE
+import observe.server.tcs.FocalPlaneScale.*
+import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
-import squants.Length
-import squants.space.Arcseconds
 
 final case class GmosNorth[F[_]: Temporal: Logger] private (
   c:                 GmosNorthController[F],
@@ -136,7 +139,7 @@ object GmosNorth {
     override def sfName(config: DynamicConfig.GmosNorth): LightSinkName = LightSinkName.Gmos
 
     // TODO Use different value if using electronic offsets
-    override val oiOffsetGuideThreshold: Option[Length] =
-      (Arcseconds(0.01) / FOCAL_PLANE_SCALE).some
+    override val oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] =
+      (0.01.withUnit[ArcSecond] :\ FOCAL_PLANE_SCALE).some
   }
 }

@@ -35,7 +35,10 @@ class StepSuite extends CatsEffectSuite {
   private val seqId  = observationId(1)
   private val atomId = Atom.Id(UUID.fromString("ad387bf4-093d-11ee-be56-0242ac120002"))
 
-  private val executionEngine = Engine.build[IO, TestState, Unit](TestState)
+  private val executionEngine = Engine.build[IO, TestState, Unit](
+    TestState,
+    _ => Handle.unit[IO, TestState, Event[IO, TestState, Unit]].pure[IO]
+  )
 
   private object DummyResult extends Result.RetVal with Serializable
   private val result                      = Result.OK(DummyResult)

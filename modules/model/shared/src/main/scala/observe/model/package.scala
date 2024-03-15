@@ -13,12 +13,9 @@ import io.circe.syntax.*
 import lucuma.core.enums.Instrument
 import lucuma.core.util.Enumerated
 import observe.model.enums.Resource
-import squants.time.Time
-import squants.time.TimeUnit
 
 import java.util.UUID
 
-// type StepId          = lucuma.core.model.sequence.Step.Id
 type ObservationName = String
 type TargetName      = String
 
@@ -27,12 +24,6 @@ val UnknownTargetName = "None"
 val CalibrationQueueName: String = "Calibration Queue"
 val CalibrationQueueId: QueueId  =
   QueueId(UUID.fromString("7156fa7e-48a6-49d1-a267-dbf3bbaa7577"))
-
-given Eq[TimeUnit] =
-  Eq.by(_.symbol)
-
-given Eq[Time] =
-  Eq.by(_.toMilliseconds)
 
 extension (i: Instrument)
   def hasOI: Boolean = i match

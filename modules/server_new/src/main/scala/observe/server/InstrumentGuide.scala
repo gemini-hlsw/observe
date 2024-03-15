@@ -3,10 +3,11 @@
 
 package observe.server
 
+import coulomb.Quantity
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.Instrument
-import squants.space.Length
 
 trait InstrumentGuide {
   def instrument: Instrument
-  def oiOffsetGuideThreshold: Option[Length]
+  def oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]]
 }

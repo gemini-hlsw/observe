@@ -6,8 +6,11 @@ package observe.server.tcs
 import cats.data.NonEmptySet
 import cats.effect.Sync
 import cats.syntax.all.*
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
 import lucuma.core.enums.GuideState
 import lucuma.core.enums.Site
+import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence.StepConfig
 import mouse.all.*
@@ -24,7 +27,6 @@ import observe.server.tcs.TcsController._
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
 import org.typelevel.log4cats.Logger
-import squants.space.AngleConversions.*
 
 class TcsNorth[F[_]: Sync: Logger] private (
   tcsController: TcsNorthController[F],
@@ -214,8 +216,8 @@ object TcsNorth {
     val offset =
       StepConfig.science.andThen(StepConfig.Science.offset).getOption(stepConfig).map { o =>
         InstrumentOffset(
-          OffsetP(o.p.toAngle.toDoubleDegrees.degrees),
-          OffsetQ(o.q.toAngle.toDoubleDegrees.degrees)
+          OffsetP(Angle.signedDecimalArcseconds.get(o.p.toAngle).toDouble.withUnit[ArcSecond]),
+          OffsetQ(Angle.signedDecimalArcseconds.get(o.q.toAngle).toDouble.withUnit[ArcSecond])
         )
       }
 

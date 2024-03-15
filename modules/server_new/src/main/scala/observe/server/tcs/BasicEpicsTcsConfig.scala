@@ -3,12 +3,12 @@
 
 package observe.server.tcs
 
+import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import monocle.Focus
 import monocle.Lens
 import observe.model.TelescopeGuideConfig
 import observe.server.tcs.TcsController.*
-import squants.Angle
 
 case class InstrumentPorts(
   flamingos2Port: Int,

@@ -74,6 +74,7 @@ import observe.model.config.*
 import observe.model.dhs.*
 import observe.model.enums.Resource
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.odb.OdbProxy
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger
@@ -90,6 +91,11 @@ trait TestCommon extends munit.CatsEffectSuite {
 
   val observeEngine: IO[ObserveEngine[IO]] =
     defaultSystems.flatMap(ObserveEngine.build(Site.GS, _, defaultSettings))
+
+  def observeEngineWithODB(odb: OdbProxy[IO]): IO[ObserveEngine[IO]] =
+    defaultSystems.flatMap(sys =>
+      ObserveEngine.build(Site.GS, sys.copy(odb = odb), defaultSettings)
+    )
 
   def advanceOne(
     oe:  ObserveEngine[IO],
@@ -364,44 +370,13 @@ object TestCommon {
   def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
     odbObservation(id, 1),
     instrument = Instrument.GmosNorth,
-    SequenceType.Science,
     staticCfg1,
-    atomId1,
-    steps = List(
-      SequenceGen.PendingStepGen(
-        id = stepId(1),
-        Monoid.empty[DataId],
-        resources = Set(Instrument.GmosNorth, Resource.TCS),
-        _ => InstrumentSystem.Uncontrollable,
-        generator = SequenceGen.StepActionsGen(
-          odbAction[IO],
-          odbAction[IO],
-          configs = Map(),
-          odbAction[IO],
-          odbAction[IO],
-          post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
-          odbAction[IO],
-          odbAction[IO]
-        ),
-        StepStatusGen.Null,
-        dynamicCfg1,
-        stepCfg1,
-        breakpoint = Breakpoint.Disabled
-      )
-    )
-  )
-
-  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
-    odbObservation(id, n),
-    instrument = Instrument.GmosNorth,
-    SequenceType.Science,
-    staticCfg1,
-    atomId1,
-    steps = List
-      .range(1, n + 1)
-      .map(i =>
+    SequenceGen.AtomGen(
+      atomId1,
+      SequenceType.Science,
+      steps = List(
         SequenceGen.PendingStepGen(
-          id = stepId(i),
+          id = stepId(1),
           Monoid.empty[DataId],
           resources = Set(Instrument.GmosNorth, Resource.TCS),
           _ => InstrumentSystem.Uncontrollable,
@@ -421,6 +396,41 @@ object TestCommon {
           breakpoint = Breakpoint.Disabled
         )
       )
+    )
+  )
+
+  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
+    odbObservation(id, n),
+    instrument = Instrument.GmosNorth,
+    staticCfg1,
+    SequenceGen.AtomGen(
+      atomId1,
+      SequenceType.Science,
+      steps = List
+        .range(1, n + 1)
+        .map(i =>
+          SequenceGen.PendingStepGen(
+            id = stepId(i),
+            Monoid.empty[DataId],
+            resources = Set(Instrument.GmosNorth, Resource.TCS),
+            _ => InstrumentSystem.Uncontrollable,
+            generator = SequenceGen.StepActionsGen(
+              odbAction[IO],
+              odbAction[IO],
+              configs = Map(),
+              odbAction[IO],
+              odbAction[IO],
+              post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+              odbAction[IO],
+              odbAction[IO]
+            ),
+            StepStatusGen.Null,
+            dynamicCfg1,
+            stepCfg1,
+            breakpoint = Breakpoint.Disabled
+          )
+        )
+    )
   )
 
   def generateSequence[F[_]: Async: Logger](
@@ -484,49 +494,53 @@ object TestCommon {
       )
     ),
     instrument = Instrument.GmosNorth,
-    SequenceType.Science,
     staticCfg1,
-    atomId1,
-    steps = List(
-      SequenceGen.PendingStepGen(
-        id = stepId(1),
-        Monoid.empty[DataId],
-        resources = resources,
-        _ => InstrumentSystem.Uncontrollable,
-        generator = SequenceGen.StepActionsGen(
-          odbAction[IO],
-          odbAction[IO],
-          configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          odbAction[IO],
-          odbAction[IO],
-          post = (_, _) => Nil,
-          odbAction[IO],
-          odbAction[IO]
+    SequenceGen.AtomGen(
+      atomId1,
+      SequenceType.Science,
+      steps = List(
+        SequenceGen.PendingStepGen(
+          id = stepId(1),
+          Monoid.empty[DataId],
+          resources = resources,
+          _ => InstrumentSystem.Uncontrollable,
+          generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
+            configs =
+              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
+          ),
+          StepStatusGen.Null,
+          dynamicCfg1,
+          stepCfg1,
+          breakpoint = Breakpoint.Disabled
         ),
-        StepStatusGen.Null,
-        dynamicCfg1,
-        stepCfg1,
-        breakpoint = Breakpoint.Disabled
-      ),
-      SequenceGen.PendingStepGen(
-        id = stepId(2),
-        Monoid.empty[DataId],
-        resources = resources,
-        _ => InstrumentSystem.Uncontrollable,
-        generator = SequenceGen.StepActionsGen(
-          odbAction[IO],
-          odbAction[IO],
-          configs = resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-          odbAction[IO],
-          odbAction[IO],
-          post = (_, _) => Nil,
-          odbAction[IO],
-          odbAction[IO]
-        ),
-        StepStatusGen.Null,
-        dynamicCfg1,
-        stepCfg1,
-        breakpoint = Breakpoint.Disabled
+        SequenceGen.PendingStepGen(
+          id = stepId(2),
+          Monoid.empty[DataId],
+          resources = resources,
+          _ => InstrumentSystem.Uncontrollable,
+          generator = SequenceGen.StepActionsGen(
+            odbAction[IO],
+            odbAction[IO],
+            configs =
+              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+            odbAction[IO],
+            odbAction[IO],
+            post = (_, _) => Nil,
+            odbAction[IO],
+            odbAction[IO]
+          ),
+          StepStatusGen.Null,
+          dynamicCfg1,
+          stepCfg1,
+          breakpoint = Breakpoint.Disabled
+        )
       )
     )
   )

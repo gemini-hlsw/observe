@@ -3,6 +3,12 @@
 
 package observe.server.tcs
 
+import algebra.instances.all.given
+import coulomb.*
+import coulomb.policy.spire.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
+import coulomb.units.accepted.Degree
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
 import observe.model.TelescopeGuideConfig
@@ -15,9 +21,6 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
-import squants.Angle
-import squants.space.AngleConversions.*
-import squants.space.Degrees
 
 trait TcsArbitraries {
   given Arbitrary[TcsController.Beam]    = Arbitrary(
@@ -34,18 +37,25 @@ trait TcsArbitraries {
   given Cogen[TcsController.NodChop]     =
     Cogen[(TcsController.Beam, TcsController.Beam)].contramap(x => (x.nod, x.chop))
 
-  private def rangedAngleGen(minVal: Angle, maxVal: Angle) =
-    Gen.choose(minVal.toDegrees, maxVal.toDegrees).map(Degrees(_))
+  private def rangedAngleGen(
+    minVal: Quantity[Double, ArcSecond],
+    maxVal: Quantity[Double, ArcSecond]
+  ) =
+    Gen.choose(minVal.value, maxVal.value)
 
-  private val offsetLimit: Angle = 120.arcseconds
+  private val offsetLimit: Quantity[Double, ArcSecond] = 120.0.withUnit[ArcSecond]
 
   given Arbitrary[TcsController.OffsetP]          = Arbitrary(
-    rangedAngleGen(-offsetLimit, offsetLimit).map(TcsController.OffsetP.apply(_))
+    rangedAngleGen(-offsetLimit, offsetLimit).map(u =>
+      TcsController.OffsetP.apply(u.withUnit[Degree])
+    )
   )
   given Cogen[TcsController.OffsetP]              =
     Cogen[Double].contramap(_.value.value)
   given Arbitrary[TcsController.OffsetQ]          = Arbitrary(
-    rangedAngleGen(-offsetLimit, offsetLimit).map(TcsController.OffsetQ.apply(_))
+    rangedAngleGen(-offsetLimit, offsetLimit).map(u =>
+      TcsController.OffsetQ.apply(u.withUnit[Degree])
+    )
   )
   given Cogen[TcsController.OffsetQ]              =
     Cogen[Double].contramap(_.value.value)
@@ -58,8 +68,10 @@ trait TcsArbitraries {
   given Cogen[TcsController.InstrumentOffset]     =
     Cogen[(TcsController.OffsetP, TcsController.OffsetQ)].contramap(x => (x.p, x.q))
 
-  given Arbitrary[Angle] = Arbitrary(rangedAngleGen(-90.degrees, 270.degrees))
-  given Cogen[Angle]     = Cogen[Double].contramap(_.toDegrees)
+  given Arbitrary[Quantity[Double, ArcSecond]] = Arbitrary(
+    rangedAngleGen(-90.withUnit[Degree], 270.withUnit[Degree]).map(_.withUnit[ArcSecond])
+  )
+  given Cogen[Quantity[Double, ArcSecond]]     = Cogen[Double].contramap(_.value)
 
   given Arbitrary[CRFollow] = Arbitrary {
     Gen.oneOf(CRFollow.On, CRFollow.Off)

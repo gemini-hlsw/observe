@@ -3,11 +3,19 @@
 
 package observe.server.tcs
 
+import algebra.instances.all.given
 import cats.*
 import cats.data.NonEmptySet
 import cats.data.OneAnd
+import cats.derived.*
 import cats.syntax.all.*
+import coulomb.*
+import coulomb.policy.spire.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.ArcSecond
+import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.*
+import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import lucuma.core.util.NewType
 import monocle.Focus
@@ -16,10 +24,11 @@ import observe.model.TelescopeGuideConfig
 import observe.server.InstrumentGuide
 import observe.server.altair.AltairController
 import observe.server.gems.GemsController
-import observe.server.given
+import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.TcsSouthController.GemsGuiders
-import squants.Angle
-import squants.Length
+import observe.server.tcs.*
+
+import scala.language.implicitConversions
 
 /**
  * Created by jluhrs on 7/30/15.
@@ -46,11 +55,7 @@ object TcsController {
    * Data type for combined configuration of nod position (telescope orientation) and chop position
    * (M2 orientation)
    */
-  final case class NodChop(nod: Beam, chop: Beam)
-
-  object NodChop {
-    implicit def EqNodChop: Eq[NodChop] = Eq.by(x => (x.nod, x.chop))
-  }
+  case class NodChop(nod: Beam, chop: Beam) derives Eq
 
   /** Enumerated type for nod/chop tracking. */
   sealed trait NodChopTrackingOption
@@ -93,12 +98,10 @@ object TcsController {
         NodChopTrackingOption.fromBoolean(nodchop.nod =!= Beam.C && nodchop.nod === nodchop.chop)
     }
 
-    final case class Special(s: OneAnd[List, NodChop]) extends ActiveNodChopTracking {
+    case class Special(s: OneAnd[List, NodChop]) extends ActiveNodChopTracking derives Eq {
       def get(nodchop: NodChop): NodChopTrackingOption =
         NodChopTrackingOption.fromBoolean(s.exists(_ === nodchop))
     }
-
-    given Eq[Special] = Eq.by(_.s)
 
     given Eq[ActiveNodChopTracking] = Eq.instance {
       case (Normal, Normal)                 => true
@@ -145,12 +148,10 @@ object TcsController {
 
     case object Off extends ProbeTrackingConfig(FollowOff, NodChopTrackingConfig.AllOff)
 
-    final case class On(ndconfig: ActiveNodChopTracking)
-        extends ProbeTrackingConfig(FollowOn, ndconfig)
+    case class On(ndconfig: ActiveNodChopTracking) extends ProbeTrackingConfig(FollowOn, ndconfig)
+        derives Eq
 
     case object Frozen extends ProbeTrackingConfig(FollowOn, NodChopTrackingConfig.AllOff)
-
-    given Eq[On] = Eq.by(_.ndconfig)
 
     given Eq[ProbeTrackingConfig]   = Eq.instance {
       case (Parked, Parked)       => true
@@ -189,11 +190,9 @@ object TcsController {
   object HrwfsConfig {
     case object Auto extends HrwfsConfig
 
-    final case class Manual(pos: HrwfsPickupPosition) extends HrwfsConfig
+    case class Manual(pos: HrwfsPickupPosition) extends HrwfsConfig derives Eq
 
     given Show[HrwfsConfig] = Show.fromToString
-
-    given Eq[Manual] = Eq.by(_.pos)
 
     given Eq[HrwfsConfig] = Eq.instance {
       case (Auto, Auto)                   => true
@@ -216,66 +215,64 @@ object TcsController {
   }
 
   /* Data type for science fold position. */
-  final case class LightPath(source: LightSource, sink: LightSinkName)
+  case class LightPath(source: LightSource, sink: LightSinkName) derives Eq
 
   object LightPath {
 
     given Show[LightPath] = Show.fromToString
 
-    given Eq[LightPath] = Eq.by(x => (x.source, x.sink))
   }
 
   // TCS expects offsets as two length quantities (in millimeters) in the focal plane
-  object OffsetX extends NewType[Length]
+  object OffsetX extends NewType[Quantity[Double, Millimeter]]
   type OffsetX = OffsetX.Type
 
-  object OffsetY extends NewType[Length]
+  object OffsetY extends NewType[Quantity[Double, Millimeter]]
   type OffsetY = OffsetY.Type
 
-  final case class FocalPlaneOffset(x: OffsetX, y: OffsetY) {
+  object OffsetP extends NewType[Quantity[Double, ArcSecond]]
+  type OffsetP = OffsetP.Type
+
+  object OffsetQ extends NewType[Quantity[Double, ArcSecond]]
+  type OffsetQ = OffsetQ.Type
+
+  case class FocalPlaneOffset(x: OffsetX, y: OffsetY) {
     def toInstrumentOffset(iaa: Angle): InstrumentOffset = InstrumentOffset(
-      OffsetP(((x.value * -1 * iaa.cos) + y.value * iaa.sin) * FOCAL_PLANE_SCALE),
-      OffsetQ(((x.value * -1 * iaa.sin) - y.value * iaa.cos) * FOCAL_PLANE_SCALE)
+      OffsetP((-x.value * iaa.cos + y.value * iaa.sin) :* FOCAL_PLANE_SCALE),
+      OffsetQ((-x.value * iaa.sin - y.value * iaa.cos) :* FOCAL_PLANE_SCALE)
     )
 
   }
 
   object FocalPlaneOffset {
-    given Eq[FocalPlaneOffset] = Eq.by(o => (o.x.value, o.y.value))
 
     def fromInstrumentOffset(o: InstrumentOffset, iaa: Angle): FocalPlaneOffset =
       o.toFocalPlaneOffset(iaa)
 
+    given Eq[FocalPlaneOffset] = Eq.by(f => (f.x.value.value, f.y.value.value))
   }
 
-  object OffsetP extends NewType[Angle]
-  type OffsetP = OffsetP.Type
-
-  object OffsetQ extends NewType[Angle]
-  type OffsetQ = OffsetQ.Type
-
-  final case class InstrumentOffset(p: OffsetP, q: OffsetQ) {
-    def toFocalPlaneOffset(iaa: Angle): FocalPlaneOffset = FocalPlaneOffset(
-      OffsetX(((p.value * -1 * iaa.cos) - q.value * iaa.sin) / FOCAL_PLANE_SCALE),
-      OffsetY((p.value * iaa.sin - q.value * iaa.cos) / FOCAL_PLANE_SCALE)
-    )
-
+  case class InstrumentOffset(p: OffsetP, q: OffsetQ) {
+    def toFocalPlaneOffset(iaa: Angle): FocalPlaneOffset =
+      FocalPlaneOffset(
+        OffsetX(((-p.value * iaa.cos) - q.value * iaa.sin) :\ FOCAL_PLANE_SCALE),
+        OffsetY((p.value * iaa.sin - q.value * iaa.cos) :\ FOCAL_PLANE_SCALE)
+      )
   }
 
   object InstrumentOffset {
-    given Eq[InstrumentOffset] =
-      Eq.by(o => (o.p.value, o.q.value))
 
     def fromFocalPlaneOffset(o: FocalPlaneOffset, iaa: Angle): InstrumentOffset =
       o.toInstrumentOffset(iaa)
+
+    given Eq[InstrumentOffset] = Eq.by(f => (f.p.value.value, f.q.value.value))
+
   }
 
-  final case class TelescopeConfig(
+  case class TelescopeConfig(
     offsetA: Option[InstrumentOffset],
     wavelA:  Option[Wavelength]
-  )
-
-//  implicit val wavelengthEq: Eq[Wavelength] = Eq.by(_.length.value)
+  ) derives Eq
 
   object TelescopeConfig {
     given Show[TelescopeConfig] = Show.fromToString
@@ -306,20 +303,18 @@ object TcsController {
     given Eq[GuiderSensorOption] = Eq.fromUniversalEquals
   }
 
-  final case class GuiderConfig(tracking: ProbeTrackingConfig, detector: GuiderSensorOption) {
+  case class GuiderConfig(tracking: ProbeTrackingConfig, detector: GuiderSensorOption) derives Eq {
     val isActive: Boolean = tracking.isActive && detector === GuiderSensorOn
   }
 
   object GuiderConfig {
     given Show[GuiderConfig] = Show.fromToString[GuiderConfig]
 
-    given Eq[GuiderConfig] = Eq.by(x => (x.tracking, x.detector))
-
     val tracking: Lens[GuiderConfig, ProbeTrackingConfig] = Focus[GuiderConfig](_.tracking)
     val detector: Lens[GuiderConfig, GuiderSensorOption]  = Focus[GuiderConfig](_.detector)
   }
 
-  final case class AGConfig(sfPos: LightPath, hrwfs: Option[HrwfsConfig])
+  case class AGConfig(sfPos: LightPath, hrwfs: Option[HrwfsConfig])
 
   object AGConfig {
     given Show[AGConfig] = Show.show(x => s"(${x.sfPos.show}, ${x.hrwfs.show})")
@@ -371,7 +366,7 @@ object TcsController {
     val oiwfs: OIConfig
   }
 
-  final case class BasicGuidersConfig(
+  case class BasicGuidersConfig(
     pwfs1: P1Config,
     pwfs2: P2Config,
     oiwfs: OIConfig
@@ -383,7 +378,7 @@ object TcsController {
     val oiwfs: Lens[BasicGuidersConfig, OIConfig] = Focus[BasicGuidersConfig](_.oiwfs)
   }
 
-  final case class AoGuidersConfig[C](
+  case class AoGuidersConfig[C](
     pwfs1:   P1Config,
     aoguide: C,
     oiwfs:   OIConfig
@@ -426,7 +421,7 @@ object TcsController {
     val inst: InstrumentGuide
   }
 
-  final case class BasicTcsConfig[S <: Site](
+  case class BasicTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
     gds:  BasicGuidersConfig,
@@ -447,7 +442,7 @@ object TcsController {
     val instLensGS    = Focus[BasicTcsConfig[Site.GS.type]](_.inst)
   }
 
-  final case class AoTcsConfig[S <: Site](
+  case class AoTcsConfig[S <: Site](
     gc:   TelescopeGuideConfig,
     tc:   TelescopeConfig,
     gds:  AoGuidersConfig[SiteSpecifics.AoGuidersConfig[S]],

@@ -5,6 +5,7 @@ package observe.server
 
 import cats.Applicative
 import cats.Endo
+import cats.Monad
 import cats.MonoidK
 import cats.data.NonEmptyList
 import cats.effect.Async
@@ -31,24 +32,26 @@ import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import monocle.function.Index.mapIndex
+import monocle.syntax.all.focus
 import mouse.all.*
 import observe.engine
 import observe.engine.EventResult.*
 import observe.engine.Handle
 import observe.engine.Handle.given
 import observe.engine.Result.Partial
+import observe.engine.Sequence
 import observe.engine.SystemEvent
 import observe.engine.SystemEvent.Executed
 import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
-import observe.engine.{EngineStep => _, _}
+import observe.engine.{EngineStep as _, *}
 import observe.model.Notification.*
 import observe.model.ObservationProgress
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
 import observe.model.UserPrompt.SeqCheck
 import observe.model.UserPrompt.TargetCheckOverride
-import observe.model._
+import observe.model.*
 import observe.model.config.*
 import observe.model.enums.BatchExecState
 import observe.model.enums.PendingObserveCmd
@@ -57,6 +60,7 @@ import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.enums.ServerLogLevel
 import observe.model.events.{SequenceStart as ClientSequenceStart, *}
+import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
@@ -296,14 +300,14 @@ object ObserveEngine {
       stepId: Option[Step.Id]
     ): Option[SequenceGen.StepGen[F]] = for {
       stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
-      stpGen <- obs.seqGen.steps.find(_.id === stp)
+      stpGen <- obs.seqGen.nextAtom.steps.find(_.id === stp)
     } yield stpGen
 
     private def findFirstCheckRequiredStep(
       obs:    SequenceData[F],
       stepId: Step.Id
     ): Option[SequenceGen.StepGen[F]] =
-      obs.seqGen.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
+      obs.seqGen.nextAtom.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
 
     /**
      * Check if the target on the TCS matches the Observe target
@@ -438,8 +442,8 @@ object ObserveEngine {
                       .atomStart(
                         obsId,
                         seq.seqGen.instrument,
-                        seq.seqGen.sequenceType,
-                        NonNegShort.unsafeFrom(seq.seqGen.steps.length.toShort)
+                        seq.seqGen.nextAtom.sequenceType,
+                        NonNegShort.unsafeFrom(seq.seqGen.nextAtom.steps.length.toShort)
                       )
                       .as(
                         Event.modifyState(
@@ -461,7 +465,6 @@ object ObserveEngine {
             seq.seq.currentStep.map { curStep =>
               (
                 startVisit *>
-                  startAtom *>
                   Handle
                     .fromStream[F, EngineState[F], EventType[F]](
                       Stream.eval[F, EventType[F]](
@@ -469,7 +472,8 @@ object ObserveEngine {
                           .sequenceStart(obsId)
                           .as(Event.nullEvent)
                       )
-                    )
+                    ) *>
+                  startAtom
               ).as((obsId, curStep.id).some)
             }
           }
@@ -1636,9 +1640,11 @@ object ObserveEngine {
     systems: Systems[F],
     conf:    ObserveEngineConfiguration
   ): F[ObserveEngine[F]] = for {
-    eng <- Engine.build[F, EngineState[F], SeqEvent](EngineState.engineState[F])
     rc  <- Ref.of[F, Conditions](Conditions.Default)
     tr  <- createTranslator(site, systems, rc)
+    eng <- Engine.build[F, EngineState[F], SeqEvent](EngineState.engineState[F],
+                                                     tryNewAtom[F](systems.odb, tr)
+           )
   } yield new ObserveEngineImpl[F](eng, systems, conf, tr, rc)
 
   private def modifyStateEvent[F[_]](
@@ -1691,6 +1697,8 @@ object ObserveEngine {
       case ResourceBusy(oid, sid, res, cid)   =>
         Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
       case _: NoUserSeqEvent                  => Stream.empty
+      case NoMoreAtoms(_)                     => Stream.empty
+      case NewAtomLoaded(_)                   => Stream.empty
     }
 
   private def executionQueueViews[F[_]](
@@ -1704,7 +1712,7 @@ object ObserveEngine {
     val st         = obsSeq.seq
     val seq        = st.toSequence
     val instrument = obsSeq.seqGen.instrument
-    val seqType    = obsSeq.seqGen.sequenceType
+    val seqType    = obsSeq.seqGen.nextAtom.sequenceType
 
     def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
@@ -1712,7 +1720,7 @@ object ObserveEngine {
     }
 
     def engineSteps(seq: Sequence[F]): List[ObserveStep] =
-      obsSeq.seqGen.steps.zip(seq.steps).map { case (a, b) =>
+      obsSeq.seqGen.nextAtom.steps.zip(seq.steps).map { case (a, b) =>
         val stepResources =
           resources(a).mapFilter(x =>
             obsSeq.seqGen
@@ -1743,11 +1751,10 @@ object ObserveEngine {
       }
 
     val engSteps      = engineSteps(seq)
-    val stepResources = engSteps.map { s =>
-      s match
-        case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
-        case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
-          id -> configStatus.toMap
+    val stepResources = engSteps.map {
+      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
+        id -> configStatus.toMap
     }.toMap
 
     // TODO: Implement willStopIn
@@ -1853,6 +1860,7 @@ object ObserveEngine {
                 SingleActionOp.Error.apply(_, _, _, r.msg)
               ) :: SequenceUpdated(svs) :: Nil
             )
+          case SystemEvent.AtomCompleted(_)                                         => Stream.empty
         }
     }
   }
@@ -1867,5 +1875,58 @@ object ObserveEngine {
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
       .map(res => SingleActionEvent(f(c.sid, c.actCoords.stepId, res)))
       .getOrElse(NullEvent)
+
+  private def tryNewAtom[F[_]: Monad](odb: OdbProxy[F], translator: SeqTranslate[F])(
+    obsId: Observation.Id
+  ): F[Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent]] =
+    odb.read(obsId).map { x =>
+      translator
+        .nextAtom(x)
+        ._2
+        .map { atm =>
+          Handle
+            .get[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
+            .map(EngineState.atSequence[F](obsId).getOption)
+            .map(_.map(_.seqGen.instrument).getOrElse(Instrument.GmosNorth))
+            .flatMap { inst =>
+              Handle.modify[F, EngineState[F], Event[F, EngineState[F], SeqEvent]] { st =>
+                EngineState
+                  .atSequence[F](obsId)
+                  .modify { seq =>
+                    val sg: SequenceData[F] = seq.focus(_.seqGen.nextAtom).replace(atm)
+                    seq
+                      .focus(_.seq)
+                      .modify(s =>
+                        val ns = Sequence.State.init(
+                          Sequence.sequence[F](
+                            obsId,
+                            atm.atomId,
+                            toStepList(sg.seqGen,
+                                       sg.overrides,
+                                       HeaderExtraData(st.conditions, st.operator, sg.observer)
+                            )
+                          )
+                        )
+                        Sequence.State.status.replace(s.status)(ns)
+                      )
+                  }(st)
+              } *>
+                Handle.liftF[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
+                  odb
+                    .atomStart(obsId,
+                               inst,
+                               atm.sequenceType,
+                               NonNegShort.unsafeFrom(atm.steps.length.toShort)
+                    )
+                    .as(SeqEvent.NewAtomLoaded(obsId))
+                )
+            }
+        }
+        .getOrElse(
+          Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
+            SeqEvent.NoMoreAtoms(obsId)
+          )
+        )
+    }
 
 }

@@ -6,7 +6,11 @@ package observe.server.tcs
 import cats.*
 import cats.data.OneAnd
 import cats.syntax.all.*
+import coulomb.Quantity
+import coulomb.syntax.*
+import coulomb.units.accepted.Millimeter
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import mouse.boolean.*
 import observe.model.TelescopeGuideConfig
@@ -23,10 +27,6 @@ import observe.server.tcs.TcsController.FollowOption.FollowOff
 import observe.server.tcs.TcsController.FollowOption.FollowOn
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
-import squants.Angle
-import squants.Length
-import squants.space.Degrees
-import squants.space.Millimeters
 
 sealed trait TcsConfigRetriever[F[_]] {
   def retrieveBaseConfiguration: F[BaseEpicsTcsConfig]
@@ -173,11 +173,13 @@ object TcsConfigRetriever {
       if (hwParked) HrwfsPickupPosition.Parked
       else hwPos
 
-    private def getIAA: F[Angle] = epicsSys.instrAA.map(Degrees(_))
+    private def getIAA: F[Angle] = epicsSys.instrAA.map(Angle.fromDoubleDegrees(_))
 
-    private def getOffsetX: F[Length] = epicsSys.xoffsetPoA1.map(Millimeters(_))
+    private def getOffsetX: F[Quantity[Double, Millimeter]] =
+      epicsSys.xoffsetPoA1.map(_.withUnit[Millimeter])
 
-    private def getOffsetY: F[Length] = epicsSys.yoffsetPoA1.map(Millimeters(_))
+    private def getOffsetY: F[Quantity[Double, Millimeter]] =
+      epicsSys.yoffsetPoA1.map(_.withUnit[Millimeter])
 
     private def getWavelength: F[Wavelength] =
       epicsSys.sourceAWavelength.map(v =>

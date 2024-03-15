@@ -10,9 +10,9 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // Scala libraries
-    val catsEffectVersion = "3.5.3"
+    val catsEffectVersion = "3.5.4"
     val catsVersion       = "2.10.0"
-    val kittens           = "3.2.0"
+    val kittens           = "3.3.0"
     val mouseVersion      = "1.2.3"
     val fs2Version        = "3.9.4"
     val scalaXml          = "1.2.0"
@@ -24,8 +24,8 @@ object Settings {
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.13"
 
-    val atto             = "0.9.5"
-    val squants          = "1.8.3"
+    val coulomb          = "0.8.0"
+    val commonsHttp      = "3.1"
     val unboundId        = "3.2.1"
     val jwt              = "10.0.0"
     val slf4j            = "2.0.12"
@@ -51,7 +51,7 @@ object Settings {
     // Gemini Libraries
     val lucumaCore      = "0.93.0"
     val lucumaUI        = "0.94.5"
-    val lucumaSchemas   = "0.75.0"
+    val lucumaSchemas   = "0.76.0"
     val lucumaSSO       = "0.6.13"
     val lucumaODBSchema = "0.11.1"
 
@@ -61,7 +61,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.37.3"
     val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.52.0"
+    val lucumaReact  = "0.53.0"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta3"
   }
@@ -129,7 +129,13 @@ object Settings {
       "com.github.pureconfig" %% "pureconfig-http4s"      % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % LibraryVersions.pureConfig
     )
-    val Squants          = Def.setting("org.typelevel" %%% "squants" % LibraryVersions.squants)
+    val Coulomb          = Def.setting(
+      Seq(
+        "com.manyangled" %%% "coulomb-core"    % LibraryVersions.coulomb,
+        "com.manyangled" %%% "coulomb-units"   % LibraryVersions.coulomb,
+        "com.manyangled" %%% "coulomb-testkit" % LibraryVersions.coulomb % Test
+      )
+    )
     val ScalaXml         =
       Def.setting("org.scala-lang.modules" %%% "scala-xml" % LibraryVersions.scalaXml)
     val Http4s           = Seq(
