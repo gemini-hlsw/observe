@@ -75,7 +75,6 @@ import observe.model.dhs.*
 import observe.model.enums.Resource
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.odb.OdbProxy
-import observe.server.odb.OdbProxy.DummyOdbProxy
 import org.http4s.Uri
 import org.http4s.implicits.*
 import org.typelevel.log4cats.Logger

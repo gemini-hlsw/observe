@@ -38,8 +38,8 @@ case class SequenceGen[F[_]](
   nextAtom:   SequenceGen.AtomGen[F]
 ) {
   val resources: Set[Resource | Instrument] = nextAtom.steps
-    .collect { case p: SequenceGen.PendingStepGen[F] =>
-      p.resources
+    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _) =>
+      resources
     }
     .foldMap(identity)
 
