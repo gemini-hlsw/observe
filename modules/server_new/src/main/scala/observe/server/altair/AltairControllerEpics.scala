@@ -17,6 +17,8 @@ import coulomb.units.accepted.Millimeter
 import edu.gemini.epics.acm.CarStateGEM5
 import edu.gemini.observe.server.altair.LgsSfoControl
 import lucuma.core.enums.Instrument
+import lucuma.core.model.AltairConfig
+import lucuma.core.model.AltairConfig.*
 import lucuma.core.util.TimeSpan
 import monocle.Focus
 import mouse.boolean.*
@@ -39,6 +41,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import scala.annotation.unused
+import scala.language.implicitConversions
 
 object AltairControllerEpics {
   case class EpicsAltairConfig(
@@ -79,7 +82,8 @@ object AltairControllerEpics {
       val maxY = 37.2.withUnit[Millimeter]
 
       newPos match {
-        case (x, y) => inRangeLinear(minX, maxX)(x) && inRangeLinear(minY, maxY)(y)
+        case (x, y) =>
+          inRangeLinear(minX, maxX)(x) && inRangeLinear(minY, maxY)(y)
       }
     }
 
@@ -488,13 +492,22 @@ object AltairControllerEpics {
       retrieveConfig.map { currCfg =>
         cfg match {
           case Ngs(_, starPos)    =>
-            pauseResumeNgsMode(starPos, currCfg, currentOffset, instrument)(pauseReasons,
-                                                                            resumeReasons
+            pauseResumeNgsMode(starPos.bimap(_.toValue[Double], _.toValue[Double]),
+                               currCfg,
+                               currentOffset,
+                               instrument
+            )(
+              pauseReasons,
+              resumeReasons
             )
           case Lgs(str, sfo, pos) =>
-            pauseResumeLgsMode(str, sfo, pos, currCfg, currentOffset, instrument)(pauseReasons,
-                                                                                  resumeReasons
-            )
+            pauseResumeLgsMode(str,
+                               sfo,
+                               pos.bimap(_.toValue[Double], _.toValue[Double]),
+                               currCfg,
+                               currentOffset,
+                               instrument
+            )(pauseReasons, resumeReasons)
           case LgsWithP1          =>
             AltairPauseResume(
               guideOff(currCfg.aoLoop && pauseReasons.fixed.contains(P1Off)),
@@ -542,7 +555,7 @@ object AltairControllerEpics {
           epicsTcs.aoStatistics.setSamples(1) *>
           epicsTcs.aoStatistics.setFileName(
             "aostats" + date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-          )).whenA(expTime.toSeconds > 5 && cfg =!= AltairOff)
+          )).whenA(expTime.toSeconds > 5 && cfg =!= (AltairOff: AltairConfig))
       )
 
     override def endObserve(cfg: AltairConfig): F[Unit] = Applicative[F].unit

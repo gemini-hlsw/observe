@@ -9,23 +9,24 @@ import cats.syntax.all.*
 import coulomb.*
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.M1Source
 import lucuma.core.enums.Site
+import lucuma.core.enums.StepGuideState
+import lucuma.core.enums.TipTiltSource
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.GemsConfig
+import lucuma.core.model.GemsConfig.*
+import lucuma.core.model.GuideConfig
 import lucuma.core.model.sequence.StepConfig
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
-import observe.model.enums.M1Source
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.Resource
-import observe.model.enums.TipTiltSource
 import observe.server.ConfigResult
 import observe.server.InstrumentGuide
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
-import observe.server.gems.GemsController.GemsConfig
-import observe.server.gems.GemsController.GemsOff
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsSouthController.*
 import org.typelevel.log4cats.Logger
@@ -67,7 +68,7 @@ case class TcsSouth[F[_]: Sync: Logger] private (
   val defaultGuiderConf = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[GuideState]
+    guideWith: Option[StepGuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
@@ -104,13 +105,13 @@ case class TcsSouth[F[_]: Sync: Logger] private (
     ): TcsSouthConfig).pure[F]
 
   private def anyGeMSGuiderActive(gc: TcsSouth.TcsSeqConfig[F]): Boolean =
-    gc.guideWithCWFS1.exists(_ === GuideState.Enabled) ||
-      gc.guideWithCWFS2.exists(_ === GuideState.Enabled) ||
-      gc.guideWithCWFS3.exists(_ === GuideState.Enabled) ||
-      gc.guideWithODGW1.exists(_ === GuideState.Enabled) ||
-      gc.guideWithODGW2.exists(_ === GuideState.Enabled) ||
-      gc.guideWithODGW3.exists(_ === GuideState.Enabled) ||
-      gc.guideWithODGW4.exists(_ === GuideState.Enabled)
+    gc.guideWithCWFS1.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithCWFS2.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithCWFS3.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithODGW1.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithODGW2.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithODGW3.exists(_ === StepGuideState.Enabled) ||
+      gc.guideWithODGW4.exists(_ === StepGuideState.Enabled)
 
   private def buildTcsAoConfig(gc: GuideConfig): F[TcsSouthConfig] =
     gc.gaosGuide
@@ -187,8 +188,8 @@ case class TcsSouth[F[_]: Sync: Logger] private (
 
   def buildTcsConfig: F[TcsSouthConfig] =
     guideDb.value.flatMap { c =>
-      if (gaos.isDefined) buildTcsAoConfig(c)
-      else buildBasicTcsConfig(c)
+      if (gaos.isDefined) buildTcsAoConfig(c.config)
+      else buildBasicTcsConfig(c.config)
     }
 
 }
@@ -198,16 +199,16 @@ object TcsSouth {
   import Tcs.*
 
   final case class TcsSeqConfig[F[_]](
-    guideWithP1:    Option[GuideState],
-    guideWithP2:    Option[GuideState],
-    guideWithOI:    Option[GuideState],
-    guideWithCWFS1: Option[GuideState],
-    guideWithCWFS2: Option[GuideState],
-    guideWithCWFS3: Option[GuideState],
-    guideWithODGW1: Option[GuideState],
-    guideWithODGW2: Option[GuideState],
-    guideWithODGW3: Option[GuideState],
-    guideWithODGW4: Option[GuideState],
+    guideWithP1:    Option[StepGuideState],
+    guideWithP2:    Option[StepGuideState],
+    guideWithOI:    Option[StepGuideState],
+    guideWithCWFS1: Option[StepGuideState],
+    guideWithCWFS2: Option[StepGuideState],
+    guideWithCWFS3: Option[StepGuideState],
+    guideWithODGW1: Option[StepGuideState],
+    guideWithODGW2: Option[StepGuideState],
+    guideWithODGW3: Option[StepGuideState],
+    guideWithODGW4: Option[StepGuideState],
     offsetA:        Option[InstrumentOffset],
     wavelA:         Option[Wavelength],
     lightPath:      LightPath,

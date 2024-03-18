@@ -6,9 +6,9 @@ package observe.web.server.http4s
 import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.compression.Compression
-import observe.server.tcs.GuideConfig
+import lucuma.core.model.GuideConfig
 import observe.server.tcs.GuideConfigDb
-import observe.server.tcs.GuideConfigDb.given
+import observe.server.tcs.GuideConfigState
 import org.http4s.EntityDecoder
 import org.http4s.HttpRoutes
 import org.http4s.circe.jsonOf
@@ -24,7 +24,7 @@ class GuideConfigDbRoutes[F[_]: Concurrent: Compression: Logger](db: GuideConfig
   val publicService: HttpRoutes[F] = GZip {
     HttpRoutes.of { case req @ POST -> Root =>
       req.decode[GuideConfig] { guideConfig =>
-        db.set(guideConfig) *>
+        db.update(GuideConfigState.config.replace(guideConfig)) *>
           Logger[F].info(s"Received guide configuration $guideConfig") *>
           Ok("")
       }

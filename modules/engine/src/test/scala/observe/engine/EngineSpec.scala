@@ -6,8 +6,8 @@ package observe.engine
 import cats.Eq
 import cats.effect.IO
 import lucuma.core.model.sequence.Atom
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import monocle.law.discipline.OptionalTests
 import observe.engine.TestUtil.TestState
 import observe.model.Observation

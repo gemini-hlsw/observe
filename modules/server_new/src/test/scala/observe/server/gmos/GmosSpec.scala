@@ -4,7 +4,7 @@
 package observe.server.gmos
 
 import cats.kernel.laws.discipline.*
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.server.gmos.GmosController.Config.*
 
 /**

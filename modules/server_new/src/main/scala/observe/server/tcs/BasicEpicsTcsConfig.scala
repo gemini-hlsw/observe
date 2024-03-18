@@ -5,9 +5,9 @@ package observe.server.tcs
 
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.TelescopeGuideConfig
 import monocle.Focus
 import monocle.Lens
-import observe.model.TelescopeGuideConfig
 import observe.server.tcs.TcsController.*
 
 case class InstrumentPorts(

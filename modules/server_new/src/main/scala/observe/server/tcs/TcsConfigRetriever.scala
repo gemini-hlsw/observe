@@ -10,14 +10,14 @@ import coulomb.Quantity
 import coulomb.syntax.*
 import coulomb.units.accepted.Millimeter
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.enums.ComaOption
+import lucuma.core.enums.M1Source
+import lucuma.core.enums.MountGuideOption
+import lucuma.core.enums.TipTiltSource
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.TelescopeGuideConfig
 import mouse.boolean.*
-import observe.model.TelescopeGuideConfig
-import observe.model.enums.ComaOption
-import observe.model.enums.M1Source
-import observe.model.enums.MountGuideOption
-import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.decode
 import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
@@ -70,7 +70,7 @@ object TcsConfigRetriever {
                           )
                         )
                       )
-      } yield TelescopeGuideConfig(mountGuide, m1Guide, m2Guide)
+      } yield TelescopeGuideConfig(mountGuide, m1Guide, m2Guide, false, None)
     }.adaptError { case e =>
       ObserveFailure.Unexpected(s"Unable to read guide configuration from TCS: $e")
     }

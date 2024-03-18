@@ -8,13 +8,12 @@ import cats.data.NonEmptySet
 import cats.implicits.*
 import lucuma.core.enums.Site
 import lucuma.core.enums.Site.GN
+import lucuma.core.model.M1GuideConfig
+import lucuma.core.model.M2GuideConfig
 import monocle.Focus
 import monocle.Lens
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
 import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.Altair
-import observe.server.altair.AltairController
 import observe.server.tcs.TcsController.GuiderConfig.given
 import observe.server.tcs.TcsController.*
 
@@ -55,7 +54,7 @@ object TcsNorthController {
 
   given Show[TcsNorthConfig] = Show.show {
     case x: BasicTcsConfig[Site.GN.type] => x.show
-    case x: TcsNorthAoConfig             => x.show
+    case x: TcsNorthAoConfig             => x.toString
   }
 
 }

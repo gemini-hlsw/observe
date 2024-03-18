@@ -8,37 +8,18 @@ import coulomb.Quantity
 import coulomb.syntax.*
 import coulomb.units.accepted.Millimeter
 import io.circe.parser.*
-import monocle.law.discipline.LensTests
-import monocle.law.discipline.OptionalTests
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
-import observe.model.TelescopeGuideConfig
-import observe.model.arb.all.given
-import observe.model.enums.*
-import observe.server.altair.AltairController
-import observe.server.altair.AltairController.Lgs
-import observe.server.altair.ArbAltairConfig.given
-import observe.server.gems.ArbGemsConfig.given
-import observe.server.gems.GemsController.Cwfs1Usage
-import observe.server.gems.GemsController.Cwfs2Usage
-import observe.server.gems.GemsController.Cwfs3Usage
-import observe.server.gems.GemsController.GemsOn
-import observe.server.gems.GemsController.OIUsage
-import observe.server.gems.GemsController.Odgw1Usage
-import observe.server.gems.GemsController.Odgw2Usage
-import observe.server.gems.GemsController.Odgw3Usage
-import observe.server.gems.GemsController.Odgw4Usage
-import observe.server.gems.GemsController.P1Usage
-import observe.server.tcs.GuideConfig.given
-import observe.server.tcs.GuideConfigDb.given
-import org.scalacheck.Arbitrary.*
+import lucuma.core.enums.*
+import lucuma.core.model.AltairConfig.*
+import lucuma.core.model.GemsConfig.*
+import lucuma.core.model.GuideConfig
+import lucuma.core.model.M1GuideConfig
+import lucuma.core.model.M2GuideConfig
+import lucuma.core.model.TelescopeGuideConfig
+import lucuma.core.model.arb.ArbGuideConfig
 
-final class GuideConfigDbSuite
-    extends munit.CatsEffectSuite
-    with munit.DisciplineSuite
-    with TcsArbitraries {
+class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with TcsArbitraries {
 
-  val rawJson1: String          = """
+  val rawJson1: String               = """
   {
     "tcsGuide": {
       "mountGuideOn": true,
@@ -50,22 +31,27 @@ final class GuideConfigDbSuite
         "on": true,
         "sources": ["PWFS1"],
         "comaOn": false
-      }
+      },
+      "dayTimeMode": false
     },
     "gaosGuide": null
   }
   """
-  val guideConfig1: GuideConfig = GuideConfig(
-    TelescopeGuideConfig(
-      MountGuideOption.MountGuideOn,
-      M1GuideConfig.M1GuideOn(M1Source.PWFS1),
-      M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1))
+  val guideConfig1: GuideConfigState = GuideConfigState(
+    GuideConfig(
+      TelescopeGuideConfig(
+        MountGuideOption.MountGuideOn,
+        M1GuideConfig.M1GuideOn(M1Source.PWFS1),
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1)),
+        false,
+        None
+      ),
+      None
     ),
-    None,
     gemsSkyPaused = false
   )
 
-  val rawJson2: String          = """
+  val rawJson2: String               = """
   {
     "tcsGuide": {
       "m1Guide": {
@@ -77,6 +63,7 @@ final class GuideConfigDbSuite
         "sources": ["PWFS1"],
         "comaOn": true
       },
+      "dayTimeMode": false,
       "mountGuideOn": false
     },
     "gaosGuide": {
@@ -94,24 +81,29 @@ final class GuideConfigDbSuite
     }
   }
   """
-  val guideConfig2: GuideConfig = GuideConfig(
-    TelescopeGuideConfig(
-      MountGuideOption.MountGuideOff,
-      M1GuideConfig.M1GuideOn(M1Source.PWFS1),
-      M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1))
-    ),
-    Some(
-      Left(
-        Lgs(strap = true,
-            sfo = true,
-            starPos = (-5.0.withUnit[Millimeter], 3.0.withUnit[Millimeter])
+  val guideConfig2: GuideConfigState = GuideConfigState(
+    GuideConfig(
+      TelescopeGuideConfig(
+        MountGuideOption.MountGuideOff,
+        M1GuideConfig.M1GuideOn(M1Source.PWFS1),
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
+        false,
+        None
+      ),
+      Some(
+        Left(
+          Lgs(strap = true,
+              sfo = true,
+              starPos =
+                (BigDecimal(-5.0).withUnit[Millimeter], BigDecimal(3.0).withUnit[Millimeter])
+          )
         )
       )
     ),
     gemsSkyPaused = false
   )
 
-  val rawJson3: String          = """
+  val rawJson3: String               = """
   {
     "tcsGuide": {
       "m1Guide": {
@@ -123,7 +115,8 @@ final class GuideConfigDbSuite
         "sources": ["GAOS"],
         "comaOn": true
       },
-      "mountGuideOn": true
+      "mountGuideOn": true,
+      "dayTimeMode": false
     },
     "gaosGuide": {
       "gems": {
@@ -139,24 +132,28 @@ final class GuideConfigDbSuite
     }
  }
   """
-  val guideConfig3: GuideConfig = GuideConfig(
-    TelescopeGuideConfig(
-      MountGuideOption.MountGuideOn,
-      M1GuideConfig.M1GuideOn(M1Source.GAOS),
-      M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.GAOS))
-    ),
-    Some(
-      Right(
-        GemsOn(
-          Cwfs1Usage.Use,
-          Cwfs2Usage.DontUse,
-          Cwfs3Usage.DontUse,
-          Odgw1Usage.Use,
-          Odgw2Usage.DontUse,
-          Odgw3Usage.Use,
-          Odgw4Usage.Use,
-          P1Usage.DontUse,
-          OIUsage.DontUse
+  val guideConfig3: GuideConfigState = GuideConfigState(
+    GuideConfig(
+      TelescopeGuideConfig(
+        MountGuideOption.MountGuideOn,
+        M1GuideConfig.M1GuideOn(M1Source.GAOS),
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.GAOS)),
+        false,
+        None
+      ),
+      Some(
+        Right(
+          GemsOn(
+            Cwfs1Usage.Use,
+            Cwfs2Usage.DontUse,
+            Cwfs3Usage.DontUse,
+            Odgw1Usage.Use,
+            Odgw2Usage.DontUse,
+            Odgw3Usage.Use,
+            Odgw4Usage.Use,
+            P1Usage.DontUse,
+            OIUsage.DontUse
+          )
         )
       )
     ),
@@ -164,9 +161,9 @@ final class GuideConfigDbSuite
   )
 
   test("GuideConfigDb provide decoders") {
-    assertEquals(decode[GuideConfig](rawJson1), Right(guideConfig1))
-    assertEquals(decode[GuideConfig](rawJson2), Right(guideConfig2))
-    assertEquals(decode[GuideConfig](rawJson3), Right(guideConfig3))
+    assertEquals(decode[GuideConfig](rawJson1), Right(guideConfig1.config))
+    assertEquals(decode[GuideConfig](rawJson2), Right(guideConfig2.config))
+    assertEquals(decode[GuideConfig](rawJson3), Right(guideConfig3.config))
   }
 
   test("retrieve the same configuration that was set") {
@@ -174,11 +171,5 @@ final class GuideConfigDbSuite
 
     db.flatMap(x => x.set(guideConfig1) *> x.value).map(assertEquals(_, guideConfig1))
   }
-
-  checkAll("TCS guide lens", LensTests(GuideConfig.tcsGuide))
-  checkAll("TCS GAOS configuration lens", LensTests(GuideConfig.gaosGuide))
-  checkAll("TCS GeMS guide lens", OptionalTests(GuideConfig.gemsGuide))
-  checkAll("TCS Altair guide lens", OptionalTests(GuideConfig.altairGuide))
-  checkAll("TCS GeMS sky flag lens", LensTests(GuideConfig.gemsSkyPaused))
 
 }

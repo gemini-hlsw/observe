@@ -17,13 +17,13 @@ import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.AltairConfig
+import lucuma.core.model.GemsConfig
+import lucuma.core.model.TelescopeGuideConfig
 import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Lens
-import observe.model.TelescopeGuideConfig
 import observe.server.InstrumentGuide
-import observe.server.altair.AltairController
-import observe.server.gems.GemsController
 import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.TcsSouthController.GemsGuiders
 import observe.server.tcs.*
@@ -470,22 +470,22 @@ object TcsController {
     }
 
     type AoConfig[S <: Site] = S match {
-      case Site.GN.type => AltairController.AltairConfig
-      case Site.GS.type => GemsController.GemsConfig
+      case Site.GN.type => AltairConfig
+      case Site.GS.type => GemsConfig
     }
   }
 
   object TcsConfig {
 
     given [S <: Site]: Show[BasicTcsConfig[S]] = Show.show { x =>
-      s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show})"
+      s"(guideConfig = ${x.gc}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show})"
     }
 
     given [S <: Site](using
       x: Show[SiteSpecifics.AoGuidersConfig[S]],
       y: Show[SiteSpecifics.AoConfig[S]]
     ): Show[AoTcsConfig[S]] = Show.show { x =>
-      s"(guideConfig = ${x.gc.show}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show}, gaos = ${x.gaos.show})"
+      s"(guideConfig = ${x.gc}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds}, A&G = ${x.agc.show}, gaos = ${x.gaos})"
     }
 
   }

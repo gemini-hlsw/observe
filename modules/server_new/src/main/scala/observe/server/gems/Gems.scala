@@ -7,29 +7,22 @@ import cats.Applicative
 import cats.Eq
 import cats.MonadThrow
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
+import lucuma.core.enums.*
+import lucuma.core.model.AltairConfig
+import lucuma.core.model.GemsConfig
+import lucuma.core.model.GemsConfig.*
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
-import observe.server.altair.AltairController.AltairConfig
 import observe.server.gems.Gems.GemsWfsState
-import observe.server.gems.GemsController.Cwfs1Usage
-import observe.server.gems.GemsController.Cwfs2Usage
-import observe.server.gems.GemsController.Cwfs3Usage
-import observe.server.gems.GemsController.GemsConfig
-import observe.server.gems.GemsController.OIUsage
-import observe.server.gems.GemsController.Odgw1Usage
-import observe.server.gems.GemsController.Odgw2Usage
-import observe.server.gems.GemsController.Odgw3Usage
-import observe.server.gems.GemsController.Odgw4Usage
-import observe.server.gems.GemsController.P1Usage
 import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.PauseCondition
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
 import observe.server.tcs.Gaos.ResumeCondition
 import observe.server.tcs.Gaos.ResumeConditionSet
-import observe.server.tcs.GuideConfig
 import observe.server.tcs.GuideConfigDb
+import observe.server.tcs.GuideConfigState
 import org.typelevel.log4cats.Logger
 
 trait Gems[F[_]] extends Gaos[F] {
@@ -65,7 +58,7 @@ object Gems {
       resumeReasons: ResumeConditionSet
     ): F[PauseResume[F]] =
       guideConfigDb.value.flatMap { g =>
-        g.gaosGuide match {
+        g.config.gaosGuide match {
           case Some(Right(gemsCfg)) =>
             val filteredPauseReasons  = filterPauseReasons(pauseReasons, g.gemsSkyPaused)
             val filteredResumeReasons = filterResumeReasons(
@@ -79,14 +72,14 @@ object Gems {
                   x.pause.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.replace(true))
+                        .update(GuideConfigState.gemsSkyPaused.replace(true))
                         .whenA(filteredPauseReasons.contains(PauseCondition.GaosGuideOff))
                     )
                   ),
                   x.resume.map(
                     _.flatMap(_ =>
                       guideConfigDb
-                        .update(GuideConfig.gemsSkyPaused.replace(false))
+                        .update(GuideConfigState.gemsSkyPaused.replace(false))
                         .whenA(filteredResumeReasons.contains(ResumeCondition.GaosGuideOn))
                     )
                   )
@@ -124,7 +117,7 @@ object Gems {
   // `combine` calculates the final configuration between the configuration coming from the step and the configuration
   // set by the operator.
   private def combine(opConfig: GemsConfig, stepConfig: GemsConfig): GemsConfig =
-    GemsController.GemsOn(
+    GemsOn(
       Cwfs1Usage.fromBoolean(opConfig.isCwfs1Used && stepConfig.isCwfs1Used),
       Cwfs2Usage.fromBoolean(opConfig.isCwfs2Used && stepConfig.isCwfs2Used),
       Cwfs3Usage.fromBoolean(opConfig.isCwfs3Used && stepConfig.isCwfs3Used),
@@ -141,28 +134,28 @@ object Gems {
     guideConfigDb: GuideConfigDb[F],
     obsCfg:        Observation
   ): Gems[F] = {
-    val p1    = none[GuideState]
-    val oi    = none[GuideState]
-    val cwfs1 = none[GuideState]
-    val cwfs2 = none[GuideState]
-    val cwfs3 = none[GuideState]
-    val odgw1 = none[GuideState]
-    val odgw2 = none[GuideState]
-    val odgw3 = none[GuideState]
-    val odgw4 = none[GuideState]
+    val p1    = none[StepGuideState]
+    val oi    = none[StepGuideState]
+    val cwfs1 = none[StepGuideState]
+    val cwfs2 = none[StepGuideState]
+    val cwfs3 = none[StepGuideState]
+    val odgw1 = none[StepGuideState]
+    val odgw2 = none[StepGuideState]
+    val odgw3 = none[StepGuideState]
+    val odgw4 = none[StepGuideState]
 
     new GemsImpl[F](
       c,
-      GemsController.GemsOn(
-        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === GuideState.Enabled)),
-        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === GuideState.Enabled)),
-        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === GuideState.Enabled)),
-        Odgw1Usage.fromBoolean(odgw1.exists(_ === GuideState.Enabled)),
-        Odgw2Usage.fromBoolean(odgw2.exists(_ === GuideState.Enabled)),
-        Odgw3Usage.fromBoolean(odgw3.exists(_ === GuideState.Enabled)),
-        Odgw4Usage.fromBoolean(odgw4.exists(_ === GuideState.Enabled)),
-        P1Usage.fromBoolean(p1.exists(_ === GuideState.Enabled)),
-        OIUsage.fromBoolean(oi.exists(_ === GuideState.Enabled))
+      GemsOn(
+        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === StepGuideState.Enabled)),
+        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === StepGuideState.Enabled)),
+        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === StepGuideState.Enabled)),
+        Odgw1Usage.fromBoolean(odgw1.exists(_ === StepGuideState.Enabled)),
+        Odgw2Usage.fromBoolean(odgw2.exists(_ === StepGuideState.Enabled)),
+        Odgw3Usage.fromBoolean(odgw3.exists(_ === StepGuideState.Enabled)),
+        Odgw4Usage.fromBoolean(odgw4.exists(_ === StepGuideState.Enabled)),
+        P1Usage.fromBoolean(p1.exists(_ === StepGuideState.Enabled)),
+        OIUsage.fromBoolean(oi.exists(_ === StepGuideState.Enabled))
       ),
       guideConfigDb
     ): Gems[F]

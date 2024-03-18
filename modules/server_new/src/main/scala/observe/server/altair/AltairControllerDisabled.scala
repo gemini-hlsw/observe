@@ -6,6 +6,7 @@ package observe.server.altair
 import cats.Applicative
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
+import lucuma.core.model.AltairConfig
 import lucuma.core.util.TimeSpan
 import observe.server.altair.AltairController.AltairPauseResume
 import observe.server.overrideLogMessage
@@ -20,7 +21,7 @@ class AltairControllerDisabled[F[_]: Logger: Applicative] extends AltairControll
     resumeReasons: Gaos.ResumeConditionSet,
     currentOffset: FocalPlaneOffset,
     instrument:    Instrument
-  )(cfg: AltairController.AltairConfig): F[AltairPauseResume[F]] =
+  )(cfg: AltairConfig): F[AltairPauseResume[F]] =
     AltairPauseResume(
       overrideLogMessage("Altair", "pause AO loops").some,
       GuideCapabilities(canGuideM2 = false, canGuideM1 = false),
@@ -31,10 +32,10 @@ class AltairControllerDisabled[F[_]: Logger: Applicative] extends AltairControll
       forceFreeze = true
     ).pure[F]
 
-  override def observe(expTime: TimeSpan)(cfg: AltairController.AltairConfig): F[Unit] =
+  override def observe(expTime: TimeSpan)(cfg: AltairConfig): F[Unit] =
     overrideLogMessage("Altair", "observe")
 
-  override def endObserve(cfg: AltairController.AltairConfig): F[Unit] =
+  override def endObserve(cfg: AltairConfig): F[Unit] =
     overrideLogMessage("Altair", "endObserve")
 
   override def isFollowing: F[Boolean] = false.pure[F]

@@ -12,19 +12,19 @@ import coulomb.ops.algebra.all.given
 import coulomb.policy.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.Millimeter
+import lucuma.core.enums.ComaOption
+import lucuma.core.enums.M1Source
+import lucuma.core.enums.MountGuideOption
 import lucuma.core.enums.Site
+import lucuma.core.enums.TipTiltSource
+import lucuma.core.model.M1GuideConfig
+import lucuma.core.model.M2GuideConfig
+import lucuma.core.model.TelescopeGuideConfig
 import lucuma.core.util.TimeSpan
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.*
 import mouse.boolean.*
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
-import observe.model.TelescopeGuideConfig
-import observe.model.enums.ComaOption
-import observe.model.enums.M1Source
-import observe.model.enums.MountGuideOption
-import observe.model.enums.TipTiltSource
 import observe.server.EpicsCodex.encode
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
@@ -33,7 +33,7 @@ import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 import observe.server.tcs.TcsControllerEpicsCommon.offsetNear
-import observe.server.tcs.TcsNorthController.{*, given}
+import observe.server.tcs.TcsNorthController.*
 import org.typelevel.log4cats.Logger
 
 trait TcsNorthControllerEpicsAo[F[_]] {
@@ -147,7 +147,7 @@ object TcsNorthControllerEpicsAo {
           val debug  = paramList.map(_.debug).mkString(", ")
           for {
             _ <- L.debug("Start TCS configuration")
-            _ <- L.debug(s"TCS configuration: ${demand.show}")
+            _ <- L.debug(s"TCS configuration: $demand}")
             _ <- L.debug(s"for subsystems $subsystems")
             _ <- L.debug(s"TCS set because $debug").whenA(trace)
             _ <- executeTargetFilterConf(false).whenA(pauseTargetFilter && mountMoves)

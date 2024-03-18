@@ -4,11 +4,11 @@
 package observe.model
 
 import lucuma.core.math.Axis
-import lucuma.core.math.arb.ArbAngle.*
-import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.math.arb.ArbAngle.given
+import lucuma.core.math.arb.ArbOffset.given
 import lucuma.core.optics.laws.discipline.FormatTests
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbUid.given
 import monocle.law.discipline.*
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.SequenceEventsArbitraries.given
@@ -28,47 +28,13 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
   checkAll("sequence queue lens", LensTests(sessionQueueL))
   checkAll("events prism", PrismTests(sequenceEventsP))
 
-//  checkAll("param value lens", LensTests(paramValueL("object")))
-//  checkAll("system parameters lens", LensTests(systemConfigL(SystemName.Observe)))
-//  checkAll("config param value optional",
-//           OptionalTests(configParamValueO(SystemName.Observe, "object"))
-//  )
-
   checkAll("sequence view Lens", LensTests(sequenceQueueViewL))
   checkAll("sequencename traversal", TraversalTests(sequenceNameT))
 
-//  checkAll("science step traversal", TraversalTests(scienceStepT))
-//  checkAll("science target name optional", OptionalTests(scienceTargetNameO))
-//  checkAll("step type optional", OptionalTests(stepTypeO))
-//  checkAll("first science target name traversal", TraversalTests(firstScienceTargetNameT))
-//  checkAll("observe targetname traversal", TraversalTests(observeTargetNameT))
-//  checkAll("telescope targetname traversal", TraversalTests(telescopeTargetNameT))
-//  checkAll("first science step target name traversal", TraversalTests(firstScienceTargetNameT))
-
   checkAll("step type prism", PrismTests(stringToStepTypeP))
 
-//  checkAll("step step type optional", OptionalTests(stepTypeO))
-//  checkAll("telescope offset p optional", OptionalTests(offsetO[OffsetType.Telescope, Axis.P]))
-//  checkAll("telescope offset q optional", OptionalTests(offsetO[OffsetType.Telescope, Axis.Q]))
-//  checkAll("step double prism", PrismTests(stringToDoubleP))
-//  checkAll("param guiding prism", PrismTests(stringToGuidingP))
-//  checkAll("telescope guiding traversal", TraversalTests(telescopeGuidingWithT))
-//  checkAll("observe exposure time Optional", OptionalTests(observeExposureTimeO))
-//  checkAll("observe coadds Optional", OptionalTests(observeCoaddsO))
-//  checkAll("instrument fpu Optional", OptionalTests(instrumentFPUO))
-//  checkAll("instrument fpu mode Optional", OptionalTests(instrumentFPUModeO))
-//  checkAll("instrument fpu custom mask Optional", OptionalTests(instrumentFPUCustomMaskO))
-//  checkAll("instrument filter Optional", OptionalTests(instrumentFilterO))
-//  checkAll("instrument camera Optional", OptionalTests(instrumentCameraO))
-//  checkAll("instrument disperser Optional", OptionalTests(instrumentDisperserO))
-//  checkAll("instrument disperser lambda Optional", OptionalTests(instrumentDisperserLambdaO))
-//  checkAll("instrument observing mode Optional", OptionalTests(instrumentObservingModeO))
-//  checkAll("instrument disperser mode lambda Optional", OptionalTests(instrumentDisperserLambdaO))
-//  checkAll("instrument decker Optional", OptionalTests(instrumentDeckerO))
-//  checkAll("instrument imaging mirror Optional", OptionalTests(instrumentImagingMirrorO))
-//  checkAll("instrument mask Optional", OptionalTests(instrumentMaskO))
-//  checkAll("instrument read mode Optional", OptionalTests(instrumentReadModeO))
-//  checkAll("step class", OptionalTests(stepClassO))
+  checkAll("step double prism", PrismTests(stringToDoubleP))
+  checkAll("param guiding prism", PrismTests(stringToGuidingP))
 
   checkAll("StandardStep", PrismTests(ObserveStep.standardStepP))
   checkAll("NodAndShuffleStep", PrismTests(ObserveStep.nsStepP))

@@ -5,10 +5,10 @@ package observe.server.keywords
 
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
-import lucuma.core.enums.GuideState.Disabled
-import lucuma.core.enums.GuideState.Enabled
 import lucuma.core.enums.Site
+import lucuma.core.enums.StepGuideState
+import lucuma.core.enums.StepGuideState.Disabled
+import lucuma.core.enums.StepGuideState.Enabled
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.TimingWindowEnd
 import lucuma.core.model.TimingWindowRepeat
@@ -30,21 +30,21 @@ sealed trait ObsKeywordsReader[F[_]] {
   def dataLabel: F[String]
   def observatory: F[String]
   def telescope: F[String]
-  def pwfs1Guide: F[Option[GuideState]]
+  def pwfs1Guide: F[Option[StepGuideState]]
   def pwfs1GuideS: F[String]
-  def pwfs2Guide: F[Option[GuideState]]
+  def pwfs2Guide: F[Option[StepGuideState]]
   def pwfs2GuideS: F[String]
-  def oiwfsGuide: F[Option[GuideState]]
+  def oiwfsGuide: F[Option[StepGuideState]]
   def oiwfsGuideS: F[String]
-  def aowfsGuide: F[Option[GuideState]]
+  def aowfsGuide: F[Option[StepGuideState]]
   def aowfsGuideS: F[String]
-  def cwfs1Guide: F[Option[GuideState]]
-  def cwfs2Guide: F[Option[GuideState]]
-  def cwfs3Guide: F[Option[GuideState]]
-  def odgw1Guide: F[Option[GuideState]]
-  def odgw2Guide: F[Option[GuideState]]
-  def odgw3Guide: F[Option[GuideState]]
-  def odgw4Guide: F[Option[GuideState]]
+  def cwfs1Guide: F[Option[StepGuideState]]
+  def cwfs2Guide: F[Option[StepGuideState]]
+  def cwfs3Guide: F[Option[StepGuideState]]
+  def odgw1Guide: F[Option[StepGuideState]]
+  def odgw2Guide: F[Option[StepGuideState]]
+  def odgw3Guide: F[Option[StepGuideState]]
+  def odgw4Guide: F[Option[StepGuideState]]
   def headerPrivacy: F[Boolean]
   def releaseDate: F[String]
   def obsObject: F[String]
@@ -161,50 +161,50 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def telescope: F[String] = telescopeName.pure[F]
 
-      private def decodeGuide(v: Option[GuideState]): String = v
+      private def decodeGuide(v: Option[StepGuideState]): String = v
         .map {
           case Enabled  => "guiding"
           case Disabled => "frozen"
         }
         .getOrElse("frozen")
 
-      override def pwfs1Guide: F[Option[GuideState]] = none.pure[F]
+      override def pwfs1Guide: F[Option[StepGuideState]] = none.pure[F]
 
       override def pwfs1GuideS: F[String] =
         pwfs1Guide
           .map(decodeGuide)
 
-      override def pwfs2Guide: F[Option[GuideState]] = none.pure[F]
+      override def pwfs2Guide: F[Option[StepGuideState]] = none.pure[F]
 
       override def pwfs2GuideS: F[String] =
         pwfs2Guide
           .map(decodeGuide)
 
-      override def oiwfsGuide: F[Option[GuideState]] = none.pure[F]
+      override def oiwfsGuide: F[Option[StepGuideState]] = none.pure[F]
 
       override def oiwfsGuideS: F[String] =
         oiwfsGuide
           .map(decodeGuide)
 
-      override def aowfsGuide: F[Option[GuideState]] = none.pure[F]
+      override def aowfsGuide: F[Option[StepGuideState]] = none.pure[F]
 
       override def aowfsGuideS: F[String] =
         aowfsGuide
           .map(decodeGuide)
 
-      override def cwfs1Guide: F[Option[GuideState]] = none.pure[F]
+      override def cwfs1Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def cwfs2Guide: F[Option[GuideState]] = none.pure[F]
+      override def cwfs2Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def cwfs3Guide: F[Option[GuideState]] = none.pure[F]
+      override def cwfs3Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def odgw1Guide: F[Option[GuideState]] = none.pure[F]
+      override def odgw1Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def odgw2Guide: F[Option[GuideState]] = none.pure[F]
+      override def odgw2Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def odgw3Guide: F[Option[GuideState]] = none.pure[F]
+      override def odgw3Guide: F[Option[StepGuideState]] = none.pure[F]
 
-      override def odgw4Guide: F[Option[GuideState]] = none.pure[F]
+      override def odgw4Guide: F[Option[StepGuideState]] = none.pure[F]
 
       override def headerPrivacy: F[Boolean] = false.pure[F]
 

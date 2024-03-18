@@ -3,7 +3,7 @@
 
 package observe.model.arb
 
-import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbGid.given
 import observe.model.Observation
 import observe.model.ObservationProgress
 import observe.model.StepProgress

@@ -6,9 +6,9 @@ package observe.model.arb
 object all
     extends ArbRunningStep
     with ArbNotification
-    with ArbM2GuideConfig
-    with ArbM1GuideConfig
-    with ArbTelescopeGuideConfig
+    // with ArbM2GuideConfig
+    // with ArbM1GuideConfig
+    // with ArbTelescopeGuideConfig
     with ArbObserveStep
     with ArbStandardStep
     with ArbNodAndShuffleStep

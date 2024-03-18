@@ -436,7 +436,7 @@ class ObserveEngineSuite extends TestCommon {
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, GuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
     )
 
     val startStepIdx  = 1
@@ -786,7 +786,7 @@ class ObserveEngineSuite extends TestCommon {
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, GuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
     )
 
     val startStepIdx  = 1
