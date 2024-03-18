@@ -54,7 +54,8 @@ trait ServerEventHandler:
               case SingleActionState.Started   => ActionStatus.Running.some
               case SingleActionState.Completed => ActionStatus.Completed.some
               case SingleActionState.Failed    => ActionStatus.Failed.some
-        ) >> // Reset Request
+        )
+        >> // Reset Request
           asyncRootModel
             .zoom(RootModelData.obsRequests.index(obsId))
             .zoom(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
