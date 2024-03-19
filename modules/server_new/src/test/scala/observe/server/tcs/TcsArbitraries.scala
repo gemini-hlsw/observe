@@ -11,12 +11,6 @@ import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Degree
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
-import observe.model.TelescopeGuideConfig
-import observe.model.arb.ArbTelescopeGuideConfig.given
-import observe.server.altair.AltairController.AltairConfig
-import observe.server.altair.ArbAltairConfig.given
-import observe.server.gems.ArbGemsConfig.given
-import observe.server.gems.GemsController.GemsConfig
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -90,11 +84,4 @@ trait TcsArbitraries {
   given Cogen[BinaryOnOff]     =
     Cogen[String].contramap(_.name)
 
-  given Arbitrary[GuideConfig] = Arbitrary {
-    for {
-      tg <- arbitrary[TelescopeGuideConfig]
-      gc <- arbitrary[Option[Either[AltairConfig, GemsConfig]]]
-      p  <- arbitrary[Boolean]
-    } yield GuideConfig(tg, gc, p)
-  }
 }

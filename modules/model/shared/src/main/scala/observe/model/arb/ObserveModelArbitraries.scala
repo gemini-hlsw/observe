@@ -15,11 +15,11 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
-import lucuma.core.model.arb.ArbUser.*
+import lucuma.core.model.arb.ArbUser.given
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.ObserveStep
 import observe.model.*
 import observe.model.arb.all.given
@@ -282,6 +282,7 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[Version] = newTypeArbitrary(Version)
   given Cogen[Version]     = newTypeCogen(Version)
+
 }
 
 object ObserveModelArbitraries extends ObserveModelArbitraries

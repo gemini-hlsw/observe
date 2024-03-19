@@ -4,7 +4,7 @@
 package observe.server
 
 import cats.kernel.laws.discipline.*
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 
 /**
  * Tests ObserveServer typeclasses

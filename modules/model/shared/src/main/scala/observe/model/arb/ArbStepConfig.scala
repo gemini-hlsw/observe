@@ -6,7 +6,7 @@ package observe.model.arb
 import lucuma.core.arb.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.math.arb.ArbOffset.given
 import observe.model.*
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Gen
@@ -20,15 +20,6 @@ trait ArbStepConfig {
       a <- asciiStr
       b <- asciiStr
     } yield (a, b)
-
-  // val parametersGen: Gen[Parameters] =
-  //   Gen.chooseNum(0, 10).flatMap(s => Gen.mapOfN[String, String](s, stepItemG))
-
-  // val stepConfigG: Gen[(SystemName, Parameters)] =
-  //   for {
-  //     a <- arbitrary[SystemName]
-  //     b <- parametersGen
-  //   } yield (a, b)
 
   private val perturbations: List[String => Gen[String]] =
     List(s => if (s.startsWith("-")) Gen.const(s) else Gen.const(s"00%s") // insert leading 0s

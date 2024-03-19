@@ -16,20 +16,20 @@ import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter
 import edu.gemini.observe.server.tcs.BinaryOnOff
 import edu.gemini.observe.server.tcs.BinaryYesNo
+import lucuma.core.enums.ComaOption
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName.Gmos
+import lucuma.core.enums.M1Source
+import lucuma.core.enums.MountGuideOption
 import lucuma.core.enums.Site
+import lucuma.core.enums.TipTiltSource
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import lucuma.core.math.Wavelength.*
+import lucuma.core.model.M1GuideConfig
+import lucuma.core.model.M2GuideConfig
+import lucuma.core.model.TelescopeGuideConfig
 import lucuma.core.syntax.all.*
-import observe.model.M1GuideConfig
-import observe.model.M2GuideConfig
-import observe.model.TelescopeGuideConfig
-import observe.model.enums.ComaOption
-import observe.model.enums.M1Source
-import observe.model.enums.MountGuideOption
-import observe.model.enums.TipTiltSource
 import observe.server.InstrumentGuide
 import observe.server.keywords.USLocale
 import observe.server.tcs.FocalPlaneScale.*
@@ -60,7 +60,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     "None",
     TelescopeGuideConfig(MountGuideOption.MountGuideOff,
                          M1GuideConfig.M1GuideOff,
-                         M2GuideConfig.M2GuideOff
+                         M2GuideConfig.M2GuideOff,
+                         false,
+                         None
     ),
     AoFold.Out,
     useAo = false,
@@ -81,7 +83,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
   private val baseConfig = BasicTcsConfig[Site.GS.type](
     TelescopeGuideConfig(MountGuideOption.MountGuideOff,
                          M1GuideConfig.M1GuideOff,
-                         M2GuideConfig.M2GuideOff
+                         M2GuideConfig.M2GuideOff,
+                         false,
+                         None
     ),
     TelescopeConfig(None, None),
     BasicGuidersConfig(
@@ -386,7 +390,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs1 = P1Config(
@@ -452,7 +458,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs1 = P1Config(
@@ -503,7 +511,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs1 = P1Config(
@@ -552,7 +562,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs2 = P2Config(
@@ -605,7 +617,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs2 = P2Config(
@@ -656,7 +670,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         pwfs2 = P2Config(
@@ -706,7 +722,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         oiwfs = OIConfig(
@@ -759,7 +777,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         oiwfs = OIConfig(
@@ -811,7 +831,9 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
       gc = TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
-        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS))
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
+        false,
+        None
       ),
       gds = baseConfig.gds.copy(
         oiwfs = OIConfig(

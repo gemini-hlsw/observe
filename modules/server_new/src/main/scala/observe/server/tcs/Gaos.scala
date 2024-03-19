@@ -6,9 +6,9 @@ package observe.server.tcs
 import cats.Eq
 import cats.Show
 import cats.syntax.all.*
+import lucuma.core.model.AltairConfig
+import lucuma.core.model.GemsConfig
 import lucuma.core.util.TimeSpan
-import observe.server.altair.AltairController.AltairConfig
-import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos.PauseCondition.FixedPauseCondition
 import observe.server.tcs.Gaos.PauseCondition.OffsetMove
 import observe.server.tcs.Gaos.ResumeCondition.FixedResumeCondition

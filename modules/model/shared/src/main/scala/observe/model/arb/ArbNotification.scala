@@ -5,9 +5,9 @@ package observe.model.arb
 
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.Notification
 import observe.model.Notification.*
 import observe.model.Observation

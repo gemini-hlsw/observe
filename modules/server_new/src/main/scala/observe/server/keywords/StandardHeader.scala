@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import observe.model.Conditions
 import observe.model.Observation
 import observe.model.Observer
@@ -182,7 +182,7 @@ class StandardHeader[F[_]: Sync: Logger](
 
   def guiderKeywords(
     id:        ImageFileId,
-    guideWith: F[Option[GuideState]],
+    guideWith: F[Option[StepGuideState]],
     baseName:  String,
     target:    TargetKeywordsReader[F],
     extras:    List[KeywordBag => F[KeywordBag]]
@@ -202,14 +202,15 @@ class StandardHeader[F[_]: Sync: Logger](
         KeywordName.fromTag(s"${baseName}APARAL").map(buildDouble(target.parallax, _))
       ).mapFilter(identity)
 
-      sendKeywords[F](id, kwClient, keywords ++ extras).whenA(g.exists(_ === GuideState.Enabled))
+      sendKeywords[F](id, kwClient, keywords ++ extras)
+        .whenA(g.exists(_ === StepGuideState.Enabled))
 
     }
     .handleError(_ => ()) // Errors on guideWith are caught here
 
   def standardGuiderKeywords(
     id:        ImageFileId,
-    guideWith: F[Option[GuideState]],
+    guideWith: F[Option[StepGuideState]],
     baseName:  String,
     target:    TargetKeywordsReader[F],
     extras:    List[KeywordBag => F[KeywordBag]]

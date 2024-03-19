@@ -5,9 +5,9 @@ package observe.model.arb
 
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.TimeSpan
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbTimeSpan.given
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.ObserveStage.given
 import observe.model.*
 import org.scalacheck.Arbitrary

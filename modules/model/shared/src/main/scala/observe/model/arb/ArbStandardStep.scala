@@ -7,11 +7,11 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.arb.ArbStepConfig.*
+import lucuma.core.model.sequence.arb.ArbStepConfig.given
 import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.*
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
 import observe.model.enums.*
 import org.scalacheck.Arbitrary

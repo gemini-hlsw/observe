@@ -7,10 +7,10 @@ import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
 import lucuma.core.enums.Site
+import lucuma.core.model.GemsConfig
 import observe.model.enums.NodAndShuffleStage
 import observe.server.ObserveFailure
 import observe.server.gems.Gems
-import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsSouthController.*
 import org.typelevel.log4cats.Logger
@@ -32,7 +32,7 @@ final case class TcsSouthControllerEpics[F[_]: Async: Logger](
       case d: TcsSouthAoConfig             =>
         for {
           oc <- guideConfigDb.value
-          gc <- oc.gaosGuide
+          gc <- oc.config.gaosGuide
                   .flatMap(_.toOption)
                   .map(_.pure[F])
                   .getOrElse(
