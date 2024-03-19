@@ -5,25 +5,23 @@ package observe.ui.components.sequence.steps
 
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.math.SignalToNoise
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.ui.sequence.SequenceRow
 import observe.model.ObserveStep
 import observe.model.StepState
 
-class CurrentAtomStepRow(
-  step:              ObserveStep,
-  breakpoint:        Breakpoint,
-  val isFirstOfAtom: Boolean
-) extends SequenceRow[DynamicConfig](
-      id = step.id.asRight,
-      instrumentConfig = step.instConfig.some,
-      stepConfig = step.stepConfig.some,
-      breakpoint = breakpoint,
-      isFinished = step.status.isFinished,
-      // TODO This could be an estimate for pending steps, or the time it took for finished steps.
-      // In either case, we don't have the information from the server.
-      stepEstimate = none,
-      // TODO Propagate this information through the server
-      signalToNoise = none
-    ):
+case class CurrentAtomStepRow(
+  step:          ObserveStep,
+  breakpoint:    Breakpoint,
+  isFirstOfAtom: Boolean,
+  signalToNoise: Option[SignalToNoise] = none // TODO Propagate S/N through the server
+) extends SequenceRow[DynamicConfig]:
+  val id                   = step.id.asRight
+  val instrumentConfig     = step.instConfig.some
+  val stepConfig           = step.stepConfig.some
+  val isFinished           = step.status.isFinished
+  // TODO This could be an estimate for pending steps, or the time it took for finished steps.
+  // In either case, we don't have the information from the server.
+  val stepEstimate         = none
   val stepState: StepState = step.status

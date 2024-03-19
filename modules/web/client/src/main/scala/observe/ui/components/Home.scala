@@ -14,6 +14,7 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
+import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
@@ -31,7 +32,6 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
-import lucuma.schemas.model.ExecutionVisits
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
 

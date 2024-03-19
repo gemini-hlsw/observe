@@ -23,7 +23,6 @@ import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
-import lucuma.ui.syntax.util.given
 import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
@@ -36,7 +35,7 @@ import observe.ui.model.reusability.given
 
 import lucuma.schemas.model.Visit
 
-sealed trait SequenceTables[S, D <: DynamicConfig](
+sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
   protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
 ):
@@ -84,7 +83,7 @@ sealed trait SequenceTables[S, D <: DynamicConfig](
   protected[sequence] lazy val scienceRows: List[SequenceRow[DynamicConfig]] =
     currentStepsToRows(scienceCurrentSteps) ++ config.science.map(steps).orEmpty
 
-case class GmosNorthSequenceTables(
+case class GmosNorthSequenceTable(
   clientMode:        ClientMode,
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
@@ -96,13 +95,13 @@ case class GmosNorthSequenceTables(
   requests:          ObservationRequests,
   isPreview:         Boolean,
   flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
-) extends ReactFnProps(GmosNorthSequenceTables.component)
-    with SequenceTables[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+) extends ReactFnProps(GmosNorthSequenceTable.component)
+    with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
       config.static.nodAndShuffle
     )
 
-case class GmosSouthSequenceTables(
+case class GmosSouthSequenceTable(
   clientMode:        ClientMode,
   obsId:             Observation.Id,
   config:            ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
@@ -114,16 +113,16 @@ case class GmosSouthSequenceTables(
   requests:          ObservationRequests,
   isPreview:         Boolean,
   flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
-) extends ReactFnProps(GmosSouthSequenceTables.component)
-    with SequenceTables[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
+) extends ReactFnProps(GmosSouthSequenceTable.component)
+    with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
-    extends SequenceTablesDefs
-    with SequenceTablesVisits[D]:
-  private type Props = SequenceTables[S, D]
+private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
+    extends SequenceTableDefs
+    with SequenceTableVisits[D]:
+  private type Props = SequenceTable[S, D]
 
   protected[sequence] val component =
     ScalaFnComponent
@@ -152,16 +151,16 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
           val visitsRows =
             visits.map: visit =>
               Expandable(
-                HeaderRow(renderVisitHeader(visit)).toHeaderOrRow,
+                HeaderRow(visit.rowId, renderVisitHeader(visit)).toHeaderOrRow,
                 visit.steps.toList.map(step => Expandable(step.toHeaderOrRow))
               )
 
-          val acquisitionRows =
+          def buildSequenceRows(steps: List[SequenceRow[DynamicConfig]], sequenceType: SequenceType, nextIndex: StepIndex): List[SequenceTableRowType] =
             Option
-              .when(acquisitionSteps.nonEmpty):
+              .when(steps.nonEmpty):
                 Expandable(
-                  HeaderRow("Acquisition").toHeaderOrRow,
-                  acquisitionSteps
+                  HeaderRow(RowId(sequenceType.toString), <.span(ObserveStyles.CurrentRowHeader, sequenceType.toString)).toHeaderOrRow,
+                  steps
                     .zipWithStepIndex()
                     ._1
                     .map: (step, index) =>
@@ -169,21 +168,12 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
                 )
               .toList
 
-          val scienceRows =
-            Option
-              .when(scienceSteps.nonEmpty):
-                Expandable(
-                  HeaderRow("Science").toHeaderOrRow,
-                  scienceSteps
-                    .zipWithStepIndex()
-                    ._1
-                    .map: (step, index) =>
-                      Expandable(SequenceTableRow(step, index).toHeaderOrRow)
-                )
-              .toList
+          val acquisitionRows = buildSequenceRows(acquisitionSteps, SequenceType.Acquisition, StepIndex.One)
+          val scienceRows = buildSequenceRows(scienceSteps, SequenceType.Science, nextIndex)
 
           visitsRows ++ acquisitionRows ++ scienceRows
-      .useDynTableBy((_, resize, _, _, _) => (DynTableDef, SizePx(resize.width.orEmpty)))
+      .useDynTableBy: (_, resize, _, _, _) => 
+        (DynTableDef, SizePx(resize.width.orEmpty))
       .useReactTableBy: (props, resize, cols, _, sequence, dynTable) =>
         TableOptions(
           cols,
@@ -191,12 +181,20 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
           enableSorting = false,
           enableColumnResizing = true,
           enableExpanding = true,
+          getRowId = (row, _, _) => row.value match
+            case Left(HeaderRow(rowId, _))        => rowId
+            case Right(stepRow) => stepRow.step.rowId,
           getSubRows = (row, _) => row.subRows,
-          // getId = ???
-          columnResizeMode = ColumnResizeMode.OnChange, // Maybe we should use OnEnd here?
+          columnResizeMode = ColumnResizeMode.OnChange,
+          initialState = TableState(
+            expanded = Expanded.fromExpandedRows(
+              RowId(SequenceType.Acquisition.toString),
+              RowId(SequenceType.Science.toString)
+            )
+          ),
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
-            columnVisibility = dynTable.columnVisibility
+            columnVisibility = dynTable.columnVisibility,
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
@@ -210,8 +208,8 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
         val tableStyle: Css =
           ObserveStyles.ObserveTable |+| ObserveStyles.StepTable |+| SequenceStyles.SequenceTable
 
-        def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRowType]): TagMod =
-          row.original.value.toOption
+        def computeRowMods(row: SequenceTableRowType): TagMod =
+          row.value.toOption
             .map(_.step)
             .map: step =>
               val stepIdOpt: Option[Step.Id] = step.id.toOption
@@ -220,10 +218,15 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
                 stepIdOpt
                   .map: stepId =>
                     (^.onClick --> props.setSelectedStepId(stepId))
-                      .when(step.stepTime === StepTime.Present)
-                      .unless(props.executionState.isLocked)
+                      .when:
+                        step.stepTime === StepTime.Present
+                      .unless:
+                        props.executionState.isLocked
                   .whenDefined,
-                if (step.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
+                if (step.isSelected) ObserveStyles.RowHasExtra else ObserveStyles.RowIdle,
+                step match
+                  case SequenceRow.Executed.ExecutedStep(_, _) => ObserveStyles.RowHasExtra
+                  case _ => TagMod.empty,
                 ObserveStyles.StepRowWithBreakpoint.when_(
                   stepIdOpt.exists(props.executionState.breakpoints.contains)
                 ),
@@ -236,74 +239,60 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
                   case StepState.Aborted                    => ObserveStyles.StepRowError
                   case _                                    => Css.Empty
               )
-            .orEmpty
+            .getOrElse:
+              ObserveStyles.RowHeader
 
         def computeHeaderCellMods(
           headerCell: raw.buildLibTypesMod.Header[SequenceTableRowType, Any]
         ): TagMod =
-          headerCell.column.id match
-            case id if id == HeaderColumnId.value       => TagMod(^.border := "0px", ^.padding := "0px")
-            case id if id == BreakpointColumnId.value   => ObserveStyles.BreakpointTableHeader
-            case id if id == RunningStateColumnId.value => ObserveStyles.RunningStateTableHeader
-            case _                                      => Css.Empty
+          headerCell.column.id match // TODO MOVE TO STYLE
+            case id if id == HeaderColumnId.value     => TagMod(^.border := "0px", ^.padding := "0px")
+            case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
+            case id if id == ExtraRowColumnId.value   => ObserveStyles.ExtraRowTableHeader
+            case _                                    => Css.Empty
+
+        val extraRowMod: TagMod =
+          TagMod(
+            ObserveStyles.ExtraRowTableCellShown,
+            resize.width
+              .map: w =>
+                ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
+              .whenDefined
+          )
 
         def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRowType, Any]): TagMod =
           cell.row.original.value match
-            case Left(_) =>
+            case Left(_)        => // Header
               cell.column.id match
-                case id if id == HeaderColumnId.value =>
-                  TagMod(^.colSpan := cols.length, ^.fontWeight.bold, ^.fontSize.larger)
+                case id if id == HeaderColumnId.value => TagMod(^.colSpan := cols.length)
                 case _                                => ^.display.none
-            case _       =>
+            case Right(stepRow) =>
               cell.column.id match
-                case id if id == HeaderColumnId.value     =>
+                case id if id == HeaderColumnId.value     => // TODO MOVE TO STYLE
                   TagMod(^.border := "0px", ^.padding := "0px")
                 case id if id == BreakpointColumnId.value =>
                   ObserveStyles.BreakpointTableCell
-                case id
-                    if id == RunningStateColumnId.value &&
-                      cell.row.original.value.toOption.exists(_.step.isSelected) =>
-                  TagMod(
-                    ObserveStyles.SelectedStateTableCellShown,
-                    resize.width
-                      .map: w =>
-                        ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
-                      .whenDefined
-                  )
+                case id if id == ExtraRowColumnId.value   =>
+                  stepRow.step match // Extra row is shown in a selected row or in an executed step row.
+                    case SequenceRow.Executed.ExecutedStep(_, _) => extraRowMod
+                    case step if step.isSelected                 => extraRowMod
+                    case _                                       => TagMod.empty
                 case _                                    =>
                   TagMod.empty
 
-        React.Fragment(
-          // VisitsViewer(props.obsId),
-          PrimeAutoHeightVirtualizedTable(
-            table,
-            estimateSize = _ => 25.toPx,
-            containerRef = resize.ref,
-            tableMod = TagMod(tableStyle, ^.marginTop := "15px"),
-            rowMod = computeRowMods,
-            // We display the visits and the whole acquisition table as a preamble to the science table, which is virtualized.
-            // This renders as:
-            //  <div outer>
-            //    <div inner>
-            //      Visits Tables
-            //      Acquisition Table (complete)
-            //      Science Table (virtualized)
-            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows/visits. Might need adjustment in the predicted height of rows.
-            // innerContainerMod = TagMod(
-            //   ^.width := "100%"
-            //   // visits,
-            //   // acquisition.unless(acquisitionTable.getRowModel().rows.isEmpty)
-            // ),
-            headerCellMod = computeHeaderCellMods,
-            cellMod = computeCellMods,
-            overscan = 5
-          )
+        PrimeAutoHeightVirtualizedTable(
+          table,
+          estimateSize = _ => 25.toPx,
+          overscan = 8,
+          containerRef = resize.ref,
+          tableMod = TagMod(tableStyle),
+          rowMod = row => computeRowMods(row.original),
+          headerCellMod = computeHeaderCellMods,
+          cellMod = computeCellMods
         )
 
-object GmosNorthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]:
-  override protected val renderTable = GmosNorthVisitTable.apply
+object GmosNorthSequenceTable
+    extends SequenceTableBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
 
-object GmosSouthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
-  override protected val renderTable = GmosSouthVisitTable.apply
+object GmosSouthSequenceTable
+    extends SequenceTableBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]

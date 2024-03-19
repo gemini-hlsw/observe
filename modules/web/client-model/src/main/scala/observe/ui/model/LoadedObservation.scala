@@ -7,9 +7,9 @@ import cats.syntax.all.*
 import crystal.Pot
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.schemas.model.ExecutionVisits
 import monocle.Focus
 import monocle.Lens
-import lucuma.schemas.model.ExecutionVisits
 
 case class LoadedObservation private (
   obsId:  Observation.Id,

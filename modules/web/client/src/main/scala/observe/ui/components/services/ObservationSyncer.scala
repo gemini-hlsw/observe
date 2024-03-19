@@ -4,28 +4,28 @@
 package observe.ui.components.services
 
 import cats.effect.IO
+import cats.effect.Resource
 import cats.syntax.all.*
+import clue.ErrorPolicy
 import clue.PersistentClientStatus
 import clue.ResponseException
 import crystal.react.*
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.model.Observation
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.odb.SequenceSQL
+import lucuma.schemas.odb.input.*
 import lucuma.ui.reusability.given
+import lucuma.ui.syntax.effect.*
+import observe.queries.ObsQueriesGQL
+import observe.queries.VisitQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
 import observe.ui.model.reusability.given
 import observe.ui.services.SequenceApi
-import lucuma.ui.syntax.effect.*
-import observe.queries.ObsQueriesGQL
-import lucuma.schemas.odb.input.*
-import clue.ErrorPolicy
-import observe.queries.VisitQueriesGQL
-import cats.effect.Resource
-import lucuma.core.model.Observation
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(nighttimeObservation: View[Option[LoadedObservation]])
@@ -80,8 +80,7 @@ object ObservationSyncer:
                       props.nighttimeObservation.async.mod:
                         _.map(_.withVisits(visits.map(_.flatten)))
 
-                IO.println(s"SUBSCRIBING FOR [$obsId]") >>
-                  subscribedObsId.setAsync(obsId.some) >>
+                subscribedObsId.setAsync(obsId.some) >>
                   (sequenceUpdate, visitsUpdate).parTupled
                     .reRunOnResourceSignals:
                       // Eventually, there will be another subscription notifying of sequence/visits changes

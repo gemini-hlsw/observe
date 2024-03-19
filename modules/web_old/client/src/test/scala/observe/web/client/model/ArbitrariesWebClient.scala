@@ -6,13 +6,13 @@ package observe.web.client.model
 import cats.data.NonEmptyList
 import cats.implicits.*
 import diode.data.*
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.Observation
 import lucuma.core.enums.Site
 import lucuma.core.data.Zipper
-import lucuma.core.data.arb.ArbZipper.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.data.arb.ArbZipper.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import scala.collection.immutable.SortedMap
 import observe.model.enums.Instrument
 import observe.model.enums.Resource

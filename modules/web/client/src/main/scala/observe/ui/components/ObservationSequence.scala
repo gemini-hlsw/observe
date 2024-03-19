@@ -6,23 +6,23 @@ package observe.ui.components
 import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
+import lucuma.schemas.model.ExecutionVisits
+import lucuma.ui.DefaultErrorRender
 import observe.model.ExecutionState
 import observe.model.StepProgress
-import observe.ui.components.sequence.GmosNorthSequenceTables
-import observe.ui.components.sequence.GmosSouthSequenceTables
+import observe.ui.ObserveStyles
+import observe.ui.components.sequence.GmosNorthSequenceTable
+import observe.ui.components.sequence.GmosSouthSequenceTable
 import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
-import lucuma.schemas.model.ExecutionVisits
-import lucuma.ui.DefaultErrorRender
-import japgolly.scalajs.react.vdom.html_<^.*
-import observe.ui.ObserveStyles
 
 case class ObservationSequence(
   obsId:           Observation.Id,
@@ -57,7 +57,7 @@ object ObservationSequence:
 
       (props.config, props.visits) match
         case (InstrumentExecutionConfig.GmosNorth(config), ExecutionVisits.GmosNorth(_, visits)) =>
-          GmosNorthSequenceTables(
+          GmosNorthSequenceTable(
             props.clientMode,
             props.obsId,
             config,
@@ -71,7 +71,7 @@ object ObservationSequence:
             flipBreakPoint
           )
         case (InstrumentExecutionConfig.GmosSouth(config), ExecutionVisits.GmosSouth(_, visits)) =>
-          GmosSouthSequenceTables(
+          GmosSouthSequenceTable(
             props.clientMode,
             props.obsId,
             config,

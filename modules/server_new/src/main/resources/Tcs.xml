@@ -1488,8 +1488,8 @@
             <description>G4 Wavelength</description>
         </attribute>
         <!--
-        <attribute name="m2GuideState">
-            <channel>om:m2GuideState.VAL</channel>
+        <attribute name="m2StepGuideState">
+            <channel>om:m2StepGuideState.VAL</channel>
             <type>STRING</type>
             <description>M2 guiding state</description>
         </attribute>

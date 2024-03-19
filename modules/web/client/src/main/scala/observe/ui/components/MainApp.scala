@@ -280,7 +280,6 @@ object MainApp extends ServerEventHandler:
             // TODO RECONNECT ON ERRORS
             val obsSummaryUpdaterResource =
               for
-                _         <- Resource.eval(IO.println("SUBSCRIBING!!!!"))
                 obsStream <-
                   ObsQueriesGQL
                     .ActiveObservationIdsQuery[IO]

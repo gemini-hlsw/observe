@@ -364,8 +364,6 @@ lazy val observe_engine = project
 lazy val observeCommonSettings = Seq(
   // Main class for launching
   Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
-  // This is important to keep the file generation order correctly
-  Universal / parallelExecution   := false,
   // Name of the launch script
   executableScriptName            := "observe-server",
   // No javadocs

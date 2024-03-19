@@ -207,7 +207,7 @@ class GemsControllerEpicsSpec extends CatsEffectSuite {
 
 object GemsControllerEpicsSpec {
   object DummyGsaoiGuider extends GsaoiGuider[IO] {
-    override def currentState: IO[GsaoiGuider.GuideState] = new GsaoiGuider.GuideState {
+    override def currentState: IO[GsaoiGuider.StepGuideState] = new GsaoiGuider.StepGuideState {
       override def isGuideActive: Boolean = false
 
       override def isOdgwGuiding(odgwId: GsaoiGuider.OdgwId): Boolean = false
