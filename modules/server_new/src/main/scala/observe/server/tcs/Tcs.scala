@@ -4,7 +4,7 @@
 package observe.server.tcs
 
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import mouse.all.*
 import observe.model.M1GuideConfig
 import observe.model.M2GuideConfig
@@ -25,22 +25,22 @@ object Tcs {
   val defaultGuiderConf = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[GuideState]
+    guideWith: Option[StepGuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
       .getOrElse(defaultGuiderConf)
 
   // Conversions from ODB model values to TCS configuration values
-  extension (guideWith: GuideState) {
+  extension (guideWith: StepGuideState) {
     def toProbeTracking: ProbeTrackingConfig = guideWith match {
-      case GuideState.Disabled => ProbeTrackingConfig.Frozen
-      case GuideState.Enabled  => ProbeTrackingConfig.On(NodChopTrackingConfig.Normal)
+      case StepGuideState.Disabled => ProbeTrackingConfig.Frozen
+      case StepGuideState.Enabled  => ProbeTrackingConfig.On(NodChopTrackingConfig.Normal)
     }
 
     def toGuideSensorOption: GuiderSensorOption = guideWith match {
-      case GuideState.Disabled => GuiderSensorOff
-      case GuideState.Enabled  => GuiderSensorOff
+      case StepGuideState.Disabled => GuiderSensorOff
+      case StepGuideState.Enabled  => GuiderSensorOff
     }
   }
 

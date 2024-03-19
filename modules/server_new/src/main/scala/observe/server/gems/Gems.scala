@@ -7,7 +7,7 @@ import cats.Applicative
 import cats.Eq
 import cats.MonadThrow
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.altair.AltairController.AltairConfig
@@ -141,28 +141,28 @@ object Gems {
     guideConfigDb: GuideConfigDb[F],
     obsCfg:        Observation
   ): Gems[F] = {
-    val p1    = none[GuideState]
-    val oi    = none[GuideState]
-    val cwfs1 = none[GuideState]
-    val cwfs2 = none[GuideState]
-    val cwfs3 = none[GuideState]
-    val odgw1 = none[GuideState]
-    val odgw2 = none[GuideState]
-    val odgw3 = none[GuideState]
-    val odgw4 = none[GuideState]
+    val p1    = none[StepGuideState]
+    val oi    = none[StepGuideState]
+    val cwfs1 = none[StepGuideState]
+    val cwfs2 = none[StepGuideState]
+    val cwfs3 = none[StepGuideState]
+    val odgw1 = none[StepGuideState]
+    val odgw2 = none[StepGuideState]
+    val odgw3 = none[StepGuideState]
+    val odgw4 = none[StepGuideState]
 
     new GemsImpl[F](
       c,
       GemsController.GemsOn(
-        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === GuideState.Enabled)),
-        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === GuideState.Enabled)),
-        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === GuideState.Enabled)),
-        Odgw1Usage.fromBoolean(odgw1.exists(_ === GuideState.Enabled)),
-        Odgw2Usage.fromBoolean(odgw2.exists(_ === GuideState.Enabled)),
-        Odgw3Usage.fromBoolean(odgw3.exists(_ === GuideState.Enabled)),
-        Odgw4Usage.fromBoolean(odgw4.exists(_ === GuideState.Enabled)),
-        P1Usage.fromBoolean(p1.exists(_ === GuideState.Enabled)),
-        OIUsage.fromBoolean(oi.exists(_ === GuideState.Enabled))
+        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === StepGuideState.Enabled)),
+        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === StepGuideState.Enabled)),
+        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === StepGuideState.Enabled)),
+        Odgw1Usage.fromBoolean(odgw1.exists(_ === StepGuideState.Enabled)),
+        Odgw2Usage.fromBoolean(odgw2.exists(_ === StepGuideState.Enabled)),
+        Odgw3Usage.fromBoolean(odgw3.exists(_ === StepGuideState.Enabled)),
+        Odgw4Usage.fromBoolean(odgw4.exists(_ === StepGuideState.Enabled)),
+        P1Usage.fromBoolean(p1.exists(_ === StepGuideState.Enabled)),
+        OIUsage.fromBoolean(oi.exists(_ === StepGuideState.Enabled))
       ),
       guideConfigDb
     ): Gems[F]

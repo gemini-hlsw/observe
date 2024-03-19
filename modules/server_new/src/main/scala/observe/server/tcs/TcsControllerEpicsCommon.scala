@@ -332,7 +332,9 @@ object TcsControllerEpicsCommon {
         (encodeM2Guide.encode(d) =!= encodeM2Guide.encode(c)).option(
           epicsSys.m2GuideCmd
             .setState(encodeM2Guide.encode(d))
-            .withDebug(s"M2GuideState(${encodeM2Guide.encode(c)} =!= ${encodeM2Guide.encode(d)})")
+            .withDebug(
+              s"M2StepGuideState(${encodeM2Guide.encode(c)} =!= ${encodeM2Guide.encode(d)})"
+            )
         ),
         (encodeM2GuideReset.encode(d) =!= encodeM2GuideReset.encode(c)).option(
           epicsSys.m2GuideConfigCmd

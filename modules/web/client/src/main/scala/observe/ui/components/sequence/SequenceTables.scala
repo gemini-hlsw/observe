@@ -210,8 +210,8 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
         val tableStyle: Css =
           ObserveStyles.ObserveTable |+| ObserveStyles.StepTable |+| SequenceStyles.SequenceTable
 
-        def computeRowMods(row: raw.buildLibTypesMod.Row[SequenceTableRowType]): TagMod =
-          row.original.value.toOption
+        def computeRowMods(row: SequenceTableRowType): TagMod =
+          row.value.toOption
             .map(_.step)
             .map: step =>
               val stepIdOpt: Option[Step.Id] = step.id.toOption
@@ -242,58 +242,48 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
           headerCell: raw.buildLibTypesMod.Header[SequenceTableRowType, Any]
         ): TagMod =
           headerCell.column.id match
-            case id if id == HeaderColumnId.value       => TagMod(^.border := "0px", ^.padding := "0px")
-            case id if id == BreakpointColumnId.value   => ObserveStyles.BreakpointTableHeader
-            case id if id == RunningStateColumnId.value => ObserveStyles.RunningStateTableHeader
-            case _                                      => Css.Empty
+            case id if id == HeaderColumnId.value     => TagMod(^.border := "0px", ^.padding := "0px")
+            case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
+            case id if id == ExtraRowColumnId.value   => ObserveStyles.ExtraRowTableHeader
+            case _                                    => Css.Empty
+
+        val extraRowMod: TagMod =
+          TagMod(
+            ObserveStyles.ExtraRowTableCellShown,
+            resize.width
+              .map: w =>
+                ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
+              .whenDefined
+          )
 
         def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRowType, Any]): TagMod =
           cell.row.original.value match
-            case Left(_) =>
+            case Left(_)        => // Header
               cell.column.id match
                 case id if id == HeaderColumnId.value =>
                   TagMod(^.colSpan := cols.length, ^.fontWeight.bold, ^.fontSize.larger)
                 case _                                => ^.display.none
-            case _       =>
+            case Right(stepRow) =>
               cell.column.id match
                 case id if id == HeaderColumnId.value     =>
                   TagMod(^.border := "0px", ^.padding := "0px")
                 case id if id == BreakpointColumnId.value =>
                   ObserveStyles.BreakpointTableCell
-                case id
-                    if id == RunningStateColumnId.value &&
-                      cell.row.original.value.toOption.exists(_.step.isSelected) =>
-                  TagMod(
-                    ObserveStyles.SelectedStateTableCellShown,
-                    resize.width
-                      .map: w =>
-                        ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"
-                      .whenDefined
-                  )
+                case id if id == ExtraRowColumnId.value   =>
+                  stepRow.step match // Extra row is shown in a selected row or in an executed step row.
+                    case SequenceRow.Executed.ExecutedStep(_, _) => extraRowMod
+                    case step if step.isSelected                 => extraRowMod
+                    case _                                       => TagMod.empty
                 case _                                    =>
                   TagMod.empty
 
         React.Fragment(
-          // VisitsViewer(props.obsId),
           PrimeAutoHeightVirtualizedTable(
             table,
             estimateSize = _ => 25.toPx,
             containerRef = resize.ref,
             tableMod = TagMod(tableStyle, ^.marginTop := "15px"),
-            rowMod = computeRowMods,
-            // We display the visits and the whole acquisition table as a preamble to the science table, which is virtualized.
-            // This renders as:
-            //  <div outer>
-            //    <div inner>
-            //      Visits Tables
-            //      Acquisition Table (complete)
-            //      Science Table (virtualized)
-            // TODO Test if virtualization scrollbar works well with this approach when there are a lot of rows/visits. Might need adjustment in the predicted height of rows.
-            // innerContainerMod = TagMod(
-            //   ^.width := "100%"
-            //   // visits,
-            //   // acquisition.unless(acquisitionTable.getRowModel().rows.isEmpty)
-            // ),
+            rowMod = row => computeRowMods(row.original),
             headerCellMod = computeHeaderCellMods,
             cellMod = computeCellMods,
             overscan = 5
@@ -301,9 +291,7 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
         )
 
 object GmosNorthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]:
-  override protected val renderTable = GmosNorthVisitTable.apply
+    extends SequenceTablesBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
 
 object GmosSouthSequenceTables
-    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]:
-  override protected val renderTable = GmosSouthVisitTable.apply
+    extends SequenceTablesBuilder[StaticConfig.GmosSouth, DynamicConfig.GmosSouth]

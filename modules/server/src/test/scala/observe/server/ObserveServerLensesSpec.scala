@@ -7,8 +7,8 @@ import cats.Eq
 import cats.tests.CatsSuite
 import edu.gemini.spModel.config2.{Config, ItemKey}
 import monocle.law.discipline.LensTests
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.enums.Instrument
 import observe.model.SystemOverrides
 import observe.engine

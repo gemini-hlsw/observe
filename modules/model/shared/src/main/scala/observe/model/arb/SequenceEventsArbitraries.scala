@@ -3,14 +3,14 @@
 
 package observe.model.arb
 
-import lucuma.core.arb.ArbTime.*
+import lucuma.core.arb.ArbTime.given
 import lucuma.core.enums.Instrument
 import lucuma.core.model.User
-import lucuma.core.model.arb.ArbUser.*
+import lucuma.core.model.arb.ArbUser.given
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.ObservationProgress
 import observe.model.QueueManipulationOp.*
 import observe.model.*
@@ -20,7 +20,7 @@ import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.*
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.*
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 

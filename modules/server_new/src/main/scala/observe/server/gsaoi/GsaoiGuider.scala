@@ -7,7 +7,7 @@ import lucuma.core.util.Enumerated
 
 trait GsaoiGuider[F[_]] {
   import GsaoiGuider.*
-  def currentState: F[GuideState]
+  def currentState: F[StepGuideState]
   def guide: F[Unit]
   def endGuide: F[Unit]
 }
@@ -26,7 +26,7 @@ object GsaoiGuider {
 
   }
 
-  trait GuideState {
+  trait StepGuideState {
     def isGuideActive: Boolean
     def isOdgwGuiding(odgwId: OdgwId): Boolean
   }

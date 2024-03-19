@@ -5,7 +5,7 @@ package observe.model.arb
 
 import cats.syntax.option.*
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.RunningStep
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

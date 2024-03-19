@@ -5,7 +5,7 @@ package observe.server.gems
 
 import cats.effect.Sync
 import cats.syntax.all.*
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
@@ -80,7 +80,7 @@ object GemsHeader {
     ): F[Unit] =
       guiderKeywords(id, baseName(v), tcsReader.gwfsTarget(v), gs)
 
-    def guideWith(gs: GemsSource): F[Option[GuideState]] = gs match {
+    def guideWith(gs: GemsSource): F[Option[StepGuideState]] = gs match {
       case GemsSource.Cwfs1 => obsReader.cwfs1Guide
       case GemsSource.Cwfs2 => obsReader.cwfs2Guide
       case GemsSource.Cwfs3 => obsReader.cwfs3Guide
@@ -114,7 +114,7 @@ object GemsHeader {
           KeywordName.fromTag(s"${baseName}WAV").map(buildDouble(target.wavelength, _))
         ).flattenOption
 
-        sendKeywords[F](id, kwClient, keywords).whenA(g.exists(_ === GuideState.Enabled))
+        sendKeywords[F](id, kwClient, keywords).whenA(g.exists(_ === StepGuideState.Enabled))
       }
       .handleError(_ => ())
 
@@ -126,7 +126,7 @@ object GemsHeader {
     def cntKeywords(
       v:       VirtualGemsTelescope,
       gs:      GemsSource,
-      guideOp: Option[GuideState]
+      guideOp: Option[StepGuideState]
     ): Option[KeywordBag => F[KeywordBag]] = {
 
       val cts = gs match {
@@ -142,7 +142,7 @@ object GemsHeader {
       KeywordName
         .fromTag(s"${baseName(v)}CTS")
         .map(buildDouble(cts, _))
-        .filter(_ => guideOp.exists(_ === GuideState.Enabled))
+        .filter(_ => guideOp.exists(_ === StepGuideState.Enabled))
     }
 
     override def sendAfter(id: ImageFileId): F[Unit] = {

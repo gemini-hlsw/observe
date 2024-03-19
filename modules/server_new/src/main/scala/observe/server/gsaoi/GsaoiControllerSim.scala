@@ -36,7 +36,7 @@ object GsaoiControllerSim {
         override def observeProgress(total: TimeSpan): fs2.Stream[F, Progress] =
           sim.observeCountdown(total, ElapsedTime(TimeSpan.Zero))
 
-        override def currentState: F[GsaoiGuider.GuideState] = (new GsaoiGuider.GuideState {
+        override def currentState: F[GsaoiGuider.StepGuideState] = (new GsaoiGuider.StepGuideState {
           override def isGuideActive: Boolean = false
 
           override def isOdgwGuiding(odgwId: GsaoiGuider.OdgwId): Boolean = false

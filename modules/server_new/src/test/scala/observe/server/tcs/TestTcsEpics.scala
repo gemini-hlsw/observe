@@ -86,7 +86,7 @@ case class TestTcsEpics[F[_]: Async](
         TestTcsEvent.M2GuideCmd(st.m2GuideCmd.param1)
 
       override protected def cmd(st: State): State =
-        st.copy(m2GuideState =
+        st.copy(m2StepGuideState =
           if (st.m2GuideCmd.param1 === "on") BinaryOnOff.On else BinaryOnOff.Off
         )
     }
@@ -377,7 +377,7 @@ case class TestTcsEpics[F[_]: Async](
 
   override def comaCorrect: F[String] = state.get.map(_.comaCorrect)
 
-  override def m2GuideState: F[BinaryOnOff] = state.get.map(_.m2GuideState)
+  override def m2StepGuideState: F[BinaryOnOff] = state.get.map(_.m2StepGuideState)
 
   override def xoffsetPoA1: F[Double] = state.get.map(_.xoffsetPoA1)
 
@@ -784,7 +784,7 @@ object TestTcsEpics {
     m2oiGuide:                 String,
     m2aoGuide:                 String,
     comaCorrect:               String,
-    m2GuideState:              BinaryOnOff,
+    m2StepGuideState:          BinaryOnOff,
     xoffsetPoA1:               Double,
     yoffsetPoA1:               Double,
     xoffsetPoB1:               Double,
@@ -931,7 +931,7 @@ object TestTcsEpics {
     val m2oiGuide: Lens[State, String]                                                  = Focus[State](_.m2oiGuide)
     val m2aoGuide: Lens[State, String]                                                  = Focus[State](_.m2aoGuide)
     val comaCorrect: Lens[State, String]                                                = Focus[State](_.comaCorrect)
-    val m2GuideState: Lens[State, BinaryOnOff]                                          = Focus[State](_.m2GuideState)
+    val m2StepGuideState: Lens[State, BinaryOnOff]                                      = Focus[State](_.m2StepGuideState)
     val xoffsetPoA1: Lens[State, Double]                                                = Focus[State](_.xoffsetPoA1)
     val yoffsetPoA1: Lens[State, Double]                                                = Focus[State](_.yoffsetPoA1)
     val xoffsetPoB1: Lens[State, Double]                                                = Focus[State](_.xoffsetPoB1)
@@ -1262,7 +1262,7 @@ object TestTcsEpics {
     m2oiGuide = "OFF",
     m2aoGuide = "OFF",
     comaCorrect = "Off",
-    m2GuideState = BinaryOnOff.Off,
+    m2StepGuideState = BinaryOnOff.Off,
     xoffsetPoA1 = 0.0,
     yoffsetPoA1 = 0.0,
     xoffsetPoB1 = 0.0,

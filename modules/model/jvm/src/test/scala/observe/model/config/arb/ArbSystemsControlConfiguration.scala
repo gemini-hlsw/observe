@@ -3,7 +3,7 @@
 
 package observe.model.config.arb
 
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.config.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

@@ -3,7 +3,7 @@
 
 package observe.model.arb
 
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.M1GuideConfig
 import observe.model.enums.M1Source
 import org.scalacheck.Arbitrary

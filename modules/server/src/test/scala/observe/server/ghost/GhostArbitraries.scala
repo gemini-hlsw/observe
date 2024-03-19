@@ -6,7 +6,7 @@ package observe.server.ghost
 import lucuma.core.math.Coordinates
 import lucuma.core.math.arb.ArbCoordinates
 import lucuma.core.arb.ArbTime
-import lucuma.core.util.arb.ArbEnumerated.*
+import lucuma.core.util.arb.ArbEnumerated.given
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen

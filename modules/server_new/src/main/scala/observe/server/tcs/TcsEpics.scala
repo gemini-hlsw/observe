@@ -127,7 +127,7 @@ trait TcsEpics[F[_]] {
 
   def comaCorrect: F[String]
 
-  def m2GuideState: F[BinaryOnOff]
+  def m2StepGuideState: F[BinaryOnOff]
 
   def xoffsetPoA1: F[Double]
 
@@ -777,14 +777,14 @@ final class TcsEpicsImpl[F[_]: Async](epicsService: CaService, tops: Map[String,
 
   override def comaCorrect: F[String] = safeAttributeF(tcsState.getStringAttribute("comaCorrect"))
 
-  private val m2GuideStateAttr: CaAttribute[BinaryOnOff] = tcsState.addEnum(
-    "m2GuideState",
-    s"${TcsTop}om:m2GuideState.VAL",
+  private val m2StepGuideStateAttr: CaAttribute[BinaryOnOff] = tcsState.addEnum(
+    "m2StepGuideState",
+    s"${TcsTop}om:m2StepGuideState.VAL",
     classOf[BinaryOnOff],
     "M2 guiding state"
   )
 
-  override def m2GuideState: F[BinaryOnOff] = safeAttributeF(m2GuideStateAttr)
+  override def m2StepGuideState: F[BinaryOnOff] = safeAttributeF(m2StepGuideStateAttr)
 
   override def xoffsetPoA1: F[Double] = safeAttributeSDoubleF(
     tcsState.getDoubleAttribute("xoffsetPoA1")

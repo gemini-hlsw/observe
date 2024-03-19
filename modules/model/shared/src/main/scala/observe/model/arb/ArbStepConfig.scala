@@ -6,7 +6,7 @@ package observe.model.arb
 import lucuma.core.arb.*
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.math.arb.ArbOffset.given
 import observe.model.*
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Gen

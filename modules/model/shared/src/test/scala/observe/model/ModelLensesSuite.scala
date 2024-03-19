@@ -4,11 +4,11 @@
 package observe.model
 
 import lucuma.core.math.Axis
-import lucuma.core.math.arb.ArbAngle.*
-import lucuma.core.math.arb.ArbOffset.*
+import lucuma.core.math.arb.ArbAngle.given
+import lucuma.core.math.arb.ArbOffset.given
 import lucuma.core.optics.laws.discipline.FormatTests
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbUid.given
 import monocle.law.discipline.*
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.SequenceEventsArbitraries.given

@@ -3,14 +3,14 @@
 
 package observe.server.keywords
 
-import lucuma.core.util.arb.ArbEnumerated
+import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.enums.KeywordName
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
-trait KeywordArbitraries extends ArbEnumerated {
+trait KeywordArbitraries extends ArbEnumerated.given
   given Arbitrary[KeywordType] = Arbitrary {
     Gen.oneOf(TypeInt8, TypeInt16, TypeInt32, TypeFloat, TypeDouble, TypeBoolean, TypeString)
   }

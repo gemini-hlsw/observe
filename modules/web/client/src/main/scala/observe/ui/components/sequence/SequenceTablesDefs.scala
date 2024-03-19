@@ -16,6 +16,7 @@ import lucuma.react.common.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.typed.{tanstackTableCore => raw}
+import lucuma.ui.format.UtcFormatter
 import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.sequence.*
 import lucuma.ui.table.ColumnSize.*
@@ -41,7 +42,8 @@ trait SequenceTablesDefs:
   protected val HeaderColumnId: ColumnId          = ColumnId("header")
   protected val BreakpointColumnId: ColumnId      = ColumnId("breakpoint")
   protected val BreakpointSpaceColumnId: ColumnId = ColumnId("breakpointDummy")
-  protected val RunningStateColumnId: ColumnId    = ColumnId("runningState")
+  // Will be rendered as a full-width column in an extra row
+  protected val ExtraRowColumnId: ColumnId        = ColumnId("extraRow")
   // protected val ObsModeColumnId: ColumnId         = ColumnId("obsMode")
   protected val CameraColumnId: ColumnId          = ColumnId("camera")
   protected val DeckerColumnId: ColumnId          = ColumnId("decker")
@@ -55,7 +57,7 @@ trait SequenceTablesDefs:
     BreakpointColumnId      -> FixedSize(0.toPx),
     BreakpointSpaceColumnId -> FixedSize(30.toPx),
     IndexAndTypeColumnId    -> FixedSize(60.toPx),
-    RunningStateColumnId    -> FixedSize(0.toPx),
+    ExtraRowColumnId        -> FixedSize(0.toPx),
     ExposureColumnId        -> Resizable(77.toPx, min = 77.toPx.some, max = 130.toPx.some),
     GuideColumnId           -> FixedSize(33.toPx),
     PColumnId               -> FixedSize(75.toPx),
@@ -176,34 +178,67 @@ trait SequenceTablesDefs:
       ),
       column(BreakpointSpaceColumnId, "", _ => EmptyVdom),
       column(
-        RunningStateColumnId,
+        ExtraRowColumnId,
         "",
         _.row.original.value.toOption
           .map(_.step)
-          .map: step =>
-            (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
-              selectedStepId
-                .filter(_ === stepId)
-                .map: stepId =>
-                  StepProgressCell(
-                    clientMode = clientMode,
-                    instrument = instrument,
-                    stepId = stepId,
-                    stepType = stepType,
-                    isFinished = step.isFinished,
-                    obsId = obsId,
-                    requests = requests,
-                    runningStepId = executionState.runningStepId,
-                    sequenceState = executionState.sequenceState,
-                    isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
-                    subsystemStatus = executionState.stepResources
-                      .find(_._1 === stepId)
-                      .map(_._2.toMap)
-                      .getOrElse(Map.empty),
-                    progress = progress,
-                    selectedStep = selectedStepId,
-                    isPreview = isPreview
-                  )
+          .map[VdomNode]:
+            case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
+              <.div( /*ExploreStyles.VisitStepExtra*/ )(
+                <.span( /*ExploreStyles.VisitStepExtraDatetime*/ )(
+                  step.interval
+                    .map(_.start.toInstant)
+                    .fold("---")(start => UtcFormatter.format(start))
+                ),
+                <.span( /*ExploreStyles.VisitStepExtraDatasets*/ )(
+                  step.datasets
+                    .map(dataset =>
+                      <.span( /*ExploreStyles.VisitStepExtraDatasetItem*/ )(
+                        dataset.filename.format,
+                        dataset.qaState.map(qaState =>
+                          React.Fragment(
+                            // Icons.Circle /*.withClass(
+                            //   ExploreStyles.VisitStepExtraDatasetStatusIcon |+|
+                            //     (qaState match
+                            //       case DatasetQaState.Pass   => ExploreStyles.IndicatorOK
+                            //       case DatasetQaState.Usable => ExploreStyles.IndicatorWarning
+                            //       case DatasetQaState.Fail   => ExploreStyles.IndicatorFail
+                            //     )
+                            // )*/,
+                            <.span( /*ExploreStyles.VisitStepExtraDatasetStatusLabel*/ )(
+                              qaState.shortName
+                            )
+                          )
+                        )
+                      )
+                    )
+                    .toVdomArray
+                )
+              )
+            case step                                           =>
+              (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
+                selectedStepId
+                  .filter(_ === stepId)
+                  .map: stepId =>
+                    StepProgressCell(
+                      clientMode = clientMode,
+                      instrument = instrument,
+                      stepId = stepId,
+                      stepType = stepType,
+                      isFinished = step.isFinished,
+                      obsId = obsId,
+                      requests = requests,
+                      runningStepId = executionState.runningStepId,
+                      sequenceState = executionState.sequenceState,
+                      isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
+                      subsystemStatus = executionState.stepResources
+                        .find(_._1 === stepId)
+                        .map(_._2.toMap)
+                        .getOrElse(Map.empty),
+                      progress = progress,
+                      selectedStep = selectedStepId,
+                      isPreview = isPreview
+                    )
       )
     ) ++
       SequenceColumns

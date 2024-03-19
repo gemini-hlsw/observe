@@ -6,9 +6,9 @@ package observe.web.client.model
 import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 import diode.data.*
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import monocle.law.discipline.LensTests
 import monocle.law.discipline.PrismTests
 import monocle.law.discipline.OptionalTests

@@ -25,7 +25,7 @@ import lucuma.core.enums.GmosNorthStageMode
 import lucuma.core.enums.GmosRoi
 import lucuma.core.enums.GmosXBinning
 import lucuma.core.enums.GmosYBinning
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
@@ -305,7 +305,7 @@ object TestCommon {
 
   val stepCfg1: StepConfig = StepConfig.Science(
     Offset.Zero,
-    GuideState.Enabled
+    StepGuideState.Enabled
   )
 
   def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =

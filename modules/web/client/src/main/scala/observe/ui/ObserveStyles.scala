@@ -99,10 +99,10 @@ object ObserveStyles:
   val StepTypeNodAndShuffle: Css     = Css("ObserveStyles-stepTypeNodAndShuffle")
   val StepTypeNodAndShuffleDark: Css = Css("ObserveStyles-stepTypeNodAndShuffleDark")
 
-  val BreakpointTableHeader: Css       = Css("ObserveStyles-breakpointTableHeader")
-  val RunningStateTableHeader: Css     = Css("ObserveStyles-runningStateTableHeader")
-  val BreakpointTableCell: Css         = Css("ObserveStyles-breakpointTableCell")
-  val SelectedStateTableCellShown: Css = Css("ObserveStyles-selectedStateTableCell-shown")
+  val BreakpointTableHeader: Css  = Css("ObserveStyles-breakpointTableHeader")
+  val BreakpointTableCell: Css    = Css("ObserveStyles-breakpointTableCell")
+  val ExtraRowTableHeader: Css    = Css("ObserveStyles-extraRowTableHeader")
+  val ExtraRowTableCellShown: Css = Css("ObserveStyles-extraRowTableCell-shown")
 
   val BreakpointHandle: Css = Css("ObserveStyles-breakpointHandle")
   val BreakpointIcon: Css   = Css("ObserveStyles-breakpointIcon")

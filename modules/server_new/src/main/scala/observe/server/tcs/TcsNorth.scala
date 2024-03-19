@@ -8,7 +8,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.Site
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
@@ -73,7 +73,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   val defaultGuiderConf: GuiderConfig = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[GuideState]
+    guideWith: Option[StepGuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
@@ -178,10 +178,10 @@ object TcsNorth {
   import Tcs.*
 
   final case class TcsSeqConfig[F[_]](
-    guideWithP1: Option[GuideState],
-    guideWithP2: Option[GuideState],
-    guideWithOI: Option[GuideState],
-    guideWithAO: Option[GuideState],
+    guideWithP1: Option[StepGuideState],
+    guideWithP2: Option[StepGuideState],
+    guideWithOI: Option[StepGuideState],
+    guideWithAO: Option[StepGuideState],
     offsetA:     Option[InstrumentOffset],
     wavelA:      Option[Wavelength],
     lightPath:   LightPath,

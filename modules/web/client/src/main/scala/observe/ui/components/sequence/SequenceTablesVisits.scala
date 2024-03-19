@@ -16,21 +16,11 @@ import lucuma.schemas.model.AtomRecord
 import lucuma.schemas.model.Visit
 
 import java.time.Duration
-import lucuma.react.table.ColumnDef
 import lucuma.ui.sequence.*
-import lucuma.ui.table.*
-import lucuma.ui.table.hooks.UseDynTable
 import eu.timepit.refined.types.numeric.PosInt
 import cats.data.NonEmptyList
 
 trait SequenceTablesVisits[D <: DynamicConfig]:
-  self: SequenceTablesDefs =>
-
-  protected def renderTable: (
-    Reusable[NonEmptyList[SequenceTableRow]],
-    Reusable[List[ColumnDef[HeaderOrRow[SequenceTableRow], ?]]],
-    UseDynTable
-  ) => VdomNode
 
   case class VisitData(
     created:      Timestamp,
@@ -73,7 +63,7 @@ trait SequenceTablesVisits[D <: DynamicConfig]:
         (
           steps.head.created,
           steps
-            .map(SequenceRow.Executed.ExecutedStep(_, _ => none)) // TODO Add SignalToNoise
+            .map(SequenceRow.Executed.ExecutedStep(_, none)) // TODO Add SignalToNoise
             .zipWithStepIndex(startIndex),
           datasetIndices.minOption.map(min => (min, datasetIndices.max))
         )
