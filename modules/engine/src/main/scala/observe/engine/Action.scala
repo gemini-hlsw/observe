@@ -12,10 +12,13 @@ import observe.model.enums.ActionStatus
 import Result.{Error, PartialVal, PauseContext, RetVal}
 
 case class Action[F[_]](
-  kind:  ActionType,
-  gen:   Stream[F, Result],
-  state: Action.State[F]
-)
+  kind:            ActionType,
+  gen:             Stream[F, Result],
+  state:           Action.State[F],
+  uninterruptible: Boolean = false
+) {
+  def makeUninterruptible: Action[F] = this.copy(uninterruptible = true)
+}
 
 object Action {
 
