@@ -223,7 +223,10 @@ private sealed trait SequenceTablesBuilder[S: Eq, D <: DynamicConfig: Eq]
                       .when(step.stepTime === StepTime.Present)
                       .unless(props.executionState.isLocked)
                   .whenDefined,
-                if (step.isSelected) ObserveStyles.RowSelected else ObserveStyles.RowIdle,
+                if (step.isSelected) ObserveStyles.RowHasExtra else ObserveStyles.RowIdle,
+                step match
+                  case SequenceRow.Executed.ExecutedStep(_, _) => ObserveStyles.RowHasExtra
+                  case _ => TagMod.empty,
                 ObserveStyles.StepRowWithBreakpoint.when_(
                   stepIdOpt.exists(props.executionState.breakpoints.contains)
                 ),

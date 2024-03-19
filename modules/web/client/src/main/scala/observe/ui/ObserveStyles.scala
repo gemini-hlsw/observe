@@ -34,7 +34,7 @@ object ObserveStyles:
   val ObserveTable: Css = Css("ObserveStyles-observeTable")
 
   val RowIdle: Css     = Css("ObserveStyles-rowIdle")
-  val RowSelected: Css = Css("ObserveStyles-rowSelected")
+  val RowHasExtra: Css = Css("ObserveStyles-rowHasExtra")
   val RowPositive: Css = Css("ObserveStyles-rowPositive")
   val RowWarning: Css  = Css("ObserveStyles-rowWarning")
   val RowActive: Css   = Css("ObserveStyles-rowActive")
