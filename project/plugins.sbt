@@ -14,4 +14,4 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.11.0")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 
 // Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.35.0")
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.35.1")
