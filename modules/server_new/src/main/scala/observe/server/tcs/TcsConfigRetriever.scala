@@ -56,7 +56,7 @@ object TcsConfigRetriever {
         m2oiGuide  <- epicsSys.m2oiGuide.map(decodeGuideSourceOption)
         m2aoGuide  <- epicsSys.m2aoGuide.map(decodeGuideSourceOption)
         m2Coma     <- epicsSys.comaCorrect.map(decode[String, ComaOption])
-        m2Guide    <- epicsSys.m2StepGuideState.map(
+        m2Guide    <- epicsSys.m2GuideState.map(
                         decodeM2Guide(
                           _,
                           m2Coma,
