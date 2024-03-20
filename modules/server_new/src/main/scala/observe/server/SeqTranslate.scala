@@ -174,11 +174,13 @@ object SeqTranslate {
             systemss.odb
               .stepEndObserve(obsCfg.id)
               .as(Response.Ignored)
-              .toAction(ActionType.OdbEvent),
+              .toAction(ActionType.OdbEvent)
+              .makeUninterruptible,
             systemss.odb
               .stepEndStep(obsCfg.id)
               .as(Response.Ignored)
               .toAction(ActionType.OdbEvent)
+              .makeUninterruptible
           ),
           instConfig = step.instrumentConfig,
           config = step.stepConfig,
@@ -276,7 +278,7 @@ object SeqTranslate {
        b.map(x =>
          SequenceGen(
            sequence,
-           Instrument.GmosNorth,
+           insSpec.instrument,
            data.static,
            x
          )
