@@ -14,6 +14,7 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.model.Observation
 import observe.model.Observer
 import observe.model.Operator
+import observe.model.SubsystemEnabled
 
 trait ConfigApi[F[_]: MonadThrow]:
   def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
@@ -24,10 +25,11 @@ trait ConfigApi[F[_]: MonadThrow]:
   def setOperator(operator: Option[Operator]): F[Unit] = NotAuthorized
   def setObserver(obsId:    Observation.Id, observer: Option[Observer]): F[Unit] = NotAuthorized
 
-  def setTcsEnabled(obsId:        Observation.Id, enabled: Boolean): F[Unit] = NotAuthorized
-  def setGcalEnabled(obsId:       Observation.Id, enabled: Boolean): F[Unit] = NotAuthorized
-  def setInstrumentEnabled(obsId: Observation.Id, enabled: Boolean): F[Unit] = NotAuthorized
-  def setDhsEnabled(obsId:        Observation.Id, enabled: Boolean): F[Unit] = NotAuthorized
+  def setTcsEnabled(obsId:  Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
+  def setGcalEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
+  def setInstrumentEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] =
+    NotAuthorized
+  def setDhsEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
 
   def isBlocked: Boolean = false
 

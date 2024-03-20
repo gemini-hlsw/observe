@@ -18,6 +18,7 @@ import lucuma.core.model.Observation
 import observe.model.ClientId
 import observe.model.Observer
 import observe.model.Operator
+import observe.model.SubsystemEnabled
 import observe.ui.model.enums.ApiStatus
 import org.http4s.Uri
 import org.http4s.Uri.Path
@@ -58,27 +59,27 @@ case class ConfigApiImpl(
       ""
     )
 
-  override def setTcsEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+  override def setTcsEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): IO[Unit] =
     request(
-      Uri.Path.empty / obsId.toString / client.clientId.value / "tcsEnabled" / enabled,
+      Uri.Path.empty / obsId.toString / client.clientId.value / "tcsEnabled" / enabled.value,
       ""
     )
 
-  override def setGcalEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+  override def setGcalEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): IO[Unit] =
     request(
-      Uri.Path.empty / obsId.toString / client.clientId.value / "gcalEnabled" / enabled,
+      Uri.Path.empty / obsId.toString / client.clientId.value / "gcalEnabled" / enabled.value,
       ""
     )
 
-  override def setInstrumentEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+  override def setInstrumentEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): IO[Unit] =
     request(
-      Uri.Path.empty / obsId.toString / client.clientId.value / "instrumentEnabled" / enabled,
+      Uri.Path.empty / obsId.toString / client.clientId.value / "instrumentEnabled" / enabled.value,
       ""
     )
 
-  override def setDhsEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+  override def setDhsEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): IO[Unit] =
     request(
-      Uri.Path.empty / obsId.toString / client.clientId.value / "dhsEnabled" / enabled,
+      Uri.Path.empty / obsId.toString / client.clientId.value / "dhsEnabled" / enabled.value,
       ""
     )
 

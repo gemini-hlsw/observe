@@ -977,6 +977,12 @@ html {
   .ObserveStyles-obsSummary-details {
     display: flex;
     gap: 3em;
+    align-items: baseline;
+  }
+
+  .ObserveStyles-obsSummary-subsystems {
+    display: flex;
+    gap: 0.8em;
   }
 }
 

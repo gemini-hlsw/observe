@@ -5,13 +5,15 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import monocle.Focus
+import monocle.Lens
 
 case class SystemOverrides(
   isTcsEnabled:        SubsystemEnabled,
   isInstrumentEnabled: SubsystemEnabled,
   isGcalEnabled:       SubsystemEnabled,
   isDhsEnabled:        SubsystemEnabled
-) derives Eq {
+) derives Eq:
   def disableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Disabled)
 
   def enableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Enabled)
@@ -27,9 +29,8 @@ case class SystemOverrides(
   def disableDhs: SystemOverrides = copy(isDhsEnabled = SubsystemEnabled.Disabled)
 
   def enableDhs: SystemOverrides = copy(isDhsEnabled = SubsystemEnabled.Enabled)
-}
 
-object SystemOverrides {
+object SystemOverrides:
   val AllEnabled: SystemOverrides = SystemOverrides(
     isTcsEnabled = SubsystemEnabled.Enabled,
     isInstrumentEnabled = SubsystemEnabled.Enabled,
@@ -37,4 +38,11 @@ object SystemOverrides {
     isDhsEnabled = SubsystemEnabled.Enabled
   )
 
-}
+  val isTcsEnabled: Lens[SystemOverrides, SubsystemEnabled]        =
+    Focus[SystemOverrides](_.isTcsEnabled)
+  val isInstrumentEnabled: Lens[SystemOverrides, SubsystemEnabled] =
+    Focus[SystemOverrides](_.isInstrumentEnabled)
+  val isGcalEnabled: Lens[SystemOverrides, SubsystemEnabled]       =
+    Focus[SystemOverrides](_.isGcalEnabled)
+  val isDhsEnabled: Lens[SystemOverrides, SubsystemEnabled]        =
+    Focus[SystemOverrides](_.isDhsEnabled)

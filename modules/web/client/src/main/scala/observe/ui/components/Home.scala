@@ -138,9 +138,12 @@ object Home:
                           executionStateAndConfig.map(_.map(_._1)),
                           loadObservation,
                           executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
-                          rootModelData.obsRequests.getOrElse(selectedObsId,
-                                                              ObservationRequests.Idle
-                          )
+                          rootModelData.obsRequests.getOrElse(
+                            selectedObsId,
+                            ObservationRequests.Idle
+                          ),
+                          executionStateAndConfig
+                            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides)))
                         ),
                         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
                         executionStateAndConfig.map(

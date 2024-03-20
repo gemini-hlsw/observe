@@ -3,22 +3,26 @@
 
 package observe.ui.components.sequence
 
-import crystal.Pot
+import cats.syntax.all.*
+import crystal.*
+import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.react.common.*
 import observe.model.SequenceState
+import observe.model.SystemOverrides
 import observe.ui.ObserveStyles
 import observe.ui.model.ObsSummary
 import observe.ui.model.ObservationRequests
 
 case class ObsHeader(
   observation:   ObsSummary,
-  loadedObsId:   Option[Pot[Observation.Id]],
+  loadedObsId:   Option[Pot[Observation.Id]], // May be different than shown observation
   loadObs:       Observation.Id => Callback,
   sequenceState: SequenceState,
-  requests:      ObservationRequests
+  requests:      ObservationRequests,
+  overrides:     Option[View[SystemOverrides]]
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -39,6 +43,11 @@ object ObsHeader:
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
           <.span(props.observation.configurationSummary),
-          <.span(props.observation.constraintsSummary)
+          <.span(props.observation.constraintsSummary),
+          props.overrides
+            .map: overrides =>
+              SubsystemOverrides(props.observation.obsId, props.observation.instrument, overrides)
+                .when(props.loadedObsId.contains_(props.observation.obsId.ready))
+            .whenDefined
         )
       )
