@@ -58,4 +58,28 @@ case class ConfigApiImpl(
       ""
     )
 
+  override def setTcsEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+    request(
+      Uri.Path.empty / obsId.toString / client.clientId.value / "tcsEnabled" / enabled,
+      ""
+    )
+
+  override def setGcalEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+    request(
+      Uri.Path.empty / obsId.toString / client.clientId.value / "gcalEnabled" / enabled,
+      ""
+    )
+
+  override def setInstrumentEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+    request(
+      Uri.Path.empty / obsId.toString / client.clientId.value / "instrumentEnabled" / enabled,
+      ""
+    )
+
+  override def setDhsEnabled(obsId: Observation.Id, enabled: Boolean): IO[Unit] =
+    request(
+      Uri.Path.empty / obsId.toString / client.clientId.value / "dhsEnabled" / enabled,
+      ""
+    )
+
   override def isBlocked: Boolean = apiStatus.get == ApiStatus.Busy
