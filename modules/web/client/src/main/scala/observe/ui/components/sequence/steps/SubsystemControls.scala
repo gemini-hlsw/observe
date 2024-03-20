@@ -61,19 +61,19 @@ case class SubsystemControls(
   ): (FontAwesomeIcon, Button.Severity, Boolean) = // (icon, severity, disabled)
     subsystemState(subsystem) match
       case (_, OperationRequest.InFlight)                  =>
-        (SubsystemControls.RunningIcon,
-         Button.Severity.Warning,
-         isSubsystemEnabled(subsystem).value
-        )
+        (SubsystemControls.RunningIcon, Button.Severity.Warning, true)
       case (ActionStatus.Running | ActionStatus.Paused, _) =>
-        (SubsystemControls.RunningIcon,
-         Button.Severity.Warning,
-         isSubsystemEnabled(subsystem).value
-        )
+        (SubsystemControls.RunningIcon, Button.Severity.Warning, true)
       case (ActionStatus.Completed, _)                     =>
-        (SubsystemControls.CompletedIcon, Button.Severity.Success, false)
+        (SubsystemControls.CompletedIcon,
+         Button.Severity.Success,
+         !isSubsystemEnabled(subsystem).value
+        )
       case (ActionStatus.Failed, _)                        =>
-        (SubsystemControls.FailureIcon, Button.Severity.Danger, false)
+        (SubsystemControls.FailureIcon,
+         Button.Severity.Danger,
+         !isSubsystemEnabled(subsystem).value
+        )
       case _                                               =>
         (SubsystemControls.IdleIcon, Button.Severity.Primary, !isSubsystemEnabled(subsystem).value)
 
