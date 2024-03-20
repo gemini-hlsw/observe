@@ -56,7 +56,7 @@ object Settings {
     val lucumaODBSchema = "0.11.2"
 
     // Clue
-    val clue = "0.35.1"
+    val clue = "0.35.2"
 
     // ScalaJS libraries
     val crystal      = "0.37.3"
