@@ -5,6 +5,7 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.syntax.all.*
+import lucuma.core.model.GemsConfig
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.overrideLogMessage
 import observe.server.tcs.Gaos
@@ -16,7 +17,7 @@ class GemsControllerDisabled[F[_]: Logger: Applicative] extends GemsController[F
   override def pauseResume(
     pauseReasons:  PauseConditionSet,
     resumeReasons: Gaos.ResumeConditionSet
-  )(cfg: GemsController.GemsConfig): F[Gaos.PauseResume[F]] =
+  )(cfg: GemsConfig): F[Gaos.PauseResume[F]] =
     PauseResume(
       overrideLogMessage("GeMS", "pause AO loops").some,
       overrideLogMessage("GeMS", "resume AO loops").some

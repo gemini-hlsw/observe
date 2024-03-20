@@ -4,8 +4,8 @@
 package observe.server
 
 import lucuma.core.enums.Instrument
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
 import observe.model.BatchCommandState
 import observe.model.Observation
 import observe.model.SequenceState

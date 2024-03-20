@@ -5,6 +5,7 @@ package observe.server.gems
 
 import cats.Applicative
 import cats.syntax.all.*
+import lucuma.core.model.GemsConfig
 import observe.server.gems.Gems.Cwfs1DetectorState
 import observe.server.gems.Gems.Cwfs2DetectorState
 import observe.server.gems.Gems.Cwfs3DetectorState
@@ -13,7 +14,6 @@ import observe.server.gems.Gems.Odgw1DetectorState
 import observe.server.gems.Gems.Odgw2DetectorState
 import observe.server.gems.Gems.Odgw3DetectorState
 import observe.server.gems.Gems.Odgw4DetectorState
-import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.PauseResume
 import observe.server.tcs.Gaos.ResumeConditionSet

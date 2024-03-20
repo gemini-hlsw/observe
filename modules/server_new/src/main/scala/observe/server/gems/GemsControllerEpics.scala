@@ -5,10 +5,10 @@ package observe.server.gems
 
 import cats.effect.Async
 import cats.syntax.all.*
+import lucuma.core.model.GemsConfig
 import lucuma.core.util.TimeSpan
 import mouse.boolean.*
 import observe.server.gems.Gems.*
-import observe.server.gems.GemsController.GemsConfig
 import observe.server.gsaoi.GsaoiGuider
 import observe.server.tcs.Gaos.PauseCondition
 import observe.server.tcs.Gaos.PauseConditionSet

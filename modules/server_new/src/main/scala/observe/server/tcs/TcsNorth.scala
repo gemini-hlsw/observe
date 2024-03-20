@@ -8,17 +8,18 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
-import lucuma.core.enums.GuideState
+import lucuma.core.enums.M1Source
 import lucuma.core.enums.Site
+import lucuma.core.enums.StepGuideState
+import lucuma.core.enums.TipTiltSource
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.GuideConfig
 import lucuma.core.model.sequence.StepConfig
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
-import observe.model.enums.M1Source
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.Resource
-import observe.model.enums.TipTiltSource
 import observe.server.ConfigResult
 import observe.server.InstrumentGuide
 import observe.server.ObserveFailure
@@ -73,7 +74,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   val defaultGuiderConf: GuiderConfig = GuiderConfig(ProbeTrackingConfig.Parked, GuiderSensorOff)
   def calcGuiderConfig(
     inUse:     Boolean,
-    guideWith: Option[GuideState]
+    guideWith: Option[StepGuideState]
   ): GuiderConfig =
     guideWith
       .flatMap(v => inUse.option(GuiderConfig(v.toProbeTracking, v.toGuideSensorOption)))
@@ -156,8 +157,8 @@ class TcsNorth[F[_]: Sync: Logger] private (
   def buildTcsConfig: F[TcsNorthConfig] =
     guideDb.value.flatMap { c =>
       gaos
-        .map(buildTcsAoConfig(c, _))
-        .getOrElse(buildBasicTcsConfig(c))
+        .map(buildTcsAoConfig(c.config, _))
+        .getOrElse(buildBasicTcsConfig(c.config))
     }
 
   override def nod(
@@ -178,10 +179,10 @@ object TcsNorth {
   import Tcs.*
 
   final case class TcsSeqConfig[F[_]](
-    guideWithP1: Option[GuideState],
-    guideWithP2: Option[GuideState],
-    guideWithOI: Option[GuideState],
-    guideWithAO: Option[GuideState],
+    guideWithP1: Option[StepGuideState],
+    guideWithP2: Option[StepGuideState],
+    guideWithOI: Option[StepGuideState],
+    guideWithAO: Option[StepGuideState],
     offsetA:     Option[InstrumentOffset],
     wavelA:      Option[Wavelength],
     lightPath:   LightPath,

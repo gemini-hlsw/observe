@@ -7,11 +7,13 @@ import cats.ApplicativeThrow
 import cats.Eq
 import cats.effect.Sync
 import lucuma.core.enums.Instrument
+import lucuma.core.model.AltairConfig
+import lucuma.core.model.AltairConfig.*
+import lucuma.core.model.GemsConfig
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.model.enums.Resource
 import observe.server.altair.AltairController.*
-import observe.server.gems.GemsController.GemsConfig
 import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.PauseConditionSet
 import observe.server.tcs.Gaos.ResumeConditionSet
