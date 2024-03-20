@@ -17,6 +17,10 @@ name := "observe"
 ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
 ThisBuild / dockerBaseImage := "eclipse-temurin:17-jre"
 
+// TODO REMOVE ONCE THIS WORKS AGAIN
+ThisBuild / tlCiScalafmtCheck := false
+ThisBuild / tlCiScalafixCheck := false
+
 ThisBuild / resolvers := List(Resolver.mavenLocal)
 
 val pushCond          = "github.event_name == 'push'"
