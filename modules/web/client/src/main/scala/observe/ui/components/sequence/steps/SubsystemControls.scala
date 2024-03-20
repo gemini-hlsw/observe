@@ -15,6 +15,8 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.primereact.*
+import observe.model.SubsystemEnabled
+import observe.model.SystemOverrides
 import observe.model.enums.*
 import observe.model.given
 import observe.ui.Icons
@@ -35,12 +37,20 @@ case class SubsystemControls(
   subsystems:        List[Resource | Instrument],
   subsystemStatus:   Map[Resource | Instrument, ActionStatus],
   subsystemRequests: Map[Resource | Instrument, OperationRequest],
+  systemOverrides:   SystemOverrides,
   clientMode:        ClientMode
 ) extends ReactFnProps(SubsystemControls.component):
   private def subsystemState(subsystem: Resource | Instrument): (ActionStatus, OperationRequest) =
     (subsystemStatus.getOrElse(subsystem, ActionStatus.Pending),
      subsystemRequests.getOrElse(subsystem, OperationRequest.Idle)
     )
+
+  private def isSubsystemEnabled(subsystem: Resource | Instrument): SubsystemEnabled =
+    subsystem match
+      case Resource.TCS  => systemOverrides.isTcsEnabled
+      case Resource.Gcal => systemOverrides.isGcalEnabled
+      case _: Instrument => systemOverrides.isInstrumentEnabled
+      case _             => SubsystemEnabled.Enabled
 
   // We want blue if the resource operation is idle or does not exist: these are equivalent cases.
   // If we are running, we want a circular spinning icon.
@@ -55,11 +65,17 @@ case class SubsystemControls(
       case (ActionStatus.Running | ActionStatus.Paused, _) =>
         (SubsystemControls.RunningIcon, Button.Severity.Warning, true)
       case (ActionStatus.Completed, _)                     =>
-        (SubsystemControls.CompletedIcon, Button.Severity.Success, false)
+        (SubsystemControls.CompletedIcon,
+         Button.Severity.Success,
+         !isSubsystemEnabled(subsystem).value
+        )
       case (ActionStatus.Failed, _)                        =>
-        (SubsystemControls.FailureIcon, Button.Severity.Danger, false)
+        (SubsystemControls.FailureIcon,
+         Button.Severity.Danger,
+         !isSubsystemEnabled(subsystem).value
+        )
       case _                                               =>
-        (SubsystemControls.IdleIcon, Button.Severity.Primary, false)
+        (SubsystemControls.IdleIcon, Button.Severity.Primary, !isSubsystemEnabled(subsystem).value)
 
 object SubsystemControls:
   private type Props = SubsystemControls

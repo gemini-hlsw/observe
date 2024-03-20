@@ -14,6 +14,7 @@ import lucuma.ui.sequence.StepTypeDisplay
 import observe.model.ObserveStage
 import observe.model.SequenceState
 import observe.model.StepProgress
+import observe.model.SystemOverrides
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
@@ -34,6 +35,7 @@ case class StepProgressCell(
   sequenceState:   SequenceState,
   isPausedInStep:  Boolean,
   subsystemStatus: Map[Resource | Instrument, ActionStatus],
+  systemOverrides: SystemOverrides,
   progress:        Option[StepProgress],
   selectedStep:    Option[Step.Id],
   isPreview:       Boolean
@@ -141,6 +143,7 @@ object StepProgressCell:
         props.subsystemStatus.map(_._1).toList,
         props.subsystemStatus,
         props.requests.subsystemRun.getOrElse(props.stepId, Map.empty),
+        props.systemOverrides,
         props.clientMode
       ),
       if (props.isBias)

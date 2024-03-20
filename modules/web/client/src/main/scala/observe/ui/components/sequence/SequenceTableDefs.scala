@@ -235,6 +235,7 @@ trait SequenceTableDefs:
                         .find(_._1 === stepId)
                         .map(_._2.toMap)
                         .getOrElse(Map.empty),
+                      systemOverrides = executionState.systemOverrides,
                       progress = progress,
                       selectedStep = selectedStepId,
                       isPreview = isPreview
