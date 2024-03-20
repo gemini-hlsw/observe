@@ -14,6 +14,7 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
+import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
@@ -116,10 +117,20 @@ object Home:
                           .zoom(RootModelData.executionState.index(selectedObsId))
 
                       val executionStateAndConfig: Option[
-                        Pot[(Observation.Id, InstrumentExecutionConfig, View[ExecutionState])]
+                        Pot[
+                          (Observation.Id,
+                           InstrumentExecutionConfig,
+                           ExecutionVisits,
+                           View[ExecutionState]
+                          )
+                        ]
                       ] =
                         loadedObs.map: lo =>
-                          (lo.obsId.ready, lo.config, executionStateOpt.toOptionView.toPot).tupled
+                          (lo.obsId.ready,
+                           lo.config,
+                           lo.visits,
+                           executionStateOpt.toOptionView.toPot
+                          ).tupled
 
                       <.div(ObserveStyles.ObservationArea, ^.key := selectedObsId.toString)(
                         ObsHeader(
@@ -134,7 +145,7 @@ object Home:
                         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
                         executionStateAndConfig.map(
                           _.renderPot(
-                            { (loadedObsId, config, executionState) =>
+                            { (loadedObsId, config, visits, executionState) =>
                               val progress: Option[StepProgress] =
                                 rootModelData.obsProgress.get(loadedObsId)
 
@@ -155,6 +166,7 @@ object Home:
                               ObservationSequence(
                                 loadedObsId,
                                 config,
+                                visits,
                                 executionState,
                                 progress,
                                 requests,

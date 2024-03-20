@@ -7,8 +7,8 @@ import cats.kernel.laws.discipline.*
 import cats.tests.CatsSuite
 // import monocle.law.discipline.PrismTests
 import observe.web.client.model.Pages.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 
 /**
  * Tests Client typeclasses

@@ -8,9 +8,9 @@ import org.scalacheck.Arbitrary.*
 import org.scalacheck.*
 
 import scala.collection.immutable.SortedMap
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.StepId
 import observe.model.enums.Resource
 import observe.web.client.model.*

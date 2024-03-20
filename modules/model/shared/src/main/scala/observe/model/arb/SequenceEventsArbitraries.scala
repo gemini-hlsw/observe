@@ -21,7 +21,7 @@ import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.*
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.*
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 

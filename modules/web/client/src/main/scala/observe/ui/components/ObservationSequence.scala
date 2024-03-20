@@ -6,15 +6,19 @@ package observe.ui.components
 import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
+import lucuma.schemas.model.ExecutionVisits
+import lucuma.ui.DefaultErrorRender
 import observe.model.ExecutionState
 import observe.model.StepProgress
-import observe.ui.components.sequence.GmosNorthSequenceTables
-import observe.ui.components.sequence.GmosSouthSequenceTables
+import observe.ui.ObserveStyles
+import observe.ui.components.sequence.GmosNorthSequenceTable
+import observe.ui.components.sequence.GmosSouthSequenceTable
 import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
@@ -23,6 +27,7 @@ import observe.ui.services.SequenceApi
 case class ObservationSequence(
   obsId:           Observation.Id,
   config:          InstrumentExecutionConfig,
+  visits:          ExecutionVisits,
   executionState:  View[ExecutionState],
   progress:        Option[StepProgress],
   requests:        ObservationRequests,
@@ -50,12 +55,13 @@ object ObservationSequence:
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
             sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-      props.config match
-        case InstrumentExecutionConfig.GmosNorth(config) =>
-          GmosNorthSequenceTables(
+      (props.config, props.visits) match
+        case (InstrumentExecutionConfig.GmosNorth(config), ExecutionVisits.GmosNorth(_, visits)) =>
+          GmosNorthSequenceTable(
             props.clientMode,
             props.obsId,
             config,
+            visits,
             props.executionState.get,
             props.progress,
             props.selectedStep,
@@ -64,11 +70,12 @@ object ObservationSequence:
             isPreview = false,
             flipBreakPoint
           )
-        case InstrumentExecutionConfig.GmosSouth(config) =>
-          GmosSouthSequenceTables(
+        case (InstrumentExecutionConfig.GmosSouth(config), ExecutionVisits.GmosSouth(_, visits)) =>
+          GmosSouthSequenceTable(
             props.clientMode,
             props.obsId,
             config,
+            visits,
             props.executionState.get,
             props.progress,
             props.selectedStep,
@@ -76,5 +83,8 @@ object ObservationSequence:
             props.requests,
             isPreview = false,
             flipBreakPoint
-            // )
+          )
+        case _                                                                                   =>
+          <.div(ObserveStyles.ObservationAreaError)(
+            DefaultErrorRender(new Exception("Sequence <-> Visits Instrument mismatch!"))
           )

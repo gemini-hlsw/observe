@@ -226,13 +226,13 @@ object GsaoiControllerEpics {
         gd <- epicsSys.guiding
       } yield EpicsGsaoiConfig(fl, uw, wc, rm, ro, co, et, fo, gd)
 
-      override def currentState: F[GsaoiGuider.GuideState] = for {
+      override def currentState: F[GsaoiGuider.StepGuideState] = for {
         guide <- epicsSys.guiding
         m1    <- epicsSys.odgw1Multiplier
         m2    <- epicsSys.odgw1Multiplier
         m3    <- epicsSys.odgw1Multiplier
         m4    <- epicsSys.odgw1Multiplier
-      } yield new GsaoiGuider.GuideState {
+      } yield new GsaoiGuider.StepGuideState {
         override def isGuideActive: Boolean = guide
 
         override def isOdgwGuiding(odgwId: GsaoiGuider.OdgwId): Boolean = {

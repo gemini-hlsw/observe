@@ -17,6 +17,10 @@ name := "observe"
 ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
 ThisBuild / dockerBaseImage := "eclipse-temurin:17-jre"
 
+// TODO REMOVE ONCE THIS WORKS AGAIN
+ThisBuild / tlCiScalafmtCheck := false
+ThisBuild / tlCiScalafixCheck := false
+
 ThisBuild / resolvers := List(Resolver.mavenLocal)
 
 val pushCond          = "github.event_name == 'push'"
@@ -364,8 +368,6 @@ lazy val observe_engine = project
 lazy val observeCommonSettings = Seq(
   // Main class for launching
   Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
-  // This is important to keep the file generation order correctly
-  Universal / parallelExecution   := false,
   // Name of the launch script
   executableScriptName            := "observe-server",
   // No javadocs

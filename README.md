@@ -123,9 +123,18 @@ If you want to make sure that you are pushing an image that has been tested on s
 
 ```
 docker pull registry.heroku.com/observe-staging/web:latest
-docker tag registry.heroku.com/observe-staging/web:latest <dokcerhub>noirlab/gpp-obs:latest
+docker tag registry.heroku.com/observe-staging/web:latest noirlab/gpp-obs:latest
 docker push noirlab/gpp-obs:latest
 ```
+
+(If you haven't logged to Heroku Container, first execute:
+
+```
+heroku login
+heroku container:login
+```
+
+)
 
 (This may also be achieved with [Skopeo](https://github.com/containers/skopeo), it might be worth taking a look into it.)
 

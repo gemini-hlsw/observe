@@ -4,9 +4,9 @@
 package observe.server
 
 import cats.effect.IO
-import lucuma.core.util.arb.ArbEnumerated.*
-import lucuma.core.util.arb.ArbGid.*
-import lucuma.core.util.arb.ArbUid.*
+import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbUid.given
 import observe.model.Observation
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.{Arbitrary, Cogen}

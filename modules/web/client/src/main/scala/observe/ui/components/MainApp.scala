@@ -265,31 +265,37 @@ object MainApp extends ServerEventHandler:
               .map(_.odbClient)
               .toOption
               .foldMap(_.statusStream) // Track ODB initialization status
-      .useAsyncEffectWhenDepsReady((_, _, _, _, _, _, _, _, ctxPot, _, odbStatus) =>
+      .useRef(false)
+      .useAsyncEffectWhenDepsReady((_, _, _, _, _, _, _, _, ctxPot, _, odbStatus, _) =>
         (ctxPot.value, odbStatus.toPot.filter(_ === PersistentClientStatus.Initialized)).tupled
-      ): (_, _, _, _, _, _, rootModelData, _, _, _, _) =>
+      ): (_, _, _, _, _, _, rootModelData, _, _, _, _, subscribed) =>
         (ctx, _) => // Query ready observations (7)
           import ctx.given
 
-          val readyObservations = rootModelData
-            .zoom(RootModelData.readyObservations)
-            .async
+          if (!subscribed.value)
+            val readyObservations = rootModelData
+              .zoom(RootModelData.readyObservations)
+              .async
 
-          // TODO RECONNECT ON ERRORS
-          val obsSummaryUpdaterResource =
-            for
-              obsStream <-
-                ObsQueriesGQL
-                  .ActiveObservationIdsQuery[IO]
-                  .query()
-                  .flatMap(data => readyObservations.set(data.observations.matches.ready))
-                  .recoverWith(t => readyObservations.set(Pot.error(t)))
-                  .reRunOnResourceSignals(ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]())
-              _         <- Resource.make(obsStream.compile.drain.start)(_.cancel)
-            yield ()
+            // TODO RECONNECT ON ERRORS
+            val obsSummaryUpdaterResource =
+              for
+                obsStream <-
+                  ObsQueriesGQL
+                    .ActiveObservationIdsQuery[IO]
+                    .query()
+                    .flatMap(data => readyObservations.set(data.observations.matches.ready))
+                    .recoverWith(t => readyObservations.set(Pot.error(t)))
+                    .reRunOnResourceSignals(
+                      ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
+                    )
+                _         <- Resource.make(obsStream.compile.drain.start)(_.cancel)
+              yield ()
 
-          obsSummaryUpdaterResource.allocated
-            .map((_, close) => close)
+            subscribed.setAsync(true) >>
+              obsSummaryUpdaterResource.allocated
+                .map((_, close) => close)
+          else IO(IO.unit)
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (
@@ -303,6 +309,7 @@ object MainApp extends ServerEventHandler:
           configApiStatus,
           ctxPot,
           apiClientOpt,
+          _,
           _,
           permitPot
         ) =>
