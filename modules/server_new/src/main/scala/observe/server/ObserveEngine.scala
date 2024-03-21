@@ -898,9 +898,14 @@ object ObserveEngine {
 
     override def eventStream: Stream[F, ObserveEvent] =
       Stream.eval(executeEngine.offer(Event.getState(_ => heartbeatStream.some)).as(NullEvent)) ++
-        stream(EngineState.default[F]).flatMap { (ev, qState) =>
-          toObserveEvent[F](ev, qState)
-        }
+        stream(EngineState.default[F])
+          .flatMap { x =>
+            Stream.eval(notifyODB(x).attempt)
+          }
+          .flatMap {
+            case Right((ev, qState)) => toObserveEvent[F](ev, qState)
+            case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
+          }
 
     override def stream(
       s0: EngineState[F]
@@ -1350,6 +1355,21 @@ object ObserveEngine {
           configSystemHandle(sid, stepId, sys, clientID)
         )
       )
+
+    def notifyODB(
+      i: (EventResult[SeqEvent], EngineState[F])
+    ): F[(EventResult[SeqEvent], EngineState[F])] =
+      (i match {
+        case (SystemUpdate(SystemEvent.Failed(id, _, e), _), _) =>
+          Logger[F].error(s"Error executing $id due to $e") <*
+            systems.odb
+              .stepAbort(id)
+              .ensure(
+                ObserveFailure
+                  .Unexpected("Unable to send ObservationAborted message to ODB.")
+              )(identity)
+        case _                                                  => Applicative[F].unit
+      }).as(i)
 
     private def updateSequenceEndo(
       conditions: Conditions,
