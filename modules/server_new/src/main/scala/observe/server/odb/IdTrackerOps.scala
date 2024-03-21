@@ -68,12 +68,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
         .at(obsId)
         .some
         .andThen(RecordedVisit.step)
-        .modify:
-          case Some(staleStepId) if stepId.isDefined =>
-            throw ObserveFailure.Unexpected:
-              s"Attempted to set current stepId for [$obsId] when it was already set. " +
-                s"Existing value [$staleStepId], new attempted value [${stepId.get}]"
-          case _                                     => stepId.map(RecordedStep(_))
+        .replace(stepId.map(RecordedStep(_)))
 
   protected def getCurrentDatasetId(obsId: Observation.Id, fileId: ImageFileId): F[Dataset.Id] =
     idTracker.get

@@ -67,6 +67,7 @@ sealed trait OdbEventCommands[F[_]] {
   def datasetEndWrite(obsId:      Observation.Id, fileId: ImageFileId): F[Boolean]
   def stepEndObserve(obsId:       Observation.Id): F[Boolean]
   def stepEndStep(obsId:          Observation.Id): F[Boolean]
+  def stepAbort(obsId:            Observation.Id): F[Boolean]
   def sequenceEnd(obsId:          Observation.Id): F[Boolean]
   def obsAbort(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsContinue(obsId:          Observation.Id): F[Boolean]
@@ -137,6 +138,8 @@ object OdbProxy {
       false.pure[F]
 
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
@@ -340,6 +343,15 @@ object OdbProxy {
         _      <- L.debug("ODB event stepEndStep sent")
       } yield true
 
+    override def stepAbort(obsId: Observation.Id): F[Boolean] =
+      for {
+        stepId <- getCurrentStepId(obsId)
+        _      <- L.debug(s"Send ODB event stepAbort for obsId: $obsId, step $stepId")
+        _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.Abort)
+        _      <- setCurrentStepId(obsId, none)
+        _      <- L.debug("ODB event stepAbort sent")
+      } yield true
+
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       for {
         _ <- setCurrentVisitId(obsId, none)
@@ -495,6 +507,8 @@ object OdbProxy {
     override def stepEndObserve(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    override def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
       Applicative[F].unit
