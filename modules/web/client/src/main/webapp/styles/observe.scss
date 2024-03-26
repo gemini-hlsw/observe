@@ -164,14 +164,7 @@ html {
 
 .pl-react-table.p-datatable.lucuma-sequence-table {
   tbody {
-    tr:not(.ObserveStyles-rowHasExtra) {
-      height: 25px;
-    }
-
-    tr.ObserveStyles-rowHasExtra {
-      height: 60px;
-      vertical-align: top;
-
+    tr.lucuma-sequence-row-has-extra {
       td:not(.ObserveStyles-breakpointTableCell) {
         padding-top: 6px;
       }
@@ -350,16 +343,6 @@ html {
   }
 
   &.ObserveStyles-stepTable {
-    tr.ObserveStyles-rowHeader td {
-      font-size: 15px;
-      font-weight: bolder;
-      background-color: var(--gray-100);
-
-      .ObserveStyles-currentRowHeader {
-        display: flex;
-      }
-    }
-
     tr.ObserveStyles-stepRowDone {
       color: var(--disabled-row-color);
       background: var(--disabled-row-background);
@@ -437,7 +420,7 @@ html {
       //
       // SEPARATOR-SEPARATOR-SEPARATOR
       td:not(.ObserveStyles-breakpointTableCell):not(
-          .ObserveStyles-extraRowTableCell-shown
+          .lucuma-sequence-extra-row-shown
         ) {
         box-shadow: bottom-line($separator-color) !important;
       }
@@ -452,7 +435,7 @@ html {
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($hover-color), bottom-line($hover-color) !important;
         }
@@ -469,7 +452,7 @@ html {
       //
       // SEPARATOR-SEPARATOR-SEPARATOR
       td:not(.ObserveStyles-breakpointTableCell):not(
-          .ObserveStyles-extraRowTableCell-shown
+          .lucuma-sequence-extra-row-shown
         ) {
         box-shadow: top-line($atom-color), bottom-line($separator-color) !important;
       }
@@ -484,7 +467,7 @@ html {
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-double-line($atom-color, $hover-color),
             bottom-line($hover-color) !important;
@@ -501,7 +484,7 @@ html {
         //
         // BREAKPOINT-BREAKPOINT-BREAKPO
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($atom-color), bottom-line($breakpoint-color) !important;
         }
@@ -516,7 +499,7 @@ html {
           // HOVER-HOVER-HOVER-HOVER-HOVER
           // BREAKPOINT-BREAKPOINT-BREAKPO
           td:not(.ObserveStyles-breakpointTableCell):not(
-              .ObserveStyles-extraRowTableCell-shown
+              .lucuma-sequence-extra-row-shown
             ) {
             box-shadow: top-double-line($atom-color, $hover-color),
               bottom-double-line($breakpoint-color, $hover-color) !important;
@@ -535,7 +518,7 @@ html {
       //
       // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
       td:not(.ObserveStyles-breakpointTableCell):not(
-          .ObserveStyles-extraRowTableCell-shown
+          .lucuma-sequence-extra-row-shown
         ) {
         box-shadow: bottom-line($atom-color) !important;
       }
@@ -550,7 +533,7 @@ html {
         // HOVER-HOVER-HOVER-HOVER-HOVER
         // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($hover-color),
             bottom-double-line($atom-color, $hover-color) !important;
@@ -568,7 +551,7 @@ html {
       //
       // BREAKPOINT-BREAKPOINT-BREAKPO
       td:not(.ObserveStyles-breakpointTableCell):not(
-          .ObserveStyles-extraRowTableCell-shown
+          .lucuma-sequence-extra-row-shown
         ) {
         box-shadow: bottom-line($breakpoint-color) !important;
       }
@@ -583,7 +566,7 @@ html {
         // HOVER-HOVER-HOVER-HOVER-HOV
         // BREAKPOINT-BREAKPOINT-BREAK
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($hover-color),
             bottom-double-line($breakpoint-color, $hover-color) !important;
@@ -602,7 +585,7 @@ html {
       //
       // SEPARATOR-SEPARATOR-SEPARATOR
       td:not(.ObserveStyles-breakpointTableCell):not(
-          .ObserveStyles-extraRowTableCell-shown
+          .lucuma-sequence-extra-row-shown
         ) {
         box-shadow: top-line($breakpoint-color), bottom-line($separator-color) !important;
       }
@@ -620,7 +603,7 @@ html {
         //
         // BREAKPOINT-BREAKPOINT-BREAKPO
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($breakpoint-color),
             bottom-line($breakpoint-color) !important;
@@ -637,7 +620,7 @@ html {
         //
         // ATOM-ATOM-ATOM-ATOM-ATOM-ATOM
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-line($breakpoint-color), bottom-line($atom-color) !important;
         }
@@ -653,7 +636,7 @@ html {
         //
         // HOVER-HOVER-HOVER-HOVER-HOVER
         td:not(.ObserveStyles-breakpointTableCell):not(
-            .ObserveStyles-extraRowTableCell-shown
+            .lucuma-sequence-extra-row-shown
           ) {
           box-shadow: top-double-line($breakpoint-color, $hover-color),
             bottom-line($hover-color) !important;
@@ -669,7 +652,7 @@ html {
           // HOVER-HOVER-HOVER-HOVER-HOVER
           // BREAKPOINT-BREAKPOINT-BREAKPO
           td:not(.ObserveStyles-breakpointTableCell):not(
-              .ObserveStyles-extraRowTableCell-shown
+              .lucuma-sequence-extra-row-shown
             ) {
             box-shadow: top-double-line($breakpoint-color, $hover-color),
               bottom-double-line($breakpoint-color, $hover-color) !important;
@@ -682,30 +665,12 @@ html {
       opacity: 0.6;
     }
 
-    th.ObserveStyles-breakpointTableHeader {
-      padding: 0;
-      border: 0;
-    }
-
-    th.ObserveStyles-extraRowTableHeader {
-      padding: 0;
-      border: 0;
-    }
-
     // The actual cell is translated.
     td.ObserveStyles-breakpointTableCell {
       vertical-align: top;
       transform: translate(4px, -8px);
       overflow: visible; // This shows the breakpoint markers, even with width 0.
       padding: 0;
-    }
-
-    td.ObserveStyles-extraRowTableCell-shown {
-      display: inline-block;
-      position: relative;
-      top: 24px;
-      padding: 0;
-      border: 0;
     }
   }
 }

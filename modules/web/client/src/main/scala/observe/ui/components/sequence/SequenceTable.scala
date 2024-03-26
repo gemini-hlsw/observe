@@ -24,6 +24,7 @@ import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
+import lucuma.ui.react.given
 import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
@@ -50,13 +51,12 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
 
-  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[DynamicConfig]] =
+  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
     SequenceRow.FutureStep
       .fromAtoms(
         sequence.possibleFuture,
         _ => none // TODO Pass signal to noise
       )
-      .map(_.asInstanceOf[SequenceRow.FutureStep[DynamicConfig]]) // ObserveStep loses the type
 
   protected[sequence] lazy val (acquisitionCurrentSteps, scienceCurrentSteps)
     : (List[ObserveStep], List[ObserveStep]) =
@@ -66,7 +66,7 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
 
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
-  ): List[CurrentAtomStepRow] =
+  ): List[CurrentAtomStepRow[D]] =
     currentSteps.map: step =>
       CurrentAtomStepRow(
         step,
@@ -76,10 +76,10 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
       )
 
-  protected[sequence] lazy val acquisitionRows: List[SequenceRow[DynamicConfig]] =
+  protected[sequence] lazy val acquisitionRows: List[SequenceRow[D]] =
     currentStepsToRows(acquisitionCurrentSteps) ++ config.acquisition.map(steps).orEmpty
 
-  protected[sequence] lazy val scienceRows: List[SequenceRow[DynamicConfig]] =
+  protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
     currentStepsToRows(scienceCurrentSteps) ++ config.science.map(steps).orEmpty
 
 case class GmosNorthSequenceTable(
@@ -118,9 +118,7 @@ case class GmosSouthSequenceTable(
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
-    extends SequenceTableDefs
-    with SequenceTableVisits[D]:
+private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
   protected[sequence] val component =
@@ -139,73 +137,38 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         )
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
-      .useMemoBy((props, _, _) => props.visits): (props, _, _) =>
+      .useMemoBy((props, _, _) => props.visits): (_, _, _) =>
         visitsSequences // (List[Visit], nextIndex)
       .useMemoBy((props, _, _, visitsData) =>
-        (props.acquisitionRows, props.scienceRows, visitsData)
-      ): (props, _, _, _) =>
-        (acquisitionSteps, scienceSteps, visitsData) =>
-          val (visits, nextIndex) = visitsData.value
-
-          val visitsRows =
-            visits.map: visit =>
-              Expandable(
-                HeaderRow(visit.rowId, renderVisitHeader(visit)).toHeaderOrRow,
-                visit.steps.toList.map(step => Expandable(step.toHeaderOrRow))
-              )
-
-          def buildSequenceRows(
-            steps:        List[SequenceRow[DynamicConfig]],
-            sequenceType: SequenceType,
-            nextIndex:    StepIndex
-          ): List[SequenceTableRowType] =
-            Option
-              .when(steps.nonEmpty):
-                Expandable(
-                  HeaderRow(RowId(sequenceType.toString),
-                            <.span(ObserveStyles.CurrentRowHeader, sequenceType.toString)
-                  ).toHeaderOrRow,
-                  steps
-                    .zipWithStepIndex()
-                    ._1
-                    .map: (step, index) =>
-                      Expandable(SequenceTableRow(step, index).toHeaderOrRow)
-                )
-              .toList
-
-          val acquisitionRows =
-            buildSequenceRows(acquisitionSteps, SequenceType.Acquisition, StepIndex.One)
-          val scienceRows     = buildSequenceRows(scienceSteps, SequenceType.Science, nextIndex)
-
-          visitsRows ++ acquisitionRows ++ scienceRows
-      .useDynTableBy: (_, resize, _, _, _) =>
+        (visitsData, props.acquisitionRows, props.scienceRows)
+      ): (_, _, _, _) =>
+        (visitsData, acquisitionSteps, scienceSteps) =>
+          val (visits, nextIndex): (List[VisitData], StepIndex) = visitsData.value
+          stitchSequence(visits, nextIndex, acquisitionSteps,  scienceSteps)
+      .useDynTableBy: (_, resize, _, _, _) => 
         (DynTableDef, SizePx(resize.width.orEmpty))
-      .useReactTableBy: (props, resize, cols, _, sequence, dynTable) =>
+      .useReactTableBy: (props, _, cols, _, sequence, dynTable) =>
         TableOptions(
-          cols,
+          cols.map(dynTable.setInitialColWidths),
           sequence,
           enableSorting = false,
-          enableColumnResizing = true,
+          // TODO We are having trouble with reisizable cols, will be addressed in future PR
+          // enableColumnResizing = true,
+          enableColumnResizing = false,
           enableExpanding = true,
-          getRowId = (row, _, _) =>
-            row.value match
-              case Left(HeaderRow(rowId, _)) => rowId
-              case Right(stepRow)            => stepRow.step.rowId,
+          getRowId = (row, _, _) => getRowId(row),
           getSubRows = (row, _) => row.subRows,
           columnResizeMode = ColumnResizeMode.OnChange,
           initialState = TableState(
-            expanded = Expanded.fromExpandedRows(
-              RowId(SequenceType.Acquisition.toString),
-              RowId(SequenceType.Science.toString)
-            )
+            expanded = CurrentExpandedState
           ),
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
             columnVisibility = dynTable.columnVisibility
           ),
-          onColumnSizingChange = dynTable.onColumnSizingChangeHandler
+          // onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, resize, cols, _, _, dynTable, table) =>
+      .render: (props, resize, cols, _, _, _, table) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -230,10 +193,10 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                       .unless:
                         props.executionState.isLocked
                   .whenDefined,
-                if (step.isSelected) ObserveStyles.RowHasExtra else ObserveStyles.RowIdle,
+                if (step.isSelected) SequenceStyles.RowHasExtra else ObserveStyles.RowIdle,
                 step match
-                  case SequenceRow.Executed.ExecutedStep(_, _) => ObserveStyles.RowHasExtra
-                  case _                                       => TagMod.empty,
+                  case SequenceRow.Executed.ExecutedStep(_, _) => SequenceStyles.RowHasExtra
+                  case _ => TagMod.empty,
                 ObserveStyles.StepRowWithBreakpoint.when_(
                   stepIdOpt.exists(props.executionState.breakpoints.contains)
                 ),
@@ -244,23 +207,22 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                   case StepState.Paused | StepState.Skipped => ObserveStyles.StepRowWarning
                   case StepState.Completed                  => ObserveStyles.StepRowDone
                   case StepState.Aborted                    => ObserveStyles.StepRowError
-                  case _                                    => Css.Empty
+                  case _                                    => TagMod.empty
               )
-            .getOrElse:
-              ObserveStyles.RowHeader
+            .orEmpty
 
         def computeHeaderCellMods(
           headerCell: raw.buildLibTypesMod.Header[SequenceTableRowType, Any]
         ): TagMod =
-          headerCell.column.id match // TODO MOVE TO STYLE
-            case id if id == HeaderColumnId.value     => TagMod(^.border := "0px", ^.padding := "0px")
-            case id if id == BreakpointColumnId.value => ObserveStyles.BreakpointTableHeader
-            case id if id == ExtraRowColumnId.value   => ObserveStyles.ExtraRowTableHeader
-            case _                                    => Css.Empty
+          headerCell.column.id match
+            case id if id == HeaderColumnId.value     => SequenceStyles.HiddenColTableHeader
+            case id if id == BreakpointColumnId.value => SequenceStyles.HiddenColTableHeader
+            case id if id == ExtraRowColumnId.value   => SequenceStyles.HiddenColTableHeader
+            case _                                    => TagMod.empty
 
         val extraRowMod: TagMod =
           TagMod(
-            ObserveStyles.ExtraRowTableCellShown,
+            SequenceStyles.ExtraRowShown,
             resize.width
               .map: w =>
                 ^.width := s"${w - ColumnSizes(BreakpointSpaceColumnId).initial.value}px"

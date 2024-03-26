@@ -29,17 +29,17 @@ extension [D](row: SequenceRow[D])
     if (row.isFinished) StepTime.Past
     else
       row match
-        case _: CurrentAtomStepRow => StepTime.Present
-        case _                     => StepTime.Future
+        case CurrentAtomStepRow(_, _, _, _) => StepTime.Present
+        case _                              => StepTime.Future
 
   def isFirstInAtom: Boolean =
     row match
-      case currentStep: CurrentAtomStepRow       => currentStep.isFirstOfAtom
-      case futureStep: SequenceRow.FutureStep[?] => futureStep.firstOf.isDefined
-      case _                                     => false
+      case currentStep @ CurrentAtomStepRow(_, _, _, _)    => currentStep.isFirstOfAtom
+      case futureStep @ SequenceRow.FutureStep(_, _, _, _) => futureStep.firstOf.isDefined
+      case _                                               => false
 
   def stepState: StepState =
     row match
-      case currentStep: CurrentAtomStepRow       => currentStep.stepState
-      case futureStep: SequenceRow.FutureStep[?] => StepState.Pending
-      case _                                     => StepState.Completed
+      case currentStep @ CurrentAtomStepRow(_, _, _, _)    => currentStep.stepState
+      case futureStep @ SequenceRow.FutureStep(_, _, _, _) => StepState.Pending
+      case _                                               => StepState.Completed

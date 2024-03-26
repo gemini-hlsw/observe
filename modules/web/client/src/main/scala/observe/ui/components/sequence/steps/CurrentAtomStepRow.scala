@@ -6,19 +6,19 @@ package observe.ui.components.sequence.steps
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.math.SignalToNoise
-import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.ui.sequence.SequenceRow
 import observe.model.ObserveStep
 import observe.model.StepState
 
-case class CurrentAtomStepRow(
+case class CurrentAtomStepRow[+D](
   step:          ObserveStep,
   breakpoint:    Breakpoint,
   isFirstOfAtom: Boolean,
   signalToNoise: Option[SignalToNoise] = none // TODO Propagate S/N through the server
-) extends SequenceRow[DynamicConfig]:
+) extends SequenceRow[D]:
   val id                   = step.id.asRight
-  val instrumentConfig     = step.instConfig.some
+  // TODO We should type-parameterize ObserveStep on D and get rid of this cast
+  val instrumentConfig     = step.instConfig.asInstanceOf[D].some
   val stepConfig           = step.stepConfig.some
   val isFinished           = step.status.isFinished
   // TODO This could be an estimate for pending steps, or the time it took for finished steps.
