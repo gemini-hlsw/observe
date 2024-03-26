@@ -12,9 +12,9 @@ import lucuma.core.enums.StepGuideState.Enabled
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.TimingWindowEnd
 import lucuma.core.model.TimingWindowRepeat
+import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.{Step => OcsStep}
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 

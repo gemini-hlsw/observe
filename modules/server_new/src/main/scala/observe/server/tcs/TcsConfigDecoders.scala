@@ -13,9 +13,9 @@ import lucuma.core.enums.TipTiltSource
 import lucuma.core.model.M1GuideConfig
 import lucuma.core.model.M2GuideConfig
 import observe.server.EpicsCodex.DecodeEpicsValue
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.FollowOption.FollowOff
 import observe.server.tcs.TcsController.FollowOption.FollowOn
-import observe.server.tcs.TcsController.*
 
 trait TcsConfigDecoders {
   // Code to retrieve the current configuration from TCS. Include a lot of decoders

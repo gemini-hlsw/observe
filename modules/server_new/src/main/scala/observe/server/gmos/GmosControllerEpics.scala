@@ -16,8 +16,8 @@ import lucuma.core.enums.GmosGratingOrder
 import lucuma.core.math.Wavelength
 import lucuma.core.util.TimeSpan
 import mouse.all.*
-import observe.model.GmosParameters.NsStageIndex
 import observe.model.GmosParameters.*
+import observe.model.GmosParameters.NsStageIndex
 import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId

@@ -10,9 +10,9 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.TelescopeGuideConfig
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
+import observe.model.*
 import observe.model.ObservationProgress
 import observe.model.UserPrompt.ChecksOverride
-import observe.model.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
 import observe.model.events.client.*

@@ -95,8 +95,8 @@ object GmosControllerSim {
             (s, s)
           case s @ NsObsState(NsConfig.NodAndShuffle(cycles, _, _, _), _) =>
             // Initialize the current state
-            val update =
-              s.focus(_.current).replace(NsCurrent(fileId, cycles.value, 0, expTime).some)
+            val update = s.focus(_.current)
+              .replace(NsCurrent(fileId, cycles.value, 0, expTime).some)
             (update, update)
         } >>= {
           case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>

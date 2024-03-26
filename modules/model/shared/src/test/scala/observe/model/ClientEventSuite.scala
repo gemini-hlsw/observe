@@ -7,7 +7,7 @@ import cats.kernel.laws.discipline.*
 import io.circe.testing.CodecTests
 import io.circe.testing.instances.*
 import observe.model.arb.ArbClientEvent.given
-import org.scalacheck.{Test => ScalaCheckTest}
+import org.scalacheck.Test as ScalaCheckTest
 
 /**
  * Tests Client Event typeclasses

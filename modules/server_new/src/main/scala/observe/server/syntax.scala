@@ -12,10 +12,10 @@ import cats.MonadThrow
 import cats.data.*
 import cats.syntax.all.*
 import observe.engine
-import observe.engine.Result
 import observe.engine.*
-import observe.model.Observation
+import observe.engine.Result
 import observe.model.*
+import observe.model.Observation
 import observe.model.enums.*
 
 extension [F[_]: MonadThrow, A](s: EitherT[F, ObserveFailure, A])

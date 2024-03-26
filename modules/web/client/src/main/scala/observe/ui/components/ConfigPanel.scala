@@ -4,8 +4,8 @@
 package observe.ui.components
 
 import cats.syntax.all.*
-import crystal.react.View
 import crystal.react.*
+import crystal.react.View
 import eu.timepit.refined.cats.*
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*

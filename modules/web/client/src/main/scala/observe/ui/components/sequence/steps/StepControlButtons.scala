@@ -14,8 +14,8 @@ import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.*
 import observe.model.SequenceState
-import observe.model.operations.Operations.*
 import observe.model.operations.*
+import observe.model.operations.Operations.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.DefaultTooltipOptions

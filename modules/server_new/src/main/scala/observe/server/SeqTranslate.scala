@@ -22,17 +22,17 @@ import lucuma.core.model.sequence
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.core.model.sequence.Step as OdbStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
-import lucuma.core.model.sequence.{Step => OdbStep}
 import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
-import observe.engine.Action.ActionState
 import observe.engine.*
-import observe.model.Observation
+import observe.engine.Action.ActionState
 import observe.model.*
+import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.Resource
 import observe.server.InstrumentSystem.*
@@ -59,9 +59,9 @@ import observe.server.gmos.GmosSouth.given
 import observe.server.gmos.GmosSouthController
 import observe.server.gmos.NSObserveCommand
 import observe.server.keywords.*
+import observe.server.tcs.*
 import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
-import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
 
 //trait SeqTranslate[F[_]] extends ObserveActions {

@@ -10,7 +10,7 @@ import cats.syntax.all.*
 import fs2.compression.Compression
 import fs2.io.file.Files
 import fs2.io.file.Path
-import org.http4s.CacheDirective._
+import org.http4s.CacheDirective.*
 import org.http4s.Header
 import org.http4s.HttpRoutes
 import org.http4s.Request
@@ -20,7 +20,7 @@ import org.http4s.Uri
 import org.http4s.headers.`Cache-Control`
 import org.http4s.server.middleware.GZip
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class StaticRoutes[F[_]: Sync: Compression: Files]:
   private val AppDir: String = "app"

@@ -7,7 +7,7 @@ import cats.Order.given
 import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step

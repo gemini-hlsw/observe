@@ -4,10 +4,10 @@
 package observe.web.server.http4s
 
 import cats.data.OptionT
+import cats.effect.*
 import cats.effect.Ref
 import cats.effect.Resource
 import cats.effect.Temporal
-import cats.effect.*
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import fs2.Stream
@@ -38,7 +38,7 @@ import org.http4s.jdkhttpclient.JdkHttpClient
 import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
-import org.http4s.server.middleware.{Logger => Http4sLogger}
+import org.http4s.server.middleware.Logger as Http4sLogger
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.typelevel.log4cats.Logger
 import pureconfig.*
@@ -46,7 +46,7 @@ import web.server.common.LogInitialization
 import web.server.common.RedirectToHttpsRoutes
 
 import java.io.FileInputStream
-import java.nio.file.{Files => JavaFiles}
+import java.nio.file.Files as JavaFiles
 import java.security.KeyStore
 import java.security.Security
 import javax.net.ssl.KeyManagerFactory

@@ -16,8 +16,8 @@ import lucuma.core.enums.WaterVapor
 import lucuma.refined.*
 import observe.engine.*
 import observe.model.*
-import observe.model.enums.Resource.TCS
 import observe.model.enums.*
+import observe.model.enums.Resource.TCS
 import observe.server.TestCommon.*
 
 import java.util.UUID

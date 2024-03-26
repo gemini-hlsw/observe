@@ -18,7 +18,8 @@ import lucuma.react.common.*
 import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.typed.{tanstackTableCore => raw}
+import lucuma.schemas.model.Visit
+import lucuma.typed.tanstackTableCore as raw
 import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
@@ -32,8 +33,6 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
-
-import lucuma.schemas.model.Visit
 
 sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
@@ -155,11 +154,17 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 visit.steps.toList.map(step => Expandable(step.toHeaderOrRow))
               )
 
-          def buildSequenceRows(steps: List[SequenceRow[DynamicConfig]], sequenceType: SequenceType, nextIndex: StepIndex): List[SequenceTableRowType] =
+          def buildSequenceRows(
+            steps:        List[SequenceRow[DynamicConfig]],
+            sequenceType: SequenceType,
+            nextIndex:    StepIndex
+          ): List[SequenceTableRowType] =
             Option
               .when(steps.nonEmpty):
                 Expandable(
-                  HeaderRow(RowId(sequenceType.toString), <.span(ObserveStyles.CurrentRowHeader, sequenceType.toString)).toHeaderOrRow,
+                  HeaderRow(RowId(sequenceType.toString),
+                            <.span(ObserveStyles.CurrentRowHeader, sequenceType.toString)
+                  ).toHeaderOrRow,
                   steps
                     .zipWithStepIndex()
                     ._1
@@ -168,11 +173,12 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 )
               .toList
 
-          val acquisitionRows = buildSequenceRows(acquisitionSteps, SequenceType.Acquisition, StepIndex.One)
-          val scienceRows = buildSequenceRows(scienceSteps, SequenceType.Science, nextIndex)
+          val acquisitionRows =
+            buildSequenceRows(acquisitionSteps, SequenceType.Acquisition, StepIndex.One)
+          val scienceRows     = buildSequenceRows(scienceSteps, SequenceType.Science, nextIndex)
 
           visitsRows ++ acquisitionRows ++ scienceRows
-      .useDynTableBy: (_, resize, _, _, _) => 
+      .useDynTableBy: (_, resize, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
       .useReactTableBy: (props, resize, cols, _, sequence, dynTable) =>
         TableOptions(
@@ -181,9 +187,10 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           enableSorting = false,
           enableColumnResizing = true,
           enableExpanding = true,
-          getRowId = (row, _, _) => row.value match
-            case Left(HeaderRow(rowId, _))        => rowId
-            case Right(stepRow) => stepRow.step.rowId,
+          getRowId = (row, _, _) =>
+            row.value match
+              case Left(HeaderRow(rowId, _)) => rowId
+              case Right(stepRow)            => stepRow.step.rowId,
           getSubRows = (row, _) => row.subRows,
           columnResizeMode = ColumnResizeMode.OnChange,
           initialState = TableState(
@@ -194,7 +201,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           ),
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
-            columnVisibility = dynTable.columnVisibility,
+            columnVisibility = dynTable.columnVisibility
           ),
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
@@ -226,7 +233,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 if (step.isSelected) ObserveStyles.RowHasExtra else ObserveStyles.RowIdle,
                 step match
                   case SequenceRow.Executed.ExecutedStep(_, _) => ObserveStyles.RowHasExtra
-                  case _ => TagMod.empty,
+                  case _                                       => TagMod.empty,
                 ObserveStyles.StepRowWithBreakpoint.when_(
                   stepIdOpt.exists(props.executionState.breakpoints.contains)
                 ),

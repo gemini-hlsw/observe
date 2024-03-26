@@ -9,8 +9,8 @@ import mouse.all.*
 import observe.engine
 import observe.model.*
 import observe.model.enums.*
-import observe.server.StepsView.*
 import observe.server.*
+import observe.server.StepsView.*
 import observe.server.gmos.GmosController.Config.*
 
 class GmosStepsView[F[_]] extends StepsView[F] {

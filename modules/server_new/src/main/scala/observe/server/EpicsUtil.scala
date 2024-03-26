@@ -20,15 +20,15 @@ import observe.server.ObserveFailure.NullEpicsError
 import observe.server.ObserveFailure.ObserveException
 import org.typelevel.log4cats.Logger
 
-import java.lang.{Double => JDouble}
-import java.lang.{Float => JFloat}
-import java.lang.{Integer => JInt}
+import java.lang.Double as JDouble
+import java.lang.Float as JFloat
+import java.lang.Integer as JInt
 import java.util
+import java.util.Timer as JTimer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
-import java.util.{Timer => JTimer}
 import scala.jdk.CollectionConverters.*
 import scala.math.abs
 

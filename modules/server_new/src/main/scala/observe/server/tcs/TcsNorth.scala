@@ -24,7 +24,7 @@ import observe.server.ConfigResult
 import observe.server.InstrumentGuide
 import observe.server.ObserveFailure
 import observe.server.altair.Altair
-import observe.server.tcs.TcsController._
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsNorthController.TcsNorthAoConfig
 import observe.server.tcs.TcsNorthController.TcsNorthConfig
 import org.typelevel.log4cats.Logger

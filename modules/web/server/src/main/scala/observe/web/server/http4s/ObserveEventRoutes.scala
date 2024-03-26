@@ -15,9 +15,9 @@ import io.circe.Encoder
 import io.circe.syntax.*
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import observe.model.*
 import observe.model.ClientConfig
 import observe.model.ClientId
-import observe.model.*
 import observe.model.events.*
 import observe.model.events.client.ClientEvent
 import observe.model.events.client.ClientEvent.InitialEvent

@@ -36,8 +36,8 @@ import observe.server.gmos.GmosController.GmosSite.Grating
 import observe.server.gmos.GmosController.GmosSite.StageMode
 import observe.server.keywords.DhsClient
 import observe.server.keywords.DhsClientProvider
-import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.*
+import observe.server.tcs.FocalPlaneScale.*
 import org.typelevel.log4cats.Logger
 
 final case class GmosNorth[F[_]: Temporal: Logger] private (

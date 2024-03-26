@@ -5,16 +5,16 @@ package observe.ui.services
 
 import cats.effect.IO
 import eu.timepit.refined.types.string.NonEmptyString
-import io.circe.Encoder
 import io.circe.*
+import io.circe.Encoder
 import io.circe.syntax.*
 import observe.model.ClientId
+import org.http4s.*
 import org.http4s.Method
 import org.http4s.Uri
-import org.http4s.*
 import org.http4s.circe.*
-import org.http4s.client.Client
 import org.http4s.client.*
+import org.http4s.client.Client
 import org.http4s.headers.Authorization
 
 case class ApiClient(

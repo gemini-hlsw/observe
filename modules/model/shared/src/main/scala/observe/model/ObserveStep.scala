@@ -3,8 +3,8 @@
 
 package observe.model
 
-import cats.Eq
 import cats.*
+import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
 import io.circe.*
@@ -25,8 +25,8 @@ import monocle.Prism
 import monocle.macros.GenPrism
 import monocle.syntax.all.*
 import observe.model.dhs.*
-import observe.model.enums.PendingObserveCmd
 import observe.model.enums.*
+import observe.model.enums.PendingObserveCmd
 
 enum ObserveStep(
   val id:           Step.Id,

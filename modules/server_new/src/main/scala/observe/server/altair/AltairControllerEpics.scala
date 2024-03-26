@@ -4,8 +4,8 @@
 package observe.server.altair
 
 import algebra.instances.all.given
-import cats.Eq
 import cats.*
+import cats.Eq
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
@@ -25,16 +25,16 @@ import mouse.boolean.*
 import observe.model.enums.ApplyCommandResult
 import observe.server.ObserveFailure
 import observe.server.altair.AltairController.*
+import observe.server.tcs.*
 import observe.server.tcs.FocalPlaneScale.*
+import observe.server.tcs.Gaos.*
 import observe.server.tcs.Gaos.PauseCondition.GaosGuideOff
 import observe.server.tcs.Gaos.PauseCondition.OiOff
 import observe.server.tcs.Gaos.PauseCondition.P1Off
 import observe.server.tcs.Gaos.ResumeCondition.GaosGuideOn
 import observe.server.tcs.Gaos.ResumeCondition.OiOn
 import observe.server.tcs.Gaos.ResumeCondition.P1On
-import observe.server.tcs.Gaos.*
 import observe.server.tcs.TcsController.FocalPlaneOffset
-import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
 
 import java.time.LocalDate
