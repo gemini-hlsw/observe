@@ -20,8 +20,8 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
-import observe.model.ObserveStep
 import observe.model.*
+import observe.model.ObserveStep
 import observe.model.arb.all.given
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent

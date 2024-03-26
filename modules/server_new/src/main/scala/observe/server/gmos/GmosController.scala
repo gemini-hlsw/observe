@@ -22,8 +22,8 @@ import observe.model.dhs.ImageFileId
 import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage
 import observe.model.enums.ObserveCommandResult
-import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.*
+import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.gmos.GmosController.Config.DCConfig
 import observe.server.gmos.GmosController.Config.DarkOrBias
 import observe.server.gmos.GmosController.Config.NsConfig

@@ -9,9 +9,9 @@ import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
+import lucuma.core.model.Observation as LObservation
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
-import lucuma.core.model.Observation as LObservation
 import observe.common.test.*
 import observe.engine.TestUtil.TestState
 import observe.model.ActionType

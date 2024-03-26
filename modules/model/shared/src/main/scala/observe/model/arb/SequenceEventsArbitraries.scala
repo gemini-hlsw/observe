@@ -12,9 +12,9 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
+import observe.model.*
 import observe.model.ObservationProgress
 import observe.model.QueueManipulationOp.*
-import observe.model.*
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*

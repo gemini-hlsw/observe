@@ -24,9 +24,9 @@ import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Lens
 import observe.server.InstrumentGuide
+import observe.server.tcs.*
 import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.TcsSouthController.GemsGuiders
-import observe.server.tcs.*
 
 import scala.language.implicitConversions
 

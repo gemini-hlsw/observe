@@ -4,8 +4,8 @@
 package observe.ui.components.sequence
 
 import cats.syntax.all.*
-import crystal.Pot
 import crystal.*
+import crystal.Pot
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*

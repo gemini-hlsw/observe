@@ -11,8 +11,8 @@ import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
-import lucuma.core.enums.Instrument
 import lucuma.core.enums.*
+import lucuma.core.enums.Instrument
 import lucuma.core.math.Offset
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
@@ -28,10 +28,10 @@ import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.FirstScienceTarget
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.test.*
 import observe.engine.EventResult
 import observe.engine.EventResult.Outcome

@@ -4,10 +4,10 @@
 package observe.model.arb
 
 import lucuma.core.util.arb.ArbEnumerated.given
-import observe.model.GmosParameters.*
 import observe.model.*
-import observe.model.enums.NodAndShuffleStage.*
+import observe.model.GmosParameters.*
 import observe.model.enums.*
+import observe.model.enums.NodAndShuffleStage.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Cogen
 import org.scalacheck.Gen

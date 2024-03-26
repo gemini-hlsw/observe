@@ -16,7 +16,7 @@ import observe.model.arb.all.{*, given}
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
-import org.scalacheck.{Test => ScalaCheckTest}
+import org.scalacheck.Test as ScalaCheckTest
 
 class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
   override def scalaCheckTestParameters = ScalaCheckTest.Parameters.default.withMaxSize(10)

@@ -12,10 +12,10 @@ import lucuma.core.enums.GcalShutter
 import lucuma.core.util.TimeSpan
 import observe.server.EpicsCodex.*
 import observe.server.EpicsUtil.applyParam
+import observe.server.gcal.GcalController.*
 import observe.server.gcal.GcalController.Diffuser
 import observe.server.gcal.GcalController.Filter
 import observe.server.gcal.GcalController.Shutter
-import observe.server.gcal.GcalController.*
 import org.typelevel.log4cats.Logger
 
 import java.time.temporal.ChronoUnit

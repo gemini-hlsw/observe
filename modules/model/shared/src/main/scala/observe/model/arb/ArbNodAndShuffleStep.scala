@@ -14,8 +14,8 @@ import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.given
-import observe.model.GmosParameters.*
 import observe.model.*
+import observe.model.GmosParameters.*
 import observe.model.enums.ActionStatus
 import observe.model.enums.PendingObserveCmd
 import observe.model.enums.PendingObserveCmd.*

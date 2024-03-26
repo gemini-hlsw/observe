@@ -14,8 +14,8 @@ import monocle.Focus
 import monocle.Lens
 import observe.model.enums.NodAndShuffleStage
 import observe.server.altair.Altair
-import observe.server.tcs.TcsController.GuiderConfig.given
 import observe.server.tcs.TcsController.*
+import observe.server.tcs.TcsController.GuiderConfig.given
 
 trait TcsNorthController[F[_]] {
   import TcsNorthController.*

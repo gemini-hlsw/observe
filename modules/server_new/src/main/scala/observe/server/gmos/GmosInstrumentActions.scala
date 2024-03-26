@@ -16,10 +16,10 @@ import observe.model.dhs.*
 import observe.model.enums.Guiding
 import observe.model.enums.NodAndShuffleStage.*
 import observe.model.enums.ObserveCommandResult
+import observe.server.*
 import observe.server.InstrumentActions.*
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.ObserveActions.*
-import observe.server.*
 import observe.server.gmos.GmosController.Config.*
 import observe.server.gmos.NSObserveCommand.*
 import observe.server.gmos.NSPartial.*

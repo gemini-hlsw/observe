@@ -23,9 +23,9 @@ import observe.server.ObserveFailure
 import observe.server.ObserveFailure.NullEpicsError
 import observe.server.gems.Gems.*
 import observe.server.tcs.GemsSource.*
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.FollowOption.FollowOff
 import observe.server.tcs.TcsController.FollowOption.FollowOn
-import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
 
 sealed trait TcsConfigRetriever[F[_]] {

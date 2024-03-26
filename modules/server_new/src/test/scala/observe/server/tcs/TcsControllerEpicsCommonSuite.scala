@@ -32,13 +32,13 @@ import lucuma.core.model.TelescopeGuideConfig
 import lucuma.core.syntax.all.*
 import observe.server.InstrumentGuide
 import observe.server.keywords.USLocale
+import observe.server.tcs.*
 import observe.server.tcs.FocalPlaneScale.*
+import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsController.BasicTcsConfig
 import observe.server.tcs.TcsController.LightSource.Sky
-import observe.server.tcs.TcsController.*
 import observe.server.tcs.TestTcsEpics.ProbeGuideConfigVals
 import observe.server.tcs.TestTcsEpics.TestTcsEvent
-import observe.server.tcs.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.noop.NoOpLogger
 

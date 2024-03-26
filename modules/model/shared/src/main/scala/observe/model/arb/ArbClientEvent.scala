@@ -23,8 +23,8 @@ import observe.model.UserPrompt.ChecksOverride
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.events.client.ClientEvent.SingleActionState
 import observe.model.events.client.*
+import observe.model.events.client.ClientEvent.SingleActionState
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen

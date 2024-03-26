@@ -16,7 +16,7 @@ import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.events.SingleActionEvent
-import org.scalacheck.{Test => ScalaCheckTest}
+import org.scalacheck.Test as ScalaCheckTest
 
 /**
  * Tests Model typeclasses

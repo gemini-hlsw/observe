@@ -5,8 +5,8 @@ package web.server.common
 
 import cats.effect.Sync
 import org.slf4j.bridge.SLF4JBridgeHandler
+import org.typelevel.log4cats.Logger as TLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import org.typelevel.log4cats.{Logger => TLogger}
 
 import java.util.logging.Level
 import java.util.logging.LogManager

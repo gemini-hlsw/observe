@@ -7,8 +7,8 @@ import cats.Applicative
 import cats.Eq
 import cats.MonadThrow
 import cats.syntax.all.*
-import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.*
+import lucuma.core.enums.StepGuideState
 import lucuma.core.model.AltairConfig
 import lucuma.core.model.GemsConfig
 import lucuma.core.model.GemsConfig.*

@@ -17,8 +17,8 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
 import observe.engine.EventResult
-import observe.model.Observation.Id
 import observe.model.*
+import observe.model.Observation.Id
 import observe.model.enums.*
 import observe.server.EngineState
 import observe.server.ObserveEngine

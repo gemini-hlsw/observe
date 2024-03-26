@@ -4,7 +4,7 @@
 package observe.model
 
 import cats.kernel.laws.discipline.*
-import org.scalacheck.{Test => ScalaCheckTest}
+import org.scalacheck.Test as ScalaCheckTest
 
 import events.*
 import arb.SequenceEventsArbitraries

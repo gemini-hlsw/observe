@@ -16,7 +16,7 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.typed.{tanstackTableCore => raw}
+import lucuma.typed.tanstackTableCore as raw
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep

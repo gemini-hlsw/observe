@@ -1,4 +1,4 @@
-val sbtLucumaVersion = "0.11.13"
+val sbtLucumaVersion = "0.11.15"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % sbtLucumaVersion)
 
@@ -14,4 +14,4 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.12.0")
 addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 
 // Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.35.0")
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.35.2")

@@ -8,8 +8,8 @@ import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.given
-import observe.model.ObserveStage.given
 import observe.model.*
+import observe.model.ObserveStage.given
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
