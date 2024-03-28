@@ -15,7 +15,6 @@ import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
-import observe.model.events.SingleActionEvent
 import org.scalacheck.Test as ScalaCheckTest
 
 /**
@@ -54,10 +53,6 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[StepProgress]", EqTests[StepProgress].eqv)
   checkAll("Eq[ObservationProgress]", EqTests[ObservationProgress].eqv)
   checkAll("Codec[ObservationProgress]", CodecTests[ObservationProgress].codec)
-  checkAll("Eq[SingleActionOp]", EqTests[SingleActionOp].eqv)
-  checkAll("Eq[SingleActionEvent]", EqTests[SingleActionEvent].eqv)
-  checkAll("Eq[SingleActionOp]", EqTests[SingleActionOp].eqv)
-  checkAll("Eq[SingleActionEvent]", EqTests[SingleActionEvent].eqv)
   checkAll("Eq[RunningStep]", EqTests[RunningStep].eqv)
   checkAll("Eq[BatchCommandState]", EqTests[BatchCommandState].eqv)
   checkAll("Eq[ApplyCommandResult]", EqTests[ApplyCommandResult].eqv)

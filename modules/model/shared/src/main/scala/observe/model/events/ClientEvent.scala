@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model.events.client
+package observe.model.events
 
 import cats.*
 import cats.data.NonEmptyList
@@ -10,11 +10,8 @@ import cats.syntax.all.*
 import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
-import io.circe.KeyDecoder
-import io.circe.KeyEncoder
 import io.circe.refined.*
 import io.circe.syntax.*
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -33,35 +30,22 @@ import observe.model.given
 
 sealed trait ClientEvent derives Eq
 
-private given KeyEncoder[Observation.Id] = _.toString
-private given KeyDecoder[Observation.Id] = Observation.Id.parse(_)
-
-extension (v: SequencesQueue[SequenceView])
-  def sequencesState: Map[Observation.Id, ExecutionState] =
-    v.sessionQueue.map(o => (o.obsId, o.executionState)).toMap
-
-extension (q: SequenceView)
-  def executionState: ExecutionState =
-    ExecutionState(
-      q.status,
-      q.metadata.observer,
-      q.sequenceType,
-      q.steps,
-      q.runningStep.flatMap(_.id),
-      None,
-      q.stepResources,
-      q.systemOverrides,
-      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet,
-      q.pausedStep
-    )
-
 object ClientEvent:
+  sealed trait AllClientEvent    extends ClientEvent derives Eq
+  sealed trait SingleClientEvent extends ClientEvent derives Eq
+
   enum SingleActionState(val tag: String) derives Enumerated:
     case Started   extends SingleActionState("started")
     case Completed extends SingleActionState("completed")
     case Failed    extends SingleActionState("failed")
 
-  case class InitialEvent(clientConfig: ClientConfig) extends ClientEvent
+  case object BaDum extends AllClientEvent: // derives Eq, Encoder, Decoder
+    given Encoder[BaDum.type] = Encoder[String].contramap(_ => "BaDum")
+    given Decoder[BaDum.type] = Decoder[String].flatMap:
+      case "BaDum" => Decoder.const(BaDum)
+      case _       => Decoder.failedWithMessage("Not a heartbeat event")
+
+  case class InitialEvent(clientConfig: ClientConfig) extends AllClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
@@ -70,10 +54,14 @@ object ClientEvent:
     sequenceExecution: Map[Observation.Id, ExecutionState],
     conditions:        Conditions,
     operator:          Option[Operator]
-  ) extends ClientEvent
+  ) extends AllClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
+
+  object ObserveState:
+    def fromSequenceViewQueue(view: SequencesQueue[SequenceView]): ObserveState =
+      ObserveState(view.sequencesState, view.conditions, view.operator)
 
   case class SingleActionEvent(
     obsId:     Observation.Id,
@@ -81,22 +69,23 @@ object ClientEvent:
     subsystem: Resource | Instrument,
     event:     SingleActionState,
     error:     Option[String]
-  ) extends ClientEvent
+  ) extends AllClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
 
-  case class ChecksOverrideEvent(prompt: ChecksOverride) extends ClientEvent
+  case class ChecksOverrideEvent(prompt: ChecksOverride) extends SingleClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
 
-  case class ProgressEvent(progress: ObservationProgress) extends ClientEvent
+  case class ProgressEvent(progress: ObservationProgress) extends AllClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
 
   given Encoder[ClientEvent] = Encoder.instance:
+    case e @ BaDum                            => e.asJson
     case e @ InitialEvent(_)                  => e.asJson
     case e @ ObserveState(_, _, _)            => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
@@ -105,6 +94,7 @@ object ClientEvent:
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
+      Decoder[BaDum.type].widen,
       Decoder[InitialEvent].widen,
       Decoder[ObserveState].widen,
       Decoder[SingleActionEvent].widen,

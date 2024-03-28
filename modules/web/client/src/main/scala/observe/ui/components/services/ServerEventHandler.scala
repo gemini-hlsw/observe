@@ -15,8 +15,8 @@ import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
-import observe.model.events.client.ClientEvent
-import observe.model.events.client.ClientEvent.SingleActionState
+import observe.model.events.ClientEvent
+import observe.model.events.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
@@ -43,6 +43,8 @@ trait ServerEventHandler:
   )(using Logger[IO]): IO[Unit] =
     val asyncRootModel = rootModelData.async
     event match
+      case ClientEvent.BaDum                                                     =>
+        IO.unit
       case ClientEvent.InitialEvent(cc)                                          =>
         clientConfig.async.set(cc.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>

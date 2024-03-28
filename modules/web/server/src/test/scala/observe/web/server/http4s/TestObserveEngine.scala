@@ -24,6 +24,7 @@ import observe.server.EngineState
 import observe.server.ObserveEngine
 import observe.server.SeqEvent
 import observe.server.Systems
+import observe.server.events.TargetedClientEvent
 import org.typelevel.log4cats.Logger
 
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
@@ -205,7 +206,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     clientID: ClientId
   ): F[Unit] = Applicative[F].unit
 
-  override def eventStream: fs2.Stream[F, events.ObserveEvent] = Stream.empty
+  override def clientEventStream: fs2.Stream[F, TargetedClientEvent] = Stream.empty
 
   override def stream(
     s0: EngineState[F]

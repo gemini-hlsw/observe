@@ -24,7 +24,6 @@ import observe.model.*
 import observe.model.ObserveStep
 import observe.model.arb.all.given
 import observe.model.enums.*
-import observe.model.events.SingleActionEvent
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -213,76 +212,8 @@ trait ObserveModelArbitraries {
     Cogen[(QueueId, String, BatchCommandState, BatchExecState, List[Observation.Id])]
       .contramap(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
 
-  given Arbitrary[SingleActionOp.Started] =
-    Arbitrary {
-      for {
-        o <- arbitrary[Observation.Id]
-        s <- arbitrary[Step.Id]
-        r <- arbitrary[Resource]
-      } yield SingleActionOp.Started(o, s, r)
-    }
-
-  given Cogen[SingleActionOp.Started] =
-    Cogen[(Observation.Id, Step.Id, Resource | Instrument)]
-      .contramap(x => (x.sid, x.stepId, x.resource))
-
-  given Arbitrary[SingleActionOp.Completed] =
-    Arbitrary {
-      for {
-        o <- arbitrary[Observation.Id]
-        s <- arbitrary[Step.Id]
-        r <- arbitrary[Resource]
-      } yield SingleActionOp.Completed(o, s, r)
-    }
-
-  given Cogen[SingleActionOp.Completed] =
-    Cogen[(Observation.Id, Step.Id, Resource | Instrument)]
-      .contramap(x => (x.sid, x.stepId, x.resource))
-
-  given Arbitrary[SingleActionOp.Error] =
-    Arbitrary {
-      for {
-        o <- arbitrary[Observation.Id]
-        s <- arbitrary[Step.Id]
-        r <- arbitrary[Resource]
-        m <- arbitrary[String]
-      } yield SingleActionOp.Error(o, s, r, m)
-    }
-
-  given Cogen[SingleActionOp.Error] =
-    Cogen[(Observation.Id, Step.Id, Resource | Instrument, String)]
-      .contramap(x => (x.sid, x.stepId, x.resource, x.msg))
-
-  given Arbitrary[SingleActionOp] = Arbitrary[SingleActionOp] {
-    for {
-      s <- arbitrary[SingleActionOp.Started]
-      c <- arbitrary[SingleActionOp.Completed]
-      e <- arbitrary[SingleActionOp.Error]
-      m <- Gen.oneOf(s, c, e)
-    } yield m
-  }
-
-  given Cogen[SingleActionOp] =
-    Cogen[Either[SingleActionOp.Started, Either[SingleActionOp.Completed, SingleActionOp.Error]]]
-      .contramap {
-        case s: SingleActionOp.Started   => Left(s)
-        case c: SingleActionOp.Completed => Right(Left(c))
-        case e: SingleActionOp.Error     => Right(Right(e))
-      }
-
-  given Arbitrary[SingleActionEvent] =
-    Arbitrary {
-      for {
-        e <- arbitrary[SingleActionOp]
-      } yield SingleActionEvent(e)
-    }
-
-  given Cogen[SingleActionEvent] =
-    Cogen[SingleActionOp].contramap(_.op)
-
   given Arbitrary[Version] = newTypeArbitrary(Version)
   given Cogen[Version]     = newTypeCogen(Version)
-
 }
 
 object ObserveModelArbitraries extends ObserveModelArbitraries

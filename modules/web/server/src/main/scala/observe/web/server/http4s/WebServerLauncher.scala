@@ -24,11 +24,12 @@ import lucuma.sso.client.util.JwtDecoder
 import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
-import observe.model.events.client.ClientEvent
+import observe.model.events.ClientEvent
 import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.Systems
+import observe.server.events.TargetedClientEvent
 import observe.web.server.OcsBuildInfo
 import observe.web.server.config.*
 import org.http4s.HttpRoutes
@@ -179,8 +180,9 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
     for {
       wst    <- Resource.eval(Topic[F, (Option[ClientId], ClientEvent)])
-      _      <- oe.eventStream
-                  .evalMapFilter(_.toClientEvent.traverse(wst.publish1))
+      _      <- oe.clientEventStream
+                  .evalMap: targetedClientEvent =>
+                    wst.publish1(targetedClientEvent.clientId, targetedClientEvent.event)
                   .compile
                   .drain
                   .background
@@ -250,7 +252,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         conf             <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _                <- Resource.eval(printBanner(conf))
         cli              <- Resource.eval(mkClient(conf.observeEngine.dhsTimeout))
-        out              <- Resource.eval(Topic[IO, ObserveEvent])
+        out              <- Resource.eval(Topic[IO, TargetedClientEvent])
         cs               <- Resource.eval(
                               Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
                             )

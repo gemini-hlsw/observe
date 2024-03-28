@@ -11,7 +11,6 @@ import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
 import monocle.law.discipline.*
 import observe.model.arb.ObserveModelArbitraries.given
-import observe.model.arb.SequenceEventsArbitraries.given
 import observe.model.arb.all.{*, given}
 import observe.model.enums.*
 import org.scalacheck.Arbitrary
@@ -26,10 +25,6 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
   checkAll("observation steps lens", LensTests(obsStepsL))
   checkAll("each view traversal", TraversalTests(eachViewT))
   checkAll("sequence queue lens", LensTests(sessionQueueL))
-  checkAll("events prism", PrismTests(sequenceEventsP))
-
-  checkAll("sequence view Lens", LensTests(sequenceQueueViewL))
-  checkAll("sequencename traversal", TraversalTests(sequenceNameT))
 
   checkAll("step type prism", PrismTests(stringToStepTypeP))
 
