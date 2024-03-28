@@ -24,7 +24,7 @@ import lucuma.sso.client.util.JwtDecoder
 import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
-import observe.model.events.client.ClientEvent
+import observe.model.events.ClientEvent
 import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine

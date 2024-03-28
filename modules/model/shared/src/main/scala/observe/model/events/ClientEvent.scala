@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.model.events.client
+package observe.model.events
 
 import cats.*
 import cats.data.NonEmptyList
@@ -10,11 +10,8 @@ import cats.syntax.all.*
 import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
-import io.circe.KeyDecoder
-import io.circe.KeyEncoder
 import io.circe.refined.*
 import io.circe.syntax.*
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
@@ -24,36 +21,12 @@ import observe.model.Conditions
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.Operator
-import observe.model.SequenceView
-import observe.model.SequencesQueue
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.SeqCheck
 import observe.model.enums.Resource
 import observe.model.given
 
 sealed trait ClientEvent derives Eq
-
-private given KeyEncoder[Observation.Id] = _.toString
-private given KeyDecoder[Observation.Id] = Observation.Id.parse(_)
-
-extension (v: SequencesQueue[SequenceView])
-  def sequencesState: Map[Observation.Id, ExecutionState] =
-    v.sessionQueue.map(o => (o.obsId, o.executionState)).toMap
-
-extension (q: SequenceView)
-  def executionState: ExecutionState =
-    ExecutionState(
-      q.status,
-      q.metadata.observer,
-      q.sequenceType,
-      q.steps,
-      q.runningStep.flatMap(_.id),
-      None,
-      q.stepResources,
-      q.systemOverrides,
-      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet,
-      q.pausedStep
-    )
 
 object ClientEvent:
   enum SingleActionState(val tag: String) derives Enumerated:

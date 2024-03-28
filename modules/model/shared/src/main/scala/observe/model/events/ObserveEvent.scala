@@ -15,7 +15,6 @@ import observe.model.ObservationProgress
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.dhs.ImageFileId
 import observe.model.enums.*
-import observe.model.events.client.*
 import org.typelevel.cats.time.given
 
 import java.time.Instant

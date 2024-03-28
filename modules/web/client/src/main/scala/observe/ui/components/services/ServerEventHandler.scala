@@ -15,8 +15,8 @@ import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
-import observe.model.events.client.ClientEvent
-import observe.model.events.client.ClientEvent.SingleActionState
+import observe.model.events.ClientEvent
+import observe.model.events.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
