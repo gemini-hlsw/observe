@@ -180,7 +180,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     for {
       wst    <- Resource.eval(Topic[F, (Option[ClientId], ClientEvent)])
       _      <- oe.eventStream
-                  .evalMapFilter(_.toClientEvent.traverse(wst.publish1))
+                  .evalMap(wst.publish1(none, _)) // TODO do we have ForClient events??
                   .compile
                   .drain
                   .background
@@ -250,7 +250,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         conf             <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _                <- Resource.eval(printBanner(conf))
         cli              <- Resource.eval(mkClient(conf.observeEngine.dhsTimeout))
-        out              <- Resource.eval(Topic[IO, ObserveEvent])
+        out              <- Resource.eval(Topic[IO, ClientEvent])
         cs               <- Resource.eval(
                               Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
                             )

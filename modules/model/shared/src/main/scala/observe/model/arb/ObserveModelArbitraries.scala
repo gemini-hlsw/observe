@@ -24,7 +24,7 @@ import observe.model.*
 import observe.model.ObserveStep
 import observe.model.arb.all.given
 import observe.model.enums.*
-import observe.model.events.SingleActionEvent
+// import observe.model.events.SingleActionEvent
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -270,15 +270,15 @@ trait ObserveModelArbitraries {
         case e: SingleActionOp.Error     => Right(Right(e))
       }
 
-  given Arbitrary[SingleActionEvent] =
-    Arbitrary {
-      for {
-        e <- arbitrary[SingleActionOp]
-      } yield SingleActionEvent(e)
-    }
+  // given Arbitrary[SingleActionEvent] =
+  //   Arbitrary {
+  //     for {
+  //       e <- arbitrary[SingleActionOp]
+  //     } yield SingleActionEvent(e)
+  //   }
 
-  given Cogen[SingleActionEvent] =
-    Cogen[SingleActionOp].contramap(_.op)
+  // given Cogen[SingleActionEvent] =
+  //   Cogen[SingleActionOp].contramap(_.op)
 
   given Arbitrary[Version] = newTypeArbitrary(Version)
   given Cogen[Version]     = newTypeCogen(Version)
