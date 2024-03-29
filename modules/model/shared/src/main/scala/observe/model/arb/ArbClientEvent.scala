@@ -23,8 +23,8 @@ import observe.model.UserPrompt.ChecksOverride
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
-import observe.model.events.client.*
-import observe.model.events.client.ClientEvent.SingleActionState
+import observe.model.events.*
+import observe.model.events.ClientEvent.SingleActionState
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -109,17 +109,21 @@ trait ArbClientEvent:
 
   given Cogen[ClientEvent] =
     Cogen[Either[
-      ClientEvent.InitialEvent,
-      Either[ClientEvent.ObserveState, Either[
-        ClientEvent.SingleActionEvent,
-        Either[ClientEvent.ChecksOverrideEvent, ClientEvent.ProgressEvent]
-      ]]
+      Unit,
+      Either[
+        ClientEvent.InitialEvent,
+        Either[ClientEvent.ObserveState, Either[
+          ClientEvent.SingleActionEvent,
+          Either[ClientEvent.ChecksOverrideEvent, ClientEvent.ProgressEvent]
+        ]]
+      ]
     ]].contramap:
-      case e: ClientEvent.InitialEvent        => Left(e)
-      case e: ClientEvent.ObserveState        => Right(Left(e))
-      case e: ClientEvent.SingleActionEvent   => Right(Right(Left(e)))
-      case e: ClientEvent.ChecksOverrideEvent => Right(Right(Right(Left(e))))
-      case e: ClientEvent.ProgressEvent       => Right(Right(Right(Right(e))))
+      case ClientEvent.BaDum                                => Left(())
+      case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
+      case e @ ClientEvent.ObserveState(_, _, _)            => Right(Right(Left(e)))
+      case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
+      case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
+      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(e)))))
 
 end ArbClientEvent
 

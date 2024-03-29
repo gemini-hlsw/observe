@@ -11,10 +11,7 @@ import lucuma.core.optics.Format
 import lucuma.core.syntax.all.*
 import monocle.*
 import monocle.macros.GenLens
-import monocle.macros.GenPrism
-import monocle.syntax.all.*
 import observe.model.enums.*
-import observe.model.events.*
 
 trait ModelLenses {
   // Some useful Monocle lenses
@@ -27,9 +24,6 @@ trait ModelLenses {
     Traversal.fromTraverse[List, SequenceView]
   val sessionQueueL: Lens[SequencesQueue[SequenceView], List[SequenceView]] =
     GenLens[SequencesQueue[SequenceView]](_.sessionQueue)
-  // Prism to focus on only the ObserveEvents that have a queue
-  val sequenceEventsP: Prism[ObserveEvent, ObserveModelUpdate]              =
-    GenPrism[ObserveEvent, ObserveModelUpdate]
   // Required for type correctness
 //  val stepConfigRoot: Iso[Map[SystemName, Parameters], Map[SystemName, Parameters]] =
 //    Iso.id[Map[SystemName, Parameters]]
@@ -75,59 +69,6 @@ trait ModelLenses {
 //      .andThen(      // find the target name
 //        some[String] // focus on the option
 //      )
-
-  // Focus on the sequence view
-  val sequenceQueueViewL: Lens[ObserveModelUpdate, SequencesQueue[SequenceView]] =
-    Lens[ObserveModelUpdate, SequencesQueue[SequenceView]](_.view)(q => {
-      case e @ SequenceStart(_, _, _)          => e.copy(view = q)
-      case e @ StepExecuted(_, _)              => e.copy(view = q)
-      case e @ FileIdStepExecuted(_, _)        => e.copy(view = q)
-      case e @ SequenceCompleted(_)            => e.copy(view = q)
-      case e @ SequenceLoaded(_, _)            => e.copy(view = q)
-      case e @ SequenceUnloaded(_, _)          => e.copy(view = q)
-      case e @ StepBreakpointChanged(_)        => e.copy(view = q)
-      case e @ OperatorUpdated(_)              => e.copy(view = q)
-      case e @ ObserverUpdated(_)              => e.copy(view = q)
-      case e @ ConditionsUpdated(_)            => e.copy(view = q)
-      case e @ StepSkipMarkChanged(_)          => e.copy(view = q)
-      case e @ SequencePauseRequested(_)       => e.copy(view = q)
-      case e @ SequencePauseCanceled(_, _)     => e.copy(view = q)
-      case e @ SequenceRefreshed(_, _)         => e.copy(view = q)
-      case e @ ActionStopRequested(_)          => e.copy(view = q)
-      case e @ SequenceError(_, _)             => e.copy(view = q)
-      case e @ SequencePaused(_, _)            => e.copy(view = q)
-      case e @ ExposurePaused(_, _)            => e.copy(view = q)
-      case e @ SequenceUpdated(_)              => e.copy(view = q)
-      case e @ LoadSequenceUpdated(_, _, _, _) => e.copy(view = q)
-      case e @ ClearLoadedSequencesUpdated(_)  => e.copy(view = q)
-      case e @ QueueUpdated(_, _)              => e.copy(view = q)
-      case e                                   => e
-    })
-
-  val sequenceViewT: Traversal[ObserveModelUpdate, SequenceView] =
-    sequenceQueueViewL
-      .andThen( // Find the sequence view
-        sessionQueueL
-      )
-      .andThen( // Find the queue
-        eachViewT
-      )         // each sequence on the queue
-
-  // Composite lens to change the sequence name of an event
-  val sequenceNameT: Traversal[ObserveEvent, ObservationName] =
-    sequenceEventsP
-      .andThen( // Events with model updates
-        sequenceQueueViewL
-      )
-      .andThen( // Find the sequence view
-        sessionQueueL
-      )
-      .andThen( // Find the queue
-        eachViewT
-      )
-      .andThen( // each sequence on the queue
-        obsNameL
-      )         // sequence's observation name
 
   // Composite lens to find the instrument config
   // def sequenceInstConfigT: Traversal[ObserveEvent, DynamicConfig] =

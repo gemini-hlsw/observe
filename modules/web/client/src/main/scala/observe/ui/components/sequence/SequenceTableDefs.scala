@@ -14,7 +14,7 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.typed.{tanstackTableCore => raw}
+import lucuma.typed.tanstackTableCore as raw
 import lucuma.ui.sequence.*
 import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.table.*

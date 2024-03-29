@@ -41,8 +41,6 @@ import observe.engine.Handle.given
 import observe.engine.Result.Partial
 import observe.engine.Sequence
 import observe.engine.SystemEvent
-import observe.engine.SystemEvent.Executed
-import observe.engine.SystemEvent.Executing
 import observe.engine.UserEvent
 import observe.engine.{EngineStep as _, *}
 import observe.model.*
@@ -58,8 +56,8 @@ import observe.model.enums.PendingObserveCmd
 import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
-import observe.model.enums.ServerLogLevel
-import observe.model.events.{SequenceStart as ClientSequenceStart, *}
+import observe.model.events.*
+import observe.server.events.*
 import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
 
@@ -69,6 +67,7 @@ import scala.collection.immutable.SortedMap
 import scala.concurrent.duration.*
 
 import SeqEvent.*
+import ClientEvent.*
 
 trait ObserveEngine[F[_]] {
 
@@ -243,7 +242,7 @@ trait ObserveEngine[F[_]] {
     clientID: ClientId
   ): F[Unit]
 
-  def eventStream: Stream[F, ObserveEvent]
+  def clientEventStream: Stream[F, TargetedClientEvent]
 
   // Used by tests
   private[server] def stream(
@@ -885,8 +884,9 @@ object ObserveEngine {
     private def heartbeatStream: Stream[F, EventType[F]] = {
       // If there is no heartbeat in 5 periods throw an error
       val noHeartbeatDetection =
-        ObserveEngine.failIfNoEmitsWithin[F, EventType[F]](5 * heartbeatPeriod,
-                                                           "Engine heartbeat not detected"
+        ObserveEngine.failIfNoEmitsWithin[F, EventType[F]](
+          5 * heartbeatPeriod,
+          "Engine heartbeat not detected"
         )
       Stream
         .awakeDelay[F](heartbeatPeriod)
@@ -896,16 +896,19 @@ object ObserveEngine {
         }))
     }
 
-    override def eventStream: Stream[F, ObserveEvent] =
-      Stream.eval(executeEngine.offer(Event.getState(_ => heartbeatStream.some)).as(NullEvent)) ++
-        stream(EngineState.default[F])
-          .flatMap { x =>
-            Stream.eval(notifyODB(x).attempt)
-          }
-          .flatMap {
-            case Right((ev, qState)) => toObserveEvent[F](ev, qState)
-            case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
-          }
+    override def clientEventStream: Stream[F, TargetedClientEvent] =
+      Stream.eval(
+        executeEngine
+          .offer(Event.getState(_ => heartbeatStream.some))
+          .as[TargetedClientEvent](BaDum)
+      ) ++
+      stream(EngineState.default[F])
+        .flatMap: x =>
+          Stream.eval(notifyODB(x).attempt)
+        .flatMap:
+          case Right((ev, qState)) => toClientEvent[F](ev, qState)
+          // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
+          case Left(_)             => Stream.empty
 
     override def stream(
       s0: EngineState[F]
@@ -1670,55 +1673,24 @@ object ObserveEngine {
   private def modifyStateEvent[F[_]](
     v:   SeqEvent,
     svs: => SequencesQueue[SequenceView]
-  ): Stream[F, ObserveEvent] =
+  ): Stream[F, TargetedClientEvent] =
     v match {
-      case SetOperator(_, _)                  => Stream.emit(OperatorUpdated(svs))
-      case SetObserver(_, _, _)               => Stream.emit(ObserverUpdated(svs))
-      case SetTcsEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
-      case SetGcalEnabled(_, _, _)            => Stream.emit(OverridesUpdated(svs))
-      case SetInstrumentEnabled(_, _, _)      => Stream.emit(OverridesUpdated(svs))
-      case SetDhsEnabled(_, _, _)             => Stream.emit(OverridesUpdated(svs))
-      case AddLoadedSequence(i, s, _, c)      => Stream.emit(LoadSequenceUpdated(i, s, svs, c))
-      case ClearLoadedSequences(_)            => Stream.emit(ClearLoadedSequencesUpdated(svs))
-      case SetConditions(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case SetImageQuality(_, _)              => Stream.emit(ConditionsUpdated(svs))
-      case SetWaterVapor(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case SetSkyBackground(_, _)             => Stream.emit(ConditionsUpdated(svs))
-      case SetCloudCover(_, _)                => Stream.emit(ConditionsUpdated(svs))
-      case LoadSequence(id)                   => Stream.emit(SequenceLoaded(id, svs))
-      case UnloadSequence(id)                 => Stream.emit(SequenceUnloaded(id, svs))
-      case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
-      case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
-      case UpdateQueueAdd(qid, seqs)          =>
-        Stream.emit(QueueUpdated(QueueManipulationOp.AddedSeqs(qid, seqs), svs))
-      case UpdateQueueRemove(qid, s, p, l)    =>
+      // case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
+      case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid) =>
+        Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
+      // case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
+      case StartSysConfig(oid, stepId, res)                                 =>
         Stream.emits(
-          QueueUpdated(QueueManipulationOp.RemovedSeqs(qid, s, p), svs)
-            +: l.map { case (sid, step) => ClientSequenceStart(sid, step, svs) }
+          SingleActionEvent(oid, stepId, res, ClientEvent.SingleActionState.Started, none) ::
+            ObserveState.fromSequenceViewQueue(svs) :: Nil
         )
-      case UpdateQueueMoved(qid, cid, oid, p) =>
-        Stream.emit(QueueUpdated(QueueManipulationOp.Moved(qid, cid, oid, p), svs))
-      case UpdateQueueClear(qid)              => Stream.emit(QueueUpdated(QueueManipulationOp.Clear(qid), svs))
-      case StartQueue(qid, _, l)              =>
-        Stream.emits(
-          QueueUpdated(QueueManipulationOp.Started(qid), svs)
-            +: l.map { case (oid, step) => ClientSequenceStart(oid, step, svs) }
-        )
-      case StopQueue(qid, _)                  => Stream.emit(QueueUpdated(QueueManipulationOp.Stopped(qid), svs))
-      case StartSysConfig(oid, stepId, res)   =>
-        Stream.emits(
-          SingleActionEvent(SingleActionOp.Started(oid, stepId, res)) ::
-            SequenceUpdated(svs) :: Nil
-        )
-      case SequenceStart(oid, stepId)         => Stream.emit(ClientSequenceStart(oid, stepId, svs))
-      case SequencesStart(l)                  =>
-        Stream.emits(l.map { case (oid, step) => ClientSequenceStart(oid, step, svs) })
-      case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
-      case ResourceBusy(oid, sid, res, cid)   =>
-        Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
-      case _: NoUserSeqEvent                  => Stream.empty
-      case NoMoreAtoms(_)                     => Stream.empty
-      case NewAtomLoaded(_)                   => Stream.empty
+      // case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
+      // case ResourceBusy(oid, sid, res, cid)   =>
+      //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
+      // case NoMoreAtoms(_)                     => Stream.empty
+      // case NewAtomLoaded(_)                   => Stream.empty
+      case e if e.isModelUpdate                                             => Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+      case _                                                                => Stream.empty
     }
 
   private def executionQueueViews[F[_]](
@@ -1790,10 +1762,10 @@ object ObserveEngine {
     )
   }
 
-  private def toObserveEvent[F[_]](
+  private def toClientEvent[F[_]](
     ev:     EventResult[SeqEvent],
     qState: EngineState[F]
-  ): Stream[F, ObserveEvent] = {
+  ): Stream[F, TargetedClientEvent] = {
     val sequences = qState.sequences.view.values.map(viewSequence).toList
     // Building the view is a relatively expensive operation
     // By putting it into a def we only incur that cost if the message requires it
@@ -1812,89 +1784,63 @@ object ObserveEngine {
     ev match {
       case UserCommandResponse(ue, _, uev) =>
         ue match {
-          case UserEvent.Start(id, _, _)         =>
-            val rs = sequences.find(_.obsId === id).flatMap(_.runningStep.flatMap(_.id))
-            rs.foldMap(x => Stream.emit(ClientSequenceStart(id, x, svs)))
-          case UserEvent.Pause(_, _)             => Stream.emit(SequencePauseRequested(svs))
-          case UserEvent.CancelPause(id, _)      => Stream.emit(SequencePauseCanceled(id, svs))
-          case UserEvent.Breakpoints(_, _, _, _) => Stream.emit(StepBreakpointChanged(svs))
-          case UserEvent.SkipMark(_, _, _, _)    => Stream.emit(StepSkipMarkChanged(svs))
-          case UserEvent.Poll(cid)               => Stream.emit(SequenceRefreshed(svs, cid))
-          case UserEvent.GetState(_)             => Stream.empty
-          case UserEvent.ModifyState(_)          => modifyStateEvent(uev.getOrElse(NullSeqEvent), svs)
-          case UserEvent.ActionStop(_, _)        => Stream.emit(ActionStopRequested(svs))
-          case UserEvent.LogDebug(_, _)          => Stream.empty
-          case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
-          case UserEvent.LogWarning(m, ts)       =>
-            Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
-          case UserEvent.LogError(m, ts)         =>
-            Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
-          case UserEvent.ActionResume(_, _, _)   => Stream.emit(SequenceUpdated(svs))
-          case UserEvent.Pure(_)                 => Stream.empty
+          case UserEvent.ModifyState(_) => modifyStateEvent(uev.getOrElse(NullSeqEvent), svs)
+          case e if e.isModelUpdate     =>
+            Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+          // case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
+          // case UserEvent.LogWarning(m, ts)       =>
+          //   Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
+          // case UserEvent.LogError(m, ts)         =>
+          //   Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
+          case _                        => Stream.empty
         }
       case SystemUpdate(se, _)             =>
         se match {
           // TODO: Sequence completed event not emitted by engine.
-          case SystemEvent.Completed(_, _, _, _)                                    => Stream.emit(SequenceUpdated(svs))
-          case SystemEvent.StopCompleted(id, _, _, _)                               => Stream.emit(SequenceStopped(id, svs))
-          case SystemEvent.Aborted(id, _, _, _)                                     => Stream.emit(SequenceAborted(id, svs))
-          case SystemEvent.PartialResult(_, _, _, Partial(_: InternalPartialVal))   => Stream.empty
-          case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))    =>
+          case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))   =>
             Stream.emit(
-              ObservationProgressEvent(
-                ObservationProgress(i, StepProgress.Regular(s, t, r.self, v))
-              )
+              ProgressEvent(ObservationProgress(i, StepProgress.Regular(s, t, r.self, v)))
             )
-          case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u)))  =>
+          case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u))) =>
             Stream.emit(
-              ObservationProgressEvent(
-                ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u))
-              )
+              ProgressEvent(ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u)))
             )
-          case SystemEvent.PartialResult(_, _, _, Partial(FileIdAllocated(fileId))) =>
-            Stream.emit(FileIdStepExecuted(fileId, svs))
-          case SystemEvent.PartialResult(_, _, _, _)                                =>
-            Stream.emit(SequenceUpdated(svs))
-          case SystemEvent.Failed(id, _, _)                                         => Stream.emit(SequenceError(id, svs))
-          case SystemEvent.Busy(id, clientId)                                       =>
-            Stream.emit(UserNotification(ResourceConflict(id), clientId))
-          case SystemEvent.Executed(s)                                              => Stream.emit(StepExecuted(s, svs))
-          case SystemEvent.Executing(_)                                             => Stream.emit(SequenceUpdated(svs))
-          case SystemEvent.Finished(_)                                              => Stream.emit(SequenceCompleted(svs))
-          case SystemEvent.Null                                                     => Stream.empty
-          case SystemEvent.Paused(id, _, _)                                         => Stream.emit(ExposurePaused(id, svs))
-          case SystemEvent.BreakpointReached(id)                                    => Stream.emit(SequencePaused(id, svs))
-          case SystemEvent.SingleRunCompleted(c, _)                                 =>
+          // case SystemEvent.Busy(id, clientId)                                       =>
+          //   Stream.emit(UserNotification(ResourceConflict(id), clientId))
+          case SystemEvent.SingleRunCompleted(c, _)                                =>
             Stream.emits(
-              singleActionEvent[F, SingleActionOp.Completed](
+              singleActionClientEvent(
                 c,
                 qState,
-                SingleActionOp.Completed.apply(_, _, _)
-              ) :: SequenceUpdated(svs) :: Nil
+                ClientEvent.SingleActionState.Completed
+              ).toList :+ ClientEvent.ObserveState.fromSequenceViewQueue(svs)
             )
-          case SystemEvent.SingleRunFailed(c, r)                                    =>
+          case SystemEvent.SingleRunFailed(c, r)                                   =>
             Stream.emits(
-              singleActionEvent[F, SingleActionOp.Error](
+              singleActionClientEvent(
                 c,
                 qState,
-                SingleActionOp.Error.apply(_, _, _, r.msg)
-              ) :: SequenceUpdated(svs) :: Nil
+                ClientEvent.SingleActionState.Failed,
+                r.msg.some
+              ).toList :+ ClientEvent.ObserveState.fromSequenceViewQueue(svs)
             )
-          case SystemEvent.AtomCompleted(_)                                         => Stream.empty
+          case e if e.isModelUpdate                                                =>
+            Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+          case _                                                                   => Stream.empty
         }
     }
   }
 
-  private def singleActionEvent[F[_], S <: SingleActionOp](
-    c:      ActionCoords,
-    qState: EngineState[F],
-    f:      (Observation.Id, Step.Id, Resource | Instrument) => S
-  ): ObserveEvent =
+  private def singleActionClientEvent[F[_]](
+    c:            ActionCoords,
+    qState:       EngineState[F],
+    clientAction: ClientEvent.SingleActionState,
+    errorMsg:     Option[String] = none
+  ): Option[TargetedClientEvent] =
     qState.sequences
       .get(c.sid)
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
-      .map(res => SingleActionEvent(f(c.sid, c.actCoords.stepId, res)))
-      .getOrElse(NullEvent)
+      .map(res => SingleActionEvent(c.sid, c.actCoords.stepId, res, clientAction, errorMsg))
 
   private def tryNewAtom[F[_]: Monad](odb: OdbProxy[F], translator: SeqTranslate[F])(
     obsId: Observation.Id

@@ -20,11 +20,11 @@ import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackTableCore as raw
+import lucuma.ui.react.given
 import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
-import lucuma.ui.react.given
 import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress

@@ -42,7 +42,7 @@ import lucuma.ui.sso.SSOConfig
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.*
 import observe.model.ClientConfig
-import observe.model.events.client.ClientEvent
+import observe.model.events.ClientEvent
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
 import observe.ui.DefaultErrorPolicy
