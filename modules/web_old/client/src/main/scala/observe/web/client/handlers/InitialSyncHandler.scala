@@ -68,8 +68,7 @@ class InitialSyncHandler[M](modelRW: ModelRW[M, InitialSyncFocus])
 
         case SequencePage(i, id, s) if sids.contains(id) =>
           // If the page is on the list but not loaded go to preview
-          val action = SelectSequencePreview(i, id, s)
-          (pageE(action), Effect(Future(action)))
+          val action = SelectSequencePreview(i, id, s)(pageE(action), Effect(Future(action)))
 
         case p @ SequenceConfigPage(_, id, _) if sids.contains(id) =>
           // We need to effect to update the reference

@@ -118,7 +118,8 @@ case class GmosSouthSequenceTable(
       config.static.nodAndShuffle
     )
 
-private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends SequenceTableDefs[D]:
+private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
+    extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
   protected[sequence] val component =
@@ -144,8 +145,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends
       ): (_, _, _, _) =>
         (visitsData, acquisitionSteps, scienceSteps) =>
           val (visits, nextIndex): (List[VisitData], StepIndex) = visitsData.value
-          stitchSequence(visits, nextIndex, acquisitionSteps,  scienceSteps)
-      .useDynTableBy: (_, resize, _, _, _) => 
+          stitchSequence(visits, nextIndex, acquisitionSteps, scienceSteps)
+      .useDynTableBy: (_, resize, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
       .useReactTableBy: (props, _, cols, _, sequence, dynTable) =>
         TableOptions(
@@ -165,7 +166,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
             columnVisibility = dynTable.columnVisibility
-          ),
+          )
           // onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
       .render: (props, resize, cols, _, _, _, table) =>
@@ -196,7 +197,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends
                 if (step.isSelected) SequenceStyles.RowHasExtra else ObserveStyles.RowIdle,
                 step match
                   case SequenceRow.Executed.ExecutedStep(_, _) => SequenceStyles.RowHasExtra
-                  case _ => TagMod.empty,
+                  case _                                       => TagMod.empty,
                 ObserveStyles.StepRowWithBreakpoint.when_(
                   stepIdOpt.exists(props.executionState.breakpoints.contains)
                 ),
