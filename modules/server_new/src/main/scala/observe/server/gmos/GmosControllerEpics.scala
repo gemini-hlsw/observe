@@ -64,7 +64,7 @@ trait GmosEncoders {
   given EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
 
   given disperserOrderEncoder: EncodeEpicsValue[GratingOrder, String] = EncodeEpicsValue(
-    _.longName
+    _.shortName
   )
 
   given disperserOrderEncoderInt: EncodeEpicsValue[GratingOrder, Int] = EncodeEpicsValue(
