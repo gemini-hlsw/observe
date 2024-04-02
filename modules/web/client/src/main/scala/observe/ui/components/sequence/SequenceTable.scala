@@ -34,6 +34,9 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
+import observe.ui.services.ODBQueryApi
+
+import scala.scalajs.LinkingInfo
 
 sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
@@ -58,11 +61,14 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         _ => none // TODO Pass signal to noise
       )
 
+  protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
+    executionState.loadedSteps.filterNot(_.isFinished)
+
   protected[sequence] lazy val (acquisitionCurrentSteps, scienceCurrentSteps)
     : (List[ObserveStep], List[ObserveStep]) =
     executionState.sequenceType match
-      case SequenceType.Acquisition => (executionState.loadedSteps, List.empty)
-      case SequenceType.Science     => (List.empty, executionState.loadedSteps)
+      case SequenceType.Acquisition => (currentAtomPendingSteps, Nil)
+      case SequenceType.Science     => (Nil, currentAtomPendingSteps)
 
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
@@ -169,7 +175,18 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           )
           // onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
-      .render: (props, resize, cols, _, _, _, table) =>
+      .useContext(ODBQueryApi.ctx)
+      .useEffectWithDepsBy(
+        (props, _, _, _, _, _, _, _) => // If the list of current steps changes, reload last visit
+          props.currentAtomPendingSteps.map(_.id)
+      ): (_, _, _, _, _, _, _, odbQueryApi) =>
+        // TODO Maybe this should be done by ObservationSyncer. For that, we need to know there when a step
+        // has completed. Maybe we can add an ODB event in the future.
+        // ALSO TODO Put some state somewhere to indicate that the visits are reloading, new rows should
+        // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
+        // During that update, numbering is inconsistent.
+        _ => odbQueryApi.refreshNighttimeVisits
+      .render: (props, resize, cols, _, _, _, table, _) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -188,11 +205,15 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               TagMod(
                 stepIdOpt
                   .map: stepId =>
-                    (^.onClick --> props.setSelectedStepId(stepId))
-                      .when:
-                        step.stepTime === StepTime.Present
-                      .unless:
-                        props.executionState.isLocked
+                    TagMod(
+                      // Only in dev mode, show step id on hover.
+                      if (LinkingInfo.developmentMode) ^.title := stepId.toString else TagMod.empty,
+                      (^.onClick --> props.setSelectedStepId(stepId))
+                        .when:
+                          step.stepTime === StepTime.Present
+                        .unless:
+                          props.executionState.isLocked
+                    )
                   .whenDefined,
                 if (step.isSelected) SequenceStyles.RowHasExtra else ObserveStyles.RowIdle,
                 step match

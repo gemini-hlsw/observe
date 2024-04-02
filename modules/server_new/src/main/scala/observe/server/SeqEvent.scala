@@ -6,9 +6,11 @@ package observe.server
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.User
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import observe.model.ClientId
 import observe.model.Conditions
@@ -83,5 +85,6 @@ object SeqEvent {
   ) extends SeqEvent
   case object NullSeqEvent                                                       extends NoUserSeqEvent
   case class NoMoreAtoms(obsId: Observation.Id)                                  extends SeqEvent
-  case class NewAtomLoaded(obsId: Observation.Id)                                extends SeqEvent
+  case class NewAtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
+      extends SeqEvent
 }

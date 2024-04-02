@@ -13,7 +13,9 @@ import io.circe.Encoder
 import io.circe.refined.*
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
 import observe.model.ClientConfig
@@ -84,6 +86,9 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
+  case class AtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
+      extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
+
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ BaDum                            => e.asJson
     case e @ InitialEvent(_)                  => e.asJson
@@ -91,6 +96,7 @@ object ClientEvent:
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
     case e @ ChecksOverrideEvent(_)           => e.asJson
     case e @ ProgressEvent(_)                 => e.asJson
+    case e @ AtomLoaded(_, _, _)              => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
@@ -99,5 +105,6 @@ object ClientEvent:
       Decoder[ObserveState].widen,
       Decoder[SingleActionEvent].widen,
       Decoder[ChecksOverrideEvent].widen,
-      Decoder[ProgressEvent].widen
+      Decoder[ProgressEvent].widen,
+      Decoder[AtomLoaded].widen
     ).reduceLeft(_ or _)

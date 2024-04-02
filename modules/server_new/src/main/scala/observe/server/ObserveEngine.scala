@@ -1688,8 +1688,13 @@ object ObserveEngine {
       // case ResourceBusy(oid, sid, res, cid)   =>
       //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
       // case NoMoreAtoms(_)                     => Stream.empty
-      // case NewAtomLoaded(_)                   => Stream.empty
-      case e if e.isModelUpdate                                             => Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+      case NewAtomLoaded(obsId, sequenceType, atomId)                       =>
+        Stream.emits(
+          ClientEvent.AtomLoaded(obsId, sequenceType, atomId) ::
+            ObserveState.fromSequenceViewQueue(svs) :: Nil
+        )
+      case e if e.isModelUpdate                                             =>
+        Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
       case _                                                                => Stream.empty
     }
 
@@ -1884,7 +1889,7 @@ object ObserveEngine {
                                atm.sequenceType,
                                NonNegShort.unsafeFrom(atm.steps.length.toShort)
                     )
-                    .as(SeqEvent.NewAtomLoaded(obsId))
+                    .as(SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId))
                 )
             }
         }

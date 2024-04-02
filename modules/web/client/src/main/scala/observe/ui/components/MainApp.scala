@@ -178,8 +178,13 @@ object MainApp extends ServerEventHandler:
           .through(parseClientEvents)
           .evalMap:
             case Right(event) =>
-              processStreamEvent(clientConfig, rootModelData, syncStatus, configApiStatus)(event)
-            case Left(error)  => processStreamError(rootModelData)(error)
+              processStreamEvent(
+                clientConfig.async.mod,
+                rootModelData.async.mod,
+                syncStatus.async.mod,
+                configApiStatus.async.mod
+              )(event)
+            case Left(error)  => processStreamError(rootModelData.async.mod)(error)
           .compile
           .drain
           .start
@@ -313,21 +318,30 @@ object MainApp extends ServerEventHandler:
           _,
           permitPot
         ) =>
-          val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO])] =
-            (apiClientOpt, rootModelData.get.observer, permitPot.toOption).mapN:
-              (client, observer, permit) =>
+          val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO], ODBQueryApi[IO])] =
+            (ctxPot.value.toOption, apiClientOpt, rootModelData.get.observer, permitPot.toOption)
+              .mapN: (ctx, client, observer, permit) =>
+                import ctx.given
+
                 (
                   ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
                   SequenceApiImpl(
                     client = client,
                     observer = observer,
                     requests = rootModelData.zoom(RootModelData.obsRequests)
-                  )
+                  ),
+                  ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
                 )
 
           def provideApiCtx(children: VdomNode*) =
-            apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi) =>
-              ConfigApi.ctx.provide(configApi)(SequenceApi.ctx.provide(sequenceApi)(children*))
+            apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi, odbQueryApi) =>
+              ConfigApi.ctx.provide(configApi)(
+                SequenceApi.ctx.provide(sequenceApi)(
+                  ODBQueryApi.ctx.provide(odbQueryApi)(
+                    children*
+                  )
+                )
+              )
 
           val ResyncingPopup =
             Dialog(

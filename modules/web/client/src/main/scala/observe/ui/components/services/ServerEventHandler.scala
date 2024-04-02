@@ -7,10 +7,17 @@ import cats.Eq
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.*
-import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.ExecutionSequence
+import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
+import monocle.Lens
+import monocle.Optional
 import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.ObservationProgress
@@ -27,72 +34,132 @@ import org.typelevel.log4cats.Logger
 
 trait ServerEventHandler:
   private def logMessage(
-    rootModelData: View[RootModelData],
-    msg:           String
+    rootModelDataMod: (RootModelData => RootModelData) => IO[Unit],
+    msg:              String
   )(using Logger[IO]): IO[Unit] =
     msg match
-      case NonEmptyString(nes) => rootModelData.async.zoom(RootModelData.log).mod(_ :+ nes)
+      case NonEmptyString(nes) => rootModelDataMod(RootModelData.log.modify(_ :+ nes))
+
+  private def atomListOptional[S, D](
+    instrumentOptic:   Optional[InstrumentExecutionConfig, ExecutionConfig[S, D]],
+    sequenceTypeOptic: Lens[ExecutionConfig[S, D], Option[ExecutionSequence[D]]]
+  ): Optional[LoadedObservation, List[Atom[D]]] =
+    LoadedObservation.config
+      .andThen(Pot.readyPrism)
+      .andThen(instrumentOptic)
+      .andThen(sequenceTypeOptic)
+      .some
+      .andThen(ExecutionSequence.possibleFuture)
+
+  private def removeFutureAtomFromLoadedObservation[S, D](
+    instrumentOptic:   Optional[InstrumentExecutionConfig, ExecutionConfig[S, D]],
+    sequenceTypeOptic: Lens[ExecutionConfig[S, D], Option[ExecutionSequence[D]]],
+    atomId:            Atom.Id
+  ): LoadedObservation => LoadedObservation =
+    atomListOptional(instrumentOptic, sequenceTypeOptic)
+      .modify(_.filterNot(_.id === atomId))
+
+  private val gmosNorthExecutionOptional
+    : Optional[InstrumentExecutionConfig, ExecutionConfig.GmosNorth] =
+    InstrumentExecutionConfig.gmosNorth
+      .andThen(InstrumentExecutionConfig.GmosNorth.executionConfig)
+
+  private val gmosSouthExecutionOptional
+    : Optional[InstrumentExecutionConfig, ExecutionConfig.GmosSouth] =
+    InstrumentExecutionConfig.gmosSouth
+      .andThen(InstrumentExecutionConfig.GmosSouth.executionConfig)
+
+  private def sequenceTypeOptic[S, D](
+    sequenceType: SequenceType
+  ): Lens[ExecutionConfig[S, D], Option[ExecutionSequence[D]]] =
+    sequenceType match
+      case SequenceType.Acquisition => ExecutionConfig.acquisition[S, D]
+      case SequenceType.Science     => ExecutionConfig.science[S, D]
+
+  def instrumentRemoveFutureAtomFromLoadedObservation(
+    sequenceType: SequenceType,
+    atomId:       Atom.Id
+  ): LoadedObservation => LoadedObservation =
+    loadedObservation =>
+      loadedObservation.config.toOption
+        .map(_.instrument)
+        .collect:
+          case Instrument.GmosNorth =>
+            removeFutureAtomFromLoadedObservation(
+              gmosNorthExecutionOptional,
+              sequenceTypeOptic(sequenceType),
+              atomId
+            )(loadedObservation)
+          case Instrument.GmosSouth =>
+            removeFutureAtomFromLoadedObservation(
+              gmosSouthExecutionOptional,
+              sequenceTypeOptic(sequenceType),
+              atomId
+            )(loadedObservation)
+        .getOrElse(loadedObservation)
 
   protected def processStreamEvent(
-    clientConfig:    View[Pot[ClientConfig]],
-    rootModelData:   View[RootModelData],
-    syncStatus:      View[Option[SyncStatus]],
-    configApiStatus: View[ApiStatus]
+    clientConfigMod:    (Pot[ClientConfig] => Pot[ClientConfig]) => IO[Unit],
+    rootModelDataMod:   (RootModelData => RootModelData) => IO[Unit],
+    syncStatusMod:      (Option[SyncStatus] => Option[SyncStatus]) => IO[Unit],
+    configApiStatusMod: (ApiStatus => ApiStatus) => IO[Unit]
   )(
-    event:           ClientEvent
+    event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
-    val asyncRootModel = rootModelData.async
     event match
       case ClientEvent.BaDum                                                     =>
         IO.unit
       case ClientEvent.InitialEvent(cc)                                          =>
-        clientConfig.async.set(cc.ready)
+        clientConfigMod(_ => cc.ready)
       case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
-        (asyncRootModel
-          .zoom(RootModelData.executionState.at(obsId).some)
-          .zoom(ExecutionState.stepResources.at(stepId).some.at(subsystem))
-          .set:
-            event match
-              case SingleActionState.Started   => ActionStatus.Running.some
-              case SingleActionState.Completed => ActionStatus.Completed.some
-              case SingleActionState.Failed    => ActionStatus.Failed.some
+        rootModelDataMod(
+          (RootModelData.executionState
+            .at(obsId)
+            .some
+            .andThen(ExecutionState.stepResources.at(stepId).some.at(subsystem))
+            .replace:
+              event match
+                case SingleActionState.Started   => ActionStatus.Running.some
+                case SingleActionState.Completed => ActionStatus.Completed.some
+                case SingleActionState.Failed    => ActionStatus.Failed.some
+          )
+          >>> // Reset Request
+            (RootModelData.obsRequests
+              .index(obsId)
+              .andThen(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
+              .replace(OperationRequest.Idle))
         )
-        >> // Reset Request
-          asyncRootModel
-            .zoom(RootModelData.obsRequests.index(obsId))
-            .zoom(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
-            .set(OperationRequest.Idle)
-          >>
-          error.map(logMessage(rootModelData, _)).orEmpty
+          >> error.map(logMessage(rootModelDataMod, _)).orEmpty
       case ClientEvent.ChecksOverrideEvent(_)                                    =>
-        // TODO Update the UI
-        IO.unit
+        IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator)     =>
         val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
-        asyncRootModel.zoom(RootModelData.operator).set(operator) >>
-          asyncRootModel.zoom(RootModelData.conditions).set(conditions) >>
-          asyncRootModel
-            .zoom(RootModelData.executionState)
-            .set(sequenceExecution) >>
-          // All requests are reset on every state update from the server.
-          // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
-          asyncRootModel
-            .zoom(RootModelData.obsRequests)
-            .set(Map.empty) >>
-          asyncRootModel
-            .zoom(RootModelData.nighttimeObservation)
-            .mod(obs => // Only set if loaded obsId changed, otherwise config is lost.
+
+        rootModelDataMod(
+          RootModelData.operator.replace(operator) >>>
+            RootModelData.conditions.replace(conditions) >>>
+            RootModelData.executionState.replace(sequenceExecution) >>>
+            // All requests are reset on every state update from the server.
+            // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
+            RootModelData.obsRequests.replace(Map.empty) >>>
+            RootModelData.nighttimeObservation.modify: obs =>
+              // Only set if loaded obsId changed, otherwise config is lost.
               if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else
                 obs
-            ) >>
-          syncStatus.async.set(SyncStatus.Synced.some) >>
-          configApiStatus.async.set(ApiStatus.Idle)
+        ) >>
+          syncStatusMod(_ => SyncStatus.Synced.some) >>
+          configApiStatusMod(_ => ApiStatus.Idle)
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))   =>
-        asyncRootModel.zoom(RootModelData.obsProgress.at(obsId)).set(stepProgress.some)
+        rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some))
+      case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                   =>
+        rootModelDataMod:
+          RootModelData.nighttimeObservation.some.modify:
+            instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)
+      // TODO Also requery future sequence here. It may have changed.
 
   protected def processStreamError(
-    rootModelData: View[RootModelData]
+    rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
   )(error: Throwable)(using Logger[IO]): IO[Unit] =
-    logMessage(rootModelData, s"ERROR Receiving Client Event: ${error.getMessage}")
+    logMessage(rootModelDataMod, s"ERROR Receiving Client Event: ${error.getMessage}")

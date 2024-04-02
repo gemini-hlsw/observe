@@ -19,7 +19,6 @@ import observe.model.*
 import observe.model.ClientConfig
 import observe.model.ClientId
 import observe.model.events.*
-import observe.model.events.ClientEvent
 import observe.model.events.ClientEvent.InitialEvent
 import observe.server.ObserveEngine
 import observe.server.OcsBuildInfo
