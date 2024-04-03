@@ -902,13 +902,13 @@ object ObserveEngine {
           .offer(Event.getState(_ => heartbeatStream.some))
           .as[TargetedClientEvent](BaDum)
       ) ++
-      stream(EngineState.default[F])
-        .flatMap: x =>
-          Stream.eval(notifyODB(x).attempt)
-        .flatMap:
-          case Right((ev, qState)) => toClientEvent[F](ev, qState)
-          // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
-          case Left(_)             => Stream.empty
+        stream(EngineState.default[F])
+          .flatMap: x =>
+            Stream.eval(notifyODB(x).attempt)
+          .flatMap:
+            case Right((ev, qState)) => toClientEvent[F](ev, qState)
+            // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
+            case Left(_)             => Stream.empty
 
     override def stream(
       s0: EngineState[F]
@@ -1860,7 +1860,7 @@ object ObserveEngine {
                   .atSequence[F](obsId)
                   .modify { seq =>
                     val sg: SequenceData[F] = seq.focus(_.seqGen.nextAtom).replace(atm)
-                    seq
+                    sg
                       .focus(_.seq)
                       .modify(s =>
                         val ns = Sequence.State.init(
