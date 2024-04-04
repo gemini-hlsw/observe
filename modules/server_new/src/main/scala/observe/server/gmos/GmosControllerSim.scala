@@ -95,8 +95,10 @@ object GmosControllerSim {
             (s, s)
           case s @ NsObsState(NsConfig.NodAndShuffle(cycles, _, _, _), _) =>
             // Initialize the current state
-            val update = s.focus(_.current)
+            val update = s
+              .focus(_.current)
               .replace(NsCurrent(fileId, cycles.value, 0, expTime).some)
+
             (update, update)
         } >>= {
           case NsObsState(NsConfig.NodAndShuffle(_, _, _, _), Some(curr)) =>
@@ -126,6 +128,7 @@ object GmosControllerSim {
             // We should keep track of where on a N&S Sequence are we
             // Let's just increase the exposure counter
             val upd = NsObsState.exposureCount.modify(_ + 1)
+
             (upd(s), upd(s))
           case s =>
             (s, s)
