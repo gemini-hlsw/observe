@@ -995,6 +995,75 @@ class ObserveEngineSuite extends TestCommon {
     }
   }
 
+  test("ObserveEngine should load new atoms") {
+    val atomCount = 2
+    val stepCount = 2
+
+    val steps = NonEmptyList(
+      Step[DynamicConfig.GmosNorth](
+        stepId(1 + stepCount),
+        dynamicCfg1,
+        stepCfg1,
+        StepEstimate.Zero,
+        ObserveClass.Science,
+        Breakpoint.Disabled
+      ),
+      List
+        .range(2, stepCount + 1)
+        .map(i =>
+          Step[DynamicConfig.GmosNorth](
+            stepId(i + stepCount),
+            dynamicCfg1,
+            stepCfg1,
+            StepEstimate.Zero,
+            ObserveClass.Science,
+            Breakpoint.Disabled
+          )
+        )
+    )
+
+    for {
+      atomIds       <- List
+                         .fill(atomCount - 1)(IO.delay(java.util.UUID.randomUUID()))
+                         .parSequence
+                         .map(_.map(Atom.Id.fromUuid))
+      odb           <- TestOdbProxy.build[IO](staticCfg1.some,
+                                              List.empty,
+                                              atomIds.map(i => Atom[DynamicConfig.GmosNorth](i, none, steps))
+                       )
+      systems       <- defaultSystems.map(_.copy(odb = odb))
+      seqo          <- generateSequence(odbObservation(seqObsId1, stepCount), systems)
+      seq           <- seqo.map(_.pure[IO]).getOrElse(IO.delay(fail("Unable to create sequence")))
+      s0             = ODBSequencesLoader
+                         .loadSequenceEndo[IO](
+                           None,
+                           seq,
+                           EngineState.instrumentLoaded(Instrument.GmosNorth)
+                         )
+                         .apply(EngineState.default[IO])
+      observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
+      r             <-
+        observeEngine
+          .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
+          observeEngine
+            .stream(s0)
+            .drop(1)
+            .takeThrough(x =>
+              x._1 match {
+                case EventResult.UserCommandResponse(_, _, Some(SeqEvent.NewAtomLoaded(_))) => false
+                case _                                                                      => true
+              }
+            )
+            .compile
+            .last
+    } yield r
+      .flatMap(_._2.sequences.get(seqObsId1))
+      .flatMap(_.seqGen.nextAtom.steps.headOption)
+      .map(z => assertEquals(z.id, stepId(1 + stepCount)))
+      .getOrElse(fail("Bad step id found"))
+
+  }
+
   test("ObserveEngine start should run the sequence and produce the ODB events") {
     val atomCount = 2
     val stepCount = 2
