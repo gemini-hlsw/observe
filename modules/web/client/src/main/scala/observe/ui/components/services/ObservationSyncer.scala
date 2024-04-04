@@ -6,7 +6,6 @@ package observe.ui.components.services
 import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all.*
-import clue.ErrorPolicy
 import clue.PersistentClientStatus
 import clue.ResponseException
 import crystal.react.*
@@ -20,11 +19,11 @@ import lucuma.schemas.odb.input.*
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.effect.*
 import observe.queries.ObsQueriesGQL
-import observe.queries.VisitQueriesGQL
 import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
 import observe.ui.model.reusability.given
+import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
@@ -39,15 +38,16 @@ object ObservationSyncer:
       .withHooks[Props]
       .useContext(AppContext.ctx)
       .useContext(SequenceApi.ctx)
-      .useStreamOnMountBy: (_, ctx, _) =>
+      .useContext(ODBQueryApi.ctx)
+      .useStreamOnMountBy: (_, ctx, _, _) =>
         ctx.odbClient.statusStream
       .useRef(none[Observation.Id])
-      .useAsyncEffectWithDepsBy((props, _, _, odbStatusPot, _) =>
+      .useAsyncEffectWithDepsBy((props, _, _, _, odbStatusPot, _) =>
         // Run when observation changes or ODB status changes to Initialized
         (props.nighttimeObservation.get.map(_.obsId),
          odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)
         ).tupled
-      ): (props, ctx, sequenceApi, _, subscribedObsId) =>
+      ): (props, ctx, sequenceApi, odbQueryApi, _, subscribedObsId) =>
         deps =>
           import ctx.given
 
@@ -70,18 +70,8 @@ object ObservationSyncer:
                     .flatMap: config =>
                       props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
 
-                val visitsUpdate =
-                  VisitQueriesGQL
-                    .ObservationVisits[IO]
-                    .query(obsId)(ErrorPolicy.IgnoreOnData)
-                    .map(_.map(_.observation.map(_.execution)))
-                    .attempt
-                    .flatMap: visits =>
-                      props.nighttimeObservation.async.mod:
-                        _.map(_.withVisits(visits.map(_.flatten)))
-
                 subscribedObsId.setAsync(obsId.some) >>
-                  (sequenceUpdate, visitsUpdate).parTupled
+                  (sequenceUpdate, odbQueryApi.refreshNighttimeVisits).parTupled
                     .reRunOnResourceSignals:
                       // Eventually, there will be another subscription notifying of sequence/visits changes
                       ObsQueriesGQL.SingleObservationEditSubscription

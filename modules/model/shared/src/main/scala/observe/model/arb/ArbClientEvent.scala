@@ -4,7 +4,9 @@
 package observe.model.arb
 
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
@@ -98,13 +100,25 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.ProgressEvent] =
     Cogen[ObservationProgress].contramap(_.progress)
 
+  given Arbitrary[ClientEvent.AtomLoaded] = Arbitrary:
+    for
+      obsId        <- arbitrary[Observation.Id]
+      sequenceType <- arbitrary[SequenceType]
+      atomId       <- arbitrary[Atom.Id]
+    yield ClientEvent.AtomLoaded(obsId, sequenceType, atomId)
+
+  given Cogen[ClientEvent.AtomLoaded] =
+    Cogen[(Observation.Id, SequenceType, Atom.Id)].contramap: x =>
+      (x.obsId, x.sequenceType, x.atomId)
+
   given Arbitrary[ClientEvent] = Arbitrary:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
       arbitrary[ClientEvent.ObserveState],
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
-      arbitrary[ClientEvent.ProgressEvent]
+      arbitrary[ClientEvent.ProgressEvent],
+      arbitrary[ClientEvent.AtomLoaded]
     )
 
   given Cogen[ClientEvent] =
@@ -112,10 +126,19 @@ trait ArbClientEvent:
       Unit,
       Either[
         ClientEvent.InitialEvent,
-        Either[ClientEvent.ObserveState, Either[
-          ClientEvent.SingleActionEvent,
-          Either[ClientEvent.ChecksOverrideEvent, ClientEvent.ProgressEvent]
-        ]]
+        Either[
+          ClientEvent.ObserveState,
+          Either[
+            ClientEvent.SingleActionEvent,
+            Either[
+              ClientEvent.ChecksOverrideEvent,
+              Either[
+                ClientEvent.ProgressEvent,
+                ClientEvent.AtomLoaded
+              ]
+            ]
+          ]
+        ]
       ]
     ]].contramap:
       case ClientEvent.BaDum                                => Left(())
@@ -123,7 +146,9 @@ trait ArbClientEvent:
       case e @ ClientEvent.ObserveState(_, _, _)            => Right(Right(Left(e)))
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
-      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(e)))))
+      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
+      case e @ ClientEvent.AtomLoaded(_, _, _)              =>
+        Right(Right(Right(Right(Right(Right(e))))))
 
 end ArbClientEvent
 

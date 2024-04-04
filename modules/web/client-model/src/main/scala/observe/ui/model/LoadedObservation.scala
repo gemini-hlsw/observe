@@ -6,6 +6,7 @@ package observe.ui.model
 import cats.syntax.all.*
 import crystal.Pot
 import lucuma.core.model.Observation
+import lucuma.core.model.Visit
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.schemas.model.ExecutionVisits
 import monocle.Focus
@@ -24,6 +25,11 @@ case class LoadedObservation private (
 
   def reset: LoadedObservation =
     copy(config = Pot.pending, visits = Pot.pending)
+
+  lazy val lastVisitId: Option[Visit.Id] =
+    visits.toOption.flatMap:
+      case ExecutionVisits.GmosNorth(_, visits) => visits.lastOption.map(_.id)
+      case ExecutionVisits.GmosSouth(_, visits) => visits.lastOption.map(_.id)
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)

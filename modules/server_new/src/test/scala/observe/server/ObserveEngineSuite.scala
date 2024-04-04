@@ -1050,8 +1050,8 @@ class ObserveEngineSuite extends TestCommon {
             .drop(1)
             .takeThrough(x =>
               x._1 match {
-                case EventResult.UserCommandResponse(_, _, Some(SeqEvent.NewAtomLoaded(_))) => false
-                case _                                                                      => true
+                case EventResult.UserCommandResponse(_, _, Some(SeqEvent.NewAtomLoaded(_, _, _))) => false
+                case _                                                                            => true
               }
             )
             .compile

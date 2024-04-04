@@ -333,7 +333,6 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
   .enablePlugins(GitBranchPrompt)
   .settings(
     libraryDependencies ++= Seq(
-      PPrint.value,
       Mouse.value,
       CatsTime.value,
       Http4sCore.value,
