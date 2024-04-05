@@ -159,9 +159,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           cols.map(dynTable.setInitialColWidths),
           sequence,
           enableSorting = false,
-          // TODO We are having trouble with reisizable cols, will be addressed in future PR
-          // enableColumnResizing = true,
-          enableColumnResizing = false,
+          enableColumnResizing = true,
           enableExpanding = true,
           getRowId = (row, _, _) => getRowId(row),
           getSubRows = (row, _) => row.subRows,
@@ -172,8 +170,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
             columnVisibility = dynTable.columnVisibility
-          )
-          // onColumnSizingChange = dynTable.onColumnSizingChangeHandler
+          ),
+          onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
       .useContext(ODBQueryApi.ctx)
       .useEffectWithDepsBy(
