@@ -11,6 +11,8 @@ import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.Site
+import lucuma.core.enums.Site.GS
 import lucuma.core.util.Enumerated
 import observe.model.enums.Resource
 
@@ -37,6 +39,21 @@ extension (i: Instrument)
 //      case Instrument.Gsaoi => false
 //      case Instrument.Gpi   => true
 //      case Instrument.Ghost => false
+
+  def site: Option[Site] = i match
+    // GS
+    case Instrument.GmosSouth  => Site.GS.some
+    case Instrument.Flamingos2 => Site.GS.some
+    case Instrument.Ghost      => Site.GS.some
+    case Instrument.Gpi        => Site.GS.some
+    case Instrument.Gsaoi      => Site.GS.some
+    // GN
+    case Instrument.GmosNorth  => Site.GN.some
+    case Instrument.Gnirs      => Site.GN.some
+    case Instrument.Niri       => Site.GN.some
+    case Instrument.Nifs       => Site.GN.some
+    // None
+    case _                     => none
 
 // Resources come before Instruments
 given Order[Resource | Instrument] = Order.from:

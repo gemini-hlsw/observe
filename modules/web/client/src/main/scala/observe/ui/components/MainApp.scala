@@ -41,7 +41,7 @@ import lucuma.ui.sso.SSOClient
 import lucuma.ui.sso.SSOConfig
 import lucuma.ui.sso.UserVault
 import lucuma.ui.syntax.all.*
-import observe.model.ClientConfig
+import observe.model.*
 import observe.model.events.ClientEvent
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
@@ -271,10 +271,14 @@ object MainApp extends ServerEventHandler:
               .toOption
               .foldMap(_.statusStream) // Track ODB initialization status
       .useRef(false)
-      .useAsyncEffectWhenDepsReady((_, _, _, _, _, _, _, _, ctxPot, _, odbStatus, _) =>
-        (ctxPot.value, odbStatus.toPot.filter(_ === PersistentClientStatus.Initialized)).tupled
+      .useAsyncEffectWhenDepsReady(
+        (_, _, _, _, _, clientConfigPot, _, _, ctxPot, _, odbStatus, _) =>
+          (clientConfigPot.get,
+           ctxPot.value,
+           odbStatus.toPot.filter(_ === PersistentClientStatus.Initialized)
+          ).tupled
       ): (_, _, _, _, _, _, rootModelData, _, _, _, _, subscribed) =>
-        (ctx, _) => // Query ready observations (7)
+        (clientConfig, ctx, _) => // Query ready observations for the site (7)
           import ctx.given
 
           if (!subscribed.value)
@@ -289,11 +293,14 @@ object MainApp extends ServerEventHandler:
                   ObsQueriesGQL
                     .ActiveObservationIdsQuery[IO]
                     .query()
-                    .flatMap(data => readyObservations.set(data.observations.matches.ready))
+                    .flatMap: data =>
+                      readyObservations.set:
+                        data.observations.matches
+                          .filter(_.instrument.site.contains_(clientConfig.site))
+                          .ready
                     .recoverWith(t => readyObservations.set(Pot.error(t)))
-                    .reRunOnResourceSignals(
+                    .reRunOnResourceSignals:
                       ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
-                    )
                 _         <- Resource.make(obsStream.compile.drain.start)(_.cancel)
               yield ()
 
