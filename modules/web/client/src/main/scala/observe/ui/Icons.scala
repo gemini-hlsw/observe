@@ -94,6 +94,10 @@ object Icons:
   private val faGears: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faRightFromBracket")
+  private val faSignOutAlt: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faMoon")
   private val faMoon: FAIcon = js.native
 
@@ -184,6 +188,7 @@ object Icons:
   inline def FileCheck         = FontAwesomeIcon(faFileCheck)
   inline def FileCross         = FontAwesomeIcon(faFileCross)
   inline def Gears             = FontAwesomeIcon(faGears)
+  inline def Logout            = FontAwesomeIcon(faSignOutAlt)
   inline def Moon              = FontAwesomeIcon(faMoon)
   inline def Pause             = FontAwesomeIcon(faPause)
   inline def Play              = FontAwesomeIcon(faPlay)
