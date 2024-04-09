@@ -55,17 +55,19 @@ object TopBar:
       .useStateView(IsAboutOpen(false))
       .usePopupMenuRef
       .render: (props, ctx, isAboutOpen, menuRef) =>
+        import ctx.given
+
         val user = props.vault.get.user
 
-        // TODO Logout option
-        // def logout: IO[Unit] = ctx.ssoClient.logout >> props.onLogout
+        def logout: IO[Unit] = ctx.ssoClient.logout >> props.onLogout
 
         val firstItems = List(
           MenuItem.Item(
             label = "About Observe",
             icon = Icons.CircleInfo,
             command = isAboutOpen.set(IsAboutOpen(true))
-          )
+          ),
+          MenuItem.Item(label = "Logout", icon = Icons.Logout, command = logout.runAsync)
         )
 
         val lastItems = List(

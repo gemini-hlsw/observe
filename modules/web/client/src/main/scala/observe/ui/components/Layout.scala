@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import clue.PersistentClientStatus
 import crystal.Pot
+import crystal.react.*
 import crystal.react.View
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
@@ -59,7 +60,11 @@ object Layout:
               .zoom(Pot.readyPrism.some)
               .mapValue: (userVault: View[UserVault]) =>
                 props.rootModel.clientConfig.toOption.map: clientConfig =>
-                  TopBar(clientConfig, userVault, theme, IO.unit),
+                  TopBar(clientConfig,
+                         userVault,
+                         theme,
+                         props.rootModel.data.zoom(RootModelData.userVault).set(Pot(none)).toAsync
+                  ),
             Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
             SideTabs(
               "side-tabs".refined,
