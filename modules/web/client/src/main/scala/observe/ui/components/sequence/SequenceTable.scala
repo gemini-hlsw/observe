@@ -15,11 +15,13 @@ import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
 import lucuma.react.SizePx
 import lucuma.react.common.*
+import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackTableCore as raw
+import lucuma.ui.primereact.*
 import lucuma.ui.react.given
 import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
@@ -29,12 +31,14 @@ import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
 import observe.model.StepState
+import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
+import org.scalajs.dom
 
 import scala.scalajs.LinkingInfo
 
@@ -269,15 +273,31 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
-        PrimeAutoHeightVirtualizedTable(
-          table,
-          estimateSize = _ => 25.toPx,
-          overscan = 8,
-          containerRef = resize.ref,
-          tableMod = TagMod(tableStyle),
-          rowMod = row => computeRowMods(row.original),
-          headerCellMod = computeHeaderCellMods,
-          cellMod = computeCellMods
+        React.Fragment(
+          // Render the expand all button in the ObsHeader
+          Option(dom.document.getElementById("sequence-table-expand-all")).map {
+            val (icon, label) =
+              if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
+              else (Icons.Plus, "Expand all steps")
+            ReactPortal(
+              Button(
+                icon = icon,
+                label = label,
+                onClick = table.toggleAllRowsExpanded()
+              ).mini.compact,
+              _
+            )
+          },
+          PrimeAutoHeightVirtualizedTable(
+            table,
+            estimateSize = _ => 25.toPx,
+            overscan = 8,
+            containerRef = resize.ref,
+            tableMod = TagMod(tableStyle),
+            rowMod = row => computeRowMods(row.original),
+            headerCellMod = computeHeaderCellMods,
+            cellMod = computeCellMods
+          )
         )
 
 object GmosNorthSequenceTable
