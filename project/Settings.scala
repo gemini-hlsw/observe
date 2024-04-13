@@ -41,7 +41,7 @@ object Settings {
     val jUnitInterface         = "0.13.2"
     val munitVersion           = "1.0.0-M11"
     val munitDisciplineVersion = "1.0.9"
-    val munitCatsEffectVersion = "2.0.0-M4"
+    val munitCatsEffectVersion = "2.0.0-M5"
 
     val acm           = "0.1.1"
     val giapiScala    = "0.1.3"
