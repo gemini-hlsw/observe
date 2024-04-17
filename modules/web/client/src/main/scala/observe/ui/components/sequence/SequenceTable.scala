@@ -132,6 +132,12 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
     extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
+  private def scrollIfNeeded(element: dom.Element) = Callback {
+    val rect = element.getBoundingClientRect()
+    if (rect.top < 0) element.scrollIntoView()
+    if (rect.bottom > dom.window.innerHeight) element.scrollIntoView(false)
+  }
+
   protected[sequence] val component =
     ScalaFnComponent
       .withHooks[Props]
@@ -188,7 +194,11 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
         // During that update, numbering is inconsistent.
         _ => odbQueryApi.refreshNighttimeVisits
-      .render: (props, resize, cols, _, _, _, table, _) =>
+      .useRefToAnyVdom
+      .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
+        _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
+      )
+      .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -205,6 +215,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               val stepIdOpt: Option[Step.Id] = step.id.toOption
 
               TagMod(
+                (^.untypedRef := selectedRef).when(step.isSelected),
                 stepIdOpt
                   .map: stepId =>
                     TagMod(
