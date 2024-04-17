@@ -46,7 +46,7 @@ object Settings {
     val acm           = "0.1.1"
     val giapiScala    = "0.1.3"
     val geminiLocales = "0.7.0"
-    val pprint        = "0.8.1"
+    val pprint        = "0.9.0"
 
     // Gemini Libraries
     val lucumaCore      = "0.96.1"
