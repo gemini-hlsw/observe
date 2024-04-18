@@ -39,7 +39,7 @@ object Settings {
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.0-M11"
+    val munitVersion           = "1.0.0-M12"
     val munitDisciplineVersion = "1.0.9"
     val munitCatsEffectVersion = "2.0.0-M5"
 
