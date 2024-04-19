@@ -44,7 +44,7 @@ object Settings {
     val munitCatsEffectVersion = "2.0.0-M5"
 
     val acm           = "0.1.1"
-    val giapiScala    = "0.2.1"
+    val giapiScala    = "0.2.2"
     val geminiLocales = "0.7.0"
     val pprint        = "0.9.0"
 
