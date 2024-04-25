@@ -92,7 +92,7 @@ trait ObserveEngine[F[_]] {
     runOverride: RunOverride
   ): F[Unit]
 
-  def nextAtom(
+  def loadNextAtom(
     id:       Observation.Id,
     user:     User,
     observer: Observer,
@@ -1493,7 +1493,7 @@ object ObserveEngine {
                      clientId: ClientId
       )
 
-    override def nextAtom(
+    override def loadNextAtom(
       id:       Observation.Id,
       user:     User,
       observer: Observer,
