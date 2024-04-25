@@ -20,6 +20,7 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -89,6 +90,15 @@ trait ObserveEngine[F[_]] {
     stp:         Step.Id,
     clientId:    ClientId,
     runOverride: RunOverride
+  ): F[Unit]
+
+  def loadNextAtom(
+    id:       Observation.Id,
+    user:     User,
+    observer: Observer,
+    clientId: ClientId,
+    atomType: SequenceType,
+    run:      Boolean = true
   ): F[Unit]
 
   def requestPause(
@@ -1482,6 +1492,15 @@ object ObserveEngine {
                      enabled,
                      clientId: ClientId
       )
+
+    override def loadNextAtom(
+      id:       Observation.Id,
+      user:     User,
+      observer: Observer,
+      clientId: ClientId,
+      atomType: SequenceType,
+      run:      Boolean
+    ): F[Unit] = Applicative[F].unit
 
   }
 

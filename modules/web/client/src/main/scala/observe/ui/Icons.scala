@@ -199,7 +199,7 @@ object Icons:
   inline def FileCheck         = FontAwesomeIcon(faFileCheck)
   inline def FileCross         = FontAwesomeIcon(faFileCross)
   inline def Gears             = FontAwesomeIcon(faGears)
-  inline def Minus            = FontAwesomeIcon(faMinus)
+  inline def Minus             = FontAwesomeIcon(faMinus)
   inline def Logout            = FontAwesomeIcon(faSignOutAlt)
   inline def Moon              = FontAwesomeIcon(faMoon)
   inline def Pause             = FontAwesomeIcon(faPause)

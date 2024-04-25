@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
@@ -77,3 +78,6 @@ object BreakpointVar extends BooleanBasedVar[Breakpoint]:
 
 object SubsystemEnabledVar extends BooleanBasedVar[SubsystemEnabled]:
   def item(b: Boolean) = if b then SubsystemEnabled.Enabled else SubsystemEnabled.Disabled
+
+object SequenceTypeVar:
+  def unapply(str: String): Option[SequenceType] = Enumerated[SequenceType].fromTag(str)

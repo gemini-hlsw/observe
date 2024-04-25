@@ -87,4 +87,6 @@ object SeqEvent {
   case class NoMoreAtoms(obsId: Observation.Id)                                  extends SeqEvent
   case class NewAtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
       extends SeqEvent
+  case class AtomCompleted(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
+      extends SeqEvent
 }
