@@ -12,8 +12,10 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.Observation
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
 import observe.engine.EventResult
@@ -211,6 +213,15 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def stream(
     s0: EngineState[F]
   ): fs2.Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
+
+  override def nextAtom(
+    id:       Observation.Id,
+    user:     User,
+    observer: Observer,
+    clientId: ClientId,
+    atomType: SequenceType,
+    run:      Boolean
+  ): F[Unit] = Applicative[F].unit
 }
 
 object TestObserveEngine {
