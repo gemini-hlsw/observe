@@ -31,6 +31,10 @@ case class LoadedObservation private (
       case ExecutionVisits.GmosNorth(_, visits) => visits.lastOption.map(_.id)
       case ExecutionVisits.GmosSouth(_, visits) => visits.lastOption.map(_.id)
 
+  lazy val isScienceSequenceComplete: Boolean = !config.exists:
+    case InstrumentExecutionConfig.GmosNorth(config) => config.science.exists(_.hasMore)
+    case InstrumentExecutionConfig.GmosSouth(config) => config.science.exists(_.hasMore)
+
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
 

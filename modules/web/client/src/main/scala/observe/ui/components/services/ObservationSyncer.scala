@@ -77,8 +77,8 @@ object ObservationSyncer:
                       ObsQueriesGQL.SingleObservationEditSubscription
                         .subscribe[IO]:
                           obsId.toObservationEditInput
-                    .flatMap: stream =>
-                      Resource.make(stream.compile.drain.start)(_.cancel)
+                    .flatMap:
+                      _.compile.drain.background
                     .allocated
                     .map(_._2) // Update fiber will get cancelled and subscription ended if connection lost or obs changes
               else IO(IO.unit)

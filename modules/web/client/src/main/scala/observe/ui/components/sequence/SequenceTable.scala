@@ -304,6 +304,17 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             estimateSize = _ => 25.toPx,
             overscan = 8,
             containerRef = resize.ref,
+            containerMod = ^.onScroll -->
+              resize.ref.get.flatMap(elem =>
+                Callback
+                  .log(
+                    elem.map(_.scrollTop).toString + " " + elem
+                      .map(_.scrollHeight)
+                      .toString + " " + elem.map(_.clientHeight).toString + ": " + elem
+                      .map(e => e.scrollHeight - e.scrollTop - e.clientHeight)
+                      .toString
+                  )
+              ),
             tableMod = TagMod(tableStyle),
             rowMod = row => computeRowMods(row.original),
             headerCellMod = computeHeaderCellMods,
