@@ -74,7 +74,7 @@ jobs:
         uses: codecov/codecov-action@v4
 
   deploy:
-    name: Deploy staging app to Heroku
+    name: Build and publish Docker image / Deploy to Heroku
     if: (github.ref == 'refs/heads/main' && startsWith(github.repository, 'gemini'))
     strategy:
       matrix:
