@@ -94,7 +94,7 @@ lazy val herokuDeployAndRelease =
 ThisBuild / githubWorkflowAddedJobs +=
   WorkflowJob(
     "deploy",
-    "Deploy staging app to Heroku",
+    "Build and publish Docker image / Deploy to Heroku",
     WorkflowStep.Checkout ::
       WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
       setupNodeNpmInstall :::
