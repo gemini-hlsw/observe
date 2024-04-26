@@ -8,8 +8,6 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 import scala.sys.process._
 import sbt.nio.file.FileTreeView
 
-val herokuAppName = settingKey[String]("Heroku staging app name")
-
 val build = taskKey[File]("Build module for deployment")
 
 name := "observe"
@@ -68,22 +66,29 @@ lazy val setupNodeNpmInstall =
     )
   )
 
-lazy val herokuLogin =
+lazy val dockerHubLogin =
   WorkflowStep.Run(
-    List("heroku container:login"),
-    name = Some("Login to Heroku Container")
+    List(
+      "echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login --username nlsoftware --password-stdin"
+    ),
+    name = Some("Login to Docker Hub")
   )
 
-lazy val sbtDeploy =
+lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
     List("deploy/docker:publish"),
-    name = Some("Build and deploy Docker image to Heroku")
+    name = Some("Build and Publish Docker image")
   )
 
-lazy val herokuRelease =
+lazy val herokuDeployAndRelease =
   WorkflowStep.Run(
-    List("heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}"),
-    name = Some("Release app in Heroku")
+    List(
+      "heroku container:login",
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
+      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
+      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }} -v"
+    ),
+    name = Some("Deploy and release app in Heroku")
   )
 
 ThisBuild / githubWorkflowAddedJobs +=
@@ -93,9 +98,9 @@ ThisBuild / githubWorkflowAddedJobs +=
     WorkflowStep.Checkout ::
       WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
       setupNodeNpmInstall :::
-      herokuLogin ::
-      sbtDeploy ::
-      herokuRelease ::
+      dockerHubLogin ::
+      sbtDockerPublish ::
+      herokuDeployAndRelease ::
       Nil,
     scalas = List(scalaVersion.value),
     javas = githubWorkflowJavaVersions.value.toList.take(1),
@@ -435,35 +440,8 @@ lazy val deploy = project
   .settings(deployedAppMappings: _*)
   .settings(releaseAppMappings: _*)
   .settings(
-    description          := "Observe staging server",
-    Docker / packageName := "observe-staging",
-    dockerRepository     := Some(s"registry.heroku.com/${herokuAppName.value}/web"),
-    // dockerUpdateLatest   := true,
-    herokuAppName        := sys.env.getOrElse("HEROKU_APP_NAME", "observe-staging"),
-    dockerAliases ++= List(
-      DockerAlias(
-        Some("registry.heroku.com"),
-        None,
-        s"${herokuAppName.value}/web",
-        None
-      ),
-      DockerAlias(
-        Some("registry.heroku.com"),
-        None,
-        s"${herokuAppName.value}/web",
-        Some(version.value)
-      ),
-      DockerAlias(
-        None,
-        Some("noirlab"),
-        "gpp-obs",
-        None
-      ),
-      DockerAlias(
-        None,
-        Some("noirlab"),
-        "gpp-obs",
-        Some(version.value)
-      )
-    )
+    description          := "Observe Server",
+    Docker / packageName := "gpp-obs",
+    dockerUpdateLatest   := true,
+    dockerUsername       := Some("noirlab")
   )
