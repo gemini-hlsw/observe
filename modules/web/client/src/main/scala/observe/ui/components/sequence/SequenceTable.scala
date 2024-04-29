@@ -57,6 +57,7 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def requests: ObservationRequests
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
+  def setExpandedButton: VdomNode => Callback
 
   private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
     SequenceRow.FutureStep
@@ -103,7 +104,8 @@ case class GmosNorthSequenceTable(
   setSelectedStepId: Step.Id => Callback,
   requests:          ObservationRequests,
   isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback,
+  setExpandedButton: VdomNode => Callback
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -121,7 +123,8 @@ case class GmosSouthSequenceTable(
   setSelectedStepId: Step.Id => Callback,
   requests:          ObservationRequests,
   isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback,
+  setExpandedButton: VdomNode => Callback
 ) extends ReactFnProps(GmosSouthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -164,7 +167,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           stitchSequence(visits, nextIndex, acquisitionSteps, scienceSteps)
       .useDynTableBy: (_, resize, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
-      .useReactTableBy: (props, _, cols, _, sequence, dynTable) =>
+      .useReactTableBy: (_, _, cols, _, sequence, dynTable) =>
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
@@ -197,6 +200,20 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useRefToAnyVdom
       .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
         _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
+      )
+      .useEffectWithDepsBy((_, _, cols, _, sequence, _, _, _, _) => (cols, sequence))(
+        (props, _, _, _, _, _, table, _, _) =>
+          (_, _) =>
+            val (icon, label) =
+              if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
+              else (Icons.Plus, "Expand all steps")
+            props.setExpandedButton(
+              Button(
+                icon = icon,
+                label = label,
+                onClick = table.toggleAllRowsExpanded()
+              ).mini.compact
+            )
       )
       .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
         extension (step: SequenceRow[DynamicConfig])
@@ -284,31 +301,15 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
-        React.Fragment(
-          // Render the expand all button in the ObsHeader
-          Option(dom.document.getElementById("sequence-table-expand-all")).map {
-            val (icon, label) =
-              if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-              else (Icons.Plus, "Expand all steps")
-            ReactPortal(
-              Button(
-                icon = icon,
-                label = label,
-                onClick = table.toggleAllRowsExpanded()
-              ).mini.compact,
-              _
-            )
-          },
-          PrimeAutoHeightVirtualizedTable(
-            table,
-            estimateSize = _ => 25.toPx,
-            overscan = 8,
-            containerRef = resize.ref,
-            tableMod = TagMod(tableStyle),
-            rowMod = row => computeRowMods(row.original),
-            headerCellMod = computeHeaderCellMods,
-            cellMod = computeCellMods
-          )
+        PrimeAutoHeightVirtualizedTable(
+          table,
+          estimateSize = _ => 25.toPx,
+          overscan = 8,
+          containerRef = resize.ref,
+          tableMod = TagMod(tableStyle),
+          rowMod = row => computeRowMods(row.original),
+          headerCellMod = computeHeaderCellMods,
+          cellMod = computeCellMods
         )
 
 object GmosNorthSequenceTable

@@ -22,7 +22,8 @@ case class ObsHeader(
   loadObs:       Observation.Id => Callback,
   sequenceState: SequenceState,
   requests:      ObservationRequests,
-  overrides:     Option[View[SystemOverrides]]
+  overrides:     Option[View[SystemOverrides]],
+  expandButton:  VdomNode
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -42,7 +43,7 @@ object ObsHeader:
           s"${props.observation.title} [${props.observation.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
-          <.span(^.id := "sequence-table-expand-all"),
+          props.expandButton,
           <.span(props.observation.configurationSummary),
           <.span(props.observation.constraintsSummary),
           props.overrides

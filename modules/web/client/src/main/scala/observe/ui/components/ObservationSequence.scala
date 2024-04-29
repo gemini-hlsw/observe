@@ -33,7 +33,8 @@ case class ObservationSequence(
   requests:        ObservationRequests,
   selectedStep:    Option[Step.Id],
   setSelectedStep: Step.Id => Callback,
-  clientMode:      ClientMode
+  clientMode:      ClientMode,
+  setExpandedButton: VdomNode => Callback
 ) extends ReactFnProps(ObservationSequence.component)
 
 object ObservationSequence:
@@ -68,7 +69,8 @@ object ObservationSequence:
             props.setSelectedStep,
             props.requests,
             isPreview = false,
-            flipBreakPoint
+            flipBreakPoint,
+            props.setExpandedButton,
           )
         case (InstrumentExecutionConfig.GmosSouth(config), ExecutionVisits.GmosSouth(_, visits)) =>
           GmosSouthSequenceTable(
@@ -82,7 +84,8 @@ object ObservationSequence:
             props.setSelectedStep,
             props.requests,
             isPreview = false,
-            flipBreakPoint
+            flipBreakPoint,
+            props.setExpandedButton,
           )
         case _                                                                                   =>
           <.div(ObserveStyles.ObservationAreaError)(
