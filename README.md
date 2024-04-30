@@ -74,13 +74,26 @@ stopObserveAll
 
 Deployment is done via Docker images.
 
-## Staging
+When a PR is merged into `main`, CI automatically builds a Docker image and pushes it to:
 
-When a PR is merged into `main`, CI builds a docker image and deploys it to Heroku automatically.
+- Dockerhub, at [https://hub.docker.com/repository/docker/noirlab/gpp-obs/general](https://hub.docker.com/repository/docker/noirlab/gpp-obs/general) (private repo).
+- Heroku staging environment, accessible at [https://observe-staging.lucuma.xyz](https://observe-staging.lucuma.xyz). The image is also released and the latest version should become available instantly.
 
-If, for some reason, you want to deploy to staging manually, do the following:
+## Test and Production
 
-### Manually deploying to Staging
+To deploy an image to these enviornments, you must log into the target machine and pull the `latest` image (or the specific version you want to deploy) from Noirlab's account on Dockerhub.
+
+This requires that you
+
+```
+docker login
+```
+
+first with the `nlsoftware` account.
+
+## Manually deploying to Staging (optional)
+
+If, for some reason, you want to deploy to staging manually directly from your develpment environment, do the following:
 
 - Make sure you have both `docker` and `heroku` CLIs installed and working.
 
@@ -93,10 +106,12 @@ heroku container:login
 
 This will give your system access to Heroku's Docker registry.
 
-- To deploy to Heroku, run in `sbt`:
+- To deploy to Heroku, run:
 
 ```
-deploy/docker:publish
+sbt deploy/docker:publishLocal
+docker tag noirlab/gpp-obs registry.heroku.com/observe-staging/web
+docker push registry.heroku.com/observe-staging/web
 ```
 
 This will build and push the image to Heroku's Docker registry, but it won't publish it yet.
@@ -108,47 +123,6 @@ heroku container:release web -a observe-staging
 ```
 
 The new version should be accessible now at [https://observe-staging.lucuma.xyz](https://observe-staging.lucuma.xyz).
-
-## Test and Production
-
-To deploy an image to these enviornments, they must be pushed to Noirlab's account on Dockerhub. This requires that you
-
-```
-docker login
-```
-
-first with the `nlsoftware` account.
-
-If you want to make sure that you are pushing an image that has been tested on staging, the safest way is to pull it from Heroku, tag it for deployment and push it to Dockerhub:
-
-```
-docker pull registry.heroku.com/observe-staging/web:latest
-docker tag registry.heroku.com/observe-staging/web:latest noirlab/gpp-obs:latest
-docker push noirlab/gpp-obs:latest
-```
-
-(If you haven't logged to Heroku Container, first execute:
-
-```
-heroku login
-heroku container:login
-```
-
-)
-
-(This may also be achieved with [Skopeo](https://github.com/containers/skopeo), it might be worth taking a look into it.)
-
-Otherwise, you can
-
-```
-sbt deploy/docker:publishLocal
-```
-
-which will build the image locally and tag it. Then you just need to
-
-```
-docker push -a noirlab/gpp-obs
-```
 
 # Running in Test and Production
 
