@@ -286,7 +286,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
 
         val (icon, label) =
           if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-          else (Icons.Plus, "Expand all steps")
+          else (Icons.Plus, "Expand all visits")
         React.Fragment(
           <.div(
             ObserveStyles.SequenceTableExpandButton,
