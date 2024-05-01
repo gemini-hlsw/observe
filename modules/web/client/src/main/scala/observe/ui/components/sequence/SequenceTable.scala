@@ -164,7 +164,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           stitchSequence(visits, nextIndex, acquisitionSteps, scienceSteps)
       .useDynTableBy: (_, resize, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
-      .useReactTableBy: (props, _, cols, _, sequence, dynTable) =>
+      .useReactTableBy: (_, _, cols, _, sequence, dynTable) =>
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
@@ -284,21 +284,18 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
+        val (icon, label) =
+          if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
+          else (Icons.Plus, "Expand all visits")
         React.Fragment(
-          // Render the expand all button in the ObsHeader
-          Option(dom.document.getElementById("sequence-table-expand-all")).map {
-            val (icon, label) =
-              if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-              else (Icons.Plus, "Expand all steps")
-            ReactPortal(
-              Button(
-                icon = icon,
-                label = label,
-                onClick = table.toggleAllRowsExpanded()
-              ).mini.compact,
-              _
-            )
-          },
+          <.div(
+            ObserveStyles.SequenceTableExpandButton,
+            Button(
+              icon = icon,
+              label = label,
+              onClick = table.toggleAllRowsExpanded()
+            ).mini.compact
+          ),
           PrimeAutoHeightVirtualizedTable(
             table,
             estimateSize = _ => 25.toPx,

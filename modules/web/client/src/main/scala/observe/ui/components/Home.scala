@@ -10,26 +10,18 @@ import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.InstrumentExecutionConfig
-import lucuma.core.model.sequence.Step
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
-import lucuma.schemas.model.ExecutionVisits
-import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.all.*
-import observe.model.ExecutionState
 import observe.model.SequenceState
-import observe.model.StepProgress
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
-import observe.ui.components.sequence.ObsHeader
+import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
-import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
 
@@ -67,8 +59,6 @@ object Home:
 
         val obsStates: Map[Observation.Id, SequenceState] =
           rootModelData.executionState.view.mapValues(_.sequenceState).toMap
-
-        val clientMode: ClientMode = rootModelData.clientMode
 
         rootModelData.userVault
           .map(_.toPot)
@@ -109,82 +99,7 @@ object Home:
                 ),
                 SplitterPanel()(
                   rootModelData.nighttimeDisplayedObservation
-                    .map: selectedObs =>
-                      val selectedObsId = selectedObs.obsId
-
-                      val executionStateOpt: ViewOpt[ExecutionState] =
-                        props.rootModel.data
-                          .zoom(RootModelData.executionState.index(selectedObsId))
-
-                      val executionStateAndConfig: Option[
-                        Pot[
-                          (Observation.Id,
-                           InstrumentExecutionConfig,
-                           ExecutionVisits,
-                           View[ExecutionState]
-                          )
-                        ]
-                      ] =
-                        loadedObs.map: lo =>
-                          (lo.obsId.ready,
-                           lo.config,
-                           lo.visits,
-                           executionStateOpt.toOptionView.toPot
-                          ).tupled
-
-                      <.div(ObserveStyles.ObservationArea, ^.key := selectedObsId.toString)(
-                        ObsHeader(
-                          selectedObs,
-                          executionStateAndConfig.map(_.map(_._1)),
-                          loadObservation,
-                          executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
-                          rootModelData.obsRequests.getOrElse(
-                            selectedObsId,
-                            ObservationRequests.Idle
-                          ),
-                          executionStateAndConfig
-                            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides)))
-                        ),
-                        // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
-                        executionStateAndConfig.map(
-                          _.renderPot(
-                            { (loadedObsId, config, visits, executionState) =>
-                              val progress: Option[StepProgress] =
-                                rootModelData.obsProgress.get(loadedObsId)
-
-                              val requests: ObservationRequests =
-                                rootModelData.obsRequests.getOrElse(loadedObsId,
-                                                                    ObservationRequests.Idle
-                                )
-
-                              val selectedStep: Option[Step.Id] =
-                                rootModelData.obsSelectedStep(loadedObsId)
-
-                              val setSelectedStep: Step.Id => Callback = stepId =>
-                                props.rootModel.data
-                                  .zoom(RootModelData.userSelectedStep.at(loadedObsId))
-                                  .mod: oldStepId =>
-                                    if (oldStepId.contains_(stepId)) none else stepId.some
-
-                              ObservationSequence(
-                                loadedObsId,
-                                config,
-                                visits,
-                                executionState,
-                                progress,
-                                requests,
-                                selectedStep,
-                                setSelectedStep,
-                                clientMode
-                              )
-                            },
-                            errorRender = t =>
-                              <.div(ObserveStyles.ObservationAreaError)(
-                                DefaultErrorRender(t)
-                              )
-                          )
-                        )
-                      )
+                    .map(ObservationExecutionDisplay(_, props.rootModel.data, loadObservation))
                 )
               ),
               Accordion(tabs =

@@ -28,8 +28,9 @@ object ObserveStyles:
   val LogArea: Css = Css("ObserveStyles-logArea")
   val Footer: Css  = Css("ObserveStyles-footer")
 
-  val ObservationArea: Css      = Css("ObserveStyles-observationArea")
-  val ObservationAreaError: Css = Css("ObserveStyles-observationAreaError")
+  val ObservationArea: Css           = Css("ObserveStyles-observationArea")
+  val ObservationAreaError: Css      = Css("ObserveStyles-observationAreaError")
+  val SequenceTableExpandButton: Css = Css("ObservationArea-sequenceTableExpandButton")
 
   val ObserveTable: Css = Css("ObserveStyles-observeTable")
 

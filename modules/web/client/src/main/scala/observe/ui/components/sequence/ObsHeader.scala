@@ -42,7 +42,6 @@ object ObsHeader:
           s"${props.observation.title} [${props.observation.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
-          <.span(^.id := "sequence-table-expand-all"),
           <.span(props.observation.configurationSummary),
           <.span(props.observation.constraintsSummary),
           props.overrides
