@@ -26,7 +26,7 @@ import observe.ui.model.ObsSummary
 
 case class ObservationExecutionDisplay(
   selectedObs:     ObsSummary,
-  rootModelData:       View[RootModelData],
+  rootModelData:   View[RootModelData],
   loadObservation: Observation.Id => Callback
 ) extends ReactFnProps(ObservationExecutionDisplay.component)
 
@@ -36,10 +36,9 @@ object ObservationExecutionDisplay:
   private val component =
     ScalaFnComponent
       .withHooks[Props]
-      .useState[VdomNode](EmptyVdom) // expandButton
-      .render: (props, expandButton) =>
-        val selectedObsId                        = props.selectedObs.obsId
-        val rootModelData: RootModelData         = props.rootModelData.get
+      .render: props =>
+        val selectedObsId                = props.selectedObs.obsId
+        val rootModelData: RootModelData = props.rootModelData.get
 
         val executionStateOpt: ViewOpt[ExecutionState] =
           props.rootModelData
@@ -64,8 +63,7 @@ object ObservationExecutionDisplay:
               ObservationRequests.Idle
             ),
             executionStateAndConfig
-              .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides))),
-            expandButton.value
+              .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides)))
           ),
           // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
           executionStateAndConfig.map(
@@ -95,8 +93,7 @@ object ObservationExecutionDisplay:
                   requests,
                   selectedStep,
                   setSelectedStep,
-                  rootModelData.clientMode,
-                  expandButton.setState
+                  rootModelData.clientMode
                 )
               },
               errorRender = t =>

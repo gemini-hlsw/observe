@@ -258,6 +258,10 @@ html {
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  .ObservationArea-sequenceTableExpandButton {
+    margin: 0 0 15px 10px;
+  }
 }
 
 .ObserveStyles-observationAreaError {

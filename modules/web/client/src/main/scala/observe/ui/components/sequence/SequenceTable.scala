@@ -57,7 +57,6 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def requests: ObservationRequests
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
-  def setExpandedButton: VdomNode => Callback
 
   private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
     SequenceRow.FutureStep
@@ -104,8 +103,7 @@ case class GmosNorthSequenceTable(
   setSelectedStepId: Step.Id => Callback,
   requests:          ObservationRequests,
   isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback,
-  setExpandedButton: VdomNode => Callback
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -123,8 +121,7 @@ case class GmosSouthSequenceTable(
   setSelectedStepId: Step.Id => Callback,
   requests:          ObservationRequests,
   isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback,
-  setExpandedButton: VdomNode => Callback
+  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosSouthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -200,21 +197,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useRefToAnyVdom
       .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
         _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
-      )
-      .useEffectWithDepsBy((_, _, cols, _, sequence, _, table, _, _) =>
-        (cols, sequence, table.getIsAllRowsExpanded())
-      )((props, _, _, _, _, _, table, _, _) =>
-        (_, _, _) =>
-          val (icon, label) =
-            if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-            else (Icons.Plus, "Expand all steps")
-          props.setExpandedButton(
-            Button(
-              icon = icon,
-              label = label,
-              onClick = table.toggleAllRowsExpanded()
-            ).mini.compact
-          )
       )
       .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
         extension (step: SequenceRow[DynamicConfig])
@@ -302,15 +284,28 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
-        PrimeAutoHeightVirtualizedTable(
-          table,
-          estimateSize = _ => 25.toPx,
-          overscan = 8,
-          containerRef = resize.ref,
-          tableMod = TagMod(tableStyle),
-          rowMod = row => computeRowMods(row.original),
-          headerCellMod = computeHeaderCellMods,
-          cellMod = computeCellMods
+        val (icon, label) =
+          if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
+          else (Icons.Plus, "Expand all steps")
+        React.Fragment(
+          <.div(
+            ObserveStyles.SequenceTableExpandButton,
+            Button(
+              icon = icon,
+              label = label,
+              onClick = table.toggleAllRowsExpanded()
+            ).mini.compact
+          ),
+          PrimeAutoHeightVirtualizedTable(
+            table,
+            estimateSize = _ => 25.toPx,
+            overscan = 8,
+            containerRef = resize.ref,
+            tableMod = TagMod(tableStyle),
+            rowMod = row => computeRowMods(row.original),
+            headerCellMod = computeHeaderCellMods,
+            cellMod = computeCellMods
+          )
         )
 
 object GmosNorthSequenceTable

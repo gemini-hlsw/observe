@@ -22,8 +22,7 @@ case class ObsHeader(
   loadObs:       Observation.Id => Callback,
   sequenceState: SequenceState,
   requests:      ObservationRequests,
-  overrides:     Option[View[SystemOverrides]],
-  expandButton:  VdomNode
+  overrides:     Option[View[SystemOverrides]]
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -50,6 +49,5 @@ object ObsHeader:
               SubsystemOverrides(props.observation.obsId, props.observation.instrument, overrides)
                 .when(props.loadedObsId.contains_(props.observation.obsId.ready))
             .whenDefined
-        ),
-        <.div(props.expandButton)
+        )
       )
