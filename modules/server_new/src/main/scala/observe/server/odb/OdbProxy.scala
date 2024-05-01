@@ -35,6 +35,7 @@ import observe.model.dhs.*
 import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
+import observe.model.odb.{ObsRecordedIds, RecordedAtomId, RecordedStepId}
 
 sealed trait OdbEventCommands[F[_]] {
   def visitStart(
@@ -74,6 +75,7 @@ sealed trait OdbEventCommands[F[_]] {
   def obsPause(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:              Observation.Id, reason: String): F[Boolean]
 
+  def getCurrentRecordedIds: F[ObsRecordedIds]
 }
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
@@ -177,6 +179,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
   case class OdbCommandsImpl[F[_]](
@@ -466,6 +470,8 @@ object OdbProxy {
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)
             .map(_.recordDataset.dataset.id)
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get
   }
 
   class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
@@ -519,6 +525,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
 }

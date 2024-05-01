@@ -69,6 +69,7 @@ import scala.concurrent.duration.*
 
 import SeqEvent.*
 import ClientEvent.*
+import cats.Functor
 
 trait ObserveEngine[F[_]] {
 
@@ -916,7 +917,7 @@ object ObserveEngine {
           .flatMap: x =>
             Stream.eval(notifyODB(x).attempt)
           .flatMap:
-            case Right((ev, qState)) => toClientEvent[F](ev, qState)
+            case Right((ev, qState)) => toClientEvent[F](ev, qState, systems.odb)
             // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
             case Left(_)             => Stream.empty
 
@@ -1689,9 +1690,18 @@ object ObserveEngine {
            )
   } yield new ObserveEngineImpl[F](eng, systems, conf, tr, rc)
 
-  private def modifyStateEvent[F[_]](
-    v:   SeqEvent,
-    svs: => SequencesQueue[SequenceView]
+  private def buildObserveStateStream[F[_]: Functor](
+    svs:      => SequencesQueue[SequenceView],
+    odbProxy: OdbProxy[F]
+  ): Stream[F, TargetedClientEvent] =
+    Stream.eval:
+      odbProxy.getCurrentRecordedIds.map: recordedIds =>
+        ObserveState.fromSequenceViewQueue(svs, recordedIds)
+
+  private def modifyStateEvent[F[_]: Functor](
+    v:        SeqEvent,
+    svs:      => SequencesQueue[SequenceView],
+    odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
     v match {
       // case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
@@ -1699,21 +1709,18 @@ object ObserveEngine {
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
       // case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
       case StartSysConfig(oid, stepId, res)                                 =>
-        Stream.emits(
-          SingleActionEvent(oid, stepId, res, ClientEvent.SingleActionState.Started, none) ::
-            ObserveState.fromSequenceViewQueue(svs) :: Nil
-        )
+        Stream.emit[F, TargetedClientEvent](
+          SingleActionEvent(oid, stepId, res, ClientEvent.SingleActionState.Started, none)
+        ) ++ buildObserveStateStream(svs, odbProxy)
       // case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
       // case ResourceBusy(oid, sid, res, cid)   =>
       //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
       // case NoMoreAtoms(_)                     => Stream.empty
       case NewAtomLoaded(obsId, sequenceType, atomId)                       =>
-        Stream.emits(
-          ClientEvent.AtomLoaded(obsId, sequenceType, atomId) ::
-            ObserveState.fromSequenceViewQueue(svs) :: Nil
-        )
+        Stream.emit[F, TargetedClientEvent](ClientEvent.AtomLoaded(obsId, sequenceType, atomId)) ++
+          buildObserveStateStream(svs, odbProxy)
       case e if e.isModelUpdate                                             =>
-        Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+        buildObserveStateStream(svs, odbProxy)
       case _                                                                => Stream.empty
     }
 
@@ -1786,9 +1793,10 @@ object ObserveEngine {
     )
   }
 
-  private def toClientEvent[F[_]](
-    ev:     EventResult[SeqEvent],
-    qState: EngineState[F]
+  private def toClientEvent[F[_]: Functor](
+    ev:       EventResult[SeqEvent],
+    qState:   EngineState[F],
+    odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] = {
     val sequences = qState.sequences.view.values.map(viewSequence).toList
     // Building the view is a relatively expensive operation
@@ -1808,9 +1816,9 @@ object ObserveEngine {
     ev match {
       case UserCommandResponse(ue, _, uev) =>
         ue match {
-          case UserEvent.ModifyState(_) => modifyStateEvent(uev.getOrElse(NullSeqEvent), svs)
-          case e if e.isModelUpdate     =>
-            Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+          case UserEvent.ModifyState(_) =>
+            modifyStateEvent(uev.getOrElse(NullSeqEvent), svs, odbProxy)
+          case e if e.isModelUpdate     => buildObserveStateStream(svs, odbProxy)
           // case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
           // case UserEvent.LogWarning(m, ts)       =>
           //   Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
@@ -1837,8 +1845,8 @@ object ObserveEngine {
                 c,
                 qState,
                 ClientEvent.SingleActionState.Completed
-              ).toList :+ ClientEvent.ObserveState.fromSequenceViewQueue(svs)
-            )
+              ).toList
+            ) ++ buildObserveStateStream(svs, odbProxy)
           case SystemEvent.SingleRunFailed(c, r)                                   =>
             Stream.emits(
               singleActionClientEvent(
@@ -1846,10 +1854,10 @@ object ObserveEngine {
                 qState,
                 ClientEvent.SingleActionState.Failed,
                 r.msg.some
-              ).toList :+ ClientEvent.ObserveState.fromSequenceViewQueue(svs)
-            )
+              ).toList
+            ) ++ buildObserveStateStream(svs, odbProxy)
           case e if e.isModelUpdate                                                =>
-            Stream.emit(ClientEvent.ObserveState.fromSequenceViewQueue(svs))
+             buildObserveStateStream(svs, odbProxy)
           case _                                                                   => Stream.empty
         }
     }

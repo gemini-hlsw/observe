@@ -32,6 +32,7 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.model.dhs.ImageFileId
+import observe.model.odb.ObsRecordedIds
 
 trait TestOdbProxy[F[_]] extends OdbProxy[F] {
   def outCapture: F[List[TestOdbProxy.OdbEvent]]
@@ -179,6 +180,8 @@ object TestOdbProxy {
           addEvent(ObsStop(obsId, reason)).as(true)
 
         override def outCapture: F[List[OdbEvent]] = rf.get.map(_.out)
+
+        override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
       }
     )
 

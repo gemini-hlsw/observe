@@ -29,6 +29,7 @@ import observe.model.UserPrompt.ChecksOverride
 import observe.model.UserPrompt.SeqCheck
 import observe.model.enums.Resource
 import observe.model.given
+import observe.model.odb.ObsRecordedIds
 
 sealed trait ClientEvent derives Eq
 
@@ -53,17 +54,21 @@ object ClientEvent:
         Decoder
 
   case class ObserveState(
-    sequenceExecution: Map[Observation.Id, ExecutionState],
-    conditions:        Conditions,
-    operator:          Option[Operator]
+    sequenceExecution:  Map[Observation.Id, ExecutionState],
+    conditions:         Conditions,
+    operator:           Option[Operator],
+    currentRecordedIds: ObsRecordedIds
   ) extends AllClientEvent
       derives Eq,
         Encoder.AsObject,
         Decoder
 
   object ObserveState:
-    def fromSequenceViewQueue(view: SequencesQueue[SequenceView]): ObserveState =
-      ObserveState(view.sequencesState, view.conditions, view.operator)
+    def fromSequenceViewQueue(
+      view:        SequencesQueue[SequenceView],
+      recordedIds: ObsRecordedIds
+    ): ObserveState =
+      ObserveState(view.sequencesState, view.conditions, view.operator, recordedIds)
 
   case class SingleActionEvent(
     obsId:     Observation.Id,
@@ -92,7 +97,7 @@ object ClientEvent:
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ BaDum                            => e.asJson
     case e @ InitialEvent(_)                  => e.asJson
-    case e @ ObserveState(_, _, _)            => e.asJson
+    case e @ ObserveState(_, _, _, _)         => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
     case e @ ChecksOverrideEvent(_)           => e.asJson
     case e @ ProgressEvent(_)                 => e.asJson

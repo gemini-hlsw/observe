@@ -45,7 +45,7 @@ trait ArbClientEvent:
       s <- arbitrary[SequencesQueue[SequenceView]]
       c <- arbitrary[Conditions]
       o <- arbitrary[Option[Operator]]
-    yield ClientEvent.ObserveState(s.sequencesState, c, o)
+    yield ClientEvent.ObserveState(s.sequencesState, c, o, ???)
 
   given Cogen[ExecutionState] =
     Cogen[
@@ -143,7 +143,7 @@ trait ArbClientEvent:
     ]].contramap:
       case ClientEvent.BaDum                                => Left(())
       case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
-      case e @ ClientEvent.ObserveState(_, _, _)            => Right(Right(Left(e)))
+      case e @ ClientEvent.ObserveState(_, _, _, _)         => Right(Right(Left(e)))
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))

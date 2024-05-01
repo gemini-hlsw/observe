@@ -26,7 +26,7 @@ import observe.server.gems.*
 import observe.server.gmos.*
 import observe.server.gsaoi.*
 import observe.server.keywords.*
-import observe.server.odb.ObsRecordedIds
+import observe.model.odb.ObsRecordedIds
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.DummyOdbProxy
 import observe.server.tcs.*

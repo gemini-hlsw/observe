@@ -11,6 +11,8 @@ import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Dataset
 import observe.model.dhs.ImageFileId
 import observe.server.ObserveFailure
+import observe.model.odb.{ObsRecordedIds, RecordedAtomId, RecordedStepId}
+import observe.model.odb.{RecordedAtom, RecordedStep, RecordedVisit}
 
 trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
   protected def getCurrentVisitId(obsId: Observation.Id): F[Visit.Id] =
@@ -19,7 +21,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
         ObsRecordedIds
           .at(obsId)
           .get(_)
-          .map(RecordedVisit.visitId.get)
+          .map(observe.model.odb.RecordedVisit.visitId.get)
           .toRight(ObserveFailure.Unexpected(s"No current recorded visit for obsId [$obsId]"))
       .rethrow
 
@@ -44,13 +46,17 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
         ObsRecordedIds
           .at(obsId)
           .get(_)
-          .flatMap(RecordedVisit.atomId.getOption)
+          .flatMap(observe.model.odb.RecordedVisit.atomId.getOption)
           .toRight(ObserveFailure.Unexpected(s"No current recorded atom for obsId [$obsId]"))
       .rethrow
 
   protected def setCurrentAtomId(obsId: Observation.Id, atomId: RecordedAtomId): F[Unit] =
     idTracker.update:
-      ObsRecordedIds.at(obsId).some.andThen(RecordedVisit.atom).replace(RecordedAtom(atomId).some)
+      ObsRecordedIds
+        .at(obsId)
+        .some
+        .andThen(observe.model.odb.RecordedVisit.atom)
+        .replace(RecordedAtom(atomId).some)
 
   protected def getCurrentStepId(obsId: Observation.Id): F[RecordedStepId] =
     idTracker.get
@@ -58,7 +64,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
         ObsRecordedIds
           .at(obsId)
           .get(_)
-          .flatMap(RecordedVisit.stepId.getOption)
+          .flatMap(observe.model.odb.RecordedVisit.stepId.getOption)
           .toRight(ObserveFailure.Unexpected(s"No current recorded step for obsId [$obsId]"))
       .rethrow
 
@@ -67,7 +73,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
       ObsRecordedIds
         .at(obsId)
         .some
-        .andThen(RecordedVisit.step)
+        .andThen(observe.model.odb.RecordedVisit.step)
         .replace(stepId.map(RecordedStep(_)))
 
   protected def getCurrentDatasetId(obsId: Observation.Id, fileId: ImageFileId): F[Dataset.Id] =
@@ -76,7 +82,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
         ObsRecordedIds
           .at(obsId)
           .get(_)
-          .flatMap(RecordedVisit.datasetId(fileId).getOption)
+          .flatMap(observe.model.odb.RecordedVisit.datasetId(fileId).getOption)
           .flatten
           .toRight(ObserveFailure.Unexpected(s"No current recorded dataset for obsId [$obsId]"))
       .rethrow
@@ -90,7 +96,7 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
       ObsRecordedIds
         .at(obsId)
         .some
-        .andThen(RecordedVisit.datasetId(fileId))
+        .andThen(observe.model.odb.RecordedVisit.datasetId(fileId))
         .modify:
           case Some(staleDatasetId) if datasetId.isDefined =>
             throw ObserveFailure.Unexpected:
