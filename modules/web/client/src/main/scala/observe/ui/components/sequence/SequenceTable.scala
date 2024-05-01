@@ -201,19 +201,20 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
         _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
       )
-      .useEffectWithDepsBy((_, _, cols, _, sequence, _, _, _, _) => (cols, sequence))(
-        (props, _, _, _, _, _, table, _, _) =>
-          (_, _) =>
-            val (icon, label) =
-              if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-              else (Icons.Plus, "Expand all steps")
-            props.setExpandedButton(
-              Button(
-                icon = icon,
-                label = label,
-                onClick = table.toggleAllRowsExpanded()
-              ).mini.compact
-            )
+      .useEffectWithDepsBy((_, _, cols, _, sequence, _, table, _, _) =>
+        (cols, sequence, table.getIsAllRowsExpanded())
+      )((props, _, _, _, _, _, table, _, _) =>
+        (_, _, _) =>
+          val (icon, label) =
+            if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
+            else (Icons.Plus, "Expand all steps")
+          props.setExpandedButton(
+            Button(
+              icon = icon,
+              label = label,
+              onClick = table.toggleAllRowsExpanded()
+            ).mini.compact
+          )
       )
       .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
         extension (step: SequenceRow[DynamicConfig])

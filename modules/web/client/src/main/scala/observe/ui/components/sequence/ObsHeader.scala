@@ -43,7 +43,6 @@ object ObsHeader:
           s"${props.observation.title} [${props.observation.obsId}]"
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
-          props.expandButton,
           <.span(props.observation.configurationSummary),
           <.span(props.observation.constraintsSummary),
           props.overrides
@@ -51,5 +50,6 @@ object ObsHeader:
               SubsystemOverrides(props.observation.obsId, props.observation.instrument, overrides)
                 .when(props.loadedObsId.contains_(props.observation.obsId.ready))
             .whenDefined
-        )
+        ),
+        <.div(props.expandButton)
       )
