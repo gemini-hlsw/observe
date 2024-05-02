@@ -23,17 +23,19 @@ import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
+import observe.model.odb.RecordedVisit
 
 case class ObservationSequence(
-  obsId:           Observation.Id,
-  config:          InstrumentExecutionConfig,
-  visits:          ExecutionVisits,
-  executionState:  View[ExecutionState],
-  progress:        Option[StepProgress],
-  requests:        ObservationRequests,
-  selectedStep:    Option[Step.Id],
-  setSelectedStep: Step.Id => Callback,
-  clientMode:      ClientMode
+  obsId:                Observation.Id,
+  config:               InstrumentExecutionConfig,
+  visits:               ExecutionVisits,
+  executionState:       View[ExecutionState],
+  currentRecordedVisit: Option[RecordedVisit],
+  progress:             Option[StepProgress],
+  requests:             ObservationRequests,
+  selectedStep:         Option[Step.Id],
+  setSelectedStep:      Step.Id => Callback,
+  clientMode:           ClientMode
 ) extends ReactFnProps(ObservationSequence.component)
 
 object ObservationSequence:
@@ -63,6 +65,7 @@ object ObservationSequence:
             config,
             visits,
             props.executionState.get,
+            props.currentRecordedVisit,
             props.progress,
             props.selectedStep,
             props.setSelectedStep,
@@ -77,6 +80,7 @@ object ObservationSequence:
             config,
             visits,
             props.executionState.get,
+            props.currentRecordedVisit,
             props.progress,
             props.selectedStep,
             props.setSelectedStep,

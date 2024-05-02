@@ -38,7 +38,7 @@ type DatasetIdMap = DatasetIdMap.Type
 given KeyEncoder[ImageFileId] = KeyEncoder.instance(_.value)
 given KeyDecoder[ImageFileId] = KeyDecoder.instance(ImageFileId(_).some)
 
-protected[odb] case class RecordedStep(
+case class RecordedStep(
   stepId:     RecordedStepId,
   datasetIds: DatasetIdMap = DatasetIdMap.Empty
 ) derives Eq,
@@ -48,7 +48,7 @@ object RecordedStep:
   val stepId: Lens[RecordedStep, RecordedStepId]   = Focus[RecordedStep](_.stepId)
   val datasetIds: Lens[RecordedStep, DatasetIdMap] = Focus[RecordedStep](_.datasetIds)
 
-protected[odb] case class RecordedAtom(atomId: RecordedAtomId, step: Option[RecordedStep] = None)
+case class RecordedAtom(atomId: RecordedAtomId, step: Option[RecordedStep] = None)
     derives Eq,
       Encoder.AsObject,
       Decoder
@@ -58,7 +58,7 @@ object RecordedAtom:
   val stepId: Optional[RecordedAtom, RecordedStepId] =
     step.some.andThen(RecordedStep.stepId)
 
-protected[odb] case class RecordedVisit(visitId: Visit.Id, atom: Option[RecordedAtom] = None)
+case class RecordedVisit(visitId: Visit.Id, atom: Option[RecordedAtom] = None)
     derives Eq,
       Encoder.AsObject,
       Decoder
