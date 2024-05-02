@@ -21,8 +21,8 @@ import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
-import observe.ui.model.enums.ClientMode
 import observe.model.odb.ObsRecordedIds
+import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Pot[Option[UserVault]],

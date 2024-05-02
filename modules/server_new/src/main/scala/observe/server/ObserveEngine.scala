@@ -5,6 +5,7 @@ package observe.server
 
 import cats.Applicative
 import cats.Endo
+import cats.Functor
 import cats.Monad
 import cats.MonoidK
 import cats.data.NonEmptyList
@@ -69,7 +70,6 @@ import scala.concurrent.duration.*
 
 import SeqEvent.*
 import ClientEvent.*
-import cats.Functor
 
 trait ObserveEngine[F[_]] {
 

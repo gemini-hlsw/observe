@@ -19,11 +19,11 @@ import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.SequenceState
 import observe.model.StepProgress
+import observe.model.odb.RecordedVisit
 import observe.ui.ObserveStyles
 import observe.ui.components.ObservationSequence
 import observe.ui.model.*
 import observe.ui.model.ObsSummary
-import observe.model.odb.RecordedVisit
 
 case class ObservationExecutionDisplay(
   selectedObs:     ObsSummary,

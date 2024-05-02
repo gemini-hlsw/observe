@@ -20,13 +20,13 @@ import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB
 import mouse.boolean.*
 import observe.model.config.*
+import observe.model.odb.ObsRecordedIds
 import observe.server.altair.*
 import observe.server.gcal.*
 import observe.server.gems.*
 import observe.server.gmos.*
 import observe.server.gsaoi.*
 import observe.server.keywords.*
-import observe.model.odb.ObsRecordedIds
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.DummyOdbProxy
 import observe.server.tcs.*

@@ -5,19 +5,21 @@ package observe.model.odb
 
 import cats.Eq
 import cats.derived.*
+import cats.syntax.option.*
+import io.circe.*
+import lucuma.core.model.Observation
 import lucuma.core.model.Visit
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Dataset
+import lucuma.core.model.sequence.Step
+import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import observe.model.dhs.ImageFileId
-import observe.model.odb.{DatasetIdMap, RecordedAtomId, RecordedStepId}
-import lucuma.core.model.Observation
-import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.Step
-import lucuma.core.util.NewType
-import io.circe.*
-import cats.syntax.option.*
+import observe.model.odb.DatasetIdMap
+import observe.model.odb.RecordedAtomId
+import observe.model.odb.RecordedStepId
 
 // Atom.Ids and Step.Ids exist both in input sequences and in recorded ones.
 // So, it is useful to have a new type for recorded ones in order to distinguish them.

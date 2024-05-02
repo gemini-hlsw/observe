@@ -10,9 +10,13 @@ import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Dataset
 import observe.model.dhs.ImageFileId
+import observe.model.odb.ObsRecordedIds
+import observe.model.odb.RecordedAtom
+import observe.model.odb.RecordedAtomId
+import observe.model.odb.RecordedStep
+import observe.model.odb.RecordedStepId
+import observe.model.odb.RecordedVisit
 import observe.server.ObserveFailure
-import observe.model.odb.{ObsRecordedIds, RecordedAtomId, RecordedStepId}
-import observe.model.odb.{RecordedAtom, RecordedStep, RecordedVisit}
 
 trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
   protected def getCurrentVisitId(obsId: Observation.Id): F[Visit.Id] =

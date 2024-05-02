@@ -32,10 +32,12 @@ import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
+import observe.model.odb.ObsRecordedIds
+import observe.model.odb.RecordedAtomId
+import observe.model.odb.RecordedStepId
 import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
-import observe.model.odb.{ObsRecordedIds, RecordedAtomId, RecordedStepId}
 
 sealed trait OdbEventCommands[F[_]] {
   def visitStart(

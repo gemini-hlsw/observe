@@ -16,6 +16,7 @@ import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.DefaultErrorRender
 import observe.model.ExecutionState
 import observe.model.StepProgress
+import observe.model.odb.RecordedVisit
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTable
 import observe.ui.components.sequence.GmosSouthSequenceTable
@@ -23,7 +24,6 @@ import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
-import observe.model.odb.RecordedVisit
 
 case class ObservationSequence(
   obsId:                Observation.Id,
