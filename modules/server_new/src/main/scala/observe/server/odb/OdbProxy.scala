@@ -32,6 +32,9 @@ import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
+import observe.model.odb.ObsRecordedIds
+import observe.model.odb.RecordedAtomId
+import observe.model.odb.RecordedStepId
 import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
@@ -74,6 +77,7 @@ sealed trait OdbEventCommands[F[_]] {
   def obsPause(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:              Observation.Id, reason: String): F[Boolean]
 
+  def getCurrentRecordedIds: F[ObsRecordedIds]
 }
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
@@ -177,6 +181,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
   case class OdbCommandsImpl[F[_]](
@@ -466,6 +472,8 @@ object OdbProxy {
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)
             .map(_.recordDataset.dataset.id)
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get
   }
 
   class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
@@ -519,6 +527,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
 }

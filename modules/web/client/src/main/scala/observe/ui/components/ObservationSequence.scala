@@ -16,6 +16,7 @@ import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.DefaultErrorRender
 import observe.model.ExecutionState
 import observe.model.StepProgress
+import observe.model.odb.RecordedVisit
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTable
 import observe.ui.components.sequence.GmosSouthSequenceTable
@@ -25,15 +26,16 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.services.SequenceApi
 
 case class ObservationSequence(
-  obsId:           Observation.Id,
-  config:          InstrumentExecutionConfig,
-  visits:          ExecutionVisits,
-  executionState:  View[ExecutionState],
-  progress:        Option[StepProgress],
-  requests:        ObservationRequests,
-  selectedStep:    Option[Step.Id],
-  setSelectedStep: Step.Id => Callback,
-  clientMode:      ClientMode
+  obsId:                Observation.Id,
+  config:               InstrumentExecutionConfig,
+  visits:               ExecutionVisits,
+  executionState:       View[ExecutionState],
+  currentRecordedVisit: Option[RecordedVisit],
+  progress:             Option[StepProgress],
+  requests:             ObservationRequests,
+  selectedStep:         Option[Step.Id],
+  setSelectedStep:      Step.Id => Callback,
+  clientMode:           ClientMode
 ) extends ReactFnProps(ObservationSequence.component)
 
 object ObservationSequence:
@@ -63,6 +65,7 @@ object ObservationSequence:
             config,
             visits,
             props.executionState.get,
+            props.currentRecordedVisit,
             props.progress,
             props.selectedStep,
             props.setSelectedStep,
@@ -77,6 +80,7 @@ object ObservationSequence:
             config,
             visits,
             props.executionState.get,
+            props.currentRecordedVisit,
             props.progress,
             props.selectedStep,
             props.setSelectedStep,

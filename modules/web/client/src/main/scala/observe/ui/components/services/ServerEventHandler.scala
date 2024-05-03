@@ -107,11 +107,11 @@ trait ServerEventHandler:
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
     event match
-      case ClientEvent.BaDum                                                     =>
+      case ClientEvent.BaDum                                                              =>
         IO.unit
-      case ClientEvent.InitialEvent(cc)                                          =>
+      case ClientEvent.InitialEvent(cc)                                                   =>
         clientConfigMod(_ => cc.ready)
-      case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error) =>
+      case ClientEvent.SingleActionEvent(obsId, stepId, subsystem, event, error)          =>
         rootModelDataMod(
           (RootModelData.executionState
             .at(obsId)
@@ -130,17 +130,19 @@ trait ServerEventHandler:
               .replace(OperationRequest.Idle))
         )
           >> error.map(logMessage(rootModelDataMod, _)).orEmpty
-      case ClientEvent.ChecksOverrideEvent(_)                                    =>
+      case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
-      case ClientEvent.ObserveState(sequenceExecution, conditions, operator)     =>
+      case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
         val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
 
         rootModelDataMod(
           RootModelData.operator.replace(operator) >>>
             RootModelData.conditions.replace(conditions) >>>
             RootModelData.executionState.replace(sequenceExecution) >>>
+            RootModelData.recordedIds.replace(recordedIds) >>>
             // All requests are reset on every state update from the server.
             // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
+            // TODO: Maybe just reset in the ApiImpl when we get the response from the server.
             RootModelData.obsRequests.replace(Map.empty) >>>
             RootModelData.nighttimeObservation.modify: obs =>
               // Only set if loaded obsId changed, otherwise config is lost.
@@ -151,9 +153,9 @@ trait ServerEventHandler:
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
-      case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))   =>
+      case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some))
-      case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                   =>
+      case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>
         rootModelDataMod:
           RootModelData.nighttimeObservation.some.modify:
             instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)

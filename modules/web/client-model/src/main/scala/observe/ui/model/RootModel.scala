@@ -21,6 +21,7 @@ import observe.model.ExecutionState
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
+import observe.model.odb.ObsRecordedIds
 import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
@@ -29,7 +30,8 @@ case class RootModelData(
   selectedObservation:  Option[Observation.Id],
   nighttimeObservation: Option[LoadedObservation],
   daytimeObservations:  List[LoadedObservation],
-  executionState:       Map[Observation.Id, ExecutionState], // This is the server state
+  executionState:       Map[Observation.Id, ExecutionState], // This is the execution state on the server
+  recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
   obsProgress:          Map[Observation.Id, StepProgress],
   userSelectedStep:     Map[Observation.Id, Step.Id],
   obsRequests:          Map[Observation.Id, ObservationRequests],
@@ -79,6 +81,7 @@ object RootModelData:
       nighttimeObservation = none,
       daytimeObservations = List.empty,
       executionState = Map.empty,
+      recordedIds = ObsRecordedIds.Empty,
       obsProgress = Map.empty,
       obsRequests = Map.empty,
       userSelectedStep = Map.empty,
@@ -100,6 +103,7 @@ object RootModelData:
     Focus[RootModelData](_.daytimeObservations)
   val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]   =
     Focus[RootModelData](_.executionState)
+  val recordedIds: Lens[RootModelData, ObsRecordedIds]                           = Focus[RootModelData](_.recordedIds)
   val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]        =
     Focus[RootModelData](_.obsProgress)
   val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]        =

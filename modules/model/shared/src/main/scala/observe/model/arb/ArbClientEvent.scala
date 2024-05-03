@@ -27,6 +27,7 @@ import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 import observe.model.events.*
 import observe.model.events.ClientEvent.SingleActionState
+import observe.model.odb.ObsRecordedIds
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
@@ -37,15 +38,17 @@ import ArbObservationProgress.given
 import ArbSystem.given
 import ArbUserPrompt.given
 import ArbClientConfig.given
+import ArbObsRecordedIds.given
 
 trait ArbClientEvent:
 
   given Arbitrary[ClientEvent.ObserveState] = Arbitrary:
     for
-      s <- arbitrary[SequencesQueue[SequenceView]]
-      c <- arbitrary[Conditions]
-      o <- arbitrary[Option[Operator]]
-    yield ClientEvent.ObserveState(s.sequencesState, c, o)
+      s    <- arbitrary[SequencesQueue[SequenceView]]
+      c    <- arbitrary[Conditions]
+      o    <- arbitrary[Option[Operator]]
+      rids <- arbitrary[ObsRecordedIds]
+    yield ClientEvent.ObserveState(s.sequencesState, c, o, rids)
 
   given Cogen[ExecutionState] =
     Cogen[
@@ -65,8 +68,8 @@ trait ArbClientEvent:
     )
 
   given Cogen[ClientEvent.ObserveState] =
-    Cogen[(List[(Observation.Id, ExecutionState)], Conditions)].contramap(x =>
-      (x.sequenceExecution.toList, x.conditions)
+    Cogen[(List[(Observation.Id, ExecutionState)], Conditions, ObsRecordedIds)].contramap(x =>
+      (x.sequenceExecution.toList, x.conditions, x.currentRecordedIds)
     )
 
   given Arbitrary[ClientEvent.InitialEvent] = Arbitrary:
@@ -143,7 +146,7 @@ trait ArbClientEvent:
     ]].contramap:
       case ClientEvent.BaDum                                => Left(())
       case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
-      case e @ ClientEvent.ObserveState(_, _, _)            => Right(Right(Left(e)))
+      case e @ ClientEvent.ObserveState(_, _, _, _)         => Right(Right(Left(e)))
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))

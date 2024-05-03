@@ -15,5 +15,6 @@ object all
     with ArbNsSubexposure
     with ArbGmosParameters
     with ArbNsRunningState
+    with ArbObsRecordedIds
     with ArbObservationProgress
     with ArbUserPrompt
