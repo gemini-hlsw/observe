@@ -261,6 +261,9 @@ html {
 
   .ObservationArea-sequenceTableExpandButton {
     margin: 0 0 15px 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
   }
 }
 

@@ -198,7 +198,10 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
         _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
       )
-      .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
+      .useMemoBy((_, _, _, visits, _, _, _, _, _) => visits)((_, _, _, _, _, _, _, _, _) =>
+        _._1.map(_.rowId).toSet
+      )
+      .render: (props, resize, cols, _, _, _, table, _, selectedRef, visitIds) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -284,16 +287,51 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
-        val (icon, label) =
-          if table.getIsAllRowsExpanded() then (Icons.Minus, "Collapse all visits")
-          else (Icons.Plus, "Expand all visits")
+        def modExpanded(
+          f: (
+            Row[Expandable[HeaderOrRow[SequenceIndexedRow[D]]]]
+          ) => Boolean
+        ): Callback = Callback.suspend:
+          table.setExpanded:
+            Expanded.Rows(
+              table
+                .getExpandedRowModel()
+                .rows
+                .map: row =>
+                  RowId(row.id) -> f(Row(row))
+                .toMap
+            )
+
+        val allVisitsAreExpanded = table
+          .getExpandedRowModel()
+          .rows
+          .forall: row =>
+            if visitIds.contains(RowId(row.id)) then row.getIsExpanded() else true
+
+        val allVisitsAreCollapsed = table
+          .getExpandedRowModel()
+          .rows
+          .forall: row =>
+            if visitIds.contains(RowId(row.id)) then !row.getIsExpanded() else true
+
         React.Fragment(
           <.div(
             ObserveStyles.SequenceTableExpandButton,
             Button(
-              icon = icon,
-              label = label,
-              onClick = table.toggleAllRowsExpanded()
+              icon = Icons.Minus,
+              label = "Collapse all visits",
+              disabled = allVisitsAreCollapsed,
+              onClick = modExpanded: row =>
+                if visitIds.contains(row.id) then false
+                else row.getIsExpanded()
+            ).mini.compact,
+            Button(
+              icon = Icons.Plus,
+              label = "Expand all visits",
+              disabled = allVisitsAreExpanded,
+              onClick = modExpanded: row =>
+                if visitIds.contains(row.id) then true
+                else row.getIsExpanded()
             ).mini.compact
           ),
           PrimeAutoHeightVirtualizedTable(
