@@ -73,6 +73,7 @@ import typings.loglevel.mod.LogLevelDesc
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
+import scala.scalajs.LinkingInfo
 
 object MainApp extends ServerEventHandler:
   private val ApiBasePath: Uri.Path = path"/api/observe/"
@@ -132,13 +133,15 @@ object MainApp extends ServerEventHandler:
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
     ssoClient.whoami
       .flatMap: userVault =>
-        userVault.map(_.user) match
-          case Some(StandardUser(_, role, other, _)) =>
-            (role +: other)
-              .collectFirst { case StandardRole.Staff(roleId) => roleId }
-              .fold(IO(userVault))(ssoClient.switchRole)
-          // .map(_.orElse(throw new Exception("User is not staff")))
-          case _                                     => IO(userVault)
+        if LinkingInfo.developmentMode then userVault.pure[IO]
+        else
+          userVault.map(_.user) match
+            case Some(StandardUser(_, role, other, _)) =>
+              (role +: other)
+                .collectFirst { case StandardRole.Staff(roleId) => roleId }
+                .fold(IO.none)(ssoClient.switchRole)
+                .map(_.orElse(throw new Exception("User is not staff")))
+            case _                                     => IO.none
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
