@@ -4,7 +4,10 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.Encoder
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
@@ -12,14 +15,16 @@ import lucuma.core.enums.WaterVapor
 import monocle.Focus
 import monocle.Lens
 
-final case class Conditions(
+case class Conditions(
   ce: Option[CloudExtinction],
   iq: Option[ImageQuality],
   sb: Option[SkyBackground],
   wv: Option[WaterVapor]
-)
+) derives Eq,
+      Encoder.AsObject,
+      Decoder
 
-object Conditions {
+object Conditions:
 
   val Unknown: Conditions =
     Conditions(
@@ -58,12 +63,7 @@ object Conditions {
   val Default: Conditions =
     Unknown // Taken from ODB
 
-  given Eq[Conditions] =
-    Eq.by(x => (x.ce, x.iq, x.sb, x.wv))
-
   val ce: Lens[Conditions, Option[CloudExtinction]] = Focus[Conditions](_.ce)
   val iq: Lens[Conditions, Option[ImageQuality]]    = Focus[Conditions](_.iq)
   val sb: Lens[Conditions, Option[SkyBackground]]   = Focus[Conditions](_.sb)
   val wv: Lens[Conditions, Option[WaterVapor]]      = Focus[Conditions](_.wv)
-
-}

@@ -5,6 +5,8 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
+import io.circe.Decoder
+import io.circe.Encoder
 import monocle.Focus
 import monocle.Lens
 
@@ -13,7 +15,9 @@ case class SystemOverrides(
   isInstrumentEnabled: SubsystemEnabled,
   isGcalEnabled:       SubsystemEnabled,
   isDhsEnabled:        SubsystemEnabled
-) derives Eq:
+) derives Eq,
+      Encoder.AsObject,
+      Decoder:
   def disableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Disabled)
 
   def enableTcs: SystemOverrides = copy(isTcsEnabled = SubsystemEnabled.Enabled)

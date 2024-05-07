@@ -51,7 +51,7 @@ class GmosStepsView[F[_]] extends StepsView[F] {
 
         ObserveStep.NodAndShuffle(
           id = step.id,
-          instConfig = stepg.instConfig,
+          instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
           stepConfig = stepg.config,
           status = status,
           breakpoint = step.breakpoint,

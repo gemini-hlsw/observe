@@ -17,8 +17,7 @@ case class CurrentAtomStepRow[+D](
   signalToNoise: Option[SignalToNoise] = none // TODO Propagate S/N through the server
 ) extends SequenceRow[D]:
   val id                   = step.id.asRight
-  // TODO We should type-parameterize ObserveStep on D and get rid of this cast
-  val instrumentConfig     = step.instConfig.asInstanceOf[D].some
+  val instrumentConfig     = step.instConfig.config.asInstanceOf[D].some
   val stepConfig           = step.stepConfig.some
   val isFinished           = step.status.isFinished
   // TODO This could be an estimate for pending steps, or the time it took for finished steps.

@@ -8,8 +8,6 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.given
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
@@ -19,6 +17,7 @@ import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 
 import ArbDhsTypes.given
+import ArbInstrumentDynamicConfig.given
 import ArbStepState.given
 import ArbSystem.given
 
@@ -27,7 +26,7 @@ trait ArbStandardStep {
   given Arbitrary[ObserveStep.Standard] = Arbitrary[ObserveStep.Standard] {
     for {
       id <- arbitrary[Step.Id]
-      d  <- arbitrary[DynamicConfig]
+      d  <- arbitrary[InstrumentDynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
       b  <- arbitrary[Breakpoint]
@@ -52,7 +51,7 @@ trait ArbStandardStep {
     Cogen[
       (
         Step.Id,
-        DynamicConfig,
+        InstrumentDynamicConfig,
         StepConfig,
         StepState,
         Breakpoint,
