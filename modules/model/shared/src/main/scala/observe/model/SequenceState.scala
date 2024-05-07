@@ -6,13 +6,15 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.Encoder
 import lucuma.core.util.Display
 import monocle.Focus
 import monocle.Lens
 import monocle.Prism
 import monocle.macros.GenPrism
 
-enum SequenceState(val name: String) derives Eq:
+enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Idle                                              extends SequenceState("Idle")
   case Running(userStop: Boolean, internalStop: Boolean) extends SequenceState("Running")
   case Completed                                         extends SequenceState("Completed")

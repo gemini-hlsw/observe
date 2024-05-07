@@ -12,12 +12,8 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.odb.json.gmos.given
 import lucuma.odb.json.offset.transport.given
 import lucuma.odb.json.stepconfig.given
-import lucuma.odb.json.time.transport.given
-import lucuma.odb.json.wavelength.transport.given
 import monocle.Focus
 import monocle.Lens
 import monocle.Optional
@@ -27,10 +23,13 @@ import monocle.syntax.all.*
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.enums.PendingObserveCmd
+// import observe.model.codecs.given
+// import lucuma.odb.json.sequence.given
+// import lucuma.schemas.odb.given
 
 enum ObserveStep(
   val id:           Step.Id,
-  val instConfig:   DynamicConfig,
+  val instConfig:   InstrumentDynamicConfig,
   val stepConfig:   StepConfig,
   val status:       StepState,
   val breakpoint:   Breakpoint,
@@ -42,7 +41,7 @@ enum ObserveStep(
       Decoder:
   case Standard(
     override val id:           Step.Id,
-    override val instConfig:   DynamicConfig,
+    override val instConfig:   InstrumentDynamicConfig,
     override val stepConfig:   StepConfig,
     override val status:       StepState,
     override val breakpoint:   Breakpoint,
@@ -54,7 +53,7 @@ enum ObserveStep(
 
   case NodAndShuffle(
     override val id:           Step.Id,
-    override val instConfig:   DynamicConfig,
+    override val instConfig:   InstrumentDynamicConfig,
     override val stepConfig:   StepConfig,
     override val status:       StepState,
     override val breakpoint:   Breakpoint,
@@ -117,8 +116,8 @@ object ObserveStep:
       }
     }
 
-  def instConfig: Lens[ObserveStep, DynamicConfig] =
-    Lens[ObserveStep, DynamicConfig] {
+  def instConfig: Lens[ObserveStep, InstrumentDynamicConfig] =
+    Lens[ObserveStep, InstrumentDynamicConfig] {
       _.instConfig
     } { d =>
       {

@@ -13,6 +13,7 @@ import observe.engine.Action
 import observe.engine.Action.ActionState
 import observe.engine.ParallelActions
 import observe.model.ActionType
+import observe.model.InstrumentDynamicConfig
 import observe.model.ObserveStep
 import observe.model.StepState
 import observe.model.dhs.ImageFileId
@@ -149,7 +150,7 @@ object StepsView {
 
       ObserveStep.Standard(
         id = step.id,
-        instConfig = stepg.instConfig,
+        instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
         stepConfig = stepg.config,
         status = status,
         breakpoint = step.breakpoint,

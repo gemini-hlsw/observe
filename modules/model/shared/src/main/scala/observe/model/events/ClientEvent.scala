@@ -26,7 +26,6 @@ import observe.model.Operator
 import observe.model.SequenceView
 import observe.model.SequencesQueue
 import observe.model.UserPrompt.ChecksOverride
-import observe.model.UserPrompt.SeqCheck
 import observe.model.enums.Resource
 import observe.model.given
 import observe.model.odb.ObsRecordedIds
