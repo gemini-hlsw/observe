@@ -28,14 +28,7 @@ enum InstrumentDynamicConfig(val instrument: Instrument):
       extends InstrumentDynamicConfig(Instrument.GmosSouth)
 
 object InstrumentDynamicConfig:
-  // object GmosNorth:
-  //   given Eq[InstrumentDynamicConfig.GmosNorth] = Eq.by(x => (x.instrument, x.config))
-  // object GmosSouth:
-  //   given Eq[InstrumentDynamicConfig.GmosSouth] = Eq.by(x => (x.instrument, x.config))
-
   given Eq[InstrumentDynamicConfig] = Eq.by(x => (x.instrument, x.config))
-  // case xInstrumentDynamicConfig.GmosNorth => x
-  // case x: InstrumentDynamicConfig.GmosSouth => x
 
   given Encoder.AsObject[InstrumentDynamicConfig] = Encoder.AsObject.instance: idc =>
     JsonObject(

@@ -23,9 +23,6 @@ import monocle.syntax.all.*
 import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.enums.PendingObserveCmd
-// import observe.model.codecs.given
-// import lucuma.odb.json.sequence.given
-// import lucuma.schemas.odb.given
 
 enum ObserveStep(
   val id:           Step.Id,
