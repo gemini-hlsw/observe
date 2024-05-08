@@ -12,6 +12,7 @@ import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
 import eu.timepit.refined.types.numeric.NonNegShort
+import lucuma.core.enums.AtomStage
 import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
@@ -71,6 +72,7 @@ sealed trait OdbEventCommands[F[_]] {
   def stepEndObserve(obsId:       Observation.Id): F[Boolean]
   def stepEndStep(obsId:          Observation.Id): F[Boolean]
   def stepAbort(obsId:            Observation.Id): F[Boolean]
+  def atomEnd(obsId:              Observation.Id): F[Boolean]
   def sequenceEnd(obsId:          Observation.Id): F[Boolean]
   def obsAbort(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsContinue(obsId:          Observation.Id): F[Boolean]
@@ -144,6 +146,8 @@ object OdbProxy {
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
@@ -220,6 +224,8 @@ object OdbProxy {
       _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
       atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument)
       -       <- setCurrentAtomId(obsId, atomId)
+      _       <- AddAtomEventMutation[F]
+                   .execute(atomId = atomId.value, stg = AtomStage.StartAtom)
       _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
     } yield ()
 
@@ -356,6 +362,14 @@ object OdbProxy {
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.Abort)
         _      <- setCurrentStepId(obsId, none)
         _      <- L.debug("ODB event stepAbort sent")
+      } yield true
+
+    override def atomEnd(obsId: Observation.Id): F[Boolean] =
+      for {
+        atomId <- getCurrentAtomId(obsId)
+        _      <- L.debug(s"Send ODB event atomEnd for obsId: $obsId, atomId: $atomId")
+        _      <- AddAtomEventMutation[F].execute(atomId = atomId.value, stg = AtomStage.EndAtom)
+        _      <- L.debug("ODB event atomEnd sent")
       } yield true
 
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
@@ -517,6 +531,8 @@ object OdbProxy {
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    override def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
       Applicative[F].unit
