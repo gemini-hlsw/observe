@@ -37,9 +37,8 @@ import lucuma.refined.*
 import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
-import lucuma.ui.sso.SSOClient
-import lucuma.ui.sso.SSOConfig
-import lucuma.ui.sso.UserVault
+import lucuma.ui.reusability.given
+import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
 import observe.model.events.ClientEvent
@@ -53,6 +52,7 @@ import observe.ui.model.AppContext
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
+import observe.ui.model.reusability.given
 import observe.ui.services.*
 import observe.ui.services.ConfigApi
 import org.http4s.Uri
@@ -231,36 +231,41 @@ object MainApp extends ServerEventHandler:
             .initODBClient(Map("Authorization" -> userVault.authorizationHeader.asJson))
             .as(ctx.closeODBClient) // Disconnect on logout
       // Subscribe to client event stream (and initialize ClientConfig)
-      .localValBy: (_, toastRef, syncStatus, _, _, clientConfigPot, rootModelData, _, ctxPot) =>
-        (rootModelData.get.userVault.toOption.flatMap(_.map(_.token)),
-         ctxPot.value.toOption,
-         clientConfigPot.get.toOption
-        ).mapN: (token, ctx, clientConfig) =>
-          ApiClient(
-            fetchClient,
-            ApiBasePath,
-            clientConfig.clientId,
-            token,
-            t =>
-              toastRef
-                .show:
-                  MessageItem(
-                    id = "configApiError",
-                    content = "Error saving changes",
-                    severity = Message.Severity.Error
-                  )
-                .to[IO] >>
-                rootModelData.async
-                  .zoom(RootModelData.log)
-                  .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                IO.println(t.getMessage) >>
-                syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
-          )
+      .useState(none[ApiClient])               // apiClientOpt
+      .useEffectWithDepsBy((_, _, _, _, _, clientConfigPot, rootModelData, _, _, _) =>
+        (rootModelData.get.userVault.toOption.flatMap(_.map(_.token)), clientConfigPot.get.toOption)
+      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, ctxPot, apiClientOpt) =>
+        (userTokenOpt, clientConfigOpt) =>
+          (userTokenOpt, clientConfigOpt, ctxPot.value.toOption)
+            .mapN: (token, clientConfig, ctx) =>
+              apiClientOpt
+                .setState:
+                  ApiClient(
+                    fetchClient,
+                    ApiBasePath,
+                    clientConfig.clientId,
+                    token,
+                    t =>
+                      toastRef
+                        .show:
+                          MessageItem(
+                            id = "configApiError",
+                            content = "Error saving changes",
+                            severity = Message.Severity.Error
+                          )
+                        .to[IO] >>
+                        rootModelData.async
+                          .zoom(RootModelData.log)
+                          .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
+                        IO.println(t.getMessage) >>
+                        syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
+                  ).some
+            .orEmpty
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
         (_, _, _, singleDispatcher, _, _, _, _, _, apiClientOpt) =>
           case Some(SyncStatus.OutOfSync) =>
-            apiClientOpt
+            apiClientOpt.value
               .map: client =>
                 singleDispatcher.submit(client.refresh)
               .orEmpty
@@ -329,19 +334,22 @@ object MainApp extends ServerEventHandler:
           permitPot
         ) =>
           val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO], ODBQueryApi[IO])] =
-            (ctxPot.value.toOption, apiClientOpt, rootModelData.get.observer, permitPot.toOption)
-              .mapN: (ctx, client, observer, permit) =>
-                import ctx.given
+            (ctxPot.value.toOption,
+             apiClientOpt.value,
+             rootModelData.get.observer,
+             permitPot.toOption
+            ).mapN: (ctx, client, observer, permit) =>
+              import ctx.given
 
-                (
-                  ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
-                  SequenceApiImpl(
-                    client = client,
-                    observer = observer,
-                    requests = rootModelData.zoom(RootModelData.obsRequests)
-                  ),
-                  ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
-                )
+              (
+                ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
+                SequenceApiImpl(
+                  client = client,
+                  observer = observer,
+                  requests = rootModelData.zoom(RootModelData.obsRequests)
+                ),
+                ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
+              )
 
           def provideApiCtx(children: VdomNode*) =
             apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi, odbQueryApi) =>
