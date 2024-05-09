@@ -34,10 +34,10 @@ case class SequenceView(
 
   // Returns where on the sequence the execution is at
   def runningStep: Option[RunningStep] = status match
-    case SequenceState.Running(_, _) => progress
-    case SequenceState.Failed(_)     => progress
-    case SequenceState.Aborted       => progress
-    case _                           => none
+    case SequenceState.Running(_, _, _) => progress
+    case SequenceState.Failed(_)        => progress
+    case SequenceState.Aborted          => progress
+    case _                              => none
 
   def pausedStep = steps.find(_.isObservePaused).map(_.id).map(PausedStep(_))
 

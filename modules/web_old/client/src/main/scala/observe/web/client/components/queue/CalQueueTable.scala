@@ -280,7 +280,7 @@ object CalQueueTable {
         row.status match {
           case SequenceState.Completed     =>
             IconCheckmark.clazz(selectedIconStyle)
-          case SequenceState.Running(_, _) =>
+          case SequenceState.Running(_, _, _) =>
             IconCircleNotched.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
           case SequenceState.Failed(_)     =>
             IconAttention.copy(color = Red, clazz = selectedIconStyle)

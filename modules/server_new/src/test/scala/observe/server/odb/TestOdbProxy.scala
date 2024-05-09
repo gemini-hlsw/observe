@@ -3,6 +3,7 @@
 
 package observe.server.odb
 
+import cats.Applicative
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.syntax.all.*
@@ -41,31 +42,28 @@ trait TestOdbProxy[F[_]] extends OdbProxy[F] {
 object TestOdbProxy {
 
   case class State(
-    acquisitions: List[Atom[DynamicConfig.GmosNorth]],
-    sciences:     List[Atom[DynamicConfig.GmosNorth]],
-    out:          List[OdbEvent]
+    sciences: List[Atom[DynamicConfig.GmosNorth]],
+    out:      List[OdbEvent]
   )
 
   def build[F[_]: Concurrent](
-    staticCfg:    Option[StaticConfig.GmosNorth] = None,
-    acquisitions: List[Atom[DynamicConfig.GmosNorth]] = List.empty,
-    sciences:     List[Atom[DynamicConfig.GmosNorth]] = List.empty
+    staticCfg:   Option[StaticConfig.GmosNorth] = None,
+    acquisition: Option[Atom[DynamicConfig.GmosNorth]],
+    sciences:    List[Atom[DynamicConfig.GmosNorth]] = List.empty
   ): F[TestOdbProxy[F]] = Ref
-    .of[F, State](State(acquisitions, sciences, List.empty))
+    .of[F, State](State(sciences, List.empty))
     .map(rf =>
       new TestOdbProxy[F] {
         private def addEvent(ev: OdbEvent): F[Unit] =
           rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
 
-        override def read(oid: Observation.Id): F[Data.Observation] = rf
-          .getAndUpdate {
-            case State(x :: xx, b, c)   => State(xx, b, c)
-            case State(Nil, y :: yy, c) => State(List.empty, yy, c)
-            case st                     => st
-          }
+        override def read(oid: Observation.Id): F[Data.Observation] = rf.get
           .map { st =>
-            val acqAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.acquisitions.headOption
             val sciAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.sciences.headOption
+            val sciTail: List[Atom[DynamicConfig.GmosNorth]]   = st.sciences match {
+              case head :: tail => tail
+              case Nil          => Nil
+            }
             Data
               .Observation(
                 oid,
@@ -86,16 +84,14 @@ object TestOdbProxy {
                     InstrumentExecutionConfig.GmosNorth(
                       ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
                         stc,
-                        acqAtom.map(
-                          ExecutionSequence[DynamicConfig.GmosNorth](_,
-                                                                     st.acquisitions.tail,
-                                                                     st.acquisitions.tail.nonEmpty
-                          )
+                        acquisition.map(
+                          ExecutionSequence[DynamicConfig.GmosNorth](_, List.empty, true)
                         ),
                         sciAtom.map(
-                          ExecutionSequence[DynamicConfig.GmosNorth](_,
-                                                                     st.sciences.tail,
-                                                                     st.sciences.tail.nonEmpty
+                          ExecutionSequence[DynamicConfig.GmosNorth](
+                            _,
+                            sciTail,
+                            sciTail.nonEmpty
                           )
                         )
                       )
@@ -118,7 +114,19 @@ object TestOdbProxy {
           instrument:   Instrument,
           sequenceType: SequenceType,
           stepCount:    NonNegShort
-        ): F[Unit] = addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
+        ): F[Unit] = (sequenceType match {
+          case SequenceType.Acquisition => Applicative[F].unit
+          case SequenceType.Science     =>
+            rf.modify(s =>
+              (s.focus(_.sciences)
+                 .modify(ss =>
+                   if (ss.isEmpty) List.empty
+                   else ss.tail
+                 ),
+               ()
+              )
+            )
+        }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
 
         override def stepStartStep(
           obsId:         Observation.Id,

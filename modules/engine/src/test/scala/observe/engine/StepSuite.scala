@@ -37,7 +37,7 @@ class StepSuite extends CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
-    _ => Handle.unit[IO, TestState, Event[IO, TestState, Unit]].pure[IO]
+    (eng, obsId) => eng.startNewAtom(obsId)
   )
 
   private object DummyResult extends Result.RetVal with Serializable
@@ -339,7 +339,7 @@ class StepSuite extends CatsEffectSuite {
                ),
                done = Nil
              ),
-             SequenceState.Running(userStop = true, internalStop = false),
+             SequenceState.Running(userStop = true, internalStop = false, waitingNextAtom = false),
              Map.empty
            )
           )

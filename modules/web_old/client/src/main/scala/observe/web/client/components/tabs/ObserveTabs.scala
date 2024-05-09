@@ -37,7 +37,7 @@ object ObserveTabs {
         val model                = x()
         val tabsL                = model.tabs.toList
         val runningInstruments   = tabsL.collect {
-          case Right(AvailableTab(_, SequenceState.Running(_, _), i, _, _, false, _, _, _, _, _)) =>
+          case Right(AvailableTab(_, SequenceState.Running(_, _, _), i, _, _, false, _, _, _, _, _)) =>
             i
         }
         val tabs: List[VdomNode] =
