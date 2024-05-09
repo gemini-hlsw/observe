@@ -8,6 +8,7 @@ import cats.syntax.all.*
 import clue.*
 import crystal.ViewF
 import lucuma.schemas.ObservationDB
+import lucuma.schemas.odb.SequenceSQL
 import observe.queries.VisitQueriesGQL
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
@@ -28,3 +29,24 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
         .attempt
         .flatMap: visits =>
           loadedObs.mod(_.withVisits(visits))
+
+  override def refreshNighttimeSequence: IO[Unit] =
+    nighttimeObservation.toOptionView.fold(
+      Logger[IO].error("refreshNighttimeSequence with undefined loaded observation")
+    ): loadedObs =>
+      IO.println("hello") >>
+        SequenceSQL
+          .SequenceQuery[IO]
+          .query(loadedObs.get.obsId)(ErrorPolicy.RaiseAlways)
+          .adaptError:
+            case ResponseException(errors, _) =>
+              Exception(errors.map(_.message).toList.mkString("\n"))
+          .map(_.observation.map(_.execution.config))
+          .attempt
+          .map:
+            _.flatMap:
+              _.toRight:
+                Exception:
+                  s"Execution Configuration not defined for observation [${loadedObs.get.obsId}]"
+          .flatMap: config =>
+            nighttimeObservation.mod(_.map(_.withConfig(config)))

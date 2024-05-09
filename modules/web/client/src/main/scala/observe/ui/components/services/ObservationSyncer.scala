@@ -7,14 +7,12 @@ import cats.effect.IO
 import cats.effect.Resource
 import cats.syntax.all.*
 import clue.PersistentClientStatus
-import clue.ResponseException
 import crystal.react.*
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.react.common.ReactFnProps
-import lucuma.schemas.odb.SequenceSQL
 import lucuma.schemas.odb.input.*
 import lucuma.ui.reusability.given
 import lucuma.ui.syntax.effect.*
@@ -54,24 +52,10 @@ object ObservationSyncer:
           deps
             .map: (obsId, _) =>
               if (!subscribedObsId.value.contains(obsId))
-                val sequenceUpdate =
-                  SequenceSQL
-                    .SequenceQuery[IO]
-                    .query(obsId)
-                    .adaptError:
-                      case ResponseException(errors, _) =>
-                        Exception(errors.map(_.message).toList.mkString("\n"))
-                    .map(_.observation.map(_.execution.config))
-                    .attempt
-                    .map:
-                      _.flatMap:
-                        _.toRight:
-                          Exception(s"Execution Configuration not defined for observation [$obsId]")
-                    .flatMap: config =>
-                      props.nighttimeObservation.async.mod(_.map(_.withConfig(config)))
-
                 subscribedObsId.setAsync(obsId.some) >>
-                  (sequenceUpdate, odbQueryApi.refreshNighttimeVisits).parTupled
+                  (odbQueryApi.refreshNighttimeSequence,
+                   odbQueryApi.refreshNighttimeVisits
+                  ).parTupled
                     .reRunOnResourceSignals:
                       // Eventually, there will be another subscription notifying of sequence/visits changes
                       ObsQueriesGQL.SingleObservationEditSubscription

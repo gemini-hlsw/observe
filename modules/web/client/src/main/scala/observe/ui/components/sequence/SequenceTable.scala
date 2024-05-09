@@ -214,11 +214,10 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         // ALSO TODO Put some state somewhere to indicate that the visits are reloading, new rows should
         // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
         // During that update, numbering is inconsistent.
-        _ => odbQueryApi.refreshNighttimeVisits
+        _ => odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
       .useRefToAnyVdom
-      .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
+      .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref): (_, _, _, _, _, _, _, _, ref) =>
         _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
-      )
       .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
