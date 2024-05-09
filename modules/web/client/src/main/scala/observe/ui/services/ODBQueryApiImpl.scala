@@ -6,8 +6,11 @@ package observe.ui.services
 import cats.effect.IO
 import cats.syntax.all.*
 import clue.*
+import clue.data.syntax.*
 import crystal.ViewF
+import lucuma.core.model.Visit
 import lucuma.schemas.ObservationDB
+import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.odb.SequenceSQL
 import observe.queries.VisitQueriesGQL
 import observe.ui.model.LoadedObservation
@@ -18,14 +21,18 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
   Logger[IO]
 ) extends ODBQueryApi[IO]:
 
-  // TODO REMEMBER LAST VISIT AND REQUERY STARTING THERE!!!
+  private def lastVisitId(lo: LoadedObservation): Option[Visit.Id] =
+    lo.visits.toOption.flatMap:
+      case ExecutionVisits.GmosNorth(_, visits) => visits.lastOption.map(_.id)
+      case ExecutionVisits.GmosSouth(_, visits) => visits.lastOption.map(_.id)
+
   override def refreshNighttimeVisits: IO[Unit] =
     nighttimeObservation.toOptionView.fold(
       Logger[IO].error("refreshNighttimeVisits with undefined loaded observation")
     ): loadedObs =>
       VisitQueriesGQL
         .ObservationVisits[IO]
-        .query(loadedObs.get.obsId)(ErrorPolicy.IgnoreOnData)
+        .query(loadedObs.get.obsId, lastVisitId(loadedObs.get).orIgnore)(ErrorPolicy.IgnoreOnData)
         .map(_.observation.flatMap(_.execution))
         .attempt
         .flatMap: visits =>
