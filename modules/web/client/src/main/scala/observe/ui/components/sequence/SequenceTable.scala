@@ -168,10 +168,11 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
          props.acquisitionRows,
          props.scienceRows,
          props.currentRecordedVisit.map(_.visitId),
-         props.currentRecordedStepId
+         props.currentRecordedStepId,
+         props.executionState.breakpoints
         )
       ): (_, _, _, _) =>
-        (visitsData, acquisitionSteps, scienceSteps, currentVisitId, currentRecordedStepId) =>
+        (visitsData, acquisitionSteps, scienceSteps, currentVisitId, currentRecordedStepId, _) =>
           val (visits, nextScienceIndex): (List[VisitData], StepIndex) = visitsData.value
 
           stitchSequence(
