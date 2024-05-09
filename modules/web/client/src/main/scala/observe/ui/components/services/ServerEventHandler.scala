@@ -3,6 +3,7 @@
 
 package observe.ui.components.services
 
+import cats.Endo
 import cats.Eq
 import cats.effect.IO
 import cats.syntax.all.*
@@ -99,10 +100,10 @@ trait ServerEventHandler:
         .getOrElse(loadedObservation)
 
   protected def processStreamEvent(
-    clientConfigMod:    (Pot[ClientConfig] => Pot[ClientConfig]) => IO[Unit],
-    rootModelDataMod:   (RootModelData => RootModelData) => IO[Unit],
-    syncStatusMod:      (Option[SyncStatus] => Option[SyncStatus]) => IO[Unit],
-    configApiStatusMod: (ApiStatus => ApiStatus) => IO[Unit]
+    clientConfigMod:    Endo[Pot[ClientConfig]] => IO[Unit],
+    rootModelDataMod:   Endo[RootModelData] => IO[Unit],
+    syncStatusMod:      Endo[Option[SyncStatus]] => IO[Unit],
+    configApiStatusMod: Endo[ApiStatus] => IO[Unit]
   )(
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
