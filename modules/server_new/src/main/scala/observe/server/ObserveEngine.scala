@@ -1733,6 +1733,10 @@ object ObserveEngine {
       // case ResourceBusy(oid, sid, res, cid)   =>
       //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
       // case NoMoreAtoms(_)                     => Stream.empty
+      case AtomCompleted(obsId, sequenceType, atomId)                       =>
+        Stream.emit[F, TargetedClientEvent](
+          ClientEvent.AtomComplete(obsId, sequenceType, atomId)
+        ) ++ buildObserveStateStream(svs, odbProxy)
       case NewAtomLoaded(obsId, sequenceType, atomId)                       =>
         Stream.emit[F, TargetedClientEvent](ClientEvent.AtomLoaded(obsId, sequenceType, atomId)) ++
           buildObserveStateStream(svs, odbProxy)

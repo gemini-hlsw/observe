@@ -23,6 +23,7 @@ import observe.ui.model.enums.OperationRequest
 import org.http4s.Query
 import org.http4s.Uri
 import org.typelevel.log4cats.Logger
+import lucuma.core.enums.SequenceType
 
 case class SequenceApiImpl(
   client:   ApiClient,
@@ -36,10 +37,9 @@ case class SequenceApiImpl(
     lens:  Lens[ObservationRequests, OperationRequest]
   ): IO[Unit] =
     requests
-      .mod(r =>
-        r + (obsId -> lens
-          .replace(OperationRequest.Idle)(r.getOrElse(obsId, ObservationRequests.Idle)))
-      )
+      .mod: r =>
+        r + (obsId ->
+          lens.replace(OperationRequest.InFlight)(r.getOrElse(obsId, ObservationRequests.Idle)))
       .to[IO]
 
   override def loadObservation(obsId: Observation.Id, instrument: Instrument): IO[Unit] =
@@ -151,3 +151,8 @@ case class SequenceApiImpl(
       client.postNoData:
         Uri.Path.empty / obsId.toString / stepId.toString / client.clientId.value / "execute" /
           Enumerated[Resource | Instrument].tag(subsystem) / observer.toString
+
+  override def loadNextAtom(obsId: Observation.Id, sequenceType: SequenceType): IO[Unit] =
+    setInFlight(obsId, ObservationRequests.acquisitionPrompt) >>
+      client.postNoData:
+        Uri.Path.empty / obsId.toString / client.clientId.value / "loadNextAtom" / observer.toString / sequenceType.tag

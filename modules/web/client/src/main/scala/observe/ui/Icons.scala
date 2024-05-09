@@ -10,6 +10,10 @@ import scala.scalajs.js.annotation.*
 
 object Icons:
   @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faArrowsRetweet")
+  private val faArrowsRetweet: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faArrowUpFromLine")
   private val faArrowUpFromLine: FAIcon = js.native
 
@@ -64,6 +68,10 @@ object Icons:
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircleNotch")
   private val faCircleNotch: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-regular-svg-icons", "faCircleQuestion")
+  private val faCircleQuestion: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCircle")
@@ -143,6 +151,7 @@ object Icons:
 
   // This is tedious but lets us do proper tree-shaking
   FontAwesome.library.add(
+    faArrowsRetweet,
     faArrowUpFromLine,
     faBan,
     faBars,
@@ -157,6 +166,7 @@ object Icons:
     faCircleInfo,
     faCircleMinus,
     faCircleNotch,
+    faCircleQuestion,
     faCircleSolid,
     faClock,
     faCrosshairs,
@@ -178,6 +188,7 @@ object Icons:
     faXMark
   )
 
+  inline def ArrowsRetweet     = FontAwesomeIcon(faArrowsRetweet)
   inline def ArrowUpFromLine   = FontAwesomeIcon(faArrowUpFromLine)
   inline def Ban               = FontAwesomeIcon(faBan)
   inline def Bars              = FontAwesomeIcon(faBars)
@@ -192,6 +203,7 @@ object Icons:
   inline def CircleInfo        = FontAwesomeIcon(faCircleInfo)
   inline def CircleMinus       = FontAwesomeIcon(faCircleMinus)
   inline def CircleNotch       = FontAwesomeIcon(faCircleNotch).withSpin()
+  inline def CircleQuestion    = FontAwesomeIcon(faCircleQuestion)
   inline def CircleSolid       = FontAwesomeIcon(faCircleSolid)
   inline def Clock             = FontAwesomeIcon(faClock)
   inline def Crosshairs        = FontAwesomeIcon(faCrosshairs)

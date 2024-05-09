@@ -32,6 +32,7 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import org.typelevel.log4cats.Logger
+import observe.model.events.ClientEvent.AtomComplete
 
 trait ServerEventHandler:
   private def logMessage(
@@ -107,6 +108,7 @@ trait ServerEventHandler:
   )(
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
+    // IO.println(event) >> {
     event match
       case ClientEvent.BaDum                                                              =>
         IO.unit
@@ -156,11 +158,16 @@ trait ServerEventHandler:
           configApiStatusMod(_ => ApiStatus.Idle)
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some))
+      case ClientEvent.AtomComplete(_, _, _)                                              => IO.unit
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>
         rootModelDataMod:
           RootModelData.nighttimeObservation.some.modify:
             instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)
-      // TODO Also requery future sequence here. It may have changed.
+      // TODO Also requery future sequence here. It may have changed. Or there may be new atoms to load past the limit.
+      // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
+      // and in SequenceTable it's being done once per step.
+      // However, we need to turn the app initialization on its head in MainApp to achieve this.
+  // }
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]

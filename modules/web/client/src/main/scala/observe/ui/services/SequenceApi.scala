@@ -13,6 +13,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
+import lucuma.core.enums.SequenceType
 
 trait SequenceApi[F[_]: MonadThrow]:
   /** Load a sequence in the server */
@@ -64,6 +65,9 @@ trait SequenceApi[F[_]: MonadThrow]:
   /** Runs a resource or instrument */
   def execute(obsId: Observation.Id, stepId: Step.Id, subsystem: Resource | Instrument): F[Unit] =
     NotAuthorized
+
+  /** Loads next atom of specified sequence type and resumes execution */
+  def loadNextAtom(obsId: Observation.Id, sequenceType: SequenceType): F[Unit] = NotAuthorized
 
 object SequenceApi:
   // Default value is NotAuthorized implementations

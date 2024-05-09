@@ -35,6 +35,7 @@ case class RootModelData(
   obsProgress:          Map[Observation.Id, StepProgress],
   userSelectedStep:     Map[Observation.Id, Step.Id],
   obsRequests:          Map[Observation.Id, ObservationRequests],
+  // acquisitionPrompt:    Set[Observation.Id],                 //  Observations waiting for user after acquisition atom
   conditions:           Conditions,
   observer:             Option[Observer],
   operator:             Option[Operator],

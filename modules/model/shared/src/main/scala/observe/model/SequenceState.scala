@@ -45,6 +45,11 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
       case SequenceState.Running(_, _, _) => true
       case _                              => false
 
+  def isWaitingNextAtom: Boolean =
+    this match
+      case SequenceState.Running(_, _, b) => b
+      case _                              => false
+
   def isCompleted: Boolean =
     this === SequenceState.Completed
 

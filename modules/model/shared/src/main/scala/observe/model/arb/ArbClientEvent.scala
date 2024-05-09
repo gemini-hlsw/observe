@@ -103,6 +103,17 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.ProgressEvent] =
     Cogen[ObservationProgress].contramap(_.progress)
 
+  given Arbitrary[ClientEvent.AtomComplete] = Arbitrary:
+    for
+      obsId        <- arbitrary[Observation.Id]
+      sequenceType <- arbitrary[SequenceType]
+      atomId       <- arbitrary[Atom.Id]
+    yield ClientEvent.AtomComplete(obsId, sequenceType, atomId)
+
+  given Cogen[ClientEvent.AtomComplete] =
+    Cogen[(Observation.Id, SequenceType, Atom.Id)].contramap: x =>
+      (x.obsId, x.sequenceType, x.atomId)
+
   given Arbitrary[ClientEvent.AtomLoaded] = Arbitrary:
     for
       obsId        <- arbitrary[Observation.Id]
@@ -121,6 +132,7 @@ trait ArbClientEvent:
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
+      arbitrary[ClientEvent.AtomComplete],
       arbitrary[ClientEvent.AtomLoaded]
     )
 
@@ -137,7 +149,10 @@ trait ArbClientEvent:
               ClientEvent.ChecksOverrideEvent,
               Either[
                 ClientEvent.ProgressEvent,
-                ClientEvent.AtomLoaded
+                Either[
+                  ClientEvent.AtomComplete,
+                  ClientEvent.AtomLoaded
+                ]
               ]
             ]
           ]
@@ -150,8 +165,10 @@ trait ArbClientEvent:
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
+      case e @ ClientEvent.AtomComplete(_, _, _)            =>
+        Right(Right(Right(Right(Right(Right(Left(e)))))))
       case e @ ClientEvent.AtomLoaded(_, _, _)              =>
-        Right(Right(Right(Right(Right(Right(e))))))
+        Right(Right(Right(Right(Right(Right(Right(e)))))))
 
 end ArbClientEvent
 
