@@ -11,7 +11,7 @@ import crystal.ViewF
 import lucuma.core.model.Visit
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.model.ExecutionVisits
-import lucuma.schemas.odb.SequenceSQL
+import lucuma.schemas.odb.SequenceQueriesGQL
 import observe.queries.VisitQueriesGQL
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
@@ -42,7 +42,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
     nighttimeObservation.toOptionView.fold(
       Logger[IO].error("refreshNighttimeSequence with undefined loaded observation")
     ): loadedObs =>
-      SequenceSQL
+      SequenceQueriesGQL
         .SequenceQuery[IO]
         .query(loadedObs.get.obsId)(ErrorPolicy.RaiseAlways)
         .adaptError:
