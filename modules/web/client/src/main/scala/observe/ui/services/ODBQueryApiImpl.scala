@@ -36,7 +36,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
         .map(_.observation.flatMap(_.execution))
         .attempt
         .flatMap: visits =>
-          loadedObs.mod(_.withVisits(visits))
+          loadedObs.mod(_.addVisits(visits))
 
   override def refreshNighttimeSequence: IO[Unit] =
     nighttimeObservation.toOptionView.fold(

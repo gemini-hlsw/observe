@@ -5,6 +5,9 @@ package observe.ui.model
 
 import cats.syntax.all.*
 import crystal.Pot
+import crystal.Pot.Pending
+import crystal.Pot.Ready
+import crystal.syntax.*
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.InstrumentExecutionConfig
@@ -17,11 +20,24 @@ case class LoadedObservation private (
   config: Pot[InstrumentExecutionConfig] = Pot.pending,
   visits: Pot[ExecutionVisits] = Pot.pending
 ):
+  private def potFromEitherOption[A](e: Either[Throwable, Option[A]]): Pot[A] =
+    e.toTry.toPot.flatMap(_.toPot)
+
   def withConfig(config: Either[Throwable, Option[InstrumentExecutionConfig]]): LoadedObservation =
-    copy(config = Pot.fromTry(config.map(Pot.fromOption).toTry).flatten)
+    copy(config = potFromEitherOption(config))
 
   def withVisits(visits: Either[Throwable, Option[ExecutionVisits]]): LoadedObservation =
-    copy(visits = Pot.fromTry(visits.map(Pot.fromOption).toTry).flatten)
+    copy(visits = potFromEitherOption(visits))
+
+  def addVisits(addedVisits: Either[Throwable, Option[ExecutionVisits]]): LoadedObservation =
+    copy(visits = visits match
+      case Ready(existing) =>
+        potFromEitherOption(addedVisits) match
+          case Ready(added) => Ready(existing.extendWith(added))
+          case Pending      => visits
+          case error        => error
+      case _               => potFromEitherOption(addedVisits)
+    )
 
   def reset: LoadedObservation =
     copy(config = Pot.pending, visits = Pot.pending)
