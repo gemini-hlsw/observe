@@ -21,6 +21,7 @@ import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackTableCore as raw
+import lucuma.typed.tanstackVirtualCore as rawVirtual
 import lucuma.ui.primereact.*
 import lucuma.ui.react.given
 import lucuma.ui.reusability.given
@@ -39,7 +40,6 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
-import org.scalajs.dom
 
 import scala.scalajs.LinkingInfo
 
@@ -139,11 +139,14 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
     extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
-  private def scrollIfNeeded(element: dom.Element) = Callback {
-    val rect = element.getBoundingClientRect()
-    if (rect.top < 0) element.scrollIntoView()
-    if (rect.bottom > dom.window.innerHeight) element.scrollIntoView(false)
-  }
+  private val ScrollOptions =
+    rawVirtual.mod
+      .ScrollToOptions()
+      .setBehavior(rawVirtual.mod.ScrollBehavior.smooth)
+      .setAlign(rawVirtual.mod.ScrollAlignment.start)
+
+  private val CurrentHeadersRowIds: List[String] =
+    List(SequenceType.Acquisition.toString, SequenceType.Science.toString)
 
   protected[sequence] val component =
     ScalaFnComponent
@@ -215,10 +218,16 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
         // During that update, numbering is inconsistent.
         _ => odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
-      .useRefToAnyVdom
-      .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref): (_, _, _, _, _, _, _, _, ref) =>
-        _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
-      .render: (props, resize, cols, _, _, _, table, _, selectedRef) =>
+      .useRef(none[HTMLTableVirtualizer])
+      .useEffectOnMountBy: (_, _, _, _, sequence, _, _, _, virtualizerRef) =>
+        virtualizerRef.get.flatMap: refOpt =>
+          Callback:
+            refOpt.map:
+              _.scrollToIndex(
+                sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
+                ScrollOptions
+              )
+      .render: (props, resize, cols, _, _, _, table, _, virtualizerRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -235,7 +244,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               val stepIdOpt: Option[Step.Id] = step.id.toOption
 
               TagMod(
-                (^.untypedRef := selectedRef).when(step.isSelected),
                 stepIdOpt
                   .map: stepId =>
                     TagMod(
@@ -322,6 +330,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             estimateSize = _ => 25.toPx,
             overscan = 8,
             containerRef = resize.ref,
+            virtualizerRef = virtualizerRef,
             tableMod = TagMod(tableStyle),
             rowMod = row => computeRowMods(row.original),
             headerCellMod = computeHeaderCellMods,
