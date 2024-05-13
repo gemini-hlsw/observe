@@ -328,7 +328,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           rows.forall: row =>
             if visitIds.contains(RowId(row.id)) then onContains(Row(row)) else true
 
-        val allVisitsAreCollapsed = forAllVisits(row => !row.getIsExpanded())
+        val allVisitsAreCollapsed = forAllVisits(!_.getIsExpanded())
         val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
 
         React.Fragment(
