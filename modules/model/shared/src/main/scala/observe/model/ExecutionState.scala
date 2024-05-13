@@ -19,7 +19,8 @@ import observe.model.enums.ActionStatus
 import observe.model.enums.Resource
 
 /**
- * This class concentrates all the execution state that is kept in the server.
+ * This class concentrates all the execution state that is kept in the server, except for current
+ * recorded ids in the ODB.
  */
 case class ExecutionState(
   sequenceState:   SequenceState,

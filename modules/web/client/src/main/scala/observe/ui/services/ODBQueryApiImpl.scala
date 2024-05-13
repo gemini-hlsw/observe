@@ -6,14 +6,12 @@ package observe.ui.services
 import cats.effect.IO
 import cats.syntax.all.*
 import clue.*
+import clue.data.syntax.*
 import crystal.ViewF
+import lucuma.core.model.Visit
 import lucuma.schemas.ObservationDB
-import lucuma.schemas.model.AtomRecord
 import lucuma.schemas.model.ExecutionVisits
-import lucuma.schemas.model.StepRecord
-import lucuma.schemas.model.Visit
-import lucuma.schemas.model.enums.StepExecutionState
-import monocle.Traversal
+import lucuma.schemas.odb.SequenceQueriesGQL
 import observe.queries.VisitQueriesGQL
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
@@ -23,26 +21,10 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
   Logger[IO]
 ) extends ODBQueryApi[IO]:
 
-  private val gmosNorthVisitsSteps: Traversal[ExecutionVisits, List[StepRecord.GmosNorth]] =
-    ExecutionVisits.gmosNorth
-      .andThen(ExecutionVisits.GmosNorth.visits.each)
-      .andThen(Visit.GmosNorth.atoms.each)
-      .andThen(AtomRecord.GmosNorth.steps)
-
-  private val gmosSouthVisitsSteps: Traversal[ExecutionVisits, List[StepRecord.GmosSouth]] =
-    ExecutionVisits.gmosSouth
-      .andThen(ExecutionVisits.GmosSouth.visits.each)
-      .andThen(Visit.GmosSouth.atoms.each)
-      .andThen(AtomRecord.GmosSouth.steps)
-
-  private val gmosNorthRemoveOngoingSteps: ExecutionVisits => ExecutionVisits =
-    gmosNorthVisitsSteps.modify(_.filter(_.executionState =!= StepExecutionState.Ongoing))
-
-  private val gmosSouthRemoveOngoingSteps: ExecutionVisits => ExecutionVisits =
-    gmosSouthVisitsSteps.modify(_.filter(_.executionState =!= StepExecutionState.Ongoing))
-
-  private val removeOngoingSteps: ExecutionVisits => ExecutionVisits =
-    gmosNorthRemoveOngoingSteps >>> gmosSouthRemoveOngoingSteps
+  private def lastVisitId(lo: LoadedObservation): Option[Visit.Id] =
+    lo.visits.toOption.flatMap:
+      case ExecutionVisits.GmosNorth(_, visits) => visits.lastOption.map(_.id)
+      case ExecutionVisits.GmosSouth(_, visits) => visits.lastOption.map(_.id)
 
   override def refreshNighttimeVisits: IO[Unit] =
     nighttimeObservation.toOptionView.fold(
@@ -50,12 +32,28 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
     ): loadedObs =>
       VisitQueriesGQL
         .ObservationVisits[IO]
-        .query(loadedObs.get.obsId)(ErrorPolicy.IgnoreOnData)
+        .query(loadedObs.get.obsId, lastVisitId(loadedObs.get).orIgnore)(ErrorPolicy.IgnoreOnData)
         .map(_.observation.flatMap(_.execution))
         .attempt
         .flatMap: visits =>
-          loadedObs.mod:
-            _.withVisits:
-              // Ongoing step is shown from current atom, not from visits, so we remove it.
-              visits.map:
-                _.map(removeOngoingSteps)
+          loadedObs.mod(_.addVisits(visits))
+
+  override def refreshNighttimeSequence: IO[Unit] =
+    nighttimeObservation.toOptionView.fold(
+      Logger[IO].error("refreshNighttimeSequence with undefined loaded observation")
+    ): loadedObs =>
+      SequenceQueriesGQL
+        .SequenceQuery[IO]
+        .query(loadedObs.get.obsId)(ErrorPolicy.RaiseAlways)
+        .adaptError:
+          case ResponseException(errors, _) =>
+            Exception(errors.map(_.message).toList.mkString("\n"))
+        .map(_.observation.map(_.execution.config))
+        .attempt
+        .map:
+          _.flatMap:
+            _.toRight:
+              Exception:
+                s"Execution Configuration not defined for observation [${loadedObs.get.obsId}]"
+        .flatMap: config =>
+          nighttimeObservation.mod(_.map(_.withConfig(config)))

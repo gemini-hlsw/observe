@@ -18,7 +18,7 @@ protected[events] given KeyDecoder[Observation.Id] = Observation.Id.parse(_)
 
 extension (v: SequencesQueue[SequenceView])
   def sequencesState: Map[Observation.Id, ExecutionState] =
-    v.sessionQueue.map(o => (o.obsId, o.executionState)).toMap
+    v.sessionQueue.map(o => o.obsId -> o.executionState).toMap
 
 extension (q: SequenceView)
   def executionState: ExecutionState =

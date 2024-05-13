@@ -21,6 +21,7 @@ import observe.model.StepProgress
 import observe.model.dhs.ImageFileId
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
+import observe.ui.model.reusability.given
 
 import scala.concurrent.duration.*
 
@@ -56,6 +57,17 @@ object ObservationProgressBar extends ProgressLabel:
   // The following value was found by trial and error to provide the smoothest experience.
   private val UpdateMicros: Long           = 58000
 
+  private def computeProgressValues(
+    runningProgress: Option[StepProgress],
+    extra:           Long
+  ): (Double, Long) =
+    runningProgress match
+      case Some(StepProgress.Regular(_, total, remaining, _)) =>
+        val totalMicros: Long   = total.toMicroseconds
+        val elapsedMicros: Long = totalMicros - remaining.toMicroseconds + extra
+        ((elapsedMicros * 100.0) / totalMicros, totalMicros - elapsedMicros)
+      case _                                                  => (0.0, 0L)
+
   private val component = ScalaFnComponent
     .withHooks[Props]
     .useContext(AppContext.ctx)
@@ -78,41 +90,47 @@ object ObservationProgressBar extends ProgressLabel:
                   previous + UpdateMicros
               .compile
               .drain
-    .render: (props, _, extra, _) =>
-      props.runningProgress match
-        case Some(StepProgress.Regular(_, total, remaining, stage)) =>
-          val totalMicros: Long   = total.toMicroseconds
-          val elapsedMicros: Long = (totalMicros - remaining.toMicroseconds) + extra.value
-          val progress: Double    = (elapsedMicros * 100.0) / totalMicros
+    // (progress, remainingMicros)
+    .useRefBy((props, _, extra, _) => computeProgressValues(props.runningProgress, extra.value))
+    .useEffectWithDepsBy((props, _, extra, _, _) => (props.runningProgress, extra.value)):
+      (_, _, _, _, progress) =>
+        (runningProgress, extra) =>
+          val (newProgress, remainingMicros) = computeProgressValues(runningProgress, extra)
+          if (newProgress > progress.value._1)
+            progress.set((newProgress, remainingMicros))
+          else
+            Callback.empty
+    .render: (props, _, _, _, progress) =>
+      props.runningProgress.fold {
+        val msg: String =
+          List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
+            .filterNot(_.isEmpty)
+            .mkString(" - ")
 
-          ProgressBar(
-            value = progress,
-            clazz = ObserveStyles.ObservationProgressBar,
-            displayValueTemplate = _ =>
-              // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
-              // Achieved by rendering the 3 divs inside a space-between flexbox.
-              React.Fragment(
-                <.div,
-                <.div(
-                  renderLabel(
-                    props.fileId,
-                    (totalMicros - elapsedMicros).some,
-                    props.isStopping,
-                    props.isPausedInStep,
-                    stage
-                  )
-                ),
-                <.div
-              )
-          )
-
-        case _ =>
-          val msg: String =
-            List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
-              .filterNot(_.isEmpty)
-              .mkString(" - ")
-
-          // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
-          <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationProgressBar)(
-            <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
-          )
+        // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
+        <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationProgressBar)(
+          <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
+        )
+      } { runningProgress =>
+        ProgressBar(
+          id = "progress",
+          value = progress.value._1,
+          clazz = ObserveStyles.ObservationProgressBar,
+          displayValueTemplate = _ =>
+            // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
+            // Achieved by rendering the 3 divs inside a space-between flexbox.
+            React.Fragment(
+              <.div,
+              <.div(
+                renderLabel(
+                  props.fileId,
+                  progress.value._2.some,
+                  props.isStopping,
+                  props.isPausedInStep,
+                  runningProgress.stage
+                )
+              ),
+              <.div
+            )
+        )
+      }

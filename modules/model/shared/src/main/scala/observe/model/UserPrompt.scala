@@ -9,14 +9,15 @@ import cats.derived.*
 import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
+import io.circe.JsonObject
 import io.circe.syntax.*
 import lucuma.core.model.sequence.Step
 
 sealed trait UserPrompt extends Product with Serializable
 
-object UserPrompt {
+object UserPrompt:
 
-  sealed trait SeqCheck extends Product with Serializable;
+  sealed trait SeqCheck extends Product with Serializable
 
   object SeqCheck:
     given Eq[SeqCheck] = Eq.instance:
@@ -36,9 +37,20 @@ object UserPrompt {
 
   case class Discrepancy[A](actual: A, required: A)
 
-  object Discrepancy {
-    given [A: Eq]: Eq[Discrepancy[A]] = Eq.by(x => (x.actual, x.required))
-  }
+  object Discrepancy:
+    given [A: Eq]: Eq[Discrepancy[A]] = Eq.by(d => (d.actual, d.required))
+
+    given [A: Encoder]: Encoder.AsObject[Discrepancy[A]] = Encoder.AsObject.instance: d =>
+      JsonObject(
+        "actual"   -> d.actual.asJson,
+        "required" -> d.required.asJson
+      )
+
+    given [A: Decoder]: Decoder[Discrepancy[A]] = Decoder.instance: c =>
+      for
+        actual   <- c.downField("actual").as[A]
+        required <- c.downField("required").as[A]
+      yield Discrepancy(actual, required)
 
   case class TargetCheckOverride(self: Discrepancy[String]) extends SeqCheck
       derives Eq,
@@ -57,9 +69,8 @@ object UserPrompt {
         Decoder
 
   given Eq[UserPrompt] =
-    Eq.instance { case (a: ChecksOverride, b: ChecksOverride) =>
-      a === b
-    }
+    Eq.instance:
+      case (a: ChecksOverride, b: ChecksOverride) => a === b
 
   // UserPrompt whether to override start checks
   case class ChecksOverride(
@@ -67,6 +78,6 @@ object UserPrompt {
     stepId: Step.Id,
     checks: NonEmptyList[SeqCheck]
   ) extends UserPrompt
-      derives Eq
-
-}
+      derives Eq,
+        Encoder.AsObject,
+        Decoder

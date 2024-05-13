@@ -15,6 +15,7 @@ import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.arb.all.given
 import observe.model.dhs.*
 import observe.model.enums.*
+import observe.model.odb.ObsRecordedIds
 import org.scalacheck.Test as ScalaCheckTest
 
 /**
@@ -66,3 +67,5 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[NsRunningState]", EqTests[NsRunningState].eqv)
   checkAll("Eq[ClientConfig]", EqTests[ClientConfig].eqv)
   checkAll("Codec[ClientConfig]", CodecTests[ClientConfig].unserializableCodec)
+  checkAll("Eq[ObsRecordedIds]", EqTests[ObsRecordedIds].eqv)
+  checkAll("Codec[ObsRecordedIds]", CodecTests[ObsRecordedIds].unserializableCodec)

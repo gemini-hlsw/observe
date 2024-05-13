@@ -108,7 +108,7 @@ object SubsystemControls:
           .map: subsystem =>
             val (icon, severity, disabled) = props.buttonProperties(subsystem)
 
-            <.span(
+            <.span(^.key := s"config-${subsystem}")(
               Button(
                 size = Button.Size.Small,
                 severity = severity,

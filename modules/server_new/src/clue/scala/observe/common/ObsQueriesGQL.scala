@@ -314,6 +314,18 @@ object ObsQueriesGQL:
       """
 
   @GraphQL
+  trait AddAtomEventMutation extends GraphQLOperation[ObservationDB]:
+    val document = """
+      mutation($atomId: AtomId!, $stg: AtomStage!)  {
+        addAtomEvent(input: { atomId: $atomId, atomStage: $stg } ) {
+          event {
+            id
+          }
+        }
+      }
+      """
+
+  @GraphQL
   trait AddStepEventMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($stepId: StepId!, $stg: StepStage!)  {

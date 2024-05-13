@@ -10,7 +10,10 @@ import japgolly.scalajs.react.feature.Context
 
 trait ODBQueryApi[F[_]: Sync]:
   def refreshNighttimeVisits: F[Unit] =
-    Sync[F].delay(println("refreshNighttimeVisits invoked without being initialized"))
+    Sync[F].delay(println("refreshNighttimeVisits invoked with uninitialized ODBQueryApi"))
+
+  def refreshNighttimeSequence: F[Unit] =
+    Sync[F].delay(println("refreshNighttimeSequence invoked with uninitialized ODBQueryApi"))
 
 object ODBQueryApi:
   // Default value noop implementations with warning

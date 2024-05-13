@@ -21,8 +21,10 @@ import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
 import observe.model.arb.ArbExecutionState.given
+import observe.model.arb.ArbObsRecordedIds.given
 import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
+import observe.model.odb.ObsRecordedIds
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObsSummary
 import observe.ui.model.ObservationRequests
@@ -48,7 +50,8 @@ trait ArbRootModel:
       so   <- arbitrary[Option[Observation.Id]]
       nto  <- arbitrary[Option[LoadedObservation]]
       dtos <- arbitrary[List[LoadedObservation]]
-      se   <- arbitrary[Map[Observation.Id, ExecutionState]]
+      es   <- arbitrary[Map[Observation.Id, ExecutionState]]
+      ri   <- arbitrary[ObsRecordedIds]
       sp   <- arbitrary[Map[Observation.Id, StepProgress]]
       uss  <- arbitrary[Map[Observation.Id, Step.Id]]
       or   <- arbitrary[Map[Observation.Id, ObservationRequests]]
@@ -57,7 +60,7 @@ trait ArbRootModel:
       op   <- arbitrary[Option[Operator]]
       usm  <- arbitrary[Option[NonEmptyString]]
       log  <- arbitrary[List[NonEmptyString]]
-    yield RootModelData(uv, ros, so, nto, dtos, se, sp, uss, or, cs, obs, op, usm, log)
+    yield RootModelData(uv, ros, so, nto, dtos, es, ri, sp, uss, or, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
     (
@@ -67,6 +70,7 @@ trait ArbRootModel:
       Option[LoadedObservation],
       List[LoadedObservation],
       List[(Observation.Id, ExecutionState)],
+      ObsRecordedIds,
       List[(Observation.Id, StepProgress)],
       List[(Observation.Id, Step.Id)],
       List[(Observation.Id, ObservationRequests)],
@@ -83,6 +87,7 @@ trait ArbRootModel:
      x.nighttimeObservation,
      x.daytimeObservations,
      x.executionState.toList,
+     x.recordedIds,
      x.obsProgress.toList,
      x.userSelectedStep.toList,
      x.obsRequests.toList,

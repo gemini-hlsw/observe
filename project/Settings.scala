@@ -27,19 +27,19 @@ object Settings {
     val coulomb          = "0.8.0"
     val commonsHttp      = "3.1"
     val unboundId        = "3.2.1"
-    val jwt              = "10.0.0"
+    val jwt              = "10.0.1"
     val slf4j            = "2.0.13"
-    val log4cats         = "2.6.0"
+    val log4cats         = "2.7.0"
     val log4catsLogLevel = "0.3.1"
     val logback          = "1.5.6"
     val janino           = "3.1.12"
     val pureConfig       = "0.17.6"
     val monocleVersion   = "3.2.0"
-    val circeVersion     = "0.14.6"
+    val circeVersion     = "0.14.7"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.0-M12"
+    val munitVersion           = "1.0.0-RC1"
     val munitDisciplineVersion = "1.0.9"
     val munitCatsEffectVersion = "2.0.0-M5"
 
@@ -49,11 +49,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.96.1"
-    val lucumaUI        = "0.98.1"
-    val lucumaSchemas   = "0.81.1"
-    val lucumaSSO       = "0.6.16"
-    val lucumaODBSchema = "0.11.5"
+    val lucumaCore      = "0.97.1"
+    val lucumaUI        = "0.101.3"
+    val lucumaSchemas   = "0.83.0"
+    val lucumaSSO       = "0.6.17"
+    val lucumaODBSchema = "0.11.7"
 
     // Clue
     val clue = "0.35.2"

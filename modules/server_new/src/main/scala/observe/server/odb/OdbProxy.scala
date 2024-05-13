@@ -12,6 +12,7 @@ import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
 import eu.timepit.refined.types.numeric.NonNegShort
+import lucuma.core.enums.AtomStage
 import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
@@ -32,6 +33,9 @@ import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
+import observe.model.odb.ObsRecordedIds
+import observe.model.odb.RecordedAtomId
+import observe.model.odb.RecordedStepId
 import observe.server.ObserveFailure
 import observe.server.given
 import org.typelevel.log4cats.Logger
@@ -68,12 +72,14 @@ sealed trait OdbEventCommands[F[_]] {
   def stepEndObserve(obsId:       Observation.Id): F[Boolean]
   def stepEndStep(obsId:          Observation.Id): F[Boolean]
   def stepAbort(obsId:            Observation.Id): F[Boolean]
+  def atomEnd(obsId:              Observation.Id): F[Boolean]
   def sequenceEnd(obsId:          Observation.Id): F[Boolean]
   def obsAbort(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsContinue(obsId:          Observation.Id): F[Boolean]
   def obsPause(obsId:             Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:              Observation.Id, reason: String): F[Boolean]
 
+  def getCurrentRecordedIds: F[ObsRecordedIds]
 }
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
@@ -141,6 +147,8 @@ object OdbProxy {
 
     def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
+    def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
 
@@ -177,6 +185,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
   case class OdbCommandsImpl[F[_]](
@@ -214,6 +224,8 @@ object OdbProxy {
       _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
       atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument)
       -       <- setCurrentAtomId(obsId, atomId)
+      _       <- AddAtomEventMutation[F]
+                   .execute(atomId = atomId.value, stg = AtomStage.StartAtom)
       _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
     } yield ()
 
@@ -352,6 +364,14 @@ object OdbProxy {
         _      <- L.debug("ODB event stepAbort sent")
       } yield true
 
+    override def atomEnd(obsId: Observation.Id): F[Boolean] =
+      for {
+        atomId <- getCurrentAtomId(obsId)
+        _      <- L.debug(s"Send ODB event atomEnd for obsId: $obsId, atomId: $atomId")
+        _      <- AddAtomEventMutation[F].execute(atomId = atomId.value, stg = AtomStage.EndAtom)
+        _      <- L.debug("ODB event atomEnd sent")
+      } yield true
+
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       for {
         _ <- setCurrentVisitId(obsId, none)
@@ -466,6 +486,8 @@ object OdbProxy {
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)
             .map(_.recordDataset.dataset.id)
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get
   }
 
   class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
@@ -510,6 +532,8 @@ object OdbProxy {
 
     override def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
+    override def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
     override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
       Applicative[F].unit
 
@@ -519,6 +543,8 @@ object OdbProxy {
       sequenceType: SequenceType,
       stepCount:    NonNegShort
     ): F[Unit] = Applicative[F].unit
+
+    override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
   }
 
 }

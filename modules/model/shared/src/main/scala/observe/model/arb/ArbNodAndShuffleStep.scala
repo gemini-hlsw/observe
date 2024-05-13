@@ -8,8 +8,6 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.given
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
 import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbTimeSpan.given
@@ -27,6 +25,7 @@ import org.scalacheck.Gen
 
 import ArbDhsTypes.given
 import ArbGmosParameters.given
+import ArbInstrumentDynamicConfig.given
 import ArbNsRunningState.given
 import ArbStepState.given
 import ArbSystem.given
@@ -57,7 +56,7 @@ trait ArbNodAndShuffleStep {
     Arbitrary[ObserveStep.NodAndShuffle] {
       for {
         id <- arbitrary[Step.Id]
-        d  <- arbitrary[DynamicConfig]
+        d  <- arbitrary[InstrumentDynamicConfig]
         t  <- arbitrary[StepConfig]
         s  <- arbitrary[StepState]
         b  <- arbitrary[Breakpoint]
@@ -84,7 +83,7 @@ trait ArbNodAndShuffleStep {
     Cogen[
       (
         Step.Id,
-        DynamicConfig,
+        InstrumentDynamicConfig,
         StepConfig,
         StepState,
         Breakpoint,

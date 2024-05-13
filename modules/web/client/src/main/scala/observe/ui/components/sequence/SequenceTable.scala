@@ -21,6 +21,7 @@ import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackTableCore as raw
+import lucuma.typed.tanstackVirtualCore as rawVirtual
 import lucuma.ui.primereact.*
 import lucuma.ui.react.given
 import lucuma.ui.reusability.given
@@ -31,6 +32,7 @@ import observe.model.ExecutionState
 import observe.model.ObserveStep
 import observe.model.StepProgress
 import observe.model.StepState
+import observe.model.odb.RecordedVisit
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
@@ -38,7 +40,6 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
-import org.scalajs.dom
 
 import scala.scalajs.LinkingInfo
 
@@ -51,12 +52,16 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def config: ExecutionConfig[S, D]
   def visits: List[Visit[D]]
   def executionState: ExecutionState
+  def currentRecordedVisit: Option[RecordedVisit]
   def progress: Option[StepProgress]
   def selectedStepId: Option[Step.Id]
   def setSelectedStepId: Step.Id => Callback
   def requests: ObservationRequests
   def isPreview: Boolean
   def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
+
+  protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
+    currentRecordedVisit.flatMap(RecordedVisit.stepId.getOption).map(_.value)
 
   private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
     SequenceRow.FutureStep
@@ -93,17 +98,18 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
     currentStepsToRows(scienceCurrentSteps) ++ config.science.map(steps).orEmpty
 
 case class GmosNorthSequenceTable(
-  clientMode:        ClientMode,
-  obsId:             Observation.Id,
-  config:            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
-  visits:            List[Visit.GmosNorth],
-  executionState:    ExecutionState,
-  progress:          Option[StepProgress],
-  selectedStepId:    Option[Step.Id],
-  setSelectedStepId: Step.Id => Callback,
-  requests:          ObservationRequests,
-  isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
+  clientMode:           ClientMode,
+  obsId:                Observation.Id,
+  config:               ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
+  visits:               List[Visit.GmosNorth],
+  executionState:       ExecutionState,
+  currentRecordedVisit: Option[RecordedVisit],
+  progress:             Option[StepProgress],
+  selectedStepId:       Option[Step.Id],
+  setSelectedStepId:    Step.Id => Callback,
+  requests:             ObservationRequests,
+  isPreview:            Boolean,
+  flipBreakpoint:       (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -111,17 +117,18 @@ case class GmosNorthSequenceTable(
     )
 
 case class GmosSouthSequenceTable(
-  clientMode:        ClientMode,
-  obsId:             Observation.Id,
-  config:            ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
-  visits:            List[Visit.GmosSouth],
-  executionState:    ExecutionState,
-  progress:          Option[StepProgress],
-  selectedStepId:    Option[Step.Id],
-  setSelectedStepId: Step.Id => Callback,
-  requests:          ObservationRequests,
-  isPreview:         Boolean,
-  flipBreakpoint:    (Observation.Id, Step.Id, Breakpoint) => Callback
+  clientMode:           ClientMode,
+  obsId:                Observation.Id,
+  config:               ExecutionConfig[StaticConfig.GmosSouth, DynamicConfig.GmosSouth],
+  visits:               List[Visit.GmosSouth],
+  executionState:       ExecutionState,
+  currentRecordedVisit: Option[RecordedVisit],
+  progress:             Option[StepProgress],
+  selectedStepId:       Option[Step.Id],
+  setSelectedStepId:    Step.Id => Callback,
+  requests:             ObservationRequests,
+  isPreview:            Boolean,
+  flipBreakpoint:       (Observation.Id, Step.Id, Breakpoint) => Callback
 ) extends ReactFnProps(GmosSouthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -132,11 +139,14 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
     extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
-  private def scrollIfNeeded(element: dom.Element) = Callback {
-    val rect = element.getBoundingClientRect()
-    if (rect.top < 0) element.scrollIntoView()
-    if (rect.bottom > dom.window.innerHeight) element.scrollIntoView(false)
-  }
+  private val ScrollOptions =
+    rawVirtual.mod
+      .ScrollToOptions()
+      .setBehavior(rawVirtual.mod.ScrollBehavior.smooth)
+      .setAlign(rawVirtual.mod.ScrollAlignment.start)
+
+  private val CurrentHeadersRowIds: List[String] =
+    List(SequenceType.Acquisition.toString, SequenceType.Science.toString)
 
   protected[sequence] val component =
     ScalaFnComponent
@@ -155,13 +165,27 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       ): (props, _) =>
         columnDefs(props.flipBreakpoint)
       .useMemoBy((props, _, _) => props.visits): (_, _, _) =>
-        visitsSequences // (List[Visit], nextIndex)
+        visitsSequences // (List[Visit],  nextScienceIndex)
       .useMemoBy((props, _, _, visitsData) =>
-        (visitsData, props.acquisitionRows, props.scienceRows)
+        (visitsData,
+         props.acquisitionRows,
+         props.scienceRows,
+         props.currentRecordedVisit.map(_.visitId),
+         props.currentRecordedStepId,
+         props.executionState.breakpoints
+        )
       ): (_, _, _, _) =>
-        (visitsData, acquisitionSteps, scienceSteps) =>
-          val (visits, nextIndex): (List[VisitData], StepIndex) = visitsData.value
-          stitchSequence(visits, nextIndex, acquisitionSteps, scienceSteps)
+        (visitsData, acquisitionSteps, scienceSteps, currentVisitId, currentRecordedStepId, _) =>
+          val (visits, nextScienceIndex): (List[VisitData], StepIndex) = visitsData.value
+
+          stitchSequence(
+            visits,
+            currentVisitId,
+            currentRecordedStepId,
+            nextScienceIndex,
+            acquisitionSteps,
+            scienceSteps
+          )
       .useDynTableBy: (_, resize, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
       .useReactTableBy: (_, _, cols, _, sequence, dynTable) =>
@@ -175,7 +199,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           getSubRows = (row, _) => row.subRows,
           columnResizeMode = ColumnResizeMode.OnChange,
           initialState = TableState(
-            expanded = CurrentExpandedState
+            expanded = CurrentExpandedState // TODO Expand current visit sections
           ),
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,
@@ -193,15 +217,20 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         // ALSO TODO Put some state somewhere to indicate that the visits are reloading, new rows should
         // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
         // During that update, numbering is inconsistent.
-        _ => odbQueryApi.refreshNighttimeVisits
-      .useRefToAnyVdom
-      .useEffectWithDepsBy((_, _, _, _, _, _, _, _, ref) => ref)((_, _, _, _, _, _, _, _, ref) =>
-        _ => ref.narrowOption[dom.Element].foreachCB(scrollIfNeeded)
-      )
+        _ => odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
+      .useRef(none[HTMLTableVirtualizer])
+      .useEffectOnMountBy: (_, _, _, _, sequence, _, _, _, virtualizerRef) =>
+        virtualizerRef.get.flatMap: refOpt =>
+          Callback:
+            refOpt.map:
+              _.scrollToIndex(
+                sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
+                ScrollOptions
+              )
       .useMemoBy((_, _, _, visits, _, _, _, _, _) => visits)((_, _, _, _, _, _, _, _, _) =>
         _._1.map(_.rowId).toSet
       )
-      .render: (props, resize, cols, _, _, _, table, _, selectedRef, visitIds) =>
+      .render: (props, resize, cols, _, _, _, table, _, virtualizerRef, visitIds) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -218,7 +247,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               val stepIdOpt: Option[Step.Id] = step.id.toOption
 
               TagMod(
-                (^.untypedRef := selectedRef).when(step.isSelected),
                 stepIdOpt
                   .map: stepId =>
                     TagMod(
@@ -313,10 +341,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           .rows
           .forall: row =>
             if visitIds.contains(RowId(row.id)) then !row.getIsExpanded() else true
+        val (icon, label)         =
+          if table.getIsAllRowsExpanded()
+          then (Icons.Minus, "Collapse all visits")
+          else (Icons.Plus, "Expand all visits")
 
         React.Fragment(
-          <.div(
-            ObserveStyles.SequenceTableExpandButton,
+          <.div(ObserveStyles.SequenceTableExpandButton)(
             Button(
               icon = Icons.Minus,
               label = "Collapse all visits",
@@ -339,6 +370,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             estimateSize = _ => 25.toPx,
             overscan = 8,
             containerRef = resize.ref,
+            virtualizerRef = virtualizerRef,
             tableMod = TagMod(tableStyle),
             rowMod = row => computeRowMods(row.original),
             headerCellMod = computeHeaderCellMods,
