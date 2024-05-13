@@ -315,36 +315,21 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
-        def modExpanded(
-          f: (
-            Row[Expandable[HeaderOrRow[SequenceIndexedRow[D]]]]
-          ) => Boolean
-        ): Callback = Callback.suspend:
-          table.setExpanded:
-            Expanded.Rows(
-              table
-                .getExpandedRowModel()
-                .rows
-                .map: row =>
-                  RowId(row.id) -> f(Row(row))
-                .toMap
-            )
+        val collapseVisits = table.modExpanded:
+          case Expanded.AllRows    => Expanded.fromCollapsedRows(visitIds.value.toList*)
+          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.value.map(_ -> false)))
+        val expandVisits   = table.modExpanded:
+          case Expanded.AllRows    => Expanded.AllRows
+          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.value.map(_ -> true)))
 
-        val allVisitsAreExpanded = table
-          .getExpandedRowModel()
-          .rows
-          .forall: row =>
-            if visitIds.contains(RowId(row.id)) then row.getIsExpanded() else true
+        val rows = table.getExpandedRowModel().rows
 
-        val allVisitsAreCollapsed = table
-          .getExpandedRowModel()
-          .rows
-          .forall: row =>
-            if visitIds.contains(RowId(row.id)) then !row.getIsExpanded() else true
-        val (icon, label)         =
-          if table.getIsAllRowsExpanded()
-          then (Icons.Minus, "Collapse all visits")
-          else (Icons.Plus, "Expand all visits")
+        def forAllVisits(onContains: Row[SequenceTableRowType] => Boolean): Boolean =
+          rows.forall: row =>
+            if visitIds.contains(RowId(row.id)) then onContains(Row(row)) else true
+
+        val allVisitsAreCollapsed = forAllVisits(row => !row.getIsExpanded())
+        val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
 
         React.Fragment(
           <.div(ObserveStyles.SequenceTableExpandButton)(
@@ -352,17 +337,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               icon = Icons.Minus,
               label = "Collapse all visits",
               disabled = allVisitsAreCollapsed,
-              onClick = modExpanded: row =>
-                if visitIds.contains(row.id) then false
-                else row.getIsExpanded()
+              onClick = collapseVisits
             ).mini.compact,
             Button(
               icon = Icons.Plus,
               label = "Expand all visits",
               disabled = allVisitsAreExpanded,
-              onClick = modExpanded: row =>
-                if visitIds.contains(row.id) then true
-                else row.getIsExpanded()
+              onClick = expandVisits
             ).mini.compact
           ),
           PrimeAutoHeightVirtualizedTable(
