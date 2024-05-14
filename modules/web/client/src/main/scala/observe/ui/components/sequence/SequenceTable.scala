@@ -5,8 +5,8 @@ package observe.ui.components.sequence
 
 import cats.Eq
 import cats.syntax.all.*
-import crystal.react.syntax.effect.*
 import crystal.react.hooks.*
+import crystal.react.syntax.effect.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -181,11 +181,11 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         columnDefs(props.flipBreakpoint)
       .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
         (_, _, _, _, _) => visitsSequences // (List[Visit], nextIndex)
-      .useStateViewWithReuse(false) // acquisitionPromptClicked flag
+      .useStateViewWithReuse(none[SequenceType]) // acquisitionPromptClicked
       .useEffectWithDepsBy((props, _, _, _, _, _, _) =>
         props.executionState.isWaitingAcquisitionPrompt
       ): (_, _, _, _, _, _, acquisitionPromptClicked) =>
-        _ => acquisitionPromptClicked.set(false)
+        _ => acquisitionPromptClicked.set(none)
       .useMemoBy((props, _, _, _, _, visitsData, acquisitionPromptClicked) =>
         (visitsData,
          props.acquisitionRows,
