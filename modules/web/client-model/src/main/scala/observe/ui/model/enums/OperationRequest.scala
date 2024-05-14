@@ -11,6 +11,8 @@ import monocle.Iso
 enum OperationRequest derives Eq:
   case Idle, InFlight
 
+  def isInFlight: Boolean = this == InFlight
+
 object OperationRequest:
   val IsInFlight: Iso[OperationRequest, Boolean] =
     Iso[OperationRequest, Boolean](_ === InFlight)(if (_) InFlight else Idle)

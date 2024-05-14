@@ -150,8 +150,7 @@ trait ArbClientEvent:
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
-      case e @ ClientEvent.AtomLoaded(_, _, _)              =>
-        Right(Right(Right(Right(Right(Right(e))))))
+      case e @ ClientEvent.AtomLoaded(_, _, _)              => Right(Right(Right(Right(Right(Right(e))))))
 
 end ArbClientEvent
 

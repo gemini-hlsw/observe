@@ -9,6 +9,7 @@ import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
@@ -64,6 +65,9 @@ trait SequenceApi[F[_]: MonadThrow]:
   /** Runs a resource or instrument */
   def execute(obsId: Observation.Id, stepId: Step.Id, subsystem: Resource | Instrument): F[Unit] =
     NotAuthorized
+
+  /** Loads next atom of specified sequence type and resumes execution */
+  def loadNextAtom(obsId: Observation.Id, sequenceType: SequenceType): F[Unit] = NotAuthorized
 
 object SequenceApi:
   // Default value is NotAuthorized implementations

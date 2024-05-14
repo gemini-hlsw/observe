@@ -682,6 +682,29 @@ html {
   }
 }
 
+.ObserveStyles-acquisitionPrompt {
+  height: 75px;
+  padding: 10px;
+  margin-left: -20px;
+  text-align: left;
+  display: flex;
+  gap: 10px;
+  color: var(--gray-800);
+  background-color: var(--yellow-400);
+
+  .ObserveStyles-acquisitionPrompt-main {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ObserveStyles-acquisitionPrompt-busy {
+    align-self: center;
+    padding-right: 15px;
+  }
+}
+
 .p-progressbar {
   &.ObserveStyles-observationProgressBar {
     margin: 0;

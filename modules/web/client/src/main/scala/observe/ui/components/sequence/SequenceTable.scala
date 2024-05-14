@@ -5,6 +5,9 @@ package observe.ui.components.sequence
 
 import cats.Eq
 import cats.syntax.all.*
+import crystal.react.hooks.*
+import crystal.react.syntax.effect.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
@@ -36,10 +39,12 @@ import observe.model.odb.RecordedVisit
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
+import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
+import observe.ui.services.SequenceApi
 
 import scala.scalajs.LinkingInfo
 
@@ -63,21 +68,11 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
     currentRecordedVisit.flatMap(RecordedVisit.stepId.getOption).map(_.value)
 
-  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
-    SequenceRow.FutureStep
-      .fromAtoms(
-        sequence.possibleFuture,
-        _ => none // TODO Pass signal to noise
-      )
+  private def futureSteps(atoms: List[Atom[D]]): List[SequenceRow.FutureStep[D]] =
+    SequenceRow.FutureStep.fromAtoms(atoms, _ => none) // TODO Pass signal to noise
 
   protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
     executionState.loadedSteps.filterNot(_.isFinished)
-
-  protected[sequence] lazy val (acquisitionCurrentSteps, scienceCurrentSteps)
-    : (List[ObserveStep], List[ObserveStep]) =
-    executionState.sequenceType match
-      case SequenceType.Acquisition => (currentAtomPendingSteps, Nil)
-      case SequenceType.Science     => (Nil, currentAtomPendingSteps)
 
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
@@ -91,12 +86,30 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
       )
 
+  protected[sequence] lazy val (currentAcquisitionRows, currentScienceRows)
+    : (List[SequenceRow[D]], List[SequenceRow[D]]) =
+    executionState.sequenceType match
+      case SequenceType.Acquisition =>
+        (currentStepsToRows(currentAtomPendingSteps),
+         config.science.map(s => futureSteps(List(s.nextAtom))).orEmpty
+        )
+      case SequenceType.Science     =>
+        (config.acquisition.map(a => futureSteps(List(a.nextAtom))).orEmpty,
+         currentStepsToRows(currentAtomPendingSteps)
+        )
+
   protected[sequence] lazy val acquisitionRows: List[SequenceRow[D]] =
-    currentStepsToRows(acquisitionCurrentSteps) ++ config.acquisition.map(steps).orEmpty
+    if executionState.isWaitingAcquisitionPrompt || executionState.sequenceType === SequenceType.Science
+    then List.empty
+    else
+      currentAcquisitionRows ++ config.acquisition.map(a => futureSteps(a.possibleFuture)).orEmpty
 
   protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
-    currentStepsToRows(scienceCurrentSteps) ++ config.science.map(steps).orEmpty
+    currentScienceRows ++ config.science.map(s => futureSteps(s.possibleFuture)).orEmpty
 
+  // Alert position is right after currently executing atom.
+  protected[sequence] lazy val alertPosition: NonNegInt =
+    NonNegInt.unsafeFrom(currentAtomPendingSteps.length)
 case class GmosNorthSequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
@@ -152,7 +165,9 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
     ScalaFnComponent
       .withHooks[Props]
       .useResizeDetector()
-      .useMemoBy((props, _) => // cols
+      .useContext(AppContext.ctx)
+      .useContext(SequenceApi.ctx)
+      .useMemoBy((props, _, _, _) => // cols
         (props.clientMode,
          props.instrument,
          props.obsId,
@@ -162,33 +177,69 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
          props.isPreview,
          props.selectedStepId
         )
-      ): (props, _) =>
+      ): (props, _, _, _) =>
         columnDefs(props.flipBreakpoint)
-      .useMemoBy((props, _, _) => props.visits): (_, _, _) =>
-        visitsSequences // (List[Visit],  nextScienceIndex)
-      .useMemoBy((props, _, _, visitsData) =>
+      .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
+        (_, _, _, _, _) => visitsSequences // (List[Visit], nextIndex)
+      .useStateViewWithReuse(none[SequenceType]) // acquisitionPromptClicked
+      .useEffectWithDepsBy((props, _, _, _, _, _, _) =>
+        props.executionState.isWaitingAcquisitionPrompt
+      ): (_, _, _, _, _, _, acquisitionPromptClicked) =>
+        _ => acquisitionPromptClicked.set(none)
+      .useMemoBy((props, _, _, _, _, visitsData, acquisitionPromptClicked) =>
         (visitsData,
          props.acquisitionRows,
          props.scienceRows,
          props.currentRecordedVisit.map(_.visitId),
-         props.currentRecordedStepId,
-         props.executionState.breakpoints
+         props.executionState.breakpoints,
+         props.executionState.sequenceType,
+         props.executionState.isWaitingAcquisitionPrompt,
+         props.alertPosition,
+         props.requests.acquisitionPrompt,
+         acquisitionPromptClicked
         )
-      ): (_, _, _, _) =>
-        (visitsData, acquisitionSteps, scienceSteps, currentVisitId, currentRecordedStepId, _) =>
+      ): (props, _, ctx, sequenceApi, _, _, _) =>
+        (
+          visitsData,
+          acquisitionSteps,
+          scienceSteps,
+          currentVisitId,
+          _,
+          sequenceType,
+          isWaitingAcquisitionPrompt,
+          alertPosition,
+          acquisitionPromptRequest,
+          acquisitionPromptClicked
+        ) =>
+          import ctx.given
+
           val (visits, nextScienceIndex): (List[VisitData], StepIndex) = visitsData.value
+
+          val acquisitionPrompt: Option[AlertRow] =
+            Option.when(isWaitingAcquisitionPrompt)(
+              AlertRow(
+                sequenceType,
+                alertPosition,
+                AcquisitionPrompt(
+                  sequenceApi.loadNextAtom(props.obsId, SequenceType.Science).runAsync,
+                  sequenceApi.loadNextAtom(props.obsId, SequenceType.Acquisition).runAsync,
+                  acquisitionPromptRequest,
+                  acquisitionPromptClicked
+                )
+              )
+            )
 
           stitchSequence(
             visits,
             currentVisitId,
-            currentRecordedStepId,
             nextScienceIndex,
             acquisitionSteps,
-            scienceSteps
+            scienceSteps,
+            acquisitionPrompt
           )
-      .useDynTableBy: (_, resize, _, _, _) =>
+      .useDynTableBy: (_, resize, _, _, _, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
-      .useReactTableBy: (_, _, cols, _, sequence, dynTable) =>
+      .useReactTableBy: (_, _, _, _, cols, _, _, sequence, dynTable) =>
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
@@ -208,18 +259,22 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           onColumnSizingChange = dynTable.onColumnSizingChangeHandler
         )
       .useContext(ODBQueryApi.ctx)
-      .useEffectWithDepsBy(
-        (props, _, _, _, _, _, _, _) => // If the list of current steps changes, reload last visit
-          props.currentAtomPendingSteps.map(_.id)
-      ): (_, _, _, _, _, _, _, odbQueryApi) =>
+      // If the list of current steps changes, reload last visit and sequence.
+      .useEffectWithDepsBy((props, _, _, _, _, _, _, _, _, _, _) =>
+        props.currentAtomPendingSteps.map(_.id)
+      ): (_, _, _, _, _, _, _, _, _, _, odbQueryApi) =>
         // TODO Maybe this should be done by ObservationSyncer. For that, we need to know there when a step
         // has completed. Maybe we can add an ODB event in the future.
         // ALSO TODO Put some state somewhere to indicate that the visits are reloading, new rows should
         // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
         // During that update, numbering is inconsistent.
         _ => odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
+      // We also refresh the visits whenever a new step starts executing. This will pull the current recorded step.
+      // This is necessary so that the step doesn't disappear when it completes.
+      .useEffectWithDepsBy((props, _, _, _, _, _, _, _, _, _, _) => props.currentRecordedStepId):
+        (_, _, _, _, _, _, _, _, _, _, odbQueryApi) => _ => odbQueryApi.refreshNighttimeVisits
       .useRef(none[HTMLTableVirtualizer])
-      .useEffectOnMountBy: (_, _, _, _, sequence, _, _, _, virtualizerRef) =>
+      .useEffectOnMountBy: (_, _, _, _, _, _, _, sequence, _, _, _, virtualizerRef) =>
         virtualizerRef.get.flatMap: refOpt =>
           Callback:
             refOpt.map:
@@ -227,7 +282,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
                 ScrollOptions
               )
-      .render: (props, resize, cols, visits, _, _, table, _, virtualizerRef) =>
+      .render: (props, resize, _, _, cols, visits, _, _, _, table, _, virtualizerRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -248,7 +303,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                   .map: stepId =>
                     TagMod(
                       // Only in dev mode, show step id on hover.
-                      if (LinkingInfo.developmentMode) ^.title := stepId.toString else TagMod.empty,
+                      if (LinkingInfo.developmentMode) ^.title := stepId.toString
+                      else TagMod.empty,
                       (^.onClick --> props.setSelectedStepId(stepId))
                         .when:
                           step.stepTime === StepTime.Present

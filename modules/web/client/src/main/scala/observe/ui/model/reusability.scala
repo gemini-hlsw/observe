@@ -19,6 +19,7 @@ import observe.model.StepProgress
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.enums.OffsetsDisplay
+import observe.ui.model.enums.OperationRequest
 
 object reusability:
   given Reusability[ClientMode]                            = Reusability.byEq
@@ -34,5 +35,6 @@ object reusability:
   given Reusability[ClientConfig]                          = Reusability.byEq
   given Reusability[PersistentClientStatus]                = Reusability.byEq
   given Reusability[StepProgress]                          = Reusability.byEq
+  given Reusability[OperationRequest]                      = Reusability.byEq
   given Reusability[Map[Observation.Id, SequenceState]]    = Reusability.map
   given Reusability[RootModelData]                         = Reusability.byEq

@@ -43,6 +43,10 @@ object ObserveStyles:
   val RowDisabled: Css = Css("ObserveStyles-rowDisabled")
   val RowDone: Css     = Css("ObserveStyles-rowDone")
 
+  val AcquisitionPrompt: Css     = Css("ObserveStyles-acquisitionPrompt")
+  val AcquisitionPromptMain: Css = Css("ObserveStyles-acquisitionPrompt-main")
+  val AcquisitionPromptBusy: Css = Css("ObserveStyles-acquisitionPrompt-busy")
+
   val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
   val SessionTable: Css   = Css("ObserveStyles-sessionTable")
   val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")

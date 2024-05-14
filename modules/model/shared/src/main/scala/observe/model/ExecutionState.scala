@@ -43,6 +43,9 @@ case class ExecutionState(
       _._2.exists(r => ActionStatus.LockedStatuses.contains_(r._2))
     )
 
+  lazy val isWaitingAcquisitionPrompt: Boolean =
+    sequenceType === SequenceType.Acquisition && sequenceState.isWaitingNextAtom
+
 object ExecutionState:
   val sequenceState: Lens[ExecutionState, SequenceState]                                          = Focus[ExecutionState](_.sequenceState)
   val observer: Lens[ExecutionState, Option[Observer]]                                            = Focus[ExecutionState](_.observer)

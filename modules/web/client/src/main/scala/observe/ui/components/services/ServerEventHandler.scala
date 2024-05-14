@@ -160,7 +160,10 @@ trait ServerEventHandler:
         rootModelDataMod:
           RootModelData.nighttimeObservation.some.modify:
             instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)
-      // TODO Also requery future sequence here. It may have changed.
+      // TODO Also requery future sequence here. It may have changed. Or there may be new atoms to load past the limit.
+      // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
+      // and in SequenceTable it's being done once per step.
+      // However, we need to turn the app initialization on its head in MainApp to achieve this.
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
