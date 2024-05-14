@@ -443,7 +443,7 @@ object SessionQueueTable extends Columns {
         row.status match {
           case SequenceState.Completed                     =>
             Icon(name = "checkmark", clazz = selectedIconStyle)
-          case SequenceState.Running(_, _)                 =>
+          case SequenceState.Running(_, _, _)                 =>
             Icon(name = "circle notched",
                  fitted = true,
                  loading = true,

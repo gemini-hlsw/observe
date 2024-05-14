@@ -76,7 +76,8 @@ object SessionQueue:
         case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
         case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
           Icons.FileCheck // clazz = selectedIconStyle)
-        case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _)))                       => Icons.CircleNotch.withSpin()
+        case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _)))                    =>
+          Icons.CircleNotch.withSpin()
         //      clazz = ObserveStyles.runningIcon
         case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
           Icons.FileCross

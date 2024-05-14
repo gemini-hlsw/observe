@@ -48,6 +48,4 @@ object SystemEvent {
       extends SystemEvent
   final case class SingleRunFailed(actionCoords: ActionCoords, e: Result.Error) extends SystemEvent
 
-  case class AtomCompleted(id: Observation.Id) extends SystemEvent
-
 }

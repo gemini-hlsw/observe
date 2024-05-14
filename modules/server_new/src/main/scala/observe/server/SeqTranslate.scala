@@ -70,7 +70,10 @@ trait SeqTranslate[F[_]] {
     tio: Temporal[F]
   ): F[(List[Throwable], Option[SequenceGen[F]])]
 
-  def nextAtom(sequence: OdbObservation): (List[Throwable], Option[SequenceGen.AtomGen[F]])
+  def nextAtom(
+    sequence: OdbObservation,
+    atomType: SequenceType
+  ): (List[Throwable], Option[SequenceGen.AtomGen[F]])
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
     tio: Temporal[F]
@@ -211,14 +214,19 @@ object SeqTranslate {
     private def buildNextAtom[S <: StaticConfig, D <: DynamicConfig](
       sequence:   OdbObservation,
       data:       ExecutionConfig[S, D],
+      seqType:    SequenceType,
       insSpec:    InstrumentSpecifics[S, D],
       instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
       instHeader: D => KeywordsClient[F] => Header[F],
       startIdx:   PosInt = PosInt.unsafeFrom(1)
     ): (List[Throwable], Option[SequenceGen.AtomGen[F]]) = {
-      val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) = data.acquisition
-        .map(x => (x.nextAtom.some, SequenceType.Acquisition))
-        .getOrElse((data.science.map(_.nextAtom), SequenceType.Science))
+      val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) = seqType match {
+        case SequenceType.Acquisition =>
+          data.acquisition
+            .map(x => (x.nextAtom.some, SequenceType.Acquisition))
+            .getOrElse((data.science.map(_.nextAtom), SequenceType.Science))
+        case SequenceType.Science     => (data.science.map(_.nextAtom), SequenceType.Science)
+      }
 
       nextAtom
         .map { atom =>
@@ -268,6 +276,7 @@ object SeqTranslate {
       val (a, b)           = buildNextAtom[S, D](
         sequence,
         data,
+        SequenceType.Acquisition,
         insSpec,
         instf,
         instHeader,
@@ -798,7 +807,8 @@ object SeqTranslate {
     }
 
     override def nextAtom(
-      sequence: OdbObservation
+      sequence: OdbObservation,
+      atomType: SequenceType
     ): (List[Throwable], Option[SequenceGen.AtomGen[F]]) =
       sequence.execution.config
         .map {
@@ -806,6 +816,7 @@ object SeqTranslate {
             buildNextAtom[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
               sequence,
               executionConfig,
+              atomType,
               GmosNorth.specifics,
               (ov: SystemOverrides, t: StepType, d: DynamicConfig.GmosNorth) =>
                 GmosNorth.build(
@@ -829,6 +840,7 @@ object SeqTranslate {
             buildNextAtom[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
               sequence,
               executionConfig,
+              atomType,
               GmosSouth.specifics,
               (ov: SystemOverrides, t: StepType, d: DynamicConfig.GmosSouth) =>
                 GmosSouth.build(

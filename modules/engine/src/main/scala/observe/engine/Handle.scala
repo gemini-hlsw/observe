@@ -101,8 +101,8 @@ object Handle {
       )
   }
 
-  extension [F[_]: Functor, D, V, A](self: StateT[F, D, A])
-    def toHandle: Handle[F, D, V, A] = Handle(self.map((_, None)))
+  extension [F[_]: Functor, D, A](self: StateT[F, D, A])
+    def toHandle[V]: Handle[F, D, V, A] = Handle[F, D, V, A](self.map((_, None)))
 
   def unit[F[_]: Monad, D, V]: Handle[F, D, V, Unit] =
     Applicative[Handle[F, D, V, *]].unit

@@ -72,7 +72,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "loadNextAtom" /
         ObserverVar(obs) / SequenceTypeVar(seqType) =>
       ssoClient.require(req): user =>
-        oe.loadNextAtom(obsId, user, obs, clientId, seqType, true) *>
+        oe.loadNextAtom(obsId, user, obs, seqType) *>
           NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /

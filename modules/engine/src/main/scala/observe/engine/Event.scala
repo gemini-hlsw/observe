@@ -122,7 +122,4 @@ object Event {
   def singleRunFailed[F[_], S, U](c: ActionCoords, e: Result.Error): Event[F, S, U] =
     EventSystem[F, S, U](SingleRunFailed(c, e))
 
-  def atomCompleted[F[_], S, U](id: Observation.Id): Event[F, S, U] =
-    EventSystem[F, S, U](AtomCompleted(id))
-
 }

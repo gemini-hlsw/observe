@@ -18,5 +18,6 @@ def stepId(i: Int): Step.Id = i match {
   case 3 => Step.Id(UUID.fromString("bbdd559c-19a3-11ed-861d-0242ac120002"))
   case 4 => Step.Id(UUID.fromString("2e986c9c-e393-4c89-b683-80184642fdf8"))
   case 5 => Step.Id(UUID.fromString("a1bd2538-19a9-11ed-861d-0242ac120002"))
+  case 6 => Step.Id(UUID.fromString("27b0b124-2a43-4baf-b587-5e5a2b90f5cc"))
   case _ => Step.Id(UUID.fromString("c65addaa-19a3-11ed-861d-0242ac120002"))
 }

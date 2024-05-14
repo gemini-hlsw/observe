@@ -218,9 +218,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     id:       Observation.Id,
     user:     User,
     observer: Observer,
-    clientId: ClientId,
-    atomType: SequenceType,
-    run:      Boolean
+    atomType: SequenceType
   ): F[Unit] = Applicative[F].unit
 }
 

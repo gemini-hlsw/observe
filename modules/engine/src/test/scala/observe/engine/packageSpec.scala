@@ -121,7 +121,7 @@ class packageSpec extends munit.CatsEffectSuite {
 
   private def executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
-    _ => Handle.unit[IO, TestState, Event[IO, TestState, Unit]].pure[IO]
+    (eng, obsId) => eng.startNewAtom(obsId)
   )
 
   def isFinished(status: SequenceState): Boolean = status match {

@@ -15,21 +15,22 @@ import monocle.Prism
 import monocle.macros.GenPrism
 
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
-  case Idle                                              extends SequenceState("Idle")
-  case Running(userStop: Boolean, internalStop: Boolean) extends SequenceState("Running")
-  case Completed                                         extends SequenceState("Completed")
-  case Failed(msg: String)                               extends SequenceState("Failed")
-  case Aborted                                           extends SequenceState("Aborted")
+  case Idle                extends SequenceState("Idle")
+  case Running(userStop: Boolean, internalStop: Boolean, waitingNextAtom: Boolean)
+      extends SequenceState("Running")
+  case Completed           extends SequenceState("Completed")
+  case Failed(msg: String) extends SequenceState("Failed")
+  case Aborted             extends SequenceState("Aborted")
 
   def userStopRequested: Boolean =
     this match
-      case SequenceState.Running(b, _) => b
-      case _                           => false
+      case SequenceState.Running(b, _, _) => b
+      case _                              => false
 
   def internalStopRequested: Boolean =
     this match
-      case SequenceState.Running(_, b) => b
-      case _                           => false
+      case SequenceState.Running(_, b, _) => b
+      case _                              => false
 
   def isError: Boolean =
     this match
@@ -41,8 +42,8 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isRunning: Boolean =
     this match
-      case SequenceState.Running(_, _) => true
-      case _                           => false
+      case SequenceState.Running(_, _, _) => true
+      case _                              => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -58,9 +59,12 @@ object SequenceState:
 
   object Running:
     val Init: Running =
-      SequenceState.Running(userStop = false, internalStop = false)
+      SequenceState.Running(userStop = false, internalStop = false, waitingNextAtom = false)
 
     val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)
 
     val internalStop: Lens[SequenceState.Running, Boolean] =
-      Focus[SequenceState.Running](_.userStop)
+      Focus[SequenceState.Running](_.internalStop)
+
+    val waitingNextAtom: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.waitingNextAtom)

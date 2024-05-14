@@ -20,8 +20,8 @@ object ModelOps {
   given Show[SequenceState] =
     Show.show[SequenceState] {
       case SequenceState.Completed        => "Complete"
-      case SequenceState.Running(true, _) => "Pausing..."
-      case SequenceState.Running(_, _)    => "Running"
+      case SequenceState.Running(true, _, _) => "Pausing..."
+      case SequenceState.Running(_, _, _)    => "Running"
       case SequenceState.Idle             => "Idle"
       case SequenceState.Aborted          => "Aborted"
       case SequenceState.Failed(_)        => s"Error at step "
