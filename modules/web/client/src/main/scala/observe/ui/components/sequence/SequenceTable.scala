@@ -234,7 +234,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             nextScienceIndex,
             // We have to remove the last step if isWaitingAcquisitionPrompt is true, since the server has already loaded it.
             if (isWaitingAcquisitionPrompt) acquisitionSteps.init else acquisitionSteps,
-            // acquisitionSteps,
             scienceSteps,
             acquisitionPrompt
           )
