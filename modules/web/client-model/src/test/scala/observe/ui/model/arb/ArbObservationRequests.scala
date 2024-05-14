@@ -10,7 +10,6 @@ import lucuma.core.util.arb.ArbUid.given
 import observe.model.enums.Resource
 import observe.model.given
 import observe.ui.model.ObservationRequests
-import observe.ui.model.ObservationRequests.acquisitionPrompt
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.arb.ArbOperationRequest.given
 import org.scalacheck.Arbitrary

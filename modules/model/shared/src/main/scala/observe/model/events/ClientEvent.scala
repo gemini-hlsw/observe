@@ -90,9 +90,6 @@ object ClientEvent:
         Encoder.AsObject,
         Decoder
 
-  case class AtomComplete(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
-      extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
-
   case class AtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
       extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
 
@@ -103,7 +100,6 @@ object ClientEvent:
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
     case e @ ChecksOverrideEvent(_)           => e.asJson
     case e @ ProgressEvent(_)                 => e.asJson
-    case e @ AtomComplete(_, _, _)            => e.asJson
     case e @ AtomLoaded(_, _, _)              => e.asJson
 
   given Decoder[ClientEvent] =
@@ -114,6 +110,5 @@ object ClientEvent:
       Decoder[SingleActionEvent].widen,
       Decoder[ChecksOverrideEvent].widen,
       Decoder[ProgressEvent].widen,
-      Decoder[AtomComplete].widen,
       Decoder[AtomLoaded].widen
     ).reduceLeft(_ or _)

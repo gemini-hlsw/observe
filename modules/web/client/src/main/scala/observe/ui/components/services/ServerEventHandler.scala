@@ -24,7 +24,6 @@ import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
 import observe.model.events.ClientEvent
-import observe.model.events.ClientEvent.AtomComplete
 import observe.model.events.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
@@ -108,7 +107,6 @@ trait ServerEventHandler:
   )(
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
-    // IO.println(event) >> {
     event match
       case ClientEvent.BaDum                                                              =>
         IO.unit
@@ -158,7 +156,6 @@ trait ServerEventHandler:
           configApiStatusMod(_ => ApiStatus.Idle)
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some))
-      case ClientEvent.AtomComplete(_, _, _)                                              => IO.unit
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>
         rootModelDataMod:
           RootModelData.nighttimeObservation.some.modify:
@@ -167,7 +164,6 @@ trait ServerEventHandler:
       // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
       // and in SequenceTable it's being done once per step.
       // However, we need to turn the app initialization on its head in MainApp to achieve this.
-  // }
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
