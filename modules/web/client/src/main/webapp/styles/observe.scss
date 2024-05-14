@@ -694,8 +694,14 @@ html {
 
   .ObserveStyles-acquisitionPrompt-main {
     display: flex;
+    flex-grow: 1;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .ObserveStyles-acquisitionPrompt-busy {
+    align-self: center;
+    padding-right: 15px;
   }
 }
 
