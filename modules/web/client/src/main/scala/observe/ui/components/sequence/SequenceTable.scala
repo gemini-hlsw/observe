@@ -227,10 +227,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
                 ScrollOptions
               )
-      .useMemoBy((_, _, _, visits, _, _, _, _, _) => visits)((_, _, _, _, _, _, _, _, _) =>
-        _._1.map(_.rowId).toSet
-      )
-      .render: (props, resize, cols, _, _, _, table, _, virtualizerRef, visitIds) =>
+      .render: (props, resize, cols, visits, _, _, table, _, virtualizerRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match
@@ -315,12 +312,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 case _                                    =>
                   TagMod.empty
 
+        val visitIds       = visits._1.map(_.rowId).toSet
         val collapseVisits = table.modExpanded:
-          case Expanded.AllRows    => Expanded.fromCollapsedRows(visitIds.value.toList*)
-          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.value.map(_ -> false)))
+          case Expanded.AllRows    => Expanded.fromCollapsedRows(visitIds.toList*)
+          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.map(_ -> false)))
         val expandVisits   = table.modExpanded:
           case Expanded.AllRows    => Expanded.AllRows
-          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.value.map(_ -> true)))
+          case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.map(_ -> true)))
 
         val rows = table.getExpandedRowModel().rows
 
