@@ -10,6 +10,7 @@ import lucuma.core.util.arb.ArbUid.given
 import observe.model.enums.Resource
 import observe.model.given
 import observe.ui.model.ObservationRequests
+import observe.ui.model.ObservationRequests.acquisitionPrompt
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.arb.ArbOperationRequest.given
 import org.scalacheck.Arbitrary
@@ -19,15 +20,26 @@ import org.scalacheck.Cogen
 trait ArbObservationRequests:
   given Arbitrary[ObservationRequests] = Arbitrary:
     for
-      run          <- arbitrary[OperationRequest]
-      stop         <- arbitrary[OperationRequest]
-      abort        <- arbitrary[OperationRequest]
-      pause        <- arbitrary[OperationRequest]
-      cancelPause  <- arbitrary[OperationRequest]
-      resume       <- arbitrary[OperationRequest]
-      startFrom    <- arbitrary[OperationRequest]
-      subsystemRun <- arbitrary[Map[Step.Id, Map[Resource | Instrument, OperationRequest]]]
-    yield ObservationRequests(run, stop, abort, pause, cancelPause, resume, startFrom, subsystemRun)
+      run               <- arbitrary[OperationRequest]
+      stop              <- arbitrary[OperationRequest]
+      abort             <- arbitrary[OperationRequest]
+      pause             <- arbitrary[OperationRequest]
+      cancelPause       <- arbitrary[OperationRequest]
+      resume            <- arbitrary[OperationRequest]
+      startFrom         <- arbitrary[OperationRequest]
+      subsystemRun      <- arbitrary[Map[Step.Id, Map[Resource | Instrument, OperationRequest]]]
+      acquisitionPrompt <- arbitrary[OperationRequest]
+    yield ObservationRequests(
+      run,
+      stop,
+      abort,
+      pause,
+      cancelPause,
+      resume,
+      startFrom,
+      subsystemRun,
+      acquisitionPrompt
+    )
 
   given Cogen[ObservationRequests] = Cogen[
     (OperationRequest,
@@ -37,7 +49,8 @@ trait ArbObservationRequests:
      OperationRequest,
      OperationRequest,
      OperationRequest,
-     List[(Step.Id, List[(Resource | Instrument, OperationRequest)])]
+     List[(Step.Id, List[(Resource | Instrument, OperationRequest)])],
+     OperationRequest
     )
   ].contramap(x =>
     (x.run,
@@ -47,7 +60,8 @@ trait ArbObservationRequests:
      x.cancelPause,
      x.resume,
      x.startFrom,
-     x.subsystemRun.view.mapValues(_.toList).toList
+     x.subsystemRun.view.mapValues(_.toList).toList,
+     x.acquisitionPrompt
     )
   )
 

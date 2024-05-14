@@ -6,6 +6,7 @@ package observe.ui.components.sequence
 import cats.Eq
 import cats.syntax.all.*
 import crystal.react.syntax.effect.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
@@ -37,15 +38,14 @@ import observe.model.odb.RecordedVisit
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
+import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
+import observe.ui.services.SequenceApi
 
 import scala.scalajs.LinkingInfo
-import observe.ui.services.SequenceApi
-import observe.ui.model.AppContext
-import eu.timepit.refined.types.numeric.NonNegInt
 
 sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] val instrument:    Instrument,
@@ -283,7 +283,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
                 ScrollOptions
               )
-      .render: (props, resize, _, _, cols, _, _, _, table, _, virtualizerRef) =>
+      .render: (props, resize, _, _, cols, visits, _, _, table, _, virtualizerRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
             props.selectedStepId match

@@ -24,6 +24,7 @@ import observe.model.ExecutionState
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
 import observe.model.events.ClientEvent
+import observe.model.events.ClientEvent.AtomComplete
 import observe.model.events.ClientEvent.SingleActionState
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
@@ -32,7 +33,6 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import org.typelevel.log4cats.Logger
-import observe.model.events.ClientEvent.AtomComplete
 
 trait ServerEventHandler:
   private def logMessage(

@@ -9,6 +9,7 @@ import crystal.react.View
 import crystal.react.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.Enumerated
@@ -23,7 +24,6 @@ import observe.ui.model.enums.OperationRequest
 import org.http4s.Query
 import org.http4s.Uri
 import org.typelevel.log4cats.Logger
-import lucuma.core.enums.SequenceType
 
 case class SequenceApiImpl(
   client:   ApiClient,

@@ -3,14 +3,14 @@
 
 package observe.ui.components.sequence.steps
 
-import lucuma.react.common.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.react.primereact.Button
-import observe.ui.ObserveStyles
-import observe.ui.Icons
+import lucuma.react.common.*
 import lucuma.react.fa.IconSize
+import lucuma.react.primereact.Button
 import lucuma.ui.primereact.*
+import observe.ui.Icons
+import observe.ui.ObserveStyles
 import observe.ui.model.enums.OperationRequest
 
 case class AcquisitionPrompt(

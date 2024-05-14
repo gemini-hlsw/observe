@@ -9,11 +9,11 @@ import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
-import lucuma.core.enums.SequenceType
 
 trait SequenceApi[F[_]: MonadThrow]:
   /** Load a sequence in the server */
