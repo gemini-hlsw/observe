@@ -67,21 +67,11 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
     currentRecordedVisit.flatMap(RecordedVisit.stepId.getOption).map(_.value)
 
-  private def steps(sequence: ExecutionSequence[D]): List[SequenceRow.FutureStep[D]] =
-    SequenceRow.FutureStep
-      .fromAtoms(
-        sequence.possibleFuture,
-        _ => none // TODO Pass signal to noise
-      )
+  private def futureSteps(atoms: List[Atom[D]]): List[SequenceRow.FutureStep[D]] =
+    SequenceRow.FutureStep.fromAtoms(atoms, _ => none) // TODO Pass signal to noise
 
   protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
     executionState.loadedSteps.filterNot(_.isFinished)
-
-  protected[sequence] lazy val (acquisitionCurrentSteps, scienceCurrentSteps)
-    : (List[ObserveStep], List[ObserveStep]) =
-    executionState.sequenceType match
-      case SequenceType.Acquisition => (currentAtomPendingSteps, Nil)
-      case SequenceType.Science     => (Nil, currentAtomPendingSteps)
 
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
@@ -95,24 +85,30 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
       )
 
-  protected[sequence] lazy val currentAcquisitionRows: List[SequenceRow[D]] =
-    currentStepsToRows(acquisitionCurrentSteps)
+  protected[sequence] lazy val (currentAcquisitionRows, currentScienceRows)
+    : (List[SequenceRow[D]], List[SequenceRow[D]]) =
+    executionState.sequenceType match
+      case SequenceType.Acquisition =>
+        (currentStepsToRows(currentAtomPendingSteps),
+         config.science.map(s => futureSteps(List(s.nextAtom))).orEmpty
+        )
+      case SequenceType.Science     =>
+        (config.acquisition.map(a => futureSteps(List(a.nextAtom))).orEmpty,
+         currentStepsToRows(currentAtomPendingSteps)
+        )
 
   protected[sequence] lazy val acquisitionRows: List[SequenceRow[D]] =
-    currentAcquisitionRows ++ config.acquisition.map(steps).orEmpty
-
-  protected[sequence] lazy val currentScienceRows: List[SequenceRow[D]] =
-    currentStepsToRows(scienceCurrentSteps)
+    if executionState.isWaitingAcquisitionPrompt || executionState.sequenceType === SequenceType.Science
+    then List.empty
+    else
+      currentAcquisitionRows ++ config.acquisition.map(a => futureSteps(a.possibleFuture)).orEmpty
 
   protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
-    currentScienceRows ++ config.science.map(steps).orEmpty
+    currentScienceRows ++ config.science.map(s => futureSteps(s.possibleFuture)).orEmpty
 
   // Alert position is right after currently executing atom.
-  protected[sequence] lazy val alertPosition: NonNegInt = NonNegInt.unsafeFrom:
-    if executionState.sequenceType === SequenceType.Acquisition
-    then currentAcquisitionRows.length
-    else currentScienceRows.length
-
+  protected[sequence] lazy val alertPosition: NonNegInt =
+    NonNegInt.unsafeFrom(currentAtomPendingSteps.length)
 case class GmosNorthSequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
@@ -182,14 +178,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         )
       ): (props, _, _, _) =>
         columnDefs(props.flipBreakpoint)
-      .useMemoBy((props, _, _, _, _) => props.visits): (_, _, _, _, _) =>
-        visitsSequences // (List[Visit], nextIndex)
+      .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
+        (_, _, _, _, _) => visitsSequences // (List[Visit], nextIndex)
       .useMemoBy((props, _, _, _, _, visitsData) =>
         (visitsData,
          props.acquisitionRows,
          props.scienceRows,
          props.currentRecordedVisit.map(_.visitId),
-         props.currentRecordedStepId,
          props.executionState.breakpoints,
          props.executionState.sequenceType,
          props.executionState.isWaitingAcquisitionPrompt,
@@ -202,7 +197,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           acquisitionSteps,
           scienceSteps,
           currentVisitId,
-          currentRecordedStepId,
           _,
           sequenceType,
           isWaitingAcquisitionPrompt,
@@ -217,8 +211,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             Option.when(isWaitingAcquisitionPrompt)(
               AlertRow(
                 sequenceType,
-                // There's an extra loaded step when the prompt is displayed.
-                NonNegInt.from(alertPosition.value - 1).getOrElse(NonNegInt.unsafeFrom(0)),
+                alertPosition,
                 AcquisitionPrompt(
                   sequenceApi.loadNextAtom(props.obsId, SequenceType.Science).runAsync,
                   sequenceApi.loadNextAtom(props.obsId, SequenceType.Acquisition).runAsync,
@@ -230,10 +223,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           stitchSequence(
             visits,
             currentVisitId,
-            currentRecordedStepId,
             nextScienceIndex,
-            // We have to remove the last step if isWaitingAcquisitionPrompt is true, since the server has already loaded it.
-            if (isWaitingAcquisitionPrompt) acquisitionSteps.init else acquisitionSteps,
+            acquisitionSteps,
             scienceSteps,
             acquisitionPrompt
           )
