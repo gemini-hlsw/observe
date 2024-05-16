@@ -61,7 +61,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.37.3"
     val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.57.0"
+    val lucumaReact  = "0.61.1"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta3"
   }
@@ -195,7 +195,6 @@ object Settings {
         "edu.gemini" %%% "lucuma-react-common"         % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-font-awesome"   % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-tanstack-table" % LibraryVersions.lucumaReact,
-        "edu.gemini" %%% "lucuma-react-floatingui"     % LibraryVersions.lucumaReact,
         "edu.gemini" %%% "lucuma-react-prime-react"    % LibraryVersions.lucumaReact // Must be last, lest we hit a compiler snag
       )
     )

@@ -12,6 +12,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
+import lucuma.react.primereact.Tooltip
 import lucuma.react.primereact.TooltipOptions
 import observe.model.Observation
 import observe.model.SequenceState
@@ -42,7 +43,7 @@ object SeqControlButtons:
   private type Props = SeqControlButtons
 
   private val tooltipOptions =
-    TooltipOptions(position = TooltipOptions.Position.Top, showDelay = 100)
+    TooltipOptions(position = Tooltip.Position.Top, showDelay = 100)
 
   private val component =
     ScalaFnComponent
