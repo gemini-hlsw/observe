@@ -171,11 +171,11 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         (props.clientMode,
          props.instrument,
          props.obsId,
-         props.requests,
-         props.executionState,
-         props.progress,
+         props.requests,             // Should go in meta, future PR
+         props.executionState,       // Should go in meta, future PR
+         props.progress,             // Should go in meta, future PR
          props.isPreview,
-         props.selectedStepId
+         props.selectedStepId        // Should go in meta, future PR
         )
       ): (props, _, _, _) =>
         columnDefs(props.flipBreakpoint)
@@ -250,7 +250,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           getSubRows = (row, _) => row.subRows,
           columnResizeMode = ColumnResizeMode.OnChange,
           initialState = TableState(
-            expanded = CurrentExpandedState // TODO Expand current visit sections
+            expanded = CurrentExpandedState
           ),
           state = PartialTableState(
             columnSizing = dynTable.columnSizing,

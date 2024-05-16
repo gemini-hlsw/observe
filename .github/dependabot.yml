@@ -1,15 +1,23 @@
 version: 2
+registries:
+  fortawesome:
+    type: npm-registry
+    url: https://npm.fontawesome.com/
+    token: ${{secrets.FONTAWESOME_NPM_AUTH_TOKEN}}
+    replaces-base: true
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/web/"
+  - package-ecosystem: 'github-actions'
+    directory: '/modules/web/client'
     schedule:
-      interval: "monthly"
-  - package-ecosystem: "npm"
-    directory: "/web/"
+      interval: 'monthly'
+  - package-ecosystem: 'npm'
+    registries:
+      - fortawesome
+    directory: '/modules/web/client'
     schedule:
-      interval: "weekly"
+      interval: 'weekly'
       # Check for npm updates on Sundays
-      day: "sunday"
+      day: 'sunday'
     # Labels on pull requests for security and version updates
     labels:
-      - "npm dependencies"
+      - 'npm dependencies'
