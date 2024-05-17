@@ -14,7 +14,6 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.typed.tanstackTableCore as raw
 import lucuma.ui.sequence.*
 import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.table.*
@@ -32,8 +31,15 @@ import scalajs.js
 
 // Offload SequenceTable definitions to improve legibility.
 trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
+  protected case class TableMeta(
+    requests:       ObservationRequests,
+    executionState: ExecutionState,
+    progress:       Option[StepProgress],
+    selectedStepId: Option[Step.Id]
+  )
+
   // protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow[DynamicConfig]]]
-  protected def ColDef = ColumnDef[SequenceTableRowType]
+  protected def ColDef = ColumnDef.WithTableMeta[SequenceTableRowType, TableMeta]
 
   // Breakpoint column has width 0 but is translated and actually shown.
   // We display an empty BreakpointSpace column to show the space with correct borders.
@@ -94,22 +100,17 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[
-      raw.buildLibCoreCellMod.CellContext[SequenceTableRowType, V] => VdomNode
-    ] = js.undefined
-  ): ColumnDef[SequenceTableRowType, V] =
+    cell:   js.UndefOr[CellContext[SequenceTableRowType, V, TableMeta, Nothing] => VdomNode] =
+      js.undefined
+  ): ColumnDef[SequenceTableRowType, V, TableMeta, Nothing] =
     ColDef[V](id, header = _ => header, cell = cell)
 
   protected def columnDefs(flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback)(
-    clientMode:     ClientMode,
-    instrument:     Instrument,
-    obsId:          Observation.Id,
-    requests:       ObservationRequests,
-    executionState: ExecutionState,
-    progress:       Option[StepProgress],
-    isPreview:      Boolean,
-    selectedStepId: Option[Step.Id]
-  ): List[ColumnDef[SequenceTableRowType, ?]] =
+    clientMode: ClientMode,
+    instrument: Instrument,
+    obsId:      Observation.Id,
+    isPreview:  Boolean
+  ): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
       column(
@@ -152,36 +153,39 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
       column(
         ExtraRowColumnId,
         "",
-        _.row.original.value.toOption
-          .map(_.step)
-          .map[VdomNode]:
-            case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
-              renderVisitExtraRow(step)
-            case step                                           =>
-              (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
-                selectedStepId
-                  .filter(_ === stepId)
-                  .map: stepId =>
-                    StepProgressCell(
-                      clientMode = clientMode,
-                      instrument = instrument,
-                      stepId = stepId,
-                      stepType = stepType,
-                      isFinished = step.isFinished,
-                      obsId = obsId,
-                      requests = requests,
-                      runningStepId = executionState.runningStepId,
-                      sequenceState = executionState.sequenceState,
-                      isPausedInStep = executionState.pausedStep.exists(_.value === stepId),
-                      subsystemStatus = executionState.stepResources
-                        .find(_._1 === stepId)
-                        .map(_._2.toMap)
-                        .getOrElse(Map.empty),
-                      systemOverrides = executionState.systemOverrides,
-                      progress = progress,
-                      selectedStep = selectedStepId,
-                      isPreview = isPreview
-                    )
+        cell =>
+          cell.table.options.meta.map: meta =>
+            cell.row.original.value.toOption
+              .map(_.step)
+              .map[VdomNode]:
+                case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
+                  renderVisitExtraRow(step)
+                case step                                           =>
+                  (step.id.toOption, step.stepTypeDisplay).mapN: (stepId, stepType) =>
+                    meta.selectedStepId
+                      .filter(_ === stepId)
+                      .map: stepId =>
+                        StepProgressCell(
+                          clientMode = clientMode,
+                          instrument = instrument,
+                          stepId = stepId,
+                          stepType = stepType,
+                          isFinished = step.isFinished,
+                          obsId = obsId,
+                          requests = meta.requests,
+                          runningStepId = meta.executionState.runningStepId,
+                          sequenceState = meta.executionState.sequenceState,
+                          isPausedInStep =
+                            meta.executionState.pausedStep.exists(_.value === stepId),
+                          subsystemStatus = meta.executionState.stepResources
+                            .find(_._1 === stepId)
+                            .map(_._2.toMap)
+                            .getOrElse(Map.empty),
+                          systemOverrides = meta.executionState.systemOverrides,
+                          progress = meta.progress,
+                          selectedStep = meta.selectedStepId,
+                          isPreview = isPreview
+                        )
       )
     ) ++
       SequenceColumns
