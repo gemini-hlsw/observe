@@ -16,7 +16,6 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
-import lucuma.typed.tanstackTableCore as raw
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep
@@ -137,9 +136,9 @@ object SessionQueue:
   private def renderCentered(node: VdomNode, css: Css = Css.Empty): VdomNode =
     <.div(ObserveStyles.Centered |+| css)(node)
 
-  private def linked[T, A](
-    f: raw.buildLibCoreCellMod.CellContext[T, A] => VdomNode
-  ): raw.buildLibCoreCellMod.CellContext[T, A] => VdomNode =
+  private def linked[T, A, TM, CM](
+    f: CellContext[T, A, TM, CM] => VdomNode
+  ): CellContext[T, A, TM, CM] => VdomNode =
     f // .andThen(node => renderCell(node))
     //  (_, _, _, row: SessionQueueRow, _) =>
     //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
@@ -272,7 +271,7 @@ object SessionQueue:
                 ^.onClick --> props.selectObs(row.original.obsId)
               ),
             cellMod = cell =>
-              ColumnId(cell.column.id) match
+              cell.column.id match
                 case StatusIconColumnId => ObserveStyles.LoadButtonCell
                 case _                  => TagMod.empty
             ,

@@ -23,7 +23,6 @@ import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
-import lucuma.typed.tanstackTableCore as raw
 import lucuma.typed.tanstackVirtualCore as rawVirtual
 import lucuma.ui.primereact.*
 import lucuma.ui.react.given
@@ -168,15 +167,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useContext(AppContext.ctx)
       .useContext(SequenceApi.ctx)
       .useMemoBy((props, _, _, _) => // cols
-        (props.clientMode,
-         props.instrument,
-         props.obsId,
-         props.requests,             // Should go in meta, future PR
-         props.executionState,       // Should go in meta, future PR
-         props.progress,             // Should go in meta, future PR
-         props.isPreview,
-         props.selectedStepId        // Should go in meta, future PR
-        )
+        (props.clientMode, props.instrument, props.obsId, props.isPreview)
       ): (props, _, _, _) =>
         columnDefs(props.flipBreakpoint)
       .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
@@ -239,7 +230,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           )
       .useDynTableBy: (_, resize, _, _, _, _, _, _) =>
         (DynTableDef, SizePx(resize.width.orEmpty))
-      .useReactTableBy: (_, _, _, _, cols, _, _, sequence, dynTable) =>
+      .useReactTableBy: (props, _, _, _, cols, _, _, sequence, dynTable) =>
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
@@ -256,7 +247,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             columnSizing = dynTable.columnSizing,
             columnVisibility = dynTable.columnVisibility
           ),
-          onColumnSizingChange = dynTable.onColumnSizingChangeHandler
+          onColumnSizingChange = dynTable.onColumnSizingChangeHandler,
+          meta = TableMeta(
+            props.requests,
+            props.executionState,
+            props.progress,
+            props.selectedStepId
+          )
         )
       .useContext(ODBQueryApi.ctx)
       // If the list of current steps changes, reload last visit and sequence.
@@ -331,13 +328,13 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             .orEmpty
 
         def computeHeaderCellMods(
-          headerCell: raw.buildLibTypesMod.Header[SequenceTableRowType, Any]
+          headerCell: Header[SequenceTableRowType, Any, TableMeta, Any]
         ): TagMod =
           headerCell.column.id match
-            case id if id == HeaderColumnId.value     => SequenceStyles.HiddenColTableHeader
-            case id if id == BreakpointColumnId.value => SequenceStyles.HiddenColTableHeader
-            case id if id == ExtraRowColumnId.value   => SequenceStyles.HiddenColTableHeader
-            case _                                    => TagMod.empty
+            case id if id == HeaderColumnId     => SequenceStyles.HiddenColTableHeader
+            case id if id == BreakpointColumnId => SequenceStyles.HiddenColTableHeader
+            case id if id == ExtraRowColumnId   => SequenceStyles.HiddenColTableHeader
+            case _                              => TagMod.empty
 
         val extraRowMod: TagMod =
           TagMod(
@@ -348,24 +345,24 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
               .whenDefined
           )
 
-        def computeCellMods(cell: raw.buildLibTypesMod.Cell[SequenceTableRowType, Any]): TagMod =
+        def computeCellMods(cell: Cell[SequenceTableRowType, Any, TableMeta, Any]): TagMod =
           cell.row.original.value match
             case Left(_)        => // Header
               cell.column.id match
-                case id if id == HeaderColumnId.value => TagMod(^.colSpan := cols.length)
-                case _                                => ^.display.none
+                case id if id == HeaderColumnId => TagMod(^.colSpan := cols.length)
+                case _                          => ^.display.none
             case Right(stepRow) =>
               cell.column.id match
-                case id if id == HeaderColumnId.value     => // TODO MOVE TO STYLE
+                case id if id == HeaderColumnId     => // TODO MOVE TO STYLE
                   TagMod(^.border := "0px", ^.padding := "0px")
-                case id if id == BreakpointColumnId.value =>
+                case id if id == BreakpointColumnId =>
                   ObserveStyles.BreakpointTableCell
-                case id if id == ExtraRowColumnId.value   =>
+                case id if id == ExtraRowColumnId   =>
                   stepRow.step match // Extra row is shown in a selected row or in an executed step row.
                     case SequenceRow.Executed.ExecutedStep(_, _) => extraRowMod
                     case step if step.isSelected                 => extraRowMod
                     case _                                       => TagMod.empty
-                case _                                    =>
+                case _                              =>
                   TagMod.empty
 
         val visitIds       = visits._1.map(_.rowId).toSet
@@ -378,9 +375,9 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
 
         val rows = table.getExpandedRowModel().rows
 
-        def forAllVisits(onContains: Row[SequenceTableRowType] => Boolean): Boolean =
+        def forAllVisits(onContains: Row[SequenceTableRowType, TableMeta] => Boolean): Boolean =
           rows.forall: row =>
-            if visitIds.contains(RowId(row.id)) then onContains(Row(row)) else true
+            if visitIds.contains(row.id) then onContains(row) else true
 
         val allVisitsAreCollapsed = forAllVisits(!_.getIsExpanded())
         val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
