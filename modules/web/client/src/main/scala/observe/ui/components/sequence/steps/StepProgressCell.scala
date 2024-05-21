@@ -9,6 +9,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
+import lucuma.core.util.TimeSpan
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
 import observe.model.ObserveStage
@@ -36,6 +37,7 @@ case class StepProgressCell(
   isPausedInStep:  Boolean,
   subsystemStatus: Map[Resource | Instrument, ActionStatus],
   systemOverrides: SystemOverrides,
+  exposureTime:    TimeSpan,
   progress:        Option[StepProgress],
   selectedStep:    Option[Step.Id],
   isPreview:       Boolean
@@ -161,6 +163,7 @@ object StepProgressCell:
           props.obsId,
           props.stepId,
           props.sequenceState,
+          props.exposureTime,
           props.progress,
           fileId,
           isStopping = !props.isPausedInStep && props.isStopping,
