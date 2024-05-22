@@ -40,7 +40,7 @@ object ObservationSyncer:
       .useStreamOnMountBy: (_, ctx, _, _) =>
         ctx.odbClient.statusStream
       .useRef(none[Observation.Id])
-      .useAsyncEffectWithDepsBy((props, _, _, _, odbStatusPot, _) =>
+      .useEffectStreamResourceWithDepsBy((props, _, _, _, odbStatusPot, _) =>
         // Run when observation changes or ODB status changes to Initialized
         (props.nighttimeObservation.get.map(_.obsId),
          odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)
@@ -51,22 +51,19 @@ object ObservationSyncer:
 
           deps
             .map: (obsId, _) =>
-              if (!subscribedObsId.value.contains(obsId))
-                subscribedObsId.setAsync(obsId.some) >>
-                  (odbQueryApi.refreshNighttimeSequence,
-                   odbQueryApi.refreshNighttimeVisits
-                  ).parTupled
-                    .reRunOnResourceSignals:
-                      // Eventually, there will be another subscription notifying of sequence/visits changes
-                      ObsQueriesGQL.SingleObservationEditSubscription
-                        .subscribe[IO]:
-                          obsId.toObservationEditInput
-                    .flatMap: stream =>
-                      Resource.make(stream.compile.drain.start)(_.cancel)
-                    .allocated
-                    .map(_._2) // Update fiber will get cancelled and subscription ended if connection lost or obs changes
-              else IO(IO.unit)
-
+              Option
+                .unless(subscribedObsId.value.contains(obsId))(
+                  Resource.pure(fs2.Stream.eval(subscribedObsId.setAsync(obsId.some))) >>
+                    (odbQueryApi.refreshNighttimeSequence,
+                     odbQueryApi.refreshNighttimeVisits
+                    ).parTupled.void
+                      .reRunOnResourceSignals:
+                        // Eventually, there will be another subscription notifying of sequence/visits changes
+                        ObsQueriesGQL.SingleObservationEditSubscription
+                          .subscribe[IO]:
+                            obsId.toObservationEditInput
+                )
+                .orEmpty
             // TODO Breakpoint initialization should happen in the server, not here.
             // Leaving the code commented here until we move it to the server.
             // >>= ((_, configEither) =>
@@ -94,6 +91,6 @@ object ObservationSyncer:
             // )
             .getOrElse:
               // If connection broken, or observation unselected, cleanup sequence and visits
-              props.nighttimeObservation.async.mod(_.map(_.reset)).as(IO.unit)
+              Resource.pure(fs2.Stream.eval(props.nighttimeObservation.async.mod(_.map(_.reset))))
       .render: _ =>
         EmptyVdom
