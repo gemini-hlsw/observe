@@ -174,10 +174,10 @@ object MainApp extends ServerEventHandler:
       .useStateView(Pot.pending[ClientConfig]) // clientConfigPot
       .useStateView(RootModelData.Initial)     // rootModelData
       .useStateView(ApiStatus.Idle)            // configApiStatus
-      .useAsyncEffectWhenDepsReady((_, _, _, _, wsConnection, _, _, _) =>
+      .useEffectStreamWhenDepsReadyBy((_, _, _, _, wsConnection, _, _, _) =>
         wsConnection.flatMap(_.toPot)
       ): (_, _, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
-        _.receiveStream  // Setup server event processor (2)
+        _.receiveStream // Setup server event processor (2)
           .through(parseClientEvents)
           .evalMap:
             case Right(event) =>
@@ -187,13 +187,10 @@ object MainApp extends ServerEventHandler:
                 syncStatus.async.mod,
                 configApiStatus.async.mod
               )(event)
-            case Left(error)  => processStreamError(rootModelData.async.mod)(error)
-          .compile
-          .drain
-          .start
-          .map(_.cancel) // Ensure fiber is cancelled when effect is re-run
+            case Left(error)  =>
+              processStreamError(rootModelData.async.mod)(error)
       .useState(Pot.pending[AppContext[IO]])   // ctxPot
-      .useAsyncEffectWhenDepsReady((_, _, _, _, _, clientConfig, _, _, _) => clientConfig.get):
+      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, clientConfig, _, _, _) => clientConfig.get):
         (_, toastRef, _, _, _, _, _, _, ctxPot) => // Build AppContext (4)
           clientConfig =>
             val ctxResource: Resource[IO, AppContext[IO]] =
@@ -218,12 +215,12 @@ object MainApp extends ServerEventHandler:
 
             ctxResource.allocated.flatMap: (ctx, release) =>
               ctxPot.setStateAsync(ctx.ready).as(release) // Return `release` as cleanup effect
-      .useEffectWhenDepsReady((_, _, _, _, _, _, _, _, ctxPot) => ctxPot.value):
+      .useEffectWhenDepsReadyBy((_, _, _, _, _, _, _, _, ctxPot) => ctxPot.value):
         (_, _, _, _, _, _, rootModelData, _, _) =>
           ctx => // Once AppContext is ready, proceed to attempt login (5)
             enforceStaffRole(ctx.ssoClient).attempt.flatMap: userVault =>
               rootModelData.async.mod(_.withLoginResult(userVault))
-      .useAsyncEffectWhenDepsReady((_, _, _, _, _, _, rootModelData, _, ctxPot) =>
+      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, _, rootModelData, _, ctxPot) =>
         (ctxPot.value, rootModelData.get.userVault.map(_.toPot).flatten).tupled
       ): (_, _, _, _, _, _, _, _, _) => // Initialize ODB client (6)
         (ctx, userVault) =>
@@ -279,7 +276,7 @@ object MainApp extends ServerEventHandler:
               .toOption
               .foldMap(_.statusStream) // Track ODB initialization status
       .useRef(false)
-      .useAsyncEffectWhenDepsReady(
+      .useEffectStreamResourceWhenDepsReadyBy(
         (_, _, _, _, _, clientConfigPot, _, _, ctxPot, _, odbStatus, _) =>
           (clientConfigPot.get,
            ctxPot.value,
@@ -289,33 +286,27 @@ object MainApp extends ServerEventHandler:
         (clientConfig, ctx, _) => // Query ready observations for the site (7)
           import ctx.given
 
-          if (!subscribed.value)
-            val readyObservations = rootModelData
-              .zoom(RootModelData.readyObservations)
-              .async
+          Option
+            .unless(subscribed.value) {
+              val readyObservations = rootModelData
+                .zoom(RootModelData.readyObservations)
+                .async
 
-            // TODO RECONNECT ON ERRORS
-            val obsSummaryUpdaterResource =
-              for
-                obsStream <-
-                  ObsQueriesGQL
-                    .ActiveObservationIdsQuery[IO]
-                    .query()
-                    .flatMap: data =>
-                      readyObservations.set:
-                        data.observations.matches
-                          .filter(_.instrument.site.contains_(clientConfig.site))
-                          .ready
-                    .recoverWith(t => readyObservations.set(Pot.error(t)))
-                    .reRunOnResourceSignals:
-                      ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
-                _         <- Resource.make(obsStream.compile.drain.start)(_.cancel)
-              yield ()
-
-            subscribed.setAsync(true) >>
-              obsSummaryUpdaterResource.allocated
-                .map((_, close) => close)
-          else IO(IO.unit)
+              Resource.pure(fs2.Stream.eval[IO, Unit](subscribed.setAsync(true))) >>
+                ObsQueriesGQL
+                  .ActiveObservationIdsQuery[IO]
+                  .query()
+                  .flatMap: data =>
+                    readyObservations.set:
+                      data.observations.matches
+                        .filter(_.instrument.site.contains_(clientConfig.site))
+                        .ready
+                  .recoverWith(t => readyObservations.set(Pot.error(t)))
+                  .void
+                  .reRunOnResourceSignals:
+                    ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
+            }
+            .orEmpty
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
       .render:
         (

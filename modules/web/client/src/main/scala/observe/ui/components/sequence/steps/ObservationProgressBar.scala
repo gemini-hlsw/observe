@@ -68,69 +68,66 @@ object ObservationProgressBar extends ProgressLabel:
         ((elapsedMicros * 100.0) / totalMicros, totalMicros - elapsedMicros)
       case _                                                  => (0.0, 0L)
 
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useContext(AppContext.ctx)
-    .useState(0L) // extra - Microprogress increased between server updates to smooth progress
-    .useSingleEffect
-    .useEffectWithDepsBy((props, _, _, _) => props.progress.map(_.remaining)):
-      (props, _, extra, _) => _ => extra.setState(0L)
-    .useEffectWithDepsBy((props, _, _, _) => props.isStatic): (_, ctx, extra, singleEffect) =>
-      isStatic =>
-        import ctx.given
+  private val component =
+    ScalaFnComponent
+      .withHooks[Props]
+      .useContext(AppContext.ctx)
+      .useState(0L) // extra - Microprogress increased between server updates to smooth progress
+      .useEffectWithDepsBy((props, _, _) => props.progress.map(_.remaining)): (props, _, extra) =>
+        _ => extra.setState(0L)
+      .useEffectStreamWithDepsBy((props, _, _) => props.isStatic): (_, ctx, extra) =>
+        isStatic =>
+          import ctx.given
 
-        if (isStatic)
-          singleEffect.cancel
-        else
-          singleEffect.submit:
-            fs2.Stream
-              .awakeEvery[IO](UpdatePeriod)
-              .evalMap: _ =>
-                extra.modStateAsync: previous =>
-                  previous + UpdateMicros
-              .compile
-              .drain
-    // (progress, remainingMicros)
-    .useRefBy((props, _, extra, _) => computeProgressValues(props.runningProgress, extra.value))
-    .useEffectWithDepsBy((props, _, extra, _, _) => (props.runningProgress, extra.value)):
-      (_, _, _, _, progress) =>
-        (runningProgress, extra) =>
-          val (newProgress, remainingMicros) = computeProgressValues(runningProgress, extra)
-          if (newProgress > progress.value._1)
-            progress.set((newProgress, remainingMicros))
-          else
-            Callback.empty
-    .render: (props, _, _, _, progress) =>
-      props.runningProgress.fold {
-        val msg: String =
-          List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
-            .filterNot(_.isEmpty)
-            .mkString(" - ")
+          Option
+            .unless(isStatic):
+              fs2.Stream
+                .awakeEvery[IO](UpdatePeriod)
+                .evalMap: _ =>
+                  extra.modStateAsync: previous =>
+                    previous + UpdateMicros
+            .orEmpty
+      // (progress, remainingMicros)
+      .useRefBy((props, _, extra) => computeProgressValues(props.runningProgress, extra.value))
+      .useEffectWithDepsBy((props, _, extra, _) => (props.runningProgress, extra.value)):
+        (_, _, _, progress) =>
+          (runningProgress, extra) =>
+            val (newProgress, remainingMicros) = computeProgressValues(runningProgress, extra)
+            if (newProgress > progress.value._1)
+              progress.set((newProgress, remainingMicros))
+            else
+              Callback.empty
+      .render: (props, _, _, progress) =>
+        props.runningProgress.fold {
+          val msg: String =
+            List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
+              .filterNot(_.isEmpty)
+              .mkString(" - ")
 
-        // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
-        <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationProgressBar)(
-          <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
-        )
-      } { runningProgress =>
-        ProgressBar(
-          id = "progress",
-          value = progress.value._1,
-          clazz = ObserveStyles.ObservationProgressBar,
-          displayValueTemplate = _ =>
-            // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
-            // Achieved by rendering the 3 divs inside a space-between flexbox.
-            React.Fragment(
-              <.div,
-              <.div(
-                renderLabel(
-                  props.fileId,
-                  progress.value._2.some,
-                  props.isStopping,
-                  props.isPausedInStep,
-                  runningProgress.stage
-                )
-              ),
-              <.div
-            )
-        )
-      }
+          // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
+          <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationProgressBar)(
+            <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
+          )
+        } { runningProgress =>
+          ProgressBar(
+            id = "progress",
+            value = progress.value._1,
+            clazz = ObserveStyles.ObservationProgressBar,
+            displayValueTemplate = _ =>
+              // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
+              // Achieved by rendering the 3 divs inside a space-between flexbox.
+              React.Fragment(
+                <.div,
+                <.div(
+                  renderLabel(
+                    props.fileId,
+                    progress.value._2.some,
+                    props.isStopping,
+                    props.isPausedInStep,
+                    runningProgress.stage
+                  )
+                ),
+                <.div
+              )
+          )
+        }
