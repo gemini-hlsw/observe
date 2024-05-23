@@ -21,7 +21,6 @@ import observe.model.StepProgress
 import observe.model.dhs.ImageFileId
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
-import observe.ui.model.reusability.given
 
 import scala.concurrent.duration.*
 
@@ -32,6 +31,7 @@ case class ObservationProgressBar(
   obsId:          Observation.Id,
   stepId:         Step.Id,
   sequenceState:  SequenceState,
+  exposureTime:   TimeSpan,
   progress:       Option[StepProgress],
   fileId:         ImageFileId, // TODO This can be multiple ones
   isStopping:     Boolean,
@@ -39,65 +39,59 @@ case class ObservationProgressBar(
 ) extends ReactFnProps(ObservationProgressBar.component):
   val isStatic: Boolean =
     !sequenceState.isRunning ||
-      !props.progress.map(_.stage).contains_(ObserveStage.Acquiring) ||
+      !progress.map(_.stage).contains_(ObserveStage.Acquiring) ||
       isStopping ||
       isPausedInStep
 
   val runningProgress: Option[StepProgress] =
-    props.progress
-      .filter(_.stepId === props.stepId)
+    progress
+      .filter(_.stepId === stepId)
       .filter(_.stage =!= ObserveStage.Preparing)
+
+  val progressRemainingTime: Option[TimeSpan] =
+    runningProgress.map(_.remaining)
 
 object ObservationProgressBar extends ProgressLabel:
   private type Props = ObservationProgressBar
 
-  // Smoothing parameters
-  private val UpdatePeriodMicros: Long     = 50000
+  private val UpdatePeriodMicros: Long     = 50000 // Smoothing parameter
   private val UpdatePeriod: FiniteDuration = FiniteDuration(UpdatePeriodMicros, MICROSECONDS)
-  // The following value was found by trial and error to provide the smoothest experience.
-  private val UpdateMicros: Long           = 58000
-
-  private def computeProgressValues(
-    runningProgress: Option[StepProgress],
-    extra:           Long
-  ): (Double, Long) =
-    runningProgress match
-      case Some(StepProgress.Regular(_, total, remaining, _)) =>
-        val totalMicros: Long   = total.toMicroseconds
-        val elapsedMicros: Long = totalMicros - remaining.toMicroseconds + extra
-        ((elapsedMicros * 100.0) / totalMicros, totalMicros - elapsedMicros)
-      case _                                                  => (0.0, 0L)
+  private val UpdateTimeSpan: TimeSpan     = TimeSpan.unsafeFromMicroseconds(UpdatePeriodMicros)
 
   private val component =
     ScalaFnComponent
       .withHooks[Props]
       .useContext(AppContext.ctx)
-      .useState(0L) // extra - Microprogress increased between server updates to smooth progress
-      .useEffectWithDepsBy((props, _, _) => props.progress.map(_.remaining)): (props, _, extra) =>
-        _ => extra.setState(0L)
-      .useEffectStreamWithDepsBy((props, _, _) => props.isStatic): (_, ctx, extra) =>
-        isStatic =>
-          import ctx.given
+      .useStateBy((props, _) => props.exposureTime) // remainingShown
+      // remainingActual - if less than remainingShown, we keep the shown value until this one catches up
+      .useRefBy((props, _, _) => props.exposureTime)
+      .useEffectStreamWithDepsBy((props, _, _, _) => props.isStatic):
+        (_, ctx, remainingShown, remainingActual) =>
+          isStatic =>
+            import ctx.given
 
-          Option
-            .unless(isStatic):
-              fs2.Stream
-                .awakeEvery[IO](UpdatePeriod)
-                .evalMap: _ =>
-                  extra.modStateAsync: previous =>
-                    previous + UpdateMicros
-            .orEmpty
-      // (progress, remainingMicros)
-      .useRefBy((props, _, extra) => computeProgressValues(props.runningProgress, extra.value))
-      .useEffectWithDepsBy((props, _, extra, _) => (props.runningProgress, extra.value)):
-        (_, _, _, progress) =>
-          (runningProgress, extra) =>
-            val (newProgress, remainingMicros) = computeProgressValues(runningProgress, extra)
-            if (newProgress > progress.value._1)
-              progress.set((newProgress, remainingMicros))
-            else
-              Callback.empty
-      .render: (props, _, _, progress) =>
+            Option
+              .unless(isStatic):
+                fs2.Stream
+                  .awakeEvery[IO](UpdatePeriod)
+                  .evalMap: _ =>
+                    val newRemaining = remainingActual.value -| UpdateTimeSpan
+                    remainingActual.setAsync(newRemaining) >>
+                      Option
+                        .when(newRemaining < remainingShown.value):
+                          remainingShown.setStateAsync(newRemaining)
+                        .orEmpty
+              .orEmpty
+      .useEffectWithDepsBy((props, _, _, _) => props.progressRemainingTime):
+        (_, _, remainingShown, remainingActual) =>
+          _.map: progressRemainingTime =>
+            remainingActual.setAsync(progressRemainingTime) >>
+              Option
+                .when(progressRemainingTime < remainingShown.value):
+                  remainingShown.setStateAsync(progressRemainingTime)
+                .orEmpty
+          .orEmpty
+      .render: (props, _, remainingShown, _) =>
         props.runningProgress.fold {
           val msg: String =
             List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
@@ -109,9 +103,12 @@ object ObservationProgressBar extends ProgressLabel:
             <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
           )
         } { runningProgress =>
+          val elapsedMicros: Long = (props.exposureTime -| remainingShown.value).toMicroseconds
+          val progress: Double    = (elapsedMicros * 100.0) / props.exposureTime.toMicroseconds
+
           ProgressBar(
             id = "progress",
-            value = progress.value._1,
+            value = progress,
             clazz = ObserveStyles.ObservationProgressBar,
             displayValueTemplate = _ =>
               // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
@@ -121,7 +118,7 @@ object ObservationProgressBar extends ProgressLabel:
                 <.div(
                   renderLabel(
                     props.fileId,
-                    progress.value._2.some,
+                    remainingShown.value.some,
                     props.isStopping,
                     props.isPausedInStep,
                     runningProgress.stage

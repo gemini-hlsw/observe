@@ -4,18 +4,20 @@
 package observe.ui.components.sequence.steps
 
 import cats.syntax.all.*
+import lucuma.core.util.TimeSpan
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId
 
 trait ProgressLabel:
   protected def renderLabel(
-    fileId:          ImageFileId,
-    remainingMicros: Option[Long],
-    isStopping:      Boolean,
-    isPausedInStep:  Boolean,
-    stage:           ObserveStage
+    fileId:            ImageFileId,
+    remainingTimeSpan: Option[TimeSpan],
+    isStopping:        Boolean,
+    isPausedInStep:    Boolean,
+    stage:             ObserveStage
   ): String =
-    val durationStr: String = remainingMicros
+    val durationStr: String = remainingTimeSpan
+      .map(_.toMicroseconds)
       .filter(_ > 0)
       .foldMap: micros =>
         // s"mm:ss (s s) Remaining"
