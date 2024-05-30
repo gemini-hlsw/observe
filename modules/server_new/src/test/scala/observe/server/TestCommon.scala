@@ -54,6 +54,7 @@ import lucuma.core.model.sequence.gmos.GmosFpuMask
 import lucuma.core.model.sequence.gmos.GmosGratingConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
+import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
@@ -311,7 +312,7 @@ object TestCommon {
   def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =
     ODBObservation(
       id = id,
-      title = "",
+      title = "Test Observation".refined,
       ObsStatus.Ready,
       ObsActiveStatus.Active,
       ODBObservation.Program(
@@ -449,7 +450,7 @@ object TestCommon {
   ): SequenceGen[IO] = SequenceGen[IO](
     ODBObservation(
       id = id,
-      title = "",
+      title = "Test Observation".refined,
       ObsStatus.Ready,
       ObsActiveStatus.Active,
       ODBObservation.Program(

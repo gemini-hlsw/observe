@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@floating-ui/react": "^0.26.10",
     "@fontsource/lato": "^5.0.20",
     "@fortawesome/fontawesome-pro": "^6.5.2",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
@@ -14,16 +13,16 @@
     "@tanstack/react-virtual": "3.5.0",
     "loglevel": "1.9.1",
     "primeicons": "^7.0.0",
-    "primereact": "~10.5.1",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "primereact": "~10.6.6",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-resize-detector": "10.0.1",
     "ua-parser-js": "1.0.37"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
     "process": "^0.11.10",
-    "sass": "^1.77.1",
+    "sass": "^1.77.2",
     "unplugin-fonts": "^1.1.1",
     "vite": "4.5.0",
     "vite-plugin-mkcert": "^1.17.5"

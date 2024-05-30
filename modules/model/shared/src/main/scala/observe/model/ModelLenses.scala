@@ -5,6 +5,7 @@ package observe.model
 
 import cats.*
 import cats.syntax.all.*
+import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
 import lucuma.core.optics.Format
@@ -15,7 +16,7 @@ import observe.model.enums.*
 
 trait ModelLenses {
   // Some useful Monocle lenses
-  val obsNameL: Lens[SequenceView, String]                                  =
+  val obsNameL: Lens[SequenceView, NonEmptyString]                          =
     GenLens[SequenceView](_.metadata.name)
   val eachStepT: Traversal[List[ObserveStep], ObserveStep]                  =
     Traversal.fromTraverse[List, ObserveStep]

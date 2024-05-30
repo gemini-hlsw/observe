@@ -464,7 +464,7 @@ class ObserveEngineSuite extends TestCommon {
     SequenceGen[IO](
       ODBObservation(
         id = seqObsId1,
-        title = "",
+        title = "Test Observation".refined,
         ObsStatus.Ready,
         ObsActiveStatus.Active,
         ODBObservation.Program(
@@ -815,7 +815,7 @@ class ObserveEngineSuite extends TestCommon {
     SequenceGen[IO](
       ODBObservation(
         id = seqObsId1,
-        title = "",
+        title = "Test Observation".refined,
         ObsStatus.Ready,
         ObsActiveStatus.Active,
         ODBObservation.Program(

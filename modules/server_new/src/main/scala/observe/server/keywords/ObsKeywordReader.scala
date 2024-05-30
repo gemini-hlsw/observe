@@ -111,7 +111,7 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def gemPrgId: F[String] = obsCfg.program.name.map(_.toString).getOrElse("").pure[F]
 
-      override def obsId: F[String] = obsCfg.title.pure[F]
+      override def obsId: F[String] = obsCfg.title.value.pure[F]
 
       override def requestedAirMassAngle: F[Map[String, Double]] =
         obsCfg.constraintSet.elevationRange match {
