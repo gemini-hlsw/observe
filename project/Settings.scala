@@ -11,7 +11,7 @@ object Settings {
   object LibraryVersions {
     // Scala libraries
     val catsEffectVersion = "3.5.4"
-    val catsVersion       = "2.10.0"
+    val catsVersion       = "2.12.0"
     val kittens           = "3.3.0"
     val mouseVersion      = "1.2.3"
     val fs2Version        = "3.10.2"
@@ -39,9 +39,9 @@ object Settings {
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.0-RC1"
-    val munitDisciplineVersion = "1.0.9"
-    val munitCatsEffectVersion = "2.0.0-M5"
+    val munitVersion           = "1.0.0"
+    val munitDisciplineVersion = "2.0.0"
+    val munitCatsEffectVersion = "2.0.0"
 
     val acm           = "0.1.1"
     val giapiScala    = "0.2.2"
