@@ -6,7 +6,6 @@ package observe.ui.model.arb
 import cats.Order.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
-import lucuma.core.arb.cogenNonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
@@ -58,7 +57,7 @@ trait ArbObsSummary:
     Cogen[
       (Observation.Id,
        String,
-       Option[NonEmptyString],
+       Option[String],
        Instrument,
        ConstraintSet,
        List[TimingWindow],
@@ -71,7 +70,7 @@ trait ArbObsSummary:
       .contramap: s =>
         (s.obsId,
          s.title,
-         s.subtitle,
+         s.subtitle.map(_.value),
          s.instrument,
          s.constraints,
          s.timingWindows,

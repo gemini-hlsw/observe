@@ -30,6 +30,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.refined.*
 import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.model.dhs.ImageFileId
@@ -67,7 +68,7 @@ object TestOdbProxy {
             Data
               .Observation(
                 oid,
-                "",
+                title = "Test Observation".refined,
                 ObsStatus.Ready,
                 ObsActiveStatus.Active,
                 Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),

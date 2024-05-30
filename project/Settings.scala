@@ -44,24 +44,24 @@ object Settings {
     val munitCatsEffectVersion = "2.0.0"
 
     val acm           = "0.1.1"
-    val giapiScala    = "0.2.2"
+    val giapiScala    = "0.2.3"
     val geminiLocales = "0.7.0"
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.97.1"
-    val lucumaUI        = "0.103.0"
-    val lucumaSchemas   = "0.83.0"
-    val lucumaSSO       = "0.6.17"
-    val lucumaODBSchema = "0.11.7"
+    val lucumaCore      = "0.98.0"
+    val lucumaUI        = "0.105.0"
+    val lucumaSchemas   = "0.86.0"
+    val lucumaSSO       = "0.6.18"
+    val lucumaODBSchema = "0.11.8"
 
     // Clue
-    val clue = "0.35.2"
+    val clue = "0.35.3"
 
     // ScalaJS libraries
-    val crystal      = "0.38.0"
+    val crystal      = "0.39.2"
     val javaTimeJS   = "2.5.0"
-    val lucumaReact  = "0.63.0"
+    val lucumaReact  = "0.65.1"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta3"
   }
