@@ -157,7 +157,13 @@ object SeqTranslate {
           (ov: SystemOverrides) => instf(ov).observeControl,
           StepActionsGen(
             systemss.odb
-              .stepStartStep(obsCfg.id, step.instrumentConfig, step.stepConfig, step.observeClass)
+              .stepStartStep(
+                obsCfg.id,
+                step.instrumentConfig,
+                step.stepConfig,
+                step.observeClass,
+                step.id.some
+              )
               .as(Response.Ignored)
               .toAction(ActionType.OdbEvent),
             systemss.odb

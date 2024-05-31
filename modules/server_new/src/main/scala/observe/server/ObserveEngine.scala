@@ -451,7 +451,8 @@ object ObserveEngine {
                         obsId,
                         seq.seqGen.instrument,
                         seq.seqGen.nextAtom.sequenceType,
-                        NonNegShort.unsafeFrom(seq.seqGen.nextAtom.steps.length.toShort)
+                        NonNegShort.unsafeFrom(seq.seqGen.nextAtom.steps.length.toShort),
+                        seq.seqGen.nextAtom.atomId.some
                       )
                       .as(
                         Event.modifyState(
@@ -1975,10 +1976,12 @@ object ObserveEngine {
                     executeEngine.startNewAtom(obsId) *>
                       Handle.liftF[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
                         odb
-                          .atomStart(obsId,
-                                     inst,
-                                     atm.sequenceType,
-                                     NonNegShort.unsafeFrom(atm.steps.length.toShort)
+                          .atomStart(
+                            obsId,
+                            inst,
+                            atm.sequenceType,
+                            NonNegShort.unsafeFrom(atm.steps.length.toShort),
+                            atm.atomId.some
                           )
                           .as(SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId))
                       )
