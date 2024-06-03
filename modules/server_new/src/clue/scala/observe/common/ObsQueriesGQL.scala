@@ -369,8 +369,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait RecordAtomMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($visitId: VisitId!, $instrument: Instrument, $sequenceType: SequenceType!, $stepCount: NonNegShort!) {
-        recordAtom(input: { visitId: $visitId, instrument: $instrument, sequenceType: $sequenceType, stepCount: $stepCount } ) {
+      mutation($input: RecordAtomInput!) {
+        recordAtom(input: $input) {
           atomRecord {
             id
           }
@@ -381,8 +381,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait RecordGmosNorthStepMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($atomId: AtomId!, $gmosNorth: GmosNorthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
-        recordGmosNorthStep(input: { atomId: $atomId, gmosNorth: $gmosNorth, stepConfig: $stepConfig, observeClass: $observeClass} ) {
+      mutation($input: RecordGmosNorthStepInput!) {
+        recordGmosNorthStep(input: $input) {
           stepRecord {
             id
           }
@@ -405,8 +405,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait RecordGmosSouthStepMutation extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($atomId: AtomId!, $gmosSouth: GmosSouthDynamicInput!, $stepConfig: StepConfigInput!, $observeClass: ObserveClass!) {
-        recordGmosSouthStep(input: { atomId: $atomId, gmosSouth: $gmosSouth, stepConfig: $stepConfig, observeClass: $observeClass } ) {
+      mutation($input: RecordGmosSouthStepInput!) {
+        recordGmosSouthStep(input: $input) {
           stepRecord {
             id
           }

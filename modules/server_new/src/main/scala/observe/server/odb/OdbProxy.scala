@@ -30,6 +30,9 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
+import lucuma.schemas.ObservationDB.Types.RecordAtomInput
+import lucuma.schemas.ObservationDB.Types.RecordGmosNorthStepInput
+import lucuma.schemas.ObservationDB.Types.RecordGmosSouthStepInput
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
@@ -52,13 +55,15 @@ sealed trait OdbEventCommands[F[_]] {
     obsId:        Observation.Id,
     instrument:   Instrument,
     sequenceType: SequenceType,
-    stepCount:    NonNegShort
+    stepCount:    NonNegShort,
+    generatedId:  Option[Atom.Id]
   ): F[Unit]
   def stepStartStep(
     obsId:         Observation.Id,
     dynamicConfig: DynamicConfig,
     stepConfig:    StepConfig,
-    observeClass:  ObserveClass
+    observeClass:  ObserveClass,
+    generatedId:   Option[Step.Id]
   ): F[Unit]
   def stepStartConfigure(obsId:   Observation.Id): F[Unit]
   def stepEndConfigure(obsId:     Observation.Id): F[Boolean]
@@ -123,7 +128,8 @@ object OdbProxy {
       obsId:         Observation.Id,
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
-      observeClass:  ObserveClass
+      observeClass:  ObserveClass,
+      generatedId:   Option[Step.Id]
     ): F[Unit] = ().pure[F]
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
@@ -183,7 +189,8 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort
+      stepCount:    NonNegShort,
+      generatedId:  Option[Atom.Id]
     ): F[Unit] = Applicative[F].unit
 
     override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
@@ -218,11 +225,12 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort
+      stepCount:    NonNegShort,
+      generatedId:  Option[Atom.Id]
     ): F[Unit] = for {
       visitId <- getCurrentVisitId(obsId)
       _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
-      atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument)
+      atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument, generatedId)
       -       <- setCurrentAtomId(obsId, atomId)
       _       <- AddAtomEventMutation[F]
                    .execute(atomId = atomId.value, stg = AtomStage.StartAtom)
@@ -242,11 +250,12 @@ object OdbProxy {
       obsId:         Observation.Id,
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
-      observeClass:  ObserveClass
+      observeClass:  ObserveClass,
+      generatedId:   Option[Step.Id]
     ): F[Unit] =
       for {
         atomId <- getCurrentAtomId(obsId)
-        stepId <- recordStep(atomId, dynamicConfig, stepConfig, observeClass)
+        stepId <- recordStep(atomId, dynamicConfig, stepConfig, observeClass, generatedId)
         _      <- setCurrentStepId(obsId, stepId.some)
         _      <- L.debug(s"Recorded step for obsId: $obsId, recordedStepId: $stepId")
         _      <- AddStepEventMutation[F]
@@ -440,10 +449,13 @@ object OdbProxy {
       visitId:      Visit.Id,
       sequenceType: SequenceType,
       stepCount:    NonNegShort,
-      instrument:   Instrument
+      instrument:   Instrument,
+      generatedId:  Option[Atom.Id]
     ): F[RecordedAtomId] =
+      println(s"RECORDING ATOM: $visitId, $instrument, $sequenceType, $stepCount, $generatedId")
       RecordAtomMutation[F]
-        .execute(visitId, instrument.assign, sequenceType, stepCount)
+        .execute:
+          RecordAtomInput(visitId, instrument, sequenceType, stepCount, generatedId.orIgnore)
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
@@ -451,31 +463,38 @@ object OdbProxy {
       atomId:        RecordedAtomId,
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
-      observeClass:  ObserveClass
+      observeClass:  ObserveClass,
+      generatedId:   Option[Step.Id]
     ): F[RecordedStepId] = dynamicConfig match {
-      case s: DynamicConfig.GmosNorth => recordGmosNorthStep(atomId, s, stepConfig, observeClass)
-      case s: DynamicConfig.GmosSouth => recordGmosSouthStep(atomId, s, stepConfig, observeClass)
+      case s @ DynamicConfig.GmosNorth(_, _, _, _, _, _, _) =>
+        recordGmosNorthStep:
+          RecordGmosNorthStepInput(
+            atomId.value,
+            s.toInput,
+            stepConfig.toInput,
+            observeClass,
+            generatedId.orIgnore
+          )
+      case s @ DynamicConfig.GmosSouth(_, _, _, _, _, _, _) =>
+        recordGmosSouthStep:
+          RecordGmosSouthStepInput(
+            atomId.value,
+            s.toInput,
+            stepConfig.toInput,
+            observeClass,
+            generatedId.orIgnore
+          )
     }
 
-    private def recordGmosNorthStep(
-      atomId:        RecordedAtomId,
-      dynamicConfig: DynamicConfig.GmosNorth,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass
-    ): F[RecordedStepId] =
+    private def recordGmosNorthStep(input: RecordGmosNorthStepInput): F[RecordedStepId] =
       RecordGmosNorthStepMutation[F]
-        .execute(atomId.value, dynamicConfig.toInput, stepConfig.toInput, observeClass)
+        .execute(input)
         .map(_.recordGmosNorthStep.stepRecord.id)
         .map(RecordedStepId(_))
 
-    private def recordGmosSouthStep(
-      atomId:        RecordedAtomId,
-      dynamicConfig: DynamicConfig.GmosSouth,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass
-    ): F[RecordedStepId] =
+    private def recordGmosSouthStep(input: RecordGmosSouthStepInput): F[RecordedStepId] =
       RecordGmosSouthStepMutation[F]
-        .execute(atomId.value, dynamicConfig.toInput, stepConfig.toInput, observeClass)
+        .execute(input)
         .map(_.recordGmosSouthStep.stepRecord.id)
         .map(RecordedStepId(_))
 
@@ -517,7 +536,8 @@ object OdbProxy {
       obsId:         Observation.Id,
       dynamicConfig: DynamicConfig,
       stepConfig:    StepConfig,
-      observeClass:  ObserveClass
+      observeClass:  ObserveClass,
+      generatedId:   Option[Step.Id]
     ): F[Unit] = Applicative[F].unit
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
@@ -541,7 +561,8 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort
+      stepCount:    NonNegShort,
+      generatedId:  Option[Atom.Id]
     ): F[Unit] = Applicative[F].unit
 
     override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]

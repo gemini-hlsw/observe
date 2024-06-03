@@ -26,6 +26,7 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -114,7 +115,8 @@ object TestOdbProxy {
           obsId:        Observation.Id,
           instrument:   Instrument,
           sequenceType: SequenceType,
-          stepCount:    NonNegShort
+          stepCount:    NonNegShort,
+          generatedId:  Option[Atom.Id]
         ): F[Unit] = (sequenceType match {
           case SequenceType.Acquisition => Applicative[F].unit
           case SequenceType.Science     =>
@@ -133,7 +135,8 @@ object TestOdbProxy {
           obsId:         Observation.Id,
           dynamicConfig: DynamicConfig,
           stepConfig:    StepConfig,
-          observeClass:  ObserveClass
+          observeClass:  ObserveClass,
+          generatedId:   Option[Step.Id]
         ): F[Unit] = addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, observeClass))
 
         override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
