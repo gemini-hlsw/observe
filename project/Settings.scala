@@ -13,7 +13,7 @@ object Settings {
     val catsEffectVersion = "3.5.4"
     val catsVersion       = "2.12.0"
     val kittens           = "3.3.0"
-    val mouseVersion      = "1.2.3"
+    val mouseVersion      = "1.2.4"
     val fs2Version        = "3.10.2"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
@@ -51,7 +51,7 @@ object Settings {
     // Gemini Libraries
     val lucumaCore      = "0.98.0"
     val lucumaUI        = "0.105.1"
-    val lucumaSchemas   = "0.86.0"
+    val lucumaSchemas   = "0.86.2"
     val lucumaSSO       = "0.6.18"
     val lucumaODBSchema = "0.11.8"
 

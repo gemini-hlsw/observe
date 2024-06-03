@@ -18,12 +18,12 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-resize-detector": "10.0.1",
-    "ua-parser-js": "1.0.37"
+    "ua-parser-js": "1.0.38"
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.0",
     "process": "^0.11.10",
-    "sass": "^1.77.2",
+    "sass": "^1.77.4",
     "unplugin-fonts": "^1.1.1",
     "vite": "4.5.0",
     "vite-plugin-mkcert": "^1.17.5"
