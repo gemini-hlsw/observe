@@ -8,11 +8,14 @@ import cats.syntax.all.*
 import clue.*
 import clue.data.syntax.*
 import crystal.ViewF
+import lucuma.core.enums.DatasetQaState
 import lucuma.core.model.Visit
+import lucuma.core.model.sequence.Dataset
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.odb.SequenceQueriesGQL
 import observe.queries.VisitQueriesGQL
+import observe.ui.DefaultErrorPolicy
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
 
@@ -44,7 +47,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
     ): loadedObs =>
       SequenceQueriesGQL
         .SequenceQuery[IO]
-        .query(loadedObs.get.obsId)(ErrorPolicy.RaiseAlways)
+        .query(loadedObs.get.obsId)
         .adaptError:
           case ResponseException(errors, _) =>
             Exception(errors.map(_.message).toList.mkString("\n"))
@@ -57,3 +60,14 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
                 s"Execution Configuration not defined for observation [${loadedObs.get.obsId}]"
         .flatMap: config =>
           nighttimeObservation.mod(_.map(_.withConfig(config)))
+
+  override def updateDatasetQAState(
+    datasetId: Dataset.Id,
+    qaState:   Option[DatasetQaState]
+  ): IO[Unit] =
+    VisitQueriesGQL
+      .UpdateDatasetQAState[IO]
+      .execute(datasetId, qaState.orUnassign)
+      .void
+      .onError: e =>
+        Logger[IO].error(e)(s"Error updating dataset QA state for $datasetId")

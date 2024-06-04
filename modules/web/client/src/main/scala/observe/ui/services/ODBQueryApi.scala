@@ -7,6 +7,8 @@ import cats.effect.IO
 import cats.effect.Sync
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
+import lucuma.core.enums.DatasetQaState
+import lucuma.core.model.sequence.Dataset
 
 trait ODBQueryApi[F[_]: Sync]:
   def refreshNighttimeVisits: F[Unit] =
@@ -14,6 +16,9 @@ trait ODBQueryApi[F[_]: Sync]:
 
   def refreshNighttimeSequence: F[Unit] =
     Sync[F].delay(println("refreshNighttimeSequence invoked with uninitialized ODBQueryApi"))
+
+  def updateDatasetQAState(datasetId: Dataset.Id, qaState: Option[DatasetQaState]): F[Unit] =
+    Sync[F].delay(println("updateDatasetQAState invoked with uninitialized ODBQueryApi"))
 
 object ODBQueryApi:
   // Default value noop implementations with warning

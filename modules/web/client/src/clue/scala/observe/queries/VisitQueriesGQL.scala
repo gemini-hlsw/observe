@@ -29,3 +29,16 @@ object VisitQueriesGQL:
       }
     """
     // ${ExecutionVisitsSubquery.Fragments}
+
+  @GraphQL
+  trait UpdateDatasetQAState extends GraphQLOperation[ObservationDB]:
+    val document = """
+      mutation($datasetId: DatasetId!, $qaState: DatasetQaState) {
+        updateDatasets( input: {WHERE: {id: {EQ: $datasetId}}, SET: {qaState: $qaState}} ) {
+          datasets {
+            id
+            qaState
+          }
+        }
+      }
+    """

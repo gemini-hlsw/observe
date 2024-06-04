@@ -43,13 +43,21 @@ object ObservationExecutionDisplay:
         props.rootModelData
           .zoom(RootModelData.executionState.index(selectedObsId))
 
+      val visitsViewPot: Pot[View[ExecutionVisits]] =
+        props.rootModelData
+          .zoom(RootModelData.nighttimeObservation)
+          .toOptionView
+          .toPot
+          .flatMap: loView =>
+            loView.zoom(LoadedObservation.visits).toPotView
+
       val executionStateAndConfig: Option[
         Pot[
-          (Observation.Id, InstrumentExecutionConfig, ExecutionVisits, View[ExecutionState])
+          (Observation.Id, InstrumentExecutionConfig, View[ExecutionVisits], View[ExecutionState])
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>
-          (lo.obsId.ready, lo.config, lo.visits, executionStateOpt.toOptionView.toPot).tupled
+          (lo.obsId.ready, lo.config, visitsViewPot, executionStateOpt.toOptionView.toPot).tupled
 
       val currentRecordedVisit: Option[RecordedVisit] =
         rootModelData.recordedIds.value.get(selectedObsId)

@@ -50,13 +50,13 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore      = "0.98.0"
-    val lucumaUI        = "0.105.1"
+    val lucumaUI        = "0.106.0"
     val lucumaSchemas   = "0.86.2"
     val lucumaSSO       = "0.6.18"
     val lucumaODBSchema = "0.11.8"
 
     // Clue
-    val clue = "0.35.3"
+    val clue = "0.35.4"
 
     // ScalaJS libraries
     val crystal      = "0.39.2"

@@ -14,6 +14,7 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.primereact.Tooltip
 import lucuma.react.primereact.TooltipOptions
+import lucuma.ui.LucumaIcons
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.enums.RunOverride
@@ -60,7 +61,7 @@ object SeqControlButtons:
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             loading = props.loadedObsId.exists(_.isPending),
             icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
+            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Load sequence",
             tooltipOptions = tooltipOptions,
             onClick = props.loadObs(props.obsId),
@@ -69,7 +70,7 @@ object SeqControlButtons:
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = Icons.CircleNotch.withFixedWidth().withSize(IconSize.LG).withSpin(),
+            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync

@@ -11,6 +11,7 @@ import eu.timepit.refined.types.numeric.NonNegInt
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.enums.DatasetQaState
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
@@ -62,7 +63,9 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def setSelectedStepId: Step.Id => Callback
   def requests: ObservationRequests
   def isPreview: Boolean
-  def flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback
+  def onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback
+  def onDatasetQAChange: Dataset.Id => Option[DatasetQaState] => Callback
+  def datasetIdsInFlight: Set[Dataset.Id]
 
   protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
     currentRecordedVisit.flatMap(RecordedVisit.stepId.getOption).map(_.value)
@@ -121,7 +124,9 @@ case class GmosNorthSequenceTable(
   setSelectedStepId:    Step.Id => Callback,
   requests:             ObservationRequests,
   isPreview:            Boolean,
-  flipBreakpoint:       (Observation.Id, Step.Id, Breakpoint) => Callback
+  onBreakpointFlip:     (Observation.Id, Step.Id, Breakpoint) => Callback,
+  onDatasetQAChange:    Dataset.Id => Option[DatasetQaState] => Callback,
+  datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
       Instrument.GmosNorth,
@@ -140,7 +145,9 @@ case class GmosSouthSequenceTable(
   setSelectedStepId:    Step.Id => Callback,
   requests:             ObservationRequests,
   isPreview:            Boolean,
-  flipBreakpoint:       (Observation.Id, Step.Id, Breakpoint) => Callback
+  onBreakpointFlip:     (Observation.Id, Step.Id, Breakpoint) => Callback,
+  onDatasetQAChange:    Dataset.Id => Option[DatasetQaState] => Callback,
+  datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosSouthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
       Instrument.GmosSouth,
@@ -169,7 +176,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useMemoBy((props, _, _, _) => // cols
         (props.clientMode, props.instrument, props.obsId, props.isPreview)
       ): (props, _, _, _) =>
-        columnDefs(props.flipBreakpoint)
+        columnDefs(props.onBreakpointFlip, props.onDatasetQAChange)
       .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
         (_, _, _, _, _) => visitsSequences // (List[Visit], nextIndex)
       .useStateViewWithReuse(none[SequenceType]) // acquisitionPromptClicked
@@ -252,7 +259,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             props.requests,
             props.executionState,
             props.progress,
-            props.selectedStepId
+            props.selectedStepId,
+            props.datasetIdsInFlight
           )
         )
       .useContext(ODBQueryApi.ctx)
