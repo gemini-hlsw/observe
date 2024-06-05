@@ -53,4 +53,4 @@ object LoadedObservation:
   val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
   val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
     Focus[LoadedObservation](_.config)
-  val vistis: Lens[LoadedObservation, Pot[ExecutionVisits]]           = Focus[LoadedObservation](_.visits)
+  val visits: Lens[LoadedObservation, Pot[ExecutionVisits]]           = Focus[LoadedObservation](_.visits)

@@ -7,6 +7,7 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.enums.DatasetQaState
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
@@ -32,10 +33,11 @@ import scalajs.js
 // Offload SequenceTable definitions to improve legibility.
 trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   protected case class TableMeta(
-    requests:       ObservationRequests,
-    executionState: ExecutionState,
-    progress:       Option[StepProgress],
-    selectedStepId: Option[Step.Id]
+    requests:           ObservationRequests,
+    executionState:     ExecutionState,
+    progress:           Option[StepProgress],
+    selectedStepId:     Option[Step.Id],
+    datasetIdsInFlight: Set[Dataset.Id]
   )
 
   // protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow[DynamicConfig]]]
@@ -105,11 +107,14 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   ): ColumnDef[SequenceTableRowType, V, TableMeta, Nothing] =
     ColDef[V](id, header = _ => header, cell = cell)
 
-  protected def columnDefs(flipBreakpoint: (Observation.Id, Step.Id, Breakpoint) => Callback)(
-    clientMode: ClientMode,
-    instrument: Instrument,
-    obsId:      Observation.Id,
-    isPreview:  Boolean
+  protected def columnDefs(
+    onBreakpointFlip:  (Observation.Id, Step.Id, Breakpoint) => Callback,
+    onDatasetQAChange: Dataset.Id => Option[DatasetQaState] => Callback
+  )(
+    clientMode:        ClientMode,
+    instrument:        Instrument,
+    obsId:             Observation.Id,
+    isPreview:         Boolean
   ): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
@@ -130,7 +135,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                 ObserveStyles.BreakpointHandle,
                 stepId
                   .map: sId =>
-                    ^.onClick ==> (_.stopPropagationCB >> flipBreakpoint(
+                    ^.onClick ==> (_.stopPropagationCB >> onBreakpointFlip(
                       obsId,
                       sId,
                       flippedBreakpoint(step.breakpoint)
@@ -159,7 +164,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
               .map(_.step)
               .map[VdomNode]:
                 case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
-                  renderVisitExtraRow(step)
+                  renderVisitExtraRow(step, onDatasetQAChange.some, meta.datasetIdsInFlight)
                 case step                                           =>
                   (step.id.toOption, step.stepTypeDisplay, step.exposureTime).mapN:
                     (stepId, stepType, exposureTime) =>

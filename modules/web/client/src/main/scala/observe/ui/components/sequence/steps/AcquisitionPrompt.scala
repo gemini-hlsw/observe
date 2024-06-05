@@ -11,6 +11,7 @@ import lucuma.core.enums.SequenceType
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
+import lucuma.ui.LucumaIcons
 import lucuma.ui.primereact.*
 import observe.ui.Icons
 import observe.ui.ObserveStyles
@@ -37,7 +38,7 @@ object AcquisitionPrompt:
           Button(
             size = Button.Size.Small,
             icon = props.clicked.get match
-              case Some(SequenceType.Science) => Icons.CircleNotch
+              case Some(SequenceType.Science) => LucumaIcons.CircleNotch
               case _                          => Icons.CircleCheck,
             label = "Yes, start observation",
             disabled = props.clicked.get.isDefined,
@@ -49,7 +50,7 @@ object AcquisitionPrompt:
           Button(
             size = Button.Size.Small,
             icon = props.clicked.get match
-              case Some(SequenceType.Acquisition) => Icons.CircleNotch
+              case Some(SequenceType.Acquisition) => LucumaIcons.CircleNotch
               case _                              => Icons.ArrowsRetweet,
             label = "No, take another step",
             disabled = props.clicked.get.isDefined,
@@ -60,6 +61,6 @@ object AcquisitionPrompt:
           ).compact
         )
       ),
-      <.div(ObserveStyles.AcquisitionPromptBusy)(Icons.CircleNotch.withSize(IconSize.XL))
+      <.div(ObserveStyles.AcquisitionPromptBusy)(LucumaIcons.CircleNotch.withSize(IconSize.XL))
         .when(props.clicked.get.isDefined)
     )

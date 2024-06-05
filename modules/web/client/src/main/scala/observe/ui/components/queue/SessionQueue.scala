@@ -16,6 +16,7 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.ui.LucumaIcons
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep
@@ -70,13 +71,12 @@ object SessionQueue:
   ): VdomNode =
     val icon: VdomNode =
       (loadingPotOpt, statusOpt) match
-        case (Some(Pot.Pending), _)                                                        => Icons.CircleNotch.withSpin()
-        case (Some(Pot.Ready(_)), None)                                                    => Icons.CircleNotch.withSpin()
+        case (Some(Pot.Pending), _)                                                        => LucumaIcons.CircleNotch
+        case (Some(Pot.Ready(_)), None)                                                    => LucumaIcons.CircleNotch
         case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
         case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
           Icons.FileCheck // clazz = selectedIconStyle)
-        case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _)))                    =>
-          Icons.CircleNotch.withSpin()
+        case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _)))                    => LucumaIcons.CircleNotch
         //      clazz = ObserveStyles.runningIcon
         case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
           Icons.FileCross

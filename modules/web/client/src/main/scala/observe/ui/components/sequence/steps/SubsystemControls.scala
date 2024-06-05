@@ -15,6 +15,7 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.primereact.*
+import lucuma.ui.LucumaIcons
 import observe.model.SubsystemEnabled
 import observe.model.SystemOverrides
 import observe.model.enums.*
@@ -91,7 +92,7 @@ object SubsystemControls:
   //       .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
   private val IdleIcon      = Icons.ArrowUpFromLine.withFixedWidth()
-  private val RunningIcon   = Icons.CircleNotch.withFixedWidth()
+  private val RunningIcon   = LucumaIcons.CircleNotch.withFixedWidth()
   private val CompletedIcon = Icons.Check.withFixedWidth()
   private val FailureIcon   = Icons.CircleExclamation.withFixedWidth().withInverse()
 
