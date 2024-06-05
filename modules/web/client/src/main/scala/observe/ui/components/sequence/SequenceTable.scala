@@ -9,6 +9,7 @@ import crystal.react.hooks.*
 import crystal.react.syntax.effect.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import japgolly.scalajs.react.*
+import japgolly.scalajs.react.hooks.Hooks.UseRef
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.DatasetQaState
@@ -112,6 +113,12 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   // Alert position is right after currently executing atom.
   protected[sequence] lazy val alertPosition: NonNegInt =
     NonNegInt.unsafeFrom(currentAtomPendingSteps.length)
+
+  protected[sequence] lazy val runningStepId: Option[Step.Id] = executionState.runningStepId
+
+  protected[sequence] lazy val nextStepId: Option[Step.Id] =
+    currentAtomPendingSteps.headOption.map(_.id)
+
 case class GmosNorthSequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
@@ -164,8 +171,21 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .setBehavior(rawVirtual.mod.ScrollBehavior.smooth)
       .setAlign(rawVirtual.mod.ScrollAlignment.start)
 
-  private val CurrentHeadersRowIds: List[String] =
-    List(SequenceType.Acquisition.toString, SequenceType.Science.toString)
+  private def scrollToRowId(
+    virtualizerRef: UseRef[Option[HTMLTableVirtualizer]],
+    table:          Table[SequenceTableRowType, TableMeta]
+  )(rowIdCandidates: List[String]): Callback =
+    virtualizerRef.get.flatMap: refOpt =>
+      Callback( // Auto scroll to running step or next step.
+        refOpt.map:
+          _.scrollToIndex(
+            table
+              .getRowModel()
+              .rows
+              .indexWhere(row => rowIdCandidates.contains_(row.id.value)) - 1,
+            ScrollOptions
+          )
+      )
 
   protected[sequence] val component =
     ScalaFnComponent
@@ -279,14 +299,30 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useEffectWithDepsBy((props, _, _, _, _, _, _, _, _, _, _) => props.currentRecordedStepId):
         (_, _, _, _, _, _, _, _, _, _, odbQueryApi) => _ => odbQueryApi.refreshNighttimeVisits
       .useRef(none[HTMLTableVirtualizer])
-      .useEffectOnMountBy: (_, _, _, _, _, _, _, sequence, _, _, _, virtualizerRef) =>
-        virtualizerRef.get.flatMap: refOpt =>
-          Callback:
-            refOpt.map:
-              _.scrollToIndex(
-                sequence.indexWhere(row => CurrentHeadersRowIds.contains_(getRowId(row).value)) - 1,
-                ScrollOptions
-              )
+      .useEffectOnMountBy: (props, _, _, _, _, _, _, _, _, table, _, virtualizerRef) =>
+        val autoScrollCandidates: List[String] =
+          AlertRowId.toString +:
+            (props.runningStepId ++ props.nextStepId).map(_.toString).toList
+
+        // If sequence is not running, auto select next step.
+        Callback.when(props.runningStepId.isEmpty)(
+          props.nextStepId.map(props.setSelectedStepId).orEmpty
+        ) >>
+          scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
+            .delayMs(1) // https://github.com/TanStack/virtual/issues/615
+            .toCallback
+      .useEffectWithDepsBy((props, _, _, _, _, _, _, _, _, _, _, _) =>
+        (props.executionState.sequenceState.isRunning,
+         props.executionState.sequenceState.isWaitingNextAtom
+        )
+      ): (props, _, _, _, _, _, _, _, _, table, _, virtualizerRef) =>
+        _ =>
+          val autoScrollCandidates: List[String] =
+            AlertRowId.toString +: props.runningStepId.map(_.toString).toList
+
+          // When sequence starts or stops into a non-idle state, auto scroll to running step.
+          Callback.when(props.executionState.sequenceState.isInProcess):
+            scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
       .render: (props, resize, _, _, cols, visits, _, _, _, table, _, virtualizerRef) =>
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =

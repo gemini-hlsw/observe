@@ -11,7 +11,7 @@
     "@fortawesome/pro-thin-svg-icons": "^6.5.2",
     "@fortawesome/sharp-solid-svg-icons": "^6.5.2",
     "@tanstack/react-table": "^8.17.3",
-    "@tanstack/react-virtual": "3.5.0",
+    "@tanstack/react-virtual": "3.5.1",
     "loglevel": "1.9.1",
     "primeicons": "^7.0.0",
     "primereact": "~10.6.6",
