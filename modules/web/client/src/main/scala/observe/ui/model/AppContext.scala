@@ -22,6 +22,7 @@ import lucuma.ui.utils.versionDateFormatter
 import lucuma.ui.utils.versionDateTimeFormatter
 import observe.ui.BuildInfo
 import observe.ui.model.enums.AppTab
+import org.http4s.client.Client
 import org.typelevel.log4cats.Logger
 
 import java.time.Instant
@@ -29,6 +30,7 @@ import java.time.Instant
 case class AppContext[F[_]](
   version:       NonEmptyString,
   ssoClient:     SSOClient[F],
+  httpClient:    Client[F],
   pageUrl:       AppTab => String,
   setPageVia:    (AppTab, SetRouteVia) => Callback,
   toast:         ToastRef
@@ -37,6 +39,8 @@ case class AppContext[F[_]](
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
+  given Client[F] = httpClient
+
   def initODBClient(payload: Map[String, Json]): F[Unit] =
     odbClient.connect() >> odbClient.initialize(payload)
 

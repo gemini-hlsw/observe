@@ -3,6 +3,7 @@
 
 package observe.ui.components.sequence
 
+import cats.effect.IO
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -27,6 +28,8 @@ import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
+import org.http4s.client.Client
+import org.typelevel.log4cats.Logger
 
 import scalajs.js
 
@@ -115,7 +118,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     instrument:        Instrument,
     obsId:             Observation.Id,
     isPreview:         Boolean
-  ): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
+  )(using Client[IO], Logger[IO]): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
       column(

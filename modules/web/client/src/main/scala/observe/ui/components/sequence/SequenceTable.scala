@@ -195,8 +195,16 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
       .useContext(SequenceApi.ctx)
       .useMemoBy((props, _, _, _) => // cols
         (props.clientMode, props.instrument, props.obsId, props.isPreview)
-      ): (props, _, _, _) =>
-        columnDefs(props.onBreakpointFlip, props.onDatasetQAChange)
+      ): (props, _, ctx, _) =>
+        (clientMode, instrument, obsId, isPreview) =>
+          import ctx.given
+
+          columnDefs(props.onBreakpointFlip, props.onDatasetQAChange)(
+            clientMode,
+            instrument,
+            obsId,
+            isPreview
+          )
       .useMemoBy((props, _, _, _, _) => (props.visits, props.currentRecordedStepId)):
         (_, _, _, _, _) => visitsSequences // (List[Visit], nextIndex)
       .useStateViewWithReuse(none[SequenceType]) // acquisitionPromptClicked
