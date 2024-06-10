@@ -30,6 +30,7 @@ import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.Systems
 import observe.server.events.TargetedClientEvent
+import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
 import observe.web.server.config.*
 import org.http4s.HttpRoutes
@@ -191,18 +192,24 @@ object WebServerLauncher extends IOApp with LogInitialization {
 
   }
 
-  private def redirectWebServer[F[_]: Logger: Async: Network](
-    conf: WebServerConfiguration
+  private def redirectWebServer[F[_]: Logger: Async: Network: Compression](
+    conf:    WebServerConfiguration,
+    guideDb: GuideConfigDb[F]
   ): Resource[F, Server] = {
     val router = Router[F](
-      "/" -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
+      "/api/observe/guide" -> GuideConfigDbRoutes(guideDb).service,
+      "/"                  -> new RedirectToHttpsRoutes[F](443, conf.externalBaseUrl).service
     )
 
     EmberServerBuilder
       .default[F]
       .withHost(conf.host)
       .withPort(conf.insecurePort)
-      .withHttpApp(router.orNotFound)
+      .withHttpApp(
+        Http4sLogger
+          .httpRoutes(logHeaders = false, logBody = false)(router)
+          .orNotFound
+      )
       .build
   }
 
@@ -258,7 +265,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
                             )
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
-        _                <- redirectWebServer(conf.webServer)
+        _                <- redirectWebServer(conf.webServer, engine.systems.guideDb)
         sso              <- ssoClient(cli, conf.lucumaSSO)
         _                <- webServer(conf, cs, sso, engine)
       } yield ExitCode.Success
