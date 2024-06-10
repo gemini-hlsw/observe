@@ -9,7 +9,6 @@ import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
-import lucuma.core.enums.DatasetQaState
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
@@ -31,6 +30,7 @@ import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTable
 import observe.ui.components.sequence.GmosSouthSequenceTable
 import observe.ui.model.AppContext
+import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.ODBQueryApi
@@ -107,18 +107,18 @@ object ObservationSequence:
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
             sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-      def datasetQaView(datasetId: Dataset.Id): ViewList[Option[DatasetQaState]] =
+      def datasetQaView(datasetId: Dataset.Id): ViewList[EditableQaFields] =
         props.visits.zoom:
-          datasetWithId(datasetId).andThen(Dataset.qaState)
+          datasetWithId(datasetId).andThen(EditableQaFields.fromDataset)
 
-      val onDatasetQAChange: Dataset.Id => Option[DatasetQaState] => Callback =
+      val onDatasetQAChange: Dataset.Id => EditableQaFields => Callback =
         datasetId =>
-          qaState =>
+          qaFields =>
             datasetIdsInFlight.modState(_ + datasetId) >>
               odbQueryApi
-                .updateDatasetQAState(datasetId, qaState)
+                .updateDatasetQa(datasetId, qaFields)
                 .flatMap: _ =>
-                  (datasetQaView(datasetId).set(qaState) >>
+                  (datasetQaView(datasetId).set(qaFields) >>
                     datasetIdsInFlight.modState(_ - datasetId))
                     .to[IO]
                 .handleErrorWith: e =>

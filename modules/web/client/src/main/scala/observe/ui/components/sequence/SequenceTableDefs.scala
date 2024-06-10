@@ -8,7 +8,6 @@ import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
-import lucuma.core.enums.DatasetQaState
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
@@ -26,6 +25,7 @@ import observe.model.StepProgress
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
+import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import org.http4s.client.Client
@@ -110,15 +110,15 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   ): ColumnDef[SequenceTableRowType, V, TableMeta, Nothing] =
     ColDef[V](id, header = _ => header, cell = cell)
 
-  protected def columnDefs(
+  protected def columnDefs(httpClient: Client[IO])(
     onBreakpointFlip:  (Observation.Id, Step.Id, Breakpoint) => Callback,
-    onDatasetQAChange: Dataset.Id => Option[DatasetQaState] => Callback
+    onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
   )(
     clientMode:        ClientMode,
     instrument:        Instrument,
     obsId:             Observation.Id,
     isPreview:         Boolean
-  )(using Client[IO], Logger[IO]): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
+  )(using Logger[IO]): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
       column(
@@ -167,7 +167,11 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
               .map(_.step)
               .map[VdomNode]:
                 case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
-                  renderVisitExtraRow(step, onDatasetQAChange.some, meta.datasetIdsInFlight)
+                  renderVisitExtraRow(httpClient)(
+                    step,
+                    QaEditor(_, _, onDatasetQaChange),
+                    meta.datasetIdsInFlight
+                  )
                 case step                                           =>
                   (step.id.toOption, step.stepTypeDisplay, step.exposureTime).mapN:
                     (stepId, stepType, exposureTime) =>

@@ -8,7 +8,6 @@ import cats.syntax.all.*
 import clue.*
 import clue.data.syntax.*
 import crystal.ViewF
-import lucuma.core.enums.DatasetQaState
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Dataset
 import lucuma.schemas.ObservationDB
@@ -16,6 +15,7 @@ import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.odb.SequenceQueriesGQL
 import observe.queries.VisitQueriesGQL
 import observe.ui.DefaultErrorPolicy
+import observe.ui.model.EditableQaFields
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
 
@@ -61,13 +61,10 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
         .flatMap: config =>
           nighttimeObservation.mod(_.map(_.withConfig(config)))
 
-  override def updateDatasetQAState(
-    datasetId: Dataset.Id,
-    qaState:   Option[DatasetQaState]
-  ): IO[Unit] =
+  override def updateDatasetQa(datasetId: Dataset.Id, qaFields: EditableQaFields): IO[Unit] =
     VisitQueriesGQL
-      .UpdateDatasetQAState[IO]
-      .execute(datasetId, qaState.orUnassign)
+      .UpdateDatasetQa[IO]
+      .execute(datasetId, qaFields.qaState.orUnassign, qaFields.comment.orUnassign)
       .void
       .onError: e =>
         Logger[IO].error(e)(s"Error updating dataset QA state for $datasetId")

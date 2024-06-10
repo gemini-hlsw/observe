@@ -12,7 +12,6 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.hooks.Hooks.UseRef
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
-import lucuma.core.enums.DatasetQaState
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
@@ -41,6 +40,7 @@ import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.steps.*
 import observe.ui.model.AppContext
+import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.model.reusability.given
@@ -65,7 +65,7 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
   def requests: ObservationRequests
   def isPreview: Boolean
   def onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback
-  def onDatasetQAChange: Dataset.Id => Option[DatasetQaState] => Callback
+  def onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
   def datasetIdsInFlight: Set[Dataset.Id]
 
   protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
@@ -132,7 +132,7 @@ case class GmosNorthSequenceTable(
   requests:             ObservationRequests,
   isPreview:            Boolean,
   onBreakpointFlip:     (Observation.Id, Step.Id, Breakpoint) => Callback,
-  onDatasetQAChange:    Dataset.Id => Option[DatasetQaState] => Callback,
+  onDatasetQaChange:    Dataset.Id => EditableQaFields => Callback,
   datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
@@ -153,7 +153,7 @@ case class GmosSouthSequenceTable(
   requests:             ObservationRequests,
   isPreview:            Boolean,
   onBreakpointFlip:     (Observation.Id, Step.Id, Breakpoint) => Callback,
-  onDatasetQAChange:    Dataset.Id => Option[DatasetQaState] => Callback,
+  onDatasetQaChange:    Dataset.Id => EditableQaFields => Callback,
   datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosSouthSequenceTable.component)
     with SequenceTable[StaticConfig.GmosSouth, DynamicConfig.GmosSouth](
@@ -199,7 +199,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         (clientMode, instrument, obsId, isPreview) =>
           import ctx.given
 
-          columnDefs(props.onBreakpointFlip, props.onDatasetQAChange)(
+          columnDefs(ctx.httpClient)(props.onBreakpointFlip, props.onDatasetQaChange)(
             clientMode,
             instrument,
             obsId,
