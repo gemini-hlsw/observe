@@ -19,7 +19,7 @@ import lucuma.core.model.arb.ArbGuideConfig
 
 class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with TcsArbitraries {
 
-  val rawJson1: String               = """
+  val rawJson1: String = """
   {
     "tcsGuide": {
       "mountGuideOn": true,
@@ -37,13 +37,14 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     "gaosGuide": null
   }
   """
+
   val guideConfig1: GuideConfigState = GuideConfigState(
     GuideConfig(
       TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOff, Set(TipTiltSource.PWFS1)),
-        false,
+        Some(false),
         None
       ),
       None
@@ -51,7 +52,7 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     gemsSkyPaused = false
   )
 
-  val rawJson2: String               = """
+  val rawJson2: String = """
   {
     "tcsGuide": {
       "m1Guide": {
@@ -81,13 +82,14 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     }
   }
   """
+
   val guideConfig2: GuideConfigState = GuideConfigState(
     GuideConfig(
       TelescopeGuideConfig(
         MountGuideOption.MountGuideOff,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
-        false,
+        Some(false),
         None
       ),
       Some(
@@ -103,7 +105,7 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     gemsSkyPaused = false
   )
 
-  val rawJson3: String               = """
+  val rawJson3: String = """
   {
     "tcsGuide": {
       "m1Guide": {
@@ -132,13 +134,14 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     }
  }
   """
+
   val guideConfig3: GuideConfigState = GuideConfigState(
     GuideConfig(
       TelescopeGuideConfig(
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.GAOS),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.GAOS)),
-        false,
+        Some(false),
         None
       ),
       Some(
@@ -160,10 +163,66 @@ class GuideConfigDbSuite extends munit.CatsEffectSuite with ArbGuideConfig with 
     gemsSkyPaused = false
   )
 
+  val legacyTccJson: String = """
+  {
+    "tcsGuide": {
+      "m1Guide": {
+        "on": true,
+        "source": "GAOS"
+      },
+      "m2Guide": {
+        "on": true,
+        "sources": ["GAOS"],
+        "comaOn": true
+      },
+      "mountGuideOn": true
+    },
+    "gaosGuide": {
+      "gems": {
+        "aoOn": true,
+        "ttgs1On": true,
+        "ttgs2On": false,
+        "ttgs3On": false,
+        "odgw1On": true,
+        "odgw2On": false,
+        "odgw3On": true,
+        "odgw4On": true
+      }
+    }
+ }
+  """
+  val tccConfig             = GuideConfigState(
+    GuideConfig(
+      TelescopeGuideConfig(
+        MountGuideOption.MountGuideOn,
+        M1GuideConfig.M1GuideOn(M1Source.GAOS),
+        M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.GAOS)),
+        None,
+        None
+      ),
+      Some(
+        Right(
+          GemsOn(
+            Cwfs1Usage.Use,
+            Cwfs2Usage.DontUse,
+            Cwfs3Usage.DontUse,
+            Odgw1Usage.Use,
+            Odgw2Usage.DontUse,
+            Odgw3Usage.Use,
+            Odgw4Usage.Use,
+            P1Usage.DontUse,
+            OIUsage.DontUse
+          )
+        )
+      )
+    ),
+    gemsSkyPaused = false
+  )
   test("GuideConfigDb provide decoders") {
     assertEquals(decode[GuideConfig](rawJson1), Right(guideConfig1.config))
     assertEquals(decode[GuideConfig](rawJson2), Right(guideConfig2.config))
     assertEquals(decode[GuideConfig](rawJson3), Right(guideConfig3.config))
+    assertEquals(decode[GuideConfig](legacyTccJson), Right(tccConfig.config))
   }
 
   test("retrieve the same configuration that was set") {

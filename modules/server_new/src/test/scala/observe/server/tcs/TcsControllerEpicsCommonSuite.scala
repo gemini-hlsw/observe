@@ -61,7 +61,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     TelescopeGuideConfig(MountGuideOption.MountGuideOff,
                          M1GuideConfig.M1GuideOff,
                          M2GuideConfig.M2GuideOff,
-                         false,
+                         Some(false),
                          None
     ),
     AoFold.Out,
@@ -84,7 +84,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
     TelescopeGuideConfig(MountGuideOption.MountGuideOff,
                          M1GuideConfig.M1GuideOff,
                          M2GuideConfig.M2GuideOff,
-                         false,
+                         Some(false),
                          None
     ),
     TelescopeConfig(None, None),
@@ -391,7 +391,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -459,7 +459,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -512,7 +512,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS1),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS1)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -563,7 +563,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -618,7 +618,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -671,7 +671,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.PWFS2),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.PWFS2)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -723,7 +723,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -778,7 +778,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
@@ -832,7 +832,7 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
         MountGuideOption.MountGuideOn,
         M1GuideConfig.M1GuideOn(M1Source.OIWFS),
         M2GuideConfig.M2GuideOn(ComaOption.ComaOn, Set(TipTiltSource.OIWFS)),
-        false,
+        Some(false),
         None
       ),
       gds = baseConfig.gds.copy(
