@@ -22,7 +22,7 @@ object Settings {
     val http4sVersion              = "0.23.24-25-e71f1b1-SNAPSHOT"
     val http4sDomVersion           = "0.2.11"
     val http4sJdkHttpClientVersion = "0.9.1"
-    val http4sScalaXmlVersion      = "0.23.13"
+    val http4sScalaXmlVersion      = "0.23.14"
 
     val coulomb          = "0.8.0"
     val commonsHttp      = "3.1"
