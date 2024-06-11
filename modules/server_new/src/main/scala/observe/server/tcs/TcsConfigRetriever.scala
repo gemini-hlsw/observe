@@ -70,7 +70,7 @@ object TcsConfigRetriever {
                           )
                         )
                       )
-      } yield TelescopeGuideConfig(mountGuide, m1Guide, m2Guide, false, None)
+      } yield TelescopeGuideConfig(mountGuide, m1Guide, m2Guide, None, None)
     }.adaptError { case e =>
       ObserveFailure.Unexpected(s"Unable to read guide configuration from TCS: $e")
     }
