@@ -120,7 +120,7 @@ object MainApp extends ServerEventHandler:
       .limitRetries[Resource[IO, _]](10)
       .join(RetryPolicies.exponentialBackoff[Resource[IO, _]](10.milliseconds))
 
-  // Build regular HTTP client
+  // Build regular HTTP client for invoking backend.
   private val fetchClient: Client[IO] =
     Retry(FetchRetryPolicy)(
       FetchClientBuilder[IO]
@@ -128,6 +128,13 @@ object MainApp extends ServerEventHandler:
         .withCache(dom.RequestCache.`no-store`)
         .create
     )
+
+  // HTTP client for one-shots to other sites, like the archive. No retries.
+  private val plainFetchClient: Client[IO] =
+    FetchClientBuilder[IO]
+      .withRequestTimeout(2.seconds)
+      .withCache(dom.RequestCache.`no-store`)
+      .create
 
   // Log in from cookie and switch to staff role
   private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
@@ -208,6 +215,7 @@ object MainApp extends ServerEventHandler:
               yield AppContext[IO](
                 AppContext.version(clientConfig.environment),
                 SSOClient(SSOConfig(clientConfig.ssoUri)),
+                plainFetchClient,
                 (tab: AppTab) => MainApp.routerCtl.urlFor(tab.getPage).value,
                 (tab: AppTab, via: SetRouteVia) => MainApp.routerCtl.set(tab.getPage, via),
                 toastRef

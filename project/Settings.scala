@@ -13,7 +13,7 @@ object Settings {
     val catsEffectVersion = "3.5.4"
     val catsVersion       = "2.12.0"
     val kittens           = "3.3.0"
-    val mouseVersion      = "1.2.4"
+    val mouseVersion      = "1.3.0"
     val fs2Version        = "3.10.2"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
@@ -22,7 +22,7 @@ object Settings {
     val http4sVersion              = "0.23.24-25-e71f1b1-SNAPSHOT"
     val http4sDomVersion           = "0.2.11"
     val http4sJdkHttpClientVersion = "0.9.1"
-    val http4sScalaXmlVersion      = "0.23.13"
+    val http4sScalaXmlVersion      = "0.23.14"
 
     val coulomb          = "0.8.0"
     val commonsHttp      = "3.1"
@@ -33,7 +33,7 @@ object Settings {
     val log4catsLogLevel = "0.3.1"
     val logback          = "1.5.6"
     val janino           = "3.1.12"
-    val pureConfig       = "0.17.6"
+    val pureConfig       = "0.17.7"
     val monocleVersion   = "3.2.0"
     val circeVersion     = "0.14.7"
 
@@ -49,9 +49,9 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.98.0"
-    val lucumaUI        = "0.106.0"
-    val lucumaSchemas   = "0.86.2"
+    val lucumaCore      = "0.99.0"
+    val lucumaUI        = "0.107.0"
+    val lucumaSchemas   = "0.87.0"
     val lucumaSSO       = "0.6.18"
     val lucumaODBSchema = "0.11.8"
 
@@ -60,7 +60,7 @@ object Settings {
 
     // ScalaJS libraries
     val crystal      = "0.39.2"
-    val javaTimeJS   = "2.5.0"
+    val javaTimeJS   = "2.6.0"
     val lucumaReact  = "0.65.2"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta3"

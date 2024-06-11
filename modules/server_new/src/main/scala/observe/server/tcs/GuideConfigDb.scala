@@ -40,7 +40,7 @@ object GuideConfigDb {
 
   val defaultGuideConfig: GuideConfigState =
     GuideConfigState(
-      GuideConfig(TelescopeGuideConfig(MountGuideOff, M1GuideOff, M2GuideOff, false, None), None),
+      GuideConfig(TelescopeGuideConfig(MountGuideOff, M1GuideOff, M2GuideOff, None, None), None),
       false
     )
 
