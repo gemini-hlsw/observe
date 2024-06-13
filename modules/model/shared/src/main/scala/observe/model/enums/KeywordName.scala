@@ -22,7 +22,9 @@ object KeywordName {
   case object INSTRUMENT extends KeywordName("INSTRUMENT", "INSTRUME")
 
   /** @group Constructors */
-  case object SEQEXVER extends KeywordName("SEQEXVER", "SEQEXVER")
+  case object SW_NAME extends KeywordName("SW_NAME", "SW_NAME")
+
+  case object SW_VER extends KeywordName("SW_VER", "SW_VER")
 
   /** @group Constructors */
   case object OBJECT extends KeywordName("OBJECT", "OBJECT")
@@ -2665,7 +2667,8 @@ object KeywordName {
   val all: List[KeywordName] =
     List(
       INSTRUMENT,
-      SEQEXVER,
+      SW_NAME,
+      SW_VER,
       OBJECT,
       OBSTYPE,
       OBSCLASS,
