@@ -10,6 +10,7 @@
     "@fortawesome/pro-solid-svg-icons": "^6.5.2",
     "@fortawesome/pro-thin-svg-icons": "^6.5.2",
     "@fortawesome/sharp-solid-svg-icons": "^6.5.2",
+    "@react-hook/size": "^2.1.2",
     "@tanstack/react-table": "^8.17.3",
     "@tanstack/react-virtual": "3.5.1",
     "loglevel": "1.9.1",
@@ -17,7 +18,6 @@
     "primereact": "~10.6.6",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-resize-detector": "10.0.1",
     "ua-parser-js": "1.0.38"
   },
   "devDependencies": {
