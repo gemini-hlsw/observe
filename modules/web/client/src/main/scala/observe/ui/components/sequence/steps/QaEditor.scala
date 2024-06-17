@@ -69,7 +69,7 @@ object QaEditor:
                     qaState.value.tag
                   )
               ).withMods(
-                ^.onClick ==> ((e: ReactEvent) => e.stopPropagationCB)
+                ^.onClick ==> (_.stopPropagationCB)
               ).compact,
               InputText(
                 id = "qaComment",
@@ -80,7 +80,7 @@ object QaEditor:
                     EditableQaFields.comment.replace(NonEmptyString.from(e.target.value).toOption)
               ).withMods(
                 ^.autoComplete.off,
-                ^.onClick ==> ((e: ReactEvent) => e.stopPropagationCB)
+                ^.onClick ==> (_.stopPropagationCB)
               ),
               <.div(ObserveStyles.QaEditorPanelButtons)(
                 Button(icon = Icons.XMark, severity = Button.Severity.Danger).compact("Cancel"),
