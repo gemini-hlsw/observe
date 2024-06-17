@@ -994,3 +994,49 @@ html {
 .ObserveStyles-iconSoft {
   opacity: 0.8;
 }
+
+.ObserveStyles-qaStatusEditable {
+  cursor: pointer;
+
+  .ObserveStyles-qaStatusSelect {
+    margin-left: 0.25dvw;
+    visibility: hidden;
+  }
+
+  &:hover .ObserveStyles-qaStatusSelect {
+    visibility: visible;
+  }
+}
+
+.ObserveStyles-qaEditorOverlay.p-component.p-overlaypanel {
+  .p-overlaypanel-content {
+    padding: 0.4rem;
+
+    .ObserveStyles-qaEditorPanel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .ObserveStyles-qaStatusButtonStrip {
+        display: flex;
+
+        .p-component.p-button {
+          flex: 1 1 0;
+          padding-left: 10px !important;
+          padding-right: 10px !important;
+          display: flex;
+          gap: 5px;
+          width: 82px;
+        }
+      }
+    }
+
+    .ObserveStyles-qaEditorPanelButtons {
+      align-self: end;
+      
+      button {
+        align-items: center;
+      }
+    }
+  }
+}

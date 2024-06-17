@@ -7,6 +7,7 @@ import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.odb.*
+// gql: import io.circe.refined.given
 // gql: import lucuma.schemas.decoders.given
 
 object VisitQueriesGQL:
@@ -31,10 +32,10 @@ object VisitQueriesGQL:
     // ${ExecutionVisitsSubquery.Fragments}
 
   @GraphQL
-  trait UpdateDatasetQAState extends GraphQLOperation[ObservationDB]:
+  trait UpdateDatasetQa extends GraphQLOperation[ObservationDB]:
     val document = """
-      mutation($datasetId: DatasetId!, $qaState: DatasetQaState) {
-        updateDatasets( input: {WHERE: {id: {EQ: $datasetId}}, SET: {qaState: $qaState}} ) {
+      mutation($datasetId: DatasetId!, $qaState: DatasetQaState, $comment: NonEmptyString) {
+        updateDatasets( input: {WHERE: {id: {EQ: $datasetId}}, SET: {qaState: $qaState, comment: $comment}} ) {
           datasets {
             id
             qaState

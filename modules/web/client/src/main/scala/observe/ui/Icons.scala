@@ -38,6 +38,10 @@ object Icons:
   private val faCheck: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-light-svg-icons", "faChevronDown")
+  val faChevronDown: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faChevronRight")
   private val faChevronRight: FAIcon = js.native
 
@@ -154,6 +158,7 @@ object Icons:
     faCalendarDays,
     faCaretRight,
     faCheck,
+    faChevronDown,
     faChevronRight,
     faCircle,
     faCircleCheck,
@@ -190,6 +195,7 @@ object Icons:
   inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
+  inline def ChevronDown       = FontAwesomeIcon(faChevronDown)
   inline def ChevronRight      = FontAwesomeIcon(faChevronRight)
   inline def Circle            = FontAwesomeIcon(faCircle)
   inline def CircleCheck       = FontAwesomeIcon(faCircleCheck)

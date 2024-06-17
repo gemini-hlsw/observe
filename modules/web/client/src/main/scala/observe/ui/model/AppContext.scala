@@ -39,8 +39,6 @@ case class AppContext[F[_]](
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
-  given Client[F] = httpClient
-
   def initODBClient(payload: Map[String, Json]): F[Unit] =
     odbClient.connect() >> odbClient.initialize(payload)
 
