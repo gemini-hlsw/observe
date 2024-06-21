@@ -25,7 +25,7 @@
     "process": "^0.11.10",
     "sass": "^1.77.4",
     "unplugin-fonts": "^1.1.1",
-    "vite": "5.2.13",
+    "vite": "5.3.1",
     "vite-plugin-mkcert": "^1.17.5"
   },
   "scripts": {
