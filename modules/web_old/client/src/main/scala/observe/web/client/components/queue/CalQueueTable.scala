@@ -278,13 +278,13 @@ object CalQueueTable {
       val selectedIconStyle = ObserveStyles.selectedIcon
       val icon: TagMod      =
         row.status match {
-          case SequenceState.Completed     =>
+          case SequenceState.Completed        =>
             IconCheckmark.clazz(selectedIconStyle)
           case SequenceState.Running(_, _, _) =>
             IconCircleNotched.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-          case SequenceState.Failed(_)     =>
+          case SequenceState.Failed(_)        =>
             IconAttention.copy(color = Red, clazz = selectedIconStyle)
-          case _                           =>
+          case _                              =>
             EmptyVdom
         }
 

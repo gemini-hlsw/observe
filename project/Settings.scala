@@ -35,7 +35,7 @@ object Settings {
     val janino           = "3.1.12"
     val pureConfig       = "0.17.7"
     val monocleVersion   = "3.2.0"
-    val circeVersion     = "0.14.7"
+    val circeVersion     = "0.14.8"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
@@ -49,11 +49,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.99.0"
+    val lucumaCore      = "0.99.2"
     val lucumaUI        = "0.108.1"
-    val lucumaSchemas   = "0.88.0"
+    val lucumaSchemas   = "0.89.0"
     val lucumaSSO       = "0.6.20"
-    val lucumaODBSchema = "0.11.8"
+    val lucumaODBSchema = "0.11.9"
 
     // Clue
     val clue = "0.35.4"
