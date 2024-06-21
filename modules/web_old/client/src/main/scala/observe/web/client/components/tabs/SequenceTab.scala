@@ -128,14 +128,14 @@ object SequenceTab {
       val icon: Icon = status match {
         case SequenceState.Running(_, _, _) =>
           IconCircleNotched.loading()
-        case SequenceState.Completed     => IconCheckmark
-        case _                           => IconSelectedRadio
+        case SequenceState.Completed        => IconCheckmark
+        case _                              => IconSelectedRadio
       }
 
       val color = status match {
         case SequenceState.Running(_, _, _) => Orange
-        case SequenceState.Completed     => Green
-        case _                           => Grey
+        case SequenceState.Completed        => Green
+        case _                              => Grey
       }
 
       val linkPage: ObservePages =
