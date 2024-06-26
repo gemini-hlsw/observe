@@ -66,7 +66,8 @@ class StandardHeader[F[_]: Sync: Logger](
     optTcsKeyword[B](TcsController.Subsystem.AGUnit)(v)
 
   private val baseKeywords = List(
-    buildString(OcsBuildInfo.version.pure[F], KeywordName.SEQEXVER),
+    buildString("Observe".pure[F], KeywordName.SW_NAME),
+    buildString(OcsBuildInfo.version.pure[F], KeywordName.SW_VER),
     buildString(obsObject, KeywordName.OBJECT),
     buildString(obsReader.obsType, KeywordName.OBSTYPE),
     buildString(obsReader.obsClass, KeywordName.OBSCLASS),
