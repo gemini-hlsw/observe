@@ -25,6 +25,7 @@ import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
+import lucuma.ui.components.SolarProgress
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
@@ -50,31 +51,33 @@ object Layout:
           )
 
         if (
-          odbStatus.contains_(
-            PersistentClientStatus.Initialized
-          ) && props.rootModel.clientConfig.isReady
+          odbStatus.contains_(PersistentClientStatus.Initialized) &&
+          props.rootModel.clientConfig.isReady
         )
-          <.div(LayoutStyles.MainGrid)(
-            props.rootModel.data
-              .zoom(RootModelData.userVault)
-              .zoom(Pot.readyPrism.some)
-              .mapValue: (userVault: View[UserVault]) =>
-                props.rootModel.clientConfig.toOption.map: clientConfig =>
-                  TopBar(clientConfig,
-                         userVault,
-                         theme,
-                         props.rootModel.data.zoom(RootModelData.userVault).set(Pot(none)).toAsync
-                  ),
-            Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
-            SideTabs(
-              "side-tabs".refined,
-              appTabView,
-              ctx.pageUrl(_),
-              _ => true
-            ),
-            <.div(LayoutStyles.MainBody)(
-              props.resolution.renderP(props.rootModel)
+          React.StrictMode(
+            <.div(LayoutStyles.MainGrid)(
+              props.rootModel.data
+                .zoom(RootModelData.userVault)
+                .zoom(Pot.readyPrism.some)
+                .mapValue: (userVault: View[UserVault]) =>
+                  props.rootModel.clientConfig.toOption.map: clientConfig =>
+                    TopBar(
+                      clientConfig,
+                      userVault,
+                      theme,
+                      props.rootModel.data.zoom(RootModelData.userVault).set(Pot(none)).toAsync
+                    ),
+              Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
+              SideTabs(
+                "side-tabs".refined,
+                appTabView,
+                ctx.pageUrl(_),
+                _ => true
+              ),
+              <.div(LayoutStyles.MainBody)(
+                props.resolution.renderP(props.rootModel)
+              )
             )
           )
         else
-          EmptyVdom
+          SolarProgress()
