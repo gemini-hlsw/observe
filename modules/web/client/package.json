@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@floating-ui/react": "^0.26.17",
+    "@floating-ui/react": "^0.26.19",
     "@fontsource/lato": "^5.0.20",
     "@fortawesome/fontawesome-pro": "^6.5.2",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
@@ -11,7 +11,7 @@
     "@fortawesome/pro-thin-svg-icons": "^6.5.2",
     "@fortawesome/sharp-solid-svg-icons": "^6.5.2",
     "@react-hook/size": "^2.1.2",
-    "@tanstack/react-table": "^8.17.3",
+    "@tanstack/react-table": "^8.19.2",
     "@tanstack/react-virtual": "3.8.1",
     "loglevel": "1.9.1",
     "primeicons": "^7.0.0",
@@ -25,7 +25,7 @@
     "process": "^0.11.10",
     "sass": "^1.77.6",
     "unplugin-fonts": "^1.1.1",
-    "vite": "5.3.1",
+    "vite": "5.3.3",
     "vite-plugin-mkcert": "^1.17.5"
   },
   "scripts": {
