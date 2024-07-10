@@ -12,7 +12,7 @@
     "@fortawesome/sharp-solid-svg-icons": "^6.5.2",
     "@react-hook/size": "^2.1.2",
     "@tanstack/react-table": "^8.19.2",
-    "@tanstack/react-virtual": "3.7.0",
+    "@tanstack/react-virtual": "3.8.1",
     "loglevel": "1.9.1",
     "primeicons": "^7.0.0",
     "primereact": "~10.6.6",
