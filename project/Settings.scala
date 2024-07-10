@@ -13,7 +13,7 @@ object Settings {
     val catsEffectVersion = "3.5.4"
     val catsVersion       = "2.12.0"
     val kittens           = "3.3.0"
-    val mouseVersion      = "1.3.0"
+    val mouseVersion      = "1.3.1"
     val fs2Version        = "3.10.2"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
@@ -35,7 +35,7 @@ object Settings {
     val janino           = "3.1.12"
     val pureConfig       = "0.17.7"
     val monocleVersion   = "3.2.0"
-    val circeVersion     = "0.14.8"
+    val circeVersion     = "0.14.9"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
@@ -51,7 +51,7 @@ object Settings {
     // Gemini Libraries
     val lucumaCore      = "0.100.0"
     val lucumaUI        = "0.108.3"
-    val lucumaSchemas   = "0.90.0"
+    val lucumaSchemas   = "0.90.7"
     val lucumaSSO       = "0.6.20"
     val lucumaODBSchema = "0.11.10"
 
@@ -59,7 +59,7 @@ object Settings {
     val clue = "0.37.0"
 
     // ScalaJS libraries
-    val crystal      = "0.39.2"
+    val crystal      = "0.39.3"
     val javaTimeJS   = "2.6.0"
     val lucumaReact  = "0.66.1"
     val scalaDom     = "2.3.0"
