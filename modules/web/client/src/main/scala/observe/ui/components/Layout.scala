@@ -47,11 +47,11 @@ object Layout:
             appTab,
             (mod, cb) =>
               val newTab = mod(appTab)
-              ctx.pushPage(newTab) >> cb(newTab)
+              ctx.pushPage(newTab) >> cb(appTab, newTab)
           )
 
         if (
-          odbStatus.contains_(PersistentClientStatus.Initialized) &&
+          odbStatus.contains_(PersistentClientStatus.Connected) &&
           props.rootModel.clientConfig.isReady
         )
           React.StrictMode(

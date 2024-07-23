@@ -39,11 +39,11 @@ case class AppContext[F[_]](
   val logger:    Logger[F],
   val odbClient: WebSocketJSClient[F, ObservationDB]
 ):
-  def initODBClient(payload: Map[String, Json]): F[Unit] =
-    odbClient.connect() >> odbClient.initialize(payload)
+  def initODBClient(payload: F[Map[String, Json]]): F[Unit] =
+    odbClient.connect(payload)
 
   val closeODBClient: F[Unit] =
-    odbClient.terminate() >> odbClient.disconnect(CloseParams(code = 1000))
+    odbClient.disconnect(CloseParams(code = 1000))
 
   def pushPage(appTab: AppTab): Callback = setPageVia(appTab, SetRouteVia.HistoryPush)
 
