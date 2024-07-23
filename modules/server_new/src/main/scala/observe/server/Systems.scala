@@ -89,8 +89,7 @@ object Systems {
     def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
       sk                                 <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
       given FetchClient[F, ObservationDB] = sk
-      _                                  <- sk.connect()
-      _                                  <- sk.initialize(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson))
+      _                                  <- sk.connect(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson).pure[F])
       odbCommands                        <-
         if (settings.odbNotifications)
           Ref

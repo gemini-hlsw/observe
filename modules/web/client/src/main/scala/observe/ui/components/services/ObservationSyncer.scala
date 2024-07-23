@@ -41,9 +41,9 @@ object ObservationSyncer:
         ctx.odbClient.statusStream
       .useRef(none[Observation.Id])
       .useEffectStreamResourceWithDepsBy((props, _, _, _, odbStatusPot, _) =>
-        // Run when observation changes or ODB status changes to Initialized
+        // Run when observation changes or ODB status changes to Connected
         (props.nighttimeObservation.get.map(_.obsId),
-         odbStatusPot.toOption.filter(_ === PersistentClientStatus.Initialized)
+         odbStatusPot.toOption.filter(_ === PersistentClientStatus.Connected)
         ).tupled
       ): (props, ctx, sequenceApi, odbQueryApi, _, subscribedObsId) =>
         deps =>

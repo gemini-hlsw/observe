@@ -229,18 +229,23 @@ object MainApp extends ServerEventHandler:
           ctx => // Once AppContext is ready, proceed to attempt login (5)
             enforceStaffRole(ctx.ssoClient).attempt.flatMap: userVault =>
               rootModelData.async.mod(_.withLoginResult(userVault))
-      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, _, rootModelData, _, ctxPot) =>
-        (ctxPot.value, rootModelData.get.userVault.map(_.toPot).flatten).tupled
-      ): (_, _, _, _, _, _, _, _, _) => // Initialize ODB client (6)
-        (ctx, userVault) =>
+      .useShadowRef: (_, _, _, _, _, _, rootModelData, _, _) =>
+        rootModelData.get.userVault.toOption.flatten.map(_.authorizationHeader)
+      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, _, rootModelData, _, ctxPot, _) =>
+        (ctxPot.value, rootModelData.get.userVault.map(_.toPot).flatten.void).tupled
+      ): (_, _, _, _, _, _, _, _, _, authHeaderRef) => // Initialize ODB client (6)
+        (ctx, _) =>
           ctx
-            .initODBClient(Map("Authorization" -> userVault.authorizationHeader.asJson))
+            .initODBClient:
+              authHeaderRef.getAsync.map:
+                _.map(authHeader => Map("Authorization" -> authHeader.asJson))
+                  .getOrElse(Map.empty)
             .as(ctx.closeODBClient) // Disconnect on logout
       // Subscribe to client event stream (and initialize ClientConfig)
       .useState(none[ApiClient])               // apiClientOpt
-      .useEffectWithDepsBy((_, _, _, _, _, clientConfigPot, rootModelData, _, _, _) =>
+      .useEffectWithDepsBy((_, _, _, _, _, clientConfigPot, rootModelData, _, _, _, _) =>
         (rootModelData.get.userVault.toOption.flatMap(_.map(_.token)), clientConfigPot.get.toOption)
-      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, ctxPot, apiClientOpt) =>
+      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, ctxPot, _, apiClientOpt) =>
         (userTokenOpt, clientConfigOpt) =>
           (userTokenOpt, clientConfigOpt, ctxPot.value.toOption)
             .mapN: (token, clientConfig, ctx) =>
@@ -268,8 +273,8 @@ object MainApp extends ServerEventHandler:
                   ).some
             .orEmpty
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
-      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _) => syncStatus.get):
-        (_, _, _, singleDispatcher, _, _, _, _, _, apiClientOpt) =>
+      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _, _) => syncStatus.get):
+        (_, _, _, singleDispatcher, _, _, _, _, _, _, apiClientOpt) =>
           case Some(SyncStatus.OutOfSync) =>
             apiClientOpt.value
               .map: client =>
@@ -277,8 +282,8 @@ object MainApp extends ServerEventHandler:
               .orEmpty
           case Some(SyncStatus.Synced)    => singleDispatcher.cancel
           case _                          => IO.unit
-      .useStreamBy((_, _, _, _, _, _, _, _, ctxPot, _) => ctxPot.value.void):
-        (_, _, _, _, _, _, _, _, ctxPot, _) =>
+      .useStreamBy((_, _, _, _, _, _, _, _, ctxPot, _, _) => ctxPot.value.void):
+        (_, _, _, _, _, _, _, _, ctxPot, _, _) =>
           _ =>
             ctxPot.value
               .map(_.odbClient)
@@ -286,12 +291,12 @@ object MainApp extends ServerEventHandler:
               .foldMap(_.statusStream) // Track ODB initialization status
       .useRef(false)
       .useEffectStreamResourceWhenDepsReadyBy(
-        (_, _, _, _, _, clientConfigPot, _, _, ctxPot, _, odbStatus, _) =>
+        (_, _, _, _, _, clientConfigPot, _, _, ctxPot, _, _, odbStatus, _) =>
           (clientConfigPot.get,
            ctxPot.value,
-           odbStatus.toPot.filter(_ === PersistentClientStatus.Initialized)
+           odbStatus.toPot.filter(_ === PersistentClientStatus.Connected)
           ).tupled
-      ): (_, _, _, _, _, _, rootModelData, _, _, _, _, subscribed) =>
+      ): (_, _, _, _, _, _, rootModelData, _, _, _, _, _, subscribed) =>
         (clientConfig, ctx, _) => // Query ready observations for the site (7)
           import ctx.given
 
@@ -328,6 +333,7 @@ object MainApp extends ServerEventHandler:
           rootModelData,
           configApiStatus,
           ctxPot,
+          _,
           apiClientOpt,
           _,
           _,
