@@ -147,6 +147,7 @@ object SessionQueue:
   private val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
   private val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
   private val ClassColumnId: ColumnId      = ColumnId("class")
+  private val ProgramColumnId: ColumnId    = ColumnId("program")
   private val ObsIdColumnId: ColumnId      = ColumnId("obsId")
   private val StateColumnId: ColumnId      = ColumnId("state")
   private val InstrumentColumnId: ColumnId = ColumnId("instrument")
@@ -196,6 +197,12 @@ object SessionQueue:
       cell = cell => renderCentered(classIconRenderer(cell.row.original)),
       size = 26.toPx,
       enableResizing = false
+    ),
+    ColDef(
+      ProgramColumnId,
+      _.obsSummary.programReference,
+      header = "Program",
+      cell = linked(_.value.map(_.label).getOrElse("---"))
     ),
     ColDef(
       ObsIdColumnId,
