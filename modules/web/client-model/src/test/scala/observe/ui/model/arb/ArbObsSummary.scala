@@ -11,9 +11,11 @@ import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
 import lucuma.core.model.Observation
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.ProgramReference
 import lucuma.core.model.TimingWindow
 import lucuma.core.model.arb.ArbConstraintSet.given
 import lucuma.core.model.arb.ArbPosAngleConstraint.given
+import lucuma.core.model.arb.ArbProgramReference.given
 import lucuma.core.model.arb.ArbTimingWindow.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
@@ -40,6 +42,7 @@ trait ArbObsSummary:
       observingMode      <- arbitrary[Option[ObservingMode]]
       visualizationTime  <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
+      programReference   <- arbitrary[Option[ProgramReference]]
     yield ObsSummary(
       obsId,
       title,
@@ -50,7 +53,8 @@ trait ArbObsSummary:
       SortedSet.from(attachmentIds),
       observingMode,
       visualizationTime,
-      posAngleConstraint
+      posAngleConstraint,
+      programReference
     )
 
   given Cogen[ObsSummary] =

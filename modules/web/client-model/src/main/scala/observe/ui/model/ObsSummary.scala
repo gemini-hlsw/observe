@@ -17,6 +17,7 @@ import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
 import lucuma.core.model.Observation
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.ProgramReference
 import lucuma.core.model.TimingWindow
 import lucuma.core.util.Timestamp
 import lucuma.schemas.decoders.given
@@ -38,7 +39,8 @@ case class ObsSummary(
   attachmentIds:      SortedSet[ObsAttachment.Id],
   observingMode:      Option[ObservingMode],
   visualizationTime:  Option[Instant],
-  posAngleConstraint: PosAngleConstraint
+  posAngleConstraint: PosAngleConstraint,
+  programReference:   Option[ProgramReference]
 ) derives Eq:
   lazy val configurationSummary: Option[String] = observingMode.map(_.toBasicConfiguration) match
     case Some(BasicConfiguration.GmosNorthLongSlit(grating, _, fpu, _)) =>
@@ -62,6 +64,7 @@ object ObsSummary:
   val observingMode      = Focus[ObsSummary](_.observingMode)
   val visualizationTime  = Focus[ObsSummary](_.visualizationTime)
   val posAngleConstraint = Focus[ObsSummary](_.posAngleConstraint)
+  val programReference   = Focus[ObsSummary](_.programReference)
 
   private case class AttachmentIdWrapper(id: ObsAttachment.Id)
   private object AttachmentIdWrapper:
@@ -79,6 +82,8 @@ object ObsSummary:
       observingMode      <- c.get[Option[ObservingMode]]("observingMode")
       visualizationTime  <- c.get[Option[Timestamp]]("visualizationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")
+      programReference   <-
+        c.downField("program").downField("reference").get[Option[ProgramReference]]("label")
     yield ObsSummary(
       id,
       title,
@@ -89,5 +94,6 @@ object ObsSummary:
       SortedSet.from(attachmentIds.map(_.id)),
       observingMode,
       visualizationTime.map(_.toInstant),
-      posAngleConstraint
+      posAngleConstraint,
+      programReference
     )

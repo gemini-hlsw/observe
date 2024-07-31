@@ -73,8 +73,8 @@ object Home:
               )(
                 SplitterPanel(clazz = ObserveStyles.TopPanel)(
                   rootModelData.readyObservations
-                    .map(
-                      _.map(obs =>
+                    .map:
+                      _.map: obs =>
                         SessionQueueRow(
                           obs,
                           SequenceState.Idle,
@@ -85,8 +85,6 @@ object Home:
                           none,
                           false
                         )
-                      )
-                    )
                     .renderPot(
                       SessionQueue(_, obsStates, selectObservation, loadedObs, loadObservation)
                     ),
