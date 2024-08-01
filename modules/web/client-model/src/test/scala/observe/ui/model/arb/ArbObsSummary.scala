@@ -10,12 +10,12 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ObsAttachment
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
-import lucuma.core.model.ProgramReference
 import lucuma.core.model.TimingWindow
 import lucuma.core.model.arb.ArbConstraintSet.given
+import lucuma.core.model.arb.ArbObservationReference.given
 import lucuma.core.model.arb.ArbPosAngleConstraint.given
-import lucuma.core.model.arb.ArbProgramReference.given
 import lucuma.core.model.arb.ArbTimingWindow.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
@@ -42,7 +42,7 @@ trait ArbObsSummary:
       observingMode      <- arbitrary[Option[ObservingMode]]
       visualizationTime  <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
-      programReference   <- arbitrary[Option[ProgramReference]]
+      obsReference       <- arbitrary[Option[ObservationReference]]
     yield ObsSummary(
       obsId,
       title,
@@ -54,7 +54,7 @@ trait ArbObsSummary:
       observingMode,
       visualizationTime,
       posAngleConstraint,
-      programReference
+      obsReference
     )
 
   given Cogen[ObsSummary] =
@@ -68,7 +68,8 @@ trait ArbObsSummary:
        List[ObsAttachment.Id],
        Option[ObservingMode],
        Option[Instant],
-       PosAngleConstraint
+       PosAngleConstraint,
+       Option[ObservationReference]
       )
     ]
       .contramap: s =>
@@ -81,7 +82,8 @@ trait ArbObsSummary:
          s.attachmentIds.toList,
          s.observingMode,
          s.visualizationTime,
-         s.posAngleConstraint
+         s.posAngleConstraint,
+         s.obsReference
         )
 
 object ArbObsSummary extends ArbObsSummary
