@@ -27,5 +27,8 @@ object ObservationSummarySubquery
             id
           }
           observingMode $ObservingModeSubquery
+          reference {
+            label
+          }
         }
       """

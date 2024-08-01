@@ -147,8 +147,7 @@ object SessionQueue:
   private val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
   private val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
   private val ClassColumnId: ColumnId      = ColumnId("class")
-  private val ProgramColumnId: ColumnId    = ColumnId("program")
-  private val ObsIdColumnId: ColumnId      = ColumnId("obsId")
+  private val ObsRefColumnId: ColumnId     = ColumnId("observation")
   private val StateColumnId: ColumnId      = ColumnId("state")
   private val InstrumentColumnId: ColumnId = ColumnId("instrument")
   private val TargetColumnId: ColumnId     = ColumnId("target")
@@ -199,17 +198,11 @@ object SessionQueue:
       enableResizing = false
     ),
     ColDef(
-      ProgramColumnId,
-      _.obsSummary.programReference,
-      header = "Program",
-      cell = linked(_.value.map(_.label).getOrElse("---"))
-    ),
-    ColDef(
-      ObsIdColumnId,
-      _.obsId,
-      header = "Obs. ID",
-      cell = linked(_.value.shortName),
-      size = 100.toPx
+      ObsRefColumnId,
+      _.obsReference,
+      header = "Obs. Id",
+      cell = linked(_.value.map(_.label).getOrElse("---")),
+      size = 110.toPx
     ),
     ColDef(
       StateColumnId,
