@@ -6,7 +6,9 @@ package observe.server.gmos
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.model.sequence.gmos
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation
+import observe.model.Observation.Id
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
 import observe.server.gmos.GmosController.GmosSite
@@ -22,7 +24,11 @@ object GmosHeader {
     tcsKeywordsReader: TcsKeywordsReader[F]
   ): Header[F] =
     new Header[F] {
-      override def sendBefore(obsId: Observation.Id, id: ImageFileId): F[Unit] =
+      override def sendBefore(
+        obsId:   Id,
+        id:      ImageFileId,
+        dataset: Option[Dataset.Reference]
+      ): F[Unit] =
         nsBeforeKeywords.flatMap(nsKs =>
           sendKeywords(
             id,

@@ -275,7 +275,6 @@ object ObsQueriesGQL:
 
     object Data:
       object Observation:
-        type Target        = model.Target
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
         object Execution:
@@ -356,15 +355,19 @@ object ObsQueriesGQL:
         recordDataset(input: { stepId: $stepId, filename: $filename } ) {
           dataset {
             id
+            reference {
+              label
+              observation {
+                label
+                program {
+                  label
+                }
+              }
+            }
           }
         }
       }
       """
-
-    object Data:
-      object RecordDataset:
-        object Dataset:
-          type Id = lucuma.core.model.sequence.Dataset.Id
 
   @GraphQL
   trait RecordAtomMutation extends GraphQLOperation[ObservationDB]:

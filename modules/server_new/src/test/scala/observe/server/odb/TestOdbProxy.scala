@@ -34,6 +34,7 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
 import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery.Data
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
 
@@ -149,8 +150,12 @@ object TestOdbProxy {
         override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
           addEvent(StepStartObserve(obsId)).as(true)
 
-        override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-          addEvent(DatasetStartExposure(obsId, fileId)).as(true)
+        override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Dataset] =
+          addEvent(DatasetStartExposure(obsId, fileId)) *> Dataset(
+            lucuma.core.model.sequence.Dataset
+              .Id(PosLong.unsafeFrom(scala.util.Random.between(1L, Long.MaxValue))),
+            None
+          ).pure[F]
 
         override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
           addEvent(DatasetEndExposure(obsId, fileId)).as(true)

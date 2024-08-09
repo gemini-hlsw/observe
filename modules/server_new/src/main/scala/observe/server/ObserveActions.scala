@@ -9,14 +9,13 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.util.TimeSpan
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.engine.*
 import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult
 import observe.server.InstrumentSystem.*
 import org.typelevel.log4cats.Logger
-
-import scala.annotation.unused
 
 import odb.OdbProxy
 
@@ -46,18 +45,13 @@ trait ObserveActions {
   /**
    * Send the datasetStart command to the odb
    */
-  @unused
   private def sendDataStart[F[_]: MonadThrow](
     odb:    OdbProxy[F],
     obsId:  Observation.Id,
     fileId: ImageFileId
-  ): F[Unit] =
+  ): F[Dataset] =
     odb
       .datasetStartExposure(obsId, fileId)
-      .ensure(
-        ObserveFailure.Unexpected("Unable to send datasetStartExposure message to ODB.")
-      )(identity)
-      .void
 
   /**
    * Send the datasetEnd command to the odb
@@ -134,9 +128,9 @@ trait ObserveActions {
     env:    ObserveEnvironment[F]
   ): F[ObserveCommandResult] =
     for {
-      _ <- sendDataStart(env.odb, env.obsId, fileId)
+      d <- sendDataStart(env.odb, env.obsId, fileId)
       _ <- notifyObserveStart(env)
-      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId))
+      _ <- env.headers(env.ctx).traverse(_.sendBefore(env.obsId, fileId, d.reference))
       _ <-
         info(
           s"Start ${env.inst.resource.longName} observation ${env.obsId} with label $fileId"
