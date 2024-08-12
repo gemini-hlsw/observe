@@ -5,6 +5,7 @@ package observe.server.keywords
 
 import cats.effect.Sync
 import cats.syntax.all.*
+import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.StepGuideState.Disabled
@@ -107,7 +108,14 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
         }
       ).pure[F]
 
-      override def obsClass: F[String] = step.observeClass.tag.pure[F]
+      override def obsClass: F[String] = (step.observeClass match {
+        case ObserveClass.Science        => "science"
+        case ObserveClass.ProgramCal     => "progCal"
+        case ObserveClass.PartnerCal     => "partnerCal"
+        case ObserveClass.Acquisition    => "acq"
+        case ObserveClass.AcquisitionCal => "acqCal"
+        case ObserveClass.DayCal         => "dayCal"
+      }).pure[F]
 
       override def gemPrgId: F[String] = obsCfg.program.name.map(_.toString).getOrElse("").pure[F]
 
@@ -216,7 +224,16 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def releaseDate: F[String] = calcReleaseDate
 
-      override def obsObject: F[String] = "".pure[F]
+      override def obsObject: F[String] = (step.stepConfig match {
+        case StepConfig.Bias                => "Bias"
+        case StepConfig.Dark                => "Dark"
+        case StepConfig.Gcal(lamp, _, _, _) =>
+          lamp.toEither.fold[String](
+            _ => "GCALflat",
+            _.toList.mkString("", ",", "")
+          )
+        case _                              => ""
+      }).pure[F]
 
       override def geminiQA: F[String] = "UNKNOWN".pure[F]
 
