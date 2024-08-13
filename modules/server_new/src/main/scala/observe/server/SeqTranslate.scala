@@ -58,6 +58,7 @@ import observe.server.gmos.GmosSouth
 import observe.server.gmos.GmosSouth.given
 import observe.server.gmos.GmosSouthController
 import observe.server.gmos.NSObserveCommand
+import observe.server.gws.GwsHeader
 import observe.server.keywords.*
 import observe.server.tcs.*
 import observe.server.tcs.TcsController.LightPath
@@ -709,9 +710,9 @@ object SeqTranslate {
         StateKeywordsReader[F](ctx.conditions, ctx.operator, ctx.observer),
         tcsSubsystems
       )
-//
-//    private def gwsHeaders(kwClient: KeywordsClient[F]): Header[F] =
-//      GwsHeader.header(kwClient, systemss.gwsKeywordReader)
+
+    private def gwsHeaders(kwClient: KeywordsClient[F]): Header[F] =
+      GwsHeader.header(kwClient, systemss.gwsKeywordReader)
 
     private def gcalHeader(kwClient: KeywordsClient[F]): Header[F] =
       GcalHeader.header(kwClient, systemss.gcalKeywordReader)
@@ -752,7 +753,7 @@ object SeqTranslate {
           (ctx: HeaderExtraData) =>
             List(
               commonHeaders(obsCfg, stepCfg, allButGaos.toList, kwClient)(ctx),
-              // gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
               instHeader(kwClient)
             )
 
@@ -764,7 +765,7 @@ object SeqTranslate {
               commonHeaders(obsCfg, stepCfg, allButGaos.toList, kwClient)(ctx),
 //              altairHeader(kwClient),
 //              altairLgsHeader(Altair.guideStarType(obsCfg), kwClient),
-//              gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
               instHeader(kwClient)
             )
 
@@ -774,7 +775,7 @@ object SeqTranslate {
             List(
               commonHeaders(obsCfg, stepCfg, flatOrArcTcsSubsystems(inst).toList, kwClient)(ctx),
               gcalHeader(kwClient),
-//            gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
               instHeader(kwClient)
             )
 
@@ -784,7 +785,7 @@ object SeqTranslate {
             List(
               commonHeaders(obsCfg, stepCfg, List(AGUnit, OIWFS, M2, M1, Mount), kwClient)(ctx),
               gcalHeader(kwClient),
-//            gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
               instHeader(kwClient)
             )
 
@@ -793,7 +794,7 @@ object SeqTranslate {
           (ctx: HeaderExtraData) =>
             List(
               commonHeaders(obsCfg, stepCfg, Nil, kwClient)(ctx),
-//            gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
               instHeader(kwClient)
             )
 
@@ -806,7 +807,7 @@ object SeqTranslate {
           (ctx: HeaderExtraData) =>
             List(
               commonHeaders(obsCfg, stepCfg, allButGaos.toList, kwClient)(ctx),
-//            gwsHeaders(kwClient),
+              gwsHeaders(kwClient),
 //            gemsHeaders(kwClient, ObsKeywordReader[F](config, site), systemss.tcsKeywordReader),
               instHeader(kwClient)
             )

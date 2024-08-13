@@ -12,6 +12,7 @@ import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
 import eu.timepit.refined.types.numeric.NonNegShort
+import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.AtomStage
 import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.Instrument
@@ -28,7 +29,6 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
-import lucuma.schemas.ObservationDB.Scalars.DatasetId
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.ObservationDB.Types.RecordAtomInput
 import lucuma.schemas.ObservationDB.Types.RecordGmosNorthStepInput
@@ -65,24 +65,27 @@ sealed trait OdbEventCommands[F[_]] {
     observeClass:  ObserveClass,
     generatedId:   Option[Step.Id]
   ): F[Unit]
-  def stepStartConfigure(obsId:   Observation.Id): F[Unit]
-  def stepEndConfigure(obsId:     Observation.Id): F[Boolean]
-  def stepStartObserve(obsId:     Observation.Id): F[Boolean]
-  def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetEndExposure(obsId:   Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetStartReadout(obsId:  Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetEndReadout(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetStartWrite(obsId:    Observation.Id, fileId: ImageFileId): F[Boolean]
-  def datasetEndWrite(obsId:      Observation.Id, fileId: ImageFileId): F[Boolean]
-  def stepEndObserve(obsId:       Observation.Id): F[Boolean]
-  def stepEndStep(obsId:          Observation.Id): F[Boolean]
-  def stepAbort(obsId:            Observation.Id): F[Boolean]
-  def atomEnd(obsId:              Observation.Id): F[Boolean]
-  def sequenceEnd(obsId:          Observation.Id): F[Boolean]
-  def obsAbort(obsId:             Observation.Id, reason: String): F[Boolean]
-  def obsContinue(obsId:          Observation.Id): F[Boolean]
-  def obsPause(obsId:             Observation.Id, reason: String): F[Boolean]
-  def obsStop(obsId:              Observation.Id, reason: String): F[Boolean]
+  def stepStartConfigure(obsId:  Observation.Id): F[Unit]
+  def stepEndConfigure(obsId:    Observation.Id): F[Boolean]
+  def stepStartObserve(obsId:    Observation.Id): F[Boolean]
+  def datasetStartExposure(
+    obsId:  Observation.Id,
+    fileId: ImageFileId
+  ): F[RecordDatasetMutation.Data.RecordDataset.Dataset]
+  def datasetEndExposure(obsId:  Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetStartReadout(obsId: Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetEndReadout(obsId:   Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetStartWrite(obsId:   Observation.Id, fileId: ImageFileId): F[Boolean]
+  def datasetEndWrite(obsId:     Observation.Id, fileId: ImageFileId): F[Boolean]
+  def stepEndObserve(obsId:      Observation.Id): F[Boolean]
+  def stepEndStep(obsId:         Observation.Id): F[Boolean]
+  def stepAbort(obsId:           Observation.Id): F[Boolean]
+  def atomEnd(obsId:             Observation.Id): F[Boolean]
+  def sequenceEnd(obsId:         Observation.Id): F[Boolean]
+  def obsAbort(obsId:            Observation.Id, reason: String): F[Boolean]
+  def obsContinue(obsId:         Observation.Id): F[Boolean]
+  def obsPause(obsId:            Observation.Id, reason: String): F[Boolean]
+  def obsStop(obsId:             Observation.Id, reason: String): F[Boolean]
 
   def getCurrentRecordedIds: F[ObsRecordedIds]
 }
@@ -118,7 +121,7 @@ object OdbProxy {
       export evCmds.*
     }
 
-  class DummyOdbCommands[F[_]: Applicative] extends OdbEventCommands[F] {
+  class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {
     override def sequenceStart(
       obsId: Observation.Id
     ): F[Unit] =
@@ -140,8 +143,15 @@ object OdbProxy {
     override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
 
-    override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
-      true.pure[F]
+    override def datasetStartExposure(
+      obsId:  Observation.Id,
+      fileId: ImageFileId
+    ): F[RecordDatasetMutation.Data.RecordDataset.Dataset] =
+      Sync[F]
+        .delay(scala.util.Random.between(1L, Long.MaxValue))
+        .map(x =>
+          RecordDatasetMutation.Data.RecordDataset.Dataset(Dataset.Id(PosLong.unsafeFrom(x)), None)
+        )
 
     override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       true.pure[F]
@@ -286,20 +296,23 @@ object OdbProxy {
         _      <- L.debug("ODB event stepStartObserve sent")
       } yield true
 
-    override def datasetStartExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
+    override def datasetStartExposure(
+      obsId:  Observation.Id,
+      fileId: ImageFileId
+    ): F[RecordDatasetMutation.Data.RecordDataset.Dataset] =
       for {
-        stepId    <- getCurrentStepId(obsId)
-        _         <-
+        stepId  <- getCurrentStepId(obsId)
+        _       <-
           L.debug(
             s"Send ODB event datasetStartExposure for obsId: $obsId, stepId: $stepId with fileId: $fileId"
           )
-        datasetId <- recordDataset(stepId, fileId)
-        _         <- setCurrentDatasetId(obsId, fileId, datasetId.some)
-        _         <- L.debug(s"Recorded dataset id $datasetId")
-        _         <- AddDatasetEventMutation[F]
-                       .execute(datasetId = datasetId, stg = DatasetStage.StartExpose)
-        _         <- L.debug("ODB event datasetStartExposure sent")
-      } yield true
+        dataset <- recordDataset(stepId, fileId)
+        _       <- setCurrentDatasetId(obsId, fileId, dataset.id.some)
+        _       <- L.debug(s"Recorded dataset id ${dataset.id}")
+        _       <- AddDatasetEventMutation[F]
+                     .execute(datasetId = dataset.id, stg = DatasetStage.StartExpose)
+        _       <- L.debug("ODB event datasetStartExposure sent")
+      } yield dataset
 
     override def datasetEndExposure(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       for {
@@ -498,18 +511,21 @@ object OdbProxy {
         .map(_.recordGmosSouthStep.stepRecord.id)
         .map(RecordedStepId(_))
 
-    private def recordDataset(stepId: RecordedStepId, fileId: ImageFileId): F[DatasetId] =
+    private def recordDataset(
+      stepId: RecordedStepId,
+      fileId: ImageFileId
+    ): F[RecordDatasetMutation.Data.RecordDataset.Dataset] =
       Sync[F]
         .delay(Dataset.Filename.parse(normalizeFilename(fileId.value)).get)
         .flatMap: fileName =>
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)
-            .map(_.recordDataset.dataset.id)
+            .map(_.recordDataset.dataset)
 
     override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get
   }
 
-  class DummyOdbProxy[F[_]: MonadThrow] extends OdbProxy[F] {
+  class DummyOdbProxy[F[_]: Sync] extends OdbProxy[F] {
     val evCmds = new DummyOdbCommands[F]
 
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]

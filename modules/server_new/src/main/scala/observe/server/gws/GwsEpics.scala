@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.gws
@@ -6,19 +6,22 @@ package observe.server.gws
 import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
+import coulomb.*
+import coulomb.Quantity
+import coulomb.policy.standard.given
+import coulomb.syntax.*
+import coulomb.units.accepted.Millibar
+import coulomb.units.temperature.*
 import edu.gemini.epics.acm.CaService
+import lucuma.core.math.Angle
+import lucuma.core.math.units.MetersPerSecond
 import observe.server.EpicsHealth
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
-import squants.MetricSystem.Milli
-import squants.Temperature
-import squants.Velocity
-import squants.motion.Bars
-import squants.motion.MetersPerSecond
-import squants.motion.Pressure
-import squants.space.Angle
-import squants.space.Degrees
-import squants.thermal.Celsius
+//import scala.language.implicitConversions
+
+// unit definitions
+//import coulomb.units.si.{*, given}
 
 /**
  * GwsEpics wraps the non-functional parts of the EPICS ACM library to interact with the Weather
@@ -32,19 +35,19 @@ final class GwsEpics[F[_]: Sync] private (epicsService: CaService) {
   private def readI(name: String): F[Int]    =
     safeAttributeSIntF[F](state.getIntegerAttribute(name))
 
-  def humidity: F[Double]       = readD("humidity").map(_.doubleValue)
-  def windVelocity: F[Velocity] =
-    readD("windspee").map(v => MetersPerSecond(v.doubleValue))
-  def airPressure: F[Pressure]  =
-    readD("pressure").map(v => Bars(v.doubleValue * Milli))
-  def ambientT: F[Temperature]  =
-    readD("tambient").map(v => Celsius(v.doubleValue))
-  def health: F[EpicsHealth]    =
+  def humidity: F[Double]                                = readD("humidity")
+  def windVelocity: F[Quantity[Double, MetersPerSecond]] =
+    readD("windspee").map(v => v.withUnit[MetersPerSecond])
+  def airPressure: F[Quantity[Double, Bar]]              =
+    readD("pressure").map(v => v.withUnit[Millibar].toUnit[Bar])
+  def ambientT: F[Temperature[Double, Celsius]]          =
+    readD("tambient").map(v => v.withTemperature[Celsius])
+  def health: F[EpicsHealth]                             =
     readI("health").map(h => EpicsHealth.fromInt(h.intValue))
-  def dewPoint: F[Temperature]  =
-    readD("dewpoint").map(v => Celsius(v.doubleValue))
-  def windDirection: F[Angle]   =
-    readD("winddire").map(v => Degrees(v.doubleValue))
+  def dewPoint: F[Temperature[Double, Celsius]]          =
+    readD("dewpoint").map(v => v.withTemperature[Celsius])
+  def windDirection: F[Angle]                            =
+    readD("winddire").map(v => Angle.fromDoubleDegrees(v))
 
 }
 

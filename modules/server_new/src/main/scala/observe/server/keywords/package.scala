@@ -5,6 +5,7 @@ package observe.server
 
 import cats.*
 import cats.syntax.all.*
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
@@ -335,9 +336,13 @@ package object keywords {
       }
 
   def dummyHeader[F[_]: Applicative]: Header[F] = new Header[F] {
-    override def sendBefore(obsId: Observation.Id, id: ImageFileId): F[Unit] =
+    override def sendBefore(
+      obsId:   Observation.Id,
+      id:      ImageFileId,
+      dataset: Option[Dataset.Reference]
+    ): F[Unit] =
       Applicative[F].unit
-    override def sendAfter(id: ImageFileId): F[Unit]                         =
+    override def sendAfter(id: ImageFileId): F[Unit] =
       Applicative[F].unit
   }
 

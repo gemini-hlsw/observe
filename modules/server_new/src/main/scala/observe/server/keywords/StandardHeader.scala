@@ -8,8 +8,10 @@ import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.StepGuideState
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Conditions
 import observe.model.Observation
+import observe.model.Observation.Id
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.dhs.ImageFileId
@@ -65,71 +67,74 @@ class StandardHeader[F[_]: Sync: Logger](
   private def sfTcsKeyword[B: DefaultHeaderValue](v: F[B]) =
     optTcsKeyword[B](TcsController.Subsystem.AGUnit)(v)
 
-  private val baseKeywords = List(
-    buildString("Observe".pure[F], KeywordName.SW_NAME),
-    buildString(OcsBuildInfo.version.pure[F], KeywordName.SW_VER),
-    buildString(obsObject, KeywordName.OBJECT),
-    buildString(obsReader.obsType, KeywordName.OBSTYPE),
-    buildString(obsReader.obsClass, KeywordName.OBSCLASS),
-    buildString(obsReader.gemPrgId, KeywordName.GEMPRGID),
-    buildString(obsReader.obsId, KeywordName.OBSID),
-    buildString(obsReader.dataLabel, KeywordName.DATALAB),
-    buildString(stateReader.observerName, KeywordName.OBSERVER),
-    buildString(obsReader.observatory, KeywordName.OBSERVAT),
-    buildString(obsReader.telescope, KeywordName.TELESCOP),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.parallax), KeywordName.PARALLAX),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.radialVelocity), KeywordName.RADVEL),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.epoch), KeywordName.EPOCH),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.equinox), KeywordName.EQUINOX),
-    buildDouble(mountTcsKeyword(tcsReader.trackingEquinox), KeywordName.TRKEQUIN),
-    buildString(stateReader.operatorName, KeywordName.SSA),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.ra), KeywordName.RA),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.dec), KeywordName.DEC),
-    buildDouble(tcsReader.elevation, KeywordName.ELEVATIO),
-    buildDouble(tcsReader.azimuth, KeywordName.AZIMUTH),
-    buildDouble(tcsReader.crPositionAngle, KeywordName.CRPA),
-    buildString(tcsReader.hourAngle, KeywordName.HA),
-    buildString(tcsReader.localTime, KeywordName.LT),
-    buildString(mountTcsKeyword(tcsReader.trackingFrame), KeywordName.TRKFRAME),
-    buildDouble(mountTcsKeyword(tcsReader.trackingDec), KeywordName.DECTRACK),
-    buildDouble(mountTcsKeyword(tcsReader.trackingEpoch), KeywordName.TRKEPOCH),
-    buildDouble(mountTcsKeyword(tcsReader.trackingRA), KeywordName.RATRACK),
-    buildString(mountTcsKeyword(tcsReader.sourceATarget.frame), KeywordName.FRAME),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.properMotionDec), KeywordName.PMDEC),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.properMotionRA), KeywordName.PMRA),
-    buildDouble(mountTcsKeyword(tcsReader.sourceATarget.wavelength), KeywordName.WAVELENG),
-    buildString(stateReader.rawImageQuality, KeywordName.RAWIQ),
-    buildString(stateReader.rawCloudExtinction, KeywordName.RAWCC),
-    buildString(stateReader.rawWaterVapor, KeywordName.RAWWV),
-    buildString(stateReader.rawBackgroundLight, KeywordName.RAWBG),
-    buildString(obsReader.pIReq, KeywordName.RAWPIREQ),
-    buildString(obsReader.geminiQA, KeywordName.RAWGEMQA),
-    buildString(tcsReader.carouselMode, KeywordName.CGUIDMOD),
-    buildString(tcsReader.ut, KeywordName.UT),
-    buildString(tcsReader.date, KeywordName.DATE),
-    buildString(m2TcsKeyword(tcsReader.m2Baffle), KeywordName.M2BAFFLE),
-    buildString(m2TcsKeyword(tcsReader.m2CentralBaffle), KeywordName.M2CENBAF),
-    buildString(tcsReader.st, KeywordName.ST),
-    buildDouble(mountTcsKeyword(tcsReader.xOffset), KeywordName.XOFFSET),
-    buildDouble(mountTcsKeyword(tcsReader.yOffset), KeywordName.YOFFSET),
-    buildDouble(mountTcsKeyword(tcsReader.pOffset), KeywordName.POFFSET),
-    buildDouble(mountTcsKeyword(tcsReader.qOffset), KeywordName.QOFFSET),
-    buildDouble(mountTcsKeyword(tcsReader.raOffset), KeywordName.RAOFFSET),
-    buildDouble(mountTcsKeyword(tcsReader.decOffset), KeywordName.DECOFFSE),
-    buildDouble(mountTcsKeyword(tcsReader.trackingRAOffset), KeywordName.RATRGOFF),
-    buildDouble(mountTcsKeyword(tcsReader.trackingDecOffset), KeywordName.DECTRGOF),
-    buildDouble(mountTcsKeyword(tcsReader.instrumentPA), KeywordName.PA),
-    buildDouble(mountTcsKeyword(tcsReader.instrumentAA), KeywordName.IAA),
-    buildDouble(sfTcsKeyword(tcsReader.sfRotation), KeywordName.SFRT2),
-    buildDouble(sfTcsKeyword(tcsReader.sfTilt), KeywordName.SFTILT),
-    buildDouble(sfTcsKeyword(tcsReader.sfLinear), KeywordName.SFLINEAR),
-    buildString(mountTcsKeyword(tcsReader.aoFoldName), KeywordName.AOFOLD),
-    buildString(obsReader.pwfs1GuideS, KeywordName.PWFS1_ST),
-    buildString(obsReader.pwfs2GuideS, KeywordName.PWFS2_ST),
-    buildString(obsReader.oiwfsGuideS, KeywordName.OIWFS_ST),
-    buildString(obsReader.aowfsGuideS, KeywordName.AOWFS_ST),
-    buildInt32(obsReader.sciBand, KeywordName.SCIBAND)
-  )
+  private def baseKeywords(dataset: Option[Dataset.Reference]): List[KeywordBag => F[KeywordBag]] =
+    List(
+      buildString("Observe".pure[F], KeywordName.SW_NAME),
+      buildString(OcsBuildInfo.version.pure[F], KeywordName.SW_VER),
+      buildString(obsObject, KeywordName.OBJECT),
+      buildString(obsReader.obsType, KeywordName.OBSTYPE),
+      buildString(obsReader.obsClass, KeywordName.OBSCLASS),
+      buildString(dataset.map(_.observation.program.label.label).getOrElse("").pure[F],
+                  KeywordName.GEMPRGID
+      ),
+      buildString(dataset.map(_.observation.label.label).getOrElse("").pure[F], KeywordName.OBSID),
+      buildString(dataset.map(_.label.label).getOrElse("").pure[F], KeywordName.DATALAB),
+      buildString(stateReader.observerName, KeywordName.OBSERVER),
+      buildString(obsReader.observatory, KeywordName.OBSERVAT),
+      buildString(obsReader.telescope, KeywordName.TELESCOP),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.parallax), KeywordName.PARALLAX),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.radialVelocity), KeywordName.RADVEL),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.epoch), KeywordName.EPOCH),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.equinox), KeywordName.EQUINOX),
+      buildDouble(mountTcsKeyword(tcsReader.trackingEquinox), KeywordName.TRKEQUIN),
+      buildString(stateReader.operatorName, KeywordName.SSA),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.ra), KeywordName.RA),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.dec), KeywordName.DEC),
+      buildDouble(tcsReader.elevation, KeywordName.ELEVATIO),
+      buildDouble(tcsReader.azimuth, KeywordName.AZIMUTH),
+      buildDouble(tcsReader.crPositionAngle, KeywordName.CRPA),
+      buildString(tcsReader.hourAngle, KeywordName.HA),
+      buildString(tcsReader.localTime, KeywordName.LT),
+      buildString(mountTcsKeyword(tcsReader.trackingFrame), KeywordName.TRKFRAME),
+      buildDouble(mountTcsKeyword(tcsReader.trackingDec), KeywordName.DECTRACK),
+      buildDouble(mountTcsKeyword(tcsReader.trackingEpoch), KeywordName.TRKEPOCH),
+      buildDouble(mountTcsKeyword(tcsReader.trackingRA), KeywordName.RATRACK),
+      buildString(mountTcsKeyword(tcsReader.sourceATarget.frame), KeywordName.FRAME),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.properMotionDec), KeywordName.PMDEC),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.properMotionRA), KeywordName.PMRA),
+      buildDouble(mountTcsKeyword(tcsReader.sourceATarget.wavelength), KeywordName.WAVELENG),
+      buildString(stateReader.rawImageQuality, KeywordName.RAWIQ),
+      buildString(stateReader.rawCloudExtinction, KeywordName.RAWCC),
+      buildString(stateReader.rawWaterVapor, KeywordName.RAWWV),
+      buildString(stateReader.rawBackgroundLight, KeywordName.RAWBG),
+      buildString(obsReader.pIReq, KeywordName.RAWPIREQ),
+      buildString(obsReader.geminiQA, KeywordName.RAWGEMQA),
+      buildString(tcsReader.carouselMode, KeywordName.CGUIDMOD),
+      buildString(tcsReader.ut, KeywordName.UT),
+      buildString(tcsReader.date, KeywordName.DATE),
+      buildString(m2TcsKeyword(tcsReader.m2Baffle), KeywordName.M2BAFFLE),
+      buildString(m2TcsKeyword(tcsReader.m2CentralBaffle), KeywordName.M2CENBAF),
+      buildString(tcsReader.st, KeywordName.ST),
+      buildDouble(mountTcsKeyword(tcsReader.xOffset), KeywordName.XOFFSET),
+      buildDouble(mountTcsKeyword(tcsReader.yOffset), KeywordName.YOFFSET),
+      buildDouble(mountTcsKeyword(tcsReader.pOffset), KeywordName.POFFSET),
+      buildDouble(mountTcsKeyword(tcsReader.qOffset), KeywordName.QOFFSET),
+      buildDouble(mountTcsKeyword(tcsReader.raOffset), KeywordName.RAOFFSET),
+      buildDouble(mountTcsKeyword(tcsReader.decOffset), KeywordName.DECOFFSE),
+      buildDouble(mountTcsKeyword(tcsReader.trackingRAOffset), KeywordName.RATRGOFF),
+      buildDouble(mountTcsKeyword(tcsReader.trackingDecOffset), KeywordName.DECTRGOF),
+      buildDouble(mountTcsKeyword(tcsReader.instrumentPA), KeywordName.PA),
+      buildDouble(mountTcsKeyword(tcsReader.instrumentAA), KeywordName.IAA),
+      buildDouble(sfTcsKeyword(tcsReader.sfRotation), KeywordName.SFRT2),
+      buildDouble(sfTcsKeyword(tcsReader.sfTilt), KeywordName.SFTILT),
+      buildDouble(sfTcsKeyword(tcsReader.sfLinear), KeywordName.SFLINEAR),
+      buildString(mountTcsKeyword(tcsReader.aoFoldName), KeywordName.AOFOLD),
+      buildString(obsReader.pwfs1GuideS, KeywordName.PWFS1_ST),
+      buildString(obsReader.pwfs2GuideS, KeywordName.PWFS2_ST),
+      buildString(obsReader.oiwfsGuideS, KeywordName.OIWFS_ST),
+      buildString(obsReader.aowfsGuideS, KeywordName.AOWFS_ST),
+      buildInt32(obsReader.sciBand, KeywordName.SCIBAND)
+    )
 
   def timingWindows(id: ImageFileId): F[Unit] = {
     val timingWindows = obsReader.timingWindows
@@ -223,7 +228,11 @@ class StandardHeader[F[_]: Sync: Logger](
     guiderKeywords(id, guideWith, baseName, target, ext)
   }
 
-  override def sendBefore(obsId: Observation.Id, id: ImageFileId): F[Unit] = {
+  override def sendBefore(
+    obsId:   Id,
+    id:      ImageFileId,
+    dataset: Option[Dataset.Reference]
+  ): F[Unit] = {
     val oiwfsKeywords = guiderKeywords(id,
                                        obsReader.oiwfsGuide,
                                        "OI",
@@ -250,7 +259,7 @@ class StandardHeader[F[_]: Sync: Logger](
     val aowfsKeywords =
       standardGuiderKeywords(id, obsReader.aowfsGuide, "AO", tcsReader.aowfsTarget, Nil)
 
-    sendKeywords(id, kwClient, baseKeywords) *>
+    sendKeywords(id, kwClient, baseKeywords(dataset)) *>
       requestedConditions(id) *>
       requestedAirMassAngle(id) *>
       timingWindows(id) *>

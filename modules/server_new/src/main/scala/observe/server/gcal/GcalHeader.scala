@@ -5,7 +5,9 @@ package observe.server.gcal
 
 import cats.Applicative
 import cats.effect.Sync
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation
+import observe.model.Observation.Id
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName
 import observe.server.keywords.*
@@ -24,7 +26,11 @@ object GcalHeader {
         buildString(gcalReader.shutter, KeywordName.GCALSHUT)
       )
 
-      override def sendBefore(obsId: Observation.Id, id: ImageFileId): F[Unit] =
+      override def sendBefore(
+        obsId:   Id,
+        id:      ImageFileId,
+        dataset: Option[Dataset.Reference]
+      ): F[Unit] =
         sendKeywords(id, kwClient, gcalKeywords)
 
       override def sendAfter(id: ImageFileId): F[Unit] = Applicative[F].unit
