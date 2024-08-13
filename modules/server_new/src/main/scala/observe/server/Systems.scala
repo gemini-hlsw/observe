@@ -26,6 +26,7 @@ import observe.server.gcal.*
 import observe.server.gems.*
 import observe.server.gmos.*
 import observe.server.gsaoi.*
+import observe.server.gws.*
 import observe.server.keywords.*
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.DummyOdbProxy
@@ -63,8 +64,8 @@ case class Systems[F[_]] private[server] (
   nifsKeywordReader:   NifsKeywordReader[F],
   gsaoiKeywordReader:  GsaoiKeywordReader[F],*/
   altairKeywordReader: AltairKeywordReader[F],
-  gemsKeywordsReader:  GemsKeywordReader[F]
-//  gwsKeywordReader:    GwsKeywordReader[F]
+  gemsKeywordsReader:  GemsKeywordReader[F],
+  gwsKeywordReader:    GwsKeywordReader[F]
 )
 
 object Systems {
@@ -360,11 +361,11 @@ object Systems {
     //      (ghostClient, ghostGDS(httpClient)).mapN(GhostController(_, _))
     //    }
     //
-    //    def gws: IO[GwsKeywordReader[IO]] =
-    //      if (settings.systemControl.gws.realKeywords)
-    //        GwsEpics.instance[IO](service, tops).map(GwsKeywordsReaderEpics[IO])
-    //      else DummyGwsKeywordsReader[IO].pure[IO]
-    //
+    def gws: IO[GwsKeywordReader[IO]] =
+      if (settings.systemControl.gws.realKeywords)
+        GwsEpics.instance[IO](service, tops).map(GwsKeywordsReaderEpics[IO])
+      else GwsKeywordsReaderDummy[IO].pure[IO]
+
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
         clt                                       <- Resource.eval(JdkWSClient.simple[IO])
@@ -389,7 +390,7 @@ object Systems {
         (gmosSouthCtr, gmosNorthCtr, gmosKR)       = gms
         //        gpiController                              <- gpi[IO](httpClient)
         //        ghostController                            <- ghost[IO](httpClient)
-        //        gwsKR                                      <- Resource.eval(gws)
+        gwsKR                                     <- Resource.eval(gws)
       } yield Systems[IO](
         odbProxy,
         dhsClient,
@@ -416,8 +417,8 @@ object Systems {
         //        nifsKR,
         //        gsaoiKR,
         altairKR,
-        gemsKR
-        //        gwsKR
+        gemsKR,
+        gwsKR
       )
   }
 
@@ -457,7 +458,8 @@ object Systems {
           DummyGcalKeywordsReader[F],
           GmosKeywordReaderDummy[F],
           AltairKeywordReaderDummy[F],
-          GemsKeywordReaderDummy[F]
+          GemsKeywordReaderDummy[F],
+          GwsKeywordsReaderDummy[F]
         )
       )
 }
