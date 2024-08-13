@@ -525,7 +525,7 @@ object OdbProxy {
     override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get
   }
 
-  class DummyOdbProxy[F[_]: MonadThrow: Sync] extends OdbProxy[F] {
+  class DummyOdbProxy[F[_]: Sync] extends OdbProxy[F] {
     val evCmds = new DummyOdbCommands[F]
 
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
