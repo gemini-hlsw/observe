@@ -14,7 +14,7 @@ object Settings {
     val catsVersion       = "2.12.0"
     val kittens           = "3.4.0"
     val mouseVersion      = "1.3.2"
-    val fs2Version        = "3.10.2"
+    val fs2Version        = "3.11.0"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
     val catsParseVersion  = "1.0.0"
