@@ -18,7 +18,6 @@ import observe.engine.Action
 import observe.engine.EngineStep
 import observe.engine.Execution
 import observe.engine.Response
-import observe.engine.Response.Ignored
 import observe.engine.Response.Observed
 import observe.engine.Result
 import observe.engine.Sequence

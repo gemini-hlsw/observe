@@ -38,15 +38,10 @@ import monocle.syntax.all.focus
 import mouse.all.*
 import observe.engine
 import observe.engine.EventResult.*
-import observe.engine.Handle
 import observe.engine.Handle.given
 import observe.engine.Result.Partial
-import observe.engine.Sequence
-import observe.engine.SystemEvent
-import observe.engine.UserEvent
 import observe.engine.{EngineStep as _, *}
 import observe.model.*
-import observe.model.Notification.*
 import observe.model.ObservationProgress
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride

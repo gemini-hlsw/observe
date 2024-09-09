@@ -3,7 +3,6 @@
 
 package observe.ui
 
-import japgolly.scalajs.react.ReactCats.*
 import org.scalajs.dom
 import org.scalajs.dom.html
 

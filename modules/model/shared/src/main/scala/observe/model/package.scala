@@ -12,7 +12,6 @@ import io.circe.KeyEncoder
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.Site
-import lucuma.core.enums.Site.GS
 import lucuma.core.util.Enumerated
 import observe.model.enums.Resource
 

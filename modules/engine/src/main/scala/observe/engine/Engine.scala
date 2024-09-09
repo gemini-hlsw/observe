@@ -12,7 +12,6 @@ import fs2.Stream
 import lucuma.core.model.sequence.Step
 import monocle.Optional
 import mouse.boolean.*
-import observe.engine.SystemEvent.Null
 import observe.model.Observation
 import observe.model.SequenceState
 import org.typelevel.log4cats.Logger

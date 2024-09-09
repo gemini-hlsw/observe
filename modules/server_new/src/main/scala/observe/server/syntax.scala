@@ -13,6 +13,7 @@ import cats.data.*
 import cats.syntax.all.*
 import observe.engine
 import observe.engine.*
+import observe.engine.Handle.toHandleT
 import observe.engine.Result
 import observe.model.*
 import observe.model.Observation
@@ -29,7 +30,7 @@ extension [F[_], A, B](fa: EitherT[F, A, B])
   ): F[B] =
     fa.leftMap(at).rethrowT
 
-extension [F[_]](q:                 ExecutionQueue)
+extension [F[_]](q: ExecutionQueue)
   // This assumes that there is only one instance of e in l
   private def moveElement[T](l: List[T], e: T => Boolean, delta: Int)(using eq: Eq[T]): List[T] =
     (l.indexWhere(e), l.find(e)) match
@@ -64,7 +65,6 @@ extension [F[_]](q:                 ExecutionQueue)
     )
   def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
 
-import Handle.{toHandle => toHandleT}
 extension [F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
   def toHandle: HandlerType[F, A] =
     StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandleT[EventType[F]]

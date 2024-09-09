@@ -2,7 +2,6 @@ package observe.server.tcs
 
 import algebra.instances.all.given
 import cats.Eq
-import cats.syntax.all.*
 import coulomb.*
 import coulomb.policy.standard.given
 import coulomb.syntax.*
