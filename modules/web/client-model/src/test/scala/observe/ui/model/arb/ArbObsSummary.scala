@@ -40,7 +40,7 @@ trait ArbObsSummary:
       timingWindows      <- arbitrary[List[TimingWindow]]
       attachmentIds      <- arbitrary[List[ObsAttachment.Id]]
       observingMode      <- arbitrary[Option[ObservingMode]]
-      visualizationTime  <- arbitrary[Option[Instant]]
+      observationTime    <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
       obsReference       <- arbitrary[Option[ObservationReference]]
     yield ObsSummary(
@@ -52,7 +52,7 @@ trait ArbObsSummary:
       timingWindows,
       SortedSet.from(attachmentIds),
       observingMode,
-      visualizationTime,
+      observationTime,
       posAngleConstraint,
       obsReference
     )
@@ -81,7 +81,7 @@ trait ArbObsSummary:
          s.timingWindows,
          s.attachmentIds.toList,
          s.observingMode,
-         s.visualizationTime,
+         s.observationTime,
          s.posAngleConstraint,
          s.obsReference
         )

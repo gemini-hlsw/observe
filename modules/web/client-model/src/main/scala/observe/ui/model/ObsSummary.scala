@@ -38,7 +38,7 @@ case class ObsSummary(
   timingWindows:      List[TimingWindow],
   attachmentIds:      SortedSet[ObsAttachment.Id],
   observingMode:      Option[ObservingMode],
-  visualizationTime:  Option[Instant],
+  observationTime:    Option[Instant],
   posAngleConstraint: PosAngleConstraint,
   obsReference:       Option[ObservationReference]
 ) derives Eq:
@@ -62,7 +62,7 @@ object ObsSummary:
   val timingWindows      = Focus[ObsSummary](_.timingWindows)
   val attachmentIds      = Focus[ObsSummary](_.attachmentIds)
   val observingMode      = Focus[ObsSummary](_.observingMode)
-  val visualizationTime  = Focus[ObsSummary](_.visualizationTime)
+  val observationTime    = Focus[ObsSummary](_.observationTime)
   val posAngleConstraint = Focus[ObsSummary](_.posAngleConstraint)
   val obsReference       = Focus[ObsSummary](_.obsReference)
 
@@ -80,7 +80,7 @@ object ObsSummary:
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")
       attachmentIds      <- c.get[List[AttachmentIdWrapper]]("obsAttachments")
       observingMode      <- c.get[Option[ObservingMode]]("observingMode")
-      visualizationTime  <- c.get[Option[Timestamp]]("visualizationTime")
+      observationTime    <- c.get[Option[Timestamp]]("observationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")
       obsReference       <- c.downField("reference").get[Option[ObservationReference]]("label")
     yield ObsSummary(
@@ -92,7 +92,7 @@ object ObsSummary:
       timingWindows,
       SortedSet.from(attachmentIds.map(_.id)),
       observingMode,
-      visualizationTime.map(_.toInstant),
+      observationTime.map(_.toInstant),
       posAngleConstraint,
       obsReference
     )
