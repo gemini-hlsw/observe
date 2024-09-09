@@ -13,7 +13,7 @@ object Settings {
     val catsEffectVersion = "3.5.4"
     val catsVersion       = "2.12.0"
     val kittens           = "3.4.0"
-    val mouseVersion      = "1.3.1"
+    val mouseVersion      = "1.3.2"
     val fs2Version        = "3.10.2"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
@@ -28,18 +28,18 @@ object Settings {
     val commonsHttp      = "3.1"
     val unboundId        = "3.2.1"
     val jwt              = "10.0.1"
-    val slf4j            = "2.0.13"
+    val slf4j            = "2.0.16"
     val log4cats         = "2.7.0"
     val log4catsLogLevel = "0.3.1"
-    val logback          = "1.5.6"
+    val logback          = "1.5.7"
     val janino           = "3.1.12"
     val pureConfig       = "0.17.7"
-    val monocleVersion   = "3.2.0"
+    val monocleVersion   = "3.3.0"
     val circeVersion     = "0.14.9"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.0"
+    val munitVersion           = "1.0.1"
     val munitDisciplineVersion = "2.0.0"
     val munitCatsEffectVersion = "2.0.0"
 
@@ -49,11 +49,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.101.2"
+    val lucumaCore      = "0.103.0"
     val lucumaUI        = "0.114.0"
     val lucumaSchemas   = "0.93.1"
     val lucumaSSO       = "0.6.20"
-    val lucumaODBSchema = "0.11.10"
+    val lucumaODBSchema = "0.11.14"
 
     // Clue
     val clue = "0.40.0"
@@ -61,7 +61,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.42.0"
     val javaTimeJS   = "2.6.0"
-    val lucumaReact  = "0.69.1"
+    val lucumaReact  = "0.70.0"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta6"
   }
