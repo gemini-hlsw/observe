@@ -16,7 +16,6 @@ import lucuma.react.common.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.ui.sequence.*
-import lucuma.ui.sequence.SequenceColumns.*
 import lucuma.ui.table.*
 import lucuma.ui.table.ColumnSize.*
 import lucuma.ui.table.hooks.*

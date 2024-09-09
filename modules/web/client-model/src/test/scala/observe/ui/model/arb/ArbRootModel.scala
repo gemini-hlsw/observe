@@ -10,7 +10,6 @@ import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.arb.ArbGid.arbGid
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
 import lucuma.ui.sso.UserVault

@@ -21,7 +21,6 @@ import observe.server.EpicsUtil.safeAttributeSIntF
 import observe.server.ObserveCommandBase
 
 import java.lang.Double as JDouble
-import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit.SECONDS
 import scala.concurrent.duration.FiniteDuration

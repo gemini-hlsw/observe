@@ -9,7 +9,6 @@ import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
-import observe.engine.SystemEvent.Null
 import observe.model.ClientId
 import observe.model.Observation
 

@@ -4,7 +4,6 @@
 package observe.ui.components.services
 
 import cats.Endo
-import cats.Eq
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.*

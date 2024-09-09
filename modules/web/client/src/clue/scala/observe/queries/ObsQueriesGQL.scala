@@ -29,7 +29,6 @@ object ObsQueriesGQL {
     val document = """
       subscription {
         observationEdit {
-          id
         }
       }
     """

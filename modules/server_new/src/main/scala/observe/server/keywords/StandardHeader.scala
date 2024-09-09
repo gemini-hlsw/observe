@@ -10,7 +10,6 @@ import cats.syntax.all.*
 import lucuma.core.enums.StepGuideState
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Conditions
-import observe.model.Observation
 import observe.model.Observation.Id
 import observe.model.Observer
 import observe.model.Operator

@@ -25,7 +25,7 @@ object Handle {
       Applicative[StateT[F, D, *]].pure[(Unit, Option[Stream[F, V]])](((), Some(p)))
     )
 
-  def liftF[F[_]: Monad, D, V, A](f: F[A]): Handle[F, D, V, A] = StateT.liftF[F, D, A](f).toHandle
+  def liftF[F[_]: Monad, D, V, A](f: F[A]): Handle[F, D, V, A] = StateT.liftF[F, D, A](f).toHandleT
 
   def pure[F[_]: Monad, D, V, A](a: A): Handle[F, D, V, A] = Handle[F, D, V, A](
     Applicative[StateT[F, D, *]].pure((a, None))
@@ -102,18 +102,18 @@ object Handle {
   }
 
   extension [F[_]: Functor, D, A](self: StateT[F, D, A])
-    def toHandle[V]: Handle[F, D, V, A] = Handle[F, D, V, A](self.map((_, None)))
+    def toHandleT[V]: Handle[F, D, V, A] = Handle[F, D, V, A](self.map((_, None)))
 
   def unit[F[_]: Monad, D, V]: Handle[F, D, V, Unit] =
     Applicative[Handle[F, D, V, *]].unit
 
   def get[F[_]: Applicative, D, V]: Handle[F, D, V, D] =
-    StateT.get[F, D].toHandle
+    StateT.get[F, D].toHandleT
 
   def inspect[F[_]: Applicative, D, V, A](f: D => A): Handle[F, D, V, A] =
-    StateT.inspect[F, D, A](f).toHandle
+    StateT.inspect[F, D, A](f).toHandleT
 
   def modify[F[_]: Applicative, D, V](f: D => D): Handle[F, D, V, Unit] =
-    StateT.modify[F, D](f).toHandle
+    StateT.modify[F, D](f).toHandleT
 
 }

@@ -3,7 +3,6 @@
 
 package observe.ui.model
 
-import cats.syntax.all.*
 import crystal.Pot
 import crystal.Pot.Pending
 import crystal.Pot.Ready
