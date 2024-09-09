@@ -19,7 +19,7 @@ object ObservationSummarySubquery
           title
           subtitle
           instrument
-          visualizationTime
+          observationTime
           posAngleConstraint $PosAngleConstraintSubquery
           constraintSet $ConstraintSetSubquery
           timingWindows $TimingWindowSubquery
