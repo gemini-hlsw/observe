@@ -285,6 +285,7 @@ object ObsQueriesGQL:
     val document = """
       subscription {
         observationEdit(programId:"p-2") {
+          value
         }
       }
     """
@@ -294,6 +295,7 @@ object ObsQueriesGQL:
     val document = """
       subscription($obsId: ObservationId!) {
         observationEdit(observationId: $obsId) {
+          value
         }
       }
     """
