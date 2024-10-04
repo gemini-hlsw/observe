@@ -25,9 +25,9 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
 ) extends ODBQueryApi[IO]:
 
   private def lastVisitId(lo: LoadedObservation): Option[Visit.Id] =
-    lo.visits.toOption.flatMap:
-      case ExecutionVisits.GmosNorth(_, visits) => visits.lastOption.map(_.id)
-      case ExecutionVisits.GmosSouth(_, visits) => visits.lastOption.map(_.id)
+    lo.visits.toOption.flatten.map:
+      case ExecutionVisits.GmosNorth(visits) => visits.last.id
+      case ExecutionVisits.GmosSouth(visits) => visits.last.id
 
   override def refreshNighttimeVisits: IO[Unit] =
     nighttimeObservation.toOptionView.fold(
@@ -35,7 +35,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
     ): loadedObs =>
       VisitQueriesGQL
         .ObservationVisits[IO]
-        .query(loadedObs.get.obsId, lastVisitId(loadedObs.get).orIgnore)(ErrorPolicy.IgnoreOnData)
+        .query(loadedObs.get.obsId, lastVisitId(loadedObs.get).orIgnore)
         .map(_.observation.flatMap(_.execution))
         .attempt
         .flatMap: visits =>
