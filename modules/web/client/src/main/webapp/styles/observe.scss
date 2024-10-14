@@ -5,6 +5,14 @@ html {
   overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
+body {
+  background-color: var(--color-background);
+}
+
+.main-header {
+  color: var(--color-text-alt);
+}
+
 .OnlySmallScreens {
   @media screen and (min-width: lucumaUICommon.$tablet-responsive-cutoff) {
     display: none;
@@ -1033,7 +1041,7 @@ html {
 
     .ObserveStyles-qaEditorPanelButtons {
       align-self: end;
-      
+
       button {
         align-items: center;
       }
