@@ -60,7 +60,6 @@ trait ArbNodAndShuffleStep {
         t  <- arbitrary[StepConfig]
         s  <- arbitrary[StepState]
         b  <- arbitrary[Breakpoint]
-        k  <- arbitrary[Boolean]
         f  <- arbitrary[Option[dhs.ImageFileId]]
         cs <- arbitrary[List[(Resource, ActionStatus)]]
         os <- arbitrary[NodAndShuffleStatus]
@@ -71,7 +70,6 @@ trait ArbNodAndShuffleStep {
         stepConfig = t,
         status = s,
         breakpoint = b,
-        skip = k,
         fileId = f,
         configStatus = cs,
         nsStatus = os,
@@ -87,7 +85,6 @@ trait ArbNodAndShuffleStep {
         StepConfig,
         StepState,
         Breakpoint,
-        Boolean,
         Option[dhs.ImageFileId],
         List[(Resource | Instrument, ActionStatus)],
         NodAndShuffleStatus
@@ -98,7 +95,6 @@ trait ArbNodAndShuffleStep {
        s.stepConfig,
        s.status,
        s.breakpoint,
-       s.skip,
        s.fileId,
        s.configStatus,
        s.nsStatus

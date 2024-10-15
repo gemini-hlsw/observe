@@ -30,7 +30,6 @@ trait ArbStandardStep {
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
       b  <- arbitrary[Breakpoint]
-      k  <- arbitrary[Boolean]
       f  <- arbitrary[Option[dhs.ImageFileId]]
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
@@ -40,7 +39,6 @@ trait ArbStandardStep {
       stepConfig = t,
       status = s,
       breakpoint = b,
-      skip = k,
       fileId = f,
       configStatus = cs,
       observeStatus = os
@@ -55,7 +53,6 @@ trait ArbStandardStep {
         StepConfig,
         StepState,
         Breakpoint,
-        Boolean,
         Option[dhs.ImageFileId],
         List[(Resource | Instrument, ActionStatus)],
         ActionStatus
@@ -66,7 +63,6 @@ trait ArbStandardStep {
        s.stepConfig,
        s.status,
        s.breakpoint,
-       s.skip,
        s.fileId,
        s.configStatus,
        s.observeStatus

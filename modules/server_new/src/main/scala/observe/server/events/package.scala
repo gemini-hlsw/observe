@@ -46,7 +46,6 @@ extension [F[_], S, U](e: UserEvent[F, S, U])
       case UserEvent.Pause(_, _)             => true
       case UserEvent.CancelPause(id, _)      => true
       case UserEvent.Breakpoints(_, _, _, _) => true
-      case UserEvent.SkipMark(_, _, _, _)    => true
       case UserEvent.Poll(_)                 => true
       case UserEvent.ActionStop(_, _)        => true
       case UserEvent.ActionResume(_, _, _)   => true

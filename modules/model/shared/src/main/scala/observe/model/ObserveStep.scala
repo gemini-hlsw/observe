@@ -30,7 +30,6 @@ enum ObserveStep(
   val stepConfig:   StepConfig,
   val status:       StepState,
   val breakpoint:   Breakpoint,
-  val skip:         Boolean,
   val fileId:       Option[ImageFileId],
   val configStatus: List[(Resource | Instrument, ActionStatus)]
 ) derives Eq,
@@ -42,11 +41,10 @@ enum ObserveStep(
     override val stepConfig:   StepConfig,
     override val status:       StepState,
     override val breakpoint:   Breakpoint,
-    override val skip:         Boolean,
     override val fileId:       Option[ImageFileId],
     override val configStatus: List[(Resource | Instrument, ActionStatus)],
     val observeStatus:         ActionStatus
-  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, skip, fileId, configStatus)
+  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, fileId, configStatus)
 
   case NodAndShuffle(
     override val id:           Step.Id,
@@ -54,24 +52,22 @@ enum ObserveStep(
     override val stepConfig:   StepConfig,
     override val status:       StepState,
     override val breakpoint:   Breakpoint,
-    override val skip:         Boolean,
     override val fileId:       Option[ImageFileId],
     override val configStatus: List[(Resource | Instrument, ActionStatus)],
     val nsStatus:              NodAndShuffleStatus,
     val pendingObserveCmd:     Option[PendingObserveCmd]
-  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, skip, fileId, configStatus)
+  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, fileId, configStatus)
 
 object ObserveStep:
   // Derivation doesn't generate instances for subtypes.
   given Eq[Standard]      = Eq.by: x =>
-    (x.id, x.instConfig, x.stepConfig, x.status, x.breakpoint, x.skip, x.fileId, x.configStatus)
+    (x.id, x.instConfig, x.stepConfig, x.status, x.breakpoint, x.fileId, x.configStatus)
   given Eq[NodAndShuffle] = Eq.by: x =>
     (x.id,
      x.instConfig,
      x.stepConfig,
      x.status,
      x.breakpoint,
-     x.skip,
      x.fileId,
      x.configStatus,
      x.nsStatus,
@@ -133,16 +129,6 @@ object ObserveStep:
       }
     }
 
-  def skip: Lens[ObserveStep, Boolean] =
-    Lens[ObserveStep, Boolean] {
-      _.skip
-    } { n =>
-      {
-        case s: Standard      => s.focus(_.skip).replace(n)
-        case s: NodAndShuffle => s.focus(_.skip).replace(n)
-      }
-    }
-
   def breakpoint: Lens[ObserveStep, Breakpoint] =
     Lens[ObserveStep, Breakpoint] {
       _.breakpoint
@@ -181,11 +167,6 @@ object ObserveStep:
         case st: Standard      => Focus[Standard](_.breakpoint).flip(st)
         case st: NodAndShuffle => Focus[NodAndShuffle](_.breakpoint).flip(st)
 
-    def flipSkip: ObserveStep =
-      s match
-        case st: Standard      => Focus[Standard](_.skip).negate(st)
-        case st: NodAndShuffle => Focus[NodAndShuffle](_.skip).negate(st)
-
     def file: Option[String] = None
 
     def canSetBreakpoint(steps: List[ObserveStep]): Boolean =
@@ -216,8 +197,6 @@ object ObserveStep:
         case x: NodAndShuffle => x.configStatus.count(_._2 === ActionStatus.Running) > 0
 
     def isFinished: Boolean = s.status.isFinished
-
-    def wasSkipped: Boolean = s.status.wasSkipped
 
     def canConfigure: Boolean = s.status.canConfigure
 

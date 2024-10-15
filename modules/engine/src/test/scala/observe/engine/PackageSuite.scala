@@ -10,7 +10,6 @@ import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.OrcidId
 import lucuma.core.model.OrcidProfile
@@ -21,13 +20,11 @@ import lucuma.core.model.sequence.Atom
 import lucuma.refined.*
 import observe.common.test.observationId
 import observe.common.test.stepId
-import observe.engine.Sequence.State.Final
 import observe.engine.TestUtil.TestState
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.SequenceState
-import observe.model.StepState
 import observe.model.enums.Resource
 import observe.model.enums.Resource.TCS
 import org.typelevel.log4cats.Logger
@@ -51,7 +48,7 @@ def user =
     )
   )
 
-class packageSpec extends munit.CatsEffectSuite {
+class PackageSuite extends munit.CatsEffectSuite {
 
   private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
@@ -336,308 +333,6 @@ class packageSpec extends munit.CatsEffectSuite {
     }.assert
   }
 
-  test("engine should skip steps marked to be skipped at the beginning of the sequence.") {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(6)),
-             atomId = atomId,
-             steps = List(
-               EngineStep
-                 .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep.init(id = stepId(2), executions = executions),
-               EngineStep.init(id = stepId(3), executions = executions)
-             )
-           )
-         )
-        )
-      )
-    )
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(
-                  _.done.map(_.status) === List(StepState.Skipped,
-                                                StepState.Completed,
-                                                StepState.Completed
-                  )
-                )
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test("engine should skip steps marked to be skipped in the middle of the sequence.") {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(7)),
-             atomId = atomId,
-             steps = List(
-               EngineStep.init(id = stepId(1), executions = executions),
-               EngineStep
-                 .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep.init(id = stepId(3), executions = executions)
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(
-                  _.done.map(_.status) === List(StepState.Completed,
-                                                StepState.Skipped,
-                                                StepState.Completed
-                  )
-                )
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test("engine should skip several steps marked to be skipped.") {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(8)),
-             atomId = atomId,
-             steps = List(
-               EngineStep.init(id = stepId(1), executions = executions),
-               EngineStep
-                 .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep
-                 .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep
-                 .init(id = stepId(4), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep.init(id = stepId(5), executions = executions)
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(
-                  _.done.map(_.status) === List(StepState.Completed,
-                                                StepState.Skipped,
-                                                StepState.Skipped,
-                                                StepState.Skipped,
-                                                StepState.Completed
-                  )
-                )
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test("engine should skip steps marked to be skipped at the end of the sequence.") {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep.init(id = stepId(1), executions = executions),
-               EngineStep.init(id = stepId(2), executions = executions),
-               EngineStep
-                 .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true))
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(
-                  _.done.map(_.status) === List(StepState.Completed,
-                                                StepState.Completed,
-                                                StepState.Skipped
-                  )
-                )
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test("engine should skip a step marked to be skipped even if it is the only one.") {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep
-                 .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true))
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(_.done.map(_.status) === List(StepState.Skipped))
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test(
-    "engine should skip steps marked to be skipped at the beginning of the sequence, even if they have breakpoints."
-  ) {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep
-                 .init(id = stepId(1), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep
-                 .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               EngineStep.init(id = stepId(3), executions = executions)
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <- OptionT.fromOption(
-              sf.sequences
-                .get(seqId)
-                .map(
-                  _.done.map(_.status) === List(StepState.Skipped,
-                                                StepState.Skipped,
-                                                StepState.Completed
-                  )
-                )
-            )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test(
-    "engine should skip the leading steps if marked to be skipped, even if they have breakpoints and are the last ones."
-  ) {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep
-                 .init(id = stepId(1), executions = executions)
-                 .copy(skipped = EngineStep.Skipped(true)),
-               EngineStep
-                 .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               EngineStep
-                 .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled)
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <-
-        OptionT.fromOption(
-          sf.sequences
-            .get(seqId)
-            .collect { case s @ Final(_, SequenceState.Completed) =>
-              s
-            }
-            .map(
-              _.done.map(_.status) === List(StepState.Skipped, StepState.Skipped, StepState.Skipped)
-            )
-        )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
-  test(
-    "engine should skip steps marked to be skipped in the middle of the sequence, but honoring breakpoints."
-  ) {
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep.init(id = stepId(1), executions = executions),
-               EngineStep
-                 .init(id = stepId(2), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true)),
-               EngineStep
-                 .init(id = stepId(3), executions = executions)
-                 .copy(skipMark = EngineStep.SkipMark(true), breakpoint = Breakpoint.Enabled),
-               EngineStep.init(id = stepId(4), executions = executions)
-             )
-           )
-         )
-        )
-      )
-    )
-
-    (for {
-      sf <- OptionT(runToCompletion(s0))
-      r  <-
-        OptionT.fromOption(
-          sf.sequences
-            .get(seqId)
-            .map(
-              _.done.map(_.status) === List(StepState.Completed, StepState.Skipped)
-            )
-        )
-    } yield r).value.map(_.getOrElse(fail("Cannot read the sequence"))).assert
-  }
-
   test("engine should run single Action") {
     val dummy         = new AtomicInteger(0)
     val markVal       = 1
@@ -738,33 +433,5 @@ class packageSpec extends munit.CatsEffectSuite {
         )
       )
     )
-
-  test("engine should be able to start sequence from arbitrary step") {
-    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
-      eng
-        .startFrom(seqId, stepId(3))
-        .void
-    )
-
-    val sf =
-      for {
-        eng <- executionEngine
-        _   <- eng.offer(event(eng))
-        r   <- eng
-                 .process(PartialFunction.empty)(qs2)
-                 .drop(1)
-                 .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
-                 .compile
-                 .last
-      } yield r.map(_._2)
-
-    sf.map(_.flatMap(_.sequences.get(seqId).map(_.toSequence).map { seq =>
-      Some(StepState.Completed) == seq.steps.get(0).map(_.status) &&
-      Some(StepState.Skipped) == seq.steps.get(1).map(_.status) &&
-      Some(StepState.Completed) == seq.steps.get(2).map(_.status) &&
-      Some(StepState.Completed) == seq.steps.get(3).map(_.status)
-    }).getOrElse(fail("Cannot read the sequence")))
-      .assert
-  }
 
 }
