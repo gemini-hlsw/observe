@@ -42,14 +42,6 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
     runOverride: RunOverride
   ): F[Unit] = Applicative[F].unit
 
-  override def startFrom(
-    id:          Id,
-    observer:    Observer,
-    stp:         Step.Id,
-    clientId:    ClientId,
-    runOverride: RunOverride
-  ): F[Unit] = Applicative[F].unit
-
   override def requestPause(
     id:       Id,
     observer: Observer,
@@ -134,14 +126,6 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
 
   override def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
-
-  override def setSkipMark(
-    seqId:    Id,
-    user:     User,
-    observer: Observer,
-    stepId:   Step.Id,
-    v:        Boolean
-  ): F[Unit] = Applicative[F].unit
 
   override def requestRefresh(clientId: ClientId): F[Unit] = Applicative[F].unit
 

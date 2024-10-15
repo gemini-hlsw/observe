@@ -90,8 +90,6 @@ object SequenceGen {
       stepGen match {
         case p: PendingStepGen[F]                =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
-        case SkippedStepGen(id, _, _, _, _)      =>
-          EngineStep.skippedL[F].replace(true)(EngineStep.init[F](id, Nil))
         case CompletedStepGen(id, _, _, _, _, _) => EngineStep.init[F](id, Nil)
       }
   }
@@ -146,14 +144,6 @@ object SequenceGen {
     instConfig: DynamicConfig,
     config:     StepConfig,
     breakpoint: Breakpoint
-  ) extends StepGen[F]
-
-  case class SkippedStepGen[F[_]](
-    id:         Step.Id,
-    dataId:     DataId,
-    genData:    StepStatusGen = StepStatusGen.Null,
-    instConfig: DynamicConfig,
-    config:     StepConfig
   ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be

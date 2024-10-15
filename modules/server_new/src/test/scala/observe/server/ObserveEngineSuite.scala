@@ -44,7 +44,6 @@ import observe.model.Observer
 import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceState.Running
-import observe.model.StepState
 import observe.model.SystemOverrides
 import observe.model.UserPrompt
 import observe.model.dhs.DataId
@@ -359,79 +358,6 @@ class ObserveEngineSuite extends TestCommon {
       .exists(_.started)).assert
   }
 
-  test("ObserveEngine startFrom should start a sequence from an arbitrary step") {
-    val s0        = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        sequenceNSteps(seqObsId1, 5),
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-    val runStepId = stepId(3)
-
-    (for {
-      db <- TestOdbProxy.build[IO](staticCfg1.some, none, List.empty)
-      oe <- observeEngineWithODB(db)
-      _  <- oe.startFrom(
-              seqObsId1,
-              Observer("Joe".refined),
-              runStepId,
-              clientId,
-              RunOverride.Default
-            )
-      sf <- oe
-              .stream(s0)
-              .map(_._2)
-              .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
-              .compile
-              .last
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .map(_.toSequence.steps)).map { s =>
-      assert(s.flatMap(_.get(0)).exists(_.status === StepState.Skipped))
-      assert(s.flatMap(_.get(1)).exists(_.status === StepState.Skipped))
-      assert(s.flatMap(_.get(2)).exists(_.status === StepState.Completed))
-    }
-  }
-
-  test("ObserveEngine startFrom should not start the sequence if there is a resource conflict") {
-    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
-      None,
-      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosNorth)
-    ) >>>
-      ODBSequencesLoader.loadSequenceEndo[IO](
-        None,
-        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosSouth)
-      ) >>>
-      EngineState
-        .sequenceStateIndex[IO](seqObsId1)
-        .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
-
-    val runStepId = stepId(2)
-
-    (for {
-      oe <- observeEngine
-      _  <- oe.startFrom(
-              seqObsId2,
-              Observer("Joe".refined),
-              runStepId,
-              clientId,
-              RunOverride.Default
-            )
-      sf <- oe
-              .stream(s0)
-              .map(_._2)
-              .takeThrough(_.sequences.get(seqObsId2).exists(_.seq.status.isRunning))
-              .compile
-              .last
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
-      .exists(_.status.isIdle)).assert
-  }
-
   private def testTargetSequence(targetName: NonEmptyString): SequenceGen[IO] = {
     val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
@@ -625,96 +551,6 @@ class ObserveEngineSuite extends TestCommon {
       .exists(_.status.isRunning)).assert
   }
 
-  test("ObserveEngine start should startFrom the sequence if it passes the target check") {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Default
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isRunning)).assert
-  }
-
-  test(
-    "ObserveEngine start should not startFrom the sequence if it doesn't pass the target check"
-  ) {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof1")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Default
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isIdle)).assert
-  }
-
-  test(
-    "ObserveEngine start should startFrom the sequence if it doesn't pass the target check but forced"
-  ) {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof1")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Override
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isRunning)).assert
-  }
   // test(
 //   it should "not check target for calibrations" in {
 //     val systems = systemsWithTargetName("other")
