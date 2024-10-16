@@ -74,6 +74,11 @@ lazy val dockerHubLogin =
     name = Some("Login to Docker Hub")
   )
 
+lazy val setupSbt = WorkflowStep.Use(
+  UseRef.Public("sbt", "setup-sbt", "v1"),
+  name = Some("Setup SBT")
+)
+
 lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
     List("deploy/docker:publish"),
@@ -96,6 +101,7 @@ ThisBuild / githubWorkflowAddedJobs +=
     "deploy",
     "Build and publish Docker image / Deploy to Heroku",
     WorkflowStep.Checkout ::
+      setupSbt ::
       WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
       setupNodeNpmInstall :::
       dockerHubLogin ::
