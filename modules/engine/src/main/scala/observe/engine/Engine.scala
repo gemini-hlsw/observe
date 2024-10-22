@@ -51,37 +51,12 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         {
           putS(id)(
             Sequence.State.status.replace(SequenceState.Running.Init)(
-              seq.skips.getOrElse(seq).rollback
+              seq.rollback
             )
           ) *>
             send(Event.executing(id))
         }.whenA(seq.status.isIdle || seq.status.isError)
       case None      => unit
-    }
-
-  /**
-   * startFrom starts a sequence from an arbitrary step. It does it by marking all previous steps to
-   * be skipped and then modifying the state sequence as if it was run. If the requested step is
-   * already run or marked to be skipped, the sequence will start from the next runnable step
-   */
-  def startFrom(id: Observation.Id, step: Step.Id): HandleType[Unit] =
-    getS(id).flatMap {
-      case Some(seq)
-          if (seq.status.isIdle || seq.status.isError) && seq.toSequence.steps.exists(
-            _.id === step
-          ) =>
-        val steps     = seq.toSequence.steps
-          .takeWhile(_.id =!= step)
-          .mapFilter(p => (!p.status.isFinished).option(p.id))
-        val withSkips = steps.foldLeft[Sequence.State[F]](seq) { case (s, i) =>
-          s.setSkipMark(i, v = true)
-        }
-        putS(id)(
-          Sequence.State.status.replace(SequenceState.Running.Init)(
-            withSkips.skips.getOrElse(withSkips).rollback
-          )
-        ) *> send(Event.executing(id))
-      case _ => unit
     }
 
   def pause(id: Observation.Id): HandleType[Unit] =
@@ -405,9 +380,6 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     case Breakpoints(id, _, step, v) =>
       debug(s"Engine: breakpoints changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setBreakpoints(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case SkipMark(id, _, step, v)    =>
-      debug(s"Engine: skip mark changed for sequence $id and step $step to $v") *>
-        modifyS(id)(_.setSkipMark(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case Poll(_)                     =>
       debug("Engine: Polling current state") *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case GetState(f)                 => getState(f) *> pure(UserCommandResponse(ue, Outcome.Ok, None))

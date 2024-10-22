@@ -36,8 +36,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Install sbt
-        if: contains(runner.os, 'macos')
-        run: brew install sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Checkout current branch (full)
         uses: actions/checkout@v4
@@ -114,6 +113,9 @@ jobs:
     steps:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v4
+
+      - name: Setup SBT
+        uses: sbt/setup-sbt@v1
 
       - name: Setup Java (temurin@17)
         id: setup-java-temurin-17

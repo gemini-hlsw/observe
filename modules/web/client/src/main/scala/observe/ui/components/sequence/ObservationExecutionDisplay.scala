@@ -43,7 +43,7 @@ object ObservationExecutionDisplay:
         props.rootModelData
           .zoom(RootModelData.executionState.index(selectedObsId))
 
-      val visitsViewPot: Pot[View[ExecutionVisits]] =
+      val visitsViewPot: Pot[View[Option[ExecutionVisits]]] =
         props.rootModelData
           .zoom(RootModelData.nighttimeObservation)
           .toOptionView
@@ -53,7 +53,11 @@ object ObservationExecutionDisplay:
 
       val executionStateAndConfig: Option[
         Pot[
-          (Observation.Id, InstrumentExecutionConfig, View[ExecutionVisits], View[ExecutionState])
+          (Observation.Id,
+           InstrumentExecutionConfig,
+           View[Option[ExecutionVisits]],
+           View[ExecutionState]
+          )
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>

@@ -80,14 +80,6 @@ trait ObserveEngine[F[_]] {
     runOverride: RunOverride
   ): F[Unit]
 
-  def startFrom(
-    id:          Observation.Id,
-    observer:    Observer,
-    stp:         Step.Id,
-    clientId:    ClientId,
-    runOverride: RunOverride
-  ): F[Unit]
-
   def loadNextAtom(
     id:       Observation.Id,
     user:     User,
@@ -173,14 +165,6 @@ trait ObserveEngine[F[_]] {
   def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit]
 
   def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit]
-
-  def setSkipMark(
-    seqId:    Observation.Id,
-    user:     User,
-    observer: Observer,
-    stepId:   Step.Id,
-    v:        Boolean
-  ): F[Unit]
 
   def requestRefresh(clientId: ClientId): F[Unit]
 
@@ -562,22 +546,6 @@ object ObserveEngine {
       )
     )
 
-    // Stars a sequence from an arbitrary step. All previous non executed steps are skipped.
-    // The method checks for resources conflict.
-    override def startFrom(
-      id:          Observation.Id,
-      observer:    Observer,
-      stp:         Step.Id,
-      clientId:    ClientId,
-      runOverride: RunOverride
-    ): F[Unit] = executeEngine.offer(
-      Event.modifyState[F, EngineState[F], SeqEvent](
-        setObserver(id, observer) *>
-          clearObsCmd(id) *>
-          startChecks(executeEngine.startFrom(id, stp), id, clientId, stp.some, runOverride)
-      )
-    )
-
     override def loadNextAtom(
       id:       Observation.Id,
       user:     User,
@@ -877,17 +845,7 @@ object ObserveEngine {
         )
       )
 
-    override def setSkipMark(
-      seqId:    Observation.Id,
-      user:     User,
-      observer: Observer,
-      stepId:   Step.Id,
-      v:        Boolean
-    ): F[Unit] = Applicative[F].unit
-//      setObserver(seqId, user, observer) *>
-//        executeEngine.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
-//
-    override def requestRefresh(clientId: ClientId): F[Unit]                                  =
+    override def requestRefresh(clientId: ClientId): F[Unit] =
       executeEngine.offer(Event.poll(clientId))
 
     @unused
@@ -1788,8 +1746,8 @@ object ObserveEngine {
 
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map {
-      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
-      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
+      case ObserveStep.Standard(id, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, configStatus, _, _) =>
         id -> configStatus.toMap
     }.toMap
 

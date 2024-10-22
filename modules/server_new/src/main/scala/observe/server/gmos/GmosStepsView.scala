@@ -55,7 +55,6 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           stepConfig = stepg.config,
           status = status,
           breakpoint = step.breakpoint,
-          skip = step.skipMark.value,
           configStatus = configStatus,
           nsStatus = NodAndShuffleStatus(
             observeStatus(step.executions),
