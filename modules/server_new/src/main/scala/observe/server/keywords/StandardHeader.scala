@@ -73,7 +73,7 @@ class StandardHeader[F[_]: Sync: Logger](
       buildString(obsObject, KeywordName.OBJECT),
       buildString(obsReader.obsType, KeywordName.OBSTYPE),
       buildString(obsReader.obsClass, KeywordName.OBSCLASS),
-      buildString(dataset.map(_.observation.program.label.label).getOrElse("").pure[F],
+      buildString(dataset.map(_.observation.label.programReference.label).getOrElse("").pure[F],
                   KeywordName.GEMPRGID
       ),
       buildString(dataset.map(_.observation.label.label).getOrElse("").pure[F], KeywordName.OBSID),

@@ -848,28 +848,6 @@ object ObserveEngine {
     override def requestRefresh(clientId: ClientId): F[Unit] =
       executeEngine.offer(Event.poll(clientId))
 
-    @unused
-    private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] =
-      Stream.empty
-//    {
-//      val fd = Duration(settings.odbQueuePollingInterval.toSeconds, TimeUnit.SECONDS)
-//      Stream
-//        .fixedDelay[F](fd)
-//        .evalMap(_ => systems.odb.queuedSequences)
-//        .flatMap { x =>
-//          Stream.emit(
-//            Event
-//              .getState[F, EngineState[F], SeqEvent] { st =>
-//                Stream.eval(odbLoader.refreshSequenceList(x, st)).flatMap(Stream.emits).some
-//              }
-//              .asRight
-//          )
-//        }
-//        .handleErrorWith { e =>
-//          Stream.emit(ObserveFailure.ObserveException(e).asLeft)
-//        }
-//    }
-
     private val heartbeatPeriod: FiniteDuration = FiniteDuration(10, TimeUnit.SECONDS)
 
     private def heartbeatStream: Stream[F, EventType[F]] = {
@@ -1333,9 +1311,9 @@ object ObserveEngine {
         }
       }
 
-//    /**
-//     * Triggers the application of a specific step configuration to a system
-//     */
+    /**
+     * Triggers the application of a specific step configuration to a system /
+     */
     override def configSystem(
       sid:      Observation.Id,
       observer: Observer,
