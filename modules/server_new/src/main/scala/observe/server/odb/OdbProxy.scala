@@ -468,7 +468,7 @@ object OdbProxy {
       println(s"RECORDING ATOM: $visitId, $instrument, $sequenceType, $stepCount, $generatedId")
       RecordAtomMutation[F]
         .execute:
-          RecordAtomInput(visitId, instrument, sequenceType, stepCount, generatedId.orIgnore)
+          RecordAtomInput(visitId, instrument, sequenceType, stepCount.assign, generatedId.orIgnore)
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
