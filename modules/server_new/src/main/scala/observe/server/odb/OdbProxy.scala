@@ -291,7 +291,7 @@ object OdbProxy {
     override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
       for {
         stepId <- getCurrentStepId(obsId)
-        _      <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
+        _      <- L.debug(s"Send ODB event stepStartObserve for obsId: $obsId, step $stepId")
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.StartObserve)
         _      <- L.debug("ODB event stepStartObserve sent")
       } yield true

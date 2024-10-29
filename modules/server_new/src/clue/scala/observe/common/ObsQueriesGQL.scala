@@ -363,10 +363,7 @@ object ObsQueriesGQL:
               label
               observation {
                 label
-                program {
-                  label
-                }
-              }
+             }
             }
           }
         }

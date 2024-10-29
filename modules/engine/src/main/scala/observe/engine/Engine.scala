@@ -156,7 +156,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop, internalStop, true)
+                    SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
                 case Some(qs)                          =>
