@@ -139,7 +139,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop, internalStop, true)
+                    SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
                 case Some(qs)                          =>
@@ -165,7 +165,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                        .exists(_.uninterruptible)
                                    ) {
                                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else send(executing(id)))
+                                   } else
+                                     send(modifyState(atomLoad(this, id))) *> send(executing(id)))
               }
             }
           case _                                                => unit
@@ -470,7 +471,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   // input, stream of events
   // initalState: state
   // f takes an event and the current state, it produces a new state, a new value B and more actions
-  def mapEvalState(
+  private def mapEvalState(
     initialState: S,
     f:            (EventType, S) => F[(S, (ResultType, S), Option[Stream[F, EventType]])]
   )(using ev: Concurrent[F]): Stream[F, (ResultType, S)] =
