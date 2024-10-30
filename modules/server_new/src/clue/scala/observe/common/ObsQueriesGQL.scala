@@ -140,13 +140,14 @@ object ObsQueriesGQL:
           diffuser
           shutter
         }
-        ... on Science {
-          offset { ...offsetFields }
-          guiding
-        }
         ... on SmartGcal {
           smartGcalType
         }
+      }
+
+      fragment telescopeConfigFields on TelescopeConfig {
+        offset { ...offsetFields }
+        guiding
       }
 
       fragment stepEstimateFields on StepEstimate {
@@ -202,6 +203,9 @@ object ObsQueriesGQL:
           stepConfig {
             ...stepConfigFields
           }
+          telescopeConfig {
+            ...telescopeConfigFields
+          }
           estimate {
             ...stepEstimateFields
           }
@@ -248,6 +252,9 @@ object ObsQueriesGQL:
           }
           stepConfig {
             ...stepConfigFields
+          }
+          telescopeConfig {
+            ...telescopeConfigFields
           }
           estimate {
             ...stepEstimateFields

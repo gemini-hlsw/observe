@@ -13,7 +13,6 @@ import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.*
 import lucuma.core.enums.Instrument
-import lucuma.core.math.Offset
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.Program
@@ -363,7 +362,7 @@ class ObserveEngineSuite extends TestCommon {
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science))
     )
 
     val startStepIdx  = 1
@@ -381,6 +380,7 @@ class ObserveEngineSuite extends TestCommon {
           stepId(idx + startStepIdx),
           dynamicCfg1,
           st,
+          telescopeCfg1,
           StepEstimate.Zero,
           cl,
           Breakpoint.Disabled
@@ -443,6 +443,7 @@ class ObserveEngineSuite extends TestCommon {
             StepStatusGen.Null,
             step.instrumentConfig,
             step.stepConfig,
+            step.telescopeConfig,
             breakpoint = Breakpoint.Disabled
           )
         }.toList
@@ -623,7 +624,7 @@ class ObserveEngineSuite extends TestCommon {
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science))
     )
 
     val startStepIdx  = 1
@@ -641,6 +642,7 @@ class ObserveEngineSuite extends TestCommon {
           stepId(idx + startStepIdx),
           dynamicCfg1,
           st,
+          telescopeCfg1,
           StepEstimate.Zero,
           cl,
           Breakpoint.Disabled
@@ -704,6 +706,7 @@ class ObserveEngineSuite extends TestCommon {
             StepStatusGen.Null,
             step.instrumentConfig,
             step.stepConfig,
+            step.telescopeConfig,
             breakpoint = Breakpoint.Disabled
           )
         }.toList
@@ -843,6 +846,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -854,6 +858,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -865,6 +870,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(firstScienceStepId),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -876,6 +882,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -971,6 +978,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1 + stepCount),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -982,6 +990,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i + stepCount),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -1100,7 +1109,13 @@ class ObserveEngineSuite extends TestCommon {
         (ev: TestOdbProxy.OdbEvent) =>
           assertEquals(
             ev,
-            TestOdbProxy.StepStartStep(seqObsId1, dynamicCfg1, stepCfg1, ObserveClass.Science)
+            TestOdbProxy.StepStartStep(
+              seqObsId1,
+              dynamicCfg1,
+              stepCfg1,
+              telescopeCfg1,
+              ObserveClass.Science
+            )
           ),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
@@ -1130,6 +1145,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1141,6 +1157,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled

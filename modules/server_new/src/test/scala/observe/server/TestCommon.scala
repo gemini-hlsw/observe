@@ -48,6 +48,7 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.GmosCcdMode
 import lucuma.core.model.sequence.gmos.GmosFpuMask
@@ -304,10 +305,9 @@ object TestCommon {
     GmosFpuMask.Builtin[GmosNorthFpu](GmosNorthFpu.LongSlit_0_50).some
   )
 
-  val stepCfg1: StepConfig = StepConfig.Science(
-    Offset.Zero,
-    StepGuideState.Enabled
-  )
+  val stepCfg1: StepConfig = StepConfig.Science
+
+  val telescopeCfg1: CoreTelescopeConfig = CoreTelescopeConfig(Offset.Zero, StepGuideState.Enabled)
 
   def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =
     ODBObservation(
@@ -341,6 +341,7 @@ object TestCommon {
                     stepId(1),
                     dynamicCfg1,
                     stepCfg1,
+                    telescopeCfg1,
                     StepEstimate.Zero,
                     ObserveClass.Science,
                     Breakpoint.Disabled
@@ -352,6 +353,7 @@ object TestCommon {
                         stepId(i),
                         dynamicCfg1,
                         stepCfg1,
+                        telescopeCfg1,
                         StepEstimate.Zero,
                         ObserveClass.Science,
                         Breakpoint.Disabled
@@ -394,6 +396,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )
@@ -428,6 +431,7 @@ object TestCommon {
             StepStatusGen.Null,
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             breakpoint = Breakpoint.Disabled
           )
         )
@@ -479,6 +483,7 @@ object TestCommon {
                     stepId(1),
                     dynamicCfg1,
                     stepCfg1,
+                    telescopeCfg1,
                     StepEstimate.Zero,
                     ObserveClass.Science,
                     Breakpoint.Disabled
@@ -519,6 +524,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         ),
         SequenceGen.PendingStepGen(
@@ -540,6 +546,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )

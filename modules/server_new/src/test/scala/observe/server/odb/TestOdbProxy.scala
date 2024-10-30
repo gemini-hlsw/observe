@@ -28,6 +28,7 @@ import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
@@ -133,12 +134,14 @@ object TestOdbProxy {
         }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
 
         override def stepStartStep(
-          obsId:         Observation.Id,
-          dynamicConfig: DynamicConfig,
-          stepConfig:    StepConfig,
-          observeClass:  ObserveClass,
-          generatedId:   Option[Step.Id]
-        ): F[Unit] = addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, observeClass))
+          obsId:           Observation.Id,
+          dynamicConfig:   DynamicConfig,
+          stepConfig:      StepConfig,
+          telescopeConfig: CoreTelescopeConfig,
+          observeClass:    ObserveClass,
+          generatedId:     Option[Step.Id]
+        ): F[Unit] =
+          addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, telescopeConfig, observeClass))
 
         override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
           StepStartConfigure(obsId)
@@ -215,10 +218,11 @@ object TestOdbProxy {
     stepCount:    NonNegShort
   ) extends OdbEvent
   case class StepStartStep(
-    obsId:         Observation.Id,
-    dynamicConfig: DynamicConfig,
-    stepConfig:    StepConfig,
-    observeClass:  ObserveClass
+    obsId:           Observation.Id,
+    dynamicConfig:   DynamicConfig,
+    stepConfig:      StepConfig,
+    telescopeConfig: CoreTelescopeConfig,
+    observeClass:    ObserveClass
   ) extends OdbEvent
   case class StepStartConfigure(obsId: Observation.Id)                        extends OdbEvent
   case class StepEndConfigure(obsId: Observation.Id)                          extends OdbEvent

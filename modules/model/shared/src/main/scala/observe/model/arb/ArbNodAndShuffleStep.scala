@@ -7,7 +7,9 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.given
+import lucuma.core.model.sequence.arb.ArbTelescopeConfig.given
 import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbTimeSpan.given
@@ -58,6 +60,7 @@ trait ArbNodAndShuffleStep {
         id <- arbitrary[Step.Id]
         d  <- arbitrary[InstrumentDynamicConfig]
         t  <- arbitrary[StepConfig]
+        tc <- arbitrary[TelescopeConfig]
         s  <- arbitrary[StepState]
         b  <- arbitrary[Breakpoint]
         f  <- arbitrary[Option[dhs.ImageFileId]]
@@ -68,6 +71,7 @@ trait ArbNodAndShuffleStep {
         id = id,
         instConfig = d,
         stepConfig = t,
+        telescopeConfig = tc,
         status = s,
         breakpoint = b,
         fileId = f,
@@ -83,6 +87,7 @@ trait ArbNodAndShuffleStep {
         Step.Id,
         InstrumentDynamicConfig,
         StepConfig,
+        TelescopeConfig,
         StepState,
         Breakpoint,
         Option[dhs.ImageFileId],
@@ -93,6 +98,7 @@ trait ArbNodAndShuffleStep {
       (s.id,
        s.instConfig,
        s.stepConfig,
+       s.telescopeConfig,
        s.status,
        s.breakpoint,
        s.fileId,

@@ -98,11 +98,11 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def obsType: F[String] = (
         step.stepConfig match {
-          case StepConfig.Bias                                  => "BIAS"
-          case StepConfig.Dark                                  => "DARK"
-          case StepConfig.Gcal(lamp, filter, diffuser, shutter) => "FLAT"
-          case StepConfig.Science(offset, guiding)              => "OBJECT"
-          case StepConfig.SmartGcal(smartGcalType)              => "FLAT"
+          case StepConfig.Bias             => "BIAS"
+          case StepConfig.Dark             => "DARK"
+          case StepConfig.Gcal(_, _, _, _) => "FLAT"
+          case StepConfig.Science          => "OBJECT"
+          case StepConfig.SmartGcal(_)     => "FLAT"
         }
       ).pure[F]
 

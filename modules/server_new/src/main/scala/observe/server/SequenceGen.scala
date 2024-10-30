@@ -11,6 +11,7 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import mouse.all.*
@@ -38,7 +39,7 @@ case class SequenceGen[F[_]](
   nextAtom:   SequenceGen.AtomGen[F]
 ) {
   val resources: Set[Resource | Instrument] = nextAtom.steps
-    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _) =>
+    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _) =>
       resources
     }
     .foldMap(identity)
@@ -46,14 +47,14 @@ case class SequenceGen[F[_]](
   def configActionCoord(stepId: Step.Id, r: Resource | Instrument): Option[ActionCoordsInSeq] =
     nextAtom.steps
       .find(_.id === stepId)
-      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.configActionCoord(r))
       .map { case (ex, ac) => ActionCoordsInSeq(stepId, ex, ac) }
 
   def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource | Instrument] =
     nextAtom.steps
       .find(_.id === c.stepId)
-      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _) => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
 
   def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(nextAtom.steps, stepId)
@@ -79,6 +80,7 @@ object SequenceGen {
     val genData: StepStatusGen
     val instConfig: DynamicConfig
     val config: StepConfig
+    val telescopeConfig: CoreTelescopeConfig
   }
 
   object StepGen {
@@ -88,9 +90,9 @@ object SequenceGen {
       ctx:             HeaderExtraData
     ): EngineStep[F] =
       stepGen match {
-        case p: PendingStepGen[F]                =>
+        case p: PendingStepGen[F]                   =>
           EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
-        case CompletedStepGen(id, _, _, _, _, _) => EngineStep.init[F](id, Nil)
+        case CompletedStepGen(id, _, _, _, _, _, _) => EngineStep.init[F](id, Nil)
       }
   }
 
@@ -135,26 +137,28 @@ object SequenceGen {
   }
 
   case class PendingStepGen[F[_]](
-    id:         Step.Id,
-    dataId:     DataId,
-    resources:  Set[Resource | Instrument],
-    obsControl: SystemOverrides => InstrumentSystem.ObserveControl[F],
-    generator:  StepActionsGen[F],
-    genData:    StepStatusGen = StepStatusGen.Null,
-    instConfig: DynamicConfig,
-    config:     StepConfig,
-    breakpoint: Breakpoint
+    id:              Step.Id,
+    dataId:          DataId,
+    resources:       Set[Resource | Instrument],
+    obsControl:      SystemOverrides => InstrumentSystem.ObserveControl[F],
+    generator:       StepActionsGen[F],
+    genData:         StepStatusGen = StepStatusGen.Null,
+    instConfig:      DynamicConfig,
+    config:          StepConfig,
+    telescopeConfig: CoreTelescopeConfig,
+    breakpoint:      Breakpoint
   ) extends StepGen[F]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
   case class CompletedStepGen[F[_]](
-    id:         Step.Id,
-    dataId:     DataId,
-    fileId:     Option[ImageFileId],
-    genData:    StepStatusGen = StepStatusGen.Null,
-    instConfig: DynamicConfig,
-    config:     StepConfig
+    id:              Step.Id,
+    dataId:          DataId,
+    fileId:          Option[ImageFileId],
+    genData:         StepStatusGen = StepStatusGen.Null,
+    instConfig:      DynamicConfig,
+    config:          StepConfig,
+    telescopeConfig: CoreTelescopeConfig
   ) extends StepGen[F]
 
   def stepIndex[F[_]](
