@@ -17,9 +17,12 @@ object ObsQueriesGQL:
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB]:
+    // TODO The ODB API doesn't provide a way to filter ready observations,
+    // so we filter by accepted proposals for now.
+    // Revise this when the API supports it OR we start getting obersvations from the scheduler.
     val document = """
       query {
-        observations(WHERE: { status: { eq: { EQ: READY } } }) {
+        observations(WHERE: {program: {proposalStatus: {EQ: ACCEPTED}}}) {
           matches {
             id
             title
@@ -35,8 +38,9 @@ object ObsQueriesGQL:
         observation(observationId: $obsId) {
           id
           title
-          status
-          activeStatus
+          workflow {
+            state
+          }
           program {
             id
             name

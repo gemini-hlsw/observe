@@ -391,8 +391,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ObsStatus.Ready,
-        ObsActiveStatus.Active,
+        ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None
@@ -654,8 +653,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ObsStatus.Ready,
-        ObsActiveStatus.Active,
+        ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None

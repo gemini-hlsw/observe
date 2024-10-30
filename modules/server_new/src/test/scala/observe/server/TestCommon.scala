@@ -28,8 +28,7 @@ import lucuma.core.enums.GmosYBinning
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
-import lucuma.core.enums.ObsActiveStatus
-import lucuma.core.enums.ObsStatus
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
@@ -313,8 +312,7 @@ object TestCommon {
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
+      ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
         None
@@ -455,8 +453,7 @@ object TestCommon {
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
+      ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
         None

@@ -12,8 +12,7 @@ import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.ObsActiveStatus
-import lucuma.core.enums.ObsStatus
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
@@ -34,7 +33,9 @@ import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
 import monocle.syntax.all.focus
+import observe.common.ObsQueriesGQL.ObsQuery
 import observe.common.ObsQueriesGQL.ObsQuery.Data
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
@@ -72,8 +73,7 @@ object TestOdbProxy {
               .Observation(
                 oid,
                 title = "Test Observation".refined,
-                ObsStatus.Ready,
-                ObsActiveStatus.Active,
+                ODBObservation.Workflow(ObservationWorkflowState.Ready),
                 Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
                 Data.Observation.TargetEnvironment.apply(),
                 ConstraintSet(ImageQuality.TwoPointZero,
