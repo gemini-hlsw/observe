@@ -10,9 +10,7 @@ import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.StepGuideState.Disabled
 import lucuma.core.enums.StepGuideState.Enabled
-import lucuma.core.model.ElevationRange
-import lucuma.core.model.TimingWindowEnd
-import lucuma.core.model.TimingWindowRepeat
+import lucuma.core.model.{ConstraintSet, ElevationRange, TimingWindowEnd, TimingWindowRepeat}
 import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
@@ -54,7 +52,7 @@ sealed trait ObsKeywordsReader[F[_]] {
   def sciBand: F[Int]
   def requestedAirMassAngle: F[Map[String, Double]]
   def timingWindows: F[List[(Int, TimingWindowKeywords)]]
-  def requestedConditions: F[Map[String, String]]
+  def requestedConditions: ConstraintSet
   def astrometicField: F[Boolean]
 }
 
@@ -135,12 +133,7 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
             ).pure[F]
         }
 
-      override def requestedConditions: F[Map[String, String]] = Map(
-        SB -> obsCfg.constraintSet.skyBackground.label,
-        CC -> obsCfg.constraintSet.cloudExtinction.label,
-        IQ -> obsCfg.constraintSet.imageQuality.label,
-        WV -> obsCfg.constraintSet.waterVapor.label
-      ).pure[F]
+      override def requestedConditions: ConstraintSet = obsCfg.constraintSet
 
       override def timingWindows: F[List[(Int, TimingWindowKeywords)]] =
         obsCfg.timingWindows.zipWithIndex
