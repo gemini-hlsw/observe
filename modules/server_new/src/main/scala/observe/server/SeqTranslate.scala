@@ -66,11 +66,8 @@ import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import org.typelevel.log4cats.Logger
 
-//trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
-  def sequence(sequence: OdbObservation)(using
-    tio: Temporal[F]
-  ): F[(List[Throwable], Option[SequenceGen[F]])]
+  def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])]
 
   def nextAtom(
     sequence: OdbObservation,
@@ -211,15 +208,14 @@ object SeqTranslate {
       )
     }
 
-    override def sequence(sequence: OdbObservation)(using
-      tio: Temporal[F]
-    ): F[(List[Throwable], Option[SequenceGen[F]])] = sequence.execution.config match {
-      case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
-        buildSequenceGmosN(sequence, c).pure[F]
-      case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
-        buildSequenceGmosS(sequence, c).pure[F]
-      case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
-    }
+    override def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])] =
+      sequence.execution.config match {
+        case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
+          buildSequenceGmosN(sequence, c).pure[F]
+        case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
+          buildSequenceGmosS(sequence, c).pure[F]
+        case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
+      }
 
     private def buildNextAtom[S <: StaticConfig, D <: DynamicConfig](
       sequence:   OdbObservation,
