@@ -317,7 +317,7 @@ object ObserveEngine {
 
     private def stepRequiresChecks(stepConfig: OcsStepConfig): Boolean = stepConfig match {
       case OcsStepConfig.Gcal(_, _, _, _) => true
-      case OcsStepConfig.Science(_, _)    => true
+      case OcsStepConfig.Science          => true
       case OcsStepConfig.SmartGcal(_)     => true
       case _                              => false
     }
@@ -1724,8 +1724,9 @@ object ObserveEngine {
 
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map {
-      case ObserveStep.Standard(id, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
-      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, configStatus, _, _) =>
+      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         =>
+        id -> configStatus.toMap
+      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
         id -> configStatus.toMap
     }.toMap
 

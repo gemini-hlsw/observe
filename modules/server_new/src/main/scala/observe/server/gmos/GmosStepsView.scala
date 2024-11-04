@@ -53,6 +53,7 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           id = step.id,
           instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
           stepConfig = stepg.config,
+          telescopeConfig = stepg.telescopeConfig,
           status = status,
           breakpoint = step.breakpoint,
           configStatus = configStatus,
@@ -65,8 +66,9 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           ),
           fileId = StepsView
             .fileId(step.executions)
-            .orElse(stepg.some.collect { case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _) =>
-              fileId
+            .orElse(stepg.some.collect {
+              case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _, _) =>
+                fileId
             }.flatten),
           pendingObserveCmd =
             (observeStatus(step.executions) === ActionStatus.Running).option(pendingObsCmd).flatten

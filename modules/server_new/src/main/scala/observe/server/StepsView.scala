@@ -152,12 +152,13 @@ object StepsView {
         id = step.id,
         instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
         stepConfig = stepg.config,
+        telescopeConfig = stepg.telescopeConfig,
         status = status,
         breakpoint = step.breakpoint,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {
-          case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _) => fileId
+          case SequenceGen.CompletedStepGen(_, _, fileId, _, _, _, _) => fileId
         }.flatten)
       )
     }
