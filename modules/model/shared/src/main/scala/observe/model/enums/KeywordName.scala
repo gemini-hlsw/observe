@@ -2682,16 +2682,16 @@ enum KeywordName(
 
   /** @group Constructors */
   case TARGET2 extends KeywordName("TARGET2", "TARGET2")
-  
+
 }
 
 object KeywordName {
-  
+
   /** Select the member of KeywordName with the given tag, if any. */
   def fromTag(s: String): Option[KeywordName] = Enumerated.fromTag[KeywordName].getOption(s)
 
   /** Select the member of KeywordName with the given tag, throwing if absent. */
   def unsafeFromTag(s: String): KeywordName =
     fromTag(s).getOrElse(throw new NoSuchElementException(s"KeywordName: Invalid tag: '$s'"))
-  
+
 }
