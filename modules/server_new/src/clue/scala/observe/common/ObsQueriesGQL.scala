@@ -50,6 +50,11 @@ object ObsQueriesGQL:
               targetId: id
               targetName: name
             }
+            guideEnvironment {
+              guideTargets {
+                probe
+              }
+            }
           }
           constraintSet {
             imageQuality

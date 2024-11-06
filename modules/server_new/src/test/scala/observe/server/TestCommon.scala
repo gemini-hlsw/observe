@@ -58,6 +58,7 @@ import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
 import observe.engine
 import observe.engine.Action
@@ -317,7 +318,7 @@ object TestCommon {
         Program.Id(PosLong.unsafeFrom(123)),
         None
       ),
-      TargetEnvironment(None),
+      TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
         ImageQuality.PointOne,
         CloudExtinction.PointOne,
@@ -458,7 +459,7 @@ object TestCommon {
         Program.Id(PosLong.unsafeFrom(123)),
         None
       ),
-      TargetEnvironment(None),
+      TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
         ImageQuality.PointOne,
         CloudExtinction.PointOne,

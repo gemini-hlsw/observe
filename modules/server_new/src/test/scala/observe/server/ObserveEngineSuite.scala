@@ -31,6 +31,7 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.FirstScienceTarget
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
 import observe.engine.EventResult
 import observe.engine.EventResult.Outcome
@@ -396,7 +397,9 @@ class ObserveEngineSuite extends TestCommon {
           Program.Id(PosLong.unsafeFrom(123)),
           None
         ),
-        TargetEnvironment(Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName))),
+        TargetEnvironment(Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName)),
+                          GuideEnvironment(List.empty)
+        ),
         reqConditions,
         List.empty,
         Execution(
@@ -658,7 +661,7 @@ class ObserveEngineSuite extends TestCommon {
           Program.Id(PosLong.unsafeFrom(123)),
           None
         ),
-        TargetEnvironment(None),
+        TargetEnvironment(None, GuideEnvironment(List.empty)),
         reqConditions,
         List.empty,
         Execution(
