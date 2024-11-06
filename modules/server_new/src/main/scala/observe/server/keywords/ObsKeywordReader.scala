@@ -16,6 +16,8 @@ import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.TimeSpan
+import lucuma.schemas.ObservationDB.Enums.GuideProbe
+import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.Systems
 
@@ -143,19 +145,31 @@ object ObsKeywordReader {
         }
         .getOrElse("frozen")
 
-      override def pwfs1Guide: F[Option[StepGuideState]] = none.pure[F]
+      override def pwfs1Guide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.Pwfs1)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def pwfs1GuideS: F[String] =
         pwfs1Guide
           .map(decodeGuide)
 
-      override def pwfs2Guide: F[Option[StepGuideState]] = none.pure[F]
+      override def pwfs2Guide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.Pwfs2)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def pwfs2GuideS: F[String] =
         pwfs2Guide
           .map(decodeGuide)
 
-      override def oiwfsGuide: F[Option[StepGuideState]] = none.pure[F]
+      override def oiwfsGuide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.GmosOiwfs)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def oiwfsGuideS: F[String] =
         oiwfsGuide

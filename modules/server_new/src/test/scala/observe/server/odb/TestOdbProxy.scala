@@ -36,6 +36,7 @@ import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
@@ -75,7 +76,7 @@ object TestOdbProxy {
                 title = "Test Observation".refined,
                 ODBObservation.Workflow(ObservationWorkflowState.Ready),
                 Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
-                Data.Observation.TargetEnvironment.apply(),
+                Data.Observation.TargetEnvironment(none, GuideEnvironment(List.empty)),
                 ConstraintSet(ImageQuality.TwoPointZero,
                               CloudExtinction.TwoPointZero,
                               SkyBackground.Bright,
