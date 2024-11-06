@@ -12,8 +12,7 @@ import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.ObsActiveStatus
-import lucuma.core.enums.ObsStatus
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
@@ -28,12 +27,15 @@ import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
 import monocle.syntax.all.focus
+import observe.common.ObsQueriesGQL.ObsQuery
 import observe.common.ObsQueriesGQL.ObsQuery.Data
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
@@ -71,8 +73,7 @@ object TestOdbProxy {
               .Observation(
                 oid,
                 title = "Test Observation".refined,
-                ObsStatus.Ready,
-                ObsActiveStatus.Active,
+                ODBObservation.Workflow(ObservationWorkflowState.Ready),
                 Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
                 Data.Observation.TargetEnvironment.apply(),
                 ConstraintSet(ImageQuality.TwoPointZero,
@@ -133,12 +134,14 @@ object TestOdbProxy {
         }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
 
         override def stepStartStep(
-          obsId:         Observation.Id,
-          dynamicConfig: DynamicConfig,
-          stepConfig:    StepConfig,
-          observeClass:  ObserveClass,
-          generatedId:   Option[Step.Id]
-        ): F[Unit] = addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, observeClass))
+          obsId:           Observation.Id,
+          dynamicConfig:   DynamicConfig,
+          stepConfig:      StepConfig,
+          telescopeConfig: CoreTelescopeConfig,
+          observeClass:    ObserveClass,
+          generatedId:     Option[Step.Id]
+        ): F[Unit] =
+          addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, telescopeConfig, observeClass))
 
         override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
           StepStartConfigure(obsId)
@@ -215,10 +218,11 @@ object TestOdbProxy {
     stepCount:    NonNegShort
   ) extends OdbEvent
   case class StepStartStep(
-    obsId:         Observation.Id,
-    dynamicConfig: DynamicConfig,
-    stepConfig:    StepConfig,
-    observeClass:  ObserveClass
+    obsId:           Observation.Id,
+    dynamicConfig:   DynamicConfig,
+    stepConfig:      StepConfig,
+    telescopeConfig: CoreTelescopeConfig,
+    observeClass:    ObserveClass
   ) extends OdbEvent
   case class StepStartConfigure(obsId: Observation.Id)                        extends OdbEvent
   case class StepEndConfigure(obsId: Observation.Id)                          extends OdbEvent

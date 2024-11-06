@@ -3,13 +3,14 @@
 
 package observe.server.keywords
 
-import cats.Applicative
+import cats.Monad
 import cats.data.Nested
 import cats.effect.Sync
 import cats.syntax.all.*
+import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
+import lucuma.core.model.ElevationRange
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
-import observe.model.Conditions
 import observe.model.Observation.Id
 import observe.model.Observer
 import observe.model.Operator
@@ -21,18 +22,25 @@ import observe.server.tcs.TcsController
 import observe.server.tcs.TcsKeywordsReader
 import org.typelevel.log4cats.Logger
 
-final case class StateKeywordsReader[F[_]: Applicative](
-  conditions: Conditions,
+import ConditionOps.*
+
+final case class StateKeywordsReader[F[_]: Monad](
+  conditions: ConditionSetReader[F],
   operator:   Option[Operator],
-  observer:   Option[Observer]
+  observer:   Option[Observer],
+  site:       Site
 ) {
 
-  def observerName: F[String]       = observer.map(_.value.value).getOrElse("observer").pure[F]
-  def operatorName: F[String]       = operator.map(_.value.value).getOrElse("ssa").pure[F]
-  def rawImageQuality: F[String]    = conditions.iq.map(_.label).getOrElse("Any").pure[F]
-  def rawCloudExtinction: F[String] = conditions.ce.map(_.label).getOrElse("Any").pure[F]
-  def rawWaterVapor: F[String]      = conditions.wv.map(_.label).getOrElse("Any").pure[F]
-  def rawBackgroundLight: F[String] = conditions.sb.map(_.label).getOrElse("Any").pure[F]
+  def observerName: F[String]        = observer.map(_.value.value).getOrElse("observer").pure[F]
+  def operatorName: F[String]        = operator.map(_.value.value).getOrElse("ssa").pure[F]
+  def rawImageQuality: F[String]     = conditions.imageQualityStr
+  def rawCloudExtinction: F[String]  = conditions.cloudExtinctionStr
+  def rawWaterVapor: F[String]       = conditions.waterVaporStr
+  def rawBackgroundLight: F[String]  = conditions.backgroundLightStr
+  def rawImageQualityD: F[Double]    = conditions.imageQualityDbl
+  def rawCloudExtinctionD: F[Double] = conditions.cloudExtinctionDbl
+  def rawWaterVaporD: F[Double]      = conditions.waterVaporDbl
+  def rawBackgroundLightD: F[Double] = conditions.backgroundLightDbl
 }
 
 class StandardHeader[F[_]: Sync: Logger](
@@ -41,8 +49,7 @@ class StandardHeader[F[_]: Sync: Logger](
   tcsReader:     TcsKeywordsReader[F],
   stateReader:   StateKeywordsReader[F],
   tcsSubsystems: List[TcsController.Subsystem]
-) extends Header[F]
-    with ObsKeywordsReaderConstants {
+) extends Header[F] {
 
   val obsObject: F[String] = for {
     obsType   <- obsReader.obsType
@@ -106,6 +113,10 @@ class StandardHeader[F[_]: Sync: Logger](
       buildString(stateReader.rawCloudExtinction, KeywordName.RAWCC),
       buildString(stateReader.rawWaterVapor, KeywordName.RAWWV),
       buildString(stateReader.rawBackgroundLight, KeywordName.RAWBG),
+      buildDouble(stateReader.rawImageQualityD, KeywordName.RAWDIQ),
+      buildDouble(stateReader.rawCloudExtinctionD, KeywordName.RAWDCC),
+      buildDouble(stateReader.rawWaterVaporD, KeywordName.RAWDWV),
+      buildDouble(stateReader.rawBackgroundLightD, KeywordName.RAWDBG),
       buildString(obsReader.pIReq, KeywordName.RAWPIREQ),
       buildString(obsReader.geminiQA, KeywordName.RAWGEMQA),
       buildString(tcsReader.carouselMode, KeywordName.CGUIDMOD),
@@ -153,37 +164,41 @@ class StandardHeader[F[_]: Sync: Logger](
   }
 
   // TODO abstract requestedConditions/requestedAirMassAngle
-  def requestedConditions(id: ImageFileId): F[Unit] = {
-    val keys = List(KeywordName.REQIQ -> IQ,
-                    KeywordName.REQCC -> CC,
-                    KeywordName.REQBG -> SB,
-                    KeywordName.REQWV -> WV
-    )
-    obsReader.requestedConditions.flatMap { requestedConditions =>
-      val requested = keys
-        .map { case (keyword, value) =>
-          requestedConditions.get(value).map(v => buildString(v.pure[F], keyword))
-        }
-        .mapFilter(identity)
-      sendKeywords(id, kwClient, requested).whenA(requested.nonEmpty)
+  def requestedConditions(id: ImageFileId): F[Unit] =
+    tcsReader.elevation.flatMap { el =>
+      tcsReader.sourceATarget.wavelength.flatMap { wavel =>
+        sendKeywords(
+          id,
+          kwClient,
+          List(
+            buildString(obsReader.requestedConditions.imageQualityStr, KeywordName.REQIQ),
+            buildString(obsReader.requestedConditions.cloudExtinctionStr, KeywordName.REQCC),
+            buildString(obsReader.requestedConditions.waterVaporStr, KeywordName.REQWV),
+            buildString(obsReader.requestedConditions.backgroundLightStr, KeywordName.REQBG),
+            buildDouble(obsReader.requestedConditions.imageQualityDbl, KeywordName.REQDIQ),
+            buildDouble(obsReader.requestedConditions.cloudExtinctionDbl, KeywordName.REQDCC),
+            buildDouble(obsReader.requestedConditions.waterVaporDbl, KeywordName.REQDWV),
+            buildDouble(obsReader.requestedConditions.backgroundLightDbl, KeywordName.REQDBG)
+          )
+        )
+      }
     }
-  }
 
-  def requestedAirMassAngle(id: ImageFileId): F[Unit] = {
-    val keys = List(KeywordName.REQMAXAM -> MAX_AIRMASS,
-                    KeywordName.REQMAXHA -> MAX_HOUR_ANGLE,
-                    KeywordName.REQMINAM -> MIN_AIRMASS,
-                    KeywordName.REQMINHA -> MIN_HOUR_ANGLE
-    )
-    obsReader.requestedAirMassAngle.flatMap { airMassAngle =>
-      val requested = keys
-        .map { case (keyword, value) =>
-          airMassAngle.get(value).map(v => buildDouble(v.pure[F], keyword))
-        }
-        .mapFilter(identity)
-      sendKeywords[F](id, kwClient, requested).whenA(requested.nonEmpty)
-    }
-  }
+  def requestedAirMassAngle(id: ImageFileId): F[Unit] =
+    obsReader.requestedConditions.elevationRange
+      .map {
+        case ElevationRange.AirMass(min, max)             =>
+          List(
+            buildDouble(max.value.toDouble.pure[F], KeywordName.REQMAXAM),
+            buildDouble(min.value.toDouble.pure[F], KeywordName.REQMINAM)
+          )
+        case ElevationRange.HourAngle(minHours, maxHours) =>
+          List(
+            buildDouble(maxHours.value.toDouble.pure[F], KeywordName.REQMAXHA),
+            buildDouble(minHours.value.toDouble.pure[F], KeywordName.REQMINHA)
+          )
+      }
+      .flatMap(sendKeywords[F](id, kwClient, _))
 
   def guiderKeywords(
     id:        ImageFileId,

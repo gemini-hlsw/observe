@@ -12,6 +12,7 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig
 import lucuma.odb.json.offset.transport.given
 import lucuma.odb.json.stepconfig.given
 import monocle.Focus
@@ -25,38 +26,59 @@ import observe.model.enums.*
 import observe.model.enums.PendingObserveCmd
 
 enum ObserveStep(
-  val id:           Step.Id,
-  val instConfig:   InstrumentDynamicConfig,
-  val stepConfig:   StepConfig,
-  val status:       StepState,
-  val breakpoint:   Breakpoint,
-  val fileId:       Option[ImageFileId],
-  val configStatus: List[(Resource | Instrument, ActionStatus)]
+  val id:              Step.Id,
+  val instConfig:      InstrumentDynamicConfig,
+  val stepConfig:      StepConfig,
+  val telescopeConfig: TelescopeConfig,
+  val status:          StepState,
+  val breakpoint:      Breakpoint,
+  val fileId:          Option[ImageFileId],
+  val configStatus:    List[(Resource | Instrument, ActionStatus)]
 ) derives Eq,
       Encoder.AsObject,
       Decoder:
   case Standard(
-    override val id:           Step.Id,
-    override val instConfig:   InstrumentDynamicConfig,
-    override val stepConfig:   StepConfig,
-    override val status:       StepState,
-    override val breakpoint:   Breakpoint,
-    override val fileId:       Option[ImageFileId],
-    override val configStatus: List[(Resource | Instrument, ActionStatus)],
-    val observeStatus:         ActionStatus
-  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, fileId, configStatus)
+    override val id:              Step.Id,
+    override val instConfig:      InstrumentDynamicConfig,
+    override val stepConfig:      StepConfig,
+    override val telescopeConfig: TelescopeConfig,
+    override val status:          StepState,
+    override val breakpoint:      Breakpoint,
+    override val fileId:          Option[ImageFileId],
+    override val configStatus:    List[(Resource | Instrument, ActionStatus)],
+    val observeStatus:            ActionStatus
+  ) extends ObserveStep(
+        id,
+        instConfig,
+        stepConfig,
+        telescopeConfig,
+        status,
+        breakpoint,
+        fileId,
+        configStatus
+      )
 
   case NodAndShuffle(
-    override val id:           Step.Id,
-    override val instConfig:   InstrumentDynamicConfig,
-    override val stepConfig:   StepConfig,
-    override val status:       StepState,
-    override val breakpoint:   Breakpoint,
-    override val fileId:       Option[ImageFileId],
-    override val configStatus: List[(Resource | Instrument, ActionStatus)],
-    val nsStatus:              NodAndShuffleStatus,
-    val pendingObserveCmd:     Option[PendingObserveCmd]
-  ) extends ObserveStep(id, instConfig, stepConfig, status, breakpoint, fileId, configStatus)
+    override val id:              Step.Id,
+    override val instConfig:      InstrumentDynamicConfig,
+    override val stepConfig:      StepConfig,
+    override val telescopeConfig: TelescopeConfig,
+    override val status:          StepState,
+    override val breakpoint:      Breakpoint,
+    override val fileId:          Option[ImageFileId],
+    override val configStatus:    List[(Resource | Instrument, ActionStatus)],
+    val nsStatus:                 NodAndShuffleStatus,
+    val pendingObserveCmd:        Option[PendingObserveCmd]
+  ) extends ObserveStep(
+        id,
+        instConfig,
+        stepConfig,
+        telescopeConfig,
+        status,
+        breakpoint,
+        fileId,
+        configStatus
+      )
 
 object ObserveStep:
   // Derivation doesn't generate instances for subtypes.

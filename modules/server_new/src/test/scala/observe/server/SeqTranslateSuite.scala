@@ -66,6 +66,7 @@ class SeqTranslateSuite extends TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )
