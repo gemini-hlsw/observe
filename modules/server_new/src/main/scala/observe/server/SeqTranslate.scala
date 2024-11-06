@@ -705,11 +705,14 @@ object SeqTranslate {
     )(ctx: HeaderExtraData): Header[F] =
       new StandardHeader(
         kwClient,
-        ObsKeywordReader[F, D](obsCfg, stepCfg, site),
+        ObsKeywordReader[F, D](obsCfg, stepCfg, site, systemss),
         systemss.tcsKeywordReader,
-        StateKeywordsReader[F](ctx.conditions, ctx.operator, ctx.observer, site),
-        tcsSubsystems,
-        site
+        StateKeywordsReader[F](systemss.conditionSetReader(ctx.conditions),
+                               ctx.operator,
+                               ctx.observer,
+                               site
+        ),
+        tcsSubsystems
       )
 
     private def gwsHeaders(kwClient: KeywordsClient[F]): Header[F] =

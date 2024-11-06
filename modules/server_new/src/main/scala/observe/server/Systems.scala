@@ -19,6 +19,7 @@ import io.circe.syntax.*
 import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB
 import mouse.boolean.*
+import observe.model.Conditions
 import observe.model.config.*
 import observe.model.odb.ObsRecordedIds
 import observe.server.altair.*
@@ -57,6 +58,7 @@ case class Systems[F[_]] private[server] (
   gems:                GemsController[F],
   guideDb:             GuideConfigDb[F],
   tcsKeywordReader:    TcsKeywordsReader[F],
+  conditionSetReader:  Conditions => ConditionSetReader[F],
   gcalKeywordReader:   GcalKeywordReader[F],
   gmosKeywordReader:   GmosKeywordReader[F],
   /*  gnirsKeywordReader:  GnirsKeywordReader[F],
@@ -172,7 +174,8 @@ object Systems {
         TcsSouthController[IO],
         TcsKeywordsReader[IO],
         AltairController[IO],
-        AltairKeywordReader[IO]
+        AltairKeywordReader[IO],
+        Conditions => ConditionSetReader[IO]
       )
     ] =
       for {
@@ -184,12 +187,16 @@ object Systems {
         tcsNCtr               = tcsNorth(tcsEpicsO, site)
         tcsSCtr               = tcsSouth(tcsEpicsO, site, gcdb)
         tcsKR                 = tcsEpicsO.map(TcsKeywordsReaderEpics[IO]).getOrElse(DummyTcsKeywordsReader[IO])
+        condsR                = tcsEpicsO
+                                  .map(ConditionSetReaderEpics.apply(site, _))
+                                  .getOrElse(DummyConditionSetReader(site))
       } yield (
         tcsNCtr,
         tcsSCtr,
         tcsKR,
         altairCtr,
-        altairKR
+        altairKR,
+        condsR
       )
 
     def gems(
@@ -368,29 +375,29 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        clt                                       <- Resource.eval(JdkWSClient.simple[IO])
-        webSocketBackend                           = clue.http4s.Http4sWebSocketBackend[IO](clt)
-        odbProxy                                  <-
+        clt                                               <- Resource.eval(JdkWSClient.simple[IO])
+        webSocketBackend                                   = clue.http4s.Http4sWebSocketBackend[IO](clt)
+        odbProxy                                          <-
           Resource.eval[IO, OdbProxy[IO]](
             odbProxy[IO](using Async[IO], Logger[IO], webSocketBackend)
           )
-        dhsClient                                 <- Resource.eval(dhs[IO](httpClient))
-        gcdb                                      <- Resource.eval(GuideConfigDb.newDb[IO])
-        gcals                                     <- Resource.eval(gcal)
-        (gcalCtr, gcalKR)                          = gcals
-        v                                         <- Resource.eval(tcsObjects(gcdb, site))
-        (tcsGN, tcsGS, tcsKR, altairCtr, altairKR) = v
-        w                                         <- Resource.eval(gemsObjects)
-        (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)       = w
+        dhsClient                                         <- Resource.eval(dhs[IO](httpClient))
+        gcdb                                              <- Resource.eval(GuideConfigDb.newDb[IO])
+        gcals                                             <- Resource.eval(gcal)
+        (gcalCtr, gcalKR)                                  = gcals
+        v                                                 <- Resource.eval(tcsObjects(gcdb, site))
+        (tcsGN, tcsGS, tcsKR, altairCtr, altairKR, condsR) = v
+        w                                                 <- Resource.eval(gemsObjects)
+        (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)               = w
         //        (gnirsCtr, gnirsKR)                        <- Resource.eval(gnirs)
         //        f2Controller                               <- Resource.eval(flamingos2)
         //        (niriCtr, niriKR)                          <- Resource.eval(niri)
         //        (nifsCtr, nifsKR)                          <- Resource.eval(nifs)
-        gms                                       <- Resource.eval(gmosObjects(site))
-        (gmosSouthCtr, gmosNorthCtr, gmosKR)       = gms
+        gms                                               <- Resource.eval(gmosObjects(site))
+        (gmosSouthCtr, gmosNorthCtr, gmosKR)               = gms
         //        gpiController                              <- gpi[IO](httpClient)
         //        ghostController                            <- ghost[IO](httpClient)
-        gwsKR                                     <- Resource.eval(gws)
+        gwsKR                                             <- Resource.eval(gws)
       } yield Systems[IO](
         odbProxy,
         dhsClient,
@@ -410,6 +417,7 @@ object Systems {
         gemsCtr,
         gcdb,
         tcsKR,
+        condsR,
         gcalKR,
         gmosKR,
         //        gnirsKR,
@@ -455,6 +463,7 @@ object Systems {
           GemsControllerSim[F],
           guideDb,
           DummyTcsKeywordsReader[F],
+          DummyConditionSetReader.apply[F](Site.GN),
           DummyGcalKeywordsReader[F],
           GmosKeywordReaderDummy[F],
           AltairKeywordReaderDummy[F],
