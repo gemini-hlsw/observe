@@ -17,9 +17,12 @@ object ObsQueriesGQL:
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB]:
+    // TODO The ODB API doesn't provide a way to filter ready observations,
+    // so we filter by accepted proposals for now.
+    // Revise this when the API supports it OR we start getting obersvations from the scheduler.
     val document = """
       query {
-        observations(WHERE: { status: { eq: { EQ: READY } } }) {
+        observations(WHERE: {program: {proposalStatus: {EQ: ACCEPTED}}}) {
           matches {
             id
             title
@@ -35,8 +38,9 @@ object ObsQueriesGQL:
         observation(observationId: $obsId) {
           id
           title
-          status
-          activeStatus
+          workflow {
+            state
+          }
           program {
             id
             name
@@ -140,13 +144,14 @@ object ObsQueriesGQL:
           diffuser
           shutter
         }
-        ... on Science {
-          offset { ...offsetFields }
-          guiding
-        }
         ... on SmartGcal {
           smartGcalType
         }
+      }
+
+      fragment telescopeConfigFields on TelescopeConfig {
+        offset { ...offsetFields }
+        guiding
       }
 
       fragment stepEstimateFields on StepEstimate {
@@ -202,6 +207,9 @@ object ObsQueriesGQL:
           stepConfig {
             ...stepConfigFields
           }
+          telescopeConfig {
+            ...telescopeConfigFields
+          }
           estimate {
             ...stepEstimateFields
           }
@@ -249,6 +257,9 @@ object ObsQueriesGQL:
           stepConfig {
             ...stepConfigFields
           }
+          telescopeConfig {
+            ...telescopeConfigFields
+          }
           estimate {
             ...stepEstimateFields
           }
@@ -285,6 +296,9 @@ object ObsQueriesGQL:
     val document = """
       subscription {
         observationEdit(programId:"p-2") {
+          value {
+            id
+          }
         }
       }
     """
@@ -294,6 +308,9 @@ object ObsQueriesGQL:
     val document = """
       subscription($obsId: ObservationId!) {
         observationEdit(observationId: $obsId) {
+          value {
+            id
+          }
         }
       }
     """
@@ -357,10 +374,7 @@ object ObsQueriesGQL:
               label
               observation {
                 label
-                program {
-                  label
-                }
-              }
+             }
             }
           }
         }

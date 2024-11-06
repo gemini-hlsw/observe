@@ -80,14 +80,6 @@ trait ObserveEngine[F[_]] {
     runOverride: RunOverride
   ): F[Unit]
 
-  def startFrom(
-    id:          Observation.Id,
-    observer:    Observer,
-    stp:         Step.Id,
-    clientId:    ClientId,
-    runOverride: RunOverride
-  ): F[Unit]
-
   def loadNextAtom(
     id:       Observation.Id,
     user:     User,
@@ -173,14 +165,6 @@ trait ObserveEngine[F[_]] {
   def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit]
 
   def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit]
-
-  def setSkipMark(
-    seqId:    Observation.Id,
-    user:     User,
-    observer: Observer,
-    stepId:   Step.Id,
-    v:        Boolean
-  ): F[Unit]
 
   def requestRefresh(clientId: ClientId): F[Unit]
 
@@ -333,7 +317,7 @@ object ObserveEngine {
 
     private def stepRequiresChecks(stepConfig: OcsStepConfig): Boolean = stepConfig match {
       case OcsStepConfig.Gcal(_, _, _, _) => true
-      case OcsStepConfig.Science(_, _)    => true
+      case OcsStepConfig.Science          => true
       case OcsStepConfig.SmartGcal(_)     => true
       case _                              => false
     }
@@ -559,22 +543,6 @@ object ObserveEngine {
         setObserver(id, observer) *>
           clearObsCmd(id) *>
           startChecks(executeEngine.start(id), id, clientId, none, runOverride)
-      )
-    )
-
-    // Stars a sequence from an arbitrary step. All previous non executed steps are skipped.
-    // The method checks for resources conflict.
-    override def startFrom(
-      id:          Observation.Id,
-      observer:    Observer,
-      stp:         Step.Id,
-      clientId:    ClientId,
-      runOverride: RunOverride
-    ): F[Unit] = executeEngine.offer(
-      Event.modifyState[F, EngineState[F], SeqEvent](
-        setObserver(id, observer) *>
-          clearObsCmd(id) *>
-          startChecks(executeEngine.startFrom(id, stp), id, clientId, stp.some, runOverride)
       )
     )
 
@@ -877,40 +845,8 @@ object ObserveEngine {
         )
       )
 
-    override def setSkipMark(
-      seqId:    Observation.Id,
-      user:     User,
-      observer: Observer,
-      stepId:   Step.Id,
-      v:        Boolean
-    ): F[Unit] = Applicative[F].unit
-//      setObserver(seqId, user, observer) *>
-//        executeEngine.offer(Event.skip[F, EngineState[F], SeqEvent](seqId, user, stepId, v))
-//
-    override def requestRefresh(clientId: ClientId): F[Unit]                                  =
+    override def requestRefresh(clientId: ClientId): F[Unit] =
       executeEngine.offer(Event.poll(clientId))
-
-    @unused
-    private def seqQueueRefreshStream: Stream[F, Either[ObserveFailure, EventType[F]]] =
-      Stream.empty
-//    {
-//      val fd = Duration(settings.odbQueuePollingInterval.toSeconds, TimeUnit.SECONDS)
-//      Stream
-//        .fixedDelay[F](fd)
-//        .evalMap(_ => systems.odb.queuedSequences)
-//        .flatMap { x =>
-//          Stream.emit(
-//            Event
-//              .getState[F, EngineState[F], SeqEvent] { st =>
-//                Stream.eval(odbLoader.refreshSequenceList(x, st)).flatMap(Stream.emits).some
-//              }
-//              .asRight
-//          )
-//        }
-//        .handleErrorWith { e =>
-//          Stream.emit(ObserveFailure.ObserveException(e).asLeft)
-//        }
-//    }
 
     private val heartbeatPeriod: FiniteDuration = FiniteDuration(10, TimeUnit.SECONDS)
 
@@ -1375,9 +1311,9 @@ object ObserveEngine {
         }
       }
 
-//    /**
-//     * Triggers the application of a specific step configuration to a system
-//     */
+    /**
+     * Triggers the application of a specific step configuration to a system /
+     */
     override def configSystem(
       sid:      Observation.Id,
       observer: Observer,
@@ -1788,7 +1724,8 @@ object ObserveEngine {
 
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map {
-      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         => id -> configStatus.toMap
+      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         =>
+        id -> configStatus.toMap
       case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
         id -> configStatus.toMap
     }.toMap

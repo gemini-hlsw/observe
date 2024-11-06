@@ -38,12 +38,6 @@ object Event {
     steps: List[Step.Id],
     v:     Breakpoint
   ): Event[F, S, U] = EventUser[F, S, U](Breakpoints(id, user.some, steps, v))
-  def skip[F[_], S, U](
-    id:   Observation.Id,
-    user: User,
-    step: Step.Id,
-    v:    Boolean
-  ): Event[F, S, U] = EventUser[F, S, U](SkipMark(id, user.some, step, v))
   def poll[F[_], S, U](clientId: ClientId): Event[F, S, U]                                  =
     EventUser[F, S, U](Poll(clientId))
   def getState[F[_], S, U](f: S => Option[Stream[F, Event[F, S, U]]]): Event[F, S, U]       =

@@ -177,7 +177,8 @@ object MainApp extends ServerEventHandler:
             policy = WSRetryPolicy,
             onError =
               (_: Throwable, _) => syncStatus.async.set(SyncStatus.OutOfSync.some).toResource
-          )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)))
+          )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))),
+          _ => true.pure[IO]
         ).map(_.some)
       .useStateView(Pot.pending[ClientConfig]) // clientConfigPot
       .useStateView(RootModelData.Initial)     // rootModelData

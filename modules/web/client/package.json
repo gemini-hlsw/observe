@@ -4,7 +4,7 @@
     "@fontsource/lato": "^5.0.20",
     "@fortawesome/fontawesome-pro": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/pro-duotone-svg-icons": "^6.5.2",
+    "@fortawesome/pro-duotone-svg-icons": "^6.6.0",
     "@fortawesome/pro-light-svg-icons": "^6.6.0",
     "@fortawesome/pro-regular-svg-icons": "^6.6.0",
     "@fortawesome/pro-solid-svg-icons": "^6.5.2",
@@ -23,9 +23,9 @@
   "devDependencies": {
     "prettier": "^3.3.3",
     "process": "^0.11.10",
-    "sass": "^1.77.8",
+    "sass": "^1.80.6",
     "unplugin-fonts": "^1.1.1",
-    "vite": "5.4.3",
+    "vite": "5.4.10",
     "vite-plugin-mkcert": "^1.17.5"
   },
   "scripts": {

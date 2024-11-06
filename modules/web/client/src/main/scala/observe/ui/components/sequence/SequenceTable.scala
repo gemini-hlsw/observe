@@ -371,11 +371,11 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                 ObserveStyles.StepRowFirstInAtom.when_(step.isFirstInAtom),
                 ObserveStyles.StepRowPossibleFuture.when_(step.stepTime === StepTime.Future),
                 step.stepState match
-                  case s if s.hasError                      => ObserveStyles.StepRowError
-                  case StepState.Paused | StepState.Skipped => ObserveStyles.StepRowWarning
-                  case StepState.Completed                  => ObserveStyles.StepRowDone
-                  case StepState.Aborted                    => ObserveStyles.StepRowError
-                  case _                                    => TagMod.empty
+                  case s if s.hasError     => ObserveStyles.StepRowError
+                  case StepState.Paused    => ObserveStyles.StepRowWarning
+                  case StepState.Completed => ObserveStyles.StepRowDone
+                  case StepState.Aborted   => ObserveStyles.StepRowError
+                  case _                   => TagMod.empty
               )
             .orEmpty
 

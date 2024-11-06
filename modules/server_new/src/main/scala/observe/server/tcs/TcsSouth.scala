@@ -14,11 +14,12 @@ import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.TipTiltSource
 import lucuma.core.math.Angle
+import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
 import lucuma.core.model.GemsConfig
 import lucuma.core.model.GemsConfig.*
 import lucuma.core.model.GuideConfig
-import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.model.enums.NodAndShuffleStage
@@ -223,48 +224,30 @@ object TcsSouth {
     guideConfigDb:       GuideConfigDb[F]
   )(
     targets:             TargetEnvironment,
-    stepConfig:          StepConfig,
+    telescopeConfig:     CoreTelescopeConfig,
     lightPath:           LightPath,
     observingWavelength: Option[Wavelength]
   ): TcsSouth[F] = {
+    val p: Offset.P = telescopeConfig.offset.p
+    val q: Offset.Q = telescopeConfig.offset.q
 
-    val gwp1   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwp2   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwoi   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwc1   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwc2   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwc3   = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwod1  = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwod2  = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwod3  = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
-    val gwod4  = none.flatMap(_ =>
-      StepConfig.science.andThen(StepConfig.Science.guiding).getOption(stepConfig)
-    )
+    val guiding: StepGuideState = telescopeConfig.guiding
+
+    val gwp1   = none.map(_ => guiding)
+    val gwp2   = none.map(_ => guiding)
+    val gwoi   = none.map(_ => guiding)
+    val gwc1   = none.map(_ => guiding)
+    val gwc2   = none.map(_ => guiding)
+    val gwc3   = none.map(_ => guiding)
+    val gwod1  = none.map(_ => guiding)
+    val gwod2  = none.map(_ => guiding)
+    val gwod3  = none.map(_ => guiding)
+    val gwod4  = none.map(_ => guiding)
     val offset =
-      StepConfig.science.andThen(StepConfig.Science.offset).getOption(stepConfig).map { o =>
-        InstrumentOffset(
-          OffsetP(Angle.signedDecimalArcseconds.get(o.p.toAngle).toDouble.withUnit[ArcSecond]),
-          OffsetQ(Angle.signedDecimalArcseconds.get(o.q.toAngle).toDouble.withUnit[ArcSecond])
-        )
-      }
+      InstrumentOffset(
+        OffsetP(Angle.signedDecimalArcseconds.get(p.toAngle).toDouble.withUnit[ArcSecond]),
+        OffsetQ(Angle.signedDecimalArcseconds.get(q.toAngle).toDouble.withUnit[ArcSecond])
+      ).some
 
     val tcsSeqCfg = TcsSeqConfig[F](
       gwp1,

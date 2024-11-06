@@ -10,6 +10,7 @@ import cats.syntax.all.*
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Decoder
+import io.circe.HCursor
 import io.circe.generic.semiauto.*
 import io.circe.refined.given
 import lucuma.core.enums.Instrument
@@ -82,7 +83,11 @@ object ObsSummary:
       observingMode      <- c.get[Option[ObservingMode]]("observingMode")
       observationTime    <- c.get[Option[Timestamp]]("observationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")
-      obsReference       <- c.downField("reference").get[Option[ObservationReference]]("label")
+      obsReference       <-
+        c.get[Option[HCursor]]("reference")
+          .map(_.map(_.get[Option[ObservationReference]]("label")).sequence.map(_.flatten))
+          .sequence
+          .flatten
     yield ObsSummary(
       id,
       title,

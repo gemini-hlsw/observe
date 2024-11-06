@@ -67,7 +67,6 @@ class StepSuite extends CatsEffectSuite {
     EngineStep.Zipper(
       id = stepId(1),
       breakpoint = Breakpoint.Disabled,
-      skipMark = EngineStep.SkipMark(false),
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>
@@ -250,9 +249,9 @@ class StepSuite extends CatsEffectSuite {
       _.exists {
         case Sequence.State.Zipper(zipper, status, _) =>
           (zipper.focus.toStep match {
-            case EngineStep(_, _, _, _, List(ex1, ex2)) =>
+            case EngineStep(_, _, List(ex1, ex2)) =>
               Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
-            case _                                      => false
+            case _                                => false
           }) && status === SequenceState.Idle
         case _                                        => false
       }
@@ -276,7 +275,6 @@ class StepSuite extends CatsEffectSuite {
                focus = EngineStep.Zipper(
                  id = stepId(2),
                  breakpoint = Breakpoint.Disabled,
-                 skipMark = EngineStep.SkipMark(false),
                  pending = Nil,
                  focus = Execution(List(observe)),
                  done = List(NonEmptyList.of(actionCompleted, actionCompleted)),
@@ -307,9 +305,9 @@ class StepSuite extends CatsEffectSuite {
       _.exists {
         case Sequence.State.Zipper(zipper, status, _) =>
           (zipper.focus.toStep match {
-            case EngineStep(_, _, _, _, List(ex1, ex2)) =>
+            case EngineStep(_, _, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            case _                                      => false
+            case _                                => false
           }) && status.isRunning
         case _                                        => false
       }
@@ -330,7 +328,6 @@ class StepSuite extends CatsEffectSuite {
                focus = EngineStep.Zipper(
                  id = stepId(2),
                  breakpoint = Breakpoint.Disabled,
-                 skipMark = EngineStep.SkipMark(false),
                  pending = Nil,
                  focus = Execution(List(observe)),
                  done = List(NonEmptyList.of(actionCompleted, actionCompleted)),
@@ -407,9 +404,9 @@ class StepSuite extends CatsEffectSuite {
       x.flatMap(_.sequences.get(seqId)).exists {
         case Sequence.State.Zipper(zipper, status, _) =>
           zipper.focus.toStep.match {
-            case EngineStep(_, _, _, _, List(ex1, ex2)) =>
+            case EngineStep(_, _, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            case _                                      => false
+            case _                                => false
           } && (status === SequenceState.Idle)
         case _                                        => false
       }
@@ -507,11 +504,11 @@ class StepSuite extends CatsEffectSuite {
         case Sequence.State.Zipper(zipper, status, _) =>
           (zipper.focus.toStep match {
             // Check that the sequence stopped midway
-            case EngineStep(_, _, _, _, List(ex1, ex2, ex3)) =>
+            case EngineStep(_, _, List(ex1, ex2, ex3)) =>
               Execution(ex1.toList).results.length == 2 && Execution(
                 ex2.toList
               ).results.length == 1 && Execution(ex3.toList).actions.length == 1
-            case _                                           => false
+            case _                                     => false
           }) && (status == SequenceState.Failed(errMsg)) // And that it ended in error
         case _                                        => false
 
@@ -767,7 +764,6 @@ class StepSuite extends CatsEffectSuite {
         .Zipper(
           id = stepId(1),
           breakpoint = Breakpoint.Disabled,
-          skipMark = EngineStep.SkipMark(false),
           pending = Nil,
           focus = Execution(List(action, actionFailed, actionCompleted)),
           done = Nil,
@@ -784,7 +780,6 @@ class StepSuite extends CatsEffectSuite {
         .Zipper(
           id = stepId(1),
           breakpoint = Breakpoint.Disabled,
-          skipMark = EngineStep.SkipMark(false),
           pending = Nil,
           focus = Execution(List(actionCompleted, actionCompleted, actionCompleted)),
           done = Nil,
@@ -801,7 +796,6 @@ class StepSuite extends CatsEffectSuite {
         .Zipper(
           id = stepId(1),
           breakpoint = Breakpoint.Disabled,
-          skipMark = EngineStep.SkipMark(false),
           pending = Nil,
           focus = Execution(List(actionCompleted, action, actionCompleted)),
           done = Nil,
@@ -818,7 +812,6 @@ class StepSuite extends CatsEffectSuite {
         .Zipper(
           id = stepId(1),
           breakpoint = Breakpoint.Disabled,
-          skipMark = EngineStep.SkipMark(false),
           pending = Nil,
           focus = Execution(List(action, action, action)),
           done = Nil,
@@ -826,24 +819,6 @@ class StepSuite extends CatsEffectSuite {
         )
         .toStep
         .status === StepState.Pending
-    )
-  }
-
-  test("status should be Skipped if the EngineStep was skipped") {
-    assert(
-      EngineStep
-        .Zipper(
-          id = stepId(1),
-          breakpoint = Breakpoint.Disabled,
-          skipMark = EngineStep.SkipMark(false),
-          pending = Nil,
-          focus = Execution(List(action, action, action)),
-          done = Nil,
-          rolledback = (Execution(List(action, action, action)), Nil)
-        )
-        .toStep
-        .copy(skipped = EngineStep.Skipped(true))
-        .status === StepState.Skipped
     )
   }
 

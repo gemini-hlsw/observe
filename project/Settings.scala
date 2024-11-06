@@ -10,7 +10,7 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // Scala libraries
-    val catsEffectVersion = "3.5.4"
+    val catsEffectVersion = "3.5.5"
     val catsVersion       = "2.12.0"
     val kittens           = "3.4.0"
     val mouseVersion      = "1.3.2"
@@ -19,27 +19,29 @@ object Settings {
     val catsTime          = "0.5.1"
     val catsParseVersion  = "1.0.0"
 
-    val http4sVersion              = "0.23.24-25-e71f1b1-SNAPSHOT"
+    val http4sVersion              = "0.23.29"
     val http4sDomVersion           = "0.2.11"
     val http4sJdkHttpClientVersion = "0.9.1"
     val http4sScalaXmlVersion      = "0.23.14"
+    val natchezVersion             = "0.3.7"
 
-    val coulomb          = "0.8.0"
-    val commonsHttp      = "3.1"
-    val unboundId        = "3.2.1"
-    val jwt              = "10.0.1"
-    val slf4j            = "2.0.16"
-    val log4cats         = "2.7.0"
-    val log4catsLogLevel = "0.3.1"
-    val logback          = "1.5.8"
-    val janino           = "3.1.12"
-    val pureConfig       = "0.17.7"
-    val monocleVersion   = "3.3.0"
-    val circeVersion     = "0.15.1"
+    val coulomb             = "0.8.0"
+    val commonsHttp         = "3.1"
+    val unboundId           = "3.2.1"
+    val jwt                 = "10.0.1"
+    val slf4j               = "2.0.16"
+    val log4cats            = "2.7.0"
+    val log4catsLogLevel    = "0.3.1"
+    val logback             = "1.5.12"
+    val janino              = "3.1.12"
+    val pureConfig          = "0.17.7"
+    val monocleVersion      = "3.3.0"
+    val circeVersion        = "0.15.1"
+    val circeRefinedVersion = "0.15.1"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.1"
+    val munitVersion           = "1.0.2"
     val munitDisciplineVersion = "2.0.0"
     val munitCatsEffectVersion = "2.0.0"
 
@@ -49,19 +51,19 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.104.0"
-    val lucumaUI        = "0.117.0"
-    val lucumaSchemas   = "0.99.1"
-    val lucumaSSO       = "0.6.23"
-    val lucumaODBSchema = "0.13.0"
+    val lucumaCore      = "0.107.0"
+    val lucumaUI        = "0.121.0"
+    val lucumaSchemas   = "0.107.1"
+    val lucumaSSO       = "0.6.27"
+    val lucumaODBSchema = "0.16.1"
 
     // Clue
     val clue = "0.40.0"
 
     // ScalaJS libraries
-    val crystal      = "0.43.0"
+    val crystal      = "0.45.3"
     val javaTimeJS   = "2.6.0"
-    val lucumaReact  = "0.71.0"
+    val lucumaReact  = "0.71.3"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta6"
   }
@@ -177,7 +179,7 @@ object Settings {
         "io.circe" %%% "circe-core"    % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-generic" % LibraryVersions.circeVersion,
         "io.circe" %%% "circe-parser"  % LibraryVersions.circeVersion,
-        "io.circe" %%% "circe-refined" % LibraryVersions.circeVersion,
+        "io.circe" %%% "circe-refined" % LibraryVersions.circeRefinedVersion,
         "io.circe" %%% "circe-testing" % LibraryVersions.circeVersion % "test"
       )
     )
