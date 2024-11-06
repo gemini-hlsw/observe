@@ -74,6 +74,11 @@ lazy val dockerHubLogin =
     name = Some("Login to Docker Hub")
   )
 
+lazy val setupSbt = WorkflowStep.Use(
+  UseRef.Public("sbt", "setup-sbt", "v1"),
+  name = Some("Setup SBT")
+)
+
 lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
     List("deploy/docker:publish"),
@@ -96,6 +101,7 @@ ThisBuild / githubWorkflowAddedJobs +=
     "deploy",
     "Build and publish Docker image / Deploy to Heroku",
     WorkflowStep.Checkout ::
+      setupSbt ::
       WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
       setupNodeNpmInstall :::
       dockerHubLogin ::
@@ -111,8 +117,8 @@ ThisBuild / lucumaCssExts += "svg"
 
 Global / onChangedBuildSource                   := ReloadOnSourceChanges
 ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
-ThisBuild / scalaVersion                        := "3.5.0"
-ThisBuild / crossScalaVersions                  := Seq("3.5.0")
+ThisBuild / scalaVersion                        := "3.5.2"
+ThisBuild / crossScalaVersions                  := Seq("3.5.2")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
   "https://s01.oss.sonatype.org/content/repositories/snapshots/"

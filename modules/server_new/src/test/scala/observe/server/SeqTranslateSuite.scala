@@ -66,6 +66,7 @@ class SeqTranslateSuite extends TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )
@@ -80,7 +81,7 @@ class SeqTranslateSuite extends TestCommon {
     if (cond(st)) st
     else
       st match {
-        case EngineStep.Zipper(_, _, _, p :: ps, f, d, _) =>
+        case EngineStep.Zipper(_, _, p :: ps, f, d, _) =>
           advanceStepUntil(
             st.copy(
               pending = ps,
@@ -118,7 +119,7 @@ class SeqTranslateSuite extends TestCommon {
             ),
             cond
           )
-        case _                                            => st
+        case _                                         => st
       }
 
   val baseState: EngineState[IO] =

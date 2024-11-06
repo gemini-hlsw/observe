@@ -26,6 +26,8 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Dataset
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
@@ -59,11 +61,12 @@ sealed trait OdbEventCommands[F[_]] {
     generatedId:  Option[Atom.Id]
   ): F[Unit]
   def stepStartStep(
-    obsId:         Observation.Id,
-    dynamicConfig: DynamicConfig,
-    stepConfig:    StepConfig,
-    observeClass:  ObserveClass,
-    generatedId:   Option[Step.Id]
+    obsId:           Observation.Id,
+    dynamicConfig:   DynamicConfig,
+    stepConfig:      StepConfig,
+    telescopeConfig: CoreTelescopeConfig,
+    observeClass:    ObserveClass,
+    generatedId:     Option[Step.Id]
   ): F[Unit]
   def stepStartConfigure(obsId:  Observation.Id): F[Unit]
   def stepEndConfigure(obsId:    Observation.Id): F[Boolean]
@@ -128,11 +131,12 @@ object OdbProxy {
       ().pure[F]
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] = ().pure[F]
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
@@ -257,15 +261,17 @@ object OdbProxy {
     } yield ()
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] =
       for {
         atomId <- getCurrentAtomId(obsId)
-        stepId <- recordStep(atomId, dynamicConfig, stepConfig, observeClass, generatedId)
+        stepId <-
+          recordStep(atomId, dynamicConfig, stepConfig, telescopeConfig, observeClass, generatedId)
         _      <- setCurrentStepId(obsId, stepId.some)
         _      <- L.debug(s"Recorded step for obsId: $obsId, recordedStepId: $stepId")
         _      <- AddStepEventMutation[F]
@@ -291,7 +297,7 @@ object OdbProxy {
     override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
       for {
         stepId <- getCurrentStepId(obsId)
-        _      <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
+        _      <- L.debug(s"Send ODB event stepStartObserve for obsId: $obsId, step $stepId")
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.StartObserve)
         _      <- L.debug("ODB event stepStartObserve sent")
       } yield true
@@ -465,19 +471,19 @@ object OdbProxy {
       instrument:   Instrument,
       generatedId:  Option[Atom.Id]
     ): F[RecordedAtomId] =
-      println(s"RECORDING ATOM: $visitId, $instrument, $sequenceType, $stepCount, $generatedId")
       RecordAtomMutation[F]
         .execute:
-          RecordAtomInput(visitId, instrument, sequenceType, stepCount, generatedId.orIgnore)
+          RecordAtomInput(visitId, instrument, sequenceType, stepCount.assign, generatedId.orIgnore)
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
     private def recordStep(
-      atomId:        RecordedAtomId,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      atomId:          RecordedAtomId,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: TelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[RecordedStepId] = dynamicConfig match {
       case s @ DynamicConfig.GmosNorth(_, _, _, _, _, _, _) =>
         recordGmosNorthStep:
@@ -485,6 +491,7 @@ object OdbProxy {
             atomId.value,
             s.toInput,
             stepConfig.toInput,
+            telescopeConfig.toInput.assign,
             observeClass,
             generatedId.orIgnore
           )
@@ -494,6 +501,7 @@ object OdbProxy {
             atomId.value,
             s.toInput,
             stepConfig.toInput,
+            telescopeConfig.toInput.assign,
             observeClass,
             generatedId.orIgnore
           )
@@ -549,11 +557,12 @@ object OdbProxy {
     }
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] = Applicative[F].unit
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit

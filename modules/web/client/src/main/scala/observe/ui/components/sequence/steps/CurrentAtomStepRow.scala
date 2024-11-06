@@ -19,6 +19,7 @@ case class CurrentAtomStepRow[+D](
   val id                   = step.id.asRight
   val instrumentConfig     = step.instConfig.config.asInstanceOf[D].some
   val stepConfig           = step.stepConfig.some
+  val telescopeConfig      = step.telescopeConfig.some
   val isFinished           = step.status.isFinished
   // TODO This could be an estimate for pending steps, or the time it took for finished steps.
   // In either case, we don't have the information from the server.

@@ -171,7 +171,6 @@ class SequenceSuite extends munit.CatsEffectSuite {
     EngineStep.Zipper(
       id = stepId(1),
       breakpoint = Breakpoint.Disabled,
-      EngineStep.SkipMark(false),
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>

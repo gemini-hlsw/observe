@@ -13,7 +13,6 @@ import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.*
 import lucuma.core.enums.Instrument
-import lucuma.core.math.Offset
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
 import lucuma.core.model.Program
@@ -44,7 +43,6 @@ import observe.model.Observer
 import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceState.Running
-import observe.model.StepState
 import observe.model.SystemOverrides
 import observe.model.UserPrompt
 import observe.model.dhs.DataId
@@ -359,85 +357,12 @@ class ObserveEngineSuite extends TestCommon {
       .exists(_.started)).assert
   }
 
-  test("ObserveEngine startFrom should start a sequence from an arbitrary step") {
-    val s0        = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        sequenceNSteps(seqObsId1, 5),
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-    val runStepId = stepId(3)
-
-    (for {
-      db <- TestOdbProxy.build[IO](staticCfg1.some, none, List.empty)
-      oe <- observeEngineWithODB(db)
-      _  <- oe.startFrom(
-              seqObsId1,
-              Observer("Joe".refined),
-              runStepId,
-              clientId,
-              RunOverride.Default
-            )
-      sf <- oe
-              .stream(s0)
-              .map(_._2)
-              .takeThrough(_.sequences.values.exists(_.seq.status.isRunning))
-              .compile
-              .last
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .map(_.toSequence.steps)).map { s =>
-      assert(s.flatMap(_.get(0)).exists(_.status === StepState.Skipped))
-      assert(s.flatMap(_.get(1)).exists(_.status === StepState.Skipped))
-      assert(s.flatMap(_.get(2)).exists(_.status === StepState.Completed))
-    }
-  }
-
-  test("ObserveEngine startFrom should not start the sequence if there is a resource conflict") {
-    val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
-      None,
-      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
-      EngineState.instrumentLoaded(Instrument.GmosNorth)
-    ) >>>
-      ODBSequencesLoader.loadSequenceEndo[IO](
-        None,
-        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
-        EngineState.instrumentLoaded(Instrument.GmosSouth)
-      ) >>>
-      EngineState
-        .sequenceStateIndex[IO](seqObsId1)
-        .andThen(Sequence.State.status[IO])
-        .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
-
-    val runStepId = stepId(2)
-
-    (for {
-      oe <- observeEngine
-      _  <- oe.startFrom(
-              seqObsId2,
-              Observer("Joe".refined),
-              runStepId,
-              clientId,
-              RunOverride.Default
-            )
-      sf <- oe
-              .stream(s0)
-              .map(_._2)
-              .takeThrough(_.sequences.get(seqObsId2).exists(_.seq.status.isRunning))
-              .compile
-              .last
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
-      .exists(_.status.isIdle)).assert
-  }
-
   private def testTargetSequence(targetName: NonEmptyString): SequenceGen[IO] = {
     val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science))
     )
 
     val startStepIdx  = 1
@@ -455,6 +380,7 @@ class ObserveEngineSuite extends TestCommon {
           stepId(idx + startStepIdx),
           dynamicCfg1,
           st,
+          telescopeCfg1,
           StepEstimate.Zero,
           cl,
           Breakpoint.Disabled
@@ -465,8 +391,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ObsStatus.Ready,
-        ObsActiveStatus.Active,
+        ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None
@@ -517,6 +442,7 @@ class ObserveEngineSuite extends TestCommon {
             StepStatusGen.Null,
             step.instrumentConfig,
             step.stepConfig,
+            step.telescopeConfig,
             breakpoint = Breakpoint.Disabled
           )
         }.toList
@@ -625,96 +551,6 @@ class ObserveEngineSuite extends TestCommon {
       .exists(_.status.isRunning)).assert
   }
 
-  test("ObserveEngine start should startFrom the sequence if it passes the target check") {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Default
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isRunning)).assert
-  }
-
-  test(
-    "ObserveEngine start should not startFrom the sequence if it doesn't pass the target check"
-  ) {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof1")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Default
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isIdle)).assert
-  }
-
-  test(
-    "ObserveEngine start should startFrom the sequence if it doesn't pass the target check but forced"
-  ) {
-    val seq = testTargetSequence("proof".refined)
-
-    val s0 = ODBSequencesLoader
-      .loadSequenceEndo[IO](
-        None,
-        seq,
-        EngineState.instrumentLoaded(Instrument.GmosNorth)
-      )
-      .apply(EngineState.default[IO])
-
-    (for {
-      systems <- systemsWithTargetName("proof1")
-      oe      <- ObserveEngine.build(Site.GN, systems, defaultSettings)
-      sf      <- advanceOne(oe,
-                            s0,
-                            oe.startFrom(
-                              seqObsId1,
-                              Observer("Joe".refined),
-                              stepId(2),
-                              clientId,
-                              RunOverride.Override
-                            )
-                 )
-    } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
-      .exists(_.status.isRunning)).assert
-  }
   // test(
 //   it should "not check target for calibrations" in {
 //     val systems = systemsWithTargetName("other")
@@ -787,7 +623,7 @@ class ObserveEngineSuite extends TestCommon {
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
       (ObserveClass.ProgramCal, StepConfig.Dark),
-      List((ObserveClass.Science, StepConfig.Science(Offset.Zero, StepGuideState.Enabled)))
+      List((ObserveClass.Science, StepConfig.Science))
     )
 
     val startStepIdx  = 1
@@ -805,6 +641,7 @@ class ObserveEngineSuite extends TestCommon {
           stepId(idx + startStepIdx),
           dynamicCfg1,
           st,
+          telescopeCfg1,
           StepEstimate.Zero,
           cl,
           Breakpoint.Disabled
@@ -816,8 +653,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ObsStatus.Ready,
-        ObsActiveStatus.Active,
+        ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None
@@ -868,6 +704,7 @@ class ObserveEngineSuite extends TestCommon {
             StepStatusGen.Null,
             step.instrumentConfig,
             step.stepConfig,
+            step.telescopeConfig,
             breakpoint = Breakpoint.Disabled
           )
         }.toList
@@ -1007,6 +844,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1018,6 +856,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -1029,6 +868,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(firstScienceStepId),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1040,6 +880,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -1135,6 +976,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1 + stepCount),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1146,6 +988,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i + stepCount),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
@@ -1264,7 +1107,13 @@ class ObserveEngineSuite extends TestCommon {
         (ev: TestOdbProxy.OdbEvent) =>
           assertEquals(
             ev,
-            TestOdbProxy.StepStartStep(seqObsId1, dynamicCfg1, stepCfg1, ObserveClass.Science)
+            TestOdbProxy.StepStartStep(
+              seqObsId1,
+              dynamicCfg1,
+              stepCfg1,
+              telescopeCfg1,
+              ObserveClass.Science
+            )
           ),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
@@ -1294,6 +1143,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1305,6 +1155,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled
