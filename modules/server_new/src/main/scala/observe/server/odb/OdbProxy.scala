@@ -95,7 +95,6 @@ sealed trait OdbEventCommands[F[_]] {
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
   def read(oid: Observation.Id): F[ObsQuery.Data.Observation]
-  def queuedSequences: F[List[Observation.Id]]
 }
 
 object OdbProxy {
@@ -115,11 +114,6 @@ object OdbProxy {
               _.pure[F]
             )
           )
-
-      override def queuedSequences: F[List[Observation.Id]] =
-        ActiveObservationIdsQuery[F]
-          .query()
-          .map(_.observations.matches.map(_.id))
 
       export evCmds.*
     }
@@ -538,8 +532,6 @@ object OdbProxy {
 
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
       .raiseError(ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented."))
-
-    override def queuedSequences: F[List[Observation.Id]] = List.empty[Observation.Id].pure[F]
 
     export evCmds.{
       datasetEndExposure,

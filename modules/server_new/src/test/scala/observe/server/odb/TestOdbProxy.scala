@@ -106,8 +106,6 @@ object TestOdbProxy {
               )
           }
 
-        override def queuedSequences: F[List[Observation.Id]] = List.empty.pure[F]
-
         override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] = addEvent(
           VisitStart(obsId, staticCfg)
         )
