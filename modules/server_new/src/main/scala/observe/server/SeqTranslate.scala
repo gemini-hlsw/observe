@@ -214,7 +214,8 @@ object SeqTranslate {
           buildSequenceGmosN(sequence, c).pure[F]
         case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
           buildSequenceGmosS(sequence, c).pure[F]
-        case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
+        case _                                                =>
+          ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
       }
 
     private def buildNextAtom[S <: StaticConfig, D <: DynamicConfig](

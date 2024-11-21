@@ -26,7 +26,7 @@ import observe.model.enums.*
 sealed trait SeqEvent       extends Product with Serializable
 sealed trait NoUserSeqEvent extends SeqEvent
 
-object SeqEvent {
+object SeqEvent:
   case class SetOperator(name: Operator, user: Option[User])                     extends SeqEvent
   case class SetObserver(id: Observation.Id, user: Option[User], name: Observer) extends SeqEvent
   case class SetTcsEnabled(id: Observation.Id, user: Option[User], enabled: SubsystemEnabled)
@@ -89,4 +89,3 @@ object SeqEvent {
       extends SeqEvent
   case class AtomCompleted(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
       extends SeqEvent
-}

@@ -37,6 +37,7 @@ class StepSuite extends CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
+    (eng, obsId) => eng.startNewAtom(obsId),
     (eng, obsId) => eng.startNewAtom(obsId)
   )
 

@@ -965,7 +965,7 @@ class ObserveEngineSuite extends TestCommon {
       s
         .flatMap(_._2.sequences.get(seqObsId1))
         .flatMap(_.seqGen.nextAtom.steps.headOption)
-        .map(z => assertEquals(z.id, scienceSteps.head.id))
+        .map(z => assertEquals(z.id, scienceSteps.get(1).get.id))
         .getOrElse(fail("Bad step id found"))
     }
   }
@@ -1039,15 +1039,12 @@ class ObserveEngineSuite extends TestCommon {
     } yield r
       .flatMap(_._2.sequences.get(seqObsId1))
       .flatMap(_.seqGen.nextAtom.steps.headOption)
-      .map(z => assertEquals(z.id, stepId(1 + stepCount)))
+      .map(z => assertEquals(z.id, stepId(2 + stepCount)))
       .getOrElse(fail("Bad step id found"))
 
   }
 
-  test("ObserveEngine start should run the sequence and produce the ODB events") {
-    val atomCount = 2
-    val stepCount = 2
-
+  def assertStep(l: List[TestOdbProxy.OdbEvent]): List[TestOdbProxy.OdbEvent] = {
     def isDatasetStartExposure(ev: TestOdbProxy.OdbEvent): Boolean = ev match {
       case TestOdbProxy.DatasetStartExposure(obsId, _) => obsId === seqObsId1
       case _                                           => false
@@ -1078,72 +1075,80 @@ class ObserveEngineSuite extends TestCommon {
       case _                                      => false
     }
 
-    def assertAtom(
-      l:       List[TestOdbProxy.OdbEvent],
-      seqType: SequenceType
-    ): List[TestOdbProxy.OdbEvent] = {
-      assertEquals(
-        List(
-          TestOdbProxy.AtomStart(
+    val chk = List(
+      (ev: TestOdbProxy.OdbEvent) =>
+        assertEquals(
+          ev,
+          TestOdbProxy.StepStartStep(
             seqObsId1,
-            Instrument.GmosNorth,
-            seqType,
-            NonNegShort.unsafeFrom(stepCount.toShort)
+            dynamicCfg1,
+            stepCfg1,
+            telescopeCfg1,
+            ObserveClass.Science
           )
         ),
-        l.take(1)
-      )
-      val ss = (1 until stepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
-        assertStep(b)
-      }
+      (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
+      (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
+      (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartObserve(seqObsId1)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartExposure(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndExposure(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartReadout(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndReadout(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartWrite(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndWrite(ev)),
+      (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndObserve(seqObsId1)),
+      (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndStep(seqObsId1))
+    )
 
-      assertEquals(
-        List(TestOdbProxy.AtomEnd(seqObsId1)),
-        ss.take(1)
-      )
+    assert(l.length >= chk.length)
+    chk.zip(l).foreach { case (f, x) => f(x) }
+    l.drop(chk.length)
+  }
 
-      ss.drop(1)
+  def assertAtom(
+    l:                 List[TestOdbProxy.OdbEvent],
+    seqType:           SequenceType,
+    originalStepCount: Int,
+    atomStepCount:     Int
+  ): List[TestOdbProxy.OdbEvent] = {
+    // First we get AtomStart
+    assertEquals(
+      List(
+        TestOdbProxy.AtomStart(
+          seqObsId1,
+          Instrument.GmosNorth,
+          seqType,
+          NonNegShort.unsafeFrom(originalStepCount.toShort)
+        )
+      ),
+      l.take(1)
+    )
+    // Test each step drop the first event fo AtomStart
+    val ss = (1 until atomStepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
+      assertStep(b)
     }
 
-    def assertStep(l: List[TestOdbProxy.OdbEvent]): List[TestOdbProxy.OdbEvent] = {
-      val chk = List(
-        (ev: TestOdbProxy.OdbEvent) =>
-          assertEquals(
-            ev,
-            TestOdbProxy.StepStartStep(
-              seqObsId1,
-              dynamicCfg1,
-              stepCfg1,
-              telescopeCfg1,
-              ObserveClass.Science
-            )
-          ),
-        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
-        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
-        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartObserve(seqObsId1)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartExposure(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndExposure(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartReadout(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndReadout(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetStartWrite(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assert(isDatasetEndWrite(ev)),
-        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndObserve(seqObsId1)),
-        (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndStep(seqObsId1))
-      )
+    // At the end AtomEnd
+    assertEquals(
+      List(TestOdbProxy.AtomEnd(seqObsId1)),
+      ss.take(1)
+    )
 
-      assert(l.length >= chk.length)
-      chk.zip(l).foreach { case (f, x) => f(x) }
-      l.drop(chk.length)
-    }
+    ss.drop(1)
+  }
+
+  test("ObserveEngine start should run the sequence and produce the ODB events") {
+    val atomCount = 2
+    val stepCount = 2
 
     val firstEvents = List(
       TestOdbProxy.VisitStart(seqObsId1, staticCfg1),
       TestOdbProxy.SequenceStart(seqObsId1)
     )
 
-    val steps = NonEmptyList(
+    def steps(k: Int) = NonEmptyList(
       Step[DynamicConfig.GmosNorth](
-        stepId(1),
+        stepId(1 + k),
         dynamicCfg1,
         stepCfg1,
         telescopeCfg1,
@@ -1155,7 +1160,7 @@ class ObserveEngineSuite extends TestCommon {
         .range(2, stepCount + 1)
         .map(i =>
           Step[DynamicConfig.GmosNorth](
-            stepId(i),
+            stepId(i + k),
             dynamicCfg1,
             stepCfg1,
             telescopeCfg1,
@@ -1171,10 +1176,12 @@ class ObserveEngineSuite extends TestCommon {
                          .fill(atomCount)(IO.delay(java.util.UUID.randomUUID()))
                          .parSequence
                          .map(_.map(Atom.Id.fromUuid))
-      odb           <- TestOdbProxy.build[IO](staticCfg1.some,
-                                              none,
-                                              atomIds.map(i => Atom[DynamicConfig.GmosNorth](i, none, steps))
-                       )
+      odb           <-
+        TestOdbProxy.build[IO](
+          staticCfg1.some,
+          none,
+          atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k)))
+        )
       systems       <- defaultSystems.map(_.copy(odb = odb))
       oseq          <- odb.read(seqObsId1)
       seqo          <- generateSequence(oseq, systems)
@@ -1199,13 +1206,106 @@ class ObserveEngineSuite extends TestCommon {
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft(
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science)
+        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount, stepCount)
       ) { case (b, _) =>
-        assertAtom(b, SequenceType.Science)
+        assertAtom(b, SequenceType.Science, stepCount, stepCount)
       }
       assertEquals(rest.length, 1)
       assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
     }
   }
 
+  test(
+    "ObserveEngine should run the sequence and load new events, executing the last data provided by the ODB"
+  ) {
+    val atomCount = 2
+    val stepCount = 2
+
+    val firstEvents = List(
+      TestOdbProxy.VisitStart(seqObsId1, staticCfg1),
+      TestOdbProxy.SequenceStart(seqObsId1)
+    )
+
+    def steps(k: Int) = NonEmptyList(
+      Step[DynamicConfig.GmosNorth](
+        stepId(1 + k),
+        dynamicCfg1,
+        stepCfg1,
+        telescopeCfg1,
+        StepEstimate.Zero,
+        ObserveClass.Science,
+        Breakpoint.Disabled
+      ),
+      List
+        .range(2, stepCount + 1)
+        .map(i =>
+          Step[DynamicConfig.GmosNorth](
+            stepId(i + k),
+            dynamicCfg1,
+            stepCfg1,
+            telescopeCfg1,
+            StepEstimate.Zero,
+            ObserveClass.Science,
+            Breakpoint.Disabled
+          )
+        )
+    )
+
+    // Ugly flag but it would be quite complicated to avoid it
+    var addStep = true
+    for {
+      atomIds       <- List
+                         .fill(atomCount)(IO.delay(java.util.UUID.randomUUID()))
+                         .parSequence
+                         .map(_.map(Atom.Id.fromUuid))
+      odb           <-
+        TestOdbProxy.build[IO](
+          staticCfg1.some,
+          none,
+          atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k))),
+          s =>
+            if (addStep) {
+              // Only once we add an extra setp at the beggining of the atom
+              addStep = false
+              s.copy(sciences =
+                s.sciences.map(s =>
+                  if (atomIds.headOption.exists(_ === s.id))
+                    s.copy(steps = steps(5).head :: s.steps)
+                  else s
+                )
+              )
+            } else s
+        )
+      systems       <- defaultSystems.map(_.copy(odb = odb))
+      oseq          <- odb.read(seqObsId1)
+      seqo          <- generateSequence(oseq, systems)
+      seq           <- seqo.map(_.pure[IO]).getOrElse(IO.delay(fail("Unable to create sequence")))
+      s0             = ODBSequencesLoader
+                         .loadSequenceEndo[IO](
+                           None,
+                           seq,
+                           EngineState.instrumentLoaded(Instrument.GmosNorth)
+                         )
+                         .apply(EngineState.default[IO])
+      observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
+      _             <- observeEngine
+                         .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
+                         observeEngine
+                           .stream(s0)
+                           .drop(1)
+                           .takeThrough(_._2.sequences.get(seqObsId1).exists(x => !isFinished(x.seq.status)))
+                           .compile
+                           .last
+      res           <- odb.outCapture
+    } yield {
+      assertEquals(res.take(firstEvents.length), firstEvents)
+      val rest = (1 until atomCount).foldLeft {
+        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount, 3)
+      } { case (b, _) =>
+        assertAtom(b, SequenceType.Science, stepCount, 2)
+      }
+      assertEquals(rest.length, 1)
+      assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
+    }
+  }
 }
