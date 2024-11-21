@@ -38,7 +38,7 @@ object SystemEvent {
   final case class Failed(id: Observation.Id, i: Int, e: Result.Error)  extends SystemEvent
   final case class Busy(id: Observation.Id, clientId: ClientId)         extends SystemEvent
   final case class BreakpointReached(id: Observation.Id)                extends SystemEvent
-  final case class Executed(id: Observation.Id)                         extends SystemEvent
+  final case class Executed(id: Observation.Id, i: Int)                 extends SystemEvent
   final case class Executing(id: Observation.Id)                        extends SystemEvent
   final case class Finished(id: Observation.Id)                         extends SystemEvent
   case object Null                                                      extends SystemEvent

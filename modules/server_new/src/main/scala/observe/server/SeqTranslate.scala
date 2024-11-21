@@ -211,8 +211,10 @@ object SeqTranslate {
     override def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])] =
       sequence.execution.config match {
         case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
+          println("Building GMOS-N sequence")
           buildSequenceGmosN(sequence, c).pure[F]
         case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
+          println("Building GMOS-S sequence")
           buildSequenceGmosS(sequence, c).pure[F]
         case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
       }

@@ -118,6 +118,7 @@ class PackageSuite extends munit.CatsEffectSuite {
 
   private def executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
+    (eng, obsId) => eng.startNewAtom(obsId),
     (eng, obsId) => eng.startNewAtom(obsId)
   )
 

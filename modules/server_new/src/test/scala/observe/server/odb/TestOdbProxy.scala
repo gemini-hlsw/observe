@@ -40,6 +40,9 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
+import monocle.Lens
+import monocle.Focus
+import cats.data.NonEmptyList
 
 trait TestOdbProxy[F[_]] extends OdbProxy[F] {
   def outCapture: F[List[TestOdbProxy.OdbEvent]]
@@ -48,18 +51,45 @@ trait TestOdbProxy[F[_]] extends OdbProxy[F] {
 object TestOdbProxy {
 
   case class State(
-    sciences: List[Atom[DynamicConfig.GmosNorth]],
-    out:      List[OdbEvent]
-  )
+    sciences:    List[Atom[DynamicConfig.GmosNorth]],
+    currentAtom: Option[Atom.Id],
+    currentStep: Option[Step.Id],
+    out:         List[OdbEvent]
+  ) {
+    def completeCurrentAtom: State =
+      currentAtom.fold(this)(a => copy(currentAtom = none, sciences = sciences.filter(_.id =!= a)))
+    def completeCurrentStep: State =
+      currentStep.fold(this)(s =>
+        copy(currentStep = none,
+             sciences = sciences.map(a =>
+               NonEmptyList.fromList(a.steps.filter(_.id =!= s)).fold(a)(st => a.copy(steps = st))
+             )
+        )
+      )
+  }
+
+  object State:
+    val currentStep: Lens[State, Option[Step.Id]]                  = Focus[State](_.currentStep)
+    val currentAtom: Lens[State, Option[Atom.Id]]                  = Focus[State](_.currentAtom)
+    val sciences: Lens[State, List[Atom[DynamicConfig.GmosNorth]]] = Focus[State](_.sciences)
 
   def build[F[_]: Concurrent](
-    staticCfg:   Option[StaticConfig.GmosNorth] = None,
-    acquisition: Option[Atom[DynamicConfig.GmosNorth]],
-    sciences:    List[Atom[DynamicConfig.GmosNorth]] = List.empty
+    staticCfg:          Option[StaticConfig.GmosNorth] = None,
+    acquisition:        Option[Atom[DynamicConfig.GmosNorth]],
+    sciences:           List[Atom[DynamicConfig.GmosNorth]] = List.empty,
+    updateStartObserve: State => State = identity
   ): F[TestOdbProxy[F]] = Ref
-    .of[F, State](State(sciences, List.empty))
+    .of[F, State](State(sciences, None, None, List.empty))
     .map(rf =>
       new TestOdbProxy[F] {
+        println(s"acquisition: ")
+        acquisition.foreach { u =>
+          println("-- atom --"); pprint.pprintln(u.id); pprint.pprintln(u.steps.map(_.id))
+        }
+        println(s"sciences:")
+        sciences.foreach { u =>
+          println("-- atom --"); pprint.pprintln(u.id); pprint.pprintln(u.steps.map(_.id))
+        }
         private def addEvent(ev: OdbEvent): F[Unit] =
           rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
 
@@ -121,15 +151,7 @@ object TestOdbProxy {
         ): F[Unit] = (sequenceType match {
           case SequenceType.Acquisition => Applicative[F].unit
           case SequenceType.Science     =>
-            rf.modify(s =>
-              (s.focus(_.sciences)
-                 .modify(ss =>
-                   if (ss.isEmpty) List.empty
-                   else ss.tail
-                 ),
-               ()
-              )
-            )
+            rf.update(State.currentAtom.replace(generatedId))
         }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
 
         override def stepStartStep(
@@ -178,13 +200,14 @@ object TestOdbProxy {
           addEvent(StepEndObserve(obsId)).as(true)
 
         override def stepEndStep(obsId: Observation.Id): F[Boolean] =
-          addEvent(StepEndStep(obsId)).as(true)
+          rf.update(a => updateStartObserve(a).completeCurrentStep) *> addEvent(StepEndStep(obsId))
+            .as(true)
 
         override def stepAbort(obsId: Observation.Id): F[Boolean] =
           addEvent(StepAbort(obsId)).as(true)
 
         override def atomEnd(obsId: Observation.Id): F[Boolean] =
-          addEvent(AtomEnd(obsId)).as(true)
+          rf.update(_.completeCurrentAtom) *> addEvent(AtomEnd(obsId)).as(true)
 
         override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
           addEvent(SequenceEnd(obsId)).as(true)

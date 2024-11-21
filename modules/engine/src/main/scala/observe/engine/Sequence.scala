@@ -155,6 +155,8 @@ object Sequence {
      */
     val next: Option[State[F]]
 
+    val isLast: Boolean
+
     val status: SequenceState
 
     val pending: List[EngineStep[F]]
@@ -289,6 +291,9 @@ object Sequence {
         case Some(x) => Zipper(x, status, singleRuns).some
       }
 
+      override val isLast: Boolean =
+        zipper.focus.pending.length === 0
+
       /**
        * Current Execution
        */
@@ -396,6 +401,8 @@ object Sequence {
       override val next: Option[State[F]] = None
 
       override val current: Execution[F] = Execution.empty
+
+      override val isLast: Boolean = true
 
       override val currentStep: Option[EngineStep[F]] = none
 

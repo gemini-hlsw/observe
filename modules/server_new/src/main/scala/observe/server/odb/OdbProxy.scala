@@ -237,7 +237,10 @@ object OdbProxy {
       generatedId:  Option[Atom.Id]
     ): F[Unit] = for {
       visitId <- getCurrentVisitId(obsId)
-      _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
+      _       <-
+        L.debug(
+          s"Record atom for obsId: $obsId, visitId: $visitId type: $sequenceType and count: $stepCount"
+        )
       atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument, generatedId)
       -       <- setCurrentAtomId(obsId, atomId)
       _       <- AddAtomEventMutation[F]
@@ -267,7 +270,10 @@ object OdbProxy {
         stepId <-
           recordStep(atomId, dynamicConfig, stepConfig, telescopeConfig, observeClass, generatedId)
         _      <- setCurrentStepId(obsId, stepId.some)
-        _      <- L.debug(s"Recorded step for obsId: $obsId, recordedStepId: $stepId")
+        _      <-
+          L.debug(
+            s"Recorded step for obsId: $obsId, recordedStepId: $stepId, original id $generatedId"
+          )
         _      <- AddStepEventMutation[F]
                     .execute(stepId = stepId.value, stg = StepStage.StartStep)
         _      <- L.debug(s"ODB event stepStartStep sent with stepId $stepId")
