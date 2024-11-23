@@ -96,9 +96,11 @@ class SequenceSuite extends munit.CatsEffectSuite {
       r <- OptionT.pure(t match {
              case Sequence.State.Zipper(zipper, status, _) =>
                zipper.done.length === 1 && zipper.pending.isEmpty && status === SequenceState.Idle
-             case _                                        => false
+             case u                                        =>
+               println(u)
+               false
            })
-    } yield r).value.map(_.getOrElse(fail("Sequence not found"))).assert
+    } yield { println(r); r }).value.map(_.getOrElse(fail("Sequence not found"))).assert
   }
 
   test("resume execution to completion after a breakpoint") {

@@ -1287,7 +1287,12 @@ class ObserveEngineSuite extends TestCommon {
         (ev: TestOdbProxy.OdbEvent) =>
           assertEquals(
             ev,
-            TestOdbProxy.StepStartStep(seqObsId1, dynamicCfg1, stepCfg1, ObserveClass.Science)
+            TestOdbProxy.StepStartStep(seqObsId1,
+                                       dynamicCfg1,
+                                       stepCfg1,
+                                       telescopeCfg1,
+                                       ObserveClass.Science
+            )
           ),
         // (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.AtomEnd(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
@@ -1372,6 +1377,7 @@ class ObserveEngineSuite extends TestCommon {
         stepId(1 + k),
         dynamicCfg1,
         stepCfg1,
+        telescopeCfg1,
         StepEstimate.Zero,
         ObserveClass.Science,
         Breakpoint.Disabled
@@ -1383,6 +1389,7 @@ class ObserveEngineSuite extends TestCommon {
             stepId(i + k),
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             StepEstimate.Zero,
             ObserveClass.Science,
             Breakpoint.Disabled

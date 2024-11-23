@@ -239,13 +239,13 @@ object OdbProxy {
       visitId <- getCurrentVisitId(obsId)
       _       <-
         L.debug(
-          s"Record atom for obsId: $obsId, visitId: $visitId type: $sequenceType and count: $stepCount"
+          s"-------- Record atom for obsId: $obsId, visitId: $visitId type: $sequenceType and count: $stepCount"
         )
       atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument, generatedId)
       -       <- setCurrentAtomId(obsId, atomId)
       _       <- AddAtomEventMutation[F]
                    .execute(atomId = atomId.value, stg = AtomStage.StartAtom)
-      _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
+      _       <- L.debug(s"-------- New atom for obsId: $obsId aid: $atomId")
     } yield ()
 
     override def sequenceStart(
@@ -272,11 +272,11 @@ object OdbProxy {
         _      <- setCurrentStepId(obsId, stepId.some)
         _      <-
           L.debug(
-            s"Recorded step for obsId: $obsId, recordedStepId: $stepId, original id $generatedId"
+            s"-------- Recorded step for obsId: $obsId, recordedStepId: $stepId, original id $generatedId"
           )
         _      <- AddStepEventMutation[F]
                     .execute(stepId = stepId.value, stg = StepStage.StartStep)
-        _      <- L.debug(s"ODB event stepStartStep sent with stepId $stepId")
+        _      <- L.debug(s"-------- ODB event stepStartStep sent with stepId $stepId")
       } yield ()
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] =
@@ -377,7 +377,7 @@ object OdbProxy {
     override def stepEndStep(obsId: Observation.Id): F[Boolean] =
       for {
         stepId <- getCurrentStepId(obsId)
-        _      <- L.debug(s"Send ODB event stepEndStep for obsId: $obsId, step $stepId")
+      _      <- L.debug(s"-------- Send ODB event stepEndStep for obsId: $obsId, step $stepId")
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.EndStep)
         _      <- setCurrentStepId(obsId, none)
         _      <- L.debug("ODB event stepEndStep sent")
@@ -395,7 +395,7 @@ object OdbProxy {
     override def atomEnd(obsId: Observation.Id): F[Boolean] =
       for {
         atomId <- getCurrentAtomId(obsId)
-        _      <- L.debug(s"Send ODB event atomEnd for obsId: $obsId, atomId: $atomId")
+        _      <- L.debug(s"-------- Send ODB event atomEnd for obsId: $obsId, atomId: $atomId")
         _      <- AddAtomEventMutation[F].execute(atomId = atomId.value, stg = AtomStage.EndAtom)
         _      <- L.debug("ODB event atomEnd sent")
       } yield true

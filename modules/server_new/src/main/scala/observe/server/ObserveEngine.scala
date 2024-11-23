@@ -1942,11 +1942,13 @@ object ObserveEngine {
         _.map { seq =>
           seq.seqGen.nextAtom.sequenceType match {
             case SequenceType.Acquisition =>
+              println(s"---- reload acq")
               Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
                 NullSeqEvent
               )
             case SequenceType.Science     =>
-              tryAtomReload[F](odb, translator, obsId, SequenceType.Science)
+              println(s"---- reload science")
+              tryAtomReload[F](odb, translator, executeEngine, obsId, SequenceType.Science)
                 .as(
                   SeqEvent.NullSeqEvent
                 )

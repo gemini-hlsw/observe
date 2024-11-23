@@ -249,6 +249,7 @@ object SessionQueue:
         (obsStates, loadingPotOpt, loadedObsId, isProcessing) =>
           columns(obsStates, loadingPotOpt, isProcessing, loadedObsId, props.loadObs)
       .useReactTableBy: (props, cols) =>
+        props.queue.map(r => (r.obsId, r.obsReference)).foreach(println)
         TableOptions(
           cols,
           Reusable.implicitly(props.queue),

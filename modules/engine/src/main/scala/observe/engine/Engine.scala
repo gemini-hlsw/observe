@@ -160,10 +160,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
-                case Some(qs) if seq.isLast            =>
-                  putS(id)(qs) *>
-                    send(modifyState(atomReload(this, id))) *>
-                    send(executing(id))
+                // case Some(qs) if seq.isLast            =>
+                //   putS(id)(qs) *>
+                //     send(modifyState(atomReload(this, id))) *>
+                //     send(executing(id))
 
                 case Some(qs) =>
                   putS(id)(qs) *> (if (
@@ -171,7 +171,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                        .exists(_.uninterruptible)
                                    ) {
                                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else send(executing(id)))
+                                   } else
+                                     send(modifyState(atomReload(this, id)))
+                                       .whenA(seq.isLast) *> send(executing(id)))
               }
             }
           case _                                                    => unit
@@ -410,23 +412,19 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     se: SystemEvent
   )(using ci: Concurrent[F]): HandleType[ResultType] = se match {
     case Completed(id, _, i, r)     =>
-      debug(s"Engine: From sequence $id: Action completed ($r)") *> complete(id, i, r) *>
-        pure(SystemUpdate(se, Outcome.Ok))
-    case Reload(id)                 =>
-      debug(s"Engine: Reload sequence $id:") *>
+      // debug(s"Engine: From sequence $id: Action completed ($r)") *>
+      complete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case StopCompleted(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *> stopComplete(
-        id,
-        i,
-        r
-      ) *>
+      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *>
+        stopComplete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Aborted(id, _, i, r)       =>
       debug(s"Engine: From sequence $id: Action completed with abort ($r)") *> abort(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case PartialResult(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Partial result ($r)") *> partialResult(id, i, r) *>
+      // debug(s"Engine: From sequence $id: Partial result ($r)") *>
+      partialResult(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Paused(id, i, r)           =>
       debug("Engine: Action paused") *>
@@ -444,11 +442,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       debug("Engine: Breakpoint reached") *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Executed(id, i)            =>
-      debug(s"Engine: Execution $id, action $i completed") *>
-        next(id) *> pure(SystemUpdate(se, Outcome.Ok))
+      // debug(s"Engine: Execution $id, action $i completed") *>
+      next(id) *> pure(SystemUpdate(se, Outcome.Ok))
     case Executing(id)              =>
-      debug("Engine: Executing") *>
-        execute(id) *> pure(SystemUpdate(se, Outcome.Ok))
+      // debug("Engine: Executing") *>
+      execute(id) *> pure(SystemUpdate(se, Outcome.Ok))
     case Finished(id)               =>
       debug("Engine: Finished") *>
         switch(id)(SequenceState.Completed) *> pure(SystemUpdate(se, Outcome.Ok))
