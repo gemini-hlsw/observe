@@ -3,7 +3,7 @@
 
 package observe.server.odb
 
-import cats.Applicative
+import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.syntax.all.*
@@ -32,6 +32,8 @@ import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
+import monocle.Focus
+import monocle.Lens
 import monocle.syntax.all.focus
 import observe.common.ObsQueriesGQL.ObsQuery
 import observe.common.ObsQueriesGQL.ObsQuery.Data
@@ -40,9 +42,6 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.
 import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
-import monocle.Lens
-import monocle.Focus
-import cats.data.NonEmptyList
 
 trait TestOdbProxy[F[_]] extends OdbProxy[F] {
   def outCapture: F[List[TestOdbProxy.OdbEvent]]
@@ -92,18 +91,18 @@ object TestOdbProxy {
         //       .map(_.map(_.map(_.id)))}"
         // )
         println(s"Coomplete step $currentAtom")
-        println(s"steps next ${sciences.find(_.id === currentAtom.get).map(_.steps.map(_.id))}")
+        // println(s"steps next ${sciences.find(_.id === currentAtom.get).map(_.steps.map(_.id))}")
 
         val scienceUpdated =
           sciences
             .map {
               case a if currentAtom.exists(_ === a.id) =>
                 val rest = NonEmptyList.fromList(a.steps.tail)
-                pprint.pprintln(rest)
+                // pprint.pprintln(rest)
                 rest.map(r => a.copy(steps = r))
               case a                                   => a.some
             }
-        pprint.pprintln(scienceUpdated)
+        // pprint.pprintln(scienceUpdated)
 
         copy(
           currentStep = none,

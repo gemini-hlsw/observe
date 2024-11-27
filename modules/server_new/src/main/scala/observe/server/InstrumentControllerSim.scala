@@ -84,6 +84,7 @@ object InstrumentControllerSim {
     obsStateRef:        Ref[F, ObserveState]
   )(using val F: MonadThrow[F], L: Logger[F], T: Temporal[F])
       extends InstrumentControllerSim[F] {
+    println(readOutDelay)
     private val TIC = TimeSpan.unsafeFromMicroseconds(200L)
 
     def log(msg: => String): F[Unit] =

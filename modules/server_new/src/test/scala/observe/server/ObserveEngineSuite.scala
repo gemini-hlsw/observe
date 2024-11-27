@@ -1121,7 +1121,6 @@ class ObserveEngineSuite extends TestCommon {
               ObserveClass.Science
             )
           ),
-        // (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.AtomEnd(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartObserve(seqObsId1)),
@@ -1251,8 +1250,9 @@ class ObserveEngineSuite extends TestCommon {
     }
 
     def assertAtom(
-      l:       List[TestOdbProxy.OdbEvent],
-      seqType: SequenceType
+      l:             List[TestOdbProxy.OdbEvent],
+      seqType:       SequenceType,
+      atomStepCount: Int
     ): List[TestOdbProxy.OdbEvent] = {
       // First we get AtomStart
       assertEquals(
@@ -1267,9 +1267,7 @@ class ObserveEngineSuite extends TestCommon {
         l.take(1)
       )
       // Test each step drop the first event fo AtomStart
-      val ss = (1 until stepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
-        println("======= atom start")
-        // pprint.pprintln(b)
+      val ss = (1 until atomStepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
         assertStep(b)
       }
 
@@ -1294,7 +1292,6 @@ class ObserveEngineSuite extends TestCommon {
                                        ObserveClass.Science
             )
           ),
-        // (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.AtomEnd(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepEndConfigure(seqObsId1)),
         (ev: TestOdbProxy.OdbEvent) => assertEquals(ev, TestOdbProxy.StepStartObserve(seqObsId1)),
@@ -1312,60 +1309,6 @@ class ObserveEngineSuite extends TestCommon {
       chk.zip(l).foreach { case (f, x) => f(x) }
       l.drop(chk.length)
     }
-    /*
-(StepStartStep(o-1,GmosNorth(5000000000,GmosCcdMode(Two,Two,Three,High,Fast),Two,CentralSpectrum,Some(North(B600_G5303,One,400000)),None,Some(Builtin(LongSlit_0_50))),Science(Offset(Offset.P(0), Offset.Q(0)),Enabled),Science),0)
-(StepStartConfigure(o-1),1)
-(StepEndConfigure(o-1),2)
-(StepStartObserve(o-1),3)
-(DatasetStartExposure(o-1,S19700117S5242),4)
-(DatasetEndExposure(o-1,S19700117S5242),5)
-(DatasetStartReadout(o-1,S19700117S5242),6)
-(DatasetEndReadout(o-1,S19700117S5242),7)
-(DatasetStartWrite(o-1,S19700117S5242),8)
-(DatasetEndWrite(o-1,S19700117S5242),9)
-(StepEndObserve(o-1),10)
-(StepEndStep(o-1),11)
-(StepStartStep(o-1,GmosNorth(5000000000,GmosCcdMode(Two,Two,Three,High,Fast),Two,CentralSpectrum,Some(North(B600_G5303,One,400000)),None,Some(Builtin(LongSlit_0_50))),Science(Offset(Offset.P(0), Offset.Q(0)),Enabled),Science),12)
-(StepStartConfigure(o-1),13)
-(StepEndConfigure(o-1),14)
-(StepStartObserve(o-1),15)
-(DatasetStartExposure(o-1,S19700117S5242),16)
-(DatasetEndExposure(o-1,S19700117S5242),17)
-(DatasetStartReadout(o-1,S19700117S5242),18)
-(DatasetEndReadout(o-1,S19700117S5242),19)
-(DatasetStartWrite(o-1,S19700117S5242),20)
-(DatasetEndWrite(o-1,S19700117S5242),21)
-(StepEndObserve(o-1),22)
-(StepEndStep(o-1),23)
-(AtomEnd(o-1),24)
-(AtomStart(o-1,GmosNorth,Science,2),25)
-(StepStartStep(o-1,GmosNorth(5000000000,GmosCcdMode(Two,Two,Three,High,Fast),Two,CentralSpectrum,Some(North(B600_G5303,One,400000)),None,Some(Builtin(LongSlit_0_50))),Science(Offset(Offset.P(0), Offset.Q(0)),Enabled),Science),26)
-(StepStartConfigure(o-1),27)
-(StepEndConfigure(o-1),28)
-(StepStartObserve(o-1),29)
-(DatasetStartExposure(o-1,S19700117S5242),30)
-(DatasetEndExposure(o-1,S19700117S5242),31)
-(DatasetStartReadout(o-1,S19700117S5242),32)
-(DatasetEndReadout(o-1,S19700117S5242),33)
-(DatasetStartWrite(o-1,S19700117S5242),34)
-(DatasetEndWrite(o-1,S19700117S5242),35)
-(StepEndObserve(o-1),36)
-(StepEndStep(o-1),37)
-(StepStartStep(o-1,GmosNorth(5000000000,GmosCcdMode(Two,Two,Three,High,Fast),Two,CentralSpectrum,Some(North(B600_G5303,One,400000)),None,Some(Builtin(LongSlit_0_50))),Science(Offset(Offset.P(0), Offset.Q(0)),Enabled),Science),38)
-(StepStartConfigure(o-1),39)
-(StepEndConfigure(o-1),40)
-(StepStartObserve(o-1),41)
-(DatasetStartExposure(o-1,S19700117S5242),42)
-(DatasetEndExposure(o-1,S19700117S5242),43)
-(DatasetStartReadout(o-1,S19700117S5242),44)
-(DatasetEndReadout(o-1,S19700117S5242),45)
-(DatasetStartWrite(o-1,S19700117S5242),46)
-(DatasetEndWrite(o-1,S19700117S5242),47)
-(StepEndObserve(o-1),48)
-(StepEndStep(o-1),49)
-(AtomEnd(o-1),50)
-(SequenceEnd(o-1),51
-     */
 
     val firstEvents = List(
       TestOdbProxy.VisitStart(seqObsId1, staticCfg1),
@@ -1397,32 +1340,30 @@ class ObserveEngineSuite extends TestCommon {
         )
     )
 
+    // Ugly flag but it would be quite complicated to avoid it
+    var addStep = true
     for {
       atomIds       <- List
                          .fill(atomCount)(IO.delay(java.util.UUID.randomUUID()))
                          .parSequence
                          .map(_.map(Atom.Id.fromUuid))
       odb           <-
-        // println(atomIds);
         TestOdbProxy.build[IO](
           staticCfg1.some,
           none,
           atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k))),
-          s => s
-          // println(s"After observe ${s.currentStep} ${s.currentAtom}")
-          // if (
-          //   s.sciences.headOption
-          //     .exists(_.id.some === atomIds.headOption) &&
-          //   (steps(0).head.id.some === s.currentStep)
-          // )
-          //   s.copy(sciences =
-          //     s.sciences.map(s =>
-          //       if (atomIds.headOption.exists(_ === s.id))
-          //         s.copy(steps = steps(5).head :: s.steps)
-          //       else s
-          //     )
-          //   )
-          // else s
+          s =>
+            if (addStep) {
+              // Only once we add an extra setp at the beggining of the atom
+              addStep = false
+              s.copy(sciences =
+                s.sciences.map(s =>
+                  if (atomIds.headOption.exists(_ === s.id))
+                    s.copy(steps = steps(5).head :: s.steps)
+                  else s
+                )
+              )
+            } else s
         )
       systems       <- defaultSystems.map(_.copy(odb = odb))
       oseq          <- odb.read(seqObsId1)
@@ -1446,16 +1387,14 @@ class ObserveEngineSuite extends TestCommon {
                            .last
       res           <- odb.outCapture
     } yield {
-      // pprint.pprintln(res)
-      // pprint.pprintln(atomCount)
       assertEquals(res.take(firstEvents.length), firstEvents)
-      val rest = (1 until atomCount).foldLeft(
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science)
-      ) { case (b, _) =>
-        assertAtom(b, SequenceType.Science)
+      val rest = (1 until atomCount).foldLeft {
+        assertAtom(res.drop(firstEvents.length), SequenceType.Science, 3)
+      } { case (b, _) =>
+        assertAtom(b, SequenceType.Science, 2)
       }
-      // assertEquals(rest.length, 1)
-      // assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
+      assertEquals(rest.length, 1)
+      assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
     }
   }
 }
