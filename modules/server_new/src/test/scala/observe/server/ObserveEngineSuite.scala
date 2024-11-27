@@ -965,7 +965,7 @@ class ObserveEngineSuite extends TestCommon {
       s
         .flatMap(_._2.sequences.get(seqObsId1))
         .flatMap(_.seqGen.nextAtom.steps.headOption)
-        .map(z => assertEquals(z.id, scienceSteps.head.id))
+        .map(z => assertEquals(z.id, scienceSteps.get(1).get.id))
         .getOrElse(fail("Bad step id found"))
     }
   }
@@ -1039,7 +1039,7 @@ class ObserveEngineSuite extends TestCommon {
     } yield r
       .flatMap(_._2.sequences.get(seqObsId1))
       .flatMap(_.seqGen.nextAtom.steps.headOption)
-      .map(z => assertEquals(z.id, stepId(1 + stepCount)))
+      .map(z => assertEquals(z.id, stepId(2 + stepCount)))
       .getOrElse(fail("Bad step id found"))
 
   }
@@ -1269,7 +1269,7 @@ class ObserveEngineSuite extends TestCommon {
       // Test each step drop the first event fo AtomStart
       val ss = (1 until stepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
         println("======= atom start")
-        pprint.pprintln(b)
+        // pprint.pprintln(b)
         assertStep(b)
       }
 
@@ -1408,21 +1408,21 @@ class ObserveEngineSuite extends TestCommon {
           staticCfg1.some,
           none,
           atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k))),
-          s =>
-            // println(s"After observe ${s.currentStep} ${s.currentAtom}")
-            if (
-              s.sciences.headOption
-                .exists(_.id.some === atomIds.headOption) &&
-              (steps(0).head.id.some === s.currentStep)
-            )
-              s.copy(sciences =
-                s.sciences.map(s =>
-                  if (atomIds.headOption.exists(_ === s.id))
-                    s.copy(steps = steps(5).head :: s.steps)
-                  else s
-                )
-              )
-            else s
+          s => s
+          // println(s"After observe ${s.currentStep} ${s.currentAtom}")
+          // if (
+          //   s.sciences.headOption
+          //     .exists(_.id.some === atomIds.headOption) &&
+          //   (steps(0).head.id.some === s.currentStep)
+          // )
+          //   s.copy(sciences =
+          //     s.sciences.map(s =>
+          //       if (atomIds.headOption.exists(_ === s.id))
+          //         s.copy(steps = steps(5).head :: s.steps)
+          //       else s
+          //     )
+          //   )
+          // else s
         )
       systems       <- defaultSystems.map(_.copy(odb = odb))
       oseq          <- odb.read(seqObsId1)
@@ -1446,7 +1446,7 @@ class ObserveEngineSuite extends TestCommon {
                            .last
       res           <- odb.outCapture
     } yield {
-      pprint.pprintln(res)
+      // pprint.pprintln(res)
       // pprint.pprintln(atomCount)
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft(

@@ -51,25 +51,72 @@ trait TestOdbProxy[F[_]] extends OdbProxy[F] {
 object TestOdbProxy {
 
   case class State(
-    sciences:    List[Atom[DynamicConfig.GmosNorth]],
-    currentAtom: Option[Atom.Id],
-    currentStep: Option[Step.Id],
-    out:         List[OdbEvent]
+    sciences:       List[Atom[DynamicConfig.GmosNorth]],
+    currentAtom:    Option[Atom.Id],
+    completedSteps: List[Step.Id],
+    currentStepIdx: Option[Int],
+    currentStep:    Option[Step.Id],
+    out:            List[OdbEvent]
   ) {
     def completeCurrentAtom: State =
-      currentAtom.fold(this)(a => copy(currentAtom = none, sciences = sciences.filter(_.id =!= a)))
+      currentAtom.fold(this)(a =>
+        copy(currentAtom = none,
+             currentStep = none,
+             currentStepIdx = none,
+             sciences = sciences.filter(_.id =!= a)
+        )
+      )
+
+    def startStep(generatedId: Option[Step.Id]): State =
+      // println(s"replace with $generatedId");
+      (State.currentStepIdx.modify {
+        case Some(i) => Some(i + 1)
+        case None    => Some(0)
+      } >>> State.currentStep.replace(generatedId)
+      // >>>
+      //   State.sciences.andThen(Lens[List[Atom[DynamicConfig.GmosNorth]], Atom[DynamicConfig.GmosNorth]](_.headOption))
+      )(this)
+
     def completeCurrentStep: State =
       currentStep.fold(this)(s =>
-        copy(currentStep = none,
-             sciences = sciences.map(a =>
-               NonEmptyList.fromList(a.steps.filter(_.id =!= s)).fold(a)(st => a.copy(steps = st))
-             )
+        // println(s"completeCurrentStep $s")                   // scalastyle:ignore
+        // println(s"Steps ${sciences.map(_.steps.map(_.id))}") // scalastyle:ignore
+        // println(
+        //   sciences.map(a =>
+        //     NonEmptyList.fromList(a.steps.filter(_.id =!= s)).fold(a)(st => a.copy(steps = st))
+        //   )
+        // )
+        // println(
+        //   s"Steps filteerd ${sciences
+        //       .map(a => NonEmptyList.fromList(a.steps.filter(_.id =!= s)))
+        //       .map(_.map(_.map(_.id)))}"
+        // )
+        println(s"Coomplete step $currentAtom")
+        println(s"steps next ${sciences.find(_.id === currentAtom.get).map(_.steps.map(_.id))}")
+
+        val scienceUpdated =
+          sciences
+            .map {
+              case a if currentAtom.exists(_ === a.id) =>
+                val rest = NonEmptyList.fromList(a.steps.tail)
+                pprint.pprintln(rest)
+                rest.map(r => a.copy(steps = r))
+              case a                                   => a.some
+            }
+        pprint.pprintln(scienceUpdated)
+
+        copy(
+          currentStep = none,
+          currentStepIdx = none,
+          completedSteps = (s :: completedSteps.reverse).reverse,
+          sciences = scienceUpdated.flattenOption
         )
       )
   }
 
   object State:
     val currentStep: Lens[State, Option[Step.Id]]                  = Focus[State](_.currentStep)
+    val currentStepIdx: Lens[State, Option[Int]]                   = Focus[State](_.currentStepIdx)
     val currentAtom: Lens[State, Option[Atom.Id]]                  = Focus[State](_.currentAtom)
     val sciences: Lens[State, List[Atom[DynamicConfig.GmosNorth]]] = Focus[State](_.sciences)
 
@@ -79,16 +126,14 @@ object TestOdbProxy {
     sciences:           List[Atom[DynamicConfig.GmosNorth]] = List.empty,
     updateStartObserve: State => State = identity
   ): F[TestOdbProxy[F]] = Ref
-    .of[F, State](State(sciences, None, None, List.empty))
+    .of[F, State](State(sciences, None, List.empty, None, None, List.empty))
     .map(rf =>
       new TestOdbProxy[F] {
-        println(s"acquisition: ")
         acquisition.foreach { u =>
-          println("-- atom --"); pprint.pprintln(u.id); pprint.pprintln(u.steps.map(_.id))
+          println(s"-- acq atom -- ${u.id}"); println(u.steps.map(_.id))
         }
-        println(s"sciences:")
         sciences.foreach { u =>
-          println("-- atom --"); pprint.pprintln(u.id); pprint.pprintln(u.steps.map(_.id))
+          println(s"-- sci atom -- ${u.id}"); println(u.steps.map(_.id))
         }
         private def addEvent(ev: OdbEvent): F[Unit] =
           rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
@@ -149,7 +194,8 @@ object TestOdbProxy {
           stepCount:    NonNegShort,
           generatedId:  Option[Atom.Id]
         ): F[Unit] = (sequenceType match {
-          case SequenceType.Acquisition => Applicative[F].unit
+          case SequenceType.Acquisition =>
+            rf.update(State.currentAtom.replace(generatedId))
           case SequenceType.Science     =>
             rf.update(State.currentAtom.replace(generatedId))
         }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
@@ -162,7 +208,8 @@ object TestOdbProxy {
           observeClass:    ObserveClass,
           generatedId:     Option[Step.Id]
         ): F[Unit] =
-          addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, telescopeConfig, observeClass))
+          rf.update(_.startStep(generatedId)) *>
+            addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, telescopeConfig, observeClass))
 
         override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(
           StepStartConfigure(obsId)
@@ -200,7 +247,10 @@ object TestOdbProxy {
           addEvent(StepEndObserve(obsId)).as(true)
 
         override def stepEndStep(obsId: Observation.Id): F[Boolean] =
-          rf.update(a => updateStartObserve(a).completeCurrentStep) *> addEvent(StepEndStep(obsId))
+          rf.update { a =>
+            // println(s"End  step  ${a.currentStep}");
+            updateStartObserve(a).completeCurrentStep
+          } *> addEvent(StepEndStep(obsId))
             .as(true)
 
         override def stepAbort(obsId: Observation.Id): F[Boolean] =

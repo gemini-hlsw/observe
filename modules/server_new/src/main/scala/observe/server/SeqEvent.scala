@@ -89,4 +89,6 @@ object SeqEvent {
       extends SeqEvent
   case class AtomCompleted(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
       extends SeqEvent
+  case class AtomContinue(obsId: Observation.Id)
+      extends SeqEvent
 }

@@ -1943,9 +1943,11 @@ object ObserveEngine {
           seq.seqGen.nextAtom.sequenceType match {
             case SequenceType.Acquisition =>
               println(s"---- reload acq")
-              Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
-                NullSeqEvent
-              )
+              // send(executing(obsId))
+              // Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
+              //   SeqEvent.AtomContinue(obsId)
+              // )
+              executeEngine.continueAtom(obsId).as(NullSeqEvent)
             case SequenceType.Science     =>
               println(s"---- reload science")
               tryAtomReload[F](odb, translator, executeEngine, obsId, SequenceType.Science)
@@ -1976,42 +1978,48 @@ object ObserveEngine {
                 .nextAtom(x, atomType)
                 ._2
                 .map { atm =>
-                  Event.modifyState[F, EngineState[F], SeqEvent]({
-                      (st: EngineState[F]) =>
-                        val r =
-                          EngineState
-                            .atSequence[F](obsId)
-                            .modify {
-                              seq =>
-                                println(s"Replace atom with ${atm.atomId}")
-                                val sg: SequenceData[F] =
-                                  seq.focus(_.seqGen.nextAtom).replace(atm)
-                                sg
-                                  .focus(_.seq)
-                                  .modify(s =>
-                                    val ns = Sequence.State.init(
-                                      Sequence.sequence[F](
-                                        obsId,
-                                        atm.atomId,
-                                        toStepList(
-                                          sg.seqGen,
-                                          sg.overrides,
-                                          HeaderExtraData(st.conditions, st.operator, sg.observer)
-                                        )
-                                      )
-                                    )
-                                    Sequence.State.status.replace(s.status)(ns)
+                  Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                    val r =
+                      EngineState
+                        .atSequence[F](obsId)
+                        .modify { seq =>
+                          println(s"Replace atom with ${atm.atomId}")
+                          val sg: SequenceData[F] =
+                            seq.focus(_.seqGen.nextAtom).replace(atm)
+                          sg
+                            .focus(_.seq)
+                            .modify(s =>
+                              println(
+                                toStepList(
+                                  sg.seqGen,
+                                  sg.overrides,
+                                  HeaderExtraData(st.conditions, st.operator, sg.observer)
+                                ).map(_.id)
+                              )
+                              val ns = Sequence.State.init(
+                                Sequence.sequence[F](
+                                  obsId,
+                                  atm.atomId,
+                                  toStepList(
+                                    sg.seqGen,
+                                    sg.overrides,
+                                    HeaderExtraData(st.conditions, st.operator, sg.observer)
                                   )
-                            }(st)
-                        (r, ())
-                    }.toHandle.flatMap(_ =>
-                      executeEngine.startNewAtom(obsId) *>
-                        Handle
-                          .pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
-                            NullSeqEvent
-                          )
-                    )
-                  )
+                                )
+                              )
+                              Sequence.State.status.replace(s.status)(ns)
+                            )
+                        }(st)
+                    (r, ())
+                  }.toHandle.flatMap(_ =>
+                    println("ABC")
+                    executeEngine.continueAtom(obsId).as(SeqEvent.NullSeqEvent)
+                    // *>
+                    //   Handle
+                    //     .pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
+                    //       NullSeqEvent
+                    // )
+                  ))
                 }
                 // .as(Event.nullEvent)
                 .getOrElse(Event.nullEvent)

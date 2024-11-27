@@ -171,12 +171,49 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                        .exists(_.uninterruptible)
                                    ) {
                                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else
-                                     send(modifyState(atomReload(this, id)))
-                                       .whenA(seq.isLast) *> send(executing(id)))
+                                   } else if (seq.isLast)
+                                     info("Last component of the step") *>
+                                       send(modifyState(atomReload(this, id))) // *>
+                                     // send(executing(id))
+                                   // switch(id)(SequenceState.Idle) *> send(
+                                   //     modifyState(atomReload(this, id))
+                                   // )
+                                   else send(executing(id)))
               }
             }
           case _                                                    => unit
+        }
+      }.getOrElse(unit)
+    )
+
+  def continueAtom(id: Observation.Id): HandleType[Unit] =
+    getS(id).flatMap(
+      _.map { seq =>
+        println(s"continueAtom: ${seq.status}")
+        seq.status match {
+          case SequenceState.Running(userStop, internalStop, true) =>
+            if (userStop || internalStop) {
+              seq match {
+                // Final State
+                case Sequence.State.Final[F](_, _) => send(finished(id))
+                // Execution completed
+                case _                             => switch(id)(SequenceState.Idle)
+              }
+            } else {
+              seq match {
+                // Final State
+                case Sequence.State.Final[F](_, _) => send(finished(id))
+                // Execution completed. Check breakpoint here
+                case _                             =>
+                  if (seq.getCurrentBreakpoint) {
+                    switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
+                  } else
+                    switch(id)(SequenceState.Running(false, false, false)) *> send(executing(id))
+              }
+            }
+          case _                                                   =>
+            println("continueAtom: not running")
+            switch(id)(SequenceState.Running(false, false, false)) *> send(executing(id))
         }
       }.getOrElse(unit)
     )
@@ -350,7 +387,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   /**
    * Log info lifted into Handle.
    */
-  private def info(msg: => String): HandleType[Unit] = Handle.liftF(L.info(msg))
+  private def info(msg: => String): HandleType[Unit] = Handle.liftF { println(msg); L.info(msg) }
 
   /**
    * Log warning lifted into Handle.
