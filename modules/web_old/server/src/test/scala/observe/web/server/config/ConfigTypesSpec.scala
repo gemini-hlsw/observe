@@ -6,7 +6,6 @@ package observe.web.server.config
 import cats.tests.CatsSuite
 import lucuma.core.enums.Site
 import pureconfig.*
-import pureconfig.generic.derivation.default.*
 
 /**
  * Tests of config classes
