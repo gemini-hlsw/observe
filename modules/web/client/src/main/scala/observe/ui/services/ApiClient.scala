@@ -4,7 +4,7 @@
 package observe.ui.services
 
 import cats.effect.IO
-import eu.timepit.refined.types.string.NonEmptyString
+import cats.syntax.option.*
 import io.circe.*
 import io.circe.Encoder
 import io.circe.syntax.*
@@ -18,30 +18,34 @@ import org.http4s.client.Client
 import org.http4s.headers.Authorization
 
 case class ApiClient(
-  httpClient: Client[IO],
-  basePath:   Uri.Path,
-  clientId:   ClientId,
-  token:      NonEmptyString,
-  onError:    Throwable => IO[Unit]
+  httpClient:    Client[IO],
+  basePath:      Uri.Path,
+  clientId:      ClientId,
+  getAuthHeader: IO[Option[Authorization]],
+  onError:       Throwable => IO[Unit]
 ) extends BaseApi[IO]:
   def get(path: Uri.Path): IO[Unit] =
-    httpClient
-      .expect[Unit](
-        Request(Method.GET, Uri(path = basePath.merge(path)))
-          .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
-      )
-      .onError(onError)
-      .onCancel(onError(new Exception("There was an error invoking the server.")))
+    getAuthHeader.flatMap:
+      _.map: authHeader =>
+        httpClient
+          .expect[Unit]:
+            Request(Method.GET, Uri(path = basePath.merge(path)))
+              .withHeaders(authHeader)
+          .onError(onError)
+          .onCancel(onError(new Exception("There was an error invoking the server.")))
+      .orEmpty
 
   def post[T: Encoder](path: Uri.Path, data: T, query: Query = Query.empty): IO[Unit] =
-    httpClient
-      .expect[Unit](
-        Request(Method.POST, Uri(path = basePath.merge(path), query = query))
-          .withHeaders(Authorization(Credentials.Token(AuthScheme.Bearer, token.value)))
-          .withEntity(data.asJson)
-      )
-      .onError(onError)
-      .onCancel(onError(new Exception("There was an error invoking the server.")))
+    getAuthHeader.flatMap:
+      _.map: authHeader =>
+        httpClient
+          .expect[Unit]:
+            Request(Method.POST, Uri(path = basePath.merge(path), query = query))
+              .withHeaders(authHeader)
+              .withEntity(data.asJson)
+          .onError(onError)
+          .onCancel(onError(new Exception("There was an error invoking the server.")))
+      .orEmpty
 
   def postNoData(path: Uri.Path, query: Query = Query.empty): IO[Unit] =
     post(path, (), query)
