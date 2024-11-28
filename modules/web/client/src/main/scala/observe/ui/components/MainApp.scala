@@ -184,7 +184,7 @@ object MainApp extends ServerEventHandler:
       .useStateView(ApiStatus.Idle)            // configApiStatus
       .useEffectStreamWhenDepsReadyBy((_, _, _, _, wsConnection, _, _, _) =>
         wsConnection.flatMap(_.toPot)
-      ): (_, _, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
+      ): (_, toast, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
         _.receiveStream // Setup server event processor (2)
           .through(parseClientEvents)
           .evalMap:
@@ -193,7 +193,8 @@ object MainApp extends ServerEventHandler:
                 clientConfig.async.mod,
                 rootModelData.async.mod,
                 syncStatus.async.mod,
-                configApiStatus.async.mod
+                configApiStatus.async.mod,
+                toast
               )(event)
             case Left(error)  =>
               processStreamError(rootModelData.async.mod)(error)
@@ -267,7 +268,7 @@ object MainApp extends ServerEventHandler:
                     rootModelData.async
                       .zoom(RootModelData.log)
                       .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                    Logger[IO].trace(t.getMessage) >>
+                    Logger[IO].error(t.getMessage) >>
                     syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
               ).some
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)

@@ -7,7 +7,10 @@ import cats.Endo
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.*
+import crystal.react.*
 import eu.timepit.refined.types.string.NonEmptyString
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
@@ -16,14 +19,19 @@ import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.ExecutionSequence
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
+import lucuma.react.primereact.Message
+import lucuma.react.primereact.MessageItem
+import lucuma.react.primereact.ToastRef
 import monocle.Lens
 import monocle.Optional
 import observe.model.ClientConfig
 import observe.model.ExecutionState
+import observe.model.Notification
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
 import observe.model.events.ClientEvent
 import observe.model.events.ClientEvent.SingleActionState
+import observe.model.events.ClientEvent.UserNotification
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
@@ -102,7 +110,8 @@ trait ServerEventHandler:
     clientConfigMod:    Endo[Pot[ClientConfig]] => IO[Unit],
     rootModelDataMod:   Endo[RootModelData] => IO[Unit],
     syncStatusMod:      Endo[Option[SyncStatus]] => IO[Unit],
-    configApiStatusMod: Endo[ApiStatus] => IO[Unit]
+    configApiStatusMod: Endo[ApiStatus] => IO[Unit],
+    toast:              ToastRef
   )(
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
@@ -163,6 +172,24 @@ trait ServerEventHandler:
       // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
       // and in SequenceTable it's being done once per step.
       // However, we need to turn the app initialization on its head in MainApp to achieve this.
+      case UserNotification(memo)                                                         =>
+        val msgs: List[String] =
+          memo match
+            case Notification.ResourceConflict(obsId)                =>
+              List(s"Error in observation $obsId: Resource already in use")
+            case Notification.InstrumentInUse(obsId, ins)            =>
+              List(s"Error in observation $obsId: Instrument $ins already in use")
+            case Notification.RequestFailed(msgs)                    =>
+              msgs
+            case Notification.SubsystemBusy(obsId, stepId, resource) =>
+              List(s"Error in observation $obsId, step $stepId: Subsystem $resource already in use")
+
+        val node: VdomNode = <.span(msgs.mkTagMod(<.br))
+
+        toast
+          .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
+          .to[IO] >>
+          logMessage(rootModelDataMod, msgs.mkString("; "))
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
