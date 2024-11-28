@@ -267,7 +267,7 @@ object MainApp extends ServerEventHandler:
                     rootModelData.async
                       .zoom(RootModelData.log)
                       .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                    IO.println(t.getMessage) >>
+                    Logger[IO].trace(t.getMessage) >>
                     syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
               ).some
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
