@@ -687,7 +687,7 @@ object ObserveEngine {
                       SeqEvent.NotifyUser(
                         Notification.RequestFailed(
                           List(
-                            s"Error loading observation $sid$author",
+                            s"Error loading observation $sid",
                             e.getMessage
                           )
                         ),
@@ -744,7 +744,7 @@ object ObserveEngine {
                             SeqEvent.NotifyUser(
                               Notification.RequestFailed(
                                 List(
-                                  s"Error loading observation $sid$author",
+                                  s"Error loading observation $sid",
                                   s"A sequence is running on instrument ${seq.instrument}"
                                 )
                               ),
@@ -1652,8 +1652,7 @@ object ObserveEngine {
     svs:      => SequencesQueue[SequenceView],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
-    v match {
-      // case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
+    v match
       case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid) =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
       // case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
@@ -1671,7 +1670,6 @@ object ObserveEngine {
       case e if e.isModelUpdate                                             =>
         buildObserveStateStream(svs, odbProxy)
       case _                                                                => Stream.empty
-    }
 
   private def executionQueueViews[F[_]](
     st: EngineState[F]
@@ -1748,10 +1746,11 @@ object ObserveEngine {
     qState:   EngineState[F],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] = {
-    val sequences = qState.sequences.view.values.map(viewSequence).toList
+    val sequences: List[SequenceView]     =
+      qState.sequences.view.values.map(viewSequence).toList
     // Building the view is a relatively expensive operation
     // By putting it into a def we only incur that cost if the message requires it
-    def svs       =
+    def svs: SequencesQueue[SequenceView] =
       SequencesQueue(
         List(
           qState.selected.gmosSouth.map(x => Instrument.GmosSouth -> x.seqGen.obsData.id),
@@ -1763,21 +1762,22 @@ object ObserveEngine {
         sequences
       )
 
-    ev match {
+    ev match
       case UserCommandResponse(ue, _, uev) =>
-        ue match {
-          case UserEvent.ModifyState(_) =>
+        ue match
+          case UserEvent.Pure(NotifyUser(m, cid)) =>
+            Stream.emit(UserNotification(m).forClient(cid))
+          case UserEvent.ModifyState(_)           =>
             modifyStateEvent(uev.getOrElse(NullSeqEvent), svs, odbProxy)
-          case e if e.isModelUpdate     => buildObserveStateStream(svs, odbProxy)
+          case e if e.isModelUpdate               => buildObserveStateStream(svs, odbProxy)
           // case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
           // case UserEvent.LogWarning(m, ts)       =>
           //   Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
           // case UserEvent.LogError(m, ts)         =>
           //   Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
-          case _                        => Stream.empty
-        }
+          case _                                  => Stream.empty
       case SystemUpdate(se, _)             =>
-        se match {
+        se match
           // TODO: Sequence completed event not emitted by engine.
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))   =>
             Stream.emit(
@@ -1809,8 +1809,6 @@ object ObserveEngine {
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)
           case _                                                                   => Stream.empty
-        }
-    }
   }
 
   private def singleActionClientEvent[F[_]](

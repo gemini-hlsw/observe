@@ -21,6 +21,7 @@ import lucuma.core.util.Enumerated
 import observe.model.ClientConfig
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.Notification
 import observe.model.ObservationProgress
 import observe.model.Operator
 import observe.model.SequenceView
@@ -93,6 +94,11 @@ object ClientEvent:
   case class AtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
       extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
 
+  case class UserNotification(memo: Notification) extends SingleClientEvent
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
+
   given Encoder[ClientEvent] = Encoder.instance:
     case e @ BaDum                            => e.asJson
     case e @ InitialEvent(_)                  => e.asJson
@@ -101,6 +107,7 @@ object ClientEvent:
     case e @ ChecksOverrideEvent(_)           => e.asJson
     case e @ ProgressEvent(_)                 => e.asJson
     case e @ AtomLoaded(_, _, _)              => e.asJson
+    case e @ UserNotification(_)              => e.asJson
 
   given Decoder[ClientEvent] =
     List[Decoder[ClientEvent]](
@@ -110,5 +117,6 @@ object ClientEvent:
       Decoder[SingleActionEvent].widen,
       Decoder[ChecksOverrideEvent].widen,
       Decoder[ProgressEvent].widen,
-      Decoder[AtomLoaded].widen
+      Decoder[AtomLoaded].widen,
+      Decoder[UserNotification].widen
     ).reduceLeft(_ or _)
