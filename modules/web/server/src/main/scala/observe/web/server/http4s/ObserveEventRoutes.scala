@@ -43,7 +43,7 @@ import scala.concurrent.duration.*
 class ObserveEventRoutes[F[_]: Async: Compression](
   site:             Site,
   environment:      ExecutionEnvironment,
-  odbUri:           Uri,
+  odbWsUri:         Uri,
   ssoUri:           Uri,
   clientsDb:        ClientsSetDb[F],
   engine:           ObserveEngine[F],
@@ -75,7 +75,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
               ClientConfig(
                 site,
                 environment,
-                odbUri,
+                odbWsUri,
                 ssoUri,
                 clientId,
                 Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version))

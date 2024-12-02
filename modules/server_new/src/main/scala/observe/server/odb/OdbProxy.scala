@@ -205,14 +205,14 @@ object OdbProxy {
   }
 
   case class OdbCommandsImpl[F[_]](
-    client:    FetchClient[F, ObservationDB],
     idTracker: Ref[F, ObsRecordedIds]
   )(using
     val F:     Sync[F],
-    L:         Logger[F]
+    L:         Logger[F],
+    client:    FetchClient[F, ObservationDB]
   ) extends OdbEventCommands[F]
       with IdTrackerOps[F](idTracker) {
-    given FetchClient[F, ObservationDB] = client
+    // given FetchClient[F, ObservationDB] = client
 
     private val fitsFileExtension                           = ".fits"
     private def normalizeFilename(fileName: String): String = if (

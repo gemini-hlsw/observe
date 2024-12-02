@@ -150,8 +150,8 @@ object Settings {
     val Http4sJDKClient  =
       Def.setting(
         Seq(
-          "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
-          "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
+          "org.http4s" %% "http4s-dsl"          % LibraryVersions.http4sVersion,
+          "org.http4s" %% "http4s-ember-client" % LibraryVersions.http4sVersion
         )
       )
     val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion

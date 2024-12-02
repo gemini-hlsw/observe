@@ -18,8 +18,10 @@ type GhostUriSettings = GhostUriSettings.Type
 
 /**
  * Configuration of the Observe Engine
- * @param odb
- *   Location of the odb server
+ * @param odbHttp
+ *   HTTP endpoint of the odb server
+ * @param odbWs
+ *   WebSocket endpoint of the odb server
  * @param dhsServer
  *   Location of the dhs server proxy
  * @param systemControl
@@ -52,7 +54,8 @@ type GhostUriSettings = GhostUriSettings.Type
  *   Timeout for DHS operations
  */
 case class ObserveEngineConfiguration(
-  odb:                     Uri,
+  odbHttp:                 Uri,
+  odbWs:                   Uri,
   dhsServer:               Uri,
   systemControl:           SystemsControlConfiguration,
   odbNotifications:        Boolean,
