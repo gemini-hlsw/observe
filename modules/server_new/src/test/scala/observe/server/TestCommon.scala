@@ -133,7 +133,8 @@ object TestCommon {
   given Logger[IO] = NoOpLogger.impl[IO]
 
   val defaultSettings: ObserveEngineConfiguration = ObserveEngineConfiguration(
-    odb = uri"localhost",
+    odbHttp = uri"localhost",
+    odbWs = uri"localhost",
     dhsServer = uri"http://localhost/",
     systemControl = SystemsControlConfiguration(
       altair = ControlStrategy.Simulated,
