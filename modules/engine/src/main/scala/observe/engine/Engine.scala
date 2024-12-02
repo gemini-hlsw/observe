@@ -30,7 +30,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   stateL:      Engine.State[F, S],
   streamQueue: Queue[F, Stream[F, Event[F, S, U]]],
   inputQueue:  Queue[F, Event[F, S, U]],
-  atomLoad:    (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+  atomLoad:    (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
+  atomReload:  (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
 ) {
   val L: Logger[F] = Logger[F]
 
@@ -139,7 +140,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop, internalStop, true)
+                    SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
                 case Some(qs)                          =>
@@ -165,7 +166,16 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                        .exists(_.uninterruptible)
                                    ) {
                                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else send(executing(id)))
+                                   } else if (seq.isLastAction)
+                                     // after the last action of the step, we need to reload the sequence
+                                     switch(id)(
+                                       SequenceState.Running(userStop,
+                                                             internalStop,
+                                                             waitingNextAtom = true
+                                       )
+                                     ) *>
+                                       send(modifyState(atomReload(this, id)))
+                                   else send(executing(id)))
               }
             }
           case _                                                => unit
@@ -404,20 +414,19 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     se: SystemEvent
   )(using ci: Concurrent[F]): HandleType[ResultType] = se match {
     case Completed(id, _, i, r)     =>
-      debug(s"Engine: From sequence $id: Action completed ($r)") *> complete(id, i, r) *>
+      debug(s"Engine: From sequence $id: Action completed ($r)") *>
+        complete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case StopCompleted(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *> stopComplete(
-        id,
-        i,
-        r
-      ) *>
+      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *>
+        stopComplete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Aborted(id, _, i, r)       =>
       debug(s"Engine: From sequence $id: Action completed with abort ($r)") *> abort(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case PartialResult(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Partial result ($r)") *> partialResult(id, i, r) *>
+      debug(s"Engine: From sequence $id: Partial result ($r)") *>
+        partialResult(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Paused(id, i, r)           =>
       debug("Engine: Action paused") *>
@@ -435,7 +444,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       debug("Engine: Breakpoint reached") *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Executed(id)               =>
-      debug("Engine: Execution completed") *>
+      debug(s"Engine: Execution $id completed") *>
         next(id) *> pure(SystemUpdate(se, Outcome.Ok))
     case Executing(id)              =>
       debug("Engine: Executing") *>
@@ -554,12 +563,13 @@ object Engine {
   }
 
   def build[F[_]: MonadThrow: Logger: Concurrent, S, U](
-    stateL:       State[F, S],
-    loadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+    stateL:         State[F, S],
+    loadNextAtom:   (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
+    reloadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
   ): F[Engine[F, S, U]] = for {
     sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
     iq <- Queue.unbounded[F, Event[F, S, U]]
-  } yield new Engine(stateL, sq, iq, loadNextAtom)
+  } yield new Engine(stateL, sq, iq, loadNextAtom, reloadNextAtom)
 
   /**
    * Builds the initial state of a sequence

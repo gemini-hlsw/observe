@@ -29,7 +29,6 @@ import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.Systems
-import observe.server.events.TargetedClientEvent
 import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
 import observe.web.server.config.*
@@ -259,7 +258,6 @@ object WebServerLauncher extends IOApp with LogInitialization {
         conf             <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _                <- Resource.eval(printBanner(conf))
         cli              <- Resource.eval(mkClient(conf.observeEngine.dhsTimeout))
-        out              <- Resource.eval(Topic[IO, TargetedClientEvent])
         cs               <- Resource.eval(
                               Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
                             )

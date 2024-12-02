@@ -32,8 +32,6 @@ import org.typelevel.log4cats.Logger
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
   override val systems: Systems[F] = sys
 
-  override def sync(seqId: Id): F[Unit] = Applicative[F].unit
-
   override def start(
     id:          Id,
     user:        User,

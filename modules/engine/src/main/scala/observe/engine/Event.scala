@@ -102,8 +102,9 @@ object Event {
     EventSystem[F, S, U](BreakpointReached(id))
   def busy[F[_], S, U](id: Observation.Id, clientId: ClientId): Event[F, S, U]         =
     EventSystem[F, S, U](Busy(id, clientId))
-  def executed[F[_], S, U](id: Observation.Id): Event[F, S, U] = EventSystem[F, S, U](Executed(id))
-  def executing[F[_], S, U](id: Observation.Id): Event[F, S, U] =
+  def executed[F[_], S, U](id: Observation.Id): Event[F, S, U]                         =
+    EventSystem[F, S, U](Executed(id))
+  def executing[F[_], S, U](id: Observation.Id): Event[F, S, U]                        =
     EventSystem[F, S, U](Executing(id))
   def finished[F[_], S, U](id: Observation.Id): Event[F, S, U] = EventSystem[F, S, U](Finished(id))
   def nullEvent[F[_], S, U]: Event[F, S, U]                                         = EventSystem[F, S, U](Null)
