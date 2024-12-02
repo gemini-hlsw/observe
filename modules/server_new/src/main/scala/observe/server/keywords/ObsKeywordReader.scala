@@ -5,6 +5,7 @@ package observe.server.keywords
 
 import cats.effect.Sync
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
@@ -59,6 +60,7 @@ sealed trait ObsKeywordsReader[F[_]] {
   def timingWindows: F[List[(Int, TimingWindowKeywords)]]
   def requestedConditions: ConstraintSetReader[F]
   def astrometicField: F[Boolean]
+  def proprietaryMonths: F[NonNegInt]
 }
 
 // A Timing window always has 4 keywords
@@ -222,7 +224,9 @@ object ObsKeywordReader {
 
       override def sciBand: F[Int] = 1.pure[F]
 
-      def astrometicField: F[Boolean] = false.pure[F]
+      override def astrometicField: F[Boolean] = false.pure[F]
+
+      override def proprietaryMonths: F[NonNegInt] = obsCfg.program.goa.proprietaryMonths.pure[F]
 
     }
 }

@@ -8,6 +8,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
+import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
@@ -395,7 +396,8 @@ class ObserveEngineSuite extends TestCommon {
         ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
-          None
+          None,
+          ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
         ),
         TargetEnvironment(Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName)),
                           GuideEnvironment(List.empty)
@@ -659,7 +661,8 @@ class ObserveEngineSuite extends TestCommon {
         ODBObservation.Workflow(ObservationWorkflowState.Ready),
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
-          None
+          None,
+          ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
         ),
         TargetEnvironment(None, GuideEnvironment(List.empty)),
         reqConditions,

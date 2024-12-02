@@ -7,6 +7,7 @@ import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.CloudExtinction
@@ -113,7 +114,10 @@ object TestOdbProxy {
                 oid,
                 title = "Test Observation".refined,
                 ODBObservation.Workflow(ObservationWorkflowState.Ready),
-                Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1))),
+                Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1)),
+                                         None,
+                                         ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
+                ),
                 Data.Observation.TargetEnvironment(none, GuideEnvironment(List.empty)),
                 ConstraintSet(ImageQuality.TwoPointZero,
                               CloudExtinction.TwoPointZero,

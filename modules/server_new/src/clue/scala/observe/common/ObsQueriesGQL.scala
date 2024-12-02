@@ -28,6 +28,9 @@ object ObsQueriesGQL:
           program {
             id
             name
+            goa {
+              proprietaryMonths
+            }
           }
           targetEnvironment {
             firstScienceTarget {

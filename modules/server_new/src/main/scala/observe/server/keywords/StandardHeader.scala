@@ -22,6 +22,8 @@ import observe.server.tcs.TcsController
 import observe.server.tcs.TcsKeywordsReader
 import org.typelevel.log4cats.Logger
 
+import java.time.LocalDate
+
 import ConditionOps.*
 
 final case class StateKeywordsReader[F[_]: Monad](
@@ -143,8 +145,15 @@ class StandardHeader[F[_]: Sync: Logger](
       buildString(obsReader.pwfs2GuideS, KeywordName.PWFS2_ST),
       buildString(obsReader.oiwfsGuideS, KeywordName.OIWFS_ST),
       buildString(obsReader.aowfsGuideS, KeywordName.AOWFS_ST),
-      buildInt32(obsReader.sciBand, KeywordName.SCIBAND)
+      buildInt32(obsReader.sciBand, KeywordName.SCIBAND),
+      buildString(
+        (date, obsReader.proprietaryMonths).mapN((d, m) => d.plusMonths(m.value).toString()),
+        KeywordName.RELEASE
+      )
     )
+
+  def date: F[LocalDate] =
+    tcsReader.date.map(LocalDate.parse)
 
   def timingWindows(id: ImageFileId): F[Unit] = {
     val timingWindows = obsReader.timingWindows
