@@ -40,7 +40,9 @@ import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
+import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
+import observe.model.events.LogMessage
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
 import observe.ui.DefaultErrorPolicy
@@ -265,9 +267,13 @@ object MainApp extends ServerEventHandler:
                         severity = Message.Severity.Error
                       )
                     .to[IO] >>
-                    rootModelData.async
-                      .zoom(RootModelData.log)
-                      .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
+                    LogMessage
+                      .now(ObserveLogLevel.ERROR, NonEmptyString.unsafeFrom(t.getMessage))
+                      .flatMap: logMsg =>
+                        rootModelData.async
+                          .zoom(RootModelData.globalLog)
+                          .mod(_.append(logMsg))
+                    >>
                     Logger[IO].error(t.getMessage) >>
                     syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
               ).some

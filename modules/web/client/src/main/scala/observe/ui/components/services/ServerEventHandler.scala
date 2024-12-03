@@ -29,9 +29,11 @@ import observe.model.ExecutionState
 import observe.model.Notification
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
+import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
 import observe.model.events.ClientEvent.SingleActionState
 import observe.model.events.ClientEvent.UserNotification
+import observe.model.events.LogMessage
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
@@ -43,10 +45,15 @@ import org.typelevel.log4cats.Logger
 trait ServerEventHandler:
   private def logMessage(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit],
+    logLevel:         ObserveLogLevel,
     msg:              String
   )(using Logger[IO]): IO[Unit] =
     msg match
-      case NonEmptyString(nes) => rootModelDataMod(RootModelData.log.modify(_ :+ nes))
+      case NonEmptyString(nes) =>
+        LogMessage
+          .now(logLevel, nes)
+          .flatMap: logMsg =>
+            rootModelDataMod(RootModelData.globalLog.modify(_.append(logMsg)))
 
   private def atomListOptional[S, D](
     instrumentOptic:   Optional[InstrumentExecutionConfig, ExecutionConfig[S, D]],
@@ -138,7 +145,7 @@ trait ServerEventHandler:
               .andThen(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
               .replace(OperationRequest.Idle))
         )
-          >> error.map(logMessage(rootModelDataMod, _)).orEmpty
+          >> error.map(logMessage(rootModelDataMod, ObserveLogLevel.ERROR, _)).orEmpty
       case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
@@ -189,9 +196,13 @@ trait ServerEventHandler:
         toast
           .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
           .to[IO] >>
-          logMessage(rootModelDataMod, msgs.mkString("; "))
+          logMessage(rootModelDataMod, ObserveLogLevel.ERROR, msgs.mkString("; "))
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
   )(error: Throwable)(using Logger[IO]): IO[Unit] =
-    logMessage(rootModelDataMod, s"ERROR Receiving Client Event: ${error.getMessage}")
+    logMessage(
+      rootModelDataMod,
+      ObserveLogLevel.ERROR,
+      s"ERROR Receiving Client Event: ${error.getMessage}"
+    )
