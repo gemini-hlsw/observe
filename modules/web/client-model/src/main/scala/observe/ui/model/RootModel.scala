@@ -75,6 +75,8 @@ case class RootModelData(
     )
 
 object RootModelData:
+  val MaxGlobalLogEntries: Int = 5000
+
   val Initial: RootModelData =
     RootModelData(
       userVault = Pot.pending,
@@ -91,7 +93,7 @@ object RootModelData:
       observer = none,
       operator = none,
       userSelectionMessage = none,
-      globalLog = FixedLengthBuffer.Zero[LogMessage]
+      globalLog = FixedLengthBuffer.unsafe(MaxGlobalLogEntries)
     )
 
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
