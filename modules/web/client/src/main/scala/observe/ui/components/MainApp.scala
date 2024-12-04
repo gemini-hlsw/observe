@@ -40,9 +40,9 @@ import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
+import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
-import observe.model.events.LogMessage
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
 import observe.ui.DefaultErrorPolicy

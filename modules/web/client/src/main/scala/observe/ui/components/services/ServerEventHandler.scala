@@ -26,6 +26,7 @@ import monocle.Lens
 import monocle.Optional
 import observe.model.ClientConfig
 import observe.model.ExecutionState
+import observe.model.LogMessage
 import observe.model.Notification
 import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
@@ -33,7 +34,6 @@ import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
 import observe.model.events.ClientEvent.SingleActionState
 import observe.model.events.ClientEvent.UserNotification
-import observe.model.events.LogMessage
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData

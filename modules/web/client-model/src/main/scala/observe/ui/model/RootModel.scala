@@ -19,10 +19,10 @@ import observe.common.FixedLengthBuffer
 import observe.model.ClientConfig
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.LogMessage
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
-import observe.model.events.LogMessage
 import observe.model.odb.ObsRecordedIds
 import observe.ui.model.enums.ClientMode
 

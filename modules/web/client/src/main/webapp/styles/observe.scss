@@ -8,6 +8,7 @@ html {
 body {
   background-color: var(--color-background);
   color: var(--text-color);
+  margin: 0;
 }
 
 .main-header {
@@ -1047,5 +1048,16 @@ body {
         align-items: center;
       }
     }
+  }
+}
+
+.ObserveStyles-logTable {
+  .ObserveStyles-logWarningRow {
+    background-color: var(--active-row-background);
+  }
+
+  .ObserveStyles-logErrorRow {
+    background-color: var(--negative-row-background);
+    color: var(--negative-row-color);
   }
 }

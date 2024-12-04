@@ -129,6 +129,10 @@ object ObserveStyles:
   val ObsSummarySubsystems: Css = Css("ObserveStyles-obsSummary-subsystems")
   val ObsSummaryButton: Css     = Css("ObserveStyles-obsSummary-button")
 
+  val LogTable: Css      = Css("ObserveStyles-logTable")
+  val LogWarningRow: Css = Css("ObserveStyles-logWarningRow")
+  val LogErrorRow: Css   = Css("ObserveStyles-logErrorRow")
+
   object Prime:
     val EmptyProgressBar: Css      = Css("p-progressbar p-component")
     val EmptyProgressBarLabel: Css = Css("p-progressbar-label")
