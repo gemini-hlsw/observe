@@ -68,6 +68,6 @@ object LogArea:
           headerMod = ^.display.none,
           rowMod = _.original.level match
             case ObserveLogLevel.Warning => ObserveStyles.LogWarningRow
-            case ObserveLogLevel.ERROR   => ObserveStyles.LogErrorRow
+            case ObserveLogLevel.Error   => ObserveStyles.LogErrorRow
             case _                       => TagMod.empty
         )

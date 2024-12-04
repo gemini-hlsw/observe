@@ -146,7 +146,7 @@ trait ServerEventHandler:
               .andThen(ObservationRequests.subsystemRun.index(stepId).index(subsystem))
               .replace(OperationRequest.Idle))
         )
-          >> error.map(logMessage(rootModelDataMod, ObserveLogLevel.ERROR, _)).orEmpty
+          >> error.map(logMessage(rootModelDataMod, ObserveLogLevel.Error, _)).orEmpty
       case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
@@ -197,7 +197,7 @@ trait ServerEventHandler:
         toast
           .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
           .to[IO] >>
-          logMessage(rootModelDataMod, ObserveLogLevel.ERROR, msgs.mkString("; "))
+          logMessage(rootModelDataMod, ObserveLogLevel.Error, msgs.mkString("; "))
       case LogEvent(msg)                                                                  =>
         logMessage(rootModelDataMod, msg.level, msg.msg)
 
@@ -206,6 +206,6 @@ trait ServerEventHandler:
   )(error: Throwable)(using Logger[IO]): IO[Unit] =
     logMessage(
       rootModelDataMod,
-      ObserveLogLevel.ERROR,
+      ObserveLogLevel.Error,
       s"ERROR Receiving Client Event: ${error.getMessage}"
     )
