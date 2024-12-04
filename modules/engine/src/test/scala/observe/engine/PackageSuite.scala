@@ -16,6 +16,7 @@ import lucuma.core.model.OrcidProfile
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.core.model.User
+import lucuma.core.model.UserProfile
 import lucuma.core.model.sequence.Atom
 import lucuma.refined.*
 import observe.common.test.observationId
@@ -41,10 +42,7 @@ def user =
     Nil,
     OrcidProfile(
       OrcidId.fromValue("0000-0001-5558-6297").getOrElse(sys.error("OrcidId")),
-      Some("John"),
-      Some("Doe"),
-      None,
-      None
+      UserProfile(Some("John"), Some("Doe"), None, None)
     )
   )
 
