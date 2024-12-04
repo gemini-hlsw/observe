@@ -17,7 +17,6 @@ import crystal.react.*
 import crystal.react.given
 import crystal.react.hooks.*
 import crystal.syntax.*
-import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import io.circe.parser.decode
 import io.circe.syntax.*
@@ -268,7 +267,7 @@ object MainApp extends ServerEventHandler:
                       )
                     .to[IO] >>
                     LogMessage
-                      .now(ObserveLogLevel.ERROR, NonEmptyString.unsafeFrom(t.getMessage))
+                      .now(ObserveLogLevel.Error, t.getMessage)
                       .flatMap: logMsg =>
                         rootModelData.async
                           .zoom(RootModelData.globalLog)

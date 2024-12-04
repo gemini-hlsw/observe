@@ -32,6 +32,7 @@ import observe.model.ObservationProgress
 import observe.model.enums.ActionStatus
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
+import observe.model.events.ClientEvent.LogEvent
 import observe.model.events.ClientEvent.SingleActionState
 import observe.model.events.ClientEvent.UserNotification
 import observe.ui.model.LoadedObservation
@@ -51,7 +52,7 @@ trait ServerEventHandler:
     msg match
       case NonEmptyString(nes) =>
         LogMessage
-          .now(logLevel, nes)
+          .now(logLevel, nes.value)
           .flatMap: logMsg =>
             rootModelDataMod(RootModelData.globalLog.modify(_.append(logMsg)))
 
@@ -197,6 +198,8 @@ trait ServerEventHandler:
           .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
           .to[IO] >>
           logMessage(rootModelDataMod, ObserveLogLevel.ERROR, msgs.mkString("; "))
+      case LogEvent(msg)                                                                  =>
+        logMessage(rootModelDataMod, msg.level, msg.msg)
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]

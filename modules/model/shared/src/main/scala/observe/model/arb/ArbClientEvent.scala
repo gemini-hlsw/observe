@@ -14,6 +14,7 @@ import lucuma.core.util.arb.ArbUid.given
 import observe.model.ClientConfig
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.LogMessage
 import observe.model.Notification
 import observe.model.NsRunningState
 import observe.model.ObservationProgress
@@ -41,6 +42,7 @@ import ArbSystem.given
 import ArbUserPrompt.given
 import ArbClientConfig.given
 import ArbObsRecordedIds.given
+import ArbLogMessage.given
 
 trait ArbClientEvent:
 
@@ -122,6 +124,12 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.UserNotification] =
     Cogen[Notification].contramap(_.memo)
 
+  given Arbitrary[ClientEvent.LogEvent] = Arbitrary:
+    arbitrary[LogMessage].map(ClientEvent.LogEvent(_))
+
+  given Cogen[ClientEvent.LogEvent] =
+    Cogen[LogMessage].contramap(_.msg)
+
   given Arbitrary[ClientEvent] = Arbitrary:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
@@ -130,7 +138,8 @@ trait ArbClientEvent:
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
       arbitrary[ClientEvent.AtomLoaded],
-      arbitrary[ClientEvent.UserNotification]
+      arbitrary[ClientEvent.UserNotification],
+      arbitrary[ClientEvent.LogEvent]
     )
 
   given Cogen[ClientEvent] =
@@ -148,7 +157,10 @@ trait ArbClientEvent:
                 ClientEvent.ProgressEvent,
                 Either[
                   ClientEvent.AtomLoaded,
-                  ClientEvent.UserNotification
+                  Either[
+                    ClientEvent.UserNotification,
+                    ClientEvent.LogEvent
+                  ]
                 ]
               ]
             ]
@@ -163,7 +175,9 @@ trait ArbClientEvent:
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
       case e @ ClientEvent.AtomLoaded(_, _, _)              => Right(Right(Right(Right(Right(Right(Left(e)))))))
-      case e @ ClientEvent.UserNotification(_)              => Right(Right(Right(Right(Right(Right(Right(e)))))))
+      case e @ ClientEvent.UserNotification(_)              =>
+        Right(Right(Right(Right(Right(Right(Right(Left(e))))))))
+      case e @ ClientEvent.LogEvent(_)                      => Right(Right(Right(Right(Right(Right(Right(Right(e))))))))
 
 end ArbClientEvent
 

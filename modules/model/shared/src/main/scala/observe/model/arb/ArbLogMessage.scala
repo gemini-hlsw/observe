@@ -3,8 +3,6 @@
 
 package observe.model.arb
 
-import eu.timepit.refined.scalacheck.string.given
-import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.util.arb.ArbEnumerated.given
 import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
@@ -19,10 +17,10 @@ trait ArbLogMessage:
     for
       level     <- arbitrary[ObserveLogLevel]
       timestamp <- arbitrary[Instant]
-      msg       <- arbitrary[NonEmptyString]
+      msg       <- arbitrary[String]
     yield LogMessage(level, timestamp, msg)
 
   given Cogen[LogMessage] =
-    Cogen[(ObserveLogLevel, Instant, String)].contramap(x => (x.level, x.timestamp, x.msg.value))
+    Cogen[(ObserveLogLevel, Instant, String)].contramap(x => (x.level, x.timestamp, x.msg))
 
 object ArbLogMessage extends ArbLogMessage

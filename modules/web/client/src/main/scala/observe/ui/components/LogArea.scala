@@ -44,7 +44,7 @@ object LogArea:
             ColDef(LevelColId, _.level.toString, size = LevelColWidth),
             ColDef(
               MessageColId,
-              _.msg.value,
+              _.msg,
               cell = cell =>
                 <.span(cell.value).withTooltip(
                   content = cell.value,
@@ -67,7 +67,7 @@ object LogArea:
           tableMod = ObserveStyles.LogTable,
           headerMod = ^.display.none,
           rowMod = _.original.level match
-            case ObserveLogLevel.WARN  => ObserveStyles.LogWarningRow
-            case ObserveLogLevel.ERROR => ObserveStyles.LogErrorRow
-            case _                     => TagMod.empty
+            case ObserveLogLevel.Warning => ObserveStyles.LogWarningRow
+            case ObserveLogLevel.ERROR   => ObserveStyles.LogErrorRow
+            case _                       => TagMod.empty
         )

@@ -3,19 +3,25 @@
 
 package observe.model
 
+import cats.Eq
 import cats.Order
+import cats.derived.*
 import cats.effect.IO
-import eu.timepit.refined.types.string.NonEmptyString
+import io.circe.Decoder
+import io.circe.Encoder
 import observe.model.enums.ObserveLogLevel
-import org.typelevel.cats.time.*
+import org.typelevel.cats.time.given
 
 import java.time.Instant
 
-case class LogMessage(level: ObserveLogLevel, timestamp: Instant, msg: NonEmptyString)
+case class LogMessage(level: ObserveLogLevel, timestamp: Instant, msg: String)
+    derives Eq,
+      Encoder.AsObject,
+      Decoder
 
 object LogMessage:
   given Order[LogMessage] = Order.by(_.timestamp)
 
-  def now(level: ObserveLogLevel, msg: NonEmptyString): IO[LogMessage] =
+  def now(level: ObserveLogLevel, msg: String): IO[LogMessage] =
     IO.realTime.map: time =>
       LogMessage(level, Instant.ofEpochMilli(time.toMillis), msg)

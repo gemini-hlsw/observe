@@ -6,6 +6,6 @@ package observe.model.enums
 import lucuma.core.util.Enumerated
 
 enum ObserveLogLevel(val tag: String, val label: String) derives Enumerated:
-  case INFO  extends ObserveLogLevel("INFO", "INFO")
-  case WARN  extends ObserveLogLevel("WARNING", "WARNING")
-  case ERROR extends ObserveLogLevel("ERROR", "ERROR")
+  case Info    extends ObserveLogLevel("INFO", "INFO")
+  case Warning extends ObserveLogLevel("WARNING", "WARNING")
+  case Error   extends ObserveLogLevel("ERROR", "ERROR")
