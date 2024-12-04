@@ -49,6 +49,7 @@ import observe.model.UserPrompt.SeqCheck
 import observe.model.UserPrompt.TargetCheckOverride
 import observe.model.config.*
 import observe.model.enums.BatchExecState
+import observe.model.enums.ObserveLogLevel
 import observe.model.enums.PendingObserveCmd
 import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
@@ -1765,11 +1766,12 @@ object ObserveEngine {
           case UserEvent.ModifyState(_)           =>
             modifyStateEvent(uev.getOrElse(NullSeqEvent), svs, odbProxy)
           case e if e.isModelUpdate               => buildObserveStateStream(svs, odbProxy)
-          // case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
-          // case UserEvent.LogWarning(m, ts)       =>
-          //   Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
-          // case UserEvent.LogError(m, ts)         =>
-          //   Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
+          case UserEvent.LogInfo(m, ts)           =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Info, ts, m)))
+          case UserEvent.LogWarning(m, ts)        =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Warning, ts, m)))
+          case UserEvent.LogError(m, ts)          =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Error, ts, m)))
           case _                                  => Stream.empty
       case SystemUpdate(se, _)             =>
         se match

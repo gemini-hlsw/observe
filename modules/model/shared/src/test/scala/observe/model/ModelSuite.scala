@@ -46,7 +46,7 @@ class ModelSuite extends munit.DisciplineSuite:
   checkAll("Eq[Guiding]", EqTests[Guiding].eqv)
   checkAll("Eq[FPUMode]", EqTests[FPUMode].eqv)
   checkAll("Eq[Conditions]", EqTests[Conditions].eqv)
-  checkAll("Eq[ServerLogLevel]", EqTests[ServerLogLevel].eqv)
+  checkAll("Eq[ServerLogLevel]", EqTests[ObserveLogLevel].eqv)
   checkAll("Eq[Notification]", EqTests[Notification].eqv)
   checkAll("Eq[UserPrompt]", EqTests[UserPrompt].eqv)
   checkAll("Eq[UserPrompt.TargetCheckOverride]", EqTests[UserPrompt.TargetCheckOverride].eqv)

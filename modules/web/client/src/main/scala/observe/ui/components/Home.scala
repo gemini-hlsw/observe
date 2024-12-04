@@ -103,7 +103,9 @@ object Home:
               Accordion(tabs =
                 List(
                   AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
-                    <.div(^.height := "200px")
+                    <.div(^.height := "200px")(
+                      LogArea(rootModelData.globalLog)
+                    )
                   )
                 )
               )

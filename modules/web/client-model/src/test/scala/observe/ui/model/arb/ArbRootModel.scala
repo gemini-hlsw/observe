@@ -14,12 +14,16 @@ import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
 import lucuma.ui.sso.UserVault
 import lucuma.ui.sso.arb.ArbUserVault.given
+import observe.common.FixedLengthBuffer
+import observe.common.arb.ArbFixedLengthBuffer.given
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.LogMessage
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
 import observe.model.arb.ArbExecutionState.given
+import observe.model.arb.ArbLogMessage.given
 import observe.model.arb.ArbObsRecordedIds.given
 import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
@@ -58,7 +62,7 @@ trait ArbRootModel:
       obs  <- arbitrary[Option[Observer]]
       op   <- arbitrary[Option[Operator]]
       usm  <- arbitrary[Option[NonEmptyString]]
-      log  <- arbitrary[List[NonEmptyString]]
+      log  <- arbitrary[FixedLengthBuffer[LogMessage]]
     yield RootModelData(uv, ros, so, nto, dtos, es, ri, sp, uss, or, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
@@ -77,7 +81,7 @@ trait ArbRootModel:
       Option[Observer],
       Option[Operator],
       Option[NonEmptyString],
-      List[NonEmptyString]
+      FixedLengthBuffer[LogMessage]
     )
   ].contramap: x =>
     (x.userVault,
@@ -94,7 +98,7 @@ trait ArbRootModel:
      x.observer,
      x.operator,
      x.userSelectionMessage,
-     x.log
+     x.globalLog
     )
 
 object ArbRootModel extends ArbRootModel
