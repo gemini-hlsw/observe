@@ -9,6 +9,7 @@ import lucuma.core.model.OrcidProfile
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.core.model.User
+import lucuma.core.model.UserProfile
 import lucuma.refined.*
 import lucuma.sso.client.SsoClient.AbstractSsoClient
 import observe.server.*
@@ -33,10 +34,7 @@ trait TestRoutes {
       Nil,
       OrcidProfile(
         OrcidId.fromValue("0000-0001-5558-6297").getOrElse(sys.error("OrcidId")),
-        Some("John"),
-        Some("Doe"),
-        None,
-        None
+        UserProfile(Some("John"), Some("Doe"), None, None)
       )
     )
 
