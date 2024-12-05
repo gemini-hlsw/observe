@@ -104,7 +104,8 @@ object Home:
                 List(
                   AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
                     <.div(^.height := "200px")(
-                      LogArea(rootModelData.globalLog)
+                      props.rootModel.clientConfig.renderPot: clientConfig =>
+                        LogArea(clientConfig.site.timezone, rootModelData.globalLog)
                     )
                   )
                 )

@@ -19,7 +19,13 @@ import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
 import observe.ui.ObserveStyles
 
-case class LogArea(globalLog: FixedLengthBuffer[LogMessage]) extends ReactFnProps(LogArea.component)
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+case class LogArea(timezone: ZoneId, globalLog: FixedLengthBuffer[LogMessage])
+    extends ReactFnProps(LogArea.component)
 
 object LogArea:
   private type Props = LogArea
@@ -37,11 +43,20 @@ object LogArea:
     ScalaFnComponent
       .withHooks[Props]
       .useResizeDetector()
-      .useMemoBy((_, resize) => resize.width.orEmpty)((_, _) =>
+      .useMemoBy((_, resize) => resize.width.orEmpty)((props, _) =>
         areaWidth =>
           List(
-            ColDef(TimeStampColId, _.timestamp.toString, size = TimeStampColWidth),
-            ColDef(LevelColId, _.level.toString, size = LevelColWidth),
+            ColDef(
+              TimeStampColId,
+              _.timestamp,
+              size = TimeStampColWidth,
+              cell = cell =>
+                val ldt: LocalDateTime =
+                  ZonedDateTime.ofInstant(cell.value, props.timezone).toLocalDateTime
+                DateTimeFormatter.ISO_LOCAL_DATE.format(ldt) + " " +
+                  DateTimeFormatter.ISO_LOCAL_TIME.format(ldt)
+            ),
+            ColDef(LevelColId, _.level, size = LevelColWidth, cell = _.value.label),
             ColDef(
               MessageColId,
               _.msg,
