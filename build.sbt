@@ -450,6 +450,7 @@ lazy val deploy = project
   .settings(
     description          := "Observe Server",
     Docker / packageName := "gpp-obs",
+    dockerBuildOptions   ++= Seq("--platform", "linux/amd64"),
     dockerUpdateLatest   := true,
     dockerUsername       := Some("noirlab")
   )
