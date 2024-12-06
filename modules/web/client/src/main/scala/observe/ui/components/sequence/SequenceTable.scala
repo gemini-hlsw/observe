@@ -102,10 +102,10 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         )
 
   protected[sequence] lazy val acquisitionRows: List[SequenceRow[D]] =
+    // If initial acquisition atom is complete, then nextAtom already shows the next potential step. We want to hide that.
     if executionState.isWaitingAcquisitionPrompt || executionState.sequenceType === SequenceType.Science
     then List.empty
-    else
-      currentAcquisitionRows ++ config.acquisition.map(a => futureSteps(a.possibleFuture)).orEmpty
+    else currentAcquisitionRows
 
   protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
     currentScienceRows ++ config.science.map(s => futureSteps(s.possibleFuture)).orEmpty

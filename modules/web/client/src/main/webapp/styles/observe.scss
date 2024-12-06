@@ -735,10 +735,15 @@ body {
   }
 }
 
-.p-inputgroup {
+.p-button-group {
   &.ObserveStyles-controlButtonStrip {
     height: 21px;
-    width: 68px;
+    width: 84px;
+
+    & > button { 
+      height: 100%;
+      width: 25px;
+    }
 
     // Resume and pause buttons don't have a large icon, so we pad them.
     & > .ObserveStyles-playButton,

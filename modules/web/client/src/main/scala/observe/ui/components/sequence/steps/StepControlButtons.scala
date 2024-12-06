@@ -22,6 +22,7 @@ import observe.ui.components.DefaultTooltipOptions
 import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.services.SequenceApi
+import lucuma.typed.primereact.components.ButtonGroup
 
 /**
  * Contains a set of control buttons like stop/abort
@@ -63,7 +64,7 @@ object StepControlButtons:
       //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
       //     case _                                                        => Icons.Stop
 
-      InputGroup(ObserveStyles.ControlButtonStrip)(
+      ButtonGroup(ObserveStyles.ControlButtonStrip)(
         // ObserveStyles.notInMobile,
         TagMod.when(props.isRunning):
           props.operations
