@@ -89,9 +89,12 @@ lazy val herokuDeployAndRelease =
   WorkflowStep.Run(
     List(
       "heroku container:login",
-      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
-      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
-      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }} -v"
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
+      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
+      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GN }} -v",
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
+      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
+      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GS }} -v"
     ),
     name = Some("Deploy and release app in Heroku")
   )
