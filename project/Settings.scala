@@ -51,7 +51,7 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.110.0"
+    val lucumaCore      = "0.111.0"
     val lucumaUI        = "0.124.1"
     val lucumaSchemas   = "0.108.0"
     val lucumaSSO       = "0.7.0"
