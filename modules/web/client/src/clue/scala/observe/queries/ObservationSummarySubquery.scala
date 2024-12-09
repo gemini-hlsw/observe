@@ -23,9 +23,7 @@ object ObservationSummarySubquery
           posAngleConstraint $PosAngleConstraintSubquery
           constraintSet $ConstraintSetSubquery
           timingWindows $TimingWindowSubquery
-          obsAttachments {
-            id
-          }
+          attachments { id }
           observingMode $ObservingModeSubquery
           reference {
             label
