@@ -3,6 +3,7 @@
 
 package observe.ui.components.queue
 
+import cats.Order.given
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.react.given
@@ -180,7 +181,6 @@ object SessionQueue:
             )
         ),
       size = 25.toPx,
-      enableSorting = false,
       enableResizing = false
     ),
     ColDef(
@@ -201,39 +201,42 @@ object SessionQueue:
       ObsRefColumnId,
       _.obsReference,
       header = "Obs. Id",
-      cell = linked(_.value.map(_.label).getOrElse("---")),
+      cell = linked(c =>
+        println(s"${c.value.map(_.label).getOrElse("---")} => ${c.value}")
+        c.value.map(_.label).getOrElse("---")
+      ),
       size = 110.toPx
-    ),
+    ).sortable,
     ColDef(
       StateColumnId,
-      row => (row.status, row.runningStep),
+      row => statusText(row.status, row.runningStep),
       header = "State",
-      cell = linked(cell => statusText(cell.value._1, cell.value._2))
-    ),
+      cell = linked(_.value)
+    ).sortable,
     ColDef(
       InstrumentColumnId,
       _.instrument,
       header = "Instrument",
       cell = linked(_.value.shortName)
-    ),
+    ).sortable,
     ColDef(
       TargetColumnId,
       _.title,
       header = "Target",
       cell = linked(_.value.toString.some.filter(_.nonEmpty).getOrElse(UnknownTargetName))
-    ),
+    ).sortable,
     ColDef(
       ObsNameColumnId,
-      _.subtitle.getOrElse("-"),
+      _.subtitle.map(_.value).getOrElse("-"),
       header = "Obs. Name",
-      cell = linked(_.value.toString)
-    ),
+      cell = linked(_.value)
+    ).sortable,
     ColDef(
       ObserverColumnId,
       _.observer.foldMap(_.value.value),
       header = "Observer",
       cell = linked(_.value.toString)
-    )
+    ).sortable
   )
 
   private val component =
@@ -253,6 +256,7 @@ object SessionQueue:
           cols,
           Reusable.implicitly(props.queue),
           enableColumnResizing = true,
+          enableSorting = true,
           columnResizeMode = ColumnResizeMode.OnChange
         )
       .render: (props, _, table) =>

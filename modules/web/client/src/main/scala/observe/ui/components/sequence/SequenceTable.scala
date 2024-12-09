@@ -269,7 +269,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
-          enableSorting = false,
           enableColumnResizing = true,
           enableExpanding = true,
           getRowId = (row, _, _) => getRowId(row),
