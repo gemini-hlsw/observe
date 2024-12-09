@@ -75,19 +75,6 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
         req.decode[List[Step.Id]]: steps =>
           oe.setBreakpoints(obsId, user, obs, steps, bp) *> NoContent()
 
-    // case POST -> Root / ObsId(obsId) / "sync" as _ =>
-    //   for {
-    //     u    <- se.sync(inputQueue, obsId).attempt
-    //     resp <-
-    //       u.fold(_ => NotFound(s"Not found sequence $obsId"), _ => Ok(s"Sync requested for $obsId"))
-    //   } yield resp
-    //
-    // case POST -> Root / ObsId(obsId) / StepId(stepId) / "skip" / ObserverVar(
-    //       obs
-    //     ) / BooleanVar(bp) as user =>
-    //   se.setSkipMark(inputQueue, obsId, user, obs, stepId, bp) *>
-    //     Ok(s"Set skip mark in step $stepId of sequence $obsId")
-
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "stop" /
         ObserverVar(obs) =>
       ssoClient.require(req): user =>
