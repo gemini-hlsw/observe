@@ -201,10 +201,7 @@ object SessionQueue:
       ObsRefColumnId,
       _.obsReference,
       header = "Obs. Id",
-      cell = linked(c =>
-        println(s"${c.value.map(_.label).getOrElse("---")} => ${c.value}")
-        c.value.map(_.label).getOrElse("---")
-      ),
+      cell = linked(_.value.map(_.label).getOrElse("---")),
       size = 110.toPx
     ).sortable,
     ColDef(
