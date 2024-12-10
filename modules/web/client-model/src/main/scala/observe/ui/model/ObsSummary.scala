@@ -14,8 +14,8 @@ import io.circe.HCursor
 import io.circe.generic.semiauto.*
 import io.circe.refined.given
 import lucuma.core.enums.Instrument
+import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
-import lucuma.core.model.ObsAttachment
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
@@ -37,7 +37,7 @@ case class ObsSummary(
   instrument:         Instrument,
   constraints:        ConstraintSet,
   timingWindows:      List[TimingWindow],
-  attachmentIds:      SortedSet[ObsAttachment.Id],
+  attachmentIds:      SortedSet[Attachment.Id],
   observingMode:      Option[ObservingMode],
   observationTime:    Option[Instant],
   posAngleConstraint: PosAngleConstraint,
@@ -67,7 +67,7 @@ object ObsSummary:
   val posAngleConstraint = Focus[ObsSummary](_.posAngleConstraint)
   val obsReference       = Focus[ObsSummary](_.obsReference)
 
-  private case class AttachmentIdWrapper(id: ObsAttachment.Id)
+  private case class AttachmentIdWrapper(id: Attachment.Id)
   private object AttachmentIdWrapper:
     given Decoder[AttachmentIdWrapper] = deriveDecoder
 
@@ -79,7 +79,7 @@ object ObsSummary:
       instrument         <- c.get[Option[Instrument]]("instrument")
       constraints        <- c.get[ConstraintSet]("constraintSet")
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")
-      attachmentIds      <- c.get[List[AttachmentIdWrapper]]("obsAttachments")
+      attachmentIds      <- c.get[List[AttachmentIdWrapper]]("attachments")
       observingMode      <- c.get[Option[ObservingMode]]("observingMode")
       observationTime    <- c.get[Option[Timestamp]]("observationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")

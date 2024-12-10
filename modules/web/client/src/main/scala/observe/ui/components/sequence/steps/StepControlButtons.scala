@@ -13,6 +13,7 @@ import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.*
+import lucuma.typed.primereact.components.ButtonGroup
 import observe.model.SequenceState
 import observe.model.operations.*
 import observe.model.operations.Operations.*
@@ -22,7 +23,6 @@ import observe.ui.components.DefaultTooltipOptions
 import observe.ui.model.AppContext
 import observe.ui.model.ObservationRequests
 import observe.ui.services.SequenceApi
-import lucuma.typed.primereact.components.ButtonGroup
 
 /**
  * Contains a set of control buttons like stop/abort
