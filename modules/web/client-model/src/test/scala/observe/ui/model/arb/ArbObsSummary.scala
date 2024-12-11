@@ -3,11 +3,9 @@
 
 package observe.ui.model.arb
 
-import cats.Order.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
-import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
@@ -27,7 +25,6 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
 
 import java.time.Instant
-import scala.collection.immutable.SortedSet
 
 trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
@@ -38,7 +35,6 @@ trait ArbObsSummary:
       instrument         <- arbitrary[Instrument]
       constraints        <- arbitrary[ConstraintSet]
       timingWindows      <- arbitrary[List[TimingWindow]]
-      attachmentIds      <- arbitrary[List[Attachment.Id]]
       observingMode      <- arbitrary[Option[ObservingMode]]
       observationTime    <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
@@ -50,7 +46,6 @@ trait ArbObsSummary:
       instrument,
       constraints,
       timingWindows,
-      SortedSet.from(attachmentIds),
       observingMode,
       observationTime,
       posAngleConstraint,
@@ -65,7 +60,6 @@ trait ArbObsSummary:
        Instrument,
        ConstraintSet,
        List[TimingWindow],
-       List[Attachment.Id],
        Option[ObservingMode],
        Option[Instant],
        PosAngleConstraint,
@@ -79,7 +73,6 @@ trait ArbObsSummary:
          s.instrument,
          s.constraints,
          s.timingWindows,
-         s.attachmentIds.toList,
          s.observingMode,
          s.observationTime,
          s.posAngleConstraint,

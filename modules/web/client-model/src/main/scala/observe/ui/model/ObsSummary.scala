@@ -4,7 +4,6 @@
 package observe.ui.model
 
 import cats.Eq
-import cats.Order.given
 import cats.derived.*
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
@@ -14,7 +13,6 @@ import io.circe.HCursor
 import io.circe.generic.semiauto.*
 import io.circe.refined.given
 import lucuma.core.enums.Instrument
-import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
@@ -28,7 +26,6 @@ import monocle.Focus
 import org.typelevel.cats.time.*
 
 import java.time.Instant
-import scala.collection.immutable.SortedSet
 
 case class ObsSummary(
   obsId:              Observation.Id,
@@ -37,7 +34,6 @@ case class ObsSummary(
   instrument:         Instrument,
   constraints:        ConstraintSet,
   timingWindows:      List[TimingWindow],
-  attachmentIds:      SortedSet[Attachment.Id],
   observingMode:      Option[ObservingMode],
   observationTime:    Option[Instant],
   posAngleConstraint: PosAngleConstraint,
@@ -61,15 +57,10 @@ object ObsSummary:
   val instrument         = Focus[ObsSummary](_.instrument)
   val constraints        = Focus[ObsSummary](_.constraints)
   val timingWindows      = Focus[ObsSummary](_.timingWindows)
-  val attachmentIds      = Focus[ObsSummary](_.attachmentIds)
   val observingMode      = Focus[ObsSummary](_.observingMode)
   val observationTime    = Focus[ObsSummary](_.observationTime)
   val posAngleConstraint = Focus[ObsSummary](_.posAngleConstraint)
   val obsReference       = Focus[ObsSummary](_.obsReference)
-
-  private case class AttachmentIdWrapper(id: Attachment.Id)
-  private object AttachmentIdWrapper:
-    given Decoder[AttachmentIdWrapper] = deriveDecoder
 
   given Decoder[ObsSummary] = Decoder.instance: c =>
     for
@@ -79,7 +70,6 @@ object ObsSummary:
       instrument         <- c.get[Option[Instrument]]("instrument")
       constraints        <- c.get[ConstraintSet]("constraintSet")
       timingWindows      <- c.get[List[TimingWindow]]("timingWindows")
-      attachmentIds      <- c.get[List[AttachmentIdWrapper]]("attachments")
       observingMode      <- c.get[Option[ObservingMode]]("observingMode")
       observationTime    <- c.get[Option[Timestamp]]("observationTime")
       posAngleConstraint <- c.get[PosAngleConstraint]("posAngleConstraint")
@@ -95,7 +85,6 @@ object ObsSummary:
       instrument.getOrElse(Instrument.Visitor),
       constraints,
       timingWindows,
-      SortedSet.from(attachmentIds.map(_.id)),
       observingMode,
       observationTime.map(_.toInstant),
       posAngleConstraint,
