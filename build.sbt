@@ -88,6 +88,7 @@ lazy val sbtDockerPublish =
 lazy val herokuDeployAndRelease =
   WorkflowStep.Run(
     List(
+      "npm install -g heroku",
       "heroku container:login",
       "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
       "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
@@ -450,7 +451,7 @@ lazy val deploy = project
   .settings(
     description          := "Observe Server",
     Docker / packageName := "gpp-obs",
-    dockerBuildOptions   ++= Seq("--platform", "linux/amd64"),
+    dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
     dockerUpdateLatest   := true,
     dockerUsername       := Some("noirlab")
   )

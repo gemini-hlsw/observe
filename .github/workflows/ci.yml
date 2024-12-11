@@ -159,6 +159,7 @@ jobs:
 
       - name: Deploy and release app in Heroku
         run: |
+          npm install -g heroku
           heroku container:login
           docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
           docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
