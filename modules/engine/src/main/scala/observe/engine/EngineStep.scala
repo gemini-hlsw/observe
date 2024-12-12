@@ -32,9 +32,6 @@ object EngineStep {
   def breakpointL[F[_]]: Lens[EngineStep[F], Boolean] =
     Focus[EngineStep[F]](_.breakpoint).andThen(isoBool)
 
-  def init[F[_]](id: Step.Id, executions: List[ParallelActions[F]]): EngineStep[F] =
-    EngineStep(id = id, breakpoint = Breakpoint.Disabled, executions = executions)
-
   /**
    * Calculate the `Step` `Status` based on the underlying `Action`s.
    */

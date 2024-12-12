@@ -91,8 +91,9 @@ object SequenceGen {
     ): EngineStep[F] =
       stepGen match {
         case p: PendingStepGen[F]                   =>
-          EngineStep.init[F](stepGen.id, p.generator.generate(ctx, systemOverrides))
-        case CompletedStepGen(id, _, _, _, _, _, _) => EngineStep.init[F](id, Nil)
+          EngineStep[F](stepGen.id, p.breakpoint, p.generator.generate(ctx, systemOverrides))
+        case CompletedStepGen(id, _, _, _, _, _, _) =>
+          EngineStep[F](id, Breakpoint.Disabled, Nil)
       }
   }
 
