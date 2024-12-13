@@ -316,8 +316,15 @@ object Sequence {
 
       override def setBreakpoints(stepId: List[Step.Id], v: Breakpoint): State[F] =
         self.copy(zipper =
-          zipper.copy(pending =
-            zipper.pending.map(s => if (stepId.exists(_ === s.id)) s.copy(breakpoint = v) else s)
+          zipper.copy(
+            pending = zipper.pending.map: s =>
+              if stepId.contains_(s.id)
+              then s.copy(breakpoint = v)
+              else s,
+            focus =
+              if stepId.contains_(zipper.focus.id)
+              then zipper.focus.copy(breakpoint = v)
+              else zipper.focus
           )
         )
 
