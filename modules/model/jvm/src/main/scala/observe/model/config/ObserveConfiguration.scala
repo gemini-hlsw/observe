@@ -7,6 +7,7 @@ import cats.Eq
 import cats.derived.*
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import org.http4s.Uri
 
 /**
  * Top configuration of the observe
@@ -14,15 +15,20 @@ import lucuma.core.enums.Site
  *   Site this observe instance handles (GN/GS)
  * @param environment
  *   Execution environment
+ * @param exploreBaseUrl
+ *   Location of explore
+ * @param lucumaSSO
+ *   Configuration of Single Sign On server
  * @param observeEngine
  *   Configuration of the engine
  * @param webServer
- *   Web side configuration
+ *   Website configuration
  */
 case class ObserveConfiguration(
-  site:          Site,
-  environment:   ExecutionEnvironment,
-  lucumaSSO:     LucumaSSOConfiguration,
-  observeEngine: ObserveEngineConfiguration,
-  webServer:     WebServerConfiguration
+  site:           Site,
+  environment:    ExecutionEnvironment,
+  exploreBaseUrl: Uri,
+  lucumaSSO:      LucumaSSOConfiguration,
+  observeEngine:  ObserveEngineConfiguration,
+  webServer:      WebServerConfiguration
 ) derives Eq

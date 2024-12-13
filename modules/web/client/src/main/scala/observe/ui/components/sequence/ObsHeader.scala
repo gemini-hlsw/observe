@@ -9,6 +9,7 @@ import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
 import lucuma.react.common.*
 import observe.model.SequenceState
 import observe.model.SystemOverrides
@@ -17,12 +18,13 @@ import observe.ui.model.ObsSummary
 import observe.ui.model.ObservationRequests
 
 case class ObsHeader(
-  observation:   ObsSummary,
-  loadedObsId:   Option[Pot[Observation.Id]], // May be different than shown observation
-  loadObs:       Observation.Id => Callback,
-  sequenceState: SequenceState,
-  requests:      ObservationRequests,
-  overrides:     Option[View[SystemOverrides]]
+  observation:      ObsSummary,
+  loadedObsId:      Option[Pot[Observation.Id]], // May be different than shown observation
+  loadObs:          Observation.Id => Callback,
+  sequenceState:    SequenceState,
+  requests:         ObservationRequests,
+  overrides:        Option[View[SystemOverrides]],
+  linkToExploreObs: ObservationReference => VdomNode
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -39,7 +41,8 @@ object ObsHeader:
             props.sequenceState,
             props.requests
           ),
-          s"${props.observation.title} [${props.observation.obsId}]"
+          s"${props.observation.title} [${props.observation.obsId}]",
+          props.observation.obsReference.map(props.linkToExploreObs)
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
           <.span(props.observation.configurationSummary),
