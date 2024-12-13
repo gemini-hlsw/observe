@@ -1066,3 +1066,16 @@ body {
     color: var(--negative-row-color);
   }
 }
+
+.ObserveStyles-externalLink {
+  margin-left: 0.4em;
+  font-size: smaller;
+  vertical-align: baseline;
+}
+
+.ObserveStyles-obsSummary-title{
+  .ObserveStyles-externalLink {
+    font-size: 12px;
+    vertical-align: super;
+  }
+}

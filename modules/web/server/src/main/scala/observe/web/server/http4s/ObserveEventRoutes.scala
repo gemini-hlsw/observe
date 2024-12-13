@@ -45,6 +45,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
   environment:      ExecutionEnvironment,
   odbWsUri:         Uri,
   ssoUri:           Uri,
+  exploreBaseUri:   Uri,
   clientsDb:        ClientsSetDb[F],
   engine:           ObserveEngine[F],
   engineOutput:     Topic[F, (Option[ClientId], ClientEvent)],
@@ -77,6 +78,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
                 environment,
                 odbWsUri,
                 ssoUri,
+                exploreBaseUri,
                 clientId,
                 Version(NonEmptyString.unsafeFrom(OcsBuildInfo.version))
               )

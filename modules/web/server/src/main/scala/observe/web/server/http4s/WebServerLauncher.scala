@@ -149,6 +149,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         conf.environment,
         conf.observeEngine.odbWs,
         conf.lucumaSSO.ssoUrl,
+        conf.exploreBaseUrl,
         clientsDb,
         oe,
         events,

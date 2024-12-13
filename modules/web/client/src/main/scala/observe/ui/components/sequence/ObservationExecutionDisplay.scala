@@ -10,6 +10,7 @@ import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
@@ -26,9 +27,10 @@ import observe.ui.model.*
 import observe.ui.model.ObsSummary
 
 case class ObservationExecutionDisplay(
-  selectedObs:     ObsSummary,
-  rootModelData:   View[RootModelData],
-  loadObservation: Observation.Id => Callback
+  selectedObs:      ObsSummary,
+  rootModelData:    View[RootModelData],
+  loadObservation:  Observation.Id => Callback,
+  linkToExploreObs: ObservationReference => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay.component)
 
 object ObservationExecutionDisplay:
@@ -77,7 +79,8 @@ object ObservationExecutionDisplay:
             ObservationRequests.Idle
           ),
           executionStateAndConfig
-            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides)))
+            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides))),
+          props.linkToExploreObs
         ),
         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
         executionStateAndConfig.map(

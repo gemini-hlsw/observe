@@ -133,6 +133,8 @@ object ObserveStyles:
   val LogWarningRow: Css = Css("ObserveStyles-logWarningRow")
   val LogErrorRow: Css   = Css("ObserveStyles-logErrorRow")
 
+  val ExternalLink: Css = Css("ObserveStyles-externalLink")
+
   object Prime:
     val EmptyProgressBar: Css      = Css("p-progressbar p-component")
     val EmptyProgressBarLabel: Css = Css("p-progressbar-label")

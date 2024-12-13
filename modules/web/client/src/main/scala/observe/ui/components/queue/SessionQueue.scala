@@ -10,6 +10,7 @@ import crystal.react.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
 import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
@@ -31,11 +32,12 @@ import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
 
 case class SessionQueue(
-  queue:     List[SessionQueueRow],
-  obsStates: Map[Observation.Id, SequenceState],
-  selectObs: Observation.Id => Callback,
-  loadedObs: Option[LoadedObservation],
-  loadObs:   Observation.Id => Callback
+  queue:            List[SessionQueueRow],
+  obsStates:        Map[Observation.Id, SequenceState],
+  selectObs:        Observation.Id => Callback,
+  loadedObs:        Option[LoadedObservation],
+  loadObs:          Observation.Id => Callback,
+  linkToExploreObs: ObservationReference => VdomNode
 ) extends ReactFnProps(SessionQueue.component):
   val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
 
@@ -49,9 +51,9 @@ object SessionQueue:
   private val ColDef = ColumnDef[SessionQueueRow]
 
   private def rowClass(
-    loadingPotOpt:       Option[Pot[Unit]],
-    /*index: Int,*/ row: SessionQueueRow,
-    selectedObsId:       Option[Observation.Id]
+    loadingPotOpt: Option[Pot[Unit]],
+    row:           SessionQueueRow,
+    selectedObsId: Option[Observation.Id]
   ): Css =
     val isFocused = selectedObsId.contains_(row.obsId)
 
@@ -137,13 +139,6 @@ object SessionQueue:
   private def renderCentered(node: VdomNode, css: Css = Css.Empty): VdomNode =
     <.div(ObserveStyles.Centered |+| css)(node)
 
-  private def linked[T, A, TM, CM](
-    f: CellContext[T, A, TM, CM] => VdomNode
-  ): CellContext[T, A, TM, CM] => VdomNode =
-    f // .andThen(node => renderCell(node))
-    //  (_, _, _, row: SessionQueueRow, _) =>
-    //    linkTo(p, pageOf(row))(ObserveStyles.queueTextColumn, <.p(ObserveStyles.queueText, f(row)))
-
   // private val IconColumnId: ColumnId       = ColumnId("icon")
   private val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
   private val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
@@ -156,11 +151,12 @@ object SessionQueue:
   private val ObserverColumnId: ColumnId   = ColumnId("observer")
 
   private def columns(
-    obsStates:     Map[Observation.Id, SequenceState],
-    loadingPotOpt: Option[Pot[Unit]],
-    isProcessing:  Boolean,
-    loadedObsId:   Option[Observation.Id],
-    loadObs:       Observation.Id => Callback
+    obsStates:        Map[Observation.Id, SequenceState],
+    loadingPotOpt:    Option[Pot[Unit]],
+    isProcessing:     Boolean,
+    loadedObsId:      Option[Observation.Id],
+    loadObs:          Observation.Id => Callback,
+    linkToExploreObs: ObservationReference => VdomNode
   ) = List(
     ColDef(
       StatusIconColumnId,
@@ -201,38 +197,38 @@ object SessionQueue:
       ObsRefColumnId,
       _.obsReference,
       header = "Obs. Id",
-      cell = linked(_.value.map(_.label).getOrElse("---")),
+      cell = _.value.map(obsRef => <.span(obsRef.label, linkToExploreObs(obsRef))).getOrElse("---"),
       size = 110.toPx
     ).sortable,
     ColDef(
       StateColumnId,
       row => statusText(row.status, row.runningStep),
       header = "State",
-      cell = linked(_.value)
+      cell = _.value
     ).sortable,
     ColDef(
       InstrumentColumnId,
       _.instrument,
       header = "Instrument",
-      cell = linked(_.value.shortName)
+      cell = _.value.shortName
     ).sortable,
     ColDef(
       TargetColumnId,
       _.title,
       header = "Target",
-      cell = linked(_.value.toString.some.filter(_.nonEmpty).getOrElse(UnknownTargetName))
+      cell = _.value.toString.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
     ).sortable,
     ColDef(
       ObsNameColumnId,
       _.subtitle.map(_.value).getOrElse("-"),
       header = "Obs. Name",
-      cell = linked(_.value)
+      cell = _.value
     ).sortable,
     ColDef(
       ObserverColumnId,
       _.observer.foldMap(_.value.value),
       header = "Observer",
-      cell = linked(_.value.toString)
+      cell = _.value.toString
     ).sortable
   )
 
@@ -247,7 +243,14 @@ object SessionQueue:
         )
       ): props =>
         (obsStates, loadingPotOpt, loadedObsId, isProcessing) =>
-          columns(obsStates, loadingPotOpt, isProcessing, loadedObsId, props.loadObs)
+          columns(
+            obsStates,
+            loadingPotOpt,
+            isProcessing,
+            loadedObsId,
+            props.loadObs,
+            props.linkToExploreObs
+          )
       .useReactTableBy: (props, cols) =>
         TableOptions(
           cols,

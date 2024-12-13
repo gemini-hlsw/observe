@@ -12,21 +12,25 @@ import io.circe.Encoder
 import io.circe.refined.given
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import lucuma.core.model.ObservationReference
 import monocle.Focus
 import monocle.Lens
 import org.http4s.Uri
 import org.http4s.circe.given
 
 case class ClientConfig(
-  site:        Site,
-  environment: ExecutionEnvironment,
-  odbUri:      Uri,
-  ssoUri:      Uri,
-  clientId:    ClientId,
-  version:     Version
+  site:           Site,
+  environment:    ExecutionEnvironment,
+  odbUri:         Uri,
+  ssoUri:         Uri,
+  exploreBaseUri: Uri,
+  clientId:       ClientId,
+  version:        Version
 ) derives Eq,
       Encoder.AsObject,
-      Decoder
+      Decoder:
+  def linkToExploreObs(obsRef: ObservationReference): Uri =
+    exploreBaseUri / obsRef.label
 
 object ClientConfig:
   val clientId: Lens[ClientConfig, ClientId] = Focus[ClientConfig](_.clientId)

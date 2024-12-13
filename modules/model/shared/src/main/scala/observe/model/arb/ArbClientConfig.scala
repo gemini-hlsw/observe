@@ -29,17 +29,18 @@ trait ArbClientConfig:
 
   given Arbitrary[ClientConfig] = Arbitrary:
     for
-      site        <- arbitrary[Site]
-      environment <- arbitrary[ExecutionEnvironment]
-      odbUri      <- arbitrary[Uri]
-      ssoUri      <- arbitrary[Uri]
-      clientId    <- arbitrary[ClientId]
-      version     <- arbitrary[Version]
-    yield ClientConfig(site, environment, odbUri, ssoUri, clientId, version)
+      site           <- arbitrary[Site]
+      environment    <- arbitrary[ExecutionEnvironment]
+      odbUri         <- arbitrary[Uri]
+      ssoUri         <- arbitrary[Uri]
+      exploreBaseUri <- arbitrary[Uri]
+      clientId       <- arbitrary[ClientId]
+      version        <- arbitrary[Version]
+    yield ClientConfig(site, environment, odbUri, ssoUri, exploreBaseUri, clientId, version)
 
   given Cogen[ClientConfig] =
-    Cogen[(Site, ExecutionEnvironment, Uri, Uri, ClientId, Version)].contramap(x =>
-      (x.site, x.environment, x.odbUri, x.ssoUri, x.clientId, x.version)
+    Cogen[(Site, ExecutionEnvironment, Uri, Uri, Uri, ClientId, Version)].contramap(x =>
+      (x.site, x.environment, x.odbUri, x.ssoUri, x.exploreBaseUri, x.clientId, x.version)
     )
 
 object ArbClientConfig extends ArbClientConfig
