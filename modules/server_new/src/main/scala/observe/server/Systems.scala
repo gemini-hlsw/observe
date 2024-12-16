@@ -109,7 +109,7 @@ object Systems {
           else new OdbProxy.DummyOdbCommands[F].pure[F]
       yield OdbProxy[F](odbCommands)
 
-    def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClientProvider[F]] =
+    def dhs[F[_]: Async: Logger](site: Site, httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)
         new DhsClientProvider[F] {
           override def dhsClient(instrumentName: String): DhsClient[F] = new DhsClientHttp[F](
@@ -120,7 +120,14 @@ object Systems {
           )
         }.pure[F]
       else
-        DhsClientSim.apply[F].map(x => (_: String) => x)
+        DhsClientSim
+          .apply[F](site)
+          .map(client =>
+            new DhsClientProvider[F] {
+              override def dhsClient(instrumentName: String): DhsClient[F] =
+                client
+            }
+          )
 
     // TODO make instruments controllers generalized on F
     def gcal: IO[(GcalController[IO], GcalKeywordReader[IO])] =
@@ -396,7 +403,7 @@ object Systems {
               )(_)
         given Http4sHttpBackend[IO]                        = Http4sHttpBackend(httpClient)
         odbProxy                                          <- Resource.eval[IO, OdbProxy[IO]](odbProxy[IO])
-        dhsClient                                         <- Resource.eval(dhs[IO](httpClient))
+        dhsClient                                         <- Resource.eval(dhs[IO](site, httpClient))
         gcdb                                              <- Resource.eval(GuideConfigDb.newDb[IO])
         gcals                                             <- Resource.eval(gcal)
         (gcalCtr, gcalKR)                                  = gcals
