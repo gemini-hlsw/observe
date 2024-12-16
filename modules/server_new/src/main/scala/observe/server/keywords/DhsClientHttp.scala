@@ -15,6 +15,7 @@ import io.circe.DecodingFailure
 import io.circe.Encoder
 import io.circe.Json
 import io.circe.syntax.*
+import lucuma.core.enums.Site
 import observe.model.dhs.*
 import observe.model.enums.DhsKeywordName
 import observe.model.enums.KeywordName
@@ -223,14 +224,19 @@ object DhsClientHttp {
 /**
  * Implementation of the Dhs client that simulates a dhs without external dependencies
  */
-private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[F, Int])
+private class DhsClientSim[F[_]: FlatMap: Logger](site: Site, date: LocalDate, counter: Ref[F, Int])
     extends DhsClient[F] {
 
   val format: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd")
 
+  private val sitePrefix = site match {
+    case Site.GS => "S"
+    case Site.GN => "N"
+  }
+
   override def createImage(p: ImageParameters): F[ImageFileId] =
     counter.modify(x => (x + 1, x + 1)).map { c =>
-      ImageFileId(f"S${date.format(format)}S$c%04d")
+      ImageFileId(f"$sitePrefix${date.format(format)}S$c%04d")
 
     }
 
@@ -242,16 +248,16 @@ private class DhsClientSim[F[_]: FlatMap: Logger](date: LocalDate, counter: Ref[
 }
 
 object DhsClientSim {
-  def apply[F[_]: Sync: Logger]: F[DhsClient[F]] =
+  def apply[F[_]: Sync: Logger](site: Site): F[DhsClient[F]] =
     Clock[F].monotonic
       .map(d => Instant.EPOCH.plusNanos(d.toNanos))
       .map(LocalDateTime.ofInstant(_, ZoneId.systemDefault))
-      .flatMap(apply)
+      .flatMap(apply(site, _))
 
-  def apply[F[_]: Sync: Logger](dateTime: LocalDateTime): F[DhsClient[F]] =
+  def apply[F[_]: Sync: Logger](site: Site, dateTime: LocalDateTime): F[DhsClient[F]] =
     Ref // Initialize with ordinal of 10-second lapse in the day, between 0 and 8640
       .of[F, Int](dateTime.getHour() * 360 + dateTime.getMinute() * 6 + dateTime.getSecond() / 10)
       .map: counter =>
-        new DhsClientSim[F](dateTime.toLocalDate, counter)
+        new DhsClientSim[F](site, dateTime.toLocalDate, counter)
 
 }
