@@ -434,20 +434,22 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
 
         React.Fragment(
-          <.div(ObserveStyles.SequenceTableExpandButton)(
-            Button(
-              icon = Icons.Minus,
-              label = "Collapse all visits",
-              disabled = allVisitsAreCollapsed,
-              onClick = collapseVisits
-            ).mini.compact,
-            Button(
-              icon = Icons.Plus,
-              label = "Expand all visits",
-              disabled = allVisitsAreExpanded,
-              onClick = expandVisits
-            ).mini.compact
-          ),
+          if (visitIds.nonEmpty) {
+            <.div(ObserveStyles.SequenceTableExpandButton)(
+              Button(
+                icon = Icons.Minus,
+                label = "Collapse all visits",
+                disabled = allVisitsAreCollapsed,
+                onClick = collapseVisits
+              ).mini.compact,
+              Button(
+                icon = Icons.Plus,
+                label = "Expand all visits",
+                disabled = allVisitsAreExpanded,
+                onClick = expandVisits
+              ).mini.compact
+            )
+          } else EmptyVdom,
           PrimeAutoHeightVirtualizedTable(
             table,
             estimateSize = _ => 25.toPx,
