@@ -435,18 +435,12 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
 
         def estimateRowHeight(index: Int): SizePx =
           table.getRowModel().rows.get(index).map(_.original.value) match
-            case Some(Left(_))                                                                =>
-              25.toPx // Header
-            case Some(Right(SequenceIndexedRow(SequenceRow.FutureStep(_, _, _, _), _)))       =>
-              25.toPx
-            case Some(Right(SequenceIndexedRow(CurrentAtomStepRow(_, _, _, _), _)))           =>
-              60.toPx
-            case Some(Right(SequenceIndexedRow(SequenceRow.Executed.ExecutedVisit(_, _), _))) =>
-              25.toPx
-            case Some(Right(SequenceIndexedRow(SequenceRow.Executed.ExecutedStep(_, _), _)))  =>
-              60.toPx
-            case _                                                                            =>
-              0.toPx
+            case Some(Right(SequenceIndexedRow(CurrentAtomStepRow(_, _, _, _), _)))          =>
+              SequenceRowHeight.WithExtra
+            case Some(Right(SequenceIndexedRow(SequenceRow.Executed.ExecutedStep(_, _), _))) =>
+              SequenceRowHeight.WithExtra
+            case _                                                                           =>
+              SequenceRowHeight.Regular
 
         React.Fragment(
           if (visitIds.nonEmpty) {
