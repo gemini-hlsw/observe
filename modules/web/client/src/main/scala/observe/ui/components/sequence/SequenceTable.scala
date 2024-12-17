@@ -21,7 +21,6 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
-import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackVirtualCore as rawVirtual
