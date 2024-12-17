@@ -17,7 +17,7 @@ object Settings {
     val fs2Version        = "3.11.0"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
-    val catsParseVersion  = "1.0.0"
+    val catsParseVersion  = "1.1.0"
 
     val http4sVersion              = "0.23.30"
     val http4sDomVersion           = "0.2.11"
