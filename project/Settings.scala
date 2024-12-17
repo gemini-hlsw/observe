@@ -65,7 +65,7 @@ object Settings {
     val javaTimeJS   = "2.6.0"
     val lucumaReact  = "0.74.0"
     val scalaDom     = "2.3.0"
-    val scalajsReact = "3.0.0-beta6"
+    val scalajsReact = "3.0.0-beta7"
   }
 
   /**
