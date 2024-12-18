@@ -11,6 +11,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
 import lucuma.react.primereact.tooltip.*
@@ -67,9 +68,12 @@ object Home:
 
         (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
           .renderPot: (clientConfig, _) =>
-            def renderExploreLinkToObs(obsRef: ObservationReference): VdomNode =
+
+            def renderExploreLinkToObs(
+              obsIdOrRef: Either[(Program.Id, Observation.Id), ObservationReference]
+            ): VdomNode =
               <.a(
-                ^.href := clientConfig.linkToExploreObs(obsRef).toString,
+                ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
                 ^.target.blank,
                 ^.onClick ==> (e => e.stopPropagationCB),
                 ObserveStyles.ExternalLink

@@ -11,6 +11,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
@@ -37,7 +38,7 @@ case class SessionQueue(
   selectObs:        Observation.Id => Callback,
   loadedObs:        Option[LoadedObservation],
   loadObs:          Observation.Id => Callback,
-  linkToExploreObs: ObservationReference => VdomNode
+  linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(SessionQueue.component):
   val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
 
@@ -156,7 +157,7 @@ object SessionQueue:
     isProcessing:     Boolean,
     loadedObsId:      Option[Observation.Id],
     loadObs:          Observation.Id => Callback,
-    linkToExploreObs: ObservationReference => VdomNode
+    linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
   ) = List(
     ColDef(
       StatusIconColumnId,
@@ -195,10 +196,10 @@ object SessionQueue:
     ),
     ColDef(
       ObsRefColumnId,
-      _.obsReference,
+      obs => obs.obsReference.toRight((obs.programId, obs.obsId)),
       header = "Obs. Id",
-      cell = _.value.map(obsRef => <.span(obsRef.label, linkToExploreObs(obsRef))).getOrElse("---"),
-      size = 110.toPx
+      cell = cell => <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
+      size = 120.toPx
     ).sortable,
     ColDef(
       StateColumnId,
