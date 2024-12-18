@@ -229,9 +229,6 @@ object TestOdbProxy {
         override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
           addEvent(SequenceEnd(obsId)).as(true)
 
-        override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-          addEvent(ObsAbort(obsId, reason)).as(true)
-
         override def obsContinue(obsId: Observation.Id): F[Boolean] =
           addEvent(ObsContinue(obsId)).as(true)
 
@@ -277,7 +274,6 @@ object TestOdbProxy {
   case class StepAbort(obsId: Observation.Id)                                 extends OdbEvent
   case class AtomEnd(obsId: Observation.Id)                                   extends OdbEvent
   case class SequenceEnd(obsId: Observation.Id)                               extends OdbEvent
-  case class ObsAbort(obsId: Observation.Id, reason: String)                  extends OdbEvent
   case class ObsContinue(obsId: Observation.Id)                               extends OdbEvent
   case class ObsPause(obsId: Observation.Id, reason: String)                  extends OdbEvent
   case class ObsStop(obsId: Observation.Id, reason: String)                   extends OdbEvent
