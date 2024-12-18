@@ -733,6 +733,10 @@ body {
       }
     }
   }
+
+  &.ObserveStyles-abortedProgressBar {
+    background-color: var(--red-500);
+  }
 }
 
 .p-button-group {
