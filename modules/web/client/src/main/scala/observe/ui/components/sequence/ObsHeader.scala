@@ -10,6 +10,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.react.common.*
 import observe.model.SequenceState
 import observe.model.SystemOverrides
@@ -24,7 +25,7 @@ case class ObsHeader(
   sequenceState:    SequenceState,
   requests:         ObservationRequests,
   overrides:        Option[View[SystemOverrides]],
-  linkToExploreObs: ObservationReference => VdomNode
+  linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObsHeader.component)
 
 object ObsHeader:
@@ -42,7 +43,9 @@ object ObsHeader:
             props.requests
           ),
           s"${props.observation.title} [${props.observation.obsId}]",
-          props.observation.obsReference.map(props.linkToExploreObs)
+          props.linkToExploreObs:
+            props.observation.obsReference
+              .toRight((props.observation.programId, props.observation.obsId))
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
           <.span(props.observation.configurationSummary),

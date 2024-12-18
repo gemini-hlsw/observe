@@ -16,6 +16,7 @@ object ObservationSummarySubquery
   override val subquery: String = s"""
         {
           id
+          program { id }
           title
           subtitle
           instrument

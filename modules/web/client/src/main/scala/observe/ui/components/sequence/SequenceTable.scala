@@ -21,7 +21,6 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
-import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackVirtualCore as rawVirtual
@@ -433,6 +432,15 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         val allVisitsAreCollapsed = forAllVisits(!_.getIsExpanded())
         val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
 
+        def estimateRowHeight(index: Int): SizePx =
+          table.getRowModel().rows.get(index).map(_.original.value) match
+            case Some(Right(SequenceIndexedRow(CurrentAtomStepRow(_, _, _, _), _)))          =>
+              SequenceRowHeight.WithExtra
+            case Some(Right(SequenceIndexedRow(SequenceRow.Executed.ExecutedStep(_, _), _))) =>
+              SequenceRowHeight.WithExtra
+            case _                                                                           =>
+              SequenceRowHeight.Regular
+
         React.Fragment(
           if (visitIds.nonEmpty) {
             <.div(ObserveStyles.SequenceTableExpandButton)(
@@ -452,7 +460,7 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
           } else EmptyVdom,
           PrimeAutoHeightVirtualizedTable(
             table,
-            estimateSize = _ => 25.toPx,
+            estimateSize = estimateRowHeight,
             overscan = 8,
             containerRef = resize.ref,
             virtualizerRef = virtualizerRef,

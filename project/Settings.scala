@@ -17,7 +17,7 @@ object Settings {
     val fs2Version        = "3.11.0"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
-    val catsParseVersion  = "1.0.0"
+    val catsParseVersion  = "1.1.0"
 
     val http4sVersion              = "0.23.30"
     val http4sDomVersion           = "0.2.11"
@@ -51,21 +51,21 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.110.0"
-    val lucumaUI        = "0.124.3"
+    val lucumaCore      = "0.111.2"
+    val lucumaUI        = "0.124.7"
     val lucumaSchemas   = "0.109.0"
-    val lucumaSSO       = "0.7.0"
+    val lucumaSSO       = "0.7.1"
     val lucumaODBSchema = "0.17.2"
 
     // Clue
     val clue = "0.40.0"
 
     // ScalaJS libraries
-    val crystal      = "0.45.3"
+    val crystal      = "0.46.0"
     val javaTimeJS   = "2.6.0"
     val lucumaReact  = "0.74.0"
     val scalaDom     = "2.3.0"
-    val scalajsReact = "3.0.0-beta6"
+    val scalajsReact = "3.0.0-beta7"
   }
 
   /**

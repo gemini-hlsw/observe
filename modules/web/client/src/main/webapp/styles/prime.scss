@@ -4,24 +4,10 @@
 // .pl- prefix = "Prime Lucuma": Our additions to prime-react
 
 .light-theme {
-  --active-row-background: var(--orange-50);
-  --disabled-row-background: var(--bluegray-50);
-  --disabled-row-color: var(--bluegray-400);
-  --negative-row-background: var(--red-50);
-  --negative-row-color: var(--red-400);
-  --muted-color: var(--gray-600);
-
   @import "/lucuma-css/light-theme";
 }
 
 .dark-theme {
-  --active-row-background: var(--orange-900);
-  --disabled-row-background: var(--bluegray-800);
-  --disabled-row-color: var(--bluegray-300);
-  --negative-row-background: var(--red-900);
-  --negative-row-color: var(--red-100);
-  --muted-color: var(--gray-300);
-
   @import "/lucuma-css/dark-theme";
 }
 
