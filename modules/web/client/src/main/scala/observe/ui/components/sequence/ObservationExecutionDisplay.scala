@@ -11,6 +11,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
@@ -30,7 +31,7 @@ case class ObservationExecutionDisplay(
   selectedObs:      ObsSummary,
   rootModelData:    View[RootModelData],
   loadObservation:  Observation.Id => Callback,
-  linkToExploreObs: ObservationReference => VdomNode
+  linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay.component)
 
 object ObservationExecutionDisplay:

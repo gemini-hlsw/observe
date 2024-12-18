@@ -19,6 +19,7 @@ import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.Program
 import lucuma.core.model.TimingWindow
 import lucuma.core.util.Timestamp
 import lucuma.schemas.decoders.given
@@ -32,6 +33,7 @@ import scala.collection.immutable.SortedSet
 
 case class ObsSummary(
   obsId:              Observation.Id,
+  programId:          Program.Id,
   title:              String,
   subtitle:           Option[NonEmptyString],
   instrument:         Instrument,
@@ -56,6 +58,7 @@ case class ObsSummary(
 
 object ObsSummary:
   val obsId              = Focus[ObsSummary](_.obsId)
+  val programId          = Focus[ObsSummary](_.programId)
   val title              = Focus[ObsSummary](_.title)
   val subtitle           = Focus[ObsSummary](_.subtitle)
   val instrument         = Focus[ObsSummary](_.instrument)
@@ -74,6 +77,7 @@ object ObsSummary:
   given Decoder[ObsSummary] = Decoder.instance: c =>
     for
       id                 <- c.get[Observation.Id]("id")
+      programId          <- c.downField("program").get[Program.Id]("id")
       title              <- c.get[String]("title")
       subtitle           <- c.get[Option[NonEmptyString]]("subtitle")
       instrument         <- c.get[Option[Instrument]]("instrument")
@@ -90,6 +94,7 @@ object ObsSummary:
           .flatten
     yield ObsSummary(
       id,
+      programId,
       title,
       subtitle,
       instrument.getOrElse(Instrument.Visitor),

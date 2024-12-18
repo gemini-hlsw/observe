@@ -5,7 +5,6 @@ package observe.model
 
 import cats.*
 import cats.derived.*
-import cats.syntax.all.*
 import eu.timepit.refined.cats.given
 import io.circe.Decoder
 import io.circe.Encoder
@@ -13,6 +12,8 @@ import io.circe.refined.given
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
 import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
+import lucuma.core.syntax.display.*
 import monocle.Focus
 import monocle.Lens
 import org.http4s.Uri
@@ -29,8 +30,13 @@ case class ClientConfig(
 ) derives Eq,
       Encoder.AsObject,
       Decoder:
-  def linkToExploreObs(obsRef: ObservationReference): Uri =
-    exploreBaseUri / obsRef.label
+  def linkToExploreObs(
+    obsIdOrRef: Either[(Program.Id, Observation.Id), ObservationReference]
+  ): Uri =
+    obsIdOrRef.fold(
+      (programId, obsId) => exploreBaseUri / programId.shortName / "observation" / obsId.shortName,
+      obsRef => exploreBaseUri / obsRef.label
+    )
 
 object ClientConfig:
   val clientId: Lens[ClientConfig, ClientId] = Focus[ClientConfig](_.clientId)

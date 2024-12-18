@@ -12,6 +12,7 @@ import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.Program
 import lucuma.core.model.TimingWindow
 import lucuma.core.model.arb.ArbConstraintSet.given
 import lucuma.core.model.arb.ArbObservationReference.given
@@ -33,6 +34,7 @@ trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
     for
       obsId              <- arbitrary[Observation.Id]
+      programId          <- arbitrary[Program.Id]
       title              <- arbitrary[String]
       subtitle           <- arbitrary[Option[NonEmptyString]]
       instrument         <- arbitrary[Instrument]
@@ -45,6 +47,7 @@ trait ArbObsSummary:
       obsReference       <- arbitrary[Option[ObservationReference]]
     yield ObsSummary(
       obsId,
+      programId,
       title,
       subtitle,
       instrument,
@@ -60,6 +63,7 @@ trait ArbObsSummary:
   given Cogen[ObsSummary] =
     Cogen[
       (Observation.Id,
+       Program.Id,
        String,
        Option[String],
        Instrument,
@@ -74,6 +78,7 @@ trait ArbObsSummary:
     ]
       .contramap: s =>
         (s.obsId,
+         s.programId,
          s.title,
          s.subtitle.map(_.value),
          s.instrument,
