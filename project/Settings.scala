@@ -32,7 +32,7 @@ object Settings {
     val slf4j               = "2.0.16"
     val log4cats            = "2.7.0"
     val log4catsLogLevel    = "0.3.1"
-    val logback             = "1.5.12"
+    val logback             = "1.5.14"
     val janino              = "3.1.12"
     val pureConfig          = "0.17.8"
     val monocleVersion      = "3.3.0"
@@ -51,7 +51,7 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.111.2"
+    val lucumaCore      = "0.111.3"
     val lucumaUI        = "0.125.0"
     val lucumaSchemas   = "0.110.1"
     val lucumaSSO       = "0.7.1"
