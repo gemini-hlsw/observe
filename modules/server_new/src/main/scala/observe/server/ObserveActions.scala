@@ -35,7 +35,7 @@ trait ObserveActions {
     imageFileId: ImageFileId
   ): F[Result] =
     odb
-      .obsAbort(obsId, imageFileId.value)
+      .stepAbort(obsId)
       .ensure(
         ObserveFailure.Unexpected("Unable to send ObservationAborted message to ODB.")
       )(identity)
