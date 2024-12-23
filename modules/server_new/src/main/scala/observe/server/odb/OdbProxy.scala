@@ -85,7 +85,6 @@ sealed trait OdbEventCommands[F[_]] {
   def stepAbort(obsId:           Observation.Id): F[Boolean]
   def atomEnd(obsId:             Observation.Id): F[Boolean]
   def sequenceEnd(obsId:         Observation.Id): F[Boolean]
-  def obsAbort(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsContinue(obsId:         Observation.Id): F[Boolean]
   def obsPause(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:             Observation.Id, reason: String): F[Boolean]
@@ -95,7 +94,6 @@ sealed trait OdbEventCommands[F[_]] {
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
   def read(oid: Observation.Id): F[ObsQuery.Data.Observation]
-  def queuedSequences: F[List[Observation.Id]]
 }
 
 object OdbProxy {
@@ -115,11 +113,6 @@ object OdbProxy {
               _.pure[F]
             )
           )
-
-      override def queuedSequences: F[List[Observation.Id]] =
-        ActiveObservationIdsQuery[F]
-          .query()
-          .map(_.observations.matches.map(_.id))
 
       export evCmds.*
     }
@@ -172,9 +165,6 @@ object OdbProxy {
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
 
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-      false.pure[F]
-
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
 
@@ -211,14 +201,14 @@ object OdbProxy {
   }
 
   case class OdbCommandsImpl[F[_]](
-    client:    FetchClient[F, ObservationDB],
     idTracker: Ref[F, ObsRecordedIds]
   )(using
     val F:     Sync[F],
-    L:         Logger[F]
+    L:         Logger[F],
+    client:    FetchClient[F, ObservationDB]
   ) extends OdbEventCommands[F]
       with IdTrackerOps[F](idTracker) {
-    given FetchClient[F, ObservationDB] = client
+    // given FetchClient[F, ObservationDB] = client
 
     private val fitsFileExtension                           = ".fits"
     private def normalizeFilename(fileName: String): String = if (
@@ -406,15 +396,6 @@ object OdbProxy {
         _ <- L.debug(s"Skipped sending ODB event sequenceEnd for obsId: $obsId")
       } yield true
 
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-      for {
-        visitId <- getCurrentVisitId(obsId)
-        _       <- L.debug(s"Send ODB event observationAbort for obsId: $obsId")
-        _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Abort)
-        _       <- setCurrentVisitId(obsId, none)
-        _       <- L.debug("ODB event observationAbort sent")
-      } yield true
-
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       for {
         _       <- L.debug(s"Send ODB event observationContinue for obsId: $obsId")
@@ -539,8 +520,6 @@ object OdbProxy {
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
       .raiseError(ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented."))
 
-    override def queuedSequences: F[List[Observation.Id]] = List.empty[Observation.Id].pure[F]
-
     export evCmds.{
       datasetEndExposure,
       datasetEndReadout,
@@ -548,7 +527,6 @@ object OdbProxy {
       datasetStartExposure,
       datasetStartReadout,
       datasetStartWrite,
-      obsAbort,
       obsContinue,
       obsPause,
       obsStop,

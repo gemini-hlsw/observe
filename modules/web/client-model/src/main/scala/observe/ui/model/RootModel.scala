@@ -15,9 +15,11 @@ import lucuma.core.model.sequence.Step
 import lucuma.ui.sso.UserVault
 import monocle.Focus
 import monocle.Lens
+import observe.common.FixedLengthBuffer
 import observe.model.ClientConfig
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.LogMessage
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.StepProgress
@@ -39,7 +41,7 @@ case class RootModelData(
   observer:             Option[Observer],
   operator:             Option[Operator],
   userSelectionMessage: Option[NonEmptyString],
-  log:                  List[NonEmptyString]
+  globalLog:            FixedLengthBuffer[LogMessage]
 ) derives Eq:
   // TODO Readonly mode won't depend on user logged or not, but on their permissions.
   // For the moment we are requiring the STAFF role, so all logged users can operate.
@@ -73,6 +75,8 @@ case class RootModelData(
     )
 
 object RootModelData:
+  val MaxGlobalLogEntries: Int = 5000
+
   val Initial: RootModelData =
     RootModelData(
       userVault = Pot.pending,
@@ -89,7 +93,7 @@ object RootModelData:
       observer = none,
       operator = none,
       userSelectionMessage = none,
-      log = List.empty
+      globalLog = FixedLengthBuffer.unsafe(MaxGlobalLogEntries)
     )
 
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
@@ -115,6 +119,7 @@ object RootModelData:
   val operator: Lens[RootModelData, Option[Operator]]                            = Focus[RootModelData](_.operator)
   val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]          =
     Focus[RootModelData](_.userSelectionMessage)
-  val log: Lens[RootModelData, List[NonEmptyString]]                             = Focus[RootModelData](_.log)
+  val globalLog: Lens[RootModelData, FixedLengthBuffer[LogMessage]]              =
+    Focus[RootModelData](_.globalLog)
 
 case class RootModel(clientConfig: Pot[ClientConfig], data: View[RootModelData])

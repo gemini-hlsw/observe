@@ -107,15 +107,17 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [3.5.2]
+        scala: [3.6.2]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout current branch (fast)
-        uses: actions/checkout@v4
-
-      - name: Setup SBT
+      - name: Install sbt
         uses: sbt/setup-sbt@v1
+
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java (temurin@17)
         id: setup-java-temurin-17
@@ -159,7 +161,11 @@ jobs:
 
       - name: Deploy and release app in Heroku
         run: |
+          npm install -g heroku
           heroku container:login
-          docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web
-          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }} -v
+          docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
+          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GN }} -v
+          docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web
+          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web
+          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GS }} -v

@@ -11,11 +11,10 @@ import cats.effect.Temporal
 import cats.effect.kernel.Ref
 import cats.syntax.all.*
 import clue.*
-import clue.http4s.Http4sWebSocketBackend
-import clue.http4s.Http4sWebSocketClient
+import clue.http4s.Http4sHttpBackend
+import clue.http4s.Http4sHttpClient
 import clue.websocket.ReconnectionStrategy
 import edu.gemini.epics.acm.CaService
-import io.circe.syntax.*
 import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB
 import mouse.boolean.*
@@ -32,8 +31,13 @@ import observe.server.keywords.*
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.DummyOdbProxy
 import observe.server.tcs.*
+import org.http4s.AuthScheme
+import org.http4s.Credentials
+import org.http4s.Headers
 import org.http4s.client.Client
-import org.http4s.jdkhttpclient.JdkWSClient
+import org.http4s.client.middleware.Logger as Http4sLogger
+import org.http4s.ember.client.EmberClientBuilder
+import org.http4s.headers.Authorization
 import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
@@ -89,19 +93,23 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
-    def odbProxy[F[_]: Async: Logger: Http4sWebSocketBackend]: F[OdbProxy[F]] = for {
-      sk                                 <- Http4sWebSocketClient.of[F, ObservationDB](settings.odb, "ODB", reconnectionStrategy)
-      given FetchClient[F, ObservationDB] = sk
-      _                                  <- sk.connect(Map("Authorization" -> s"Bearer ${sso.serviceToken}".asJson).pure[F])
-      odbCommands                        <-
-        if (settings.odbNotifications)
-          Ref
-            .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
-            .map(OdbProxy.OdbCommandsImpl[F](sk, _))
-        else new OdbProxy.DummyOdbCommands[F].pure[F]
-    } yield OdbProxy[F](odbCommands)
+    def odbProxy[F[_]: Async: Logger: Http4sHttpBackend]: F[OdbProxy[F]] =
+      for
+        given FetchClient[F, ObservationDB] <-
+          Http4sHttpClient.of[F, ObservationDB](
+            settings.odbHttp,
+            "ODB",
+            Headers(Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken)))
+          )
+        odbCommands                         <-
+          if (settings.odbNotifications)
+            Ref
+              .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
+              .map(OdbProxy.OdbCommandsImpl[F](_))
+          else new OdbProxy.DummyOdbCommands[F].pure[F]
+      yield OdbProxy[F](odbCommands)
 
-    def dhs[F[_]: Async: Logger](httpClient: Client[F]): F[DhsClientProvider[F]] =
+    def dhs[F[_]: Async: Logger](site: Site, httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)
         new DhsClientProvider[F] {
           override def dhsClient(instrumentName: String): DhsClient[F] = new DhsClientHttp[F](
@@ -112,7 +120,14 @@ object Systems {
           )
         }.pure[F]
       else
-        DhsClientSim.apply[F].map(x => (_: String) => x)
+        DhsClientSim
+          .apply[F](site)
+          .map(client =>
+            new DhsClientProvider[F] {
+              override def dhsClient(instrumentName: String): DhsClient[F] =
+                client
+            }
+          )
 
     // TODO make instruments controllers generalized on F
     def gcal: IO[(GcalController[IO], GcalKeywordReader[IO])] =
@@ -375,13 +390,20 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        clt                                               <- Resource.eval(JdkWSClient.simple[IO])
-        webSocketBackend                                   = clue.http4s.Http4sWebSocketBackend[IO](clt)
-        odbProxy                                          <-
-          Resource.eval[IO, OdbProxy[IO]](
-            odbProxy[IO](using Async[IO], Logger[IO], webSocketBackend)
-          )
-        dhsClient                                         <- Resource.eval(dhs[IO](httpClient))
+        httpClient                                        <-
+          EmberClientBuilder
+            .default[IO]
+            .withLogger(Logger[IO])
+            .build
+            .map:
+              Http4sLogger(
+                logHeaders = true,
+                logBody = true,
+                logAction = ((s: String) => Logger[IO].trace(s)).some
+              )(_)
+        given Http4sHttpBackend[IO]                        = Http4sHttpBackend(httpClient)
+        odbProxy                                          <- Resource.eval[IO, OdbProxy[IO]](odbProxy[IO])
+        dhsClient                                         <- Resource.eval(dhs[IO](site, httpClient))
         gcdb                                              <- Resource.eval(GuideConfigDb.newDb[IO])
         gcals                                             <- Resource.eval(gcal)
         (gcalCtr, gcalKR)                                  = gcals

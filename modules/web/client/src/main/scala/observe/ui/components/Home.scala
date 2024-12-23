@@ -10,10 +10,15 @@ import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
+import lucuma.react.primereact.tooltip.*
 import lucuma.ui.syntax.all.*
+import observe.model.ClientConfig
 import observe.model.SequenceState
+import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.queue.SessionQueue
 import observe.ui.components.sequence.ObservationExecutionDisplay
@@ -38,7 +43,8 @@ object Home:
       .render: (props, ctx, sequenceApi) =>
         import ctx.given
 
-        val rootModelData: RootModelData = props.rootModel.data.get
+        val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
+        val rootModelData: RootModelData       = props.rootModel.data.get
 
         val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
 
@@ -60,10 +66,23 @@ object Home:
         val obsStates: Map[Observation.Id, SequenceState] =
           rootModelData.executionState.view.mapValues(_.sequenceState).toMap
 
-        rootModelData.userVault
-          .map(_.toPot)
-          .flatten
-          .renderPot: userVault =>
+        (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
+          .renderPot: (clientConfig, _) =>
+
+            def renderExploreLinkToObs(
+              obsIdOrRef: Either[(Program.Id, Observation.Id), ObservationReference]
+            ): VdomNode =
+              <.a(
+                ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
+                ^.target.blank,
+                ^.onClick ==> (e => e.stopPropagationCB),
+                ObserveStyles.ExternalLink
+              )(Icons.ExternalLink).withTooltip(
+                content = "Open in Explore",
+                position = Tooltip.Position.Top,
+                showDelay = 200
+              )
+
             <.div(ObserveStyles.MainPanel)(
               Splitter(
                 layout = Layout.Vertical,
@@ -86,7 +105,14 @@ object Home:
                           false
                         )
                     .renderPot(
-                      SessionQueue(_, obsStates, selectObservation, loadedObs, loadObservation)
+                      SessionQueue(
+                        _,
+                        obsStates,
+                        selectObservation,
+                        loadedObs,
+                        loadObservation,
+                        renderExploreLinkToObs
+                      )
                     ),
                   ConfigPanel(
                     rootModelData.nighttimeObservation.map(_.obsId),
@@ -97,13 +123,22 @@ object Home:
                 ),
                 SplitterPanel()(
                   rootModelData.nighttimeDisplayedObservation
-                    .map(ObservationExecutionDisplay(_, props.rootModel.data, loadObservation))
+                    .map(
+                      ObservationExecutionDisplay(
+                        _,
+                        props.rootModel.data,
+                        loadObservation,
+                        renderExploreLinkToObs
+                      )
+                    )
                 )
               ),
               Accordion(tabs =
                 List(
                   AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
-                    <.div(^.height := "200px")
+                    <.div(^.height := "200px")(
+                      LogArea(clientConfig.site.timezone, rootModelData.globalLog)
+                    )
                   )
                 )
               )

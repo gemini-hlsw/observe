@@ -10,18 +10,18 @@ object Settings {
   /** Library versions */
   object LibraryVersions {
     // Scala libraries
-    val catsEffectVersion = "3.5.5"
+    val catsEffectVersion = "3.5.7"
     val catsVersion       = "2.12.0"
     val kittens           = "3.4.0"
     val mouseVersion      = "1.3.2"
     val fs2Version        = "3.11.0"
     val scalaXml          = "1.2.0"
     val catsTime          = "0.5.1"
-    val catsParseVersion  = "1.0.0"
+    val catsParseVersion  = "1.1.0"
 
-    val http4sVersion              = "0.23.29"
+    val http4sVersion              = "0.23.30"
     val http4sDomVersion           = "0.2.11"
-    val http4sJdkHttpClientVersion = "0.9.1"
+    val http4sJdkHttpClientVersion = "0.9.2"
     val http4sScalaXmlVersion      = "0.23.14"
     val natchezVersion             = "0.3.7"
 
@@ -32,16 +32,16 @@ object Settings {
     val slf4j               = "2.0.16"
     val log4cats            = "2.7.0"
     val log4catsLogLevel    = "0.3.1"
-    val logback             = "1.5.12"
+    val logback             = "1.5.15"
     val janino              = "3.1.12"
-    val pureConfig          = "0.17.7"
+    val pureConfig          = "0.17.8"
     val monocleVersion      = "3.3.0"
     val circeVersion        = "0.14.10"
     val circeRefinedVersion = "0.15.1"
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.2"
+    val munitVersion           = "1.0.3"
     val munitDisciplineVersion = "2.0.0"
     val munitCatsEffectVersion = "2.0.0"
 
@@ -51,21 +51,21 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.107.0"
-    val lucumaUI        = "0.121.0"
-    val lucumaSchemas   = "0.107.1"
-    val lucumaSSO       = "0.6.27"
-    val lucumaODBSchema = "0.16.1"
+    val lucumaCore      = "0.112.1"
+    val lucumaUI        = "0.126.0"
+    val lucumaSchemas   = "0.110.3"
+    val lucumaSSO       = "0.7.2"
+    val lucumaODBSchema = "0.17.3"
 
     // Clue
     val clue = "0.40.0"
 
     // ScalaJS libraries
-    val crystal      = "0.45.3"
+    val crystal      = "0.47.0"
     val javaTimeJS   = "2.6.0"
-    val lucumaReact  = "0.71.3"
+    val lucumaReact  = "0.76.0"
     val scalaDom     = "2.3.0"
-    val scalajsReact = "3.0.0-beta6"
+    val scalajsReact = "3.0.0-beta8"
   }
 
   /**
@@ -150,8 +150,8 @@ object Settings {
     val Http4sJDKClient  =
       Def.setting(
         Seq(
-          "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
-          "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
+          "org.http4s" %% "http4s-dsl"          % LibraryVersions.http4sVersion,
+          "org.http4s" %% "http4s-ember-client" % LibraryVersions.http4sVersion
         )
       )
     val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion

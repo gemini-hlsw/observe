@@ -31,7 +31,6 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
 
   checkAll("step type prism", PrismTests(stringToStepTypeP))
 
-  checkAll("step double prism", PrismTests(stringToDoubleP))
   checkAll("param guiding prism", PrismTests(stringToGuidingP))
 
   checkAll("StandardStep", PrismTests(ObserveStep.standardStepP))

@@ -16,22 +16,6 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 object ObsQueriesGQL:
 
   @GraphQL
-  trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB]:
-    // TODO The ODB API doesn't provide a way to filter ready observations,
-    // so we filter by accepted proposals for now.
-    // Revise this when the API supports it OR we start getting obersvations from the scheduler.
-    val document = """
-      query {
-        observations(WHERE: {program: {proposalStatus: {EQ: ACCEPTED}}}) {
-          matches {
-            id
-            title
-          }
-        }
-      }
-    """
-
-  @GraphQL
   trait ObsQuery extends GraphQLOperation[ObservationDB]:
     val document = """
       query($obsId: ObservationId!) {
@@ -44,6 +28,9 @@ object ObsQueriesGQL:
           program {
             id
             name
+            goa {
+              proprietaryMonths
+            }
           }
           targetEnvironment {
             firstScienceTarget {

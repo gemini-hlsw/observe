@@ -155,6 +155,11 @@ object Sequence {
      */
     val next: Option[State[F]]
 
+    /**
+     * Tells if we are at the last action of the current step
+     */
+    val isLastAction: Boolean
+
     val status: SequenceState
 
     val pending: List[EngineStep[F]]
@@ -289,6 +294,9 @@ object Sequence {
         case Some(x) => Zipper(x, status, singleRuns).some
       }
 
+      override val isLastAction: Boolean =
+        zipper.focus.pending.isEmpty
+
       /**
        * Current Execution
        */
@@ -308,8 +316,15 @@ object Sequence {
 
       override def setBreakpoints(stepId: List[Step.Id], v: Breakpoint): State[F] =
         self.copy(zipper =
-          zipper.copy(pending =
-            zipper.pending.map(s => if (stepId.exists(_ === s.id)) s.copy(breakpoint = v) else s)
+          zipper.copy(
+            pending = zipper.pending.map: s =>
+              if stepId.contains_(s.id)
+              then s.copy(breakpoint = v)
+              else s,
+            focus =
+              if stepId.contains_(zipper.focus.id)
+              then zipper.focus.copy(breakpoint = v)
+              else zipper.focus
           )
         )
 
@@ -396,6 +411,8 @@ object Sequence {
       override val next: Option[State[F]] = None
 
       override val current: Execution[F] = Execution.empty
+
+      override val isLastAction: Boolean = true
 
       override val currentStep: Option[EngineStep[F]] = none
 

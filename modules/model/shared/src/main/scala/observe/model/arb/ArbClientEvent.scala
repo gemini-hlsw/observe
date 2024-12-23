@@ -14,6 +14,8 @@ import lucuma.core.util.arb.ArbUid.given
 import observe.model.ClientConfig
 import observe.model.Conditions
 import observe.model.ExecutionState
+import observe.model.LogMessage
+import observe.model.Notification
 import observe.model.NsRunningState
 import observe.model.ObservationProgress
 import observe.model.Operator
@@ -33,12 +35,14 @@ import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
+import ArbNotification.given
 import ArbNsRunningState.given
 import ArbObservationProgress.given
 import ArbSystem.given
 import ArbUserPrompt.given
 import ArbClientConfig.given
 import ArbObsRecordedIds.given
+import ArbLogMessage.given
 
 trait ArbClientEvent:
 
@@ -114,6 +118,18 @@ trait ArbClientEvent:
     Cogen[(Observation.Id, SequenceType, Atom.Id)].contramap: x =>
       (x.obsId, x.sequenceType, x.atomId)
 
+  given Arbitrary[ClientEvent.UserNotification] = Arbitrary:
+    arbitrary[Notification].map(ClientEvent.UserNotification(_))
+
+  given Cogen[ClientEvent.UserNotification] =
+    Cogen[Notification].contramap(_.memo)
+
+  given Arbitrary[ClientEvent.LogEvent] = Arbitrary:
+    arbitrary[LogMessage].map(ClientEvent.LogEvent(_))
+
+  given Cogen[ClientEvent.LogEvent] =
+    Cogen[LogMessage].contramap(_.msg)
+
   given Arbitrary[ClientEvent] = Arbitrary:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
@@ -121,7 +137,9 @@ trait ArbClientEvent:
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
-      arbitrary[ClientEvent.AtomLoaded]
+      arbitrary[ClientEvent.AtomLoaded],
+      arbitrary[ClientEvent.UserNotification],
+      arbitrary[ClientEvent.LogEvent]
     )
 
   given Cogen[ClientEvent] =
@@ -137,7 +155,13 @@ trait ArbClientEvent:
               ClientEvent.ChecksOverrideEvent,
               Either[
                 ClientEvent.ProgressEvent,
-                ClientEvent.AtomLoaded
+                Either[
+                  ClientEvent.AtomLoaded,
+                  Either[
+                    ClientEvent.UserNotification,
+                    ClientEvent.LogEvent
+                  ]
+                ]
               ]
             ]
           ]
@@ -150,7 +174,10 @@ trait ArbClientEvent:
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
-      case e @ ClientEvent.AtomLoaded(_, _, _)              => Right(Right(Right(Right(Right(Right(e))))))
+      case e @ ClientEvent.AtomLoaded(_, _, _)              => Right(Right(Right(Right(Right(Right(Left(e)))))))
+      case e @ ClientEvent.UserNotification(_)              =>
+        Right(Right(Right(Right(Right(Right(Right(Left(e))))))))
+      case e @ ClientEvent.LogEvent(_)                      => Right(Right(Right(Right(Right(Right(Right(Right(e))))))))
 
 end ArbClientEvent
 

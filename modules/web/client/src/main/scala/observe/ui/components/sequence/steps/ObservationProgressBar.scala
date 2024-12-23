@@ -93,13 +93,14 @@ object ObservationProgressBar extends ProgressLabel:
           .orEmpty
       .render: (props, _, remainingShown, _) =>
         props.runningProgress.fold {
+          val label = if (props.isPausedInStep) "Paused" else if (props.sequenceState === SequenceState.Aborted) "Aborted" else "Preparing..."
           val msg: String =
-            List(s"${props.fileId.value}", if (props.isPausedInStep) "Paused" else "Preparing...")
+            List(s"${props.fileId.value}", label)
               .filterNot(_.isEmpty)
               .mkString(" - ")
 
           // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
-          <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationProgressBar)(
+          <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationStepProgressBar)(
             <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
           )
         } { runningProgress =>
@@ -109,7 +110,7 @@ object ObservationProgressBar extends ProgressLabel:
           ProgressBar(
             id = "progress",
             value = progress,
-            clazz = ObserveStyles.ObservationProgressBar,
+            clazz = ObserveStyles.ObservationStepProgressBar,
             displayValueTemplate = _ =>
               // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
               // Achieved by rendering the 3 divs inside a space-between flexbox.

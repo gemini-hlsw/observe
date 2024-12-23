@@ -7,11 +7,12 @@ import cats.Order.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
+import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
-import lucuma.core.model.ObsAttachment
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
+import lucuma.core.model.Program
 import lucuma.core.model.TimingWindow
 import lucuma.core.model.arb.ArbConstraintSet.given
 import lucuma.core.model.arb.ArbObservationReference.given
@@ -33,18 +34,20 @@ trait ArbObsSummary:
   given Arbitrary[ObsSummary] = Arbitrary:
     for
       obsId              <- arbitrary[Observation.Id]
+      programId          <- arbitrary[Program.Id]
       title              <- arbitrary[String]
       subtitle           <- arbitrary[Option[NonEmptyString]]
       instrument         <- arbitrary[Instrument]
       constraints        <- arbitrary[ConstraintSet]
       timingWindows      <- arbitrary[List[TimingWindow]]
-      attachmentIds      <- arbitrary[List[ObsAttachment.Id]]
+      attachmentIds      <- arbitrary[List[Attachment.Id]]
       observingMode      <- arbitrary[Option[ObservingMode]]
       observationTime    <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
       obsReference       <- arbitrary[Option[ObservationReference]]
     yield ObsSummary(
       obsId,
+      programId,
       title,
       subtitle,
       instrument,
@@ -60,12 +63,13 @@ trait ArbObsSummary:
   given Cogen[ObsSummary] =
     Cogen[
       (Observation.Id,
+       Program.Id,
        String,
        Option[String],
        Instrument,
        ConstraintSet,
        List[TimingWindow],
-       List[ObsAttachment.Id],
+       List[Attachment.Id],
        Option[ObservingMode],
        Option[Instant],
        PosAngleConstraint,
@@ -74,6 +78,7 @@ trait ArbObsSummary:
     ]
       .contramap: s =>
         (s.obsId,
+         s.programId,
          s.title,
          s.subtitle.map(_.value),
          s.instrument,

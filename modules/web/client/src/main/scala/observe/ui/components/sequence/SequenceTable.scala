@@ -21,7 +21,6 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
-import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
 import lucuma.typed.tanstackVirtualCore as rawVirtual
@@ -102,10 +101,10 @@ sealed trait SequenceTable[S, D <: DynamicConfig](
         )
 
   protected[sequence] lazy val acquisitionRows: List[SequenceRow[D]] =
+    // If initial acquisition atom is complete, then nextAtom already shows the next potential step. We want to hide that.
     if executionState.isWaitingAcquisitionPrompt || executionState.sequenceType === SequenceType.Science
     then List.empty
-    else
-      currentAcquisitionRows ++ config.acquisition.map(a => futureSteps(a.possibleFuture)).orEmpty
+    else currentAcquisitionRows
 
   protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
     currentScienceRows ++ config.science.map(s => futureSteps(s.possibleFuture)).orEmpty
@@ -269,7 +268,6 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         TableOptions(
           cols.map(dynTable.setInitialColWidths),
           sequence,
-          enableSorting = false,
           enableColumnResizing = true,
           enableExpanding = true,
           getRowId = (row, _, _) => getRowId(row),
@@ -434,24 +432,35 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
         val allVisitsAreCollapsed = forAllVisits(!_.getIsExpanded())
         val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
 
+        def estimateRowHeight(index: Int): SizePx =
+          table.getRowModel().rows.get(index).map(_.original.value) match
+            case Some(Right(SequenceIndexedRow(CurrentAtomStepRow(_, _, _, _), _)))          =>
+              SequenceRowHeight.WithExtra
+            case Some(Right(SequenceIndexedRow(SequenceRow.Executed.ExecutedStep(_, _), _))) =>
+              SequenceRowHeight.WithExtra
+            case _                                                                           =>
+              SequenceRowHeight.Regular
+
         React.Fragment(
-          <.div(ObserveStyles.SequenceTableExpandButton)(
-            Button(
-              icon = Icons.Minus,
-              label = "Collapse all visits",
-              disabled = allVisitsAreCollapsed,
-              onClick = collapseVisits
-            ).mini.compact,
-            Button(
-              icon = Icons.Plus,
-              label = "Expand all visits",
-              disabled = allVisitsAreExpanded,
-              onClick = expandVisits
-            ).mini.compact
-          ),
+          if (visitIds.nonEmpty) {
+            <.div(ObserveStyles.SequenceTableExpandButton)(
+              Button(
+                icon = Icons.Minus,
+                label = "Collapse all visits",
+                disabled = allVisitsAreCollapsed,
+                onClick = collapseVisits
+              ).mini.compact,
+              Button(
+                icon = Icons.Plus,
+                label = "Expand all visits",
+                disabled = allVisitsAreExpanded,
+                onClick = expandVisits
+              ).mini.compact
+            )
+          } else EmptyVdom,
           PrimeAutoHeightVirtualizedTable(
             table,
-            estimateSize = _ => 25.toPx,
+            estimateSize = estimateRowHeight,
             overscan = 8,
             containerRef = resize.ref,
             virtualizerRef = virtualizerRef,

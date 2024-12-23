@@ -49,11 +49,13 @@ import observe.model.UserPrompt.SeqCheck
 import observe.model.UserPrompt.TargetCheckOverride
 import observe.model.config.*
 import observe.model.enums.BatchExecState
+import observe.model.enums.ObserveLogLevel
 import observe.model.enums.PendingObserveCmd
 import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.events.*
+import observe.server.SequenceGen.AtomGen
 import observe.server.events.*
 import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
@@ -69,8 +71,6 @@ import ClientEvent.*
 trait ObserveEngine[F[_]] {
 
   val systems: Systems[F]
-
-  def sync(seqId: Observation.Id): F[Unit]
 
   def start(
     id:          Observation.Id,
@@ -254,11 +254,6 @@ object ObserveEngine {
     @annotation.unused conditionsRef: Ref[F, Conditions]
   ) extends ObserveEngine[F] {
 
-    // private val odbLoader = new ODBSequencesLoader[F](systems.odb, translator, executeEngine)
-
-    override def sync(seqId: Observation.Id): F[Unit] = Applicative[F].unit
-    //      odbLoader.loadEvents(seqId).flatMap(_.map(executeEngine.offer).sequence.void)
-    //
     /**
      * Check if the resources to run a sequence are available
      * @return
@@ -687,7 +682,7 @@ object ObserveEngine {
                       SeqEvent.NotifyUser(
                         Notification.RequestFailed(
                           List(
-                            s"Error loading observation $sid$author",
+                            s"Error loading observation $sid",
                             e.getMessage
                           )
                         ),
@@ -744,7 +739,7 @@ object ObserveEngine {
                             SeqEvent.NotifyUser(
                               Notification.RequestFailed(
                                 List(
-                                  s"Error loading observation $sid$author",
+                                  s"Error loading observation $sid",
                                   s"A sequence is running on instrument ${seq.instrument}"
                                 )
                               ),
@@ -1635,7 +1630,8 @@ object ObserveEngine {
     rc  <- Ref.of[F, Conditions](Conditions.Default)
     tr  <- createTranslator(site, systems, rc)
     eng <- Engine.build[F, EngineState[F], SeqEvent](EngineState.engineState[F],
-                                                     onAtomComplete[F](systems.odb, tr)
+                                                     onAtomComplete[F](systems.odb, tr),
+                                                     onAtomReload[F](systems.odb, tr)
            )
   } yield new ObserveEngineImpl[F](eng, systems, conf, tr, rc)
 
@@ -1652,8 +1648,7 @@ object ObserveEngine {
     svs:      => SequencesQueue[SequenceView],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
-    v match {
-      // case NotifyUser(m, cid)                 => Stream.emit(UserNotification(m, cid))
+    v match
       case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid) =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
       // case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
@@ -1671,7 +1666,6 @@ object ObserveEngine {
       case e if e.isModelUpdate                                             =>
         buildObserveStateStream(svs, odbProxy)
       case _                                                                => Stream.empty
-    }
 
   private def executionQueueViews[F[_]](
     st: EngineState[F]
@@ -1748,10 +1742,11 @@ object ObserveEngine {
     qState:   EngineState[F],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] = {
-    val sequences = qState.sequences.view.values.map(viewSequence).toList
+    val sequences: List[SequenceView]     =
+      qState.sequences.view.values.map(viewSequence).toList
     // Building the view is a relatively expensive operation
     // By putting it into a def we only incur that cost if the message requires it
-    def svs       =
+    def svs: SequencesQueue[SequenceView] =
       SequencesQueue(
         List(
           qState.selected.gmosSouth.map(x => Instrument.GmosSouth -> x.seqGen.obsData.id),
@@ -1763,21 +1758,23 @@ object ObserveEngine {
         sequences
       )
 
-    ev match {
+    ev match
       case UserCommandResponse(ue, _, uev) =>
-        ue match {
-          case UserEvent.ModifyState(_) =>
+        ue match
+          case UserEvent.Pure(NotifyUser(m, cid)) =>
+            Stream.emit(UserNotification(m).forClient(cid))
+          case UserEvent.ModifyState(_)           =>
             modifyStateEvent(uev.getOrElse(NullSeqEvent), svs, odbProxy)
-          case e if e.isModelUpdate     => buildObserveStateStream(svs, odbProxy)
-          // case UserEvent.LogInfo(m, ts)          => Stream.emit(ServerLogMessage(ServerLogLevel.INFO, ts, m))
-          // case UserEvent.LogWarning(m, ts)       =>
-          //   Stream.emit(ServerLogMessage(ServerLogLevel.WARN, ts, m))
-          // case UserEvent.LogError(m, ts)         =>
-          //   Stream.emit(ServerLogMessage(ServerLogLevel.ERROR, ts, m))
-          case _                        => Stream.empty
-        }
+          case e if e.isModelUpdate               => buildObserveStateStream(svs, odbProxy)
+          case UserEvent.LogInfo(m, ts)           =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Info, ts, m)))
+          case UserEvent.LogWarning(m, ts)        =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Warning, ts, m)))
+          case UserEvent.LogError(m, ts)          =>
+            Stream.emit(LogEvent(LogMessage(ObserveLogLevel.Error, ts, m)))
+          case _                                  => Stream.empty
       case SystemUpdate(se, _)             =>
-        se match {
+        se match
           // TODO: Sequence completed event not emitted by engine.
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))   =>
             Stream.emit(
@@ -1809,8 +1806,6 @@ object ObserveEngine {
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)
           case _                                                                   => Stream.empty
-        }
-    }
   }
 
   private def singleActionClientEvent[F[_]](
@@ -1858,6 +1853,30 @@ object ObserveEngine {
         )
       }
 
+  private def updateAtom[F[_]](obsId: Observation.Id, atm: AtomGen[F]) = (st: EngineState[F]) =>
+    EngineState
+      .atSequence[F](obsId)
+      .modify { seq =>
+        val sg: SequenceData[F] =
+          seq.focus(_.seqGen.nextAtom).replace(atm)
+        sg
+          .focus(_.seq)
+          .modify(s =>
+            val ns = Sequence.State.init(
+              Sequence.sequence[F](
+                obsId,
+                atm.atomId,
+                toStepList(
+                  sg.seqGen,
+                  sg.overrides,
+                  HeaderExtraData(st.conditions, st.operator, sg.observer)
+                )
+              )
+            )
+            Sequence.State.status.replace(s.status)(ns)
+          )
+      }(st)
+
   private def tryNewAtom[F[_]: Monad](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
@@ -1873,37 +1892,14 @@ object ObserveEngine {
               .nextAtom(x, atomType)
               ._2
               .map { atm =>
-                Event.modifyState[F, EngineState[F], SeqEvent]({
-                    (st: EngineState[F]) =>
-                      val inst: Instrument = EngineState
-                        .atSequence[F](obsId)
-                        .getOption(st)
-                        .map(_.seqGen.instrument)
-                        .getOrElse(Instrument.GmosNorth)
-                      val state            = EngineState
-                        .atSequence[F](obsId)
-                        .modify { seq =>
-                          val sg: SequenceData[F] =
-                            seq.focus(_.seqGen.nextAtom).replace(atm)
-                          sg
-                            .focus(_.seq)
-                            .modify(s =>
-                              val ns = Sequence.State.init(
-                                Sequence.sequence[F](
-                                  obsId,
-                                  atm.atomId,
-                                  toStepList(
-                                    sg.seqGen,
-                                    sg.overrides,
-                                    HeaderExtraData(st.conditions, st.operator, sg.observer)
-                                  )
-                                )
-                              )
-                              Sequence.State.status.replace(s.status)(ns)
-                            )
-                        }(st)
-
-                      (state, inst)
+                Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                    val inst: Instrument = EngineState
+                      .atSequence[F](obsId)
+                      .getOption(st)
+                      .map(_.seqGen.instrument)
+                      .getOrElse(Instrument.GmosNorth)
+                    val state            = updateAtom(obsId, atm)(st)
+                    (state, inst)
                   }.toHandle.flatMap(inst =>
                     executeEngine.startNewAtom(obsId) *>
                       Handle.liftF[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
@@ -1929,4 +1925,59 @@ object ObserveEngine {
         }
       )
 
+  private def onAtomReload[F[_]: Monad](
+    odb:           OdbProxy[F],
+    translator:    SeqTranslate[F]
+  )(
+    executeEngine: Engine[F, EngineState[F], SeqEvent],
+    obsId:         Observation.Id
+  ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
+    Handle
+      .get[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
+      .map(EngineState.atSequence[F](obsId).getOption)
+      .flatMap {
+        _.map { seq =>
+          seq.seqGen.nextAtom.sequenceType match {
+            // We shouldn't reload acq because odb always gives more steps for acq
+            case SequenceType.Acquisition =>
+              executeEngine.startNewAtom(obsId).as(NullSeqEvent)
+            case SequenceType.Science     =>
+              tryAtomReload[F](odb, translator, executeEngine, obsId, SequenceType.Science)
+                .as(SeqEvent.NullSeqEvent)
+          }
+        }.getOrElse(
+          Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](NullSeqEvent)
+        )
+      }
+
+  private def tryAtomReload[F[_]: Monad](
+    odb:           OdbProxy[F],
+    translator:    SeqTranslate[F],
+    executeEngine: Engine[F, EngineState[F], SeqEvent],
+    obsId:         Observation.Id,
+    atomType:      SequenceType
+  ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit] =
+    Handle
+      .fromStream[F, EngineState[F], Event[F, EngineState[F], SeqEvent]](Stream.eval {
+        odb.read(obsId).map { x =>
+          atomType match {
+            case SequenceType.Acquisition =>
+              Event.nullEvent
+            case SequenceType.Science     =>
+              // Read the next atom from the odb and replaces the current atom
+              translator
+                .nextAtom(x, atomType)
+                ._2
+                .map { atm =>
+                  Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                      val state = updateAtom(obsId, atm)(st)
+                      (state, ())
+                    }.toHandle
+                      .flatMap(_ => executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent))
+                  )
+                }
+                .getOrElse(Event.nullEvent)
+          }
+        }
+      })
 }

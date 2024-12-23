@@ -10,6 +10,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Ref
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
@@ -133,7 +134,8 @@ object TestCommon {
   given Logger[IO] = NoOpLogger.impl[IO]
 
   val defaultSettings: ObserveEngineConfiguration = ObserveEngineConfiguration(
-    odb = uri"localhost",
+    odbHttp = uri"localhost",
+    odbWs = uri"localhost",
     dhsServer = uri"http://localhost/",
     systemControl = SystemsControlConfiguration(
       altair = ControlStrategy.Simulated,
@@ -316,7 +318,8 @@ object TestCommon {
       ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
-        None
+        None,
+        ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
       ),
       TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
@@ -457,7 +460,8 @@ object TestCommon {
       ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
-        None
+        None,
+        ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
       ),
       TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(

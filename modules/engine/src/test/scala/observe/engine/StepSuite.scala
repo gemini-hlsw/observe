@@ -37,6 +37,7 @@ class StepSuite extends CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
+    (eng, obsId) => eng.startNewAtom(obsId),
     (eng, obsId) => eng.startNewAtom(obsId)
   )
 
@@ -218,8 +219,9 @@ class StepSuite extends CatsEffectSuite {
                id = seqId,
                atomId = atomId,
                steps = List(
-                 EngineStep.init(
+                 EngineStep(
                    id = stepId(1),
+                   breakpoint = Breakpoint.Disabled,
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst, triggerPause(eng)), // Execution
                      NonEmptyList.one(observe)                                        // Execution
@@ -376,8 +378,9 @@ class StepSuite extends CatsEffectSuite {
                id = seqId,
                atomId = atomId,
                steps = List(
-                 EngineStep.init(
+                 EngineStep(
                    id = stepId(1),
+                   breakpoint = Breakpoint.Disabled,
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(observe)                     // Execution
@@ -424,8 +427,9 @@ class StepSuite extends CatsEffectSuite {
                id = seqId,
                atomId = atomId,
                steps = List(
-                 EngineStep.init(
+                 EngineStep(
                    id = stepId(1),
+                   breakpoint = Breakpoint.Disabled,
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(triggerStart(eng)),          // Execution
@@ -482,8 +486,9 @@ class StepSuite extends CatsEffectSuite {
                id = seqId,
                atomId = atomId,
                steps = List(
-                 EngineStep.init(
+                 EngineStep(
                    id = stepId(1),
+                   breakpoint = Breakpoint.Disabled,
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst), // Execution
                      NonEmptyList.one(error(errMsg)),
@@ -529,8 +534,9 @@ class StepSuite extends CatsEffectSuite {
              Sequence.sequence(id = seqId,
                                atomId = atomId,
                                steps = List(
-                                 EngineStep.init(
+                                 EngineStep(
                                    id = stepId(1),
+                                   breakpoint = Breakpoint.Disabled,
                                    executions = List(
                                      NonEmptyList.one(action)
                                    )
@@ -564,8 +570,9 @@ class StepSuite extends CatsEffectSuite {
              Sequence.sequence(id = seqId,
                                atomId = atomId,
                                steps = List(
-                                 EngineStep.init(
+                                 EngineStep(
                                    id = stepId(1),
+                                   breakpoint = Breakpoint.Disabled,
                                    executions = List(
                                      NonEmptyList.one(aborted)
                                    )
@@ -599,8 +606,9 @@ class StepSuite extends CatsEffectSuite {
              Sequence.sequence(id = seqId,
                                atomId = atomId,
                                steps = List(
-                                 EngineStep.init(
+                                 EngineStep(
                                    id = stepId(1),
+                                   breakpoint = Breakpoint.Disabled,
                                    executions = List(
                                      NonEmptyList.one(errorSet2(errMsg))
                                    )
@@ -635,8 +643,9 @@ class StepSuite extends CatsEffectSuite {
              Sequence.sequence(id = seqId,
                                atomId = atomId,
                                steps = List(
-                                 EngineStep.init(
+                                 EngineStep(
                                    id = stepId(1),
+                                   breakpoint = Breakpoint.Disabled,
                                    executions = List(
                                      NonEmptyList.one(fatalError(errMsg))
                                    )
@@ -667,8 +676,9 @@ class StepSuite extends CatsEffectSuite {
                id = seqId,
                atomId = atomId,
                steps = List(
-                 EngineStep.init(
+                 EngineStep(
                    id = stepId(1),
+                   breakpoint = Breakpoint.Disabled,
                    executions = List(
                      NonEmptyList.one(
                        Action(
@@ -742,13 +752,21 @@ class StepSuite extends CatsEffectSuite {
     assert(stepzar1.next.nonEmpty)
   }
 
-  val step0: EngineStep[IO] = EngineStep.init(stepId(1), Nil)
-  val step1: EngineStep[IO] = EngineStep.init(stepId(1), List(NonEmptyList.one(action)))
+  val step0: EngineStep[IO] = EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, Nil)
+  val step1: EngineStep[IO] =
+    EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, List(NonEmptyList.one(action)))
   val step2: EngineStep[IO] =
-    EngineStep.init(stepId(2), List(NonEmptyList.of(action, action), NonEmptyList.one(action)))
+    EngineStep(stepId(2),
+               breakpoint = Breakpoint.Disabled,
+               List(NonEmptyList.of(action, action), NonEmptyList.one(action))
+    )
 
   test("currentify should be None only when a EngineStep is empty of executions") {
-    assert(EngineStep.Zipper.currentify(EngineStep.init(stepId(1), Nil)).isEmpty)
+    assert(
+      EngineStep.Zipper
+        .currentify(EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, Nil))
+        .isEmpty
+    )
     assert(EngineStep.Zipper.currentify(step0).isEmpty)
     assert(EngineStep.Zipper.currentify(step1).nonEmpty)
     assert(EngineStep.Zipper.currentify(step2).nonEmpty)
