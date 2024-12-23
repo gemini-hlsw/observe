@@ -16,6 +16,7 @@ import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.primereact.*
 import lucuma.ui.LucumaIcons
+import observe.model.SequenceState
 import observe.model.SubsystemEnabled
 import observe.model.SystemOverrides
 import observe.model.enums.*
@@ -29,6 +30,8 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.model.enums.OperationRequest
 import observe.ui.services.SequenceApi
 
+import scala.scalajs.js.JSConverters.*
+
 /**
  * Contains the control buttons for each subsystem
  */
@@ -38,9 +41,13 @@ case class SubsystemControls(
   subsystems:        List[Resource | Instrument],
   subsystemStatus:   Map[Resource | Instrument, ActionStatus],
   subsystemRequests: Map[Resource | Instrument, OperationRequest],
+  sequenceState:     SequenceState,
   systemOverrides:   SystemOverrides,
   clientMode:        ClientMode
 ) extends ReactFnProps(SubsystemControls.component):
+  private val canOperate: Boolean =
+    clientMode.canOperate && sequenceState.isIdle
+
   private def subsystemState(subsystem: Resource | Instrument): (ActionStatus, OperationRequest) =
     (subsystemStatus.getOrElse(subsystem, ActionStatus.Pending),
      subsystemRequests.getOrElse(subsystem, OperationRequest.Idle)
@@ -57,7 +64,7 @@ case class SubsystemControls(
   // If we are running, we want a circular spinning icon.
   // If we are completed, we want a checkmark.
   // Otherwise, no icon.
-  def buttonProperties(
+  private def buttonProperties(
     subsystem: Resource | Instrument
   ): (FontAwesomeIcon, Button.Severity, Boolean) = // (icon, severity, disabled)
     subsystemState(subsystem) match
@@ -115,11 +122,14 @@ object SubsystemControls:
                 severity = severity,
                 disabled = disabled,
                 clazz = ObserveStyles.ConfigButton |+|
-                  ObserveStyles.DefaultCursor.unless_(props.clientMode.canOperate),
-                onClickE = _.stopPropagationCB >> sequenceApi
-                  .execute(props.obsId, props.stepId, subsystem)
-                  .runAsync,
-                tooltip = s"Configure ${subsystem.shortName}",
+                  ObserveStyles.DefaultCursor.unless_(props.canOperate),
+                onClickE = e =>
+                  (e.stopPropagationCB >>
+                    sequenceApi.execute(props.obsId, props.stepId, subsystem).runAsync)
+                    .when(props.canOperate)
+                    .void,
+                tooltip =
+                  Option.when(props.canOperate)(s"Configure ${subsystem.shortName}").orUndefined,
                 tooltipOptions = DefaultTooltipOptions
               )(icon, subsystem.shortName)
             )
