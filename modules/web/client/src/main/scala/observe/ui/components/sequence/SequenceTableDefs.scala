@@ -15,6 +15,7 @@ import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.schemas.model.enums.StepExecutionState
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.ColumnSize.*
@@ -168,7 +169,12 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                 case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
                   renderVisitExtraRow(httpClient)(
                     step,
-                    QaEditor(_, _, onDatasetQaChange),
+                    step.executionState match
+                      case StepExecutionState.Completed | StepExecutionState.Stopped =>
+                        QaEditor(_, _, onDatasetQaChange)
+                      case _                                                         =>
+                        (_, _) => EmptyVdom // Don't display QA editor for non-completed steps
+                    ,
                     meta.datasetIdsInFlight
                   )
                 case step                                           =>
