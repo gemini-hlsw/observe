@@ -148,6 +148,7 @@ object StepProgressCell:
         props.subsystemStatus.map(_._1).toList,
         props.subsystemStatus,
         props.requests.subsystemRun.getOrElse(props.stepId, Map.empty),
+        props.sequenceState,
         props.systemOverrides,
         props.clientMode
       ),
