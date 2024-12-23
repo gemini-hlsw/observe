@@ -6,6 +6,7 @@ package observe.ui.components.sequence.steps
 import cats.syntax.option.*
 import lucuma.core.enums.SmartGcalType
 import lucuma.core.model.sequence.StepConfig
+import lucuma.schemas.model.enums.StepExecutionState
 import lucuma.ui.sequence.SequenceRow
 import observe.model.StepState
 import observe.model.enums.ExecutionStepType
@@ -40,6 +41,14 @@ extension [D](row: SequenceRow[D])
 
   def stepState: StepState =
     row match
-      case currentStep @ CurrentAtomStepRow(_, _, _, _)    => currentStep.stepState
-      case futureStep @ SequenceRow.FutureStep(_, _, _, _) => StepState.Pending
-      case _                                               => StepState.Completed
+      case CurrentAtomStepRow(step, _, _, _)                => step.status
+      case SequenceRow.FutureStep(_, _, _, _)               => StepState.Pending
+      case SequenceRow.Executed.ExecutedStep(stepRecord, _) =>
+        stepRecord.executionState match
+          case StepExecutionState.NotStarted => StepState.Pending
+          case StepExecutionState.Ongoing    => StepState.Running
+          case StepExecutionState.Aborted    => StepState.Aborted
+          case StepExecutionState.Completed  => StepState.Completed
+          case StepExecutionState.Stopped    => StepState.Completed
+          case StepExecutionState.Abandoned  => StepState.Failed("Abandoned")
+      case _                                                => StepState.Completed

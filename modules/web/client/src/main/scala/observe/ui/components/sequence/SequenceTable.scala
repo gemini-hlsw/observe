@@ -23,6 +23,7 @@ import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.table.*
 import lucuma.schemas.model.Visit
+import lucuma.schemas.model.enums.StepExecutionState
 import lucuma.typed.tanstackVirtualCore as rawVirtual
 import lucuma.ui.primereact.*
 import lucuma.ui.react.given
@@ -350,8 +351,14 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                   .map: stepId =>
                     TagMod(
                       // Only in dev mode, show step id on hover.
-                      if (LinkingInfo.developmentMode) ^.title := stepId.toString
-                      else TagMod.empty,
+                      if (LinkingInfo.developmentMode) {
+                        val executionState: Option[StepExecutionState] = step match
+                          case SequenceRow.Executed.ExecutedStep(stepRecord, _) =>
+                            stepRecord.executionState.some
+                          case _                                                =>
+                            none
+                        ^.title := stepId.toString + executionState.fold("")(es => s" ($es)")
+                      } else TagMod.empty,
                       (^.onClick --> props.setSelectedStepId(stepId))
                         .when:
                           step.stepTime === StepTime.Present
