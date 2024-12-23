@@ -6,7 +6,6 @@ package observe.engine
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.sequence.Step
-import lucuma.core.util.NewType
 import monocle.Focus
 import monocle.Iso
 import monocle.Lens
@@ -20,17 +19,10 @@ import observe.model.StepState
 case class EngineStep[F[_]](
   id:         Step.Id,
   breakpoint: Breakpoint,
-  skipped:    EngineStep.Skipped,
-  skipMark:   EngineStep.SkipMark,
   executions: List[ParallelActions[F]]
 )
 
 object EngineStep {
-
-  object SkipMark extends NewType[Boolean]
-  type SkipMark = SkipMark.Type
-  object Skipped extends NewType[Boolean]
-  type Skipped = Skipped.Type
 
   def isoBool: Iso[Breakpoint, Boolean] =
     Iso[Breakpoint, Boolean](_ === Breakpoint.Enabled)(b =>
@@ -40,44 +32,31 @@ object EngineStep {
   def breakpointL[F[_]]: Lens[EngineStep[F], Boolean] =
     Focus[EngineStep[F]](_.breakpoint).andThen(isoBool)
 
-  def skippedL[F[_]]: Lens[EngineStep[F], Boolean] =
-    Focus[EngineStep[F]](_.skipped).andThen(Skipped.value)
-
-  def init[F[_]](id: Step.Id, executions: List[ParallelActions[F]]): EngineStep[F] =
-    EngineStep(id = id,
-               breakpoint = Breakpoint.Disabled,
-               skipped = Skipped(false),
-               skipMark = SkipMark(false),
-               executions = executions
-    )
-
   /**
    * Calculate the `Step` `Status` based on the underlying `Action`s.
    */
   private def status_[F[_]](step: EngineStep[F]): StepState =
-    if (step.skipped.value) StepState.Skipped
-    else
-      // Find an error in the Step
-      step.executions
-        .flatMap(_.toList)
-        .find(Action.errored)
-        .flatMap { x =>
-          x.state.runState match {
-            case ActionState.Failed(Result.Error(msg)) => msg.some
-            case _                                     => None
-            // Return error or continue with the rest of the checks
-          }
+    // Find an error in the Step
+    step.executions
+      .flatMap(_.toList)
+      .find(Action.errored)
+      .flatMap { x =>
+        x.state.runState match {
+          case ActionState.Failed(Result.Error(msg)) => msg.some
+          case _                                     => None
+          // Return error or continue with the rest of the checks
         }
-        .map[StepState](StepState.Failed.apply)
-        .getOrElse(
-          // All actions in this Step were completed successfully, or the Step is empty.
-          if (step.executions.flatMap(_.toList).exists(Action.aborted)) StepState.Aborted
-          else if (step.executions.flatMap(_.toList).forall(Action.completed)) StepState.Completed
-          else if (step.executions.flatMap(_.toList).forall(_.state.runState.isIdle))
-            StepState.Pending
-          // Not all actions are completed or pending.
-          else StepState.Running
-        )
+      }
+      .map[StepState](StepState.Failed.apply)
+      .getOrElse(
+        // All actions in this Step were completed successfully, or the Step is empty.
+        if (step.executions.flatMap(_.toList).exists(Action.aborted)) StepState.Aborted
+        else if (step.executions.flatMap(_.toList).forall(Action.completed)) StepState.Completed
+        else if (step.executions.flatMap(_.toList).forall(_.state.runState.isIdle))
+          StepState.Pending
+        // Not all actions are completed or pending.
+        else StepState.Running
+      )
 
   extension [F[_]](s: EngineStep[F]) {
     def status: StepState = EngineStep.status_(s)
@@ -89,7 +68,6 @@ object EngineStep {
   case class Zipper[F[_]](
     id:         Step.Id,
     breakpoint: Breakpoint,
-    skipMark:   SkipMark,
     pending:    List[ParallelActions[F]],
     focus:      Execution[F],
     done:       List[ParallelActions[F]],
@@ -121,9 +99,7 @@ object EngineStep {
      */
     val uncurrentify: Option[EngineStep[F]] =
       if (pending.isEmpty)
-        focus.uncurrentify.map(x =>
-          EngineStep(id, breakpoint, Skipped(false), skipMark, x.prepend(done))
-        )
+        focus.uncurrentify.map(x => EngineStep(id, breakpoint, x.prepend(done)))
       else None
 
     /**
@@ -134,12 +110,8 @@ object EngineStep {
       EngineStep(
         id = id,
         breakpoint = breakpoint,
-        skipped = Skipped(false),
-        skipMark = skipMark,
         executions = done ++ focus.toParallelActionsList ++ pending
       )
-
-    val skip: EngineStep[F] = toStep.copy(skipped = Skipped(true))
 
     def update(executions: List[ParallelActions[F]]): Zipper[F] =
       Zipper
@@ -175,7 +147,6 @@ object EngineStep {
         Zipper(
           step.id,
           step.breakpoint,
-          step.skipMark,
           exes,
           x,
           Nil,

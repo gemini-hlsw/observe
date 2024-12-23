@@ -16,6 +16,7 @@ object ObservationSummarySubquery
   override val subquery: String = s"""
         {
           id
+          program { id }
           title
           subtitle
           instrument
@@ -23,9 +24,7 @@ object ObservationSummarySubquery
           posAngleConstraint $PosAngleConstraintSubquery
           constraintSet $ConstraintSetSubquery
           timingWindows $TimingWindowSubquery
-          obsAttachments {
-            id
-          }
+          attachments { id }
           observingMode $ObservingModeSubquery
           reference {
             label

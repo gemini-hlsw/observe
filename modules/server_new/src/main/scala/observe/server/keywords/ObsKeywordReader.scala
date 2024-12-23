@@ -5,23 +5,28 @@ package observe.server.keywords
 
 import cats.effect.Sync
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.StepGuideState.Disabled
 import lucuma.core.enums.StepGuideState.Enabled
-import lucuma.core.model.ElevationRange
 import lucuma.core.model.TimingWindowEnd
 import lucuma.core.model.TimingWindowRepeat
 import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.TimeSpan
+import lucuma.schemas.ObservationDB.Enums.GuideProbe
+import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
+import observe.server.Systems
 
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+
+import ConditionOps.*
 
 sealed trait ObsKeywordsReader[F[_]] {
   def obsType: F[String]
@@ -52,29 +57,10 @@ sealed trait ObsKeywordsReader[F[_]] {
   def geminiQA: F[String]
   def pIReq: F[String]
   def sciBand: F[Int]
-  def requestedAirMassAngle: F[Map[String, Double]]
   def timingWindows: F[List[(Int, TimingWindowKeywords)]]
-  def requestedConditions: F[Map[String, String]]
+  def requestedConditions: ConstraintSetReader[F]
   def astrometicField: F[Boolean]
-}
-
-trait ObsKeywordsReaderConstants {
-  // Constants taken from SPSiteQualityCB
-  // TODO Make them public in SPSiteQualityCB
-  val MIN_HOUR_ANGLE: String = "MinHourAngle"
-  val MAX_HOUR_ANGLE: String = "MaxHourAngle"
-  val MIN_AIRMASS: String    = "MinAirmass"
-  val MAX_AIRMASS: String    = "MaxAirmass"
-
-  val TIMING_WINDOW_START: String    = "TimingWindowStart"
-  val TIMING_WINDOW_DURATION: String = "TimingWindowDuration"
-  val TIMING_WINDOW_REPEAT: String   = "TimingWindowRepeat"
-  val TIMING_WINDOW_PERIOD: String   = "TimingWindowPeriod"
-
-  val SB: String = "SkyBackground"
-  val CC: String = "CloudCover"
-  val IQ: String = "ImageQuality"
-  val WV: String = "WaterVapor"
+  def proprietaryMonths: F[NonNegInt]
 }
 
 // A Timing window always has 4 keywords
@@ -85,11 +71,12 @@ final case class TimingWindowKeywords(
   period:   Double
 )
 
-object ObsKeywordReader extends ObsKeywordsReaderConstants {
+object ObsKeywordReader {
   def apply[F[_]: Sync, D <: DynamicConfig](
     obsCfg: Observation,
     step:   OcsStep[D],
-    site:   Site
+    site:   Site,
+    sys:    Systems[F]
   ): ObsKeywordsReader[F] =
     new ObsKeywordsReader[F] {
       // Format used on FITS keywords
@@ -100,11 +87,11 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def obsType: F[String] = (
         step.stepConfig match {
-          case StepConfig.Bias                                  => "BIAS"
-          case StepConfig.Dark                                  => "DARK"
-          case StepConfig.Gcal(lamp, filter, diffuser, shutter) => "FLAT"
-          case StepConfig.Science(offset, guiding)              => "OBJECT"
-          case StepConfig.SmartGcal(smartGcalType)              => "FLAT"
+          case StepConfig.Bias             => "BIAS"
+          case StepConfig.Dark             => "DARK"
+          case StepConfig.Gcal(_, _, _, _) => "FLAT"
+          case StepConfig.Science          => "OBJECT"
+          case StepConfig.SmartGcal(_)     => "FLAT"
         }
       ).pure[F]
 
@@ -121,26 +108,10 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def obsId: F[String] = obsCfg.title.value.pure[F]
 
-      override def requestedAirMassAngle: F[Map[String, Double]] =
-        obsCfg.constraintSet.elevationRange match {
-          case ElevationRange.AirMass(min, max)             =>
-            Map(
-              MAX_AIRMASS -> max.value.toDouble,
-              MIN_AIRMASS -> min.value.toDouble
-            ).pure[F]
-          case ElevationRange.HourAngle(minHours, maxHours) =>
-            Map(
-              MAX_HOUR_ANGLE -> maxHours.value.toDouble,
-              MIN_HOUR_ANGLE -> minHours.value.toDouble
-            ).pure[F]
-        }
-
-      override def requestedConditions: F[Map[String, String]] = Map(
-        SB -> obsCfg.constraintSet.skyBackground.label,
-        CC -> obsCfg.constraintSet.cloudExtinction.label,
-        IQ -> obsCfg.constraintSet.imageQuality.label,
-        WV -> obsCfg.constraintSet.waterVapor.label
-      ).pure[F]
+      override def requestedConditions: ConstraintSetReader[F] = ConstraintSetReader.apply(
+        obsCfg.constraintSet,
+        sys.conditionSetReader(obsCfg.constraintSet.asConditions)
+      )
 
       override def timingWindows: F[List[(Int, TimingWindowKeywords)]] =
         obsCfg.timingWindows.zipWithIndex
@@ -176,19 +147,31 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
         }
         .getOrElse("frozen")
 
-      override def pwfs1Guide: F[Option[StepGuideState]] = none.pure[F]
+      override def pwfs1Guide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.Pwfs1)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def pwfs1GuideS: F[String] =
         pwfs1Guide
           .map(decodeGuide)
 
-      override def pwfs2Guide: F[Option[StepGuideState]] = none.pure[F]
+      override def pwfs2Guide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.Pwfs2)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def pwfs2GuideS: F[String] =
         pwfs2Guide
           .map(decodeGuide)
 
-      override def oiwfsGuide: F[Option[StepGuideState]] = none.pure[F]
+      override def oiwfsGuide: F[Option[StepGuideState]] =
+        obsCfg.targetEnvironment.guideEnvironment.guideTargets
+          .exists(_.probe === GuideProbe.GmosOiwfs)
+          .option(step.telescopeConfig.guiding)
+          .pure[F]
 
       override def oiwfsGuideS: F[String] =
         oiwfsGuide
@@ -241,7 +224,9 @@ object ObsKeywordReader extends ObsKeywordsReaderConstants {
 
       override def sciBand: F[Int] = 1.pure[F]
 
-      def astrometicField: F[Boolean] = false.pure[F]
+      override def astrometicField: F[Boolean] = false.pure[F]
+
+      override def proprietaryMonths: F[NonNegInt] = obsCfg.program.goa.proprietaryMonths.pure[F]
 
     }
 }

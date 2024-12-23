@@ -26,6 +26,8 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Dataset
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.schemas.ObservationDB
@@ -59,11 +61,12 @@ sealed trait OdbEventCommands[F[_]] {
     generatedId:  Option[Atom.Id]
   ): F[Unit]
   def stepStartStep(
-    obsId:         Observation.Id,
-    dynamicConfig: DynamicConfig,
-    stepConfig:    StepConfig,
-    observeClass:  ObserveClass,
-    generatedId:   Option[Step.Id]
+    obsId:           Observation.Id,
+    dynamicConfig:   DynamicConfig,
+    stepConfig:      StepConfig,
+    telescopeConfig: CoreTelescopeConfig,
+    observeClass:    ObserveClass,
+    generatedId:     Option[Step.Id]
   ): F[Unit]
   def stepStartConfigure(obsId:  Observation.Id): F[Unit]
   def stepEndConfigure(obsId:    Observation.Id): F[Boolean]
@@ -82,7 +85,6 @@ sealed trait OdbEventCommands[F[_]] {
   def stepAbort(obsId:           Observation.Id): F[Boolean]
   def atomEnd(obsId:             Observation.Id): F[Boolean]
   def sequenceEnd(obsId:         Observation.Id): F[Boolean]
-  def obsAbort(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsContinue(obsId:         Observation.Id): F[Boolean]
   def obsPause(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:             Observation.Id, reason: String): F[Boolean]
@@ -92,7 +94,6 @@ sealed trait OdbEventCommands[F[_]] {
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
   def read(oid: Observation.Id): F[ObsQuery.Data.Observation]
-  def queuedSequences: F[List[Observation.Id]]
 }
 
 object OdbProxy {
@@ -113,11 +114,6 @@ object OdbProxy {
             )
           )
 
-      override def queuedSequences: F[List[Observation.Id]] =
-        ActiveObservationIdsQuery[F]
-          .query()
-          .map(_.observations.matches.map(_.id))
-
       export evCmds.*
     }
 
@@ -128,11 +124,12 @@ object OdbProxy {
       ().pure[F]
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] = ().pure[F]
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
@@ -166,9 +163,6 @@ object OdbProxy {
     def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-      false.pure[F]
-
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
       false.pure[F]
 
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
@@ -207,14 +201,14 @@ object OdbProxy {
   }
 
   case class OdbCommandsImpl[F[_]](
-    client:    FetchClient[F, ObservationDB],
     idTracker: Ref[F, ObsRecordedIds]
   )(using
     val F:     Sync[F],
-    L:         Logger[F]
+    L:         Logger[F],
+    client:    FetchClient[F, ObservationDB]
   ) extends OdbEventCommands[F]
       with IdTrackerOps[F](idTracker) {
-    given FetchClient[F, ObservationDB] = client
+    // given FetchClient[F, ObservationDB] = client
 
     private val fitsFileExtension                           = ".fits"
     private def normalizeFilename(fileName: String): String = if (
@@ -257,15 +251,17 @@ object OdbProxy {
     } yield ()
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] =
       for {
         atomId <- getCurrentAtomId(obsId)
-        stepId <- recordStep(atomId, dynamicConfig, stepConfig, observeClass, generatedId)
+        stepId <-
+          recordStep(atomId, dynamicConfig, stepConfig, telescopeConfig, observeClass, generatedId)
         _      <- setCurrentStepId(obsId, stepId.some)
         _      <- L.debug(s"Recorded step for obsId: $obsId, recordedStepId: $stepId")
         _      <- AddStepEventMutation[F]
@@ -291,7 +287,7 @@ object OdbProxy {
     override def stepStartObserve(obsId: Observation.Id): F[Boolean] =
       for {
         stepId <- getCurrentStepId(obsId)
-        _      <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
+        _      <- L.debug(s"Send ODB event stepStartObserve for obsId: $obsId, step $stepId")
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.StartObserve)
         _      <- L.debug("ODB event stepStartObserve sent")
       } yield true
@@ -400,15 +396,6 @@ object OdbProxy {
         _ <- L.debug(s"Skipped sending ODB event sequenceEnd for obsId: $obsId")
       } yield true
 
-    override def obsAbort(obsId: Observation.Id, reason: String): F[Boolean] =
-      for {
-        visitId <- getCurrentVisitId(obsId)
-        _       <- L.debug(s"Send ODB event observationAbort for obsId: $obsId")
-        _       <- AddSequenceEventMutation[F].execute(vId = visitId, cmd = SequenceCommand.Abort)
-        _       <- setCurrentVisitId(obsId, none)
-        _       <- L.debug("ODB event observationAbort sent")
-      } yield true
-
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       for {
         _       <- L.debug(s"Send ODB event observationContinue for obsId: $obsId")
@@ -465,19 +452,19 @@ object OdbProxy {
       instrument:   Instrument,
       generatedId:  Option[Atom.Id]
     ): F[RecordedAtomId] =
-      println(s"RECORDING ATOM: $visitId, $instrument, $sequenceType, $stepCount, $generatedId")
       RecordAtomMutation[F]
         .execute:
-          RecordAtomInput(visitId, instrument, sequenceType, stepCount, generatedId.orIgnore)
+          RecordAtomInput(visitId, instrument, sequenceType, stepCount.assign, generatedId.orIgnore)
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
     private def recordStep(
-      atomId:        RecordedAtomId,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      atomId:          RecordedAtomId,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: TelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[RecordedStepId] = dynamicConfig match {
       case s @ DynamicConfig.GmosNorth(_, _, _, _, _, _, _) =>
         recordGmosNorthStep:
@@ -485,6 +472,7 @@ object OdbProxy {
             atomId.value,
             s.toInput,
             stepConfig.toInput,
+            telescopeConfig.toInput.assign,
             observeClass,
             generatedId.orIgnore
           )
@@ -494,6 +482,7 @@ object OdbProxy {
             atomId.value,
             s.toInput,
             stepConfig.toInput,
+            telescopeConfig.toInput.assign,
             observeClass,
             generatedId.orIgnore
           )
@@ -531,8 +520,6 @@ object OdbProxy {
     override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] = MonadThrow[F]
       .raiseError(ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented."))
 
-    override def queuedSequences: F[List[Observation.Id]] = List.empty[Observation.Id].pure[F]
-
     export evCmds.{
       datasetEndExposure,
       datasetEndReadout,
@@ -540,7 +527,6 @@ object OdbProxy {
       datasetStartExposure,
       datasetStartReadout,
       datasetStartWrite,
-      obsAbort,
       obsContinue,
       obsPause,
       obsStop,
@@ -549,11 +535,12 @@ object OdbProxy {
     }
 
     override def stepStartStep(
-      obsId:         Observation.Id,
-      dynamicConfig: DynamicConfig,
-      stepConfig:    StepConfig,
-      observeClass:  ObserveClass,
-      generatedId:   Option[Step.Id]
+      obsId:           Observation.Id,
+      dynamicConfig:   DynamicConfig,
+      stepConfig:      StepConfig,
+      telescopeConfig: CoreTelescopeConfig,
+      observeClass:    ObserveClass,
+      generatedId:     Option[Step.Id]
     ): F[Unit] = Applicative[F].unit
 
     override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit

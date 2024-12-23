@@ -273,18 +273,6 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
     yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
 
-  test("start sequence from"):
-    val uri = Uri.unsafeFromString(
-      s"/${obsId.show}/${stepId.show}/${clientId.value}/startFrom/observer"
-    )
-    val r   = for
-      engine <- TestObserveEngine.build[IO]
-      s      <- commandRoutes(engine)
-      wsb    <- WebSocketBuilder2[IO]
-      l      <- s(Request[IO](method = Method.POST, uri = uri)).value
-    yield l.map(_.status)
-    assertIO(r, Some(Status.NoContent))
-
   test("pause sequence"):
     val uri = Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/pause/observer")
     val r   = for
@@ -304,33 +292,6 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       l      <- s(Request[IO](method = Method.POST, uri = uri)).value
     yield l.map(_.status)
     assertIO(r, Some(Status.NoContent))
-
-  /* test("set skip") {
-    val engine = mock[ObserveEngine[IO]]
-    inAnyOrder {
-      (engine.setSkipMark _)
-        .expects(*, *, *, *, *, *)
-        .anyNumberOfTimes()
-        .returning(IO.unit)
-    }
-    forAll { (obsId: Observation.Id, toSet: StepId, set: Boolean) =>
-      val uri    = Uri.unsafeFromString(s"/${obsId.show}/$toSet/skip/observer/$set")
-      val (s, b) = (for {
-        s   <- commandRoutes(engine)
-        wsb <- WebSocketBuilder2[IO]
-        t   <- newLoginToken(wsb)
-        l   <- s(
-                 Request[IO](method = Method.POST, uri = uri).addCookie("token", t)
-               ).value
-      } yield (l.map(_.status), l.map(_.as[String]).sequence)).unsafeRunSync()
-      assert(s === Some(Status.Ok))
-      assert(
-        b.unsafeRunSync() === Some(
-          s"Set skip mark in step $toSet of sequence ${obsId.show}"
-        )
-      )
-    }
-  } */
 
   test("stop sequence"):
     val uri = Uri.unsafeFromString(s"/${obsId.show}/${clientId.value}/stop/observer")

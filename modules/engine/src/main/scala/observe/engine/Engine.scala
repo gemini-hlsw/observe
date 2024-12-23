@@ -30,7 +30,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   stateL:      Engine.State[F, S],
   streamQueue: Queue[F, Stream[F, Event[F, S, U]]],
   inputQueue:  Queue[F, Event[F, S, U]],
-  atomLoad:    (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+  atomLoad:    (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
+  atomReload:  (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
 ) {
   val L: Logger[F] = Logger[F]
 
@@ -51,37 +52,12 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         {
           putS(id)(
             Sequence.State.status.replace(SequenceState.Running.Init)(
-              seq.skips.getOrElse(seq).rollback
+              seq.rollback
             )
           ) *>
             send(Event.executing(id))
         }.whenA(seq.status.isIdle || seq.status.isError)
       case None      => unit
-    }
-
-  /**
-   * startFrom starts a sequence from an arbitrary step. It does it by marking all previous steps to
-   * be skipped and then modifying the state sequence as if it was run. If the requested step is
-   * already run or marked to be skipped, the sequence will start from the next runnable step
-   */
-  def startFrom(id: Observation.Id, step: Step.Id): HandleType[Unit] =
-    getS(id).flatMap {
-      case Some(seq)
-          if (seq.status.isIdle || seq.status.isError) && seq.toSequence.steps.exists(
-            _.id === step
-          ) =>
-        val steps     = seq.toSequence.steps
-          .takeWhile(_.id =!= step)
-          .mapFilter(p => (!p.status.isFinished).option(p.id))
-        val withSkips = steps.foldLeft[Sequence.State[F]](seq) { case (s, i) =>
-          s.setSkipMark(i, v = true)
-        }
-        putS(id)(
-          Sequence.State.status.replace(SequenceState.Running.Init)(
-            withSkips.skips.getOrElse(withSkips).rollback
-          )
-        ) *> send(Event.executing(id))
-      case _ => unit
     }
 
   def pause(id: Observation.Id): HandleType[Unit] =
@@ -164,7 +140,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop, internalStop, true)
+                    SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
                 case Some(qs)                          =>
@@ -181,7 +157,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop, internalStop, true)
+                    SequenceState.Running(userStop, internalStop, waitingNextAtom = true)
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
                 case Some(qs)                          =>
@@ -190,7 +166,16 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                        .exists(_.uninterruptible)
                                    ) {
                                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else send(executing(id)))
+                                   } else if (seq.isLastAction)
+                                     // after the last action of the step, we need to reload the sequence
+                                     switch(id)(
+                                       SequenceState.Running(userStop,
+                                                             internalStop,
+                                                             waitingNextAtom = true
+                                       )
+                                     ) *>
+                                       send(modifyState(atomReload(this, id)))
+                                   else send(executing(id)))
               }
             }
           case _                                                => unit
@@ -405,9 +390,6 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     case Breakpoints(id, _, step, v) =>
       debug(s"Engine: breakpoints changed for sequence $id and step $step to $v") *>
         modifyS(id)(_.setBreakpoints(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case SkipMark(id, _, step, v)    =>
-      debug(s"Engine: skip mark changed for sequence $id and step $step to $v") *>
-        modifyS(id)(_.setSkipMark(step, v)) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case Poll(_)                     =>
       debug("Engine: Polling current state") *> pure(UserCommandResponse(ue, Outcome.Ok, None))
     case GetState(f)                 => getState(f) *> pure(UserCommandResponse(ue, Outcome.Ok, None))
@@ -432,20 +414,19 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     se: SystemEvent
   )(using ci: Concurrent[F]): HandleType[ResultType] = se match {
     case Completed(id, _, i, r)     =>
-      debug(s"Engine: From sequence $id: Action completed ($r)") *> complete(id, i, r) *>
+      debug(s"Engine: From sequence $id: Action completed ($r)") *>
+        complete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case StopCompleted(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *> stopComplete(
-        id,
-        i,
-        r
-      ) *>
+      debug(s"Engine: From sequence $id: Action completed with stop ($r)") *>
+        stopComplete(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Aborted(id, _, i, r)       =>
       debug(s"Engine: From sequence $id: Action completed with abort ($r)") *> abort(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case PartialResult(id, _, i, r) =>
-      debug(s"Engine: From sequence $id: Partial result ($r)") *> partialResult(id, i, r) *>
+      debug(s"Engine: From sequence $id: Partial result ($r)") *>
+        partialResult(id, i, r) *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Paused(id, i, r)           =>
       debug("Engine: Action paused") *>
@@ -463,7 +444,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       debug("Engine: Breakpoint reached") *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Executed(id)               =>
-      debug("Engine: Execution completed") *>
+      debug(s"Engine: Execution $id completed") *>
         next(id) *> pure(SystemUpdate(se, Outcome.Ok))
     case Executing(id)              =>
       debug("Engine: Executing") *>
@@ -581,13 +562,14 @@ object Engine {
     type EventData = E
   }
 
-  def build[F[_]: MonadThrow: Logger: Concurrent, S, U](
-    stateL:       State[F, S],
-    loadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+  def build[F[_]: Concurrent: Logger, S, U](
+    stateL:         State[F, S],
+    loadNextAtom:   (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
+    reloadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
   ): F[Engine[F, S, U]] = for {
     sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
     iq <- Queue.unbounded[F, Event[F, S, U]]
-  } yield new Engine(stateL, sq, iq, loadNextAtom)
+  } yield new Engine(stateL, sq, iq, loadNextAtom, reloadNextAtom)
 
   /**
    * Builds the initial state of a sequence

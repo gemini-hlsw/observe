@@ -14,7 +14,6 @@ trait ArbStepState {
       v1 <- Gen.oneOf(StepState.Pending,
                       StepState.Completed,
                       StepState.Aborted,
-                      StepState.Skipped,
                       StepState.Running,
                       StepState.Paused
             )

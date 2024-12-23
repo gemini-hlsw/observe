@@ -7,7 +7,9 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig
 import lucuma.core.model.sequence.arb.ArbStepConfig.given
+import lucuma.core.model.sequence.arb.ArbTelescopeConfig.given
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
@@ -29,8 +31,8 @@ trait ArbStandardStep {
       d  <- arbitrary[InstrumentDynamicConfig]
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
+      tc <- arbitrary[TelescopeConfig]
       b  <- arbitrary[Breakpoint]
-      k  <- arbitrary[Boolean]
       f  <- arbitrary[Option[dhs.ImageFileId]]
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
@@ -38,9 +40,9 @@ trait ArbStandardStep {
       id = id,
       instConfig = d,
       stepConfig = t,
+      telescopeConfig = tc,
       status = s,
       breakpoint = b,
-      skip = k,
       fileId = f,
       configStatus = cs,
       observeStatus = os
@@ -53,9 +55,9 @@ trait ArbStandardStep {
         Step.Id,
         InstrumentDynamicConfig,
         StepConfig,
+        TelescopeConfig,
         StepState,
         Breakpoint,
-        Boolean,
         Option[dhs.ImageFileId],
         List[(Resource | Instrument, ActionStatus)],
         ActionStatus
@@ -64,9 +66,9 @@ trait ArbStandardStep {
       (s.id,
        s.instConfig,
        s.stepConfig,
+       s.telescopeConfig,
        s.status,
        s.breakpoint,
-       s.skip,
        s.fileId,
        s.configStatus,
        s.observeStatus

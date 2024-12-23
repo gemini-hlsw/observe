@@ -5,6 +5,16 @@ html {
   overflow: hidden; // Avoid "spring" effect when scrolling tables beyond their top/bottom.
 }
 
+body {
+  background-color: var(--color-background);
+  color: var(--text-color);
+  margin: 0;
+}
+
+.main-header {
+  color: var(--color-text-alt);
+}
+
 .OnlySmallScreens {
   @media screen and (min-width: lucumaUICommon.$tablet-responsive-cutoff) {
     display: none;
@@ -723,12 +733,21 @@ html {
       }
     }
   }
+
+  &.ObserveStyles-abortedProgressBar {
+    background-color: var(--red-500);
+  }
 }
 
-.p-inputgroup {
+.p-button-group {
   &.ObserveStyles-controlButtonStrip {
     height: 21px;
-    width: 68px;
+    width: 84px;
+
+    & > button { 
+      height: 100%;
+      width: 25px;
+    }
 
     // Resume and pause buttons don't have a large icon, so we pad them.
     & > .ObserveStyles-playButton,
@@ -1033,10 +1052,34 @@ html {
 
     .ObserveStyles-qaEditorPanelButtons {
       align-self: end;
-      
+
       button {
         align-items: center;
       }
     }
+  }
+}
+
+.ObserveStyles-logTable {
+  .ObserveStyles-logWarningRow {
+    background-color: var(--active-row-background);
+  }
+
+  .ObserveStyles-logErrorRow {
+    background-color: var(--negative-row-background);
+    color: var(--negative-row-color);
+  }
+}
+
+.ObserveStyles-externalLink {
+  margin-left: 0.4em;
+  font-size: smaller;
+  vertical-align: baseline;
+}
+
+.ObserveStyles-obsSummary-title{
+  .ObserveStyles-externalLink {
+    font-size: 12px;
+    vertical-align: super;
   }
 }

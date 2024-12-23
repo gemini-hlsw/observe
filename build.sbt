@@ -83,10 +83,14 @@ lazy val sbtDockerPublish =
 lazy val herokuDeployAndRelease =
   WorkflowStep.Run(
     List(
+      "npm install -g heroku",
       "heroku container:login",
-      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
-      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME }}/web",
-      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }} -v"
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
+      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
+      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GN }} -v",
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
+      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
+      "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GS }} -v"
     ),
     name = Some("Deploy and release app in Heroku")
   )
@@ -95,8 +99,7 @@ ThisBuild / githubWorkflowAddedJobs +=
   WorkflowJob(
     "deploy",
     "Build and publish Docker image / Deploy to Heroku",
-    WorkflowStep.Checkout ::
-      WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList.take(1)) :::
+    githubWorkflowJobSetup.value.toList :::
       setupNodeNpmInstall :::
       dockerHubLogin ::
       sbtDockerPublish ::
@@ -111,8 +114,8 @@ ThisBuild / lucumaCssExts += "svg"
 
 Global / onChangedBuildSource                   := ReloadOnSourceChanges
 ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
-ThisBuild / scalaVersion                        := "3.5.0"
-ThisBuild / crossScalaVersions                  := Seq("3.5.0")
+ThisBuild / scalaVersion                        := "3.6.2"
+ThisBuild / crossScalaVersions                  := Seq("3.6.2")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
   "https://s01.oss.sonatype.org/content/repositories/snapshots/"
@@ -441,6 +444,7 @@ lazy val deploy = project
   .settings(
     description          := "Observe Server",
     Docker / packageName := "gpp-obs",
+    dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
     dockerUpdateLatest   := true,
     dockerUsername       := Some("noirlab")
   )

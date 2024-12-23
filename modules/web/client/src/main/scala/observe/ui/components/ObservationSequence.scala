@@ -7,7 +7,6 @@ import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.*
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
@@ -19,14 +18,12 @@ import lucuma.schemas.model.Dataset
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.model.StepRecord
 import lucuma.schemas.model.Visit
-import lucuma.ui.DefaultErrorRender
 import lucuma.ui.syntax.toast.*
 import monocle.Optional
 import monocle.Traversal
 import observe.model.ExecutionState
 import observe.model.StepProgress
 import observe.model.odb.RecordedVisit
-import observe.ui.ObserveStyles
 import observe.ui.components.sequence.GmosNorthSequenceTable
 import observe.ui.components.sequence.GmosSouthSequenceTable
 import observe.ui.model.AppContext
@@ -41,7 +38,7 @@ import scala.collection.immutable.HashSet
 case class ObservationSequence(
   obsId:                Observation.Id,
   config:               InstrumentExecutionConfig,
-  visits:               View[ExecutionVisits],
+  visits:               View[Option[ExecutionVisits]],
   executionState:       View[ExecutionState],
   currentRecordedVisit: Option[RecordedVisit],
   progress:             Option[StepProgress],
@@ -107,36 +104,41 @@ object ObservationSequence:
             .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
             sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
 
-      def datasetQaView(datasetId: Dataset.Id): ViewList[EditableQaFields] =
-        props.visits.zoom:
-          datasetWithId(datasetId).andThen(EditableQaFields.fromDataset)
-
       val onDatasetQAChange: Dataset.Id => EditableQaFields => Callback =
         datasetId =>
           qaFields =>
-            datasetIdsInFlight.modState(_ + datasetId) >>
-              odbQueryApi
-                .updateDatasetQa(datasetId, qaFields)
-                .flatMap: _ =>
-                  (datasetQaView(datasetId).set(qaFields) >>
-                    datasetIdsInFlight.modState(_ - datasetId))
-                    .to[IO]
-                .handleErrorWith: e =>
-                  (datasetIdsInFlight.modState(_ - datasetId) >>
-                    ctx.toast.show(
-                      s"Error updating dataset QA state for $datasetId: ${e.getMessage}",
-                      Message.Severity.Error,
-                      sticky = true
-                    )).to[IO]
-                .runAsync
+            props.visits.toOptionView.map { visits =>
+              def datasetQaView(datasetId: Dataset.Id): ViewList[EditableQaFields] =
+                visits.zoom:
+                  datasetWithId(datasetId).andThen(EditableQaFields.fromDataset)
 
-      (props.config, props.visits.get) match
-        case (InstrumentExecutionConfig.GmosNorth(config), ExecutionVisits.GmosNorth(_, visits)) =>
+              datasetIdsInFlight.modState(_ + datasetId) >>
+                odbQueryApi
+                  .updateDatasetQa(datasetId, qaFields)
+                  .flatMap: _ =>
+                    (datasetQaView(datasetId).set(qaFields) >>
+                      datasetIdsInFlight.modState(_ - datasetId))
+                      .to[IO]
+                  .handleErrorWith: e =>
+                    (datasetIdsInFlight.modState(_ - datasetId) >>
+                      ctx.toast.show(
+                        s"Error updating dataset QA state for $datasetId: ${e.getMessage}",
+                        Message.Severity.Error,
+                        sticky = true
+                      )).to[IO]
+                  .runAsync
+            }.orEmpty // If there are no visits, there's nothing to change.
+
+      props.config match // TODO Show visits even if sequence data is not available
+        case InstrumentExecutionConfig.GmosNorth(config) =>
           GmosNorthSequenceTable(
             props.clientMode,
             props.obsId,
             config,
-            visits,
+            props.visits.get
+              .collect:
+                case ExecutionVisits.GmosNorth(visits) => visits.toList
+              .orEmpty,
             props.executionState.get,
             props.currentRecordedVisit,
             props.progress,
@@ -148,12 +150,15 @@ object ObservationSequence:
             onDatasetQAChange,
             datasetIdsInFlight.value
           )
-        case (InstrumentExecutionConfig.GmosSouth(config), ExecutionVisits.GmosSouth(_, visits)) =>
+        case InstrumentExecutionConfig.GmosSouth(config) =>
           GmosSouthSequenceTable(
             props.clientMode,
             props.obsId,
             config,
-            visits,
+            props.visits.get
+              .collect:
+                case ExecutionVisits.GmosSouth(visits) => visits.toList
+              .orEmpty,
             props.executionState.get,
             props.currentRecordedVisit,
             props.progress,
@@ -164,8 +169,4 @@ object ObservationSequence:
             onBreakpointFlip,
             onDatasetQAChange,
             datasetIdsInFlight.value
-          )
-        case _                                                                                   =>
-          <.div(ObserveStyles.ObservationAreaError)(
-            DefaultErrorRender(new Exception("Sequence <-> Visits Instrument mismatch!"))
           )

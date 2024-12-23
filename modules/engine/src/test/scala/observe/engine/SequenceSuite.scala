@@ -35,18 +35,19 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   private val executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
+    (eng, obsId) => eng.startNewAtom(obsId),
     (eng, obsId) => eng.startNewAtom(obsId)
   )
 
   def simpleStep(id: Step.Id, breakpoint: Breakpoint): EngineStep[IO] =
-    EngineStep
-      .init(
-        id = id,
-        executions = List(
-          NonEmptyList.of(action, action), // Execution
-          NonEmptyList.one(action)         // Execution
-        )
+    EngineStep(
+      id = id,
+      breakpoint = Breakpoint.Disabled,
+      executions = List(
+        NonEmptyList.of(action, action), // Execution
+        NonEmptyList.one(action)         // Execution
       )
+    )
       .copy(breakpoint = breakpoint)
 
   def isFinished(status: SequenceState): Boolean = status match {
@@ -171,7 +172,6 @@ class SequenceSuite extends munit.CatsEffectSuite {
     EngineStep.Zipper(
       id = stepId(1),
       breakpoint = Breakpoint.Disabled,
-      EngineStep.SkipMark(false),
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>
@@ -251,15 +251,17 @@ class SequenceSuite extends munit.CatsEffectSuite {
         id = seqId,
         atomId,
         steps = List(
-          EngineStep.init(
+          EngineStep(
             id = stepId(1),
+            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
             )
           ),
-          EngineStep.init(
+          EngineStep(
             id = stepId(2),
+            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(action, action), // Execution
               NonEmptyList.one(action)         // Execution
@@ -273,8 +275,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
         id = seqId,
         atomId,
         steps = List(
-          EngineStep.init(
+          EngineStep(
             id = stepId(1),
+            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
@@ -299,8 +302,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
           id = seqId,
           atomId,
           steps = List(
-            EngineStep.init(
+            EngineStep(
               id = stepId(1),
+              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.of(action, action), // Execution
                 NonEmptyList.one(action)         // Execution
@@ -324,8 +328,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
           id = seqId,
           atomId,
           steps = List(
-            EngineStep.init(
+            EngineStep(
               id = stepId(1),
+              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.of(action, action), // Execution
                 NonEmptyList.one(action)         // Execution

@@ -144,20 +144,6 @@ trait ModelLenses {
   def signedComponentFormat[A]: Format[String, Offset.Component[A]] =
     signedArcsecFormat.andThen(Offset.Component.angle[A].reverse)
 
-  val stringToDoubleP: Prism[String, Double] =
-    Prism((x: String) => x.parseDoubleOption)(_.show)
-
-//  def stepObserveOptional[A](
-//                              systemName: SystemName,
-//                              param: String,
-//                              prism: Prism[String, A]
-//                            ): Optional[Step, A] =
-//    Step.config
-//      .andThen( // configuration of the step
-//        configParamValueO(systemName, param)
-//      )
-//      .andThen(prism) // step type
-
   val stringToString = Iso.id[String].asPrism
 
   val stringToStepTypeP: Prism[String, StepType] =

@@ -37,12 +37,6 @@ object UserEvent {
     steps: List[Step.Id],
     v:     Breakpoint
   ) extends UserEvent[F, S, U]
-  case class SkipMark[F[_], S, U](
-    id:   Observation.Id,
-    user: Option[User],
-    step: Step.Id,
-    v:    Boolean
-  ) extends UserEvent[F, S, U]
   case class Poll[F[_], S, U](clientId: ClientId)                      extends UserEvent[F, S, U] {
     val user: Option[User] = None
   }

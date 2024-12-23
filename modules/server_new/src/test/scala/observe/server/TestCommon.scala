@@ -10,6 +10,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Ref
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.CloudExtinction
@@ -28,8 +29,7 @@ import lucuma.core.enums.GmosYBinning
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
-import lucuma.core.enums.ObsActiveStatus
-import lucuma.core.enums.ObsStatus
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
@@ -48,6 +48,7 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.GmosCcdMode
 import lucuma.core.model.sequence.gmos.GmosFpuMask
@@ -58,6 +59,7 @@ import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
+import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
 import observe.engine
 import observe.engine.Action
@@ -132,7 +134,8 @@ object TestCommon {
   given Logger[IO] = NoOpLogger.impl[IO]
 
   val defaultSettings: ObserveEngineConfiguration = ObserveEngineConfiguration(
-    odb = uri"localhost",
+    odbHttp = uri"localhost",
+    odbWs = uri"localhost",
     dhsServer = uri"http://localhost/",
     systemControl = SystemsControlConfiguration(
       altair = ControlStrategy.Simulated,
@@ -304,22 +307,21 @@ object TestCommon {
     GmosFpuMask.Builtin[GmosNorthFpu](GmosNorthFpu.LongSlit_0_50).some
   )
 
-  val stepCfg1: StepConfig = StepConfig.Science(
-    Offset.Zero,
-    StepGuideState.Enabled
-  )
+  val stepCfg1: StepConfig = StepConfig.Science
+
+  val telescopeCfg1: CoreTelescopeConfig = CoreTelescopeConfig(Offset.Zero, StepGuideState.Enabled)
 
   def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
+      ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
-        None
+        None,
+        ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
       ),
-      TargetEnvironment(None),
+      TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
         ImageQuality.PointOne,
         CloudExtinction.PointOne,
@@ -341,6 +343,7 @@ object TestCommon {
                     stepId(1),
                     dynamicCfg1,
                     stepCfg1,
+                    telescopeCfg1,
                     StepEstimate.Zero,
                     ObserveClass.Science,
                     Breakpoint.Disabled
@@ -352,6 +355,7 @@ object TestCommon {
                         stepId(i),
                         dynamicCfg1,
                         stepCfg1,
+                        telescopeCfg1,
                         StepEstimate.Zero,
                         ObserveClass.Science,
                         Breakpoint.Disabled
@@ -394,6 +398,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )
@@ -428,6 +433,7 @@ object TestCommon {
             StepStatusGen.Null,
             dynamicCfg1,
             stepCfg1,
+            telescopeCfg1,
             breakpoint = Breakpoint.Disabled
           )
         )
@@ -451,13 +457,13 @@ object TestCommon {
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
-      ObsStatus.Ready,
-      ObsActiveStatus.Active,
+      ODBObservation.Workflow(ObservationWorkflowState.Ready),
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
-        None
+        None,
+        ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
       ),
-      TargetEnvironment(None),
+      TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
         ImageQuality.PointOne,
         CloudExtinction.PointOne,
@@ -479,6 +485,7 @@ object TestCommon {
                     stepId(1),
                     dynamicCfg1,
                     stepCfg1,
+                    telescopeCfg1,
                     StepEstimate.Zero,
                     ObserveClass.Science,
                     Breakpoint.Disabled
@@ -519,6 +526,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         ),
         SequenceGen.PendingStepGen(
@@ -540,6 +548,7 @@ object TestCommon {
           StepStatusGen.Null,
           dynamicCfg1,
           stepCfg1,
+          telescopeCfg1,
           breakpoint = Breakpoint.Disabled
         )
       )

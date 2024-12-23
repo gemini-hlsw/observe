@@ -13,6 +13,7 @@ import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.*
+import lucuma.typed.primereact.components.ButtonGroup
 import observe.model.SequenceState
 import observe.model.operations.*
 import observe.model.operations.Operations.*
@@ -63,7 +64,7 @@ object StepControlButtons:
       //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
       //     case _                                                        => Icons.Stop
 
-      InputGroup(ObserveStyles.ControlButtonStrip)(
+      ButtonGroup(ObserveStyles.ControlButtonStrip)(
         // ObserveStyles.notInMobile,
         TagMod.when(props.isRunning):
           props.operations

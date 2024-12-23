@@ -17,7 +17,6 @@ import crystal.react.*
 import crystal.react.given
 import crystal.react.hooks.*
 import crystal.syntax.*
-import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import io.circe.parser.decode
 import io.circe.syntax.*
@@ -37,10 +36,11 @@ import lucuma.refined.*
 import lucuma.schemas.ObservationDB
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
-import lucuma.ui.reusability.given
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
+import observe.model.LogMessage
+import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
@@ -52,7 +52,6 @@ import observe.ui.model.AppContext
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
-import observe.ui.model.reusability.given
 import observe.ui.services.*
 import observe.ui.services.ConfigApi
 import org.http4s.Uri
@@ -65,6 +64,7 @@ import org.http4s.client.websocket.WSRequest
 import org.http4s.client.websocket.middleware.Reconnect
 import org.http4s.dom.FetchClientBuilder
 import org.http4s.dom.WebSocketClient
+import org.http4s.headers.Authorization
 import org.http4s.syntax.all.*
 import org.scalajs.dom
 import org.typelevel.log4cats.Logger
@@ -177,14 +177,15 @@ object MainApp extends ServerEventHandler:
             policy = WSRetryPolicy,
             onError =
               (_: Throwable, _) => syncStatus.async.set(SyncStatus.OutOfSync.some).toResource
-          )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri)))
+          )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))),
+          _ => true.pure[IO]
         ).map(_.some)
       .useStateView(Pot.pending[ClientConfig]) // clientConfigPot
       .useStateView(RootModelData.Initial)     // rootModelData
       .useStateView(ApiStatus.Idle)            // configApiStatus
       .useEffectStreamWhenDepsReadyBy((_, _, _, _, wsConnection, _, _, _) =>
         wsConnection.flatMap(_.toPot)
-      ): (_, _, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
+      ): (_, toast, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
         _.receiveStream // Setup server event processor (2)
           .through(parseClientEvents)
           .evalMap:
@@ -193,7 +194,8 @@ object MainApp extends ServerEventHandler:
                 clientConfig.async.mod,
                 rootModelData.async.mod,
                 syncStatus.async.mod,
-                configApiStatus.async.mod
+                configApiStatus.async.mod,
+                toast
               )(event)
             case Left(error)  =>
               processStreamError(rootModelData.async.mod)(error)
@@ -238,40 +240,42 @@ object MainApp extends ServerEventHandler:
           ctx
             .initODBClient:
               authHeaderRef.getAsync.map:
-                _.map(authHeader => Map("Authorization" -> authHeader.asJson))
-                  .getOrElse(Map.empty)
+                _.map: authHeader =>
+                  Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson)
+                .getOrElse(Map.empty)
             .as(ctx.closeODBClient) // Disconnect on logout
       // Subscribe to client event stream (and initialize ClientConfig)
       .useState(none[ApiClient])               // apiClientOpt
-      .useEffectWithDepsBy((_, _, _, _, _, clientConfigPot, rootModelData, _, _, _, _) =>
-        (rootModelData.get.userVault.toOption.flatMap(_.map(_.token)), clientConfigPot.get.toOption)
-      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, ctxPot, _, apiClientOpt) =>
-        (userTokenOpt, clientConfigOpt) =>
-          (userTokenOpt, clientConfigOpt, ctxPot.value.toOption)
-            .mapN: (token, clientConfig, ctx) =>
-              apiClientOpt
-                .setState:
-                  ApiClient(
-                    fetchClient,
-                    ApiBasePath,
-                    clientConfig.clientId,
-                    token,
-                    t =>
-                      toastRef
-                        .show:
-                          MessageItem(
-                            id = "configApiError",
-                            content = "Error saving changes",
-                            severity = Message.Severity.Error
-                          )
-                        .to[IO] >>
+      .useEffectWhenDepsReadyBy((_, _, _, _, _, clientConfigPot, _, _, _, _, _) =>
+        clientConfigPot.get
+      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, _, authHeaderRef, apiClientOpt) =>
+        clientConfig =>
+          apiClientOpt
+            .setState:
+              ApiClient(
+                fetchClient,
+                ApiBasePath,
+                clientConfig.clientId,
+                authHeaderRef.getAsync,
+                t =>
+                  toastRef
+                    .show:
+                      MessageItem(
+                        id = "configApiError",
+                        content = "Error saving changes",
+                        severity = Message.Severity.Error
+                      )
+                    .to[IO] >>
+                    LogMessage
+                      .now(ObserveLogLevel.Error, t.getMessage)
+                      .flatMap: logMsg =>
                         rootModelData.async
-                          .zoom(RootModelData.log)
-                          .mod(_ :+ NonEmptyString.unsafeFrom(t.getMessage)) >>
-                        IO.println(t.getMessage) >>
-                        syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
-                  ).some
-            .orEmpty
+                          .zoom(RootModelData.globalLog)
+                          .mod(_.append(logMsg))
+                    >>
+                    Logger[IO].error(t.getMessage) >>
+                    syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
+              ).some
       // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
       .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _, _) => syncStatus.get):
         (_, _, _, singleDispatcher, _, _, _, _, _, _, apiClientOpt) =>

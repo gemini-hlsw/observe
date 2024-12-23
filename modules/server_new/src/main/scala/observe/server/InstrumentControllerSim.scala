@@ -82,7 +82,7 @@ object InstrumentControllerSim {
     stopObserveDelay:   TimeSpan,
     configurationDelay: TimeSpan,
     obsStateRef:        Ref[F, ObserveState]
-  )(using val F: MonadThrow[F], L: Logger[F], T: Temporal[F])
+  )(using val F: Temporal[F], L: Logger[F])
       extends InstrumentControllerSim[F] {
     private val TIC = TimeSpan.unsafeFromMicroseconds(200L)
 
@@ -112,7 +112,7 @@ object InstrumentControllerSim {
         val upd: ObserveState => ObserveState = _.focus(_.remainingTime).modify(_ -| TIC)
         // Use flatMap to ensure we don't stack overflow
         obsStateRef.modify(tupledUpdate(upd)) *>
-          T.sleep(FiniteDuration(TIC.toMicroseconds, MICROSECONDS)) *>
+          F.sleep(FiniteDuration(TIC.toMicroseconds, MICROSECONDS)) *>
           observeTic(timeout.map(_ -| TIC))
       }
     }
@@ -131,11 +131,11 @@ object InstrumentControllerSim {
 
     def applyConfig[C: Show](config: C): F[Unit] =
       log(s"Simulate applying $name configuration ${config.show}") *>
-        T.sleep(FiniteDuration(configurationDelay.toMicroseconds, MICROSECONDS))
+        F.sleep(FiniteDuration(configurationDelay.toMicroseconds, MICROSECONDS))
 
     def stopObserve: F[Unit] =
       log(s"Simulate stopping $name exposure") *>
-        T.sleep(FiniteDuration(stopObserveDelay.toMicroseconds, MICROSECONDS)) *>
+        F.sleep(FiniteDuration(stopObserveDelay.toMicroseconds, MICROSECONDS)) *>
         obsStateRef.update(Focus[ObserveState](_.stopFlag).replace(true))
 
     def abortObserve: F[Unit] =

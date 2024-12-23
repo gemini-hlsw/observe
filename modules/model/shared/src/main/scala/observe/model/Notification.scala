@@ -6,11 +6,13 @@ package observe.model
 import cats.Eq
 import cats.derived.*
 import cats.syntax.all.*
+import io.circe.Decoder
+import io.circe.Encoder
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import observe.model.enums.Resource
 
-enum Notification derives Eq:
+enum Notification derives Eq, Encoder, Decoder:
   // Notification that user tried to run a sequence that used resource already in use
   case ResourceConflict(obsId: Observation.Id)                 extends Notification
   // Notification that user tried to select a sequence for an instrument for which a sequence was already running

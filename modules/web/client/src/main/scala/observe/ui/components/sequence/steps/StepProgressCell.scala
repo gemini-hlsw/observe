@@ -50,6 +50,9 @@ case class StepProgressCell(
   private val isRunning =
     requests.subsystemInFlight(stepId) || runningStepId.contains_(stepId)
 
+  private val isAborted =
+    sequenceState === SequenceState.Aborted
+
   val anyError: Boolean =
     subsystemStatus.exists(_._2 === ActionStatus.Failed)
 
@@ -157,6 +160,12 @@ object StepProgressCell:
         //   paused
         // )
         EmptyVdom
+      else if (props.isAborted)
+        <.div(ObserveStyles.Prime.EmptyProgressBar,
+              ObserveStyles.AbortedProgressBar,
+              ObserveStyles.ObservationStepProgressBar,
+              "Aborted"
+        )
       else if (props.isRunning)
         // props.nsStatus.fold[VdomNode] {
         ObservationProgressBar(

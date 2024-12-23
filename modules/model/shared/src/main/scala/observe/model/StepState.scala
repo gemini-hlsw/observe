@@ -11,17 +11,15 @@ import io.circe.*
 enum StepState derives Eq, Decoder, Encoder.AsObject:
   case Pending             extends StepState
   case Completed           extends StepState
-  case Skipped             extends StepState
   case Aborted             extends StepState
   case Failed(msg: String) extends StepState
   case Running             extends StepState
   case Paused              extends StepState
 
   lazy val canSetBreakpoint: Boolean = this match
-    case StepState.Pending | StepState.Skipped | StepState.Paused | StepState.Running |
-        StepState.Aborted =>
+    case StepState.Pending | StepState.Paused | StepState.Running | StepState.Aborted =>
       true
-    case _ => false
+    case _                                                                            => false
 
   lazy val hasError: Boolean = this match
     case StepState.Failed(_) => true
@@ -36,10 +34,8 @@ enum StepState derives Eq, Decoder, Encoder.AsObject:
     case _                                       => false
 
   lazy val isFinished: Boolean = this match
-    case StepState.Completed | StepState.Skipped => true
-    case _                                       => false
-
-  lazy val wasSkipped: Boolean = this === StepState.Skipped
+    case StepState.Completed => true
+    case _                   => false
 
   lazy val canConfigure: Boolean = this match
     case StepState.Pending | StepState.Paused | StepState.Failed(_) | StepState.Aborted => true

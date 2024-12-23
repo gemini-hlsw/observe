@@ -10,6 +10,8 @@ import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
@@ -26,9 +28,10 @@ import observe.ui.model.*
 import observe.ui.model.ObsSummary
 
 case class ObservationExecutionDisplay(
-  selectedObs:     ObsSummary,
-  rootModelData:   View[RootModelData],
-  loadObservation: Observation.Id => Callback
+  selectedObs:      ObsSummary,
+  rootModelData:    View[RootModelData],
+  loadObservation:  Observation.Id => Callback,
+  linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay.component)
 
 object ObservationExecutionDisplay:
@@ -43,7 +46,7 @@ object ObservationExecutionDisplay:
         props.rootModelData
           .zoom(RootModelData.executionState.index(selectedObsId))
 
-      val visitsViewPot: Pot[View[ExecutionVisits]] =
+      val visitsViewPot: Pot[View[Option[ExecutionVisits]]] =
         props.rootModelData
           .zoom(RootModelData.nighttimeObservation)
           .toOptionView
@@ -53,7 +56,11 @@ object ObservationExecutionDisplay:
 
       val executionStateAndConfig: Option[
         Pot[
-          (Observation.Id, InstrumentExecutionConfig, View[ExecutionVisits], View[ExecutionState])
+          (Observation.Id,
+           InstrumentExecutionConfig,
+           View[Option[ExecutionVisits]],
+           View[ExecutionState]
+          )
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>
@@ -73,7 +80,8 @@ object ObservationExecutionDisplay:
             ObservationRequests.Idle
           ),
           executionStateAndConfig
-            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides)))
+            .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides))),
+          props.linkToExploreObs
         ),
         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
         executionStateAndConfig.map(

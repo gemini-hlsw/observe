@@ -24,6 +24,7 @@ import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step as OdbStep
 import lucuma.core.model.sequence.StepConfig
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.util.TimeSpan
@@ -65,11 +66,8 @@ import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import org.typelevel.log4cats.Logger
 
-//trait SeqTranslate[F[_]] extends ObserveActions {
 trait SeqTranslate[F[_]] {
-  def sequence(sequence: OdbObservation)(using
-    tio: Temporal[F]
-  ): F[(List[Throwable], Option[SequenceGen[F]])]
+  def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])]
 
   def nextAtom(
     sequence: OdbObservation,
@@ -162,6 +160,7 @@ object SeqTranslate {
                 obsCfg.id,
                 step.instrumentConfig,
                 step.stepConfig,
+                step.telescopeConfig,
                 step.observeClass,
                 step.id.some
               )
@@ -194,6 +193,7 @@ object SeqTranslate {
           ),
           instConfig = step.instrumentConfig,
           config = step.stepConfig,
+          telescopeConfig = step.telescopeConfig,
           breakpoint = step.breakpoint
         )
 
@@ -201,22 +201,22 @@ object SeqTranslate {
 
       buildStep(
         DataId(s"${obsCfg.title}-$dataIdx"),
-        calcSystems(obsCfg, step.stepConfig, step.instrumentConfig, stepType, insSpec),
+        calcSystems(obsCfg, step.telescopeConfig, step.instrumentConfig, stepType, insSpec),
         (ov: SystemOverrides) =>
           calcHeaders(obsCfg, step, stepType, instHeader)(instf(ov).keywordsClient),
         stepType
       )
     }
 
-    override def sequence(sequence: OdbObservation)(using
-      tio: Temporal[F]
-    ): F[(List[Throwable], Option[SequenceGen[F]])] = sequence.execution.config match {
-      case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
-        buildSequenceGmosN(sequence, c).pure[F]
-      case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
-        buildSequenceGmosS(sequence, c).pure[F]
-      case _                                                => ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
-    }
+    override def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])] =
+      sequence.execution.config match {
+        case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
+          buildSequenceGmosN(sequence, c).pure[F]
+        case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
+          buildSequenceGmosS(sequence, c).pure[F]
+        case _                                                =>
+          ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
+      }
 
     private def buildNextAtom[S <: StaticConfig, D <: DynamicConfig](
       sequence:   OdbObservation,
@@ -370,7 +370,7 @@ object SeqTranslate {
         stId   <- obsSeq.seq.currentStep.map(_.id)
         curStp <- obsSeq.seqGen.nextAtom.steps.find(_.id === stId)
         obsCtr <- curStp.some.collect {
-                    case SequenceGen.PendingStepGen[F](_, _, _, obsControl, _, _, _, _, _) =>
+                    case SequenceGen.PendingStepGen[F](_, _, _, obsControl, _, _, _, _, _, _) =>
                       obsControl
                   }
       } yield Stream.eval(
@@ -498,13 +498,13 @@ object SeqTranslate {
     }
 
     private def getTcs[S <: StaticConfig, D <: DynamicConfig](
-      subs:          NonEmptySet[TcsController.Subsystem],
-      useGaos:       Boolean,
-      inst:          InstrumentSpecifics[S, D],
-      lsource:       LightSource,
-      obsConfig:     OdbObservation,
-      stepConfig:    StepConfig,
-      dynamicConfig: D
+      subs:            NonEmptySet[TcsController.Subsystem],
+      useGaos:         Boolean,
+      inst:            InstrumentSpecifics[S, D],
+      lsource:         LightSource,
+      obsConfig:       OdbObservation,
+      telescopeConfig: CoreTelescopeConfig,
+      dynamicConfig:   D
     ): SystemOverrides => System[F] = site match {
       case Site.GS =>
         if (useGaos) { (ov: SystemOverrides) =>
@@ -516,7 +516,7 @@ object SeqTranslate {
             systemss.guideDb
           )(
             obsConfig.targetEnvironment,
-            stepConfig,
+            telescopeConfig,
             LightPath(lsource, inst.sfName(dynamicConfig)),
             extractWavelength(dynamicConfig)
           ): System[F]
@@ -524,7 +524,7 @@ object SeqTranslate {
           TcsSouth
             .fromConfig[F](overriddenSystems.tcsSouth(ov), subs, None, inst, systemss.guideDb)(
               obsConfig.targetEnvironment,
-              stepConfig,
+              telescopeConfig,
               LightPath(lsource, inst.sfName(dynamicConfig)),
               extractWavelength(dynamicConfig)
             ): System[F]
@@ -532,14 +532,15 @@ object SeqTranslate {
 
       case Site.GN =>
         if (useGaos) { (ov: SystemOverrides) =>
-          TcsNorth.fromConfig[F](overriddenSystems.tcsNorth(ov),
-                                 subs,
-                                 Altair(overriddenSystems.altair(ov)).some,
-                                 inst,
-                                 systemss.guideDb
+          TcsNorth.fromConfig[F](
+            overriddenSystems.tcsNorth(ov),
+            subs,
+            Altair(overriddenSystems.altair(ov)).some,
+            inst,
+            systemss.guideDb
           )(
             obsConfig.targetEnvironment,
-            stepConfig,
+            telescopeConfig,
             LightPath(lsource, inst.sfName(dynamicConfig)),
             extractWavelength(dynamicConfig)
           ): System[F]
@@ -547,7 +548,7 @@ object SeqTranslate {
           TcsNorth
             .fromConfig[F](overriddenSystems.tcsNorth(ov), subs, none, inst, systemss.guideDb)(
               obsConfig.targetEnvironment,
-              stepConfig,
+              telescopeConfig,
               LightPath(lsource, inst.sfName(dynamicConfig)),
               extractWavelength(dynamicConfig)
             ): System[F]
@@ -555,11 +556,11 @@ object SeqTranslate {
     }
 
     private def calcSystems[S <: StaticConfig, D <: DynamicConfig](
-      obsConfig:     OdbObservation,
-      stepConfig:    StepConfig,
-      dynamicConfig: D,
-      stepType:      StepType,
-      instSpec:      InstrumentSpecifics[S, D]
+      obsConfig:       OdbObservation,
+      telescopeConfig: CoreTelescopeConfig,
+      dynamicConfig:   D,
+      stepType:        StepType,
+      instSpec:        InstrumentSpecifics[S, D]
     ): Map[Resource, SystemOverrides => System[F]] = {
 
       def adaptGcal(b: GcalController[F] => Gcal[F])(ov: SystemOverrides): Gcal[F] = b(
@@ -576,7 +577,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.Sky,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> defaultGcal
@@ -590,7 +591,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.Sky,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> defaultGcal
@@ -604,7 +605,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.GCAL,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> adaptGcal(Gcal.fromConfig(site === Site.GS, gcalCfg))
@@ -618,7 +619,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.GCAL,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> adaptGcal(Gcal.fromConfig(site === Site.GS, gcalCfg))
@@ -639,7 +640,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.AO,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> defaultGcal
@@ -655,7 +656,7 @@ object SeqTranslate {
               instSpec,
               TcsController.LightSource.AO,
               obsConfig,
-              stepConfig,
+              telescopeConfig,
               dynamicConfig
             ),
             Resource.Gcal -> defaultGcal
@@ -705,9 +706,13 @@ object SeqTranslate {
     )(ctx: HeaderExtraData): Header[F] =
       new StandardHeader(
         kwClient,
-        ObsKeywordReader[F, D](obsCfg, stepCfg, site),
+        ObsKeywordReader[F, D](obsCfg, stepCfg, site, systemss),
         systemss.tcsKeywordReader,
-        StateKeywordsReader[F](ctx.conditions, ctx.operator, ctx.observer),
+        StateKeywordsReader[F](systemss.conditionSetReader(ctx.conditions),
+                               ctx.operator,
+                               ctx.observer,
+                               site
+        ),
         tcsSubsystems
       )
 
@@ -977,14 +982,14 @@ object SeqTranslate {
     stepConfig: StepConfig,
     obsClass:   ObserveClass
   ): Either[ObserveFailure, StepType] = stepConfig match {
-    case StepConfig.Bias | StepConfig.Dark   => StepType.DarkOrBias(inst).asRight
-    case c: StepConfig.Gcal                  =>
+    case StepConfig.Bias | StepConfig.Dark => StepType.DarkOrBias(inst).asRight
+    case c: StepConfig.Gcal                =>
       if (obsClass =!= ObserveClass.DayCal && inst.hasOI) StepType.NightFlatOrArc(inst, c).asRight
       else StepType.FlatOrArc(inst, c).asRight
-    case StepConfig.Science(offset, guiding) =>
+    case StepConfig.Science                =>
       // TODO: Here goes the logic to differentiate between a non GAOS, GeMS ot Altair observation.
       StepType.CelestialObject(inst).asRight
-    case StepConfig.SmartGcal(smartGcalType) => Unexpected("Smart GCAL is not supported").asLeft
+    case StepConfig.SmartGcal(_)           => Unexpected("Smart GCAL is not supported").asLeft
   }
 
 }

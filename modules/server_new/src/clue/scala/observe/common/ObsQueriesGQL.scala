@@ -16,35 +16,31 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 object ObsQueriesGQL:
 
   @GraphQL
-  trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB]:
-    val document = """
-      query {
-        observations(WHERE: { status: { eq: { EQ: READY } } }) {
-          matches {
-            id
-            title
-          }
-        }
-      }
-    """
-
-  @GraphQL
   trait ObsQuery extends GraphQLOperation[ObservationDB]:
     val document = """
       query($obsId: ObservationId!) {
         observation(observationId: $obsId) {
           id
           title
-          status
-          activeStatus
+          workflow {
+            state
+          }
           program {
             id
             name
+            goa {
+              proprietaryMonths
+            }
           }
           targetEnvironment {
             firstScienceTarget {
               targetId: id
               targetName: name
+            }
+            guideEnvironment {
+              guideTargets {
+                probe
+              }
             }
           }
           constraintSet {
@@ -140,13 +136,14 @@ object ObsQueriesGQL:
           diffuser
           shutter
         }
-        ... on Science {
-          offset { ...offsetFields }
-          guiding
-        }
         ... on SmartGcal {
           smartGcalType
         }
+      }
+
+      fragment telescopeConfigFields on TelescopeConfig {
+        offset { ...offsetFields }
+        guiding
       }
 
       fragment stepEstimateFields on StepEstimate {
@@ -202,6 +199,9 @@ object ObsQueriesGQL:
           stepConfig {
             ...stepConfigFields
           }
+          telescopeConfig {
+            ...telescopeConfigFields
+          }
           estimate {
             ...stepEstimateFields
           }
@@ -248,6 +248,9 @@ object ObsQueriesGQL:
           }
           stepConfig {
             ...stepConfigFields
+          }
+          telescopeConfig {
+            ...telescopeConfigFields
           }
           estimate {
             ...stepEstimateFields
@@ -363,10 +366,7 @@ object ObsQueriesGQL:
               label
               observation {
                 label
-                program {
-                  label
-                }
-              }
+             }
             }
           }
         }

@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@floating-ui/react": "^0.26.20",
+    "@floating-ui/react": "^0.27.2",
     "@fontsource/lato": "^5.1.0",
     "@fortawesome/fontawesome-pro": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/pro-duotone-svg-icons": "^6.5.2",
+    "@fortawesome/pro-duotone-svg-icons": "^6.6.0",
     "@fortawesome/pro-light-svg-icons": "^6.6.0",
     "@fortawesome/pro-regular-svg-icons": "^6.6.0",
     "@fortawesome/pro-solid-svg-icons": "^6.5.2",
@@ -12,7 +12,7 @@
     "@fortawesome/sharp-solid-svg-icons": "^6.6.0",
     "@react-hook/size": "^2.1.2",
     "@tanstack/react-table": "^8.19.3",
-    "@tanstack/react-virtual": "3.8.3",
+    "@tanstack/react-virtual": "3.11.2",
     "loglevel": "1.9.1",
     "primeicons": "^7.0.0",
     "primereact": "~10.8.2",
@@ -23,9 +23,9 @@
   "devDependencies": {
     "prettier": "^3.3.3",
     "process": "^0.11.10",
-    "sass": "^1.77.8",
+    "sass": "^1.80.6",
     "unplugin-fonts": "^1.1.1",
-    "vite": "5.4.3",
+    "vite": "5.4.10",
     "vite-plugin-mkcert": "^1.17.5"
   },
   "scripts": {

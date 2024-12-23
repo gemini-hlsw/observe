@@ -29,14 +29,12 @@ import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.Systems
-import observe.server.events.TargetedClientEvent
 import observe.server.tcs.GuideConfigDb
 import observe.web.server.OcsBuildInfo
 import observe.web.server.config.*
-import org.http4s.HttpRoutes
 import org.http4s.client.Client
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.jdkhttpclient.JdkHttpClient
 import org.http4s.server.Router
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.Server
@@ -148,8 +146,9 @@ object WebServerLauncher extends IOApp with LogInitialization {
       "/api/observe/events" -> ObserveEventRoutes(
         conf.site,
         conf.environment,
-        conf.observeEngine.odb,
+        conf.observeEngine.odbWs,
         conf.lucumaSSO.ssoUrl,
+        conf.exploreBaseUrl,
         clientsDb,
         oe,
         events,
@@ -225,7 +224,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
     val msg    =
       s"""
       | Start web server for site ${conf.site} on ${conf.environment} environment, version ${OcsBuildInfo.version}
-      | Connected to odb at ${conf.observeEngine.odb}
+      | Connected to odb by HTTP at ${conf.observeEngine.odbHttp} and by WS at ${conf.observeEngine.odbWs}
       |
       | Go to https://${conf.webServer.host}:${conf.webServer.port}
       |"""
@@ -233,8 +232,11 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   // Override the default client config
-  private def mkClient(timeout: FiniteDuration): IO[Client[IO]] =
-    JdkHttpClient.simple[IO].map(c => Client(r => c.run(r).timeout(timeout)))
+  private def mkClient(timeout: FiniteDuration)(using Logger[IO]): Resource[IO, Client[IO]] =
+    EmberClientBuilder
+      .default[IO]
+      .withTimeout(timeout)
+      .build
 
   private def engineIO(
     conf:       ObserveConfiguration,
@@ -253,24 +255,21 @@ object WebServerLauncher extends IOApp with LogInitialization {
   def observe: IO[ExitCode] = {
 
     val observe: Resource[IO, ExitCode] =
-      for {
-        given Logger[IO] <-
-          Resource.eval(setupLogger[IO]) // Initialize log before the engine is setup
+      for // Initialize log before the engine is setup
+        given Logger[IO] <- Resource.eval(setupLogger[IO])
         conf             <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _                <- Resource.eval(printBanner(conf))
-        cli              <- Resource.eval(mkClient(conf.observeEngine.dhsTimeout))
-        out              <- Resource.eval(Topic[IO, TargetedClientEvent])
-        cs               <- Resource.eval(
+        cli              <- mkClient(conf.observeEngine.dhsTimeout)
+        cs               <- Resource.eval:
                               Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
-                            )
         _                <- Resource.eval(publishStats(cs).compile.drain.start)
         engine           <- engineIO(conf, cli)
         _                <- redirectWebServer(conf.webServer, engine.systems.guideDb)
         sso              <- ssoClient(cli, conf.lucumaSSO)
         _                <- webServer(conf, cs, sso, engine)
-      } yield ExitCode.Success
+      yield ExitCode.Success
 
-    observe.use(_ => IO.never)
+    observe.useForever
 
   }
 

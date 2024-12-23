@@ -32,20 +32,10 @@ import org.typelevel.log4cats.Logger
 class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
   override val systems: Systems[F] = sys
 
-  override def sync(seqId: Id): F[Unit] = Applicative[F].unit
-
   override def start(
     id:          Id,
     user:        User,
     observer:    Observer,
-    clientId:    ClientId,
-    runOverride: RunOverride
-  ): F[Unit] = Applicative[F].unit
-
-  override def startFrom(
-    id:          Id,
-    observer:    Observer,
-    stp:         Step.Id,
     clientId:    ClientId,
     runOverride: RunOverride
   ): F[Unit] = Applicative[F].unit
@@ -134,14 +124,6 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
 
   override def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
-
-  override def setSkipMark(
-    seqId:    Id,
-    user:     User,
-    observer: Observer,
-    stepId:   Step.Id,
-    v:        Boolean
-  ): F[Unit] = Applicative[F].unit
 
   override def requestRefresh(clientId: ClientId): F[Unit] = Applicative[F].unit
 
