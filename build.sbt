@@ -72,7 +72,7 @@ lazy val dockerHubLogin =
       "echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login --username nlsoftware --password-stdin"
     ),
     name = Some("Login to Docker Hub")
-)
+  )
 
 lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
@@ -114,8 +114,8 @@ ThisBuild / lucumaCssExts += "svg"
 
 Global / onChangedBuildSource                   := ReloadOnSourceChanges
 ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
-ThisBuild / scalaVersion                        := "3.5.2"
-ThisBuild / crossScalaVersions                  := Seq("3.5.2")
+ThisBuild / scalaVersion                        := "3.6.2"
+ThisBuild / crossScalaVersions                  := Seq("3.6.2")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
   "https://s01.oss.sonatype.org/content/repositories/snapshots/"

@@ -562,7 +562,7 @@ object Engine {
     type EventData = E
   }
 
-  def build[F[_]: MonadThrow: Logger: Concurrent, S, U](
+  def build[F[_]: Concurrent: Logger, S, U](
     stateL:         State[F, S],
     loadNextAtom:   (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
     reloadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]

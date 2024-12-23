@@ -3,9 +3,7 @@
 
 package observe.model
 
-import cats.Eq
 import cats.Order
-import cats.derived.*
 import cats.effect.IO
 import io.circe.Decoder
 import io.circe.Encoder
@@ -15,8 +13,7 @@ import org.typelevel.cats.time.given
 import java.time.Instant
 
 case class LogMessage(level: ObserveLogLevel, timestamp: Instant, msg: String)
-    derives Eq,
-      Encoder.AsObject,
+    derives Encoder.AsObject,
       Decoder
 
 object LogMessage:
