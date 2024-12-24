@@ -47,11 +47,9 @@ case class StepProgressCell(
   //     // Will we always require logging in?
   //     ( /*clientStatus.isLogged ||*/ seqOperations.resourceRunNotIdle(i))
 
-  private val isRunning =
-    requests.subsystemInFlight(stepId) || runningStepId.contains_(stepId)
-
-  private val isAborted =
-    sequenceState === SequenceState.Aborted
+  // We can have a runningStepId but the state as Idle if last step was aborted.
+  private val isRunning: Boolean =
+    requests.subsystemInFlight(stepId) || (runningStepId.contains_(stepId) && !sequenceState.isIdle)
 
   val anyError: Boolean =
     subsystemStatus.exists(_._2 === ActionStatus.Failed)
@@ -161,12 +159,6 @@ object StepProgressCell:
         //   paused
         // )
         EmptyVdom
-      else if (props.isAborted)
-        <.div(ObserveStyles.Prime.EmptyProgressBar,
-              ObserveStyles.AbortedProgressBar,
-              ObserveStyles.ObservationStepProgressBar,
-              "Aborted"
-        )
       else if (props.isRunning)
         // props.nsStatus.fold[VdomNode] {
         ObservationProgressBar(

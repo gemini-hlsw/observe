@@ -345,6 +345,8 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
             .map(_.step)
             .map: step =>
               val stepIdOpt: Option[Step.Id] = step.id.toOption
+              val stepHasBreakpoint: Boolean =
+                stepIdOpt.exists(props.executionState.breakpoints.contains)
 
               TagMod(
                 stepIdOpt
@@ -366,21 +368,17 @@ private sealed trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq]
                           props.executionState.isLocked
                     )
                   .whenDefined,
-                if (step.isSelected) SequenceStyles.RowHasExtra else ObserveStyles.RowIdle,
-                step match
-                  case SequenceRow.Executed.ExecutedStep(_, _) => SequenceStyles.RowHasExtra
-                  case _                                       => TagMod.empty,
-                ObserveStyles.StepRowWithBreakpoint.when_(
-                  stepIdOpt.exists(props.executionState.breakpoints.contains)
-                ),
+                SequenceStyles.RowHasExtra.when_(step.isSelected || step.isFinished),
+                ObserveStyles.RowIdle.unless_(step.isSelected),
+                ObserveStyles.StepRowWithBreakpoint.when_(stepHasBreakpoint),
                 ObserveStyles.StepRowFirstInAtom.when_(step.isFirstInAtom),
                 ObserveStyles.StepRowPossibleFuture.when_(step.stepTime === StepTime.Future),
                 step.stepState match
-                  case s if s.hasError     => ObserveStyles.StepRowError
-                  case StepState.Paused    => ObserveStyles.StepRowWarning
-                  case StepState.Completed => ObserveStyles.StepRowDone
-                  case StepState.Aborted   => ObserveStyles.StepRowError
-                  case _                   => TagMod.empty
+                  case s if s.hasError                      => ObserveStyles.StepRowError
+                  case StepState.Paused                     => ObserveStyles.StepRowWarning
+                  case StepState.Completed                  => ObserveStyles.StepRowDone
+                  case StepState.Aborted if step.isFinished => ObserveStyles.StepRowError
+                  case _                                    => TagMod.empty
               )
             .orEmpty
 
