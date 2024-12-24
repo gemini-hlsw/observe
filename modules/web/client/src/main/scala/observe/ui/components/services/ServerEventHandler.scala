@@ -24,6 +24,7 @@ import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.ToastRef
 import monocle.Lens
 import monocle.Optional
+import observe.cats.given
 import observe.model.ClientConfig
 import observe.model.ExecutionState
 import observe.model.LogMessage
@@ -161,12 +162,19 @@ trait ServerEventHandler:
             // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
             // TODO: Maybe just reset in the ApiImpl when we get the response from the server.
             RootModelData.obsRequests.replace(Map.empty) >>>
-            RootModelData.nighttimeObservation.modify: obs =>
+            RootModelData.nighttimeObservation.modify { obs =>
               // Only set if loaded obsId changed, otherwise config is lost.
               if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else
                 obs
+            } >>>
+            sequenceExecution
+              .collect:
+                case (obsId, execState) if !execState.sequenceState.isRunning =>
+                  RootModelData.obsProgress.at(obsId).replace(none)
+              .toList
+              .combineAll
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
