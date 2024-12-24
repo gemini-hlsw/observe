@@ -885,14 +885,15 @@ object ObserveEngine {
       user:     User,
       graceful: Boolean
     ): F[Unit] = setObserver(seqId, user, observer) *>
-      executeEngine
-        .offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, StopGracefully)))
-        .whenA(graceful) *>
-      executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                      translator.stopObserve(seqId, graceful)
+      systems.odb.stepStop(seqId) *>
+        executeEngine
+          .offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, StopGracefully)))
+          .whenA(graceful) *>
+        executeEngine.offer(
+          Event.actionStop[F, EngineState[F], SeqEvent](seqId,
+                                                        translator.stopObserve(seqId, graceful)
+          )
         )
-      )
 
     override def abortObserve(
       seqId:    Observation.Id,
