@@ -93,8 +93,8 @@ object ObservationProgressBar extends ProgressLabel:
           .orEmpty
       .render: (props, _, remainingShown, _) =>
         props.runningProgress.fold {
-          val label = if (props.isPausedInStep) "Paused" else if (props.sequenceState === SequenceState.Aborted) "Aborted" else "Preparing..."
-          val msg: String =
+          val label: String = if (props.isPausedInStep) "Paused" else "Preparing..."
+          val msg: String   =
             List(s"${props.fileId.value}", label)
               .filterNot(_.isEmpty)
               .mkString(" - ")

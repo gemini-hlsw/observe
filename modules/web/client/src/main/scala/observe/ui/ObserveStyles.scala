@@ -76,7 +76,6 @@ object ObserveStyles:
   val StepRowPossibleFuture: Css = Css("ObserveStyles-stepRowPossibleFuture")
 
   val ObservationStepProgressBar: Css = Css("ObserveStyles-observationProgressBar")
-  val AbortedProgressBar: Css         = Css("ObserveStyles-abortedProgressBar")
   val ControlButtonStrip: Css         = Css("ObserveStyles-controlButtonStrip")
   val PauseButton: Css                = Css("ObserveStyles-pauseButton")
   val CancelPauseButton: Css          = Css("ObserveStyles-cancelPauseButton")
