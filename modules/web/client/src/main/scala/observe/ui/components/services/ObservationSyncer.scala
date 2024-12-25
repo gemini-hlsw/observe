@@ -5,13 +5,11 @@ package observe.ui.components.services
 
 import cats.effect.IO
 import cats.effect.Resource
-import cats.effect.std.Queue
 import cats.syntax.all.*
 import clue.PersistentClientStatus
 import crystal.*
 import crystal.react.*
 import crystal.react.hooks.*
-import crystal.react.syntax.pot.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
@@ -43,23 +41,16 @@ object ObservationSyncer:
         sequenceApi     <- useContext(SequenceApi.ctx)
         odbQueryApi     <- useContext(ODBQueryApi.ctx)
         subscribedObsId <- useRef(none[Observation.Id])
-        signalQueue     <- useEffectResultOnMount(Queue.unbounded[IO, Boolean])
-        _               <- useEffect: // Signal wheter sequence is stopped
-                             signalQueue.toOption
-                               .map(_.offer(!props.nighttimeObservationSequenceState.isRunning))
-                               .orEmpty
-        signal          <-            // Signals when obs stopped or ODB reconnected
-          useMemo(signalQueue.void): _ =>
-            signalQueue.map:
-              fs2.Stream
-                .fromQueueUnterminated(_, 1)
-                .changes
-                .filter(_ === true)
-                .void
-                .merge:
-                  ctx.odbClient.statusStream.changes
-                    .filter(_ === PersistentClientStatus.Connected)
-                    .void
+        stoppedSignal   <- useSignalStream(!props.nighttimeObservationSequenceState.isRunning)
+        signal          <- useMemo(stoppedSignal):
+                             _.map: // Reusable
+                               _.map: // Pot
+                                 _.filter(_ === true) // Only signal when sequence is stopped
+                                   .void
+                                   .merge: // Signal when ODB reconnects
+                                     ctx.odbClient.statusStream.changes
+                                       .filter(_ === PersistentClientStatus.Connected)
+                                       .void
         _               <-
           useEffectStreamResourceWithDeps(
             (props.nighttimeObservation.get.map(_.obsId).toPot, signal.sequencePot).tupled.toOption
