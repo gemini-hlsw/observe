@@ -83,6 +83,7 @@ sealed trait OdbEventCommands[F[_]] {
   def stepEndObserve(obsId:      Observation.Id): F[Boolean]
   def stepEndStep(obsId:         Observation.Id): F[Boolean]
   def stepAbort(obsId:           Observation.Id): F[Boolean]
+  def stepStop(obsId:            Observation.Id): F[Boolean]
   def atomEnd(obsId:             Observation.Id): F[Boolean]
   def sequenceEnd(obsId:         Observation.Id): F[Boolean]
   def obsContinue(obsId:         Observation.Id): F[Boolean]
@@ -159,6 +160,8 @@ object OdbProxy {
     override def stepEndStep(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
+
+    def stepStop(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
@@ -382,6 +385,14 @@ object OdbProxy {
         _      <- L.debug("ODB event stepAbort sent")
       } yield true
 
+    override def stepStop(obsId: Observation.Id): F[Boolean] =
+      for {
+        stepId <- getCurrentStepId(obsId)
+        _      <- L.debug(s"Send ODB event stepStop for obsId: $obsId, step $stepId")
+        _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.Stop)
+        _      <- L.debug("ODB event stepStop sent")
+      } yield true
+
     override def atomEnd(obsId: Observation.Id): F[Boolean] =
       for {
         atomId <- getCurrentAtomId(obsId)
@@ -531,7 +542,8 @@ object OdbProxy {
       obsPause,
       obsStop,
       sequenceEnd,
-      sequenceStart
+      sequenceStart,
+      stepStop
     }
 
     override def stepStartStep(
