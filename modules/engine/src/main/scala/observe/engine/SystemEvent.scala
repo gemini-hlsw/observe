@@ -41,7 +41,7 @@ object SystemEvent {
   case class Executed(id: Observation.Id)                         extends SystemEvent
   case class Executing(id: Observation.Id)                        extends SystemEvent
   case class Finished(id: Observation.Id)                         extends SystemEvent
-  case object Null                                                      extends SystemEvent
+  case object Null                                                extends SystemEvent
 
   // Single action commands
   case class SingleRunCompleted[R <: RetVal](actionCoords: ActionCoords, r: OK[R])
