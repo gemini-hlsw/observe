@@ -60,7 +60,6 @@ sealed trait ObsKeywordsReader[F[_]] {
   def timingWindows: F[List[(Int, TimingWindowKeywords)]]
   def requestedConditions: ConstraintSetReader[F]
   def astrometicField: F[Boolean]
-  def proprietaryMonths: F[NonNegInt]
 }
 
 // A Timing window always has 4 keywords
@@ -199,11 +198,14 @@ object ObsKeywordReader {
 
       override def headerPrivacy: F[Boolean] = false.pure[F]
 
-      private val calcReleaseDate: F[String] = Sync[F].delay(
-        LocalDate
-          .now(ZoneId.of("GMT"))
-          .format(DateTimeFormatter.ISO_LOCAL_DATE)
-      )
+      private val proprietaryMonths: NonNegInt = obsCfg.program.goa.proprietaryMonths
+
+      private val calcReleaseDate: F[String] = Sync[F]
+        .delay(
+          LocalDate
+            .now(ZoneId.of("GMT"))
+        )
+        .map(d => d.plusMonths(proprietaryMonths.value).format(DateTimeFormatter.ISO_LOCAL_DATE))
 
       override def releaseDate: F[String] = calcReleaseDate
 
@@ -225,8 +227,6 @@ object ObsKeywordReader {
       override def sciBand: F[Int] = 1.pure[F]
 
       override def astrometicField: F[Boolean] = false.pure[F]
-
-      override def proprietaryMonths: F[NonNegInt] = obsCfg.program.goa.proprietaryMonths.pure[F]
 
     }
 }
