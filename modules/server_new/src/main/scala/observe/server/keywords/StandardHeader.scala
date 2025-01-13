@@ -145,11 +145,7 @@ class StandardHeader[F[_]: Sync: Logger](
       buildString(obsReader.pwfs2GuideS, KeywordName.PWFS2_ST),
       buildString(obsReader.oiwfsGuideS, KeywordName.OIWFS_ST),
       buildString(obsReader.aowfsGuideS, KeywordName.AOWFS_ST),
-      buildInt32(obsReader.sciBand, KeywordName.SCIBAND),
-      buildString(
-        (date, obsReader.proprietaryMonths).mapN((d, m) => d.plusMonths(m.value).toString()),
-        KeywordName.RELEASE
-      )
+      buildInt32(obsReader.sciBand, KeywordName.SCIBAND)
     )
 
   def date: F[LocalDate] =
