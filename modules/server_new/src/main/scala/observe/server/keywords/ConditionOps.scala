@@ -67,7 +67,7 @@ object ConditionOps {
     def findAcc(acc: (A, V), rem: List[(A, V)]): V = rem match {
       case Nil            => acc._2
       case ::(head, next) =>
-        if (key <= head._1)
+        if (key <= acc._1)
           acc._2
         else
           findAcc(head, next)
@@ -101,8 +101,8 @@ object ConditionOps {
     def toPercentile(wv: Wavelength, elevation: Angle): Int = {
       // Pickering approximation (thanks Andy Stephens)
       val airmass         = 1.0 / sin(
-        (90.0 - elevation.toDoubleDegrees + 244.0 / (165.0 + 47.0 * pow(
-          90.0 - elevation.toDoubleDegrees,
+        (elevation.toDoubleDegrees + 244.0 / (165.0 + 47.0 * pow(
+          elevation.toDoubleDegrees,
           1.1
         ))) * Pi / 180
       )
