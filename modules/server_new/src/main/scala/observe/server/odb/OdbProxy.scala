@@ -11,6 +11,7 @@ import cats.syntax.all.*
 import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
+import clue.syntax.*
 import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.AtomStage
@@ -42,7 +43,6 @@ import observe.model.odb.ObsRecordedIds
 import observe.model.odb.RecordedAtomId
 import observe.model.odb.RecordedStepId
 import observe.server.ObserveFailure
-import observe.server.given
 import org.typelevel.log4cats.Logger
 
 sealed trait OdbEventCommands[F[_]] {
@@ -105,15 +105,12 @@ object OdbProxy {
       def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
         ObsQuery[F]
           .query(oid)
-          .flatMap(
+          .raiseGraphQLErrors
+          .flatMap:
             _.observation.fold(
-              Sync[F].raiseError[ObsQuery.Data.Observation](
+              Sync[F].raiseError[ObsQuery.Data.Observation]:
                 ObserveFailure.Unexpected(s"OdbProxy: Unable to read observation $oid")
-              )
-            )(
-              _.pure[F]
-            )
-          )
+            )(_.pure[F])
 
       export evCmds.*
     }
@@ -446,6 +443,7 @@ object OdbProxy {
     ): F[VisitId] =
       RecordGmosNorthVisitMutation[F]
         .execute(obsId, staticCfg.toInput)
+        .raiseGraphQLErrors
         .map(_.recordGmosNorthVisit.visit.id)
 
     private def recordGmosSouthVisit(
@@ -454,6 +452,7 @@ object OdbProxy {
     ): F[VisitId] =
       RecordGmosSouthVisitMutation[F]
         .execute(obsId, staticCfg.toInput)
+        .raiseGraphQLErrors
         .map(_.recordGmosSouthVisit.visit.id)
 
     private def recordAtom(
@@ -466,6 +465,7 @@ object OdbProxy {
       RecordAtomMutation[F]
         .execute:
           RecordAtomInput(visitId, instrument, sequenceType, stepCount.assign, generatedId.orIgnore)
+        .raiseGraphQLErrors
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
@@ -502,12 +502,14 @@ object OdbProxy {
     private def recordGmosNorthStep(input: RecordGmosNorthStepInput): F[RecordedStepId] =
       RecordGmosNorthStepMutation[F]
         .execute(input)
+        .raiseGraphQLErrors
         .map(_.recordGmosNorthStep.stepRecord.id)
         .map(RecordedStepId(_))
 
     private def recordGmosSouthStep(input: RecordGmosSouthStepInput): F[RecordedStepId] =
       RecordGmosSouthStepMutation[F]
         .execute(input)
+        .raiseGraphQLErrors
         .map(_.recordGmosSouthStep.stepRecord.id)
         .map(RecordedStepId(_))
 
@@ -520,6 +522,7 @@ object OdbProxy {
         .flatMap: fileName =>
           RecordDatasetMutation[F]
             .execute(stepId.value, fileName)
+            .raiseGraphQLErrors
             .map(_.recordDataset.dataset)
 
     override def getCurrentRecordedIds: F[ObsRecordedIds] = idTracker.get

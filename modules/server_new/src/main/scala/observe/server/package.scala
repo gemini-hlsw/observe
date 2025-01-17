@@ -9,7 +9,6 @@ import cats.MonadThrow
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
-import clue.ErrorPolicy
 import fs2.Stream
 import lucuma.core.enums.Instrument
 import lucuma.core.util.TimeSpan
@@ -196,5 +195,3 @@ type ExecEngineType[F[_]] = Engine[F, EngineState[F], SeqEvent]
 
 def overrideLogMessage[F[_]: Logger](systemName: String, op: String): F[Unit] =
   Logger[F].info(s"System $systemName overridden. Operation $op skipped.")
-
-given DefaultErrorPolicy: ErrorPolicy.RaiseAlways.type = ErrorPolicy.RaiseAlways
