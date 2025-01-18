@@ -6,7 +6,7 @@ package observe.ui.model
 import cats.effect.IO
 import cats.effect.kernel.Async
 import cats.syntax.all.*
-import clue.js.WebSocketJSClient
+import clue.js.WebSocketJsClient
 import clue.websocket.CloseParams
 import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.Json
@@ -37,7 +37,7 @@ case class AppContext[F[_]](
 )(using
   val F:         Async[F],
   val logger:    Logger[F],
-  val odbClient: WebSocketJSClient[F, ObservationDB]
+  val odbClient: WebSocketJsClient[F, ObservationDB]
 ):
   def initODBClient(payload: F[Map[String, Json]]): F[Unit] =
     odbClient.connect(payload)

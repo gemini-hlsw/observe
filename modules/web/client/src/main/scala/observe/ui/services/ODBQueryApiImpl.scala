@@ -14,7 +14,6 @@ import lucuma.schemas.ObservationDB
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.odb.SequenceQueriesGQL
 import observe.queries.VisitQueriesGQL
-import observe.ui.DefaultErrorPolicy
 import observe.ui.model.EditableQaFields
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
@@ -36,6 +35,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
       VisitQueriesGQL
         .ObservationVisits[IO]
         .query(loadedObs.get.obsId, lastVisitId(loadedObs.get).orIgnore)
+        .raiseGraphQLErrors
         .map(_.observation.flatMap(_.execution))
         .attempt
         .flatMap: visits =>
@@ -48,6 +48,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
       SequenceQueriesGQL
         .SequenceQuery[IO]
         .query(loadedObs.get.obsId)
+        .raiseGraphQLErrors
         .adaptError:
           case ResponseException(errors, _) =>
             Exception(errors.map(_.message).toList.mkString("\n"))

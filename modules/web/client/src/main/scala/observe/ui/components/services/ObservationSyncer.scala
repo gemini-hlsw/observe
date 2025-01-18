@@ -19,7 +19,6 @@ import lucuma.ui.reusability.given
 import lucuma.ui.syntax.effect.*
 import observe.model.SequenceState
 import observe.queries.ObsQueriesGQL
-import observe.ui.DefaultErrorPolicy
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
 import observe.ui.services.ODBQueryApi
@@ -72,6 +71,8 @@ object ObservationSyncer:
                           // Eventually, there will be another subscription notifying of sequence/visits changes
                           ObsQueriesGQL.SingleObservationEditSubscription
                             .subscribe[IO](obsId.toObservationEditInput)
+                            .logGraphQLErrors: _ =>
+                              "Error received in ObsQueriesGQL.SingleObservationEditSubscription"
                             .map(_.merge(signal))
                   .orEmpty
               .getOrElse:

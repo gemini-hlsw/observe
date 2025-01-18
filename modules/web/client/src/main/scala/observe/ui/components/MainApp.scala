@@ -9,8 +9,8 @@ import cats.effect.std.Dispatcher
 import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import clue.PersistentClientStatus
-import clue.js.WebSocketJSBackend
-import clue.js.WebSocketJSClient
+import clue.js.WebSocketJsBackend
+import clue.js.WebSocketJsClient
 import clue.websocket.ReconnectionStrategy
 import crystal.Pot
 import crystal.react.*
@@ -44,7 +44,6 @@ import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
-import observe.ui.DefaultErrorPolicy
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.components.services.ServerEventHandler
@@ -206,10 +205,10 @@ object MainApp extends ServerEventHandler:
             val ctxResource: Resource[IO, AppContext[IO]] =
               (for
                 dispatcher                                 <- Dispatcher.parallel[IO]
-                given WebSocketJSBackend[IO]                = WebSocketJSBackend[IO](dispatcher)
-                given WebSocketJSClient[IO, ObservationDB] <-
+                given WebSocketJsBackend[IO]                = WebSocketJsBackend[IO](dispatcher)
+                given WebSocketJsClient[IO, ObservationDB] <-
                   Resource.eval:
-                    WebSocketJSClient.of[IO, ObservationDB](
+                    WebSocketJsClient.of[IO, ObservationDB](
                       clientConfig.odbUri.toString,
                       "ODB",
                       reconnectionStrategy
@@ -314,6 +313,7 @@ object MainApp extends ServerEventHandler:
                 ObsQueriesGQL
                   .ActiveObservationIdsQuery[IO]
                   .query()
+                  .raiseGraphQLErrors
                   .flatMap: data =>
                     readyObservations.set:
                       data.observations.matches
