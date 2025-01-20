@@ -17,6 +17,7 @@ import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
 import lucuma.core.model.GuideConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
+import lucuma.schemas.ObservationDB.Enums.GuideProbe
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.model.enums.NodAndShuffleStage
@@ -35,7 +36,7 @@ class TcsNorth[F[_]: Sync: Logger] private (
   subsystems:    NonEmptySet[Subsystem],
   gaos:          Option[Altair[F]],
   guideDb:       GuideConfigDb[F]
-)(config: TcsNorth.TcsSeqConfig[F])
+)(config: TcsNorth.TcsSeqConfig)
     extends Tcs[F] {
   import Tcs.*
 
@@ -179,7 +180,7 @@ object TcsNorth {
 
   import Tcs.*
 
-  final case class TcsSeqConfig[F[_]](
+  final case class TcsSeqConfig(
     guideWithP1: Option[StepGuideState],
     guideWithP2: Option[StepGuideState],
     guideWithOI: Option[StepGuideState],
@@ -189,6 +190,46 @@ object TcsNorth {
     lightPath:   LightPath,
     instrument:  InstrumentGuide
   )
+
+  private[tcs] def config(
+    instrument:          InstrumentGuide,
+    targets:             TargetEnvironment,
+    telescopeConfig:     CoreTelescopeConfig,
+    lightPath:           LightPath,
+    observingWavelength: Option[Wavelength]
+  ): TcsSeqConfig = {
+    val p: Offset.P = telescopeConfig.offset.p
+    val q: Offset.Q = telescopeConfig.offset.q
+
+    val guiding: StepGuideState = telescopeConfig.guiding
+
+    val gwp1   = targets.guideEnvironment.guideTargets
+      .exists(_.probe === GuideProbe.Pwfs1)
+      .option(telescopeConfig.guiding)
+    val gwp2   = targets.guideEnvironment.guideTargets
+      .exists(_.probe === GuideProbe.Pwfs2)
+      .option(telescopeConfig.guiding)
+    val gwoi   = targets.guideEnvironment.guideTargets
+      .exists(_.probe === GuideProbe.GmosOiwfs)
+      .option(telescopeConfig.guiding)
+    val gwao   = none.map(_ => guiding)
+    val offset =
+      InstrumentOffset(
+        OffsetP(Angle.signedDecimalArcseconds.get(p.toAngle).toDouble.withUnit[ArcSecond]),
+        OffsetQ(Angle.signedDecimalArcseconds.get(q.toAngle).toDouble.withUnit[ArcSecond])
+      ).some
+
+    TcsSeqConfig(
+      gwp1,
+      gwp2,
+      gwoi,
+      gwao,
+      offset,
+      observingWavelength,
+      lightPath,
+      instrument
+    )
+  }
 
   def fromConfig[F[_]: Sync: Logger](
     controller:          TcsNorthController[F],
@@ -201,35 +242,8 @@ object TcsNorth {
     telescopeConfig:     CoreTelescopeConfig,
     lightPath:           LightPath,
     observingWavelength: Option[Wavelength]
-  ): TcsNorth[F] = {
-    val p: Offset.P = telescopeConfig.offset.p
-    val q: Offset.Q = telescopeConfig.offset.q
-
-    val guiding: StepGuideState = telescopeConfig.guiding
-
-    val gwp1   = none.map(_ => guiding)
-    val gwp2   = none.map(_ => guiding)
-    val gwoi   = none.map(_ => guiding)
-    val gwao   = none.map(_ => guiding)
-    val offset =
-      InstrumentOffset(
-        OffsetP(Angle.signedDecimalArcseconds.get(p.toAngle).toDouble.withUnit[ArcSecond]),
-        OffsetQ(Angle.signedDecimalArcseconds.get(q.toAngle).toDouble.withUnit[ArcSecond])
-      ).some
-
-    val tcsSeqCfg = TcsSeqConfig[F](
-      gwp1,
-      gwp2,
-      gwoi,
-      gwao,
-      offset,
-      observingWavelength,
-      lightPath,
-      instrument
-    )
-
-    new TcsNorth(controller, subsystems, gaos, guideConfigDb)(tcsSeqCfg)
-
-  }
+  ): TcsNorth[F] = new TcsNorth(controller, subsystems, gaos, guideConfigDb)(
+    config(instrument, targets, telescopeConfig, lightPath, observingWavelength)
+  )
 
 }
