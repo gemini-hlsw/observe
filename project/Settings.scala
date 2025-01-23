@@ -41,7 +41,7 @@ object Settings {
 
     // test libraries
     val jUnitInterface         = "0.13.2"
-    val munitVersion           = "1.0.4"
+    val munitVersion           = "1.1.0"
     val munitDisciplineVersion = "2.0.0"
     val munitCatsEffectVersion = "2.0.0"
 
@@ -51,11 +51,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.113.0"
-    val lucumaUI        = "0.128.3"
-    val lucumaSchemas   = "0.114.1"
+    val lucumaCore      = "0.114.0"
+    val lucumaUI        = "0.128.5"
+    val lucumaSchemas   = "0.114.2"
     val lucumaSSO       = "0.8.1"
-    val lucumaODBSchema = "0.18.1"
+    val lucumaODBSchema = "0.18.2"
 
     // Clue
     val clue = "0.43.0"
@@ -63,7 +63,7 @@ object Settings {
     // ScalaJS libraries
     val crystal      = "0.47.3"
     val javaTimeJS   = "2.6.0"
-    val lucumaReact  = "0.78.1"
+    val lucumaReact  = "0.78.2"
     val scalaDom     = "2.3.0"
     val scalajsReact = "3.0.0-beta10"
   }
