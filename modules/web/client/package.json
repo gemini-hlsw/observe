@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@floating-ui/react": "^0.27.2",
+    "@floating-ui/react": "^0.27.3",
     "@fontsource/lato": "^5.1.0",
     "@fortawesome/fontawesome-pro": "^6.6.0",
     "@fortawesome/fontawesome-svg-core": "^6.6.0",
