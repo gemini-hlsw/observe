@@ -916,9 +916,10 @@ class ObserveEngineSuite extends TestCommon {
                            EngineState.instrumentLoaded(Instrument.GmosNorth)
                          )
                          .apply(EngineState.default[IO])
-      s1             = EngineState
-                         .sequenceStateIndex[IO](seqObsId1)
-                         .modify(x => Sequence.State.Final(x.toSequence, Running(false, false, true)))(s0)
+      s1             =
+        EngineState
+          .sequenceStateIndex[IO](seqObsId1)
+          .modify(x => Sequence.State.Final(x.toSequence, Running(false, false, true, false)))(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
       r             <-
         observeEngine

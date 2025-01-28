@@ -190,13 +190,13 @@ class PackageSuite extends munit.CatsEffectSuite {
       )
     )
 
-    // take(3): Start, Executing, Paused
+    // take(4): Start, ModifyState, Executing, Paused
     for {
       eng <- executionEngine
       _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
       v   <- eng
                .process(PartialFunction.empty)(s0)
-               .take(3)
+               .take(4)
                .compile
                .last
     } yield v.map(_._2)
