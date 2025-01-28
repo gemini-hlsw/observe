@@ -56,9 +56,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
             )(
               seq.rollback
             )
-          ) *>
-            send(modifyState(atomReload(this, id)))
-          // send(Event.executing(id))
+          ) *> send(modifyState(atomReload(this, id)))
         }.whenA(seq.status.isIdle || seq.status.isError)
       case None      => unit
     }
