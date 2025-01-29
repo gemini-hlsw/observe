@@ -103,7 +103,8 @@ trait ObserveModelArbitraries {
       u <- arbitrary[Boolean]
       i <- arbitrary[Boolean]
       a <- arbitrary[Boolean]
-    } yield SequenceState.Running(u, i, a)
+      s <- arbitrary[Boolean]
+    } yield SequenceState.Running(u, i, a, s)
   }
 
   given Arbitrary[SequenceState] = Arbitrary[SequenceState] {

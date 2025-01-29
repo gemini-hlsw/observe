@@ -338,7 +338,11 @@ class StepSuite extends CatsEffectSuite {
                ),
                done = Nil
              ),
-             SequenceState.Running(userStop = true, internalStop = false, waitingNextAtom = false),
+             SequenceState.Running(userStop = true,
+                                   internalStop = false,
+                                   waitingNextAtom = false,
+                                   isStarting = false
+             ),
              Map.empty
            )
           )
@@ -706,7 +710,8 @@ class StepSuite extends CatsEffectSuite {
     val qss = runToCompletionAllIO(qs0)
 
     qss.map { x =>
-      val a = x.drop(1).headOption.flatMap(_.sequences.get(seqId)) match {
+      val a1 = x.drop(2)
+      val a  = a1.headOption.flatMap(y => y.sequences.get(seqId)) match {
         case Some(Sequence.State.Zipper(zipper, status, _)) =>
           (zipper.focus.focus.execution.headOption match {
             case Some(
@@ -717,7 +722,7 @@ class StepSuite extends CatsEffectSuite {
           }) && status.isRunning
         case _                                              => false
       }
-      val b = x.lastOption.flatMap(_.sequences.get(seqId)) match {
+      val b  = x.lastOption.flatMap(_.sequences.get(seqId)) match {
         case Some(Sequence.State.Final(seq, status)) =>
           seq.steps.headOption
             .flatMap(_.executions.headOption.map(_.head))

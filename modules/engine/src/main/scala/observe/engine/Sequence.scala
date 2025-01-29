@@ -235,18 +235,18 @@ object Sequence {
     def userStopRequested[F[_]](st: State[F]): Boolean = st.status.userStopRequested
 
     def anyStopRequested[F[_]](st: State[F]): Boolean = st.status match {
-      case SequenceState.Running(u, i, _) => u || i
-      case _                              => false
+      case SequenceState.Running(u, i, _, _) => u || i
+      case _                                 => false
     }
 
     def userStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
-      case r @ SequenceState.Running(_, _, _) => r.copy(userStop = v)
-      case r                                  => r
+      case r @ SequenceState.Running(_, _, _, _) => r.copy(userStop = v)
+      case r                                     => r
     }
 
     def internalStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
-      case r @ SequenceState.Running(_, _, _) => r.copy(internalStop = v)
-      case r                                  => r
+      case r @ SequenceState.Running(_, _, _, _) => r.copy(internalStop = v)
+      case r                                     => r
     }
 
     /**
