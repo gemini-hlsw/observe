@@ -491,10 +491,8 @@ object SeqTranslate {
       NonEmptySet.of(AGUnit, (if (inst.hasOI) List(OIWFS) else List.empty)*)
 
     private def extractWavelength(s: DynamicConfig): Option[Wavelength] = s match {
-      case DynamicConfig.GmosNorth(_, _, _, _, gratingConfig, filter, _) =>
-        gratingConfig.map(_.wavelength).orElse(filter.map(_.wavelength))
-      case DynamicConfig.GmosSouth(_, _, _, _, gratingConfig, filter, _) =>
-        gratingConfig.map(_.wavelength).orElse(filter.map(_.wavelength))
+      case a:DynamicConfig.GmosNorth => a.centralWavelength
+      case b:DynamicConfig.GmosSouth => b.centralWavelength
     }
 
     private def getTcs[S <: StaticConfig, D <: DynamicConfig](
