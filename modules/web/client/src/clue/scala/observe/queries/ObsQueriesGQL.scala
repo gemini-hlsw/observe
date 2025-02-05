@@ -17,7 +17,7 @@ object ObsQueriesGQL {
     // Revise this when the API supports it OR we start getting obersvations from the scheduler.
     val document = s"""
       query {
-        observations(WHERE: {program: {proposalStatus: {EQ: ACCEPTED}}}) {
+        observations() {
           matches $ObservationSummarySubquery
         }
       }
