@@ -8,27 +8,18 @@ import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
 import observe.ui.model.ObsSummary
 
+// gql: import lucuma.schemas.decoders.given
+
 object ObsQueriesGQL {
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
-    // TODO The ODB API doesn't provide a way to filter ready observations,
-    // so we filter by accepted proposals for now.
-    // Revise this when the API supports it OR we start getting obersvations from the scheduler.
     val document = s"""
-      query {
-        observations(
-          WHERE: {
-            program: {
-              OR: [
-                { proposalStatus: { EQ: ACCEPTED } }
-                { type: { IN: [ENGINEERING, CALIBRATION] } }
-              ] 
-            }
-          }
-        ) {
-          matches $ObservationSummarySubquery
-        }
+      query($$instruments: [Instrument!]!, $$semester: Semester!) {
+        observationsByWorkflowState(
+          states: [READY, ONGOING],
+          WHERE: { program: { reference: { instrument: { IN: $$instruments }, semester: { EQ: $$semester } } } }      
+        ) $ObservationSummarySubquery
       }
     """
 

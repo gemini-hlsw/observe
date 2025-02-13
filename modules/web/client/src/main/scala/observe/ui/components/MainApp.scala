@@ -13,6 +13,7 @@ import clue.js.WebSocketJsBackend
 import clue.js.WebSocketJsClient
 import clue.websocket.ReconnectionStrategy
 import crystal.Pot
+import crystal.ViewF
 import crystal.react.*
 import crystal.react.given
 import crystal.react.hooks.*
@@ -24,6 +25,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import log4cats.loglevel.LogLevelLogger
+import lucuma.core.model.Semester
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.react.common.*
@@ -42,12 +44,14 @@ import observe.model.*
 import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
+import observe.model.extensions.*
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
 import observe.ui.ObserveStyles
 import observe.ui.components.services.ObservationSyncer
 import observe.ui.components.services.ServerEventHandler
 import observe.ui.model.AppContext
+import observe.ui.model.ObsSummary
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
@@ -70,9 +74,9 @@ import org.typelevel.log4cats.Logger
 import retry.*
 import typings.loglevel.mod.LogLevelDesc
 
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import scala.scalajs.LinkingInfo
 
 object MainApp extends ServerEventHandler:
   private val ApiBasePath: Uri.Path = path"/api/observe/"
@@ -136,7 +140,7 @@ object MainApp extends ServerEventHandler:
       .create
 
   // Log in from cookie and switch to staff role
-  private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[Option[UserVault]] =
+  private def enforceStaffRole(ssoClient: SSOClient[IO]): IO[UserVault] =
     ssoClient.whoami
       .flatMap: userVault =>
         userVault.map(_.user) match
@@ -145,10 +149,9 @@ object MainApp extends ServerEventHandler:
               .collectFirst { case StandardRole.Staff(roleId) => roleId }
               .fold(IO.none)(ssoClient.switchRole)
               .map:
-                _.orElse: // In dev mode, attempt switch to staff role, but allow anyway if it fails
-                  if LinkingInfo.developmentMode then userVault
-                  else throw new Exception("User is not staff")
-          case _                                     => IO.none
+                _.getOrElse(throw new Exception("User is not staff"))
+          case _                                     =>
+            IO.raiseError(new Exception("Unrecognized user"))
 
   // Turn a Stream[WSFrame] into Stream[ClientEvent]
   val parseClientEvents: Pipe[IO, WSFrame, Either[Throwable, ClientEvent]] =
@@ -229,7 +232,7 @@ object MainApp extends ServerEventHandler:
         (_, _, _, _, _, _, rootModelData, _, _) =>
           ctx => // Once AppContext is ready, proceed to attempt login (5)
             enforceStaffRole(ctx.ssoClient).attempt.flatMap: userVault =>
-              rootModelData.async.mod(_.withLoginResult(userVault))
+              rootModelData.async.mod(_.withLoginResult(userVault.map(_.some)))
       .useShadowRef: (_, _, _, _, _, _, rootModelData, _, _) =>
         rootModelData.get.userVault.toOption.flatten.map(_.authorizationHeader)
       .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, _, rootModelData, _, ctxPot, _) =>
@@ -305,24 +308,31 @@ object MainApp extends ServerEventHandler:
 
           Option
             .unless(subscribed.value) {
-              val readyObservations = rootModelData
-                .zoom(RootModelData.readyObservations)
-                .async
+              val readyObservations: ViewF[IO, Pot[List[ObsSummary]]] =
+                rootModelData
+                  .zoom(RootModelData.readyObservations)
+                  .async
 
               Resource.pure(fs2.Stream.eval[IO, Unit](subscribed.setAsync(true))) >>
-                ObsQueriesGQL
-                  .ActiveObservationIdsQuery[IO]
-                  .query()
-                  .raiseGraphQLErrors
-                  .flatMap: data =>
-                    readyObservations.set:
-                      data.observations.matches
-                        .filter(_.instrument.site.contains_(clientConfig.site))
-                        .ready
-                  .recoverWith(t => readyObservations.set(Pot.error(t)))
-                  .void
-                  .reRunOnResourceSignals:
-                    ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
+                Resource
+                  .eval(IO.realTime)
+                  .flatMap: now =>
+                    val currentSemester: Semester =
+                      Semester
+                        .fromSiteAndInstant(clientConfig.site, Instant.ofEpochMilli(now.toMillis))
+                        .get
+
+                    ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
+                      .ActiveObservationIdsQuery[IO]
+                      .query(clientConfig.site.instruments, currentSemester)
+                      .raiseGraphQLErrors
+                      .flatMap: data =>
+                        readyObservations.set:
+                          data.observationsByWorkflowState.ready
+                      .recoverWith(t => readyObservations.set(Pot.error(t)))
+                      .void
+                      .reRunOnResourceSignals:
+                        ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
             }
             .orEmpty
       .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
