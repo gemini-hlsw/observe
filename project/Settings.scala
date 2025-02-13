@@ -61,7 +61,7 @@ object Settings {
     val clue = "0.43.0"
 
     // ScalaJS libraries
-    val crystal      = "0.47.3"
+    val crystal      = "0.47.5"
     val javaTimeJS   = "2.6.0"
     val lucumaReact  = "0.78.2"
     val scalaDom     = "2.3.0"
