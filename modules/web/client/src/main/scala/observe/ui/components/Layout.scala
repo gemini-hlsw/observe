@@ -13,7 +13,7 @@ import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.react.common.ReactFnProps
+import lucuma.react.common.*
 import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs
@@ -29,18 +29,15 @@ import observe.ui.model.enums.AppTab
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
-) extends ReactFnProps[Layout](Layout.component)
+) extends ReactFnProps(Layout)
 
-object Layout:
-  private type Props = Layout
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useContext(AppContext.ctx)
-      .useStreamOnMountBy((_, ctx) => ctx.odbClient.statusStream)
-      .useTheme()
-      .render: (props, ctx, odbStatus, theme) =>
+object Layout
+    extends ReactFnComponent[Layout](props =>
+      for
+        ctx       <- useContext(AppContext.ctx)
+        odbStatus <- useStreamOnMount(ctx.odbClient.statusStream)
+        theme     <- useTheme()
+      yield
         val appTab: AppTab           = AppTab.from(props.resolution.page)
         val appTabView: View[AppTab] =
           View(
@@ -81,3 +78,4 @@ object Layout:
           )
         else
           SolarProgress()
+    )

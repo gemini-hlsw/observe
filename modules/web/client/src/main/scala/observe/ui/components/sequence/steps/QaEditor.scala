@@ -30,18 +30,15 @@ case class QaEditor(
   dataset:    Dataset,
   renderIcon: VdomNode,
   onChange:   Dataset.Id => EditableQaFields => Callback
-) extends ReactFnProps(QaEditor.component):
+) extends ReactFnProps(QaEditor):
   val editableQaFields: EditableQaFields = EditableQaFields.fromDataset.get(dataset)
 
-object QaEditor:
-  private type Props = QaEditor
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useStateViewBy(_.editableQaFields)
-      .useOverlayPanelRef
-      .render: (props, qaFields, panelRef) =>
+object QaEditor
+    extends ReactFnComponent[QaEditor](props =>
+      for
+        qaFields <- useStateView(props.editableQaFields)
+        panelRef <- useOverlayPanelRef
+      yield
         val submit: Callback = props.onChange(props.dataset.id)(qaFields.get)
         val reset: Callback  = qaFields.set(props.editableQaFields)
 
@@ -92,3 +89,4 @@ object QaEditor:
             )
           ).withMods(ObserveStyles.QaEditorOverlay).withRef(panelRef.ref)
         )
+    )

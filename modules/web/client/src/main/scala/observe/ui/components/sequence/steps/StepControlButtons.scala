@@ -36,7 +36,7 @@ case class StepControlButtons(
   isReadingOut:   Boolean,
   isMultiLevel:   Boolean,
   requests:       ObservationRequests
-) extends ReactFnProps(StepControlButtons.component):
+) extends ReactFnProps(StepControlButtons):
   val operations: List[Operations] =
     instrument.operations(OperationLevel.Observation, isPausedInStep, isMultiLevel)
 
@@ -44,112 +44,111 @@ case class StepControlButtons(
 
   val requestInFlight: Boolean = requests.stepRequestInFlight
 
-object StepControlButtons:
-  private type Props = StepControlButtons
+object StepControlButtons
+    extends ReactFnComponent[StepControlButtons](props =>
+      for
+        ctx         <- useContext(AppContext.ctx)
+        sequenceApi <- useContext(SequenceApi.ctx)
+      yield
+        import ctx.given
 
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useContext(AppContext.ctx)
-    .useContext(SequenceApi.ctx)
-    .render: (props, ctx, sequenceApi) =>
-      import ctx.given
+        // val pauseGracefullyIcon: VdomNode =
+        //   props.nsPendingObserveCmd match
+        //     case Some(NodAndShuffleStep.PendingObserveCmd.PauseGracefully) => requestedIcon(Icons.Pause)
+        //     case _                                                         => Icons.Pause
 
-      // val pauseGracefullyIcon: VdomNode =
-      //   props.nsPendingObserveCmd match
-      //     case Some(NodAndShuffleStep.PendingObserveCmd.PauseGracefully) => requestedIcon(Icons.Pause)
-      //     case _                                                         => Icons.Pause
+        // val stopGracefullyIcon: VdomNode =
+        //   props.nsPendingObserveCmd match
+        //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
+        //     case _                                                        => Icons.Stop
 
-      // val stopGracefullyIcon: VdomNode =
-      //   props.nsPendingObserveCmd match
-      //     case Some(NodAndShuffleStep.PendingObserveCmd.StopGracefully) => requestedIcon(Icons.Stop)
-      //     case _                                                        => Icons.Stop
-
-      ButtonGroup(ObserveStyles.ControlButtonStrip)(
-        // ObserveStyles.notInMobile,
-        TagMod.when(props.isRunning):
-          props.operations
-            .map[VdomNode]:
-              case ResumeObservation =>
-                Button(
-                  clazz = ObserveStyles.PlayButton,
-                  icon = Icons.Play.withFixedWidth(),
-                  tooltip = "Resume the current exposure",
-                  tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || !props.isPausedInStep || props.isReadingOut,
-                  onClickE = _.stopPropagationCB >> sequenceApi.resumeObs(props.obsId).runAsync
-                )
-              case PauseObservation  =>
-                Button(
-                  clazz = ObserveStyles.PauseButton,
-                  icon = Icons.Pause.withFixedWidth(),
-                  tooltip = "Pause the current exposure",
-                  tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || props.isPausedInStep || props.isReadingOut,
-                  onClickE = _.stopPropagationCB >> sequenceApi.pauseObs(props.obsId).runAsync
-                )
-              case StopObservation   =>
-                Button(
-                  clazz = ObserveStyles.StopButton,
-                  icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
-                  tooltip = "Stop the current exposure early",
-                  tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || props.isReadingOut,
-                  onClickE = _.stopPropagationCB >> sequenceApi.stop(props.obsId).runAsync
-                )
-              case AbortObservation  =>
-                Button(
-                  clazz = ObserveStyles.AbortButton,
-                  icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
-                  tooltip = "Abort the current exposure",
-                  tooltipOptions = DefaultTooltipOptions,
-                  disabled = props.requestInFlight || props.isReadingOut,
-                  onClickE = _.stopPropagationCB >> sequenceApi.abort(props.obsId).runAsync
-                )
-              // // N&S operations
-              // case PauseImmediatelyObservation =>
-              //   Popup(
-              //     position = PopupPosition.TopRight,
-              //     trigger = Button(
-              //       icon = true,
-              //       color = Teal,
-              //       basic = true,
-              //       onClick = requestObsPause(p.obsId, p.stepId),
-              //       disabled = p.requestInFlight || p.isObservePaused || isReadingOut
-              //     )(IconPause)
-              //   )("Pause the current exposure immediately")
-              // case PauseGracefullyObservation  =>
-              //   Popup(
-              //     position = PopupPosition.TopRight,
-              //     trigger = Button(
-              //       icon = true,
-              //       color = Teal,
-              //       onClick = requestGracefulObsPause(p.obsId, p.stepId),
-              //       disabled =
-              //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
-              //     )(pauseGracefullyIcon)
-              //   )("Pause the current exposure at the end of the cycle")
-              // case StopImmediatelyObservation  =>
-              //   Popup(
-              //     position = PopupPosition.TopRight,
-              //     trigger = Button(
-              //       icon = true,
-              //       color = Orange,
-              //       basic = true,
-              //       onClick = requestStop(p.obsId, p.stepId),
-              //       disabled = p.requestInFlight || isReadingOut
-              //     )(IconStop)
-              //   )("Stop the current exposure immediately")
-              // case StopGracefullyObservation   =>
-              //   Popup(
-              //     position = PopupPosition.TopRight,
-              //     trigger = Button(
-              //       icon = true,
-              //       color = Orange,
-              //       onClick = requestGracefulStop(p.obsId, p.stepId),
-              //       disabled =
-              //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
-              //     )(stopGracefullyIcon)
-              //   )("Stop the current exposure at the end of the cycle")
-              case _                 => EmptyVdom
-            .toTagMod
-      )
+        ButtonGroup(ObserveStyles.ControlButtonStrip)(
+          // ObserveStyles.notInMobile,
+          TagMod.when(props.isRunning):
+            props.operations
+              .map[VdomNode]:
+                case ResumeObservation =>
+                  Button(
+                    clazz = ObserveStyles.PlayButton,
+                    icon = Icons.Play.withFixedWidth(),
+                    tooltip = "Resume the current exposure",
+                    tooltipOptions = DefaultTooltipOptions,
+                    disabled = props.requestInFlight || !props.isPausedInStep || props.isReadingOut,
+                    onClickE = _.stopPropagationCB >> sequenceApi.resumeObs(props.obsId).runAsync
+                  )
+                case PauseObservation  =>
+                  Button(
+                    clazz = ObserveStyles.PauseButton,
+                    icon = Icons.Pause.withFixedWidth(),
+                    tooltip = "Pause the current exposure",
+                    tooltipOptions = DefaultTooltipOptions,
+                    disabled = props.requestInFlight || props.isPausedInStep || props.isReadingOut,
+                    onClickE = _.stopPropagationCB >> sequenceApi.pauseObs(props.obsId).runAsync
+                  )
+                case StopObservation   =>
+                  Button(
+                    clazz = ObserveStyles.StopButton,
+                    icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
+                    tooltip = "Stop the current exposure early",
+                    tooltipOptions = DefaultTooltipOptions,
+                    disabled = props.requestInFlight || props.isReadingOut,
+                    onClickE = _.stopPropagationCB >> sequenceApi.stop(props.obsId).runAsync
+                  )
+                case AbortObservation  =>
+                  Button(
+                    clazz = ObserveStyles.AbortButton,
+                    icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
+                    tooltip = "Abort the current exposure",
+                    tooltipOptions = DefaultTooltipOptions,
+                    disabled = props.requestInFlight || props.isReadingOut,
+                    onClickE = _.stopPropagationCB >> sequenceApi.abort(props.obsId).runAsync
+                  )
+                // // N&S operations
+                // case PauseImmediatelyObservation =>
+                //   Popup(
+                //     position = PopupPosition.TopRight,
+                //     trigger = Button(
+                //       icon = true,
+                //       color = Teal,
+                //       basic = true,
+                //       onClick = requestObsPause(p.obsId, p.stepId),
+                //       disabled = p.requestInFlight || p.isObservePaused || isReadingOut
+                //     )(IconPause)
+                //   )("Pause the current exposure immediately")
+                // case PauseGracefullyObservation  =>
+                //   Popup(
+                //     position = PopupPosition.TopRight,
+                //     trigger = Button(
+                //       icon = true,
+                //       color = Teal,
+                //       onClick = requestGracefulObsPause(p.obsId, p.stepId),
+                //       disabled =
+                //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
+                //     )(pauseGracefullyIcon)
+                //   )("Pause the current exposure at the end of the cycle")
+                // case StopImmediatelyObservation  =>
+                //   Popup(
+                //     position = PopupPosition.TopRight,
+                //     trigger = Button(
+                //       icon = true,
+                //       color = Orange,
+                //       basic = true,
+                //       onClick = requestStop(p.obsId, p.stepId),
+                //       disabled = p.requestInFlight || isReadingOut
+                //     )(IconStop)
+                //   )("Stop the current exposure immediately")
+                // case StopGracefullyObservation   =>
+                //   Popup(
+                //     position = PopupPosition.TopRight,
+                //     trigger = Button(
+                //       icon = true,
+                //       color = Orange,
+                //       onClick = requestGracefulStop(p.obsId, p.stepId),
+                //       disabled =
+                //         p.requestInFlight || p.isObservePaused || p.nsPendingObserveCmd.isDefined || isReadingOut
+                //     )(stopGracefullyIcon)
+                //   )("Stop the current exposure at the end of the cycle")
+                case _                 => EmptyVdom
+              .toTagMod
+        )
+    )

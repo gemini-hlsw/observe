@@ -36,7 +36,7 @@ case class ObservationProgressBar(
   fileId:         ImageFileId, // TODO This can be multiple ones
   isStopping:     Boolean,
   isPausedInStep: Boolean
-) extends ReactFnProps(ObservationProgressBar.component):
+) extends ReactFnProps(ObservationProgressBar):
   val isStatic: Boolean =
     !sequenceState.isRunning ||
       !progress.map(_.stage).contains_(ObserveStage.Acquiring) ||
@@ -51,23 +51,19 @@ case class ObservationProgressBar(
   val progressRemainingTime: Option[TimeSpan] =
     runningProgress.map(_.remaining)
 
-object ObservationProgressBar extends ProgressLabel:
-  private type Props = ObservationProgressBar
+object ObservationProgressBar
+    extends ReactFnComponent[ObservationProgressBar](props =>
+      val UpdatePeriodMicros: Long     = 50000 // Smoothing parameter
+      val UpdatePeriod: FiniteDuration = FiniteDuration(UpdatePeriodMicros, MICROSECONDS)
+      val UpdateTimeSpan: TimeSpan     = TimeSpan.unsafeFromMicroseconds(UpdatePeriodMicros)
 
-  private val UpdatePeriodMicros: Long     = 50000 // Smoothing parameter
-  private val UpdatePeriod: FiniteDuration = FiniteDuration(UpdatePeriodMicros, MICROSECONDS)
-  private val UpdateTimeSpan: TimeSpan     = TimeSpan.unsafeFromMicroseconds(UpdatePeriodMicros)
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useContext(AppContext.ctx)
-      .useStateBy((props, _) => props.exposureTime) // remainingShown
-      // remainingActual - if less than remainingShown, we keep the shown value until this one catches up
-      .useRefBy((props, _, _) => props.exposureTime)
-      .useEffectStreamWithDepsBy((props, _, _, _) => props.isStatic):
-        (_, ctx, remainingShown, remainingActual) =>
-          isStatic =>
+      for
+        ctx             <- useContext(AppContext.ctx)
+        remainingShown  <- useState(props.exposureTime)
+        // if less than remainingShown, we keep the shown value until this one catches up
+        remainingActual <- useRef(props.exposureTime)
+        _               <-
+          useEffectStreamWithDeps(props.isStatic): isStatic =>
             import ctx.given
 
             Option
@@ -82,50 +78,50 @@ object ObservationProgressBar extends ProgressLabel:
                           remainingShown.setStateAsync(newRemaining)
                         .orEmpty
               .orEmpty
-      .useEffectWithDepsBy((props, _, _, _) => props.progressRemainingTime):
-        (_, _, remainingShown, remainingActual) =>
-          _.map: progressRemainingTime =>
-            remainingActual.setAsync(progressRemainingTime) >>
-              Option
-                .when(progressRemainingTime < remainingShown.value):
-                  remainingShown.setStateAsync(progressRemainingTime)
-                .orEmpty
-          .orEmpty
-      .render: (props, _, remainingShown, _) =>
-        props.runningProgress.fold {
-          val label: String = if (props.isPausedInStep) "Paused" else "Preparing..."
-          val msg: String   =
-            List(s"${props.fileId.value}", label)
-              .filterNot(_.isEmpty)
-              .mkString(" - ")
+        _               <-
+          useEffectWithDeps(props.progressRemainingTime):
+            _.map: progressRemainingTime =>
+              remainingActual.setAsync(progressRemainingTime) >>
+                Option
+                  .when(progressRemainingTime < remainingShown.value):
+                    remainingShown.setStateAsync(progressRemainingTime)
+                  .orEmpty
+            .orEmpty
+      yield props.runningProgress.fold {
+        val label: String = if (props.isPausedInStep) "Paused" else "Preparing..."
+        val msg: String   =
+          List(s"${props.fileId.value}", label)
+            .filterNot(_.isEmpty)
+            .mkString(" - ")
 
-          // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
-          <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationStepProgressBar)(
-            <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
-          )
-        } { runningProgress =>
-          val elapsedMicros: Long = (props.exposureTime -| remainingShown.value).toMicroseconds
-          val progress: Double    = (elapsedMicros * 100.0) / props.exposureTime.toMicroseconds
+        // Prime React's ProgressBar doesn't show a label when value is zero, so we render our own version.
+        <.div(ObserveStyles.Prime.EmptyProgressBar, ObserveStyles.ObservationStepProgressBar)(
+          <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
+        )
+      } { runningProgress =>
+        val elapsedMicros: Long = (props.exposureTime -| remainingShown.value).toMicroseconds
+        val progress: Double    = (elapsedMicros * 100.0) / props.exposureTime.toMicroseconds
 
-          ProgressBar(
-            id = "progress",
-            value = progress,
-            clazz = ObserveStyles.ObservationStepProgressBar,
-            displayValueTemplate = _ =>
-              // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
-              // Achieved by rendering the 3 divs inside a space-between flexbox.
-              React.Fragment(
-                <.div,
-                <.div(
-                  renderLabel(
-                    props.fileId,
-                    remainingShown.value.some,
-                    props.isStopping,
-                    props.isPausedInStep,
-                    runningProgress.stage
-                  )
-                ),
-                <.div
-              )
-          )
-        }
+        ProgressBar(
+          id = "progress",
+          value = progress,
+          clazz = ObserveStyles.ObservationStepProgressBar,
+          displayValueTemplate = _ =>
+            // This is a trick to be able to center when text fits, but align left when it doesn't, overflowing only to the right.
+            // Achieved by rendering the 3 divs inside a space-between flexbox.
+            React.Fragment(
+              <.div,
+              <.div(
+                renderProgressLabel(
+                  props.fileId,
+                  remainingShown.value.some,
+                  props.isStopping,
+                  props.isPausedInStep,
+                  runningProgress.stage
+                )
+              ),
+              <.div
+            )
+        )
+      }
+    )

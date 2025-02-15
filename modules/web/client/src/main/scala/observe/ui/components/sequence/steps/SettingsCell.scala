@@ -15,21 +15,19 @@ case class SettingsCell(
   // obsId:      Observation.Id,
   // stepId:     Step.Id,
   // isPreview:  Boolean
-) extends ReactFnProps(SettingsCell.component)
+) extends ReactFnProps(SettingsCell)
 
-object SettingsCell:
-  // private type Props = SettingsCell
-
-  protected val component = ScalaFnComponent { props =>
-    // val page = if (props.isPreview) {
-    //   Pages.PreviewConfigPage(p.instrument, p.obsId, p.stepId)
-    // } else {
-    //   Pages.SequenceConfigPage(p.instrument, p.obsId, p.stepId)
-    // }
-    <.div(ObserveStyles.StepSettingsHeader)(
-      // p.ctl.link(page)(
-      Icons.CaretRight
-        .withFixedWidth() // (^.onClick --> p.ctl.setUrlAndDispatchCB(page))
-        // )
+object SettingsCell
+    extends ReactFnComponent[SettingsCell](props =>
+      // val page = if (props.isPreview) {
+      //   Pages.PreviewConfigPage(p.instrument, p.obsId, p.stepId)
+      // } else {
+      //   Pages.SequenceConfigPage(p.instrument, p.obsId, p.stepId)
+      // }
+      <.div(ObserveStyles.StepSettingsHeader)(
+        // p.ctl.link(page)(
+        Icons.CaretRight
+          .withFixedWidth() // (^.onClick --> p.ctl.setUrlAndDispatchCB(page))
+          // )
+      )
     )
-  }

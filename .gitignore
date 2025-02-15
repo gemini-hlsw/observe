@@ -94,3 +94,5 @@ modules/web/client/deploy
 .vite/
 # TODO Remove when we remove web_old
 modules/web_old/client/package.json
+
+*.todo

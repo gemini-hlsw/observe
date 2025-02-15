@@ -32,13 +32,10 @@ case class ObservationExecutionDisplay(
   rootModelData:    View[RootModelData],
   loadObservation:  Observation.Id => Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-) extends ReactFnProps(ObservationExecutionDisplay.component)
+) extends ReactFnProps(ObservationExecutionDisplay)
 
-object ObservationExecutionDisplay:
-  private type Props = ObservationExecutionDisplay
-
-  private val component =
-    ScalaFnComponent[Props]: props =>
+object ObservationExecutionDisplay
+    extends ReactFnComponent[ObservationExecutionDisplay](props =>
       val selectedObsId                = props.selectedObs.obsId
       val rootModelData: RootModelData = props.rootModelData.get
 
@@ -122,3 +119,4 @@ object ObservationExecutionDisplay:
           )
         )
       )
+    )

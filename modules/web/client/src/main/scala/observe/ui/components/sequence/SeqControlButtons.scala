@@ -31,7 +31,7 @@ case class SeqControlButtons(
   loadObs:       Observation.Id => Callback,
   sequenceState: SequenceState,
   requests:      ObservationRequests
-) extends ReactFnProps(SeqControlButtons.component):
+) extends ReactFnProps(SeqControlButtons):
   val isUserStopRequested: Boolean = sequenceState.userStopRequested
 
   val isPauseInFlight: Boolean = requests.pause === OperationRequest.InFlight
@@ -40,18 +40,15 @@ case class SeqControlButtons(
 
   val isRunning: Boolean = sequenceState.isRunning
 
-object SeqControlButtons:
-  private type Props = SeqControlButtons
+object SeqControlButtons
+    extends ReactFnComponent[SeqControlButtons](props =>
+      val tooltipOptions =
+        TooltipOptions(position = Tooltip.Position.Top, showDelay = 100)
 
-  private val tooltipOptions =
-    TooltipOptions(position = Tooltip.Position.Top, showDelay = 100)
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useContext(AppContext.ctx)
-      .useContext(SequenceApi.ctx)
-      .render: (props, ctx, sequenceApi) =>
+      for
+        ctx         <- useContext(AppContext.ctx)
+        sequenceApi <- useContext(SequenceApi.ctx)
+      yield
         import ctx.given
 
         val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
@@ -92,3 +89,4 @@ object SeqControlButtons:
             disabled = props.isCancelPauseInFlight
           ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
         )
+    )
