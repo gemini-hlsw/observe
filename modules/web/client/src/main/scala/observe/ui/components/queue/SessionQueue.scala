@@ -200,7 +200,7 @@ object SessionQueue
           header = "Obs. Id",
           cell =
             cell => <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
-          size = 120.toPx
+          size = 240.toPx
         ).sortable,
         ColDef(
           StateColumnId,

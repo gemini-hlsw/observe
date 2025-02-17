@@ -15,10 +15,10 @@ object ObsQueriesGQL {
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = s"""
-      query($$instruments: [Instrument!]!, $$semester: Semester!) {
+      query($$site: Site!, $$semester: Semester!) {
         observationsByWorkflowState(
           states: [READY, ONGOING],
-          WHERE: { program: { reference: { instrument: { IN: $$instruments }, semester: { EQ: $$semester } } } }      
+          WHERE: { site: { EQ: $$site }, program: { reference: { semester: { EQ: $$semester } } } }      
         ) $ObservationSummarySubquery
       }
     """
