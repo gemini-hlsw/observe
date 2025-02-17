@@ -12,6 +12,7 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.Program
+import lucuma.react.common.ReactFnComponent
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
 import lucuma.react.primereact.tooltip.*
@@ -30,17 +31,14 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
 
-case class Home(rootModel: RootModel) extends ReactFnProps(Home.component)
+case class Home(rootModel: RootModel) extends ReactFnProps(Home)
 
-object Home:
-  private type Props = Home
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useContext(AppContext.ctx)
-      .useContext(SequenceApi.ctx)
-      .render: (props, ctx, sequenceApi) =>
+object Home
+    extends ReactFnComponent[Home](props =>
+      for
+        ctx         <- useContext(AppContext.ctx)
+        sequenceApi <- useContext(SequenceApi.ctx)
+      yield
         import ctx.given
 
         val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
@@ -143,3 +141,4 @@ object Home:
                 )
               )
             )
+    )

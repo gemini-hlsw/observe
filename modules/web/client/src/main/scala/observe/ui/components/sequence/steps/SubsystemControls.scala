@@ -44,7 +44,7 @@ case class SubsystemControls(
   sequenceState:     SequenceState,
   systemOverrides:   SystemOverrides,
   clientMode:        ClientMode
-) extends ReactFnProps(SubsystemControls.component):
+) extends ReactFnProps(SubsystemControls):
   private val canOperate: Boolean =
     clientMode.canOperate && sequenceState.isIdle
 
@@ -85,53 +85,52 @@ case class SubsystemControls(
       case _                                               =>
         (SubsystemControls.IdleIcon, Button.Severity.Primary, !isSubsystemEnabled(subsystem).value)
 
-object SubsystemControls:
-  private type Props = SubsystemControls
+object SubsystemControls
+    extends ReactFnComponent[SubsystemControls](props =>
+      // def requestResourceCall(
+      //   id:       Observation.Id,
+      //   stepId:   Step.Id,
+      //   resource: Resource
+      // ): (ReactMouseEvent, Button.ButtonProps) => Callback =
+      //   (e: ReactMouseEvent, _: Button.ButtonProps) =>
+      //     (e.preventDefaultCB >> e.stopPropagationCB >>
+      //       ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, resource)))
+      //       .unless_(e.altKey || e.button === StepsTable.MiddleButton)
 
-  // private def requestResourceCall(
-  //   id:       Observation.Id,
-  //   stepId:   Step.Id,
-  //   resource: Resource
-  // ): (ReactMouseEvent, Button.ButtonProps) => Callback =
-  //   (e: ReactMouseEvent, _: Button.ButtonProps) =>
-  //     (e.preventDefaultCB >> e.stopPropagationCB >>
-  //       ObserveCircuit.dispatchCB(RequestResourceRun(id, stepId, resource)))
-  //       .unless_(e.altKey || e.button === StepsTable.MiddleButton)
+      for
+        ctx         <- useContext(AppContext.ctx)
+        sequenceApi <- useContext(SequenceApi.ctx)
+      yield
+        import ctx.given
 
+        <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
+          props.subsystems
+            .sorted[Resource | Instrument]
+            .map: subsystem =>
+              val (icon, severity, disabled) = props.buttonProperties(subsystem)
+
+              <.span(^.key := s"config-${subsystem}")(
+                Button(
+                  size = Button.Size.Small,
+                  severity = severity,
+                  disabled = disabled,
+                  clazz = ObserveStyles.ConfigButton |+|
+                    ObserveStyles.DefaultCursor.unless_(props.canOperate),
+                  onClickE = e =>
+                    (e.stopPropagationCB >>
+                      sequenceApi.execute(props.obsId, props.stepId, subsystem).runAsync)
+                      .when(props.canOperate)
+                      .void,
+                  tooltip =
+                    Option.when(props.canOperate)(s"Configure ${subsystem.shortName}").orUndefined,
+                  tooltipOptions = DefaultTooltipOptions
+                )(icon, subsystem.shortName)
+              )
+            .toTagMod
+        )
+    ) {
   private val IdleIcon      = Icons.ArrowUpFromLine.withFixedWidth()
   private val RunningIcon   = LucumaIcons.CircleNotch.withFixedWidth()
   private val CompletedIcon = Icons.Check.withFixedWidth()
   private val FailureIcon   = Icons.CircleExclamation.withFixedWidth().withInverse()
-
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useContext(AppContext.ctx)
-    .useContext(SequenceApi.ctx)
-    .render: (props, ctx, sequenceApi) =>
-      import ctx.given
-
-      <.div(ObserveStyles.ConfigButtonStrip)( // (ObserveStyles.notInMobile)(
-        props.subsystems
-          .sorted[Resource | Instrument]
-          .map: subsystem =>
-            val (icon, severity, disabled) = props.buttonProperties(subsystem)
-
-            <.span(^.key := s"config-${subsystem}")(
-              Button(
-                size = Button.Size.Small,
-                severity = severity,
-                disabled = disabled,
-                clazz = ObserveStyles.ConfigButton |+|
-                  ObserveStyles.DefaultCursor.unless_(props.canOperate),
-                onClickE = e =>
-                  (e.stopPropagationCB >>
-                    sequenceApi.execute(props.obsId, props.stepId, subsystem).runAsync)
-                    .when(props.canOperate)
-                    .void,
-                tooltip =
-                  Option.when(props.canOperate)(s"Configure ${subsystem.shortName}").orUndefined,
-                tooltipOptions = DefaultTooltipOptions
-              )(icon, subsystem.shortName)
-            )
-          .toTagMod
-      )
+}

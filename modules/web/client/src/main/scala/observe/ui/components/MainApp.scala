@@ -168,43 +168,42 @@ object MainApp extends ServerEventHandler:
   //   (6) Initialize ODB client WebSocket connection
   //   (7) Query ready observations on ODB
   private val component =
-    ScalaFnComponent
-      .withHooks[Unit]
-      .useToastRef
-      .useStateView(none[SyncStatus])          // UI is synced with server
-      .useSingleEffect
-      .useResourceOnMountBy: (_, _, syncStatus, _) => // wsConnection to server (1)
-        Reconnect(
-          retryingOnAllErrors[WSConnectionHighLevel[IO]](
-            policy = WSRetryPolicy,
-            onError =
-              (_: Throwable, _) => syncStatus.async.set(SyncStatus.OutOfSync.some).toResource
-          )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))),
-          _ => true.pure[IO]
-        ).map(_.some)
-      .useStateView(Pot.pending[ClientConfig]) // clientConfigPot
-      .useStateView(RootModelData.Initial)     // rootModelData
-      .useStateView(ApiStatus.Idle)            // configApiStatus
-      .useEffectStreamWhenDepsReadyBy((_, _, _, _, wsConnection, _, _, _) =>
-        wsConnection.flatMap(_.toPot)
-      ): (_, toast, syncStatus, _, _, clientConfig, rootModelData, configApiStatus) =>
-        _.receiveStream // Setup server event processor (2)
-          .through(parseClientEvents)
-          .evalMap:
-            case Right(event) =>
-              processStreamEvent(
-                clientConfig.async.mod,
-                rootModelData.async.mod,
-                syncStatus.async.mod,
-                configApiStatus.async.mod,
-                toast
-              )(event)
-            case Left(error)  =>
-              processStreamError(rootModelData.async.mod)(error)
-      .useState(Pot.pending[AppContext[IO]])   // ctxPot
-      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, clientConfig, _, _, _) => clientConfig.get):
-        (_, toastRef, _, _, _, _, _, _, ctxPot) => // Build AppContext (4)
-          clientConfig =>
+    ScalaFnComponent[Unit]: _ =>
+      for
+        toastRef         <- useToastRef
+        syncStatus       <- useStateView(none[SyncStatus]) // UI is synced with server
+        singleDispatcher <- useSingleEffect
+        wsConnection     <-
+          useResourceOnMount: // wsConnection to server (1)
+            Reconnect(
+              retryingOnAllErrors[WSConnectionHighLevel[IO]](
+                policy = WSRetryPolicy,
+                onError =
+                  (_: Throwable, _) => syncStatus.async.set(SyncStatus.OutOfSync.some).toResource
+              )(WebSocketClient[IO].connectHighLevel(WSRequest(EventWsUri))),
+              _ => true.pure[IO]
+            ).map(_.some)
+        clientConfigPot  <- useStateView(Pot.pending[ClientConfig])
+        rootModelData    <- useStateView(RootModelData.Initial)
+        configApiStatus  <- useStateView(ApiStatus.Idle)
+        _                <-
+          useEffectStreamWhenDepsReady(wsConnection.flatMap(_.toPot)):
+            _.receiveStream // Setup server event processor (2)
+              .through(parseClientEvents)
+              .evalMap:
+                case Right(event) =>
+                  processStreamEvent(
+                    clientConfigPot.async.mod,
+                    rootModelData.async.mod,
+                    syncStatus.async.mod,
+                    configApiStatus.async.mod,
+                    toastRef
+                  )(event)
+                case Left(error)  =>
+                  processStreamError(rootModelData.async.mod)(error)
+        ctxPot           <- useState(Pot.pending[AppContext[IO]])
+        _                <-
+          useAsyncEffectWhenDepsReady(clientConfigPot.get): clientConfig => // Build AppContext (4)
             val ctxResource: Resource[IO, AppContext[IO]] =
               (for
                 dispatcher                                 <- Dispatcher.parallel[IO]
@@ -228,206 +227,188 @@ object MainApp extends ServerEventHandler:
 
             ctxResource.allocated.flatMap: (ctx, release) =>
               ctxPot.setStateAsync(ctx.ready).as(release) // Return `release` as cleanup effect
-      .useEffectWhenDepsReadyBy((_, _, _, _, _, _, _, _, ctxPot) => ctxPot.value):
-        (_, _, _, _, _, _, rootModelData, _, _) =>
-          ctx => // Once AppContext is ready, proceed to attempt login (5)
+        _                <-
+          useEffectWhenDepsReady(ctxPot.value): ctx =>
+            // Once AppContext is ready, proceed to attempt login (5)
             enforceStaffRole(ctx.ssoClient).attempt.flatMap: userVault =>
               rootModelData.async.mod(_.withLoginResult(userVault.map(_.some)))
-      .useShadowRef: (_, _, _, _, _, _, rootModelData, _, _) =>
-        rootModelData.get.userVault.toOption.flatten.map(_.authorizationHeader)
-      .useAsyncEffectWhenDepsReadyBy((_, _, _, _, _, _, rootModelData, _, ctxPot, _) =>
-        (ctxPot.value, rootModelData.get.userVault.map(_.toPot).flatten.void).tupled
-      ): (_, _, _, _, _, _, _, _, _, authHeaderRef) => // Initialize ODB client (6)
-        (ctx, _) =>
-          ctx
-            .initODBClient:
-              authHeaderRef.getAsync.map:
-                _.map: authHeader =>
-                  Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson)
-                .getOrElse(Map.empty)
-            .as(ctx.closeODBClient) // Disconnect on logout
-      // Subscribe to client event stream (and initialize ClientConfig)
-      .useState(none[ApiClient])               // apiClientOpt
-      .useEffectWhenDepsReadyBy((_, _, _, _, _, clientConfigPot, _, _, _, _, _) =>
-        clientConfigPot.get
-      ): (_, toastRef, syncStatus, _, _, _, rootModelData, _, _, authHeaderRef, apiClientOpt) =>
-        clientConfig =>
-          apiClientOpt
-            .setState:
-              ApiClient(
-                fetchClient,
-                ApiBasePath,
-                clientConfig.clientId,
-                authHeaderRef.getAsync,
-                t =>
-                  toastRef
-                    .show:
-                      MessageItem(
-                        id = "configApiError",
-                        content = "Error saving changes",
-                        severity = Message.Severity.Error
-                      )
-                    .to[IO] >>
-                    LogMessage
-                      .now(ObserveLogLevel.Error, t.getMessage)
-                      .flatMap: logMsg =>
-                        rootModelData.async
-                          .zoom(RootModelData.globalLog)
-                          .mod(_.append(logMsg))
-                    >>
-                    Logger[IO].error(t.getMessage) >>
-                    syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
-              ).some
-      // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
-      .useEffectWithDepsBy((_, _, syncStatus, _, _, _, _, _, _, _, _) => syncStatus.get):
-        (_, _, _, singleDispatcher, _, _, _, _, _, _, apiClientOpt) =>
-          case Some(SyncStatus.OutOfSync) =>
-            apiClientOpt.value
-              .map: client =>
-                singleDispatcher.submit(client.refresh)
-              .orEmpty
-          case Some(SyncStatus.Synced)    => singleDispatcher.cancel
-          case _                          => IO.unit
-      .useStreamBy((_, _, _, _, _, _, _, _, ctxPot, _, _) => ctxPot.value.void):
-        (_, _, _, _, _, _, _, _, ctxPot, _, _) =>
-          _ =>
+        authHeaderRef    <-
+          useShadowRef:
+            rootModelData.get.userVault.toOption.flatten.map(_.authorizationHeader)
+        _                <-
+          useAsyncEffectWhenDepsReady(
+            (ctxPot.value, rootModelData.get.userVault.map(_.toPot).flatten.void).tupled
+          ): (ctx, _) =>              // Initialize ODB client (6)
+            ctx
+              .initODBClient:
+                authHeaderRef.getAsync.map:
+                  _.map: authHeader =>
+                    Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson)
+                  .getOrElse(Map.empty)
+              .as(ctx.closeODBClient) // Disconnect on logout
+        // Subscribe to client event stream (and initialize ClientConfig)
+        apiClientOpt     <- useState(none[ApiClient])
+        _                <-
+          useEffectWhenDepsReady(clientConfigPot.get): clientConfig =>
+            apiClientOpt
+              .setState:
+                ApiClient(
+                  fetchClient,
+                  ApiBasePath,
+                  clientConfig.clientId,
+                  authHeaderRef.getAsync,
+                  t =>
+                    toastRef
+                      .show:
+                        MessageItem(
+                          id = "configApiError",
+                          content = "Error saving changes",
+                          severity = Message.Severity.Error
+                        )
+                      .to[IO] >>
+                      LogMessage
+                        .now(ObserveLogLevel.Error, t.getMessage)
+                        .flatMap: logMsg =>
+                          rootModelData.async
+                            .zoom(RootModelData.globalLog)
+                            .mod(_.append(logMsg))
+                      >>
+                      Logger[IO].error(t.getMessage) >>
+                      syncStatus.async.set(SyncStatus.OutOfSync.some) // Triggers reSync
+                ).some
+        _                <-
+          // If SyncStatus goes OutOfSync, start reSync (or cancel if it goes back to Synced)
+          useEffectWithDeps(syncStatus.get):
+            case Some(SyncStatus.OutOfSync) =>
+              apiClientOpt.value
+                .map: client =>
+                  singleDispatcher.submit(client.refresh)
+                .orEmpty
+            case Some(SyncStatus.Synced)    => singleDispatcher.cancel
+            case _                          => IO.unit
+        odbStatus        <-
+          useStream(ctxPot.value.void): _ =>
             ctxPot.value
               .map(_.odbClient)
               .toOption
               .foldMap(_.statusStream) // Track ODB initialization status
-      .useRef(false)
-      .useEffectStreamResourceWhenDepsReadyBy(
-        (_, _, _, _, _, clientConfigPot, _, _, ctxPot, _, _, odbStatus, _) =>
-          (clientConfigPot.get,
-           ctxPot.value,
-           odbStatus.toPot.filter(_ === PersistentClientStatus.Connected)
-          ).tupled
-      ): (_, _, _, _, _, _, rootModelData, _, _, _, _, _, subscribed) =>
-        (clientConfig, ctx, _) => // Query ready observations for the site (7)
-          import ctx.given
+        subscribed       <- useRef(false)
+        _                <-
+          useEffectStreamResourceWhenDepsReady(
+            (clientConfigPot.get,
+             ctxPot.value,
+             odbStatus.toPot.filter(_ === PersistentClientStatus.Connected)
+            ).tupled
+          ): (clientConfig, ctx, _) => // Query ready observations for the site (7)
+            import ctx.given
 
-          Option
-            .unless(subscribed.value) {
-              val readyObservations: ViewF[IO, Pot[List[ObsSummary]]] =
-                rootModelData
-                  .zoom(RootModelData.readyObservations)
-                  .async
+            Option
+              .unless(subscribed.value) {
+                val readyObservations: ViewF[IO, Pot[List[ObsSummary]]] =
+                  rootModelData
+                    .zoom(RootModelData.readyObservations)
+                    .async
 
-              Resource.pure(fs2.Stream.eval[IO, Unit](subscribed.setAsync(true))) >>
-                Resource
-                  .eval(IO.realTime)
-                  .flatMap: now =>
-                    val currentSemester: Semester =
-                      Semester
-                        .fromSiteAndInstant(clientConfig.site, Instant.ofEpochMilli(now.toMillis))
-                        .get
+                Resource.pure(fs2.Stream.eval[IO, Unit](subscribed.setAsync(true))) >>
+                  Resource
+                    .eval(IO.realTime)
+                    .flatMap: now =>
+                      val currentSemester: Semester =
+                        Semester
+                          .fromSiteAndInstant(clientConfig.site, Instant.ofEpochMilli(now.toMillis))
+                          .get
 
-                    ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
-                      .ActiveObservationIdsQuery[IO]
-                      .query(clientConfig.site.instruments, currentSemester)
-                      .raiseGraphQLErrors
-                      .flatMap: data =>
-                        readyObservations.set:
-                          data.observationsByWorkflowState.ready
-                      .recoverWith(t => readyObservations.set(Pot.error(t)))
-                      .void
-                      .reRunOnResourceSignals:
-                        ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
-            }
-            .orEmpty
-      .useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
-      .render:
-        (
-          _,
-          toastRef,
-          syncStatus,
-          _,
-          _,
-          clientConfigPot,
-          rootModelData,
-          configApiStatus,
-          ctxPot,
-          _,
-          apiClientOpt,
-          _,
-          _,
-          permitPot
-        ) =>
-          val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO], ODBQueryApi[IO])] =
-            (ctxPot.value.toOption,
-             apiClientOpt.value,
-             rootModelData.get.observer,
-             permitPot.toOption
-            ).mapN: (ctx, client, observer, permit) =>
-              import ctx.given
+                      ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
+                        .ActiveObservationIdsQuery[IO]
+                        .query(clientConfig.site.instruments, currentSemester)
+                        .raiseGraphQLErrors
+                        .flatMap: data =>
+                          readyObservations.set:
+                            data.observationsByWorkflowState.ready
+                        .recoverWith(t => readyObservations.set(Pot.error(t)))
+                        .void
+                        .reRunOnResourceSignals:
+                          ObsQueriesGQL.ObservationEditSubscription.subscribe[IO]()
+              }
+              .orEmpty
+        permitPot        <-
+          useEffectResultOnMount(Semaphore[IO](1).map(_.permit))
+      yield
+        val apisOpt: Option[(ConfigApi[IO], SequenceApi[IO], ODBQueryApi[IO])] =
+          (ctxPot.value.toOption,
+           apiClientOpt.value,
+           rootModelData.get.observer,
+           permitPot.toOption
+          ).mapN: (ctx, client, observer, permit) =>
+            import ctx.given
 
-              (
-                ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
-                SequenceApiImpl(
-                  client = client,
-                  observer = observer,
-                  requests = rootModelData.zoom(RootModelData.obsRequests)
-                ),
-                ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
-              )
-
-          def provideApiCtx(children: VdomNode*) =
-            apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi, odbQueryApi) =>
-              ConfigApi.ctx.provide(configApi)(
-                SequenceApi.ctx.provide(sequenceApi)(
-                  ODBQueryApi.ctx.provide(odbQueryApi)(
-                    children*
-                  )
-                )
-              )
-
-          val ResyncingPopup =
-            Dialog(
-              header = "Reestablishing connection to server...",
-              closable = false,
-              visible = syncStatus.get.contains(SyncStatus.OutOfSync),
-              onHide = Callback.empty,
-              clazz = ObserveStyles.SyncingPanel
-            )(
-              SolarProgress(),
-              Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
+            (
+              ConfigApiImpl(client = client, apiStatus = configApiStatus, latch = permit),
+              SequenceApiImpl(
+                client = client,
+                observer = observer,
+                requests = rootModelData.zoom(RootModelData.obsRequests)
+              ),
+              ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
             )
 
-          val nighttimeObservationSequenceState: SequenceState =
-            rootModelData.get.nighttimeObservation
-              .map(_.obsId)
-              .flatMap(rootModelData.get.executionState.get)
-              .map(_.sequenceState)
-              .getOrElse(SequenceState.Idle)
-
-          // When both AppContext and UserVault are ready, proceed to render.
-          (ctxPot.value, rootModelData.zoom(RootModelData.userVault).toPotView).tupled.renderPot:
-            (ctx, userVault) =>
-              AppContext.ctx.provide(ctx)(
-                IfLogged[BroadcastEvent](
-                  "Observe".refined,
-                  Css.Empty,
-                  allowGuest = false,
-                  ctx.ssoClient,
-                  userVault,
-                  rootModelData.zoom(RootModelData.userSelectionMessage),
-                  _ => IO.unit, // MainApp takes care of connections
-                  IO.unit,
-                  IO.unit,
-                  "observe".refined,
-                  _.event === BroadcastEvent.LogoutEventId,
-                  _.value.toString,
-                  BroadcastEvent.LogoutEvent(_)
-                )(_ =>
-                  provideApiCtx(
-                    ResyncingPopup,
-                    ObservationSyncer(
-                      rootModelData.zoom(RootModelData.nighttimeObservation),
-                      nighttimeObservationSequenceState
-                    ),
-                    router(RootModel(clientConfigPot.get, rootModelData))
-                  )
+        def provideApiCtx(children: VdomNode*) =
+          apisOpt.fold(React.Fragment(children*)): (configApi, sequenceApi, odbQueryApi) =>
+            ConfigApi.ctx.provide(configApi)(
+              SequenceApi.ctx.provide(sequenceApi)(
+                ODBQueryApi.ctx.provide(odbQueryApi)(
+                  children*
                 )
               )
+            )
+
+        val ResyncingPopup =
+          Dialog(
+            header = "Reestablishing connection to server...",
+            closable = false,
+            visible = syncStatus.get.contains(SyncStatus.OutOfSync),
+            onHide = Callback.empty,
+            clazz = ObserveStyles.SyncingPanel
+          )(
+            SolarProgress(),
+            Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
+          )
+
+        val nighttimeObservationSequenceState: SequenceState =
+          rootModelData.get.nighttimeObservation
+            .map(_.obsId)
+            .flatMap(rootModelData.get.executionState.get)
+            .map(_.sequenceState)
+            .getOrElse(SequenceState.Idle)
+
+        // When both AppContext and UserVault are ready, proceed to render.
+        (ctxPot.value, rootModelData.zoom(RootModelData.userVault).toPotView).tupled.renderPot:
+          (ctx, userVault) =>
+            AppContext.ctx.provide(ctx)(
+              IfLogged[BroadcastEvent](
+                "Observe".refined,
+                Css.Empty,
+                allowGuest = false,
+                ctx.ssoClient,
+                userVault,
+                rootModelData.zoom(RootModelData.userSelectionMessage),
+                _ => IO.unit, // MainApp takes care of connections
+                IO.unit,
+                IO.unit,
+                "observe".refined,
+                _.event === BroadcastEvent.LogoutEventId,
+                _.value.toString,
+                BroadcastEvent.LogoutEvent(_)
+              )(_ =>
+                provideApiCtx(
+                  ResyncingPopup,
+                  ObservationSyncer(
+                    rootModelData.zoom(RootModelData.nighttimeObservation),
+                    nighttimeObservationSequenceState
+                  ),
+                  router(RootModel(clientConfigPot.get, rootModelData))
+                )
+              )
+            )
 
   inline def apply() = component()

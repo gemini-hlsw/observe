@@ -232,7 +232,7 @@ object Sequence {
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
 
-    def userStopRequested[F[_]](st: State[F]): Boolean = st.status.userStopRequested
+    def userStopRequested[F[_]](st: State[F]): Boolean = st.status.isUserStopRequested
 
     def anyStopRequested[F[_]](st: State[F]): Boolean = st.status match {
       case SequenceState.Running(u, i, _, _) => u || i

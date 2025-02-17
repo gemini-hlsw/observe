@@ -26,13 +26,10 @@ case class ObsHeader(
   requests:         ObservationRequests,
   overrides:        Option[View[SystemOverrides]],
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-) extends ReactFnProps(ObsHeader.component)
+) extends ReactFnProps(ObsHeader)
 
-object ObsHeader:
-  private type Props = ObsHeader
-
-  private val component =
-    ScalaFnComponent[Props]: props =>
+object ObsHeader
+    extends ReactFnComponent[ObsHeader](props =>
       <.div(ObserveStyles.ObsSummary)(
         <.div(ObserveStyles.ObsSummaryTitle)(
           SeqControlButtons(
@@ -57,3 +54,4 @@ object ObsHeader:
             .whenDefined
         )
       )
+    )

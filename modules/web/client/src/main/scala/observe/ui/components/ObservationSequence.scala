@@ -11,6 +11,7 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
+import lucuma.react.common.ReactFnComponent
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.Message
 import lucuma.schemas.model.AtomRecord
@@ -24,8 +25,7 @@ import monocle.Traversal
 import observe.model.ExecutionState
 import observe.model.StepProgress
 import observe.model.odb.RecordedVisit
-import observe.ui.components.sequence.GmosNorthSequenceTable
-import observe.ui.components.sequence.GmosSouthSequenceTable
+import observe.ui.components.sequence.byInstrument.*
 import observe.ui.model.AppContext
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
@@ -46,127 +46,126 @@ case class ObservationSequence(
   selectedStep:         Option[Step.Id],
   setSelectedStep:      Step.Id => Callback,
   clientMode:           ClientMode
-) extends ReactFnProps(ObservationSequence.component)
+) extends ReactFnProps(ObservationSequence)
 
-object ObservationSequence:
-  private type Props = ObservationSequence
+object ObservationSequence
+    extends ReactFnComponent[ObservationSequence](props =>
+      val gmosNorthDatasets: Traversal[ExecutionVisits, List[Dataset]] =
+        ExecutionVisits.gmosNorth
+          .andThen(ExecutionVisits.GmosNorth.visits)
+          .each
+          .andThen(Visit.GmosNorth.atoms)
+          .each
+          .andThen(AtomRecord.GmosNorth.steps)
+          .each
+          .andThen(StepRecord.GmosNorth.datasets)
 
-  private val gmosNorthDatasets: Traversal[ExecutionVisits, List[Dataset]] =
-    ExecutionVisits.gmosNorth
-      .andThen(ExecutionVisits.GmosNorth.visits)
-      .each
-      .andThen(Visit.GmosNorth.atoms)
-      .each
-      .andThen(AtomRecord.GmosNorth.steps)
-      .each
-      .andThen(StepRecord.GmosNorth.datasets)
+      val gmosSouthDatasets: Traversal[ExecutionVisits, List[Dataset]] =
+        ExecutionVisits.gmosSouth
+          .andThen(ExecutionVisits.GmosSouth.visits)
+          .each
+          .andThen(Visit.GmosSouth.atoms)
+          .each
+          .andThen(AtomRecord.GmosSouth.steps)
+          .each
+          .andThen(StepRecord.GmosSouth.datasets)
 
-  private val gmosSouthDatasets: Traversal[ExecutionVisits, List[Dataset]] =
-    ExecutionVisits.gmosSouth
-      .andThen(ExecutionVisits.GmosSouth.visits)
-      .each
-      .andThen(Visit.GmosSouth.atoms)
-      .each
-      .andThen(AtomRecord.GmosSouth.steps)
-      .each
-      .andThen(StepRecord.GmosSouth.datasets)
+      // This is only lawful if the traverse returns 0 or 1 instances of A.
+      def unsafeHeadOption[T, A](traversal: Traversal[T, A]): Optional[T, A] =
+        Optional[T, A](traversal.getAll(_).headOption)(traversal.replace)
 
-  // This is only lawful if the traverse returns 0 or 1 instances of A.
-  private def unsafeHeadOption[T, A](traversal: Traversal[T, A]): Optional[T, A] =
-    Optional[T, A](traversal.getAll(_).headOption)(traversal.replace)
+      def instrumentDatasetWithId(traversal: Traversal[ExecutionVisits, List[Dataset]])(
+        datasetId: Dataset.Id
+      ): Optional[ExecutionVisits, Dataset] =
+        unsafeHeadOption(traversal.each.filter(dataset => dataset.id === datasetId))
 
-  private def instrumentDatasetWithId(traversal: Traversal[ExecutionVisits, List[Dataset]])(
-    datasetId: Dataset.Id
-  ): Optional[ExecutionVisits, Dataset] =
-    unsafeHeadOption(traversal.each.filter(dataset => dataset.id === datasetId))
+      def datasetWithId(datasetId: Dataset.Id): Traversal[ExecutionVisits, Dataset] =
+        Traversal.applyN(
+          instrumentDatasetWithId(gmosNorthDatasets)(datasetId),
+          instrumentDatasetWithId(gmosSouthDatasets)(datasetId)
+        )
 
-  private def datasetWithId(datasetId: Dataset.Id): Traversal[ExecutionVisits, Dataset] =
-    Traversal.applyN(
-      instrumentDatasetWithId(gmosNorthDatasets)(datasetId),
-      instrumentDatasetWithId(gmosSouthDatasets)(datasetId)
+      for
+        ctx                <- useContext(AppContext.ctx)
+        sequenceApi        <- useContext(SequenceApi.ctx)
+        odbQueryApi        <- useContext(ODBQueryApi.ctx)
+        datasetIdsInFlight <- useState(HashSet.empty[Dataset.Id])
+      yield
+        import ctx.given
+
+        val breakpoints: View[Set[Step.Id]] =
+          props.executionState.zoom(ExecutionState.breakpoints)
+
+        val onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback =
+          (obsId, stepId, value) =>
+            breakpoints
+              .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
+              sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
+
+        val onDatasetQAChange: Dataset.Id => EditableQaFields => Callback =
+          datasetId =>
+            qaFields =>
+              props.visits.toOptionView.map { visits =>
+                def datasetQaView(datasetId: Dataset.Id): ViewList[EditableQaFields] =
+                  visits.zoom:
+                    datasetWithId(datasetId).andThen(EditableQaFields.fromDataset)
+
+                datasetIdsInFlight.modState(_ + datasetId) >>
+                  odbQueryApi
+                    .updateDatasetQa(datasetId, qaFields)
+                    .flatMap: _ =>
+                      (datasetQaView(datasetId).set(qaFields) >>
+                        datasetIdsInFlight.modState(_ - datasetId))
+                        .to[IO]
+                    .handleErrorWith: e =>
+                      (datasetIdsInFlight.modState(_ - datasetId) >>
+                        ctx.toast.show(
+                          s"Error updating dataset QA state for $datasetId: ${e.getMessage}",
+                          Message.Severity.Error,
+                          sticky = true
+                        )).to[IO]
+                    .runAsync
+              }.orEmpty // If there are no visits, there's nothing to change.
+
+        props.config match // TODO Show visits even if sequence data is not available
+          case InstrumentExecutionConfig.GmosNorth(config) =>
+            GmosNorthSequenceTable(
+              props.clientMode,
+              props.obsId,
+              config,
+              props.visits.get
+                .collect:
+                  case ExecutionVisits.GmosNorth(visits) => visits.toList
+                .orEmpty,
+              props.executionState.get,
+              props.currentRecordedVisit,
+              props.progress,
+              props.selectedStep,
+              props.setSelectedStep,
+              props.requests,
+              isPreview = false,
+              onBreakpointFlip,
+              onDatasetQAChange,
+              datasetIdsInFlight.value
+            )
+          case InstrumentExecutionConfig.GmosSouth(config) =>
+            GmosSouthSequenceTable(
+              props.clientMode,
+              props.obsId,
+              config,
+              props.visits.get
+                .collect:
+                  case ExecutionVisits.GmosSouth(visits) => visits.toList
+                .orEmpty,
+              props.executionState.get,
+              props.currentRecordedVisit,
+              props.progress,
+              props.selectedStep,
+              props.setSelectedStep,
+              props.requests,
+              isPreview = false,
+              onBreakpointFlip,
+              onDatasetQAChange,
+              datasetIdsInFlight.value
+            )
     )
-
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useContext(AppContext.ctx)
-    .useContext(SequenceApi.ctx)
-    .useContext(ODBQueryApi.ctx)
-    .useState(HashSet.empty[Dataset.Id]) // datasetIdsInFlight
-    .render: (props, ctx, sequenceApi, odbQueryApi, datasetIdsInFlight) =>
-      import ctx.given
-
-      val breakpoints: View[Set[Step.Id]] =
-        props.executionState.zoom(ExecutionState.breakpoints)
-
-      val onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback =
-        (obsId, stepId, value) =>
-          breakpoints
-            .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
-            sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
-
-      val onDatasetQAChange: Dataset.Id => EditableQaFields => Callback =
-        datasetId =>
-          qaFields =>
-            props.visits.toOptionView.map { visits =>
-              def datasetQaView(datasetId: Dataset.Id): ViewList[EditableQaFields] =
-                visits.zoom:
-                  datasetWithId(datasetId).andThen(EditableQaFields.fromDataset)
-
-              datasetIdsInFlight.modState(_ + datasetId) >>
-                odbQueryApi
-                  .updateDatasetQa(datasetId, qaFields)
-                  .flatMap: _ =>
-                    (datasetQaView(datasetId).set(qaFields) >>
-                      datasetIdsInFlight.modState(_ - datasetId))
-                      .to[IO]
-                  .handleErrorWith: e =>
-                    (datasetIdsInFlight.modState(_ - datasetId) >>
-                      ctx.toast.show(
-                        s"Error updating dataset QA state for $datasetId: ${e.getMessage}",
-                        Message.Severity.Error,
-                        sticky = true
-                      )).to[IO]
-                  .runAsync
-            }.orEmpty // If there are no visits, there's nothing to change.
-
-      props.config match // TODO Show visits even if sequence data is not available
-        case InstrumentExecutionConfig.GmosNorth(config) =>
-          GmosNorthSequenceTable(
-            props.clientMode,
-            props.obsId,
-            config,
-            props.visits.get
-              .collect:
-                case ExecutionVisits.GmosNorth(visits) => visits.toList
-              .orEmpty,
-            props.executionState.get,
-            props.currentRecordedVisit,
-            props.progress,
-            props.selectedStep,
-            props.setSelectedStep,
-            props.requests,
-            isPreview = false,
-            onBreakpointFlip,
-            onDatasetQAChange,
-            datasetIdsInFlight.value
-          )
-        case InstrumentExecutionConfig.GmosSouth(config) =>
-          GmosSouthSequenceTable(
-            props.clientMode,
-            props.obsId,
-            config,
-            props.visits.get
-              .collect:
-                case ExecutionVisits.GmosSouth(visits) => visits.toList
-              .orEmpty,
-            props.executionState.get,
-            props.currentRecordedVisit,
-            props.progress,
-            props.selectedStep,
-            props.setSelectedStep,
-            props.requests,
-            isPreview = false,
-            onBreakpointFlip,
-            onDatasetQAChange,
-            datasetIdsInFlight.value
-          )

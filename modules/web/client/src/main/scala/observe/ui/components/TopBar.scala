@@ -35,26 +35,23 @@ case class TopBar(
   vault:        View[UserVault],
   theme:        View[Theme],
   onLogout:     IO[Unit]
-) extends ReactFnProps(TopBar.component)
+) extends ReactFnProps(TopBar)
 
-object TopBar:
-  private type Props = TopBar
+object TopBar
+    extends ReactFnComponent[TopBar](props =>
+      object IsAboutOpen extends NewType[Boolean]
 
-  private object IsAboutOpen extends NewType[Boolean]
+      type ForceRerender = ForceRerender.Type
+      object ForceRerender extends NewType[Boolean]:
+        extension (s: ForceRerender)
+          def flip: ForceRerender =
+            if (s.value) ForceRerender(true) else ForceRerender(false)
 
-  private type ForceRerender = ForceRerender.Type
-  private object ForceRerender extends NewType[Boolean]:
-    extension (s: ForceRerender)
-      def flip: ForceRerender =
-        if (s.value) ForceRerender(true) else ForceRerender(false)
-
-  private val component =
-    ScalaFnComponent
-      .withHooks[Props]
-      .useContext(AppContext.ctx)
-      .useStateView(IsAboutOpen(false))
-      .usePopupMenuRef
-      .render: (props, ctx, isAboutOpen, menuRef) =>
+      for
+        ctx         <- useContext(AppContext.ctx)
+        isAboutOpen <- useStateView(IsAboutOpen(false))
+        menuRef     <- usePopupMenuRef
+      yield
         import ctx.given
 
         val user = props.vault.get.user
@@ -107,3 +104,4 @@ object TopBar:
           else
             EmptyVdom,
         )
+    )

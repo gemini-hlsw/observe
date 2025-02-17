@@ -32,113 +32,112 @@ case class ConfigPanel(
   observer:   View[Option[Observer]],
   operator:   View[Option[Operator]],
   conditions: View[Conditions]
-) extends ReactFnProps(ConfigPanel.component)
+) extends ReactFnProps(ConfigPanel)
 
-object ConfigPanel:
-  private type Props = ConfigPanel
+object ConfigPanel
+    extends ReactFnComponent[ConfigPanel](props =>
+      for
+        ctx       <- useContext(AppContext.ctx)
+        configApi <- useContext(ConfigApi.ctx)
+      yield
+        import ctx.given
 
-  private val component = ScalaFnComponent
-    .withHooks[Props]
-    .useContext(AppContext.ctx)
-    .useContext(ConfigApi.ctx)
-    .render: (props, ctx, configApi) =>
-      import ctx.given
+        val iq: View[Option[ImageQuality]] =
+          props.conditions
+            .zoom(Conditions.iq)
+            .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
 
-      val iq: View[Option[ImageQuality]] =
-        props.conditions
-          .zoom(Conditions.iq)
-          .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
+        val ce: View[Option[CloudExtinction]] =
+          props.conditions
+            .zoom(Conditions.ce)
+            .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
 
-      val ce: View[Option[CloudExtinction]] =
-        props.conditions
-          .zoom(Conditions.ce)
-          .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
+        val wv: View[Option[WaterVapor]] =
+          props.conditions
+            .zoom(Conditions.wv)
+            .withOnMod(_.map(configApi.setWaterVapor).orEmpty.runAsync)
 
-      val wv: View[Option[WaterVapor]] =
-        props.conditions
-          .zoom(Conditions.wv)
-          .withOnMod(_.map(configApi.setWaterVapor).orEmpty.runAsync)
+        val sb: View[Option[SkyBackground]] =
+          props.conditions
+            .zoom(Conditions.sb)
+            .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
 
-      val sb: View[Option[SkyBackground]] =
-        props.conditions
-          .zoom(Conditions.sb)
-          .withOnMod(_.map(configApi.setSkyBackground).orEmpty.runAsync)
+        val op: View[Option[Operator]] =
+          props.operator.withOnMod(configApi.setOperator(_).runAsync)
 
-      val op: View[Option[Operator]] =
-        props.operator.withOnMod(configApi.setOperator(_).runAsync)
-
-      <.div(ObserveStyles.ConfigSection)(
-        <.div(ObserveStyles.ConditionsSection)(
-          <.span(ObserveStyles.ConditionsLabel)("Current Conditions"),
-          <.div(ObserveStyles.ImageQualityArea)(
-            FormEnumDropdownOptionalView(
-              id = "imageQuality".refined,
-              label = "IQ",
-              value = iq,
-              showClear = false,
-              disabled = configApi.isBlocked
-            )
-          ),
-          <.div(ObserveStyles.CloudExtinctionArea)(
-            FormEnumDropdownOptionalView(
-              id = "cloudExtinction".refined,
-              label = "CE",
-              value = ce,
-              showClear = false,
-              disabled = configApi.isBlocked
-            )
-          ),
-          <.div(ObserveStyles.WaterVaporArea)(
-            FormEnumDropdownOptionalView(
-              id = "waterVapor".refined,
-              label = "WV",
-              value = wv,
-              showClear = false,
-              disabled = configApi.isBlocked
-            )
-          ),
-          <.div(ObserveStyles.SkyBackgroundArea)(
-            FormEnumDropdownOptionalView(
-              id = "skyBackground".refined,
-              label = "BG",
-              value = sb,
-              showClear = false,
-              disabled = configApi.isBlocked
-            )
-          )
-        ),
-        <.div(ObserveStyles.NamesSection)(
-          <.div(ObserveStyles.OperatorArea)(
-            FormInputTextView(
-              id = "operator".refined,
-              label = React.Fragment(
-                <.span(ObserveStyles.OnlyLargeScreens)("Operator"),
-                <.span(ObserveStyles.OnlySmallScreens)("Op")
-              ),
-              value = op,
-              validFormat = InputValidSplitEpi
-                .fromIso(OptionNonEmptyStringIso.reverse)
-                .andThen(Operator.value.reverse.option),
-              disabled = configApi.isBlocked
-            )
-          ),
-          <.div(ObserveStyles.ObserverArea)(
-            props.obsId.map: obsId =>
-              val obs: View[Option[Observer]] =
-                props.observer.withOnMod(configApi.setObserver(obsId, _).runAsync)
-
-              FormInputTextView(
-                id = "observer".refined,
-                label = React.Fragment(
-                  <.span(ObserveStyles.OnlyLargeScreens)("Observer"),
-                  <.span(ObserveStyles.OnlySmallScreens)("Obs")
-                ),
-                value = obs,
-                validFormat = InputValidSplitEpi
-                  .fromIso(OptionNonEmptyStringIso.reverse)
-                  .andThen(Observer.value.reverse.option),
+        <.div(ObserveStyles.ConfigSection)(
+          <.div(ObserveStyles.ConditionsSection)(
+            <.span(ObserveStyles.ConditionsLabel)("Current Conditions"),
+            <.div(ObserveStyles.ImageQualityArea)(
+              FormEnumDropdownOptionalView(
+                id = "imageQuality".refined,
+                label = "IQ",
+                value = iq,
+                showClear = false,
                 disabled = configApi.isBlocked
               )
+            ),
+            <.div(ObserveStyles.CloudExtinctionArea)(
+              FormEnumDropdownOptionalView(
+                id = "cloudExtinction".refined,
+                label = "CE",
+                value = ce,
+                showClear = false,
+                disabled = configApi.isBlocked
+              )
+            ),
+            <.div(ObserveStyles.WaterVaporArea)(
+              FormEnumDropdownOptionalView(
+                id = "waterVapor".refined,
+                label = "WV",
+                value = wv,
+                showClear = false,
+                disabled = configApi.isBlocked
+              )
+            ),
+            <.div(ObserveStyles.SkyBackgroundArea)(
+              FormEnumDropdownOptionalView(
+                id = "skyBackground".refined,
+                label = "BG",
+                value = sb,
+                showClear = false,
+                disabled = configApi.isBlocked
+              )
+            )
+          ),
+          <.div(ObserveStyles.NamesSection)(
+            <.div(ObserveStyles.OperatorArea)(
+              FormInputTextView(
+                id = "operator".refined,
+                label = React.Fragment(
+                  <.span(ObserveStyles.OnlyLargeScreens)("Operator"),
+                  <.span(ObserveStyles.OnlySmallScreens)("Op")
+                ),
+                value = op,
+                validFormat = InputValidSplitEpi
+                  .fromIso(OptionNonEmptyStringIso.reverse)
+                  .andThen(Operator.value.reverse.option),
+                disabled = configApi.isBlocked
+              )
+            ),
+            <.div(ObserveStyles.ObserverArea)(
+              props.obsId.map: obsId =>
+                val obs: View[Option[Observer]] =
+                  props.observer.withOnMod(configApi.setObserver(obsId, _).runAsync)
+
+                FormInputTextView(
+                  id = "observer".refined,
+                  label = React.Fragment(
+                    <.span(ObserveStyles.OnlyLargeScreens)("Observer"),
+                    <.span(ObserveStyles.OnlySmallScreens)("Obs")
+                  ),
+                  value = obs,
+                  validFormat = InputValidSplitEpi
+                    .fromIso(OptionNonEmptyStringIso.reverse)
+                    .andThen(Observer.value.reverse.option),
+                  disabled = configApi.isBlocked
+                )
+            )
           )
         )
-      )
+    )

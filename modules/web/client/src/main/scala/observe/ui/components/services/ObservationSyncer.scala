@@ -13,6 +13,7 @@ import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
+import lucuma.react.common.ReactFnComponent
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.odb.input.*
 import lucuma.ui.reusability.given
@@ -28,28 +29,26 @@ import observe.ui.services.SequenceApi
 case class ObservationSyncer(
   nighttimeObservation:              View[Option[LoadedObservation]],
   nighttimeObservationSequenceState: SequenceState
-) extends ReactFnProps(ObservationSyncer.component)
+) extends ReactFnProps(ObservationSyncer)
 
-object ObservationSyncer:
-  private type Props = ObservationSyncer
-
-  private val component =
-    ScalaFnComponent[Props]: props =>
+object ObservationSyncer
+    extends ReactFnComponent[ObservationSyncer](props =>
       for
         ctx             <- useContext(AppContext.ctx)
         sequenceApi     <- useContext(SequenceApi.ctx)
         odbQueryApi     <- useContext(ODBQueryApi.ctx)
         subscribedObsId <- useRef(none[Observation.Id])
         stoppedSignal   <- useSignalStream(!props.nighttimeObservationSequenceState.isRunning)
-        signal          <- useMemo(stoppedSignal):
-                             _.map: // Reusable
-                               _.map: // Pot
-                                 _.filter(_ === true) // Only signal when sequence is stopped
-                                   .void
-                                   .merge: // Signal when ODB reconnects
-                                     ctx.odbClient.statusStream.changes
-                                       .filter(_ === PersistentClientStatus.Connected)
-                                       .void
+        signal          <-
+          useMemo(stoppedSignal):
+            _.map: // Reusable
+              _.map: // Pot
+                _.filter(_ === true) // Only signal when sequence is stopped
+                  .void
+                  .merge: // Signal when ODB reconnects
+                    ctx.odbClient.statusStream.changes
+                      .filter(_ === PersistentClientStatus.Connected)
+                      .void
         _               <-
           useEffectStreamResourceWithDeps(
             (props.nighttimeObservation.get.map(_.obsId).toPot, signal.sequencePot).tupled.toOption
@@ -81,3 +80,4 @@ object ObservationSyncer:
                   fs2.Stream.eval:
                     props.nighttimeObservation.async.mod(_.map(_.reset))
       yield EmptyVdom
+    )

@@ -23,6 +23,8 @@ enum StepProgress(val isNs: Boolean) derives Eq:
   def remaining: TimeSpan
   def stage: ObserveStage
 
+  def isAcquiring: Boolean = stage === ObserveStage.Acquiring
+
   case Regular(
     stepId:    Step.Id,
     total:     TimeSpan,

@@ -22,45 +22,44 @@ case class AcquisitionPrompt(
   onRepeat:         Callback,
   operationRequest: OperationRequest,
   clicked:          View[Option[SequenceType]]
-) extends ReactFnProps(AcquisitionPrompt.component)
+) extends ReactFnProps(AcquisitionPrompt)
 
-object AcquisitionPrompt:
-  private type Props = AcquisitionPrompt
+object AcquisitionPrompt
+    extends ReactFnComponent[AcquisitionPrompt](props =>
+      // TODO REMOVE ISINFLIGHT!
 
-  // TODO REMOVE ISINFLIGHT!
-
-  private val component = ScalaFnComponent[Props]: props =>
-    <.div(ObserveStyles.AcquisitionPrompt)(
-      Icons.CircleQuestion.withSize(IconSize.LG),
-      <.div(ObserveStyles.AcquisitionPromptMain)(
-        <.div("Has the target been acquired?"),
-        <.div(
-          Button(
-            size = Button.Size.Small,
-            icon = props.clicked.get match
-              case Some(SequenceType.Science) => LucumaIcons.CircleNotch
-              case _                          => Icons.CircleCheck,
-            label = "Yes, start observation",
-            disabled = props.clicked.get.isDefined,
-            severity = props.clicked.get match
-              case Some(SequenceType.Acquisition) => Button.Severity.Secondary
-              case _                              => Button.Severity.Primary,
-            onClick = props.onProceed >> props.clicked.set(SequenceType.Science.some)
-          ).compact,
-          Button(
-            size = Button.Size.Small,
-            icon = props.clicked.get match
-              case Some(SequenceType.Acquisition) => LucumaIcons.CircleNotch
-              case _                              => Icons.ArrowsRetweet,
-            label = "No, take another step",
-            disabled = props.clicked.get.isDefined,
-            severity = props.clicked.get match
-              case Some(SequenceType.Science) => Button.Severity.Secondary
-              case _                          => Button.Severity.Primary,
-            onClick = props.onRepeat >> props.clicked.set(SequenceType.Acquisition.some)
-          ).compact
-        )
-      ),
-      <.div(ObserveStyles.AcquisitionPromptBusy)(LucumaIcons.CircleNotch.withSize(IconSize.XL))
-        .when(props.clicked.get.isDefined)
+      <.div(ObserveStyles.AcquisitionPrompt)(
+        Icons.CircleQuestion.withSize(IconSize.LG),
+        <.div(ObserveStyles.AcquisitionPromptMain)(
+          <.div("Has the target been acquired?"),
+          <.div(
+            Button(
+              size = Button.Size.Small,
+              icon = props.clicked.get match
+                case Some(SequenceType.Science) => LucumaIcons.CircleNotch
+                case _                          => Icons.CircleCheck,
+              label = "Yes, start observation",
+              disabled = props.clicked.get.isDefined,
+              severity = props.clicked.get match
+                case Some(SequenceType.Acquisition) => Button.Severity.Secondary
+                case _                              => Button.Severity.Primary,
+              onClick = props.onProceed >> props.clicked.set(SequenceType.Science.some)
+            ).compact,
+            Button(
+              size = Button.Size.Small,
+              icon = props.clicked.get match
+                case Some(SequenceType.Acquisition) => LucumaIcons.CircleNotch
+                case _                              => Icons.ArrowsRetweet,
+              label = "No, take another step",
+              disabled = props.clicked.get.isDefined,
+              severity = props.clicked.get match
+                case Some(SequenceType.Science) => Button.Severity.Secondary
+                case _                          => Button.Severity.Primary,
+              onClick = props.onRepeat >> props.clicked.set(SequenceType.Acquisition.some)
+            ).compact
+          )
+        ),
+        <.div(ObserveStyles.AcquisitionPromptBusy)(LucumaIcons.CircleNotch.withSize(IconSize.XL))
+          .when(props.clicked.get.isDefined)
+      )
     )

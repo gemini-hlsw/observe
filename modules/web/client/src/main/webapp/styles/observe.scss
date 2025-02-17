@@ -740,6 +740,8 @@ body {
   &.ObserveStyles-controlButtonStrip {
     height: 21px;
     width: 84px;
+    padding-left: 0.2em;
+    padding-right: 0.5em;
 
     & > button { 
       height: 100%;
