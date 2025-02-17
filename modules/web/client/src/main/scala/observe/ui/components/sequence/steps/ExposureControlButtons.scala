@@ -27,16 +27,17 @@ import observe.ui.services.SequenceApi
 /**
  * Contains a set of control buttons like stop/abort
  */
-case class StepControlButtons(
-  obsId:          Observation.Id,
-  instrument:     Instrument,
-  sequenceState:  SequenceState,
-  stepId:         Step.Id,
-  isPausedInStep: Boolean,
-  isReadingOut:   Boolean,
-  isMultiLevel:   Boolean,
-  requests:       ObservationRequests
-) extends ReactFnProps(StepControlButtons):
+case class ExposureControlButtons(
+  obsId:           Observation.Id,
+  instrument:      Instrument,
+  sequenceState:   SequenceState,
+  stepId:          Step.Id,
+  isPausedInStep:  Boolean,
+  isAcquiring:     Boolean,
+  isStopRequested: Boolean,
+  isMultiLevel:    Boolean,
+  requests:        ObservationRequests
+) extends ReactFnProps(ExposureControlButtons):
   val operations: List[Operations] =
     instrument.operations(OperationLevel.Observation, isPausedInStep, isMultiLevel)
 
@@ -44,8 +45,8 @@ case class StepControlButtons(
 
   val requestInFlight: Boolean = requests.stepRequestInFlight
 
-object StepControlButtons
-    extends ReactFnComponent[StepControlButtons](props =>
+object ExposureControlButtons
+    extends ReactFnComponent[ExposureControlButtons](props =>
       for
         ctx         <- useContext(AppContext.ctx)
         sequenceApi <- useContext(SequenceApi.ctx)
@@ -73,7 +74,8 @@ object StepControlButtons
                     icon = Icons.Play.withFixedWidth(),
                     tooltip = "Resume the current exposure",
                     tooltipOptions = DefaultTooltipOptions,
-                    disabled = props.requestInFlight || !props.isPausedInStep || props.isReadingOut,
+                    disabled =
+                      props.requestInFlight || !props.isPausedInStep || !props.isAcquiring || props.isStopRequested,
                     onClickE = _.stopPropagationCB >> sequenceApi.resumeObs(props.obsId).runAsync
                   )
                 case PauseObservation  =>
@@ -82,7 +84,8 @@ object StepControlButtons
                     icon = Icons.Pause.withFixedWidth(),
                     tooltip = "Pause the current exposure",
                     tooltipOptions = DefaultTooltipOptions,
-                    disabled = props.requestInFlight || props.isPausedInStep || props.isReadingOut,
+                    disabled =
+                      props.requestInFlight || props.isPausedInStep || !props.isAcquiring || props.isStopRequested,
                     onClickE = _.stopPropagationCB >> sequenceApi.pauseObs(props.obsId).runAsync
                   )
                 case StopObservation   =>
@@ -91,7 +94,7 @@ object StepControlButtons
                     icon = Icons.Stop.withFixedWidth().withSize(IconSize.LG),
                     tooltip = "Stop the current exposure early",
                     tooltipOptions = DefaultTooltipOptions,
-                    disabled = props.requestInFlight || props.isReadingOut,
+                    disabled = props.requestInFlight || !props.isAcquiring || props.isStopRequested,
                     onClickE = _.stopPropagationCB >> sequenceApi.stop(props.obsId).runAsync
                   )
                 case AbortObservation  =>
@@ -100,7 +103,7 @@ object StepControlButtons
                     icon = Icons.XMark.withFixedWidth().withSize(IconSize.LG),
                     tooltip = "Abort the current exposure",
                     tooltipOptions = DefaultTooltipOptions,
-                    disabled = props.requestInFlight || props.isReadingOut,
+                    disabled = props.requestInFlight || !props.isAcquiring,
                     onClickE = _.stopPropagationCB >> sequenceApi.abort(props.obsId).runAsync
                   )
                 // // N&S operations

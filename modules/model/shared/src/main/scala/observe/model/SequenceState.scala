@@ -26,18 +26,18 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Failed(msg: String) extends SequenceState("Failed")
   case Aborted             extends SequenceState("Aborted")
 
-  def userStopRequested: Boolean =
+  def isUserStopRequested: Boolean =
     this match
       case SequenceState.Running(b, _, _, _) => b
       case _                                 => false
 
-  def internalStopRequested: Boolean =
+  def isInternalStopRequested: Boolean =
     this match
       case SequenceState.Running(_, b, _, _) => b
       case _                                 => false
 
-  def stopRequested: Boolean =
-    userStopRequested || internalStopRequested
+  def isStopRequested: Boolean =
+    isUserStopRequested || isInternalStopRequested
 
   def isError: Boolean =
     this match

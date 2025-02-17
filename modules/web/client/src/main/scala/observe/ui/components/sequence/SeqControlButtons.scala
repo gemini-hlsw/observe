@@ -32,7 +32,7 @@ case class SeqControlButtons(
   sequenceState: SequenceState,
   requests:      ObservationRequests
 ) extends ReactFnProps(SeqControlButtons):
-  val isUserStopRequested: Boolean = sequenceState.userStopRequested
+  val isUserStopRequested: Boolean = sequenceState.isUserStopRequested
 
   val isPauseInFlight: Boolean = requests.pause === OperationRequest.InFlight
 

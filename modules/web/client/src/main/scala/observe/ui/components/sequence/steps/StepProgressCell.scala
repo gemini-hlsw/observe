@@ -12,7 +12,6 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.util.TimeSpan
 import lucuma.react.common.*
 import lucuma.ui.sequence.StepTypeDisplay
-import observe.model.ObserveStage
 import observe.model.SequenceState
 import observe.model.StepProgress
 import observe.model.SystemOverrides
@@ -68,18 +67,19 @@ case class StepProgressCell(
   //     DetailRows.NoDetailRows
 
   def isStopping: Boolean =
-    requests.stop === OperationRequest.InFlight || sequenceState.stopRequested
+    requests.stop === OperationRequest.InFlight || sequenceState.isStopRequested
 
 object StepProgressCell
     extends ReactFnComponent[StepProgressCell](props =>
-      val stepControlButtons: TagMod =
-        StepControlButtons(
+      val exposureControlButtons: TagMod =
+        ExposureControlButtons(
           props.obsId,
           props.instrument,
           props.sequenceState,
           props.stepId,
           props.isPausedInStep,
-          props.progress.exists(_.stage === ObserveStage.ReadingOut),
+          props.progress.exists(_.isAcquiring),
+          props.sequenceState.isStopRequested,
           false, // props.isNs,
           props.requests
         )        // .when(props.controlButtonsActive)
@@ -137,7 +137,6 @@ object StepProgressCell
       val fileId = ImageFileId("")
 
       <.div(ObserveStyles.ConfiguringRow)(
-        stepControlButtons,
         SubsystemControls(
           props.obsId,
           props.stepId,
@@ -148,6 +147,7 @@ object StepProgressCell
           props.systemOverrides,
           props.clientMode
         ),
+        exposureControlButtons,
         if (props.isBias)
           // BiasStatus(
           //   props.obsIdName,
