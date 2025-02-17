@@ -36,6 +36,9 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
       case SequenceState.Running(_, b, _, _) => b
       case _                                 => false
 
+  def stopRequested: Boolean =
+    userStopRequested || internalStopRequested
+
   def isError: Boolean =
     this match
       case Failed(_) => true

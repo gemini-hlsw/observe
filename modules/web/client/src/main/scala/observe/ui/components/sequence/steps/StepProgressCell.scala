@@ -68,7 +68,7 @@ case class StepProgressCell(
   //     DetailRows.NoDetailRows
 
   def isStopping: Boolean =
-    requests.stop === OperationRequest.InFlight
+    requests.stop === OperationRequest.InFlight || sequenceState.stopRequested
 
 object StepProgressCell
     extends ReactFnComponent[StepProgressCell](props =>
