@@ -51,8 +51,10 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isWaitingNextAtom: Boolean =
     this match
-      case SequenceState.Running(_, _, b, _) => b
-      case _                                 => false
+      case SequenceState.Running(_, _, waitingNextAtom, isStarting) =>
+        waitingNextAtom && !isStarting
+      case _                                                        =>
+        false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -68,10 +70,11 @@ object SequenceState:
 
   object Running:
     val Init: Running =
-      SequenceState.Running(userStop = false,
-                            internalStop = false,
-                            waitingNextAtom = false,
-                            isStarting = false
+      SequenceState.Running(
+        userStop = false,
+        internalStop = false,
+        waitingNextAtom = false,
+        isStarting = false
       )
 
     val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)
