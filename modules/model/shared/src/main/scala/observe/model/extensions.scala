@@ -35,12 +35,3 @@ object extensions:
       case Instrument.Nifs       => Site.GN.some
       // None
       case _                     => none
-
-  private val SiteInstruments: Map[Site, List[Instrument]] =
-    Instrument.all
-      .filter(_.site.isDefined)
-      .groupBy(_.site.get)
-
-  extension (site: Site)
-    def instruments: List[Instrument] =
-      SiteInstruments(site)

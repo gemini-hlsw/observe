@@ -44,7 +44,6 @@ import observe.model.*
 import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
-import observe.model.extensions.*
 import observe.queries.ObsQueriesGQL
 import observe.ui.BroadcastEvent
 import observe.ui.ObserveStyles
@@ -320,7 +319,7 @@ object MainApp extends ServerEventHandler:
 
                       ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
                         .ActiveObservationIdsQuery[IO]
-                        .query(clientConfig.site.instruments, currentSemester)
+                        .query(clientConfig.site, currentSemester)
                         .raiseGraphQLErrors
                         .flatMap: data =>
                           readyObservations.set:
