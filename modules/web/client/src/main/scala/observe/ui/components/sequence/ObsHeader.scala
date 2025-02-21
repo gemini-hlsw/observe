@@ -37,7 +37,8 @@ object ObsHeader
             props.loadedObsId,
             props.loadObs,
             props.sequenceState,
-            props.requests
+            props.requests,
+            props.observation.instrument
           ),
           s"${props.observation.title} [${props.observation.obsId}]",
           props.linkToExploreObs:

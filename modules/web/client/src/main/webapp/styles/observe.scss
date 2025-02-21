@@ -802,6 +802,15 @@ body {
     }
   }
 
+  &.ObserveStyles-reloadButton {
+    @include controlButton();
+    background-color: var(--indigo-500);
+
+    &:enabled:hover {
+      background-color: var(--indigo-600);
+    }
+  }
+
   &.ObserveStyles-abortButton {
     @include controlButton();
     background-color: var(--red-500);

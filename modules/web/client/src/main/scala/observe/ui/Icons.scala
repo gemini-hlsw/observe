@@ -10,6 +10,10 @@ import scala.scalajs.js.annotation.*
 
 object Icons:
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faArrowsRotate")
+  private val faArrowsRotate: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/pro-regular-svg-icons", "faArrowsRetweet")
   private val faArrowsRetweet: FAIcon = js.native
 
@@ -155,6 +159,7 @@ object Icons:
 
   // This is tedious but lets us do proper tree-shaking
   FontAwesome.library.add(
+    faArrowsRotate,
     faArrowsRetweet,
     faArrowUpFromLine,
     faBan,
@@ -193,6 +198,7 @@ object Icons:
     faXMark
   )
 
+  inline def ArrowsRotate      = FontAwesomeIcon(faArrowsRotate)
   inline def ArrowsRetweet     = FontAwesomeIcon(faArrowsRetweet)
   inline def ArrowUpFromLine   = FontAwesomeIcon(faArrowUpFromLine)
   inline def Ban               = FontAwesomeIcon(faBan)

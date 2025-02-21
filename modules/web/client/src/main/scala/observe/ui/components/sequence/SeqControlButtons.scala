@@ -9,6 +9,7 @@ import crystal.Pot
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.Instrument
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
@@ -30,7 +31,8 @@ case class SeqControlButtons(
   loadedObsId:   Option[Pot[Observation.Id]],
   loadObs:       Observation.Id => Callback,
   sequenceState: SequenceState,
-  requests:      ObservationRequests
+  requests:      ObservationRequests,
+  instrument:    Instrument
 ) extends ReactFnProps(SeqControlButtons):
   val isUserStopRequested: Boolean = sequenceState.isUserStopRequested
 
@@ -87,6 +89,14 @@ object SeqControlButtons
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.cancelPause(props.obsId).runAsync,
             disabled = props.isCancelPauseInFlight
-          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
+          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested),
+          Button(
+            clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
+            icon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG),
+            tooltip = "Reload sequence from ODB",
+            tooltipOptions = tooltipOptions,
+            onClick = sequenceApi.loadObservation(props.obsId, props.instrument).runAsync,
+            disabled = props.loadedObsId.exists(_.isPending) || props.isRunning
+          ).when(selectedObsIsLoaded)
         )
     )
