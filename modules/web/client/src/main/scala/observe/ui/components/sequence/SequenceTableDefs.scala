@@ -169,6 +169,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                 case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
                   renderVisitExtraRow(httpClient)(
                     step,
+                    showOngoingLabel = false,
                     step.executionState match
                       case StepExecutionState.Completed | StepExecutionState.Stopped =>
                         QaEditor(_, _, onDatasetQaChange)
