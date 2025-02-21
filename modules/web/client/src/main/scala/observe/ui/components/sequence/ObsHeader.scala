@@ -22,6 +22,7 @@ case class ObsHeader(
   observation:      ObsSummary,
   loadedObsId:      Option[Pot[Observation.Id]], // May be different than shown observation
   loadObs:          Observation.Id => Callback,
+  refreshing:       Pot[View[Boolean]],
   sequenceState:    SequenceState,
   requests:         ObservationRequests,
   overrides:        Option[View[SystemOverrides]],
@@ -36,6 +37,7 @@ object ObsHeader
             props.observation.obsId,
             props.loadedObsId,
             props.loadObs,
+            props.refreshing,
             props.sequenceState,
             props.requests,
             props.observation.instrument

@@ -167,7 +167,7 @@ object MainApp extends ServerEventHandler:
   //   (6) Initialize ODB client WebSocket connection
   //   (7) Query ready observations on ODB
   private val component =
-    ScalaFnComponent[Unit]: _ =>
+    ScalaFnComponent[Unit] { _ =>
       for
         toastRef         <- useToastRef
         syncStatus       <- useStateView(none[SyncStatus]) // UI is synced with server
@@ -202,7 +202,7 @@ object MainApp extends ServerEventHandler:
                   processStreamError(rootModelData.async.mod)(error)
         ctxPot           <- useState(Pot.pending[AppContext[IO]])
         _                <-
-          useAsyncEffectWhenDepsReady(clientConfigPot.get): clientConfig => // Build AppContext (4)
+          useAsyncEffectWhenDepsReady(clientConfigPot.get) { clientConfig => // Build AppContext (4)
             val ctxResource: Resource[IO, AppContext[IO]] =
               (for
                 dispatcher                                 <- Dispatcher.parallel[IO]
@@ -226,6 +226,7 @@ object MainApp extends ServerEventHandler:
 
             ctxResource.allocated.flatMap: (ctx, release) =>
               ctxPot.setStateAsync(ctx.ready).as(release) // Return `release` as cleanup effect
+          }
         _                <-
           useEffectWhenDepsReady(ctxPot.value): ctx =>
             // Once AppContext is ready, proceed to attempt login (5)
@@ -409,5 +410,6 @@ object MainApp extends ServerEventHandler:
                 )
               )
             )
+    }
 
   inline def apply() = component()

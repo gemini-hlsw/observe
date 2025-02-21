@@ -16,9 +16,10 @@ import monocle.Focus
 import monocle.Lens
 
 case class LoadedObservation private (
-  obsId:  Observation.Id,
-  config: Pot[InstrumentExecutionConfig] = Pot.pending,
-  visits: Pot[Option[ExecutionVisits]] = Pot.pending
+  obsId:      Observation.Id,
+  refreshing: Boolean = false,
+  config:     Pot[InstrumentExecutionConfig] = Pot.pending,
+  visits:     Pot[Option[ExecutionVisits]] = Pot.pending
 ):
   private def potFromEitherOption[A](e: Either[Throwable, Option[A]]): Pot[A] =
     e.toTry.toPot.flatMap(_.toPot)
@@ -52,6 +53,7 @@ object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
 
   val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
+  val refreshing: Lens[LoadedObservation, Boolean]                    = Focus[LoadedObservation](_.refreshing)
   val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
     Focus[LoadedObservation](_.config)
   val visits: Lens[LoadedObservation, Pot[Option[ExecutionVisits]]]   =

@@ -30,17 +30,19 @@ case class SeqControlButtons(
   obsId:         Observation.Id,
   loadedObsId:   Option[Pot[Observation.Id]],
   loadObs:       Observation.Id => Callback,
+  refreshing:    Pot[View[Boolean]],
   sequenceState: SequenceState,
   requests:      ObservationRequests,
   instrument:    Instrument
 ) extends ReactFnProps(SeqControlButtons):
-  val isUserStopRequested: Boolean = sequenceState.isUserStopRequested
-
-  val isPauseInFlight: Boolean = requests.pause === OperationRequest.InFlight
-
+  val isLoading: Boolean             = props.loadedObsId.exists(_.isPending)
+  val isReady: Boolean               = props.loadedObsId.exists(_.isReady)
+  val isUserStopRequested: Boolean   = sequenceState.isUserStopRequested
+  val isPauseInFlight: Boolean       = requests.pause === OperationRequest.InFlight
   val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
-
-  val isRunning: Boolean = sequenceState.isRunning
+  val isRunning: Boolean             = sequenceState.isRunning
+  val isWaitingNextAtom: Boolean     = sequenceState.isWaitingNextAtom
+  val isRefreshing: Boolean          = props.refreshing.exists(_.get)
 
 object SeqControlButtons
     extends ReactFnComponent[SeqControlButtons](props =>
@@ -64,15 +66,15 @@ object SeqControlButtons
             tooltip = "Load sequence",
             tooltipOptions = tooltipOptions,
             onClick = props.loadObs(props.obsId),
-            disabled = props.loadedObsId.exists(!_.isReady)
+            disabled = props.isReady
           ).when(!selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
-            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync
+            onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
+            disabled = props.isLoading || props.isRefreshing
           ).when(selectedObsIsLoaded && !props.isRunning),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
@@ -80,7 +82,7 @@ object SeqControlButtons
             tooltip = "Pause sequence after current exposure",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.pause(props.obsId).runAsync,
-            disabled = props.isPauseInFlight
+            disabled = props.isPauseInFlight || props.isWaitingNextAtom
           ).when(selectedObsIsLoaded && props.isRunning && !props.isUserStopRequested),
           Button(
             clazz = ObserveStyles.CancelPauseButton |+| ObserveStyles.ObsSummaryButton,
@@ -88,14 +90,17 @@ object SeqControlButtons
             tooltip = "Cancel process to pause the sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.cancelPause(props.obsId).runAsync,
-            disabled = props.isCancelPauseInFlight
+            disabled = props.isCancelPauseInFlight || props.isWaitingNextAtom
           ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested),
           Button(
             clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
+            loading = props.isRefreshing,
             icon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG),
+            loadingIcon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG).withSpin(),
             tooltip = "Reload sequence from ODB",
             tooltipOptions = tooltipOptions,
-            onClick = sequenceApi.loadObservation(props.obsId, props.instrument).runAsync,
+            onClick = props.refreshing.toOption.foldMap(_.set(true)) >>
+              sequenceApi.loadObservation(props.obsId, props.instrument).runAsync,
             disabled = props.loadedObsId.exists(_.isPending) || props.isRunning
           ).when(selectedObsIsLoaded)
         )
