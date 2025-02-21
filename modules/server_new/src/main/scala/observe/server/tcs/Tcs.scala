@@ -40,7 +40,7 @@ object Tcs {
 
     def toGuideSensorOption: GuiderSensorOption = guideWith match {
       case StepGuideState.Disabled => GuiderSensorOff
-      case StepGuideState.Enabled  => GuiderSensorOff
+      case StepGuideState.Enabled  => GuiderSensorOn
     }
   }
 
