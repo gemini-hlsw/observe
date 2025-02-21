@@ -8,12 +8,12 @@ import lucuma.core.util.Enumerated
 enum ObserveStage(val tag: String) derives Enumerated:
   case Idle       extends ObserveStage("Idle")
   case Preparing  extends ObserveStage("Preparing")
-  case Acquiring  extends ObserveStage("Acquiring")
+  case Exposure   extends ObserveStage("Exposure")
   case ReadingOut extends ObserveStage("ReadingOut")
 
 object ObserveStage:
-  def fromBooleans(prep: Boolean, acq: Boolean, rdout: Boolean): ObserveStage =
+  def fromBooleans(prep: Boolean, exp: Boolean, rdout: Boolean): ObserveStage =
     if (prep) Preparing
-    else if (acq) Acquiring
+    else if (exp) Exposure
     else if (rdout) ReadingOut
     else Idle

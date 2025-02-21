@@ -34,13 +34,11 @@ case class ObservationProgressBar(
   exposureTime:   TimeSpan,
   progress:       Option[StepProgress],
   fileId:         ImageFileId, // TODO This can be multiple ones
-  isStopping:     Boolean,
   isPausedInStep: Boolean
 ) extends ReactFnProps(ObservationProgressBar):
   val isStatic: Boolean =
     !sequenceState.isRunning ||
-      !progress.map(_.stage).contains_(ObserveStage.Acquiring) ||
-      isStopping ||
+      !progress.map(_.stage).contains_(ObserveStage.Exposure) ||
       isPausedInStep
 
   val runningProgress: Option[StepProgress] =
@@ -115,7 +113,6 @@ object ObservationProgressBar
                 renderProgressLabel(
                   props.fileId,
                   remainingShown.value.some,
-                  props.isStopping,
                   props.isPausedInStep,
                   runningProgress.stage
                 )
