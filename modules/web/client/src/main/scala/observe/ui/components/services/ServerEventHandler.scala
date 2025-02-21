@@ -167,7 +167,7 @@ trait ServerEventHandler:
               if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else
-                obs
+                obs.map(LoadedObservation.refreshing.replace(false))
             } >>>
             sequenceExecution
               .collect:

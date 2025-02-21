@@ -82,6 +82,7 @@ object ObserveStyles:
   val StopButton: Css                 = Css("ObserveStyles-stopButton")
   val PlayButton: Css                 = Css("ObserveStyles-playButton")
   val AbortButton: Css                = Css("ObserveStyles-abortButton")
+  val ReloadButton: Css               = Css("ObserveStyles-reloadButton")
   val SingleButton: Css               = Css("ObserveStyles-singleButton")
   val IconSoft: Css                   = Css("ObserveStyles-iconSoft")
   val QaStatusEditable: Css           = Css("ObserveStyles-qaStatusEditable")
