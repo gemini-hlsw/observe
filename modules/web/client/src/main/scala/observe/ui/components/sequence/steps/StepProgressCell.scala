@@ -21,7 +21,6 @@ import observe.model.enums.Resource
 import observe.ui.ObserveStyles
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
-import observe.ui.model.enums.OperationRequest
 
 case class StepProgressCell(
   clientMode:      ClientMode,
@@ -66,9 +65,6 @@ case class StepProgressCell(
   //   else
   //     DetailRows.NoDetailRows
 
-  def isStopping: Boolean =
-    requests.stop === OperationRequest.InFlight || sequenceState.isStopRequested
-
 object StepProgressCell
     extends ReactFnComponent[StepProgressCell](props =>
       val exposureControlButtons: TagMod =
@@ -78,8 +74,7 @@ object StepProgressCell
           props.sequenceState,
           props.stepId,
           props.isPausedInStep,
-          props.progress.exists(_.isAcquiring),
-          props.sequenceState.isStopRequested,
+          props.progress.exists(_.isExposure),
           false, // props.isNs,
           props.requests
         )        // .when(props.controlButtonsActive)
@@ -166,7 +161,6 @@ object StepProgressCell
             props.exposureTime,
             props.progress,
             fileId,
-            isStopping = !props.isPausedInStep && props.isStopping,
             props.isPausedInStep
           )
         else EmptyVdom

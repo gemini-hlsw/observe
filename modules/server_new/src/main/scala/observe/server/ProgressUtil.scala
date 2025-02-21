@@ -56,7 +56,7 @@ object ProgressUtil {
         val progress  = t +| elapsed
         val remaining = total -| progress
         val clipped   = if (remaining >= TimeSpan.Zero) remaining else TimeSpan.Zero
-        ObsProgress(total, RemainingTime(clipped), ObserveStage.Acquiring).pure[F].widen[Progress]
+        ObsProgress(total, RemainingTime(clipped), ObserveStage.Exposure).pure[F].widen[Progress]
       }
       .takeThrough(_.remaining.self > TimeSpan.Zero)
 
@@ -85,5 +85,5 @@ object ProgressUtil {
           .map(v => ObsProgress(total, RemainingTime(clipped), v))
           .widen[Progress]
       }
-      .takeThrough(x => x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Acquiring)
+      .takeThrough(x => x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Exposure)
 }

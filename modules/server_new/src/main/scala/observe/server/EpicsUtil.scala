@@ -443,7 +443,7 @@ object EpicsUtil {
       )
       .dropWhile(_.remaining.self === TimeSpan.Zero) // drop leading zeros
       .takeThrough(x =>
-        x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Acquiring
+        x.remaining.self > TimeSpan.Zero || x.stage === ObserveStage.Exposure
       ) // drop all tailing zeros but the first one, unless it is still acquiring
 
   // Component names read from instruments usually have a part name as suffix. For example, the

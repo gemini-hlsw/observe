@@ -17,7 +17,6 @@ import observe.model.enums.ExecutionStepType
 def renderProgressLabel(
   fileId:            ImageFileId,
   remainingTimeSpan: Option[TimeSpan],
-  isStopping:        Boolean,
   isPausedInStep:    Boolean,
   stage:             ObserveStage
 ): String =
@@ -34,12 +33,11 @@ def renderProgressLabel(
         .filterNot(_.isEmpty)
         .mkString(" ")
 
-  val stageStr: String = (isPausedInStep, isStopping, stage) match
-    case (true, _, _)                    => "Paused"
-    case (_, true, _)                    => "Stopping - Reading out..."
-    case (_, _, ObserveStage.Preparing)  => "Preparing"
-    case (_, _, ObserveStage.ReadingOut) => "Reading out..."
-    case _                               => ""
+  val stageStr: String = (isPausedInStep, stage) match
+    case (true, _)                    => "Paused"
+    case (_, ObserveStage.Preparing)  => "Preparing"
+    case (_, ObserveStage.ReadingOut) => "Reading out..."
+    case _                            => ""
 
   // if (paused) s"$fileId - Paused$durationStr"
   // else if (stopping) s"$fileId - Stopping - Reading out..."
