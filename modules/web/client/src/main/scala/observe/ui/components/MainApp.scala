@@ -320,7 +320,11 @@ object MainApp extends ServerEventHandler:
 
                       ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
                         .ActiveObservationIdsQuery[IO]
-                        .query(clientConfig.site, currentSemester)
+                        .query(
+                          clientConfig.site,
+                          currentSemester.start.localDate,
+                          currentSemester.end.localDate
+                        )
                         .raiseGraphQLErrors
                         .flatMap: data =>
                           readyObservations.set:

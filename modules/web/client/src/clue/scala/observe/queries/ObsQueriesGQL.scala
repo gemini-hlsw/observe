@@ -8,17 +8,23 @@ import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
 import observe.ui.model.ObsSummary
 
-// gql: import lucuma.schemas.decoders.given
-
 object ObsQueriesGQL {
 
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = s"""
-      query($$site: Site!, $$semester: Semester!) {
+      query($$site: Site!, $$start: Date!, $$end: Date!) {
         observationsByWorkflowState(
           states: [READY, ONGOING],
-          WHERE: { site: { EQ: $$site }, program: { reference: { semester: { EQ: $$semester } } } }      
+          WHERE: { 
+            site: { EQ: $$site },
+            program: {
+              AND: [
+                { activeStart: { GTE: $$start } },
+                { activeStart: { LTE: $$end } } 
+              ]
+            }
+          }
         ) $ObservationSummarySubquery
       }
     """
