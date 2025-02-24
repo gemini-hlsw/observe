@@ -13,15 +13,15 @@ object ObsQueriesGQL {
   @GraphQL
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = s"""
-      query($$site: Site!, $$start: Date!, $$end: Date!) {
+      query($$site: Site!, $$date: Date!) {
         observationsByWorkflowState(
           states: [READY, ONGOING],
           WHERE: { 
             site: { EQ: $$site },
             program: {
               AND: [
-                { activeStart: { GTE: $$start } },
-                { activeStart: { LTE: $$end } } 
+                { activeStart: { LTE: $$date } },
+                { activeEnd: { GTE: $$date } } 
               ]
             }
           }
