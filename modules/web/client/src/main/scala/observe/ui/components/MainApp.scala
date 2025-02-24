@@ -25,7 +25,7 @@ import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import log4cats.loglevel.LogLevelLogger
-import lucuma.core.model.Semester
+import lucuma.core.model.LocalObservingNight
 import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.react.common.*
@@ -313,14 +313,16 @@ object MainApp extends ServerEventHandler:
                   Resource
                     .eval(IO.realTime)
                     .flatMap: now =>
-                      val currentSemester: Semester =
-                        Semester
+                      val localObservingNight: LocalObservingNight =
+                        LocalObservingNight
                           .fromSiteAndInstant(clientConfig.site, Instant.ofEpochMilli(now.toMillis))
-                          .get
 
-                      ObsQueriesGQL // We filter by instruments as a proxy to filtering by site.
+                      ObsQueriesGQL
                         .ActiveObservationIdsQuery[IO]
-                        .query(clientConfig.site, currentSemester)
+                        .query(
+                          clientConfig.site,
+                          localObservingNight.toLocalDate
+                        )
                         .raiseGraphQLErrors
                         .flatMap: data =>
                           readyObservations.set:
