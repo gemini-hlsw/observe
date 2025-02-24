@@ -338,7 +338,7 @@ object MainApp extends ServerEventHandler:
           (ctxPot.value.toOption,
            apiClientOpt.value,
            rootModelData.get.observer,
-           permitPot.toOption
+           permitPot.value.toOption
           ).mapN: (ctx, client, observer, permit) =>
             import ctx.given
 
