@@ -187,7 +187,7 @@ object Gmos {
   def shutterStateObserveType(obsType: StepType): ShutterState = obsType match {
     case StepType.DarkOrBias(_) | StepType.ExclusiveDarkOrBias(_) | StepType.DarkOrBiasNS(_) =>
       ShutterState.CloseShutter
-    case _                                                                                   => ShutterState.UnsetShutter
+    case _                                                                                   => ShutterState.OpenShutter
   }
 
   def calcGainSetting(r: GmosCcdMode): Double = (r.ampReadMode, r.ampGain) match {
