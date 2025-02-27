@@ -6,13 +6,13 @@ package observe.server
 import cats.syntax.all.*
 import lucuma.core.util.Enumerated
 
-sealed abstract class EpicsHealth(val tag: String) extends Product with Serializable
+enum EpicsHealth(val tag: String) derives Enumerated {
+
+  case Good extends EpicsHealth("Good")
+
+  case Bad extends EpicsHealth("Bad")
+}
 
 object EpicsHealth {
-  case object Good extends EpicsHealth("Good")
-  case object Bad  extends EpicsHealth("Bad")
-  implicit def fromInt(v: Int): EpicsHealth = if (v === 0) Good else Bad
-
-  given Enumerated[EpicsHealth] =
-    Enumerated.from(Good, Bad).withTag(_.tag)
+  def fromInt(v: Int): EpicsHealth = if (v === 0) Good else Bad
 }

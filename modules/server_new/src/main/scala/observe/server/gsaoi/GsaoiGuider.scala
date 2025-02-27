@@ -14,16 +14,11 @@ trait GsaoiGuider[F[_]] {
 
 object GsaoiGuider {
 
-  sealed abstract class OdgwId(val tag: String) extends Product with Serializable
-
-  object OdgwId {
-    case object Odgw1 extends OdgwId("Odgw1")
-    case object Odgw2 extends OdgwId("Odgw2")
-    case object Odgw3 extends OdgwId("Odgw3")
-    case object Odgw4 extends OdgwId("Odgw4")
-
-    given Enumerated[OdgwId] = Enumerated.from(Odgw1, Odgw2, Odgw3, Odgw4).withTag(_.tag)
-
+  enum OdgwId(val tag: String) derives Enumerated {
+    case Odgw1 extends OdgwId("Odgw1")
+    case Odgw2 extends OdgwId("Odgw2")
+    case Odgw3 extends OdgwId("Odgw3")
+    case Odgw4 extends OdgwId("Odgw4")
   }
 
   trait StepGuideState {
