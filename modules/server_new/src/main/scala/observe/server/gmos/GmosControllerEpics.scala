@@ -49,7 +49,6 @@ trait GmosEncoders {
   given EncodeEpicsValue[ShutterState, String] = EncodeEpicsValue {
     case ShutterState.OpenShutter  => "OPEN"
     case ShutterState.CloseShutter => "CLOSED"
-    case _                         => ""
   }
 
   given EncodeEpicsValue[AmpCount, String] = EncodeEpicsValue {
@@ -233,12 +232,8 @@ object GmosControllerEpics extends GmosEncoders {
           useElectronicOffsetting
         )
 
-      private def setShutterState(s: GmosDCEpicsState, dc: DCConfig): Option[F[Unit]] = dc.s match {
-        case ShutterState.UnsetShutter => none
-        case sh                        =>
-          val encodedVal = encode(sh)
-          applyParam(s.shutterState, encodedVal, DC.setShutterState)
-      }
+      private def setShutterState(s: GmosDCEpicsState, dc: DCConfig): Option[F[Unit]] =
+        applyParam(s.shutterState, encode(dc.s), DC.setShutterState)
 
       private def setGainSetting(
         state: GmosDCEpicsState,

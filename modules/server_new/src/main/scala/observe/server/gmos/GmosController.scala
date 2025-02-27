@@ -93,13 +93,12 @@ object GmosController {
     sealed abstract class ShutterState(val tag: String) extends Product with Serializable
 
     object ShutterState {
-      case object UnsetShutter extends ShutterState("UnsetShutter")
       case object OpenShutter  extends ShutterState("OpenShutter")
       case object CloseShutter extends ShutterState("CloseShutter")
 
       /** @group Typeclass Instances */
       given Enumerated[ShutterState] =
-        Enumerated.from(UnsetShutter, OpenShutter, CloseShutter).withTag(_.tag)
+        Enumerated.from(OpenShutter, CloseShutter).withTag(_.tag)
     }
 
     sealed abstract class Beam(val tag: String) extends Product with Serializable
