@@ -90,26 +90,14 @@ object GmosController {
     }
 
     // Used for the shutterState
-    sealed abstract class ShutterState(val tag: String) extends Product with Serializable
-
-    object ShutterState {
-      case object OpenShutter  extends ShutterState("OpenShutter")
-      case object CloseShutter extends ShutterState("CloseShutter")
-
-      /** @group Typeclass Instances */
-      given Enumerated[ShutterState] =
-        Enumerated.from(OpenShutter, CloseShutter).withTag(_.tag)
+    enum ShutterState(val tag: String) derives Enumerated {
+      case OpenShutter  extends ShutterState("OpenShutter")
+      case CloseShutter extends ShutterState("CloseShutter")
     }
 
-    sealed abstract class Beam(val tag: String) extends Product with Serializable
-
-    object Beam {
-      case object InBeam    extends Beam("InBeam")
-      case object OutOfBeam extends Beam("OutOfBeam")
-
-      /** @group Typeclass Instances */
-      given Enumerated[Beam] =
-        Enumerated.from(InBeam, OutOfBeam).withTag(_.tag)
+    enum Beam(val tag: String) derives Enumerated {
+      case InBeam    extends Beam("InBeam")
+      case OutOfBeam extends Beam("OutOfBeam")
     }
 
     type ElectronicOffset = GmosEOffsetting

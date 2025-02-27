@@ -7,22 +7,8 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class FocalPlane(val tag: String) extends Product with Serializable {
-  def label: String
-}
-
-object FocalPlane {
-  case object SingleSlit   extends FocalPlane("SingleSlit")   {
-    val label = "Single Slit"
-  }
-  case object MultipleSlit extends FocalPlane("MultipleSlit") {
-    val label = "Multiple Slits"
-  }
-  case object IFU          extends FocalPlane("IFU")          {
-    val label = "IFU"
-  }
-
-  /** @group Typeclass Instances */
-  given Enumerated[FocalPlane] =
-    Enumerated.from(SingleSlit, MultipleSlit, IFU).withTag(_.tag)
+enum FocalPlane(val tag: String, val label: String) derives Enumerated {
+  case SingleSlit   extends FocalPlane("SingleSlit", label = "Single Slit")
+  case MultipleSlit extends FocalPlane("MultipleSlit", label = "Multiple Slits")
+  case IFU          extends FocalPlane("IFU", label = "IFU")
 }

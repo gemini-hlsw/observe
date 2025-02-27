@@ -49,27 +49,18 @@ package object gmos {
 
   }
 
-  sealed abstract class NSObserveCommand(val tag: String) extends Product with Serializable
+  enum NSObserveCommand(val tag: String) derives Enumerated {
+    case StopGracefully extends NSObserveCommand("StopGracefully")
 
-  object NSObserveCommand {
-    case object StopGracefully   extends NSObserveCommand("StopGracefully")
-    case object StopImmediately  extends NSObserveCommand("StopImmediately")
-    case object AbortGracefully  extends NSObserveCommand("AbortGracefully")
-    case object AbortImmediately extends NSObserveCommand("AbortImmediately")
-    case object PauseGracefully  extends NSObserveCommand("PauseGracefully")
-    case object PauseImmediately extends NSObserveCommand("PauseImmediately")
+    case StopImmediately extends NSObserveCommand("StopImmediately")
 
-    given Enumerated[NSObserveCommand] =
-      Enumerated
-        .from(
-          StopGracefully,
-          StopImmediately,
-          AbortGracefully,
-          AbortImmediately,
-          PauseGracefully,
-          PauseImmediately
-        )
-        .withTag(_.tag)
+    case AbortGracefully extends NSObserveCommand("AbortGracefully")
+
+    case AbortImmediately extends NSObserveCommand("AbortImmediately")
+
+    case PauseGracefully extends NSObserveCommand("PauseGracefully")
+
+    case PauseImmediately extends NSObserveCommand("PauseImmediately")
   }
 
 }

@@ -14,9 +14,11 @@ import monocle.Iso
  * prevent or halt execution of "Ready'' or "Ongoing'' observations while retaining their status
  * information".
  */
-sealed abstract class ObsActiveStatus(val tag: String, val label: String, val toBoolean: Boolean)
-    extends Product
-    with Serializable {
+enum ObsActiveStatus(val tag: String, val label: String, val toBoolean: Boolean)
+    derives Enumerated {
+  case Active extends ObsActiveStatus("Active", "Active", true)
+
+  case Inactive extends ObsActiveStatus("Inactive", "Inactive", false)
 
   def fold[A](active: => A, inactive: => A): A =
     this match {
@@ -27,18 +29,6 @@ sealed abstract class ObsActiveStatus(val tag: String, val label: String, val to
 }
 
 object ObsActiveStatus {
-
-  case object Active   extends ObsActiveStatus("Active", "Active", true)
-  case object Inactive extends ObsActiveStatus("Inactive", "Inactive", false)
-
-  /** @group Typeclass Instances */
-  given Enumerated[ObsActiveStatus] =
-    Enumerated
-      .from(
-        Active,
-        Inactive
-      )
-      .withTag(_.tag)
 
   given Display[ObsActiveStatus] =
     Display.byShortName(_.label)

@@ -8,12 +8,7 @@ package observe.model.enums
 import lucuma.core.util.Enumerated
 
 // TODO Move to lucuma core
-sealed abstract class ScienceMode(val tag: String) extends Product with Serializable
-
-object ScienceMode {
-  case object Imaging      extends ScienceMode("Imaging")
-  case object Spectroscopy extends ScienceMode("Spectroscopy")
-
-  given Enumerated[ScienceMode] =
-    Enumerated.from(Imaging, Spectroscopy).withTag(_.tag)
+enum ScienceMode(val tag: String) derives Enumerated {
+  case Imaging      extends ScienceMode("Imaging")
+  case Spectroscopy extends ScienceMode("Spectroscopy")
 }

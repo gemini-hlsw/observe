@@ -71,15 +71,12 @@ object DemandType       {
   }
 }
 
-sealed abstract class FiberAgitator(val tag: String) extends Product with Serializable
+enum FiberAgitator(val tag: String) derives Enumerated {
+  case On extends FiberAgitator("On")
+  case Off extends FiberAgitator("Off")
+}
 
 object FiberAgitator {
-  case object On  extends FiberAgitator("On")
-  case object Off extends FiberAgitator("Off")
-
-  given Enumerated[FiberAgitator] =
-    Enumerated.from(On, Off).withTag(_.tag)
-
   def fromBoolean(b: Boolean): FiberAgitator =
     if (b) On else Off
 }

@@ -7,15 +7,8 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class SpectroscopyCapabilities(val tag: String, val label: String)
-    extends Product
-    with Serializable
-
-object SpectroscopyCapabilities {
-  case object NodAndShuffle extends SpectroscopyCapabilities("NodAndShuffle", "Nod & Shuffle")
-  case object Polarimetry   extends SpectroscopyCapabilities("Polarimetry", "Polarimetry")
-  case object Corongraphy   extends SpectroscopyCapabilities("Corongraphy", "Corongraphy")
-
-  given Enumerated[SpectroscopyCapabilities] =
-    Enumerated.from(NodAndShuffle, Polarimetry, Corongraphy).withTag(_.tag)
+enum SpectroscopyCapabilities(val tag: String, val label: String) derives Enumerated {
+  case NodAndShuffle extends SpectroscopyCapabilities("NodAndShuffle", "Nod & Shuffle")
+  case Polarimetry   extends SpectroscopyCapabilities("Polarimetry", "Polarimetry")
+  case Corongraphy   extends SpectroscopyCapabilities("Corongraphy", "Corongraphy")
 }

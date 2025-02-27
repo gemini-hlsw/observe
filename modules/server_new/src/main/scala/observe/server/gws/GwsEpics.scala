@@ -43,7 +43,7 @@ final class GwsEpics[F[_]: Sync] private (epicsService: CaService) {
   def ambientT: F[Temperature[Double, Celsius]]          =
     readD("tambient").map(v => v.withTemperature[Celsius])
   def health: F[EpicsHealth]                             =
-    readI("health").map(h => EpicsHealth.fromInt(h.intValue))
+    readI("health").map[EpicsHealth](h => EpicsHealth.fromInt(h.intValue))
   def dewPoint: F[Temperature[Double, Celsius]]          =
     readD("dewpoint").map(v => v.withTemperature[Celsius])
   def windDirection: F[Angle]                            =

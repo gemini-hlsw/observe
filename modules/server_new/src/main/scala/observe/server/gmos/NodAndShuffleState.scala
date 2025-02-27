@@ -5,16 +5,8 @@ package observe.server.gmos
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class NodAndShuffleState(val tag: String) extends Product with Serializable
-
-// We need to tell Gmos if we are N&S
-object NodAndShuffleState {
+enum NodAndShuffleState(val tag: String) derives Enumerated {
   // Names taken from the old observe
-  case object NodShuffle extends NodAndShuffleState("NodShuffle")
-  case object Classic    extends NodAndShuffleState("Classic")
-
-  /** @group Typeclass Instances */
-  given Enumerated[NodAndShuffleState] =
-    Enumerated.from(NodShuffle, Classic).withTag(_.tag)
-
+  case NodShuffle extends NodAndShuffleState("NodShuffle")
+  case Classic    extends NodAndShuffleState("Classic")
 }

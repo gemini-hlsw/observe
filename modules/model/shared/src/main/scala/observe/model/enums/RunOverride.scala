@@ -5,17 +5,11 @@ package observe.model.enums
 
 import lucuma.core.util.Enumerated
 
-sealed abstract class RunOverride(val tag: String) extends Product with Serializable
-
-object RunOverride {
+enum RunOverride(val tag: String) derives Enumerated {
 
   /** Default case, do regular checks */
-  case object Default extends RunOverride("Default")
+  case Default extends RunOverride("Default")
 
   /** Override the checks and try to run anyway */
-  case object Override extends RunOverride("Override")
-
-  /** @group Typeclass Instances */
-  given Enumerated[RunOverride] =
-    Enumerated.from(Default, Override).withTag(_.tag)
+  case Override extends RunOverride("Override")
 }
