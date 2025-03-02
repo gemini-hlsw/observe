@@ -47,7 +47,7 @@ object QaEditor
           <.span(ObserveStyles.QaStatusSelect)(Icons.ChevronDown),
           OverlayPanel(onHide = reset)(
             <.form(ObserveStyles.QaEditorPanel)(
-              ^.onSubmit --> submit,
+              ^.onSubmit ==> { e => e.preventDefaultCB >> submit },
               ^.onKeyDown ==> { e =>
                 e.keyCode match // Allows submitting by pressing enter after changing the status.
                   case KeyCode.Enter => submit >> panelRef.hide
