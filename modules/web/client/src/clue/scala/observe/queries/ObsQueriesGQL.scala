@@ -58,4 +58,14 @@ object ObsQueriesGQL {
       }
     """
   }
+
+  @GraphQL
+  trait DatasetEditSubscription extends GraphQLOperation[ObservationDB]:
+    val document = s"""
+      subscription($$obsId: ObservationId!) {
+        datasetEdit(input: { observationId: $$obsId }) {
+          value { id }
+        }
+      }
+    """
 }
