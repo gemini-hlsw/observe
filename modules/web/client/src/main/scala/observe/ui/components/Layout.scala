@@ -18,6 +18,7 @@ import lucuma.react.primereact.Toast
 import lucuma.refined.*
 import lucuma.ui.components.SideTabs
 import lucuma.ui.components.SolarProgress
+import lucuma.ui.enums.Theme
 import lucuma.ui.hooks.*
 import lucuma.ui.layout.LayoutStyles
 import lucuma.ui.sso.UserVault
@@ -26,7 +27,6 @@ import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
-import lucuma.ui.enums.Theme
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel

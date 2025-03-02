@@ -28,7 +28,6 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
-import org.http4s.client.Client
 import org.typelevel.log4cats.Logger
 
 import scalajs.js
@@ -110,7 +109,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   ): ColumnDef[SequenceTableRowType, V, TableMeta, Nothing] =
     ColDef[V](id, header = _ => header, cell = cell)
 
-  protected def columnDefs(httpClient: Client[IO])(
+  protected def columnDefs(
     onBreakpointFlip:  (Observation.Id, Step.Id, Breakpoint) => Callback,
     onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
   )(
@@ -167,7 +166,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
               .map(_.step)
               .map[VdomNode]:
                 case step @ SequenceRow.Executed.ExecutedStep(_, _) =>
-                  renderVisitExtraRow(httpClient)(
+                  renderVisitExtraRow(
                     step,
                     showOngoingLabel = false,
                     step.executionState match
