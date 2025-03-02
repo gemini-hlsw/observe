@@ -34,12 +34,12 @@ case class ObservationSyncer(
 object ObservationSyncer
     extends ReactFnComponent[ObservationSyncer](props =>
       for
-        ctx             <- useContext(AppContext.ctx)
-        sequenceApi     <- useContext(SequenceApi.ctx)
-        odbQueryApi     <- useContext(ODBQueryApi.ctx)
-        subscribedObsId <- useRef(none[Observation.Id])
-        stoppedSignal   <- useSignalStream(!props.nighttimeObservationSequenceState.isRunning)
-        signal          <-
+        ctx                <- useContext(AppContext.ctx)
+        sequenceApi        <- useContext(SequenceApi.ctx)
+        odbQueryApi        <- useContext(ODBQueryApi.ctx)
+        subscribedObsId    <- useRef(none[Observation.Id])
+        stoppedSignal      <- useSignalStream(!props.nighttimeObservationSequenceState.isRunning)
+        odbConnectedSignal <-
           useMemo(stoppedSignal):
             _.map: // Reusable
               _.map: // Pot
@@ -49,14 +49,33 @@ object ObservationSyncer
                     ctx.odbClient.statusStream.changes
                       .filter(_ === PersistentClientStatus.Connected)
                       .void
-        _               <-
+        _                  <-
           useEffectStreamResourceWithDeps(
-            (props.nighttimeObservation.get.map(_.obsId).toPot, signal.sequencePot).tupled.toOption
+            (props.nighttimeObservation.get.map(_.obsId).toPot,
+             odbConnectedSignal.sequencePot
+            ).tupled.toOption
           ): deps =>
             import ctx.given
 
             deps
-              .map: (obsId, signal) =>
+              .map: (obsId, odbConnectedSignal) =>
+                val obsChangedSubscription: Resource[IO, fs2.Stream[IO, Unit]] =
+                  ObsQueriesGQL.SingleObservationEditSubscription
+                    .subscribe[IO](obsId.toObservationEditInput)
+                    .logGraphQLErrors: _ =>
+                      "Error received in ObsQueriesGQL.SingleObservationEditSubscription"
+                    .map(_.void)
+
+                val datasetChangedSubscription: Resource[IO, fs2.Stream[IO, Unit]] =
+                  ObsQueriesGQL.DatasetEditSubscription
+                    .subscribe[IO](obsId)
+                    .logGraphQLErrors: _ =>
+                      "Error received in ObsQueriesGQL.DatasetEditSubscription"
+                    .map(_.void)
+
+                val requerySignal: Resource[IO, fs2.Stream[IO, Unit]] =
+                  (obsChangedSubscription, datasetChangedSubscription).mapN(_.merge(_))
+
                 Option
                   .unless(subscribedObsId.value.contains(obsId)):
                     Resource.pure(
@@ -67,12 +86,8 @@ object ObservationSyncer
                        odbQueryApi.refreshNighttimeVisits
                       ).parTupled.void
                         .reRunOnResourceSignals:
-                          // Eventually, there will be another subscription notifying of sequence/visits changes
-                          ObsQueriesGQL.SingleObservationEditSubscription
-                            .subscribe[IO](obsId.toObservationEditInput)
-                            .logGraphQLErrors: _ =>
-                              "Error received in ObsQueriesGQL.SingleObservationEditSubscription"
-                            .map(_.merge(signal))
+                          requerySignal
+                            .map(_.merge(odbConnectedSignal))
                   .orEmpty
               .getOrElse:
                 // If connection broken, or observation unselected, cleanup sequence and visits
