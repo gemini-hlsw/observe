@@ -26,6 +26,7 @@ import observe.ui.model.Page
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.AppTab
+import lucuma.ui.enums.Theme
 
 case class Layout(c: RouterCtl[Page], resolution: ResolutionWithProps[Page, RootModel])(
   val rootModel: RootModel
@@ -36,7 +37,7 @@ object Layout
       for
         ctx       <- useContext(AppContext.ctx)
         odbStatus <- useStreamOnMount(ctx.odbClient.statusStream)
-        theme     <- useTheme()
+        theme     <- useTheme(initial = Theme.Dark)
       yield
         val appTab: AppTab           = AppTab.from(props.resolution.page)
         val appTabView: View[AppTab] =
