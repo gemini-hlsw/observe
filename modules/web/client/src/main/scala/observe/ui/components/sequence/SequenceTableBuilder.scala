@@ -76,7 +76,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
             (clientMode, instrument, obsId, isPreview) =>
               import ctx.given
 
-              columnDefs(ctx.httpClient)(props.onBreakpointFlip, props.onDatasetQaChange)(
+              columnDefs(props.onBreakpointFlip, props.onDatasetQaChange)(
                 clientMode,
                 instrument,
                 obsId,
