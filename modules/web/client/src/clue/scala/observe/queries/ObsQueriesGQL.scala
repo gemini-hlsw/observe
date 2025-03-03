@@ -23,7 +23,8 @@ object ObsQueriesGQL {
                 { activeStart: { LTE: $$date } },
                 { activeEnd: { GTE: $$date } } 
               ]
-            }
+            },
+            reference: { IS_NULL: false }
           }
         ) $ObservationSummarySubquery
       }
