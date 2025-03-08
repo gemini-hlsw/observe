@@ -72,7 +72,7 @@ object DemandType       {
 }
 
 enum FiberAgitator(val tag: String) derives Enumerated {
-  case On extends FiberAgitator("On")
+  case On  extends FiberAgitator("On")
   case Off extends FiberAgitator("Off")
 }
 
