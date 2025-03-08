@@ -91,17 +91,17 @@ object SeqControlButtons
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.cancelPause(props.obsId).runAsync,
             disabled = props.isCancelPauseInFlight || props.isWaitingNextAtom
-          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested),
-          Button(
-            clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.isRefreshing,
-            icon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG).withSpin(),
-            tooltip = "Reload sequence from ODB",
-            tooltipOptions = tooltipOptions,
-            onClick = props.refreshing.toOption.foldMap(_.set(true)) >>
-              sequenceApi.loadObservation(props.obsId, props.instrument).runAsync,
-            disabled = props.loadedObsId.exists(_.isPending) || props.isRunning
-          ).when(selectedObsIsLoaded)
+          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
+          // Button(
+          //   clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
+          //   loading = props.isRefreshing,
+          //   icon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG),
+          //   loadingIcon = Icons.ArrowsRotate.withFixedWidth().withSize(IconSize.LG).withSpin(),
+          //   tooltip = "Reload sequence from ODB",
+          //   tooltipOptions = tooltipOptions,
+          //   onClick = props.refreshing.toOption.foldMap(_.set(true)) >>
+          //     sequenceApi.loadObservation(props.obsId, props.instrument).runAsync,
+          //   disabled = props.loadedObsId.exists(_.isPending) || props.isRunning
+          // ).when(selectedObsIsLoaded)
         )
     )
