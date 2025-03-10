@@ -203,11 +203,6 @@ object ObserveStep:
 
     def runningOrComplete: Boolean = s.status.runningOrComplete
 
-    def isObserving: Boolean =
-      s match
-        case x: Standard      => x.observeStatus === ActionStatus.Running
-        case x: NodAndShuffle => x.nsStatus.observing === ActionStatus.Running
-
     def isObservePaused: Boolean =
       s match
         case x: Standard      => x.observeStatus === ActionStatus.Paused
@@ -217,6 +212,8 @@ object ObserveStep:
       s match
         case x: Standard      => x.configStatus.count(_._2 === ActionStatus.Running) > 0
         case x: NodAndShuffle => x.configStatus.count(_._2 === ActionStatus.Running) > 0
+
+    def isActive: Boolean = s.status.isActive
 
     def isFinished: Boolean = s.status.isFinished
 

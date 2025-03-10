@@ -9,6 +9,7 @@ import crystal.react.*
 import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.Program
@@ -91,17 +92,18 @@ object Home
                 SplitterPanel(clazz = ObserveStyles.TopPanel)(
                   rootModelData.readyObservations
                     .map:
-                      _.map: obs =>
-                        SessionQueueRow(
-                          obs,
-                          SequenceState.Idle,
-                          props.rootModel.data.get.observer,
-                          ObsClass.Nighttime,
-                          false, // obs.activeStatus === ObsActiveStatus.Active,
-                          none,
-                          none,
-                          false
-                        )
+                      _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
+                        .map: obs =>
+                          SessionQueueRow(
+                            obs,
+                            SequenceState.Idle,
+                            props.rootModel.data.get.observer,
+                            ObsClass.Nighttime,
+                            false, // obs.activeStatus === ObsActiveStatus.Active,
+                            none,
+                            none,
+                            false
+                          )
                     .renderPot(
                       SessionQueue(
                         _,

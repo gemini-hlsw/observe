@@ -7,6 +7,7 @@ import cats.Order.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
@@ -45,6 +46,7 @@ trait ArbObsSummary:
       observationTime    <- arbitrary[Option[Instant]]
       posAngleConstraint <- arbitrary[PosAngleConstraint]
       obsReference       <- arbitrary[Option[ObservationReference]]
+      workflowState      <- arbitrary[ObservationWorkflowState]
     yield ObsSummary(
       obsId,
       programId,
@@ -57,7 +59,8 @@ trait ArbObsSummary:
       observingMode,
       observationTime,
       posAngleConstraint,
-      obsReference
+      obsReference,
+      workflowState
     )
 
   given Cogen[ObsSummary] =
@@ -73,7 +76,8 @@ trait ArbObsSummary:
        Option[ObservingMode],
        Option[Instant],
        PosAngleConstraint,
-       Option[ObservationReference]
+       Option[ObservationReference],
+       ObservationWorkflowState
       )
     ]
       .contramap: s =>
@@ -88,7 +92,8 @@ trait ArbObsSummary:
          s.observingMode,
          s.observationTime,
          s.posAngleConstraint,
-         s.obsReference
+         s.obsReference,
+         s.workflowState
         )
 
 object ArbObsSummary extends ArbObsSummary

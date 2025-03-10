@@ -12,7 +12,6 @@ import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.gmos.*
-import lucuma.react.resizeDetector.hooks.*
 import lucuma.schemas.model.Visit
 import lucuma.ui.sequence.*
 import observe.model.ExecutionState
@@ -44,8 +43,19 @@ private trait SequenceTable[S, D <: DynamicConfig](
   def onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
   def datasetIdsInFlight: Set[Dataset.Id]
 
+  private lazy val lastVisitStepIds: Option[(Step.Id, Option[Step.Id])] =
+    visits.lastOption
+      .flatMap(_.atoms.lastOption)
+      .flatMap(_.steps.lastOption)
+      .map(s => (s.id, s.generatedId))
+
+  private lazy val activeStepId: Option[Step.Id] = // collectFirst?
+    executionState.loadedSteps.find(_.isActive).map(_.id)
+
+  // Obtain the id of the last recorded step only if its generated step id is the same
+  // as the currently executing step. This will be filtered out from the visit steps.
   protected[sequence] lazy val currentRecordedStepId: Option[Step.Id] =
-    currentRecordedVisit.flatMap(RecordedVisit.stepId.getOption).map(_.value)
+    lastVisitStepIds.filter((_, generatedId) => activeStepId === generatedId).map(_._1)
 
   private def futureSteps(atoms: List[Atom[D]]): List[SequenceRow.FutureStep[D]] =
     SequenceRow.FutureStep.fromAtoms(atoms, _ => none) // TODO Pass signal to noise

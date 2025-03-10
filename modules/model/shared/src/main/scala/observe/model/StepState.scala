@@ -27,6 +27,10 @@ enum StepState derives Eq, Decoder, Encoder.AsObject:
 
   lazy val isRunning: Boolean = this === StepState.Running
 
+  lazy val isPaused: Boolean = this === StepState.Paused
+
+  lazy val isActive: Boolean = isRunning || isPaused
+
   lazy val isPending: Boolean = this === StepState.Pending
 
   lazy val runningOrComplete: Boolean = this match
