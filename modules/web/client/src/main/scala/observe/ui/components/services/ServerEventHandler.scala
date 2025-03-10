@@ -151,7 +151,7 @@ trait ServerEventHandler:
       case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
-        val nighttimeLoadedObsId = sequenceExecution.headOption.map(_._1)
+        val nighttimeLoadedObsId: Option[Observation.Id] = sequenceExecution.headOption.map(_._1)
 
         rootModelDataMod(
           RootModelData.operator.replace(operator) >>>
@@ -164,7 +164,7 @@ trait ServerEventHandler:
             RootModelData.obsRequests.replace(Map.empty) >>>
             RootModelData.nighttimeObservation.modify { obs =>
               // Only set if loaded obsId changed, otherwise config is lost.
-              if (obs.map(_.obsId) =!= nighttimeLoadedObsId)
+              if (nighttimeLoadedObsId.isDefined && obs.map(_.obsId) =!= nighttimeLoadedObsId)
                 nighttimeLoadedObsId.map(LoadedObservation(_))
               else
                 obs.map(LoadedObservation.refreshing.replace(false))

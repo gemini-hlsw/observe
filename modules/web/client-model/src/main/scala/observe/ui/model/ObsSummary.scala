@@ -14,6 +14,7 @@ import io.circe.HCursor
 import io.circe.generic.semiauto.*
 import io.circe.refined.given
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Attachment
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.Observation
@@ -21,13 +22,13 @@ import lucuma.core.model.ObservationReference
 import lucuma.core.model.PosAngleConstraint
 import lucuma.core.model.Program
 import lucuma.core.model.TimingWindow
+import lucuma.core.syntax.display.*
 import lucuma.core.util.Timestamp
 import lucuma.schemas.decoders.given
 import lucuma.schemas.model.BasicConfiguration
 import lucuma.schemas.model.ObservingMode
 import monocle.Focus
 import org.typelevel.cats.time.*
-import lucuma.core.syntax.display.*
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
@@ -44,7 +45,8 @@ case class ObsSummary(
   observingMode:      Option[ObservingMode],
   observationTime:    Option[Instant],
   posAngleConstraint: PosAngleConstraint,
-  obsReference:       Option[ObservationReference]
+  obsReference:       Option[ObservationReference],
+  workflowState:      ObservationWorkflowState
 ) derives Eq:
   lazy val configurationSummary: Option[String] = observingMode.map(_.toBasicConfiguration) match
     case Some(BasicConfiguration.GmosNorthLongSlit(grating, _, fpu, _)) =>
@@ -96,6 +98,7 @@ object ObsSummary:
           .map(_.map(_.get[Option[ObservationReference]]("label")).sequence.map(_.flatten))
           .sequence
           .flatten
+      workflowState      <- c.downField("workflow").get[ObservationWorkflowState]("state")
     yield ObsSummary(
       id,
       programId,
@@ -108,5 +111,6 @@ object ObsSummary:
       observingMode,
       observationTime.map(_.toInstant),
       posAngleConstraint,
-      obsReference
+      obsReference,
+      workflowState
     )

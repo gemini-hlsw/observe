@@ -26,8 +26,7 @@ object ObservationSummarySubquery
           timingWindows $TimingWindowSubquery
           attachments { id }
           observingMode $ObservingModeSubquery
-          reference {
-            label
-          }
+          reference { label }
+          workflow { state }
         }
       """
