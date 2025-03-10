@@ -43,6 +43,7 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import org.typelevel.log4cats.Logger
+import lucuma.ui.LucumaStyles
 
 trait ServerEventHandler:
   private def logMessage(
@@ -203,7 +204,14 @@ trait ServerEventHandler:
         val node: VdomNode = <.span(msgs.mkTagMod(<.br))
 
         toast
-          .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
+          .show(
+            MessageItem(
+              content = node,
+              severity = Message.Severity.Error,
+              sticky = true,
+              clazz = LucumaStyles.Toast
+            )
+          )
           .to[IO] >>
           logMessage(rootModelDataMod, ObserveLogLevel.Error, msgs.mkString("; "))
       case LogEvent(msg)                                                                  =>

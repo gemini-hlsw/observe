@@ -76,6 +76,7 @@ import typings.loglevel.mod.LogLevelDesc
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
+import lucuma.ui.LucumaStyles
 
 object MainApp extends ServerEventHandler:
   private val ApiBasePath: Uri.Path = path"/api/observe/"
@@ -255,7 +256,8 @@ object MainApp extends ServerEventHandler:
                         MessageItem(
                           id = "configApiError",
                           content = "Error saving changes",
-                          severity = Message.Severity.Error
+                          severity = Message.Severity.Error,
+                          clazz = LucumaStyles.Toast
                         )
                       .to[IO] >>
                       LogMessage
