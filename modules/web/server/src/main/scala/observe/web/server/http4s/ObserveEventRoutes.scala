@@ -94,6 +94,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
           // .filter(filterOutNull)
           .filter(filterOutOnClientId(clientId))
           .map(_._2)
+          .changes
           .map(toFrame)
 
       val clientSocket = (ws.remoteAddr, ws.remotePort).mapN((a, p) => s"$a:$p").orEmpty
