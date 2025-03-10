@@ -37,8 +37,8 @@ case class SessionQueue(
   obsStates:        Map[Observation.Id, SequenceState],
   selectObs:        Observation.Id => Callback,
   loadedObs:        Option[LoadedObservation],
-  loadObs:          Observation.Id => Callback,
-  linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
+  loadObs:          Reusable[Observation.Id => Callback],
+  linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(SessionQueue):
   val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
 
@@ -239,18 +239,12 @@ object SessionQueue
           useMemo(
             (props.obsStates,
              props.obsIdPotOpt.map(_.void),
+             props.isProcessing,
              props.loadedObs.map(_.obsId),
-             props.isProcessing
+             props.loadObs,
+             props.linkToExploreObs
             )
-          ): (obsStates, loadingPotOpt, loadedObsId, isProcessing) =>
-            columns(
-              obsStates,
-              loadingPotOpt,
-              isProcessing,
-              loadedObsId,
-              props.loadObs,
-              props.linkToExploreObs
-            )
+          )(columns(_, _, _, _, _, _))
         table <-
           useReactTable:
             TableOptions(
