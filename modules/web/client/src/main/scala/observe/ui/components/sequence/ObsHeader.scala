@@ -42,7 +42,7 @@ object ObsHeader
             props.requests,
             props.observation.instrument
           ),
-          s"${props.observation.title} [${props.observation.obsId}]",
+          s"${props.observation.title} [${props.observation.refAndId}]",
           props.linkToExploreObs:
             props.observation.obsReference
               .toRight((props.observation.programId, props.observation.obsId))

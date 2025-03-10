@@ -27,6 +27,7 @@ import lucuma.schemas.model.BasicConfiguration
 import lucuma.schemas.model.ObservingMode
 import monocle.Focus
 import org.typelevel.cats.time.*
+import lucuma.core.syntax.display.*
 
 import java.time.Instant
 import scala.collection.immutable.SortedSet
@@ -55,6 +56,9 @@ case class ObsSummary(
 
   lazy val constraintsSummary: String =
     s"${constraints.imageQuality.label} ${constraints.cloudExtinction.label} ${constraints.skyBackground.label} ${constraints.waterVapor.label}"
+
+  lazy val refAndId: String =
+    obsReference.fold(obsId.shortName)(ref => s"${ref.label} (${obsId.shortName})")
 
 object ObsSummary:
   val obsId              = Focus[ObsSummary](_.obsId)
