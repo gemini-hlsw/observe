@@ -15,7 +15,7 @@ object ObsQueriesGQL {
     val document = s"""
       query($$site: Site!, $$date: Date!) {
         observationsByWorkflowState(
-          states: [READY, ONGOING],
+          states: [READY, ONGOING, COMPLETED],
           WHERE: { 
             site: { EQ: $$site },
             program: {
