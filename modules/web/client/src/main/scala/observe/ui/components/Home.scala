@@ -53,14 +53,17 @@ object Home
               .zoom(RootModelData.selectedObservation)
               .set(obsId.some)
 
-        val loadObservation: Observation.Id => Callback = obsId =>
-          rootModelData.readyObservationsMap
-            .get(obsId)
-            .foldMap: obsRow =>
-              props.rootModel.data
-                .zoom(RootModelData.nighttimeObservation)
-                .set(LoadedObservation(obsId).some) >>
-                sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
+        val loadObservation: Reusable[Observation.Id => Callback] =
+          Reusable
+            .implicitly(rootModelData.readyObservationsMap.keySet)
+            .withValue: obsId =>
+              rootModelData.readyObservationsMap
+                .get(obsId)
+                .foldMap: obsRow =>
+                  props.rootModel.data
+                    .zoom(RootModelData.nighttimeObservation)
+                    .set(LoadedObservation(obsId).some) >>
+                    sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
 
         val obsStates: Map[Observation.Id, SequenceState] =
           rootModelData.executionState.view.mapValues(_.sequenceState).toMap
@@ -68,19 +71,19 @@ object Home
         (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
           .renderPot: (clientConfig, _) =>
 
-            def renderExploreLinkToObs(
-              obsIdOrRef: Either[(Program.Id, Observation.Id), ObservationReference]
-            ): VdomNode =
-              <.a(
-                ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
-                ^.target.blank,
-                ^.onClick ==> (e => e.stopPropagationCB),
-                ObserveStyles.ExternalLink
-              )(Icons.ExternalLink).withTooltip(
-                content = "Open in Explore",
-                position = Tooltip.Position.Top,
-                showDelay = 200
-              )
+            val renderExploreLinkToObs
+              : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
+              Reusable.always: obsIdOrRef =>
+                <.a(
+                  ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
+                  ^.target.blank,
+                  ^.onClick ==> (e => e.stopPropagationCB),
+                  ObserveStyles.ExternalLink
+                )(Icons.ExternalLink).withTooltip(
+                  content = "Open in Explore",
+                  position = Tooltip.Position.Top,
+                  showDelay = 200
+                )
 
             <.div(ObserveStyles.MainPanel)(
               Splitter(
