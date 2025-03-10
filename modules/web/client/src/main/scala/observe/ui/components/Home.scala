@@ -70,6 +70,8 @@ object Home
 
         (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
           .renderPot: (clientConfig, _) =>
+            val loadedObsId: Option[Observation.Id] =
+              rootModelData.nighttimeObservation.map(_.obsId)
 
             val renderExploreLinkToObs
               : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
@@ -99,10 +101,15 @@ object Home
                         .map: obs =>
                           SessionQueueRow(
                             obs,
-                            SequenceState.Idle,
+                            rootModelData.executionState
+                              .get(obs.obsId)
+                              .map(_.sequenceState)
+                              .getOrElse(SequenceState.Idle),
                             props.rootModel.data.get.observer,
                             ObsClass.Nighttime,
-                            false, // obs.activeStatus === ObsActiveStatus.Active,
+                            loadedObsId.contains_(obs.obsId),
+                            // We can't easily know step numbers nor the total number of steps.
+                            // Maybe we want to show pending and total times instead?
                             none,
                             none,
                             false
@@ -118,7 +125,7 @@ object Home
                       )
                     ),
                   ConfigPanel(
-                    rootModelData.nighttimeObservation.map(_.obsId),
+                    loadedObsId,
                     props.rootModel.data.zoom(RootModelData.observer),
                     props.rootModel.data.zoom(RootModelData.operator),
                     props.rootModel.data.zoom(RootModelData.conditions)
