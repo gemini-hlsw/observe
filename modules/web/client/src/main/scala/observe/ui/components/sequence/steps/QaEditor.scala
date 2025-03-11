@@ -82,7 +82,7 @@ object QaEditor
               <.div(ObserveStyles.QaEditorPanelButtons)(
                 Button(icon = Icons.XMark, severity = Button.Severity.Danger).compact("Cancel"),
                 Button(icon = Icons.Check, severity = Button.Severity.Success).compact
-                  .withMods(^.`type` := "submit")(
+                  .withMods(^.`type` := "submit")( // This way it works with "Enter" key.
                     "Save"
                   )
               )

@@ -36,6 +36,7 @@ import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.hooks.all.*
 import lucuma.refined.*
 import lucuma.schemas.ObservationDB
+import lucuma.ui.LucumaStyles
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.*
@@ -76,7 +77,6 @@ import typings.loglevel.mod.LogLevelDesc
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
-import lucuma.ui.LucumaStyles
 
 object MainApp extends ServerEventHandler:
   private val ApiBasePath: Uri.Path = path"/api/observe/"
