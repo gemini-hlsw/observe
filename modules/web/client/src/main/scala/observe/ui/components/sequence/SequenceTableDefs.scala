@@ -44,7 +44,6 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     onDatasetQaChange:  Dataset.Id => EditableQaFields => Callback
   )
 
-  // protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow[DynamicConfig]]]
   protected def ColDef = ColumnDef.WithTableMeta[SequenceTableRowType, TableMeta]
 
   // Breakpoint column has width 0 but is translated and actually shown.

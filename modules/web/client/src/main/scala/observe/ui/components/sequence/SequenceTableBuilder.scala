@@ -29,6 +29,7 @@ import lucuma.ui.reusability.given
 import lucuma.ui.sequence.*
 import lucuma.ui.table.*
 import lucuma.ui.table.hooks.*
+import observe.model.SequenceState
 import observe.model.StepState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
@@ -152,9 +153,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
               getRowId = (row, _, _) => getRowId(row),
               getSubRows = (row, _) => row.subRows,
               columnResizeMode = ColumnResizeMode.OnChange,
-              initialState = TableState(
-                expanded = CurrentExpandedState
-              ),
+              initialState = TableState(expanded = CurrentExpandedState),
               state = PartialTableState(
                 columnSizing = dynTable.columnSizing,
                 columnVisibility = dynTable.columnVisibility
@@ -197,6 +196,13 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
             // When sequence starts or stops into a non-idle state, auto scroll to running step.
             Callback.when(props.executionState.sequenceState.isInProcess):
               scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
+        _                        <- // If sequence completes, expand last visit.
+          useEffectWithDeps(props.executionState.sequenceState):
+            case SequenceState.Completed =>
+              table.modExpanded:
+                case Expanded.AllRows    => Expanded.AllRows
+                case Expanded.Rows(rows) => Expanded.Rows(rows + (getRowId(sequence.last) -> true))
+            case _                       => Callback.empty
       yield
         extension (step: SequenceRow[DynamicConfig])
           def isSelected: Boolean =
@@ -287,22 +293,22 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
                 case _                              =>
                   TagMod.empty
 
-        val visitIds       = visits.value.map(_.rowId).toSet
-        val collapseVisits = table.modExpanded:
+        val visitIds: Set[RowId]     = visits.value.map(_.rowId).toSet
+        val collapseVisits: Callback = table.modExpanded:
           case Expanded.AllRows    => Expanded.fromCollapsedRows(visitIds.toList*)
           case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.map(_ -> false)))
-        val expandVisits   = table.modExpanded:
+        val expandVisits: Callback   = table.modExpanded:
           case Expanded.AllRows    => Expanded.AllRows
           case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.map(_ -> true)))
 
-        val rows = table.getExpandedRowModel().rows
+        val rows: List[Row[SequenceTableRowType, TableMeta]] = table.getExpandedRowModel().rows
 
         def forAllVisits(onContains: Row[SequenceTableRowType, TableMeta] => Boolean): Boolean =
           rows.forall: row =>
             if visitIds.contains(row.id) then onContains(row) else true
 
-        val allVisitsAreCollapsed = forAllVisits(!_.getIsExpanded())
-        val allVisitsAreExpanded  = forAllVisits(_.getIsExpanded())
+        val allVisitsAreCollapsed: Boolean = forAllVisits(!_.getIsExpanded())
+        val allVisitsAreExpanded: Boolean  = forAllVisits(_.getIsExpanded())
 
         def estimateRowHeight(index: Int): SizePx =
           table.getRowModel().rows.get(index).map(_.original.value) match
