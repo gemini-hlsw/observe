@@ -22,6 +22,7 @@ import lucuma.core.model.sequence.Step
 import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.ToastRef
+import lucuma.ui.LucumaStyles
 import monocle.Lens
 import monocle.Optional
 import observe.cats.given
@@ -203,7 +204,14 @@ trait ServerEventHandler:
         val node: VdomNode = <.span(msgs.mkTagMod(<.br))
 
         toast
-          .show(MessageItem(content = node, severity = Message.Severity.Error, sticky = true))
+          .show(
+            MessageItem(
+              content = node,
+              severity = Message.Severity.Error,
+              sticky = true,
+              clazz = LucumaStyles.Toast
+            )
+          )
           .to[IO] >>
           logMessage(rootModelDataMod, ObserveLogLevel.Error, msgs.mkString("; "))
       case LogEvent(msg)                                                                  =>

@@ -39,7 +39,9 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     executionState:     ExecutionState,
     progress:           Option[StepProgress],
     selectedStepId:     Option[Step.Id],
-    datasetIdsInFlight: Set[Dataset.Id]
+    datasetIdsInFlight: Set[Dataset.Id],
+    onBreakpointFlip:   (Observation.Id, Step.Id, Breakpoint) => Callback,
+    onDatasetQaChange:  Dataset.Id => EditableQaFields => Callback
   )
 
   // protected type SequenceTableRowType = Expandable[HeaderOrRow[SequenceTableRow[DynamicConfig]]]
@@ -110,13 +112,10 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     ColDef[V](id, header = _ => header, cell = cell)
 
   protected def columnDefs(
-    onBreakpointFlip:  (Observation.Id, Step.Id, Breakpoint) => Callback,
-    onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
-  )(
-    clientMode:        ClientMode,
-    instrument:        Instrument,
-    obsId:             Observation.Id,
-    isPreview:         Boolean
+    clientMode: ClientMode,
+    instrument: Instrument,
+    obsId:      Observation.Id,
+    isPreview:  Boolean
   )(using Logger[IO]): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
     List(
       SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
@@ -124,7 +123,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
         BreakpointColumnId,
         "",
         cell =>
-          cell.row.original.value.toOption.map: stepRow =>
+          (cell.row.original.value.toOption, cell.table.options.meta).mapN: (stepRow, meta) =>
             val step: SequenceRow[D]    = stepRow.step
             val stepId: Option[Step.Id] = step.id.toOption
             // val canSetBreakpoint =
@@ -137,11 +136,8 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                 ObserveStyles.BreakpointHandle,
                 stepId
                   .map: sId =>
-                    ^.onClick ==> (_.stopPropagationCB >> onBreakpointFlip(
-                      obsId,
-                      sId,
-                      flippedBreakpoint(step.breakpoint)
-                    ))
+                    ^.onClick ==> (_.stopPropagationCB >>
+                      meta.onBreakpointFlip(obsId, sId, flippedBreakpoint(step.breakpoint)))
                   .whenDefined
               )(
                 Icons.CircleSolid
@@ -171,7 +167,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                     showOngoingLabel = false,
                     step.executionState match
                       case StepExecutionState.Completed | StepExecutionState.Stopped =>
-                        QaEditor(_, _, onDatasetQaChange)
+                        QaEditor(_, _, meta.onDatasetQaChange)
                       case _                                                         =>
                         (_, _) => EmptyVdom // Don't display QA editor for non-completed steps
                     ,

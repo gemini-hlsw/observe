@@ -4,6 +4,7 @@
 package observe.ui.components.sequence
 
 import cats.Eq
+import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.hooks.*
 import crystal.react.syntax.effect.*
@@ -36,6 +37,7 @@ import observe.ui.model.AppContext
 import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
+import org.typelevel.log4cats.Logger
 
 import scala.scalajs.LinkingInfo
 
@@ -71,17 +73,10 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
         resize                   <- useResizeDetector
         ctx                      <- useContext(AppContext.ctx)
         sequenceApi              <- useContext(SequenceApi.ctx)
+        given Logger[IO]          = ctx.logger
         cols                     <-
           useMemo((props.clientMode, props.instrument, props.obsId, props.isPreview)):
-            (clientMode, instrument, obsId, isPreview) =>
-              import ctx.given
-
-              columnDefs(props.onBreakpointFlip, props.onDatasetQaChange)(
-                clientMode,
-                instrument,
-                obsId,
-                isPreview
-              )
+            columnDefs(_, _, _, _)
         visitsData               <-
           useMemo((props.visits, props.currentRecordedStepId)):
             visitsSequences
@@ -119,8 +114,6 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
               acquisitionPromptRequest,
               acquisitionPromptClicked
             ) =>
-              import ctx.given
-
               val acquisitionPrompt: Option[AlertRow] =
                 Option.when(isWaitingAcquisitionPrompt)(
                   AlertRow(
@@ -172,7 +165,9 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
                 props.executionState,
                 props.progress,
                 props.selectedStepId,
-                props.datasetIdsInFlight
+                props.datasetIdsInFlight,
+                props.onBreakpointFlip,
+                props.onDatasetQaChange
               )
             )
         odbQueryApi              <- useContext(ODBQueryApi.ctx)
@@ -181,9 +176,6 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
           useEffectWithDeps(props.currentAtomPendingSteps.map(_.id)): _ =>
             // TODO Maybe this should be done by ObservationSyncer. For that, we need to know there when a step
             // has completed. Maybe we can add an ODB event in the future.
-            // ALSO TODO Put some state somewhere to indicate that the visits are reloading, new rows should
-            // be expected soon. Otherwise, the recently completed step disappears completely for a split second.
-            // During that update, numbering is inconsistent.
             odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
         // We also refresh the visits whenever a new step starts executing. This will pull the current recorded step.
         // This is necessary so that the step doesn't disappear when it completes.

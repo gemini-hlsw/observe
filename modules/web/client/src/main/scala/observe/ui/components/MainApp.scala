@@ -36,6 +36,7 @@ import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.hooks.all.*
 import lucuma.refined.*
 import lucuma.schemas.ObservationDB
+import lucuma.ui.LucumaStyles
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.*
@@ -255,7 +256,8 @@ object MainApp extends ServerEventHandler:
                         MessageItem(
                           id = "configApiError",
                           content = "Error saving changes",
-                          severity = Message.Severity.Error
+                          severity = Message.Severity.Error,
+                          clazz = LucumaStyles.Toast
                         )
                       .to[IO] >>
                       LogMessage
