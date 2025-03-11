@@ -30,8 +30,8 @@ object Icons:
   val faBars: FAIcon = js.native
 
   @js.native
-  @JSImport("@fortawesome/pro-regular-svg-icons", "faCalendarDays")
-  private val faCalendarDays: FAIcon = js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faCalendar")
+  private val faCalendar: FAIcon = js.native
 
   @js.native
   @JSImport("@fortawesome/pro-solid-svg-icons", "faCaretRight")
@@ -164,7 +164,7 @@ object Icons:
     faArrowUpFromLine,
     faBan,
     faBars,
-    faCalendarDays,
+    faCalendar,
     faCaretRight,
     faCheck,
     faChevronDown,
@@ -203,7 +203,7 @@ object Icons:
   inline def ArrowUpFromLine   = FontAwesomeIcon(faArrowUpFromLine)
   inline def Ban               = FontAwesomeIcon(faBan)
   inline def Bars              = FontAwesomeIcon(faBars)
-  inline def CalendarDays      = FontAwesomeIcon(faCalendarDays)
+  inline def Calendar          = FontAwesomeIcon(faCalendar)
   inline def CaretRight        = FontAwesomeIcon(faCaretRight)
   inline def Check             = FontAwesomeIcon(faCheck)
   inline def ChevronDown       = FontAwesomeIcon(faChevronDown)
@@ -241,3 +241,9 @@ object Icons:
       Pause.withSize(IconSize.SM).withClass(ObserveStyles.IconSoft),
       Ban.withSize(IconSize.LG)
     )
+
+  val DaytimeCalendar =
+    LayeredIcon()(
+      Calendar,
+      Sun.withInverse().withTransform(Transform(y = 3, size = 9))
+    ).withFixedWidth().withSize(IconSize.LG)

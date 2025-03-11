@@ -182,14 +182,14 @@ object SessionQueue
         ),
         ColDef(
           AddQueueColumnId,
-          header = _ => renderCentered(Icons.CalendarDays), // Tooltip: Add all to queue
+          header = _ => renderCentered(Icons.DaytimeCalendar), // Tooltip: Add all to queue
           cell = cell => renderCentered(addToQueueRenderer(cell.row.original)),
           size = 30.toPx,
           enableResizing = false
         ),
         ColDef(
           ClassColumnId,
-          header = _ => renderCentered(Icons.Clock),        // Tooltip: "Obs. class"
+          header = _ => renderCentered(Icons.Clock),           // Tooltip: "Obs. class"
           cell = cell => renderCentered(classIconRenderer(cell.row.original)),
           size = 26.toPx,
           enableResizing = false
