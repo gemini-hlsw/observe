@@ -338,10 +338,11 @@ class StepSuite extends CatsEffectSuite {
                ),
                done = Nil
              ),
-             SequenceState.Running(userStop = true,
-                                   internalStop = false,
-                                   waitingNextAtom = false,
-                                   isStarting = false
+             SequenceState.Running(
+               userStop = true,
+               internalStop = false,
+               isWaitingUserPrompt = false,
+               isStarting = false
              ),
              Map.empty
            )
