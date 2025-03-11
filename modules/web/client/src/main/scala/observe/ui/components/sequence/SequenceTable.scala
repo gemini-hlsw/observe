@@ -49,7 +49,7 @@ private trait SequenceTable[S, D <: DynamicConfig](
       .flatMap(_.steps.lastOption)
       .map(s => (s.id, s.generatedId))
 
-  private lazy val activeStepId: Option[Step.Id] = // collectFirst?
+  private lazy val activeStepId: Option[Step.Id] =
     executionState.loadedSteps.find(_.isActive).map(_.id)
 
   // Obtain the id of the last recorded step only if its generated step id is the same

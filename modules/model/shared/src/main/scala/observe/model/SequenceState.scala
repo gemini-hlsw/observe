@@ -17,10 +17,10 @@ import monocle.macros.GenPrism
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Idle                extends SequenceState("Idle")
   case Running(
-    userStop:        Boolean,
-    internalStop:    Boolean,
-    waitingNextAtom: Boolean,
-    isStarting:      Boolean
+    userStop:            Boolean,
+    internalStop:        Boolean,
+    isWaitingUserPrompt: Boolean,
+    isStarting:          Boolean
   )                        extends SequenceState("Running")
   case Completed           extends SequenceState("Completed")
   case Failed(msg: String) extends SequenceState("Failed")
@@ -76,7 +76,7 @@ object SequenceState:
       SequenceState.Running(
         userStop = false,
         internalStop = false,
-        waitingNextAtom = false,
+        isWaitingUserPrompt = false,
         isStarting = false
       )
 
@@ -85,8 +85,8 @@ object SequenceState:
     val internalStop: Lens[SequenceState.Running, Boolean] =
       Focus[SequenceState.Running](_.internalStop)
 
-    val waitingNextAtom: Lens[SequenceState.Running, Boolean] =
-      Focus[SequenceState.Running](_.waitingNextAtom)
+    val isWaitingUserPrompt: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.isWaitingUserPrompt)
 
     val isStarting: Lens[SequenceState.Running, Boolean] =
       Focus[SequenceState.Running](_.isStarting)

@@ -171,17 +171,6 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
               )
             )
         odbQueryApi              <- useContext(ODBQueryApi.ctx)
-        // If the list of current steps changes, reload last visit and sequence.
-        _                        <-
-          useEffectWithDeps(props.currentAtomPendingSteps.map(_.id)): _ =>
-            // TODO Maybe this should be done by ObservationSyncer. For that, we need to know there when a step
-            // has completed. Maybe we can add an ODB event in the future.
-            odbQueryApi.refreshNighttimeSequence >> odbQueryApi.refreshNighttimeVisits
-        // We also refresh the visits whenever a new step starts executing. This will pull the current recorded step.
-        // This is necessary so that the step doesn't disappear when it completes.
-        _                        <-
-          useEffectWithDeps(props.currentRecordedStepId): _ =>
-            odbQueryApi.refreshNighttimeVisits
         virtualizerRef           <- useRef(none[HTMLTableVirtualizer])
         _                        <-
           useEffectOnMount:

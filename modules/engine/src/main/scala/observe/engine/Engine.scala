@@ -52,7 +52,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         {
           putS(id)(
             Sequence.State.status.replace(
-              SequenceState.Running(false, false, waitingNextAtom = true, isStarting = true)
+              SequenceState.Running(false, false, isWaitingUserPrompt = true, isStarting = true)
             )(
               seq.rollback
             )
@@ -141,10 +141,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop,
-                                          internalStop,
-                                          waitingNextAtom = true,
-                                          isStarting = false
+                    SequenceState.Running(
+                      userStop,
+                      internalStop,
+                      isWaitingUserPrompt = true,
+                      isStarting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
@@ -162,10 +163,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                 // Final State
                 case Some(qs: Sequence.State.Final[F]) =>
                   putS(id)(qs) *> switch(id)(
-                    SequenceState.Running(userStop,
-                                          internalStop,
-                                          waitingNextAtom = true,
-                                          isStarting = false
+                    SequenceState.Running(
+                      userStop,
+                      internalStop,
+                      isWaitingUserPrompt = true,
+                      isStarting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
@@ -178,10 +180,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                                    } else if (seq.isLastAction)
                                      // after the last action of the step, we need to reload the sequence
                                      switch(id)(
-                                       SequenceState.Running(userStop,
-                                                             internalStop,
-                                                             waitingNextAtom = true,
-                                                             isStarting = false
+                                       SequenceState.Running(
+                                         userStop,
+                                         internalStop,
+                                         isWaitingUserPrompt = true,
+                                         isStarting = false
                                        )
                                      ) *>
                                        send(modifyState(atomReload(this, id)))
