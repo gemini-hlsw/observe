@@ -280,7 +280,7 @@ object TestCommon {
   val atomId1: Atom.Id                     = Atom.Id(UUID.fromString("5fbe2ac4-5ba7-11ee-8c99-0242ac120002"))
   val stepId1: Step.Id                     = Step.Id(UUID.fromString("91806878-5173-4da9-ae2b-d7bf32407871"))
   val staticCfg1: StaticConfig.GmosNorth   = StaticConfig.GmosNorth(
-    GmosNorthStageMode.FollowXyz,
+    GmosNorthStageMode.FollowXy,
     GmosNorthDetector.Hamamatsu,
     MosPreImaging.IsNotMosPreImaging,
     None
@@ -298,7 +298,7 @@ object TestCommon {
     GmosRoi.CentralSpectrum,
     GmosGratingConfig
       .North(
-        GmosNorthGrating.B600_G5303,
+        GmosNorthGrating.B1200_G5301,
         GmosGratingOrder.One,
         Wavelength.unsafeFromIntPicometers(400000)
       )
