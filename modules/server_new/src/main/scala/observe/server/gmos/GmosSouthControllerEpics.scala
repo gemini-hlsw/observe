@@ -79,7 +79,6 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South.typ
         case GmosSouthFilter.IPrime_RG780     => ("RG780_G0334", "i_G0327")
         case GmosSouthFilter.ZPrime_CaT       => ("CaT_G0333", "z_G0328")
         case GmosSouthFilter.RG780            => ("open1-6", "RG780_G0334")
-        case GmosSouthFilter.Lya395           => ("open1-6", "Lya395_G0342")
       }
         .getOrElse(("open1-6", "open2-8"))
     }
@@ -88,7 +87,6 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South.typ
     EncodeEpicsValue {
       case GmosSouthStageMode.NoFollow  => "MOVE"
       case GmosSouthStageMode.FollowXyz => "FOLLOW"
-      case GmosSouthStageMode.FollowXy  => "FOLLOW-XY"
       case GmosSouthStageMode.FollowZ   => "FOLLOW-Z"
     }
 

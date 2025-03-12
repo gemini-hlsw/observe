@@ -43,7 +43,6 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North.typ
         case GmosNorthFilter.RPrime_RG610     => ("RG610_G0307", "r_G0303")
         case GmosNorthFilter.IPrime_CaT       => ("CaT_G0309", "i_G0302")
         case GmosNorthFilter.ZPrime_CaT       => ("CaT_G0309", "z_G0304")
-        case GmosNorthFilter.UPrime           => ("open1-6", "open2-8")
         case GmosNorthFilter.Ri               => ("open1-6", "ri_G0349")
 
       }
@@ -73,10 +72,8 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North.typ
   override val stageMode
     : EpicsCodex.EncodeEpicsValue[GmosSite.StageMode[GmosSite.North.type], String] =
     EncodeEpicsValue {
-      case GmosNorthStageMode.NoFollow  => "MOVE"
-      case GmosNorthStageMode.FollowXyz => "FOLLOW"
-      case GmosNorthStageMode.FollowXy  => "FOLLOW-XY"
-      case GmosNorthStageMode.FollowZ   => "FOLLOW-Z"
+      case GmosNorthStageMode.NoFollow => "MOVE"
+      case GmosNorthStageMode.FollowXy => "FOLLOW-XY"
     }
 
   override val disperser
@@ -84,12 +81,9 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North.typ
     EncodeEpicsValue {
       case GmosNorthGrating.B1200_G5301 => "B1200+_G5301"
       case GmosNorthGrating.R831_G5302  => "R831+_G5302"
-      case GmosNorthGrating.B600_G5307  => "B600+_G5307"
       case GmosNorthGrating.R600_G5304  => "R600+_G5304"
       case GmosNorthGrating.R400_G5305  => "R400+_G5305"
       case GmosNorthGrating.R150_G5308  => "R150+_G5308"
-      case GmosNorthGrating.B600_G5303  => "B600+_G5303"
-      case GmosNorthGrating.R150_G5306  => "R150+_G5306"
       case GmosNorthGrating.B480_G5309  => "B480+_G5309"
     }
 

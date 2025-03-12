@@ -25,31 +25,29 @@ object GcalControllerEpics {
   private val SetupTimeout: TimeSpan =
     TimeSpan.unsafeFromDuration(60, ChronoUnit.SECONDS)
 
-  implicit private val encodeLampState: EncodeEpicsValue[LampState, BinaryOnOff] =
+  private given EncodeEpicsValue[LampState, BinaryOnOff] =
     EncodeEpicsValue {
       case LampState.Off => BinaryOnOff.OFF
       case LampState.On  => BinaryOnOff.ON
     }
 
-  implicit private val encodeShutter: EncodeEpicsValue[Shutter, String] = EncodeEpicsValue {
+  private given EncodeEpicsValue[Shutter, String] = EncodeEpicsValue {
     case GcalShutter.Open   => "OPEN"
     case GcalShutter.Closed => "CLOSE"
   }
 
-  implicit private val encodeFilter: EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
+  private given EncodeEpicsValue[Filter, String] = EncodeEpicsValue {
     case GcalFilter.None => "CLEAR"
     case GcalFilter.Gmos => "GMOS"
-    case GcalFilter.Hros => "HROS"
     case GcalFilter.Nir  => "NIR"
     case GcalFilter.Nd10 => "ND1.0"
     case GcalFilter.Nd20 => "ND2.0"
     case GcalFilter.Nd30 => "ND3.0"
     case GcalFilter.Nd40 => "ND4.0"
     case GcalFilter.Nd45 => "ND4-5"
-    case _               => "CLEAR"
   }
 
-  implicit private val encodeDiffuser: EncodeEpicsValue[Diffuser, String] = EncodeEpicsValue {
+  private given EncodeEpicsValue[Diffuser, String] = EncodeEpicsValue {
     case GcalDiffuser.Ir      => "IR"
     case GcalDiffuser.Visible => "VISIBLE"
   }
