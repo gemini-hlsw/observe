@@ -35,7 +35,6 @@ import observe.server.keywords.USLocale
 import observe.server.tcs.*
 import observe.server.tcs.FocalPlaneScale.*
 import observe.server.tcs.TcsController.*
-import observe.server.tcs.TcsController.BasicTcsConfig
 import observe.server.tcs.TcsController.LightSource.Sky
 import observe.server.tcs.TestTcsEpics.ProbeGuideConfigVals
 import observe.server.tcs.TestTcsEpics.TestTcsEvent

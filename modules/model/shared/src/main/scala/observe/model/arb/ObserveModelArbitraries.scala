@@ -7,8 +7,6 @@ import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.arb.*
-import lucuma.core.arb.newTypeArbitrary
-import lucuma.core.arb.newTypeCogen
 import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
@@ -23,7 +21,6 @@ import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
-import observe.model.ObserveStep
 import observe.model.arb.all.given
 import observe.model.enums.*
 import org.scalacheck.Arbitrary

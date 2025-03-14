@@ -5,7 +5,6 @@ package observe.server.altair
 
 import algebra.instances.all.given
 import cats.*
-import cats.Eq
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*

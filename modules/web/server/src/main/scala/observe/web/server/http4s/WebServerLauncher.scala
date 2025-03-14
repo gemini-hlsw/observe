@@ -5,9 +5,6 @@ package observe.web.server.http4s
 
 import cats.data.OptionT
 import cats.effect.*
-import cats.effect.Ref
-import cats.effect.Resource
-import cats.effect.Temporal
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import fs2.Stream
@@ -24,7 +21,6 @@ import lucuma.sso.client.util.JwtDecoder
 import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
-import observe.model.events.ClientEvent
 import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine

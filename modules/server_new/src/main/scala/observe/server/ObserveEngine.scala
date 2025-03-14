@@ -42,7 +42,6 @@ import observe.engine.Handle.given
 import observe.engine.Result.Partial
 import observe.engine.{EngineStep as _, *}
 import observe.model.*
-import observe.model.ObservationProgress
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
 import observe.model.UserPrompt.SeqCheck

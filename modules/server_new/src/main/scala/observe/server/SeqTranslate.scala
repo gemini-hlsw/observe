@@ -33,7 +33,6 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.*
 import observe.engine.Action.ActionState
 import observe.model.*
-import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.Resource
 import observe.model.extensions.*

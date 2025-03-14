@@ -7,7 +7,6 @@ import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.Quantity
 import coulomb.policy.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.Millibar
@@ -18,10 +17,6 @@ import lucuma.core.math.units.MetersPerSecond
 import observe.server.EpicsHealth
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
-//import scala.language.implicitConversions
-
-// unit definitions
-//import coulomb.units.si.{*, given}
 
 /**
  * GwsEpics wraps the non-functional parts of the EPICS ACM library to interact with the Weather
