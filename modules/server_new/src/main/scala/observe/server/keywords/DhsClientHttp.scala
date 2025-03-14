@@ -20,7 +20,6 @@ import observe.model.dhs.*
 import observe.model.enums.DhsKeywordName
 import observe.model.enums.KeywordName
 import observe.server.*
-import observe.server.ObserveFailure
 import observe.server.ObserveFailure.ObserveExceptionWhile
 import observe.server.keywords.DhsClient.ImageParameters
 import org.http4s.*

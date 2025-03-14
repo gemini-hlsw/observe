@@ -23,7 +23,6 @@ import monocle.macros.GenPrism
 import monocle.syntax.all.*
 import observe.model.dhs.*
 import observe.model.enums.*
-import observe.model.enums.PendingObserveCmd
 
 enum ObserveStep(
   val id:              Step.Id,

@@ -27,9 +27,7 @@ import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.gmos.GmosController.Config.DCConfig
 import observe.server.gmos.GmosController.Config.NsConfig
 
-import GmosController.*
-
-trait GmosController[F[_], T <: GmosSite] {
+trait GmosController[F[_], T <: GmosController.GmosSite] {
   import GmosController._
 
   def applyConfig(config: GmosConfig[T]): F[Unit]

@@ -14,9 +14,7 @@ import cats.syntax.all.*
 import observe.engine
 import observe.engine.*
 import observe.engine.Handle.toHandleT
-import observe.engine.Result
 import observe.model.*
-import observe.model.Observation
 import observe.model.enums.*
 
 extension [F[_]: MonadThrow, A](s: EitherT[F, ObserveFailure, A])

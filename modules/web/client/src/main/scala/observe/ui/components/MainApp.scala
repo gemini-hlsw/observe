@@ -42,7 +42,6 @@ import lucuma.ui.components.state.IfLogged
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
-import observe.model.LogMessage
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent
 import observe.queries.ObsQueriesGQL
@@ -56,7 +55,6 @@ import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
 import observe.ui.model.enums.*
 import observe.ui.services.*
-import observe.ui.services.ConfigApi
 import org.http4s.Uri
 import org.http4s.client.Client
 import org.http4s.client.middleware.Retry

@@ -25,7 +25,6 @@ import observe.model.odb.RecordedVisit
 import observe.ui.ObserveStyles
 import observe.ui.components.ObservationSequence
 import observe.ui.model.*
-import observe.ui.model.ObsSummary
 
 case class ObservationExecutionDisplay(
   selectedObs:      ObsSummary,

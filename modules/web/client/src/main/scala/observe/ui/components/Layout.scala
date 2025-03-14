@@ -8,7 +8,6 @@ import cats.syntax.all.*
 import clue.PersistentClientStatus
 import crystal.Pot
 import crystal.react.*
-import crystal.react.View
 import crystal.react.hooks.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.extra.router.*

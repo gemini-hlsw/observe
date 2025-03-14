@@ -24,8 +24,6 @@ import org.typelevel.log4cats.Logger
 
 import java.time.LocalDate
 
-import ConditionOps.*
-
 final case class StateKeywordsReader[F[_]: Monad](
   conditions: ConditionSetReader[F],
   operator:   Option[Operator],

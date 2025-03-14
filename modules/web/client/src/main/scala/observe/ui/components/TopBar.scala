@@ -5,7 +5,6 @@ package observe.ui.components
 
 import cats.effect.IO
 import crystal.react.*
-import crystal.react.View
 import crystal.react.hooks.*
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
