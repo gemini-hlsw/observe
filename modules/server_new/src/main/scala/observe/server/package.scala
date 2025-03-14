@@ -54,10 +54,10 @@ case class EngineState[F[_]](
 }
 
 object EngineState {
-  def selectedGmosSouth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
+  private def selectedGmosSouth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
     Focus[EngineState[F]](_.selected.gmosSouth)
 
-  def selectedGmosNorth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
+  private def selectedGmosNorth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
     Focus[EngineState[F]](_.selected.gmosNorth)
 
   def default[F[_]]: EngineState[F] =
