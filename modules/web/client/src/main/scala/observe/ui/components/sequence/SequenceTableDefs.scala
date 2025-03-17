@@ -44,7 +44,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     onDatasetQaChange:  Dataset.Id => EditableQaFields => Callback
   )
 
-  protected def ColDef = ColumnDef.WithTableMeta[SequenceTableRowType, TableMeta]
+  protected val ColDef = ColumnDef[SequenceTableRowType].WithTableMeta[TableMeta]
 
   // Breakpoint column has width 0 but is translated and actually shown.
   // We display an empty BreakpointSpace column to show the space with correct borders.
@@ -102,22 +102,25 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
       case Breakpoint.Enabled  => Breakpoint.Disabled
       case Breakpoint.Disabled => Breakpoint.Enabled
 
+// [T, A, TM, CM, TF, CF, FM]
   private def column[V](
     id:     ColumnId,
     header: VdomNode,
-    cell:   js.UndefOr[CellContext[SequenceTableRowType, V, TableMeta, Nothing] => VdomNode] =
+    cell:   js.UndefOr[CellContext[SequenceTableRowType, V, TableMeta, ?, ?, ?, ?] => VdomNode] =
       js.undefined
-  ): ColumnDef[SequenceTableRowType, V, TableMeta, Nothing] =
-    ColDef[V](id, header = _ => header, cell = cell)
+  ): ColDef.TypeFor[V] =
+    ColDef(id, header = _ => header, cell = cell)
 
   protected def columnDefs(
     clientMode: ClientMode,
     instrument: Instrument,
     obsId:      Observation.Id,
     isPreview:  Boolean
-  )(using Logger[IO]): List[ColumnDef[SequenceTableRowType, ?, TableMeta, ?]] =
+  )(using Logger[IO]): List[ColDef.TypeFor[?]] =
     List(
-      SequenceColumns.headerCell(HeaderColumnId, ColDef).setColumnSize(ColumnSizes(HeaderColumnId)),
+      SequenceColumns
+        .headerCell(HeaderColumnId, ColDef)
+        .withColumnSize(ColumnSizes(HeaderColumnId)),
       column(
         BreakpointColumnId,
         "",
@@ -204,7 +207,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     ) ++
       SequenceColumns
         .gmosColumns(ColDef, _._1.some, _._2.some)
-        .map(colDef => colDef.setColumnSize(ColumnSizes(colDef.id))) ++
+        .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
         column(CameraColumnId, "Camera"),

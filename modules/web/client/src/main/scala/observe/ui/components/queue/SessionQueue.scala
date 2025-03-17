@@ -178,7 +178,8 @@ object SessionQueue
                 )
             ),
           size = 25.toPx,
-          enableResizing = false
+          enableResizing = false,
+          enableSorting = false
         ),
         ColDef(
           AddQueueColumnId,

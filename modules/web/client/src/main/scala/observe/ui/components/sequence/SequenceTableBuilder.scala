@@ -54,7 +54,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
 
   private def scrollToRowId(
     virtualizerRef: UseRef[Option[HTMLTableVirtualizer]],
-    table:          Table[SequenceTableRowType, TableMeta]
+    table:          Table[SequenceTableRowType, TableMeta, Nothing, Nothing]
   )(rowIdCandidates: List[String]): Callback =
     virtualizerRef.get.flatMap: refOpt =>
       Callback( // Auto scroll to running step or next step.
@@ -256,7 +256,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
             .orEmpty
 
         def computeHeaderCellMods(
-          headerCell: Header[SequenceTableRowType, Any, TableMeta, Any]
+          headerCell: Header[SequenceTableRowType, ?, TableMeta, ?, ?, ?, ?]
         ): TagMod =
           headerCell.column.id match
             case id if id == HeaderColumnId     => SequenceStyles.HiddenColTableHeader
@@ -273,7 +273,9 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
               .whenDefined
           )
 
-        def computeCellMods(cell: Cell[SequenceTableRowType, Any, TableMeta, Any]): TagMod =
+        def computeCellMods(
+          cell: Cell[SequenceTableRowType, ?, TableMeta, ?, ?, ?, ?]
+        ): TagMod =
           cell.row.original.value match
             case Left(_)        => // Header
               cell.column.id match
@@ -301,9 +303,12 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
           case Expanded.AllRows    => Expanded.AllRows
           case Expanded.Rows(rows) => Expanded.Rows(rows ++ (visitIds.map(_ -> true)))
 
-        val rows: List[Row[SequenceTableRowType, TableMeta]] = table.getExpandedRowModel().rows
+        val rows: List[Row[SequenceTableRowType, TableMeta, Nothing, Nothing]] =
+          table.getExpandedRowModel().rows
 
-        def forAllVisits(onContains: Row[SequenceTableRowType, TableMeta] => Boolean): Boolean =
+        def forAllVisits(
+          onContains: Row[SequenceTableRowType, TableMeta, Nothing, Nothing] => Boolean
+        ): Boolean =
           rows.forall: row =>
             if visitIds.contains(row.id) then onContains(row) else true
 
