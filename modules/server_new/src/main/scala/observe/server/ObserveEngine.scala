@@ -1937,14 +1937,8 @@ object ObserveEngine {
       .map(EngineState.atSequence[F](obsId).getOption)
       .flatMap {
         _.map { seq =>
-          seq.seqGen.nextAtom.sequenceType match {
-            // We shouldn't reload acq because odb always gives more steps for acq
-            case SequenceType.Acquisition =>
-              executeEngine.startNewAtom(obsId).as(NullSeqEvent)
-            case SequenceType.Science     =>
-              tryAtomReload[F](odb, translator, executeEngine, obsId, SequenceType.Science)
-                .as(SeqEvent.NullSeqEvent)
-          }
+          tryAtomReload[F](odb, translator, executeEngine, obsId, seq.seqGen.nextAtom.sequenceType)
+            .as(SeqEvent.NullSeqEvent)
         }.getOrElse(
           Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](NullSeqEvent)
         )
@@ -1960,24 +1954,19 @@ object ObserveEngine {
     Handle
       .fromStream[F, EngineState[F], Event[F, EngineState[F], SeqEvent]](Stream.eval {
         odb.read(obsId).map { x =>
-          atomType match {
-            case SequenceType.Acquisition =>
-              Event.nullEvent
-            case SequenceType.Science     =>
-              // Read the next atom from the odb and replaces the current atom
-              translator
-                .nextAtom(x, atomType)
-                ._2
-                .map { atm =>
-                  Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                      val state = updateAtom(obsId, atm)(st)
-                      (state, ())
-                    }.toHandle
-                      .flatMap(_ => executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent))
-                  )
-                }
-                .getOrElse(Event.nullEvent)
-          }
+          // Read the next atom from the odb and replaces the current atom
+          translator
+            .nextAtom(x, atomType)
+            ._2
+            .map { atm =>
+              Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                  val state = updateAtom(obsId, atm)(st)
+                  (state, ())
+                }.toHandle
+                  .flatMap(_ => executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent))
+              )
+            }
+            .getOrElse(Event.nullEvent)
         }
       })
 }
