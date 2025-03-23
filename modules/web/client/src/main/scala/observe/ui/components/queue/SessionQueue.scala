@@ -48,7 +48,7 @@ case class SessionQueue(
 
 object SessionQueue
     extends ReactFnComponent[SessionQueue](props =>
-      val ColDef = ColumnDef[SessionQueueRow]
+      val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters
 
       def rowClass(
         loadingPotOpt: Option[Pot[Unit]],
@@ -158,7 +158,7 @@ object SessionQueue
         loadedObsId:      Option[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-      ) = List(
+      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, Nothing, ?, Nothing]] = List(
         ColDef(
           StatusIconColumnId,
           row => row.obsId,
@@ -202,37 +202,37 @@ object SessionQueue
           cell =
             cell => <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
           size = 240.toPx
-        ).sortable,
+        ).sortable.withFilterMethod(FilterMethod.Text(_.fold(_._2.shortName, _.label))),
         ColDef(
           StateColumnId,
           row => statusText(row.status, row.runningStep),
           header = "State",
           cell = _.value
-        ).sortable,
+        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
         ColDef(
           InstrumentColumnId,
           _.instrument,
           header = "Instrument",
           cell = _.value.shortName
-        ).sortable,
+        ).sortable.withFilterMethod(FilterMethod.Select(_.shortName)),
         ColDef(
           TargetColumnId,
           _.title,
           header = "Target",
-          cell = _.value.toString.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
-        ).sortable,
+          cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
+        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
         ColDef(
           ObsNameColumnId,
           _.subtitle.map(_.value).getOrElse("-"),
           header = "Obs. Name",
           cell = _.value
-        ).sortable,
+        ).sortable.withFilterMethod(FilterMethod.StringText()),
         ColDef(
           ObserverColumnId,
           _.observer.foldMap(_.value.value),
           header = "Observer",
-          cell = _.value.toString
-        ).sortable
+          cell = _.value
+        ).sortable.withFilterMethod(FilterMethod.StringSelect())
       )
 
       for
@@ -253,6 +253,8 @@ object SessionQueue
               Reusable.implicitly(props.queue),
               enableColumnResizing = true,
               enableSorting = true,
+              enableFilters = true,
+              enableFacetedUniqueValues = true,
               columnResizeMode = ColumnResizeMode.OnChange
             )
       yield <.div(ObserveStyles.SessionQueue)(
@@ -260,6 +262,7 @@ object SessionQueue
           table,
           estimateSize = _ => 30.toPx,
           tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
+          columnFilterRenderer = FilterMethod.render,
           rowMod = row =>
             TagMod(
               rowClass(
