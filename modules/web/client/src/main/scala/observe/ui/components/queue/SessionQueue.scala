@@ -19,7 +19,9 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.refined.*
 import lucuma.ui.LucumaIcons
+import lucuma.ui.primereact.DebouncedInputText
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
 import observe.model.RunningStep
@@ -48,7 +50,7 @@ case class SessionQueue(
 
 object SessionQueue
     extends ReactFnComponent[SessionQueue](props =>
-      val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters
+      val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters.WithGlobalFilter[String]
 
       def rowClass(
         loadingPotOpt: Option[Pot[Unit]],
@@ -158,7 +160,7 @@ object SessionQueue
         loadedObsId:      Option[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, Nothing, ?, Nothing]] = List(
+      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] = List(
         ColDef(
           StatusIconColumnId,
           row => row.obsId,
@@ -236,7 +238,7 @@ object SessionQueue
       )
 
       for
-        cols  <-
+        cols         <-
           useMemo(
             (props.obsStates,
              props.obsIdPotOpt.map(_.void),
@@ -246,18 +248,28 @@ object SessionQueue
              props.linkToExploreObs
             )
           )(columns(_, _, _, _, _, _))
-        table <-
+        table        <-
           useReactTable:
             TableOptions(
               cols,
               Reusable.implicitly(props.queue),
               enableColumnResizing = true,
+              columnResizeMode = ColumnResizeMode.OnChange,
               enableSorting = true,
               enableFilters = true,
               enableFacetedUniqueValues = true,
-              columnResizeMode = ColumnResizeMode.OnChange
+              enableGlobalFilter = true,
+              globalFilterFn = FilterMethod.globalFilterFn(cols)
             )
+        globalFilter <- useState("")
       yield <.div(ObserveStyles.SessionQueue)(
+        DebouncedInputText(
+          id = "obs-filter".refined,
+          delayMillis = 250,
+          value = table.getState().globalFilter.getOrElse(""),
+          onChange = v => table.setGlobalFilter(v.some),
+          placeholder = "<Keyword filter>"
+        ),
         PrimeAutoHeightVirtualizedTable(
           table,
           estimateSize = _ => 30.toPx,
