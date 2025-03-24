@@ -958,12 +958,11 @@ class ObserveEngineSuite extends TestCommon {
             )
             .compile
             .last
-
     } yield {
       r
         .flatMap(_._2.sequences.get(seqObsId1))
         .flatMap(_.seqGen.nextAtom.steps.headOption)
-        .map(z => assertEquals(z.id, acquisitionSteps.head.id))
+        .map(z => assertEquals(z.id, acquisitionSteps.get(1).get.id))
         .getOrElse(fail("Bad step id found"))
       s
         .flatMap(_._2.sequences.get(seqObsId1))
