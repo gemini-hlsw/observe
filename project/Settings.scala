@@ -51,11 +51,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.118.0"
+    val lucumaCore      = "0.119.1"
     val lucumaUI        = "0.134.1"
-    val lucumaSchemas   = "0.123.1"
+    val lucumaSchemas   = "0.123.2"
     val lucumaSSO       = "0.8.6"
-    val lucumaODBSchema = "0.18.6"
+    val lucumaODBSchema = "0.19.0"
 
     // Clue
     val clue = "0.43.1"
