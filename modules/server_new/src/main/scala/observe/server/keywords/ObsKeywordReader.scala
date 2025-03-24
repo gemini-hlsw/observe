@@ -97,7 +97,7 @@ object ObsKeywordReader {
       override def obsClass: F[String] = (step.observeClass match {
         case ObserveClass.Science     => "science"
         case ObserveClass.NightCal    => "nightCal"
-        case ObserveClass.Acquisition => "acqCal"
+        case ObserveClass.Acquisition => "acq"
         case ObserveClass.DayCal      => "dayCal"
       }).pure[F]
 
