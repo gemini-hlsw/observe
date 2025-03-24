@@ -362,7 +362,7 @@ class ObserveEngineSuite extends TestCommon {
     val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
-      (ObserveClass.ProgramCal, StepConfig.Dark),
+      (ObserveClass.NightCal, StepConfig.Dark),
       List((ObserveClass.Science, StepConfig.Science))
     )
 
@@ -626,7 +626,7 @@ class ObserveEngineSuite extends TestCommon {
     val resources: Set[Resource | Instrument] = Set(Instrument.GmosNorth, TCS)
 
     val obsTypes: NonEmptyList[(ObserveClass, StepConfig)] = NonEmptyList(
-      (ObserveClass.ProgramCal, StepConfig.Dark),
+      (ObserveClass.NightCal, StepConfig.Dark),
       List((ObserveClass.Science, StepConfig.Science))
     )
 

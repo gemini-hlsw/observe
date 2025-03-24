@@ -95,12 +95,10 @@ object ObsKeywordReader {
       ).pure[F]
 
       override def obsClass: F[String] = (step.observeClass match {
-        case ObserveClass.Science        => "science"
-        case ObserveClass.ProgramCal     => "progCal"
-        case ObserveClass.PartnerCal     => "partnerCal"
-        case ObserveClass.Acquisition    => "acq"
-        case ObserveClass.AcquisitionCal => "acqCal"
-        case ObserveClass.DayCal         => "dayCal"
+        case ObserveClass.Science     => "science"
+        case ObserveClass.NightCal    => "nightCal"
+        case ObserveClass.Acquisition => "acqCal"
+        case ObserveClass.DayCal      => "dayCal"
       }).pure[F]
 
       override def gemPrgId: F[String] = obsCfg.program.name.map(_.toString).getOrElse("").pure[F]
