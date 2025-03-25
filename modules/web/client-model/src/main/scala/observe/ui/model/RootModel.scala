@@ -53,8 +53,11 @@ case class RootModelData(
   lazy val readyObservationsMap: Map[Observation.Id, ObsSummary] =
     readyObservations.toOption.orEmpty.map(o => o.obsId -> o).toMap
 
+  lazy val isNighttimeObsTableForced: Boolean =
+    nighttimeObservation.isEmpty
+
   lazy val isNighttimeObsTableShown: Boolean =
-    isNighttimeObsTableOpen || nighttimeObservation.isEmpty
+    isNighttimeObsTableForced || isNighttimeObsTableOpen
 
   lazy val nighttimeObsSummary: Option[ObsSummary] =
     nighttimeObservation

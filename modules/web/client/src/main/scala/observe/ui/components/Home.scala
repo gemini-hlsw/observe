@@ -31,6 +31,7 @@ import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
+import lucuma.ui.primereact.LucumaPrimeStyles
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home)
 
@@ -93,7 +94,18 @@ object Home
                 )
 
             <.div(ObserveStyles.MainPanel)(
-              if rootModelData.isNighttimeObsTableShown then
+              Dialog(
+                onHide = closeObsTable,
+                visible = rootModelData.isNighttimeObsTableShown,
+                position = DialogPosition.Top,
+                closeOnEscape = !rootModelData.isNighttimeObsTableForced,
+                closable = !rootModelData.isNighttimeObsTableForced,
+                modal = !rootModelData.isNighttimeObsTableForced,
+                dismissableMask = !rootModelData.isNighttimeObsTableForced,
+                resizable = true,
+                clazz = LucumaPrimeStyles.Dialog.Large
+                // header = "Programs",
+              )(
                 rootModelData.readyObservations
                   .map:
                     _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
@@ -122,23 +134,21 @@ object Home
                       renderExploreLinkToObs
                     )
                   )
-              else
-                React.Fragment(
-                  ConfigPanel(
-                    loadedObsId,
-                    props.rootModel.data.zoom(RootModelData.observer),
-                    props.rootModel.data.zoom(RootModelData.operator),
-                    props.rootModel.data.zoom(RootModelData.conditions)
-                  ),
-                  rootModelData.nighttimeObsSummary
-                    .map:
-                      ObservationExecutionDisplay(
-                        _,
-                        props.rootModel.data,
-                        openObsTable,
-                        renderExploreLinkToObs
-                      )
-                )
+              ),
+              ConfigPanel(
+                loadedObsId,
+                props.rootModel.data.zoom(RootModelData.observer),
+                props.rootModel.data.zoom(RootModelData.operator),
+                props.rootModel.data.zoom(RootModelData.conditions)
+              ),
+              rootModelData.nighttimeObsSummary
+                .map:
+                  ObservationExecutionDisplay(
+                    _,
+                    props.rootModel.data,
+                    openObsTable,
+                    renderExploreLinkToObs
+                  )
               ,
               Accordion(tabs =
                 List(
