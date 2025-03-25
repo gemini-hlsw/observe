@@ -47,11 +47,15 @@ object Home
 
         val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
 
-        val selectObservation: Observation.Id => Callback =
-          obsId =>
-            props.rootModel.data
-              .zoom(RootModelData.selectedObservation)
-              .set(obsId.some)
+        val openObsTable: Callback =
+          props.rootModel.data
+            .zoom(RootModelData.isNighttimeObsTableOpen)
+            .set(true)
+
+        val closeObsTable: Callback =
+          props.rootModel.data
+            .zoom(RootModelData.isNighttimeObsTableOpen)
+            .set(false)
 
         val loadObservation: Reusable[Observation.Id => Callback] =
           Reusable
@@ -63,7 +67,8 @@ object Home
                   props.rootModel.data
                     .zoom(RootModelData.nighttimeObservation)
                     .set(LoadedObservation(obsId).some) >>
-                    sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync
+                    sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync >>
+                    closeObsTable
 
         val obsStates: Map[Observation.Id, SequenceState] =
           rootModelData.executionState.view.mapValues(_.sequenceState).toMap
@@ -88,61 +93,53 @@ object Home
                 )
 
             <.div(ObserveStyles.MainPanel)(
-              Splitter(
-                layout = Layout.Vertical,
-                stateKey = "main-splitter",
-                stateStorage = StateStorage.Local,
-                clazz = ObserveStyles.Shrinkable
-              )(
-                SplitterPanel(clazz = ObserveStyles.TopPanel)(
-                  rootModelData.readyObservations
-                    .map:
-                      _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
-                        .map: obs =>
-                          SessionQueueRow(
-                            obs,
-                            rootModelData.executionState
-                              .get(obs.obsId)
-                              .map(_.sequenceState)
-                              .getOrElse(SequenceState.Idle),
-                            props.rootModel.data.get.observer,
-                            ObsClass.Nighttime,
-                            loadedObsId.contains_(obs.obsId),
-                            // We can't easily know step numbers nor the total number of steps.
-                            // Maybe we want to show pending and total times instead?
-                            none,
-                            none,
-                            false
-                          )
-                    .renderPot(
-                      SessionQueue(
-                        _,
-                        obsStates,
-                        selectObservation,
-                        loadedObs,
-                        loadObservation,
-                        renderExploreLinkToObs
-                      )
-                    ),
+              if rootModelData.isNighttimeObsTableShown then
+                rootModelData.readyObservations
+                  .map:
+                    _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
+                      .map: obs =>
+                        SessionQueueRow(
+                          obs,
+                          rootModelData.executionState
+                            .get(obs.obsId)
+                            .map(_.sequenceState)
+                            .getOrElse(SequenceState.Idle),
+                          props.rootModel.data.get.observer,
+                          ObsClass.Nighttime,
+                          loadedObsId.contains_(obs.obsId),
+                          // We can't easily know step numbers nor the total number of steps.
+                          // Maybe we want to show pending and total times instead?
+                          none,
+                          none,
+                          false
+                        )
+                  .renderPot(
+                    SessionQueue(
+                      _,
+                      obsStates,
+                      loadedObs,
+                      loadObservation,
+                      renderExploreLinkToObs
+                    )
+                  )
+              else
+                React.Fragment(
                   ConfigPanel(
                     loadedObsId,
                     props.rootModel.data.zoom(RootModelData.observer),
                     props.rootModel.data.zoom(RootModelData.operator),
                     props.rootModel.data.zoom(RootModelData.conditions)
-                  )
-                ),
-                SplitterPanel()(
-                  rootModelData.nighttimeDisplayedObservation
-                    .map(
+                  ),
+                  rootModelData.nighttimeObsSummary
+                    .map:
                       ObservationExecutionDisplay(
                         _,
                         props.rootModel.data,
-                        loadObservation,
+                        openObsTable,
                         renderExploreLinkToObs
                       )
-                    )
                 )
-              ),
+              ,
               Accordion(tabs =
                 List(
                   AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(

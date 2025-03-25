@@ -27,21 +27,21 @@ import observe.model.odb.ObsRecordedIds
 import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
-  userVault:            Pot[Option[UserVault]],
-  readyObservations:    Pot[List[ObsSummary]],
-  selectedObservation:  Option[Observation.Id],
-  nighttimeObservation: Option[LoadedObservation],
-  daytimeObservations:  List[LoadedObservation],
-  executionState:       Map[Observation.Id, ExecutionState], // This is the execution state on the server
-  recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
-  obsProgress:          Map[Observation.Id, StepProgress],
-  userSelectedStep:     Map[Observation.Id, Step.Id],
-  obsRequests:          Map[Observation.Id, ObservationRequests],
-  conditions:           Conditions,
-  observer:             Option[Observer],
-  operator:             Option[Operator],
-  userSelectionMessage: Option[NonEmptyString],
-  globalLog:            FixedLengthBuffer[LogMessage]
+  userVault:               Pot[Option[UserVault]],
+  readyObservations:       Pot[List[ObsSummary]],
+  nighttimeObservation:    Option[LoadedObservation],
+  isNighttimeObsTableOpen: Boolean,
+  daytimeObservations:     List[LoadedObservation],
+  executionState:          Map[Observation.Id, ExecutionState], // This is the execution state on the server
+  recordedIds:             ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
+  obsProgress:             Map[Observation.Id, StepProgress],
+  userSelectedStep:        Map[Observation.Id, Step.Id],
+  obsRequests:             Map[Observation.Id, ObservationRequests],
+  conditions:              Conditions,
+  observer:                Option[Observer],
+  operator:                Option[Operator],
+  userSelectionMessage:    Option[NonEmptyString],
+  globalLog:               FixedLengthBuffer[LogMessage]
 ) derives Eq:
   // TODO Readonly mode won't depend on user logged or not, but on their permissions.
   // For the moment we are requiring the STAFF role, so all logged users can operate.
@@ -53,10 +53,12 @@ case class RootModelData(
   lazy val readyObservationsMap: Map[Observation.Id, ObsSummary] =
     readyObservations.toOption.orEmpty.map(o => o.obsId -> o).toMap
 
-  lazy val nighttimeDisplayedObservation: Option[ObsSummary] =
+  lazy val isNighttimeObsTableShown: Boolean =
+    isNighttimeObsTableOpen || nighttimeObservation.isEmpty
+
+  lazy val nighttimeObsSummary: Option[ObsSummary] =
     nighttimeObservation
       .map(_.obsId)
-      .orElse(selectedObservation)
       .flatMap(readyObservationsMap.get)
 
   def isObsLocked(obsId: Observation.Id): Boolean =
@@ -81,8 +83,8 @@ object RootModelData:
     RootModelData(
       userVault = Pot.pending,
       readyObservations = Pot.pending,
-      selectedObservation = none,
       nighttimeObservation = none,
+      isNighttimeObsTableOpen = true,
       daytimeObservations = List.empty,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,
@@ -99,10 +101,10 @@ object RootModelData:
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
   val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]              =
     Focus[RootModelData](_.readyObservations)
-  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]           =
-    Focus[RootModelData](_.selectedObservation)
   val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]       =
     Focus[RootModelData](_.nighttimeObservation)
+  val isNighttimeObsTableOpen: Lens[RootModelData, Boolean]                      =
+    Focus[RootModelData](_.isNighttimeObsTableOpen)
   val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]          =
     Focus[RootModelData](_.daytimeObservations)
   val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]   =

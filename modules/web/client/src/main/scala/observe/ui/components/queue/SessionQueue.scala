@@ -37,7 +37,6 @@ import observe.ui.model.reusability.given
 case class SessionQueue(
   queue:            List[SessionQueueRow],
   obsStates:        Map[Observation.Id, SequenceState],
-  selectObs:        Observation.Id => Callback,
   loadedObs:        Option[LoadedObservation],
   loadObs:          Reusable[Observation.Id => Callback],
   linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
@@ -281,8 +280,7 @@ object SessionQueue
                 props.obsIdPotOpt.map(_.void),
                 row.original,
                 props.loadedObs.map(_.obsId)
-              ),
-              ^.onClick --> props.selectObs(row.original.obsId)
+              )
             ),
           cellMod = cell =>
             cell.column.id match
