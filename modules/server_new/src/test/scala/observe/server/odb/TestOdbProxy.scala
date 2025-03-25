@@ -51,6 +51,7 @@ trait TestOdbProxy[F[_]] extends OdbProxy[F] {
 object TestOdbProxy {
 
   case class State(
+    acquisition:    Option[Atom[DynamicConfig.GmosNorth]],
     sciences:       List[Atom[DynamicConfig.GmosNorth]],
     currentAtom:    Option[Atom.Id],
     completedSteps: List[Step.Id],
@@ -59,28 +60,32 @@ object TestOdbProxy {
   ) {
     def completeCurrentAtom: State =
       currentAtom.fold(this)(a =>
-        copy(currentAtom = none, currentStep = none, sciences = sciences.filter(_.id =!= a))
+        copy(
+          currentAtom = none,
+          currentStep = none,
+          acquisition = acquisition.filter(_.id =!= a),
+          sciences = sciences.filter(_.id =!= a)
+        )
       )
 
     def startStep(generatedId: Option[Step.Id]): State =
       State.currentStep.replace(generatedId)(this)
 
+    private def advanceAtom(
+      a: Atom[DynamicConfig.GmosNorth]
+    ): Option[Atom[DynamicConfig.GmosNorth]] =
+      if currentAtom.exists(_ === a.id) then
+        val rest = NonEmptyList.fromList(a.steps.tail)
+        rest.map(r => a.copy(steps = r))
+      else a.some
+
     def completeCurrentStep: State =
       currentStep.fold(this)(s =>
-
-        val scienceUpdated =
-          sciences
-            .map {
-              case a if currentAtom.exists(_ === a.id) =>
-                val rest = NonEmptyList.fromList(a.steps.tail)
-                rest.map(r => a.copy(steps = r))
-              case a                                   => a.some
-            }
-
         copy(
           currentStep = none,
           completedSteps = (s :: completedSteps.reverse).reverse,
-          sciences = scienceUpdated.flattenOption
+          acquisition = acquisition.flatMap(advanceAtom),
+          sciences = sciences.map(advanceAtom).flattenOption
         )
       )
   }
@@ -96,7 +101,7 @@ object TestOdbProxy {
     sciences:           List[Atom[DynamicConfig.GmosNorth]] = List.empty,
     updateStartObserve: State => State = identity
   ): F[TestOdbProxy[F]] = Ref
-    .of[F, State](State(sciences, None, List.empty, None, List.empty))
+    .of[F, State](State(acquisition, sciences, None, List.empty, None, List.empty))
     .map(rf =>
       new TestOdbProxy[F] {
         private def addEvent(ev: OdbEvent): F[Unit] =
@@ -131,7 +136,7 @@ object TestOdbProxy {
                     InstrumentExecutionConfig.GmosNorth(
                       ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
                         stc,
-                        acquisition.map(
+                        st.acquisition.map(
                           ExecutionSequence[DynamicConfig.GmosNorth](_, List.empty, true)
                         ),
                         sciAtom.map(
