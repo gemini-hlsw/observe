@@ -48,29 +48,29 @@ trait ArbRootModel:
 
   given Arbitrary[RootModelData] = Arbitrary:
     for
-      uv   <- arbitrary[Pot[Option[UserVault]]]
-      ros  <- arbitrary[Pot[List[ObsSummary]]]
-      so   <- arbitrary[Option[Observation.Id]]
-      nto  <- arbitrary[Option[LoadedObservation]]
-      dtos <- arbitrary[List[LoadedObservation]]
-      es   <- arbitrary[Map[Observation.Id, ExecutionState]]
-      ri   <- arbitrary[ObsRecordedIds]
-      sp   <- arbitrary[Map[Observation.Id, StepProgress]]
-      uss  <- arbitrary[Map[Observation.Id, Step.Id]]
-      or   <- arbitrary[Map[Observation.Id, ObservationRequests]]
-      cs   <- arbitrary[Conditions]
-      obs  <- arbitrary[Option[Observer]]
-      op   <- arbitrary[Option[Operator]]
-      usm  <- arbitrary[Option[NonEmptyString]]
-      log  <- arbitrary[FixedLengthBuffer[LogMessage]]
-    yield RootModelData(uv, ros, so, nto, dtos, es, ri, sp, uss, or, cs, obs, op, usm, log)
+      uv    <- arbitrary[Pot[Option[UserVault]]]
+      ros   <- arbitrary[Pot[List[ObsSummary]]]
+      nto   <- arbitrary[Option[LoadedObservation]]
+      inoto <- arbitrary[Boolean]
+      dtos  <- arbitrary[List[LoadedObservation]]
+      es    <- arbitrary[Map[Observation.Id, ExecutionState]]
+      ri    <- arbitrary[ObsRecordedIds]
+      sp    <- arbitrary[Map[Observation.Id, StepProgress]]
+      uss   <- arbitrary[Map[Observation.Id, Step.Id]]
+      or    <- arbitrary[Map[Observation.Id, ObservationRequests]]
+      cs    <- arbitrary[Conditions]
+      obs   <- arbitrary[Option[Observer]]
+      op    <- arbitrary[Option[Operator]]
+      usm   <- arbitrary[Option[NonEmptyString]]
+      log   <- arbitrary[FixedLengthBuffer[LogMessage]]
+    yield RootModelData(uv, ros, nto, inoto, dtos, es, ri, sp, uss, or, cs, obs, op, usm, log)
 
   given Cogen[RootModelData] = Cogen[
     (
       Pot[Option[UserVault]],
       Pot[List[ObsSummary]],
-      Option[Observation.Id],
       Option[LoadedObservation],
+      Boolean,
       List[LoadedObservation],
       List[(Observation.Id, ExecutionState)],
       ObsRecordedIds,
@@ -86,8 +86,8 @@ trait ArbRootModel:
   ].contramap: x =>
     (x.userVault,
      x.readyObservations,
-     x.selectedObservation,
      x.nighttimeObservation,
+     x.isNighttimeObsTableOpen,
      x.daytimeObservations,
      x.executionState.toList,
      x.recordedIds,

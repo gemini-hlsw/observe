@@ -32,7 +32,7 @@ case class RootModelData(
   nighttimeObservation:    Option[LoadedObservation],
   isNighttimeObsTableOpen: Boolean,
   daytimeObservations:     List[LoadedObservation],
-  executionState:          Map[Observation.Id, ExecutionState], // This is the execution state on the server
+  executionState:          Map[Observation.Id, ExecutionState], // Execution state on the server
   recordedIds:             ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
   obsProgress:             Map[Observation.Id, StepProgress],
   userSelectedStep:        Map[Observation.Id, Step.Id],

@@ -63,7 +63,11 @@ object ObservationExecutionDisplay
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>
-          (lo.obsId.ready, lo.config, visitsViewPot, executionStateOpt.toOptionView.toPot).tupled
+          (lo.toPot.map(_.obsId),
+           lo.config,
+           visitsViewPot,
+           executionStateOpt.toOptionView.toPot
+          ).tupled
 
       val currentRecordedVisit: Option[RecordedVisit] =
         rootModelData.recordedIds.value.get(selectedObsId)

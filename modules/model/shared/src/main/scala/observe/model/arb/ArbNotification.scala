@@ -30,11 +30,14 @@ trait ArbNotification {
     Cogen[Observation.Id].contramap(_.obsId)
 
   given rfArb: Arbitrary[RequestFailed] = Arbitrary[RequestFailed] {
-    arbitrary[List[String]].map(RequestFailed.apply)
+    for
+      oid  <- arbitrary[Observation.Id]
+      strs <- arbitrary[List[String]]
+    yield RequestFailed(oid, strs)
   }
 
   given rfCogen: Cogen[RequestFailed] =
-    Cogen[List[String]].contramap(_.msgs)
+    Cogen[(Observation.Id, List[String])].contramap(x => (x.obsId, x.msgs))
 
   given inArb: Arbitrary[InstrumentInUse] = Arbitrary[InstrumentInUse] {
     for {
