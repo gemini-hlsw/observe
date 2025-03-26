@@ -18,8 +18,6 @@ import lucuma.react.primereact.Tooltip
 import lucuma.react.primereact.TooltipOptions
 import lucuma.ui.LucumaIcons
 import observe.model.*
-import observe.model.SequenceState
-import observe.model.SystemOverrides
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.ConfigPanel

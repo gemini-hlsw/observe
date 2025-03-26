@@ -47,8 +47,8 @@ object ObserveStyles:
   val AcquisitionPromptMain: Css = Css("ObserveStyles-acquisitionPrompt-main")
   val AcquisitionPromptBusy: Css = Css("ObserveStyles-acquisitionPrompt-busy")
 
-  val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
-  val SessionTable: Css   = Css("ObserveStyles-sessionTable")
+  val ObsListHeader: Css  = Css("ObserveStyles-obsListHeader")
+  val ObsListTable: Css   = Css("ObserveStyles-obsListTable")
   val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")
   val LoadButtonCell: Css = Css("ObserveStyles-loadButton-cell")
   val LoadButton: Css     = Css("ObserveStyles-loadButton")

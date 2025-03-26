@@ -22,7 +22,7 @@ import observe.model.ClientConfig
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.components.queue.SessionQueue
+import observe.ui.components.queue.ObsListPopup
 import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
@@ -112,7 +112,7 @@ object Home
                         false
                       )
                 .renderPot(
-                  SessionQueue(
+                  ObsListPopup(
                     _,
                     obsStates,
                     loadedObs,

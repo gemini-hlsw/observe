@@ -32,14 +32,14 @@ import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.reusability.given
 
-case class SessionQueue(
+case class ObsListPopup(
   queue:                   List[SessionQueueRow],
   obsStates:               Map[Observation.Id, SequenceState],
   loadedObs:               Option[LoadedObservation],
   loadObs:                 Reusable[Observation.Id => Callback],
   isNighttimeObsTableOpen: View[Boolean],
   linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
-) extends ReactFnProps(SessionQueue):
+) extends ReactFnProps(ObsListPopup):
   val obsIdPotOpt: Option[Pot[Observation.Id]] =
     loadedObs.map(obs => obs.toPot.flatMap(_.config).as(obs.obsId))
 
@@ -53,8 +53,8 @@ case class SessionQueue(
   val isNighttimeObsTableShown: Boolean =
     isNighttimeObsTableForced || isNighttimeObsTableOpen.get
 
-object SessionQueue
-    extends ReactFnComponent[SessionQueue](props =>
+object ObsListPopup
+    extends ReactFnComponent[ObsListPopup](props =>
       val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters.WithGlobalFilter[String]
 
       def rowClass(
@@ -209,9 +209,9 @@ object SessionQueue
         dismissableMask = !props.isNighttimeObsTableForced,
         resizable = true,
         clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
-        header = <.div(^.display.flex, ^.justifyContent.spaceBetween)(
-          <.span(^.width := "25em")("Candidate Observations"),
-          <.span(^.width := "25em")(
+        header = <.div(ObserveStyles.ObsListHeader)(
+          <.span("Candidate Observations"),
+          <.span(
             DebouncedInputText(
               id = "obs-filter".refined,
               delayMillis = 250,
@@ -220,13 +220,13 @@ object SessionQueue
               placeholder = "<Keyword filter>"
             )
           ),
-          <.span(^.width := "25em")
+          <.span
         )
       )(
         PrimeAutoHeightVirtualizedTable(
           table,
           estimateSize = _ => 30.toPx,
-          tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
+          tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.ObsListTable,
           columnFilterRenderer = FilterMethod.render,
           rowMod = row =>
             TagMod(
