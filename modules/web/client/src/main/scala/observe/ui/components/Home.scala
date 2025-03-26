@@ -31,7 +31,6 @@ import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
-import lucuma.ui.primereact.LucumaPrimeStyles
 
 case class Home(rootModel: RootModel) extends ReactFnProps(Home)
 
