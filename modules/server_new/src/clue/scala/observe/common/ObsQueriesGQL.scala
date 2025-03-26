@@ -18,7 +18,7 @@ object ObsQueriesGQL:
   @GraphQL
   trait ObsQuery extends GraphQLOperation[ObservationDB]:
     val document = """
-      query($obsId: ObservationId!) {
+      query($obsId: ObservationId!, $reset: Boolean!) {
         observation(observationId: $obsId) {
           id
           title
@@ -91,7 +91,7 @@ object ObsQueriesGQL:
                     ...nodAndShuffleFields
                   }
                 }
-                acquisition {
+                acquisition(reset: $reset) {
                   ...gmosNorthSequenceFields
                 }
                 science {
@@ -107,7 +107,7 @@ object ObsQueriesGQL:
                     ...nodAndShuffleFields
                   }
                 }
-                acquisition {
+                acquisition(reset: $reset) {
                   ...gmosSouthSequenceFields
                 }
                 science {

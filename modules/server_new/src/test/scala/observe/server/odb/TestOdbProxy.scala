@@ -88,6 +88,9 @@ object TestOdbProxy {
           sciences = sciences.map(advanceAtom).flattenOption
         )
       )
+
+    def resetAcquisition(original: Option[Atom[DynamicConfig.GmosNorth]]): State =
+      copy(acquisition = original)
   }
 
   object State:
@@ -107,51 +110,58 @@ object TestOdbProxy {
         private def addEvent(ev: OdbEvent): F[Unit] =
           rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
 
-        override def read(oid: Observation.Id): F[Data.Observation] = rf.get
-          .map { st =>
-            val sciAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.sciences.headOption
-            val sciTail: List[Atom[DynamicConfig.GmosNorth]]   = st.sciences match {
-              case head :: tail => tail
-              case Nil          => Nil
-            }
-            Data
-              .Observation(
-                oid,
-                title = "Test Observation".refined,
-                ODBObservation.Workflow(ObservationWorkflowState.Ready),
-                Data.Observation.Program(Program.Id(PosLong.unsafeFrom(1)),
-                                         None,
-                                         ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
-                ),
-                Data.Observation.TargetEnvironment(none, GuideEnvironment(List.empty)),
-                ConstraintSet(ImageQuality.TwoPointZero,
-                              CloudExtinction.TwoPointZero,
-                              SkyBackground.Bright,
-                              WaterVapor.Wet,
-                              ElevationRange.AirMass.Default
-                ),
-                List.empty,
-                Data.Observation.Execution(
-                  staticCfg.map(stc =>
-                    InstrumentExecutionConfig.GmosNorth(
-                      ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-                        stc,
-                        st.acquisition.map(
-                          ExecutionSequence[DynamicConfig.GmosNorth](_, List.empty, true)
-                        ),
-                        sciAtom.map(
-                          ExecutionSequence[DynamicConfig.GmosNorth](
-                            _,
-                            sciTail,
-                            sciTail.nonEmpty
+        private def resetAcquisition: F[Unit] =
+          rf.update(_.resetAcquisition(acquisition))
+
+        override def read(oid: Observation.Id, reset: Boolean): F[Data.Observation] =
+          resetAcquisition.whenA(reset) >>
+            rf.get
+              .map { st =>
+                val sciAtom: Option[Atom[DynamicConfig.GmosNorth]] = st.sciences.headOption
+                val sciTail: List[Atom[DynamicConfig.GmosNorth]]   = st.sciences match {
+                  case head :: tail => tail
+                  case Nil          => Nil
+                }
+                Data
+                  .Observation(
+                    oid,
+                    title = "Test Observation".refined,
+                    ODBObservation.Workflow(ObservationWorkflowState.Ready),
+                    Data.Observation.Program(
+                      Program.Id(PosLong.unsafeFrom(1)),
+                      None,
+                      ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
+                    ),
+                    Data.Observation.TargetEnvironment(none, GuideEnvironment(List.empty)),
+                    ConstraintSet(
+                      ImageQuality.TwoPointZero,
+                      CloudExtinction.TwoPointZero,
+                      SkyBackground.Bright,
+                      WaterVapor.Wet,
+                      ElevationRange.AirMass.Default
+                    ),
+                    List.empty,
+                    Data.Observation.Execution(
+                      staticCfg.map(stc =>
+                        InstrumentExecutionConfig.GmosNorth(
+                          ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+                            stc,
+                            st.acquisition.map(
+                              ExecutionSequence[DynamicConfig.GmosNorth](_, List.empty, true)
+                            ),
+                            sciAtom.map(
+                              ExecutionSequence[DynamicConfig.GmosNorth](
+                                _,
+                                sciTail,
+                                sciTail.nonEmpty
+                              )
+                            )
                           )
                         )
                       )
                     )
                   )
-                )
-              )
-          }
+              }
 
         override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] = addEvent(
           VisitStart(obsId, staticCfg)
