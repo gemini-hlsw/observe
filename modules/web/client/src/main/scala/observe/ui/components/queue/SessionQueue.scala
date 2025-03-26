@@ -17,7 +17,6 @@ import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.primereact.*
-import lucuma.react.primereact.Button
 import lucuma.react.syntax.*
 import lucuma.react.table.*
 import lucuma.refined.*
@@ -103,7 +102,6 @@ object SessionQueue
       val TargetColumnId: ColumnId      = ColumnId("target")
       val ObsNameColumnId: ColumnId     = ColumnId("obsName")
       val ConstraintsColumnId: ColumnId = ColumnId("constraints")
-      val ObserverColumnId: ColumnId    = ColumnId("observer")
 
       def columns(
         obsStates:        Map[Observation.Id, SequenceState],
@@ -172,13 +170,7 @@ object SessionQueue
           _.subtitle.map(_.value).getOrElse("-"),
           header = "Obs. Name",
           cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringText()),
-        ColDef(
-          ObserverColumnId,
-          _.observer.foldMap(_.value.value),
-          header = "Observer",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect())
+        ).sortable.withFilterMethod(FilterMethod.StringText())
       )
 
       for
