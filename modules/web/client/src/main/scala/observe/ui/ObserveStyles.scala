@@ -124,11 +124,13 @@ object ObserveStyles:
 
   val SyncingPanel: Css = Css("ObserveStyles-syncingPanel")
 
+  val ObsHeader: Css            = Css("ObserveStyles-obsHeader")
   val ObsSummary: Css           = Css("ObserveStyles-obsSummary")
   val ObsSummaryTitle: Css      = Css("ObserveStyles-obsSummary-title")
   val ObsSummaryDetails: Css    = Css("ObserveStyles-obsSummary-details")
   val ObsSummarySubsystems: Css = Css("ObserveStyles-obsSummary-subsystems")
   val ObsSummaryButton: Css     = Css("ObserveStyles-obsSummary-button")
+  val ObsLoadSection: Css       = Css("ObserveStyles-obsLoadSection")
 
   val LogTable: Css      = Css("ObserveStyles-logTable")
   val LogWarningRow: Css = Css("ObserveStyles-logWarningRow")

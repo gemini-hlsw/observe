@@ -84,6 +84,9 @@ object ObservationExecutionDisplay
           ),
           executionStateAndConfig
             .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides))),
+          props.rootModelData.zoom(RootModelData.observer),
+          props.rootModelData.zoom(RootModelData.operator),
+          props.rootModelData.zoom(RootModelData.conditions),
           props.openObsTable,
           props.linkToExploreObs
         ),

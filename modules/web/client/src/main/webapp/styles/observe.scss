@@ -184,7 +184,8 @@ body {
 
 .ObserveStyles-ConfigSection {
   display: flex;
-  justify-content: space-around;
+  flex-direction: column;
+  justify-content: space-evenly;
   align-items: center;
 
   .ObserveStyles-ConditionsLabel {
@@ -985,8 +986,17 @@ body {
   }
 }
 
+.ObserveStyles-obsHeader {
+  display: flex;
+  justify-self: space-between;
+
+  > div {
+    flex: 1 1 auto;
+    margin: 15px 10px;
+  }
+}
+
 .ObserveStyles-obsSummary {
-  margin: 15px 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1006,6 +1016,10 @@ body {
     display: flex;
     gap: 0.8em;
   }
+}
+
+.ObserveStyles-obsLoadSection {
+  flex-grow: 0;
 }
 
 .p-button.p-button-icon-only.ObserveStyles-obsSummary-button {

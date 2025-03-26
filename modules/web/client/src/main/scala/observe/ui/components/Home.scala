@@ -92,18 +92,6 @@ object Home
                 )
 
             <.div(ObserveStyles.MainPanel)(
-              // Dialog(
-              //   onHide = closeObsTable,
-              //   visible = rootModelData.isNighttimeObsTableShown,
-              //   position = DialogPosition.Top,
-              //   closeOnEscape = !rootModelData.isNighttimeObsTableForced,
-              //   closable = !rootModelData.isNighttimeObsTableForced,
-              //   modal = !rootModelData.isNighttimeObsTableForced,
-              //   dismissableMask = !rootModelData.isNighttimeObsTableForced,
-              //   resizable = true,
-              //   clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup
-              //   // header = "Candidate Observations"
-              // )(
               rootModelData.readyObservations
                 .map:
                   _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
@@ -132,14 +120,7 @@ object Home
                     isNighttimeObsTableOpen,
                     renderExploreLinkToObs
                   )
-                  // )
                 ),
-              ConfigPanel(
-                loadedObsId,
-                props.rootModel.data.zoom(RootModelData.observer),
-                props.rootModel.data.zoom(RootModelData.operator),
-                props.rootModel.data.zoom(RootModelData.conditions)
-              ),
               rootModelData.nighttimeObsSummary
                 .map:
                   ObservationExecutionDisplay(
