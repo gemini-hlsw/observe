@@ -24,28 +24,36 @@ import lucuma.ui.LucumaIcons
 import lucuma.ui.primereact.DebouncedInputText
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
-import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.display.given
 import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
+import crystal.react.View
+import lucuma.ui.primereact.LucumaPrimeStyles
+import lucuma.react.primereact.*
 
 case class SessionQueue(
-  queue:            List[SessionQueueRow],
-  obsStates:        Map[Observation.Id, SequenceState],
-  loadedObs:        Option[LoadedObservation],
-  loadObs:          Reusable[Observation.Id => Callback],
-  linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
+  queue:                   List[SessionQueueRow],
+  obsStates:               Map[Observation.Id, SequenceState],
+  loadedObs:               Option[LoadedObservation],
+  loadObs:                 Reusable[Observation.Id => Callback],
+  isNighttimeObsTableOpen: View[Boolean],
+  linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(SessionQueue):
   val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>
       obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(_.isRunning)
+
+  val isNighttimeObsTableForced: Boolean =
+    loadedObs.isEmpty
+
+  val isNighttimeObsTableShown: Boolean =
+    isNighttimeObsTableForced || isNighttimeObsTableOpen.get
 
 object SessionQueue
     extends ReactFnComponent[SessionQueue](props =>
@@ -131,8 +139,8 @@ object SessionQueue
         icon
         // )
 
-      def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-        s"${status.shortName} ${runningStep.map(rs => s" ${rs.shortName}").orEmpty}"
+      // def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
+      //   s"${status.shortName} ${runningStep.map(rs => s" ${rs.shortName}").orEmpty}"
 
       // private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
       //   // <.div(ObserveStyles.QueueText |+| css)(node)
@@ -142,15 +150,17 @@ object SessionQueue
         <.div(ObserveStyles.Centered |+| css)(node)
 
       // private val IconColumnId: ColumnId       = ColumnId("icon")
-      val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
-      val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
-      val ClassColumnId: ColumnId      = ColumnId("class")
-      val ObsRefColumnId: ColumnId     = ColumnId("observation")
-      val StateColumnId: ColumnId      = ColumnId("state")
-      val InstrumentColumnId: ColumnId = ColumnId("instrument")
-      val TargetColumnId: ColumnId     = ColumnId("target")
-      val ObsNameColumnId: ColumnId    = ColumnId("obsName")
-      val ObserverColumnId: ColumnId   = ColumnId("observer")
+      val StatusIconColumnId: ColumnId  = ColumnId("statusIcon")
+      // val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
+      // val ClassColumnId: ColumnId      = ColumnId("class")
+      val ObsRefColumnId: ColumnId      = ColumnId("observation")
+      // val StateColumnId: ColumnId       = ColumnId("state")
+      val InstrumentColumnId: ColumnId  = ColumnId("instrument")
+      val ConfigColumnId: ColumnId      = ColumnId("config")
+      val TargetColumnId: ColumnId      = ColumnId("target")
+      val ObsNameColumnId: ColumnId     = ColumnId("obsName")
+      val ConstraintsColumnId: ColumnId = ColumnId("constraints")
+      val ObserverColumnId: ColumnId    = ColumnId("observer")
 
       def columns(
         obsStates:        Map[Observation.Id, SequenceState],
@@ -182,20 +192,20 @@ object SessionQueue
           enableResizing = false,
           enableSorting = false
         ),
-        ColDef(
-          AddQueueColumnId,
-          header = _ => renderCentered(Icons.DaytimeCalendar), // Tooltip: Add all to queue
-          cell = cell => renderCentered(addToQueueRenderer(cell.row.original)),
-          size = 30.toPx,
-          enableResizing = false
-        ),
-        ColDef(
-          ClassColumnId,
-          header = _ => renderCentered(Icons.Clock),           // Tooltip: "Obs. class"
-          cell = cell => renderCentered(classIconRenderer(cell.row.original)),
-          size = 26.toPx,
-          enableResizing = false
-        ),
+        // ColDef(
+        //   AddQueueColumnId,
+        //   header = _ => renderCentered(Icons.DaytimeCalendar), // Tooltip: Add all to queue
+        //   cell = cell => renderCentered(addToQueueRenderer(cell.row.original)),
+        //   size = 30.toPx,
+        //   enableResizing = false
+        // ),
+        // ColDef(
+        //   ClassColumnId,
+        //   header = _ => renderCentered(Icons.Clock),           // Tooltip: "Obs. class"
+        //   cell = cell => renderCentered(classIconRenderer(cell.row.original)),
+        //   size = 26.toPx,
+        //   enableResizing = false
+        // ),
         ColDef(
           ObsRefColumnId,
           obs => obs.obsReference.toRight((obs.programId, obs.obsId)),
@@ -204,12 +214,12 @@ object SessionQueue
             cell => <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
           size = 240.toPx
         ).sortable.withFilterMethod(FilterMethod.Text(_.fold(_._2.shortName, _.label))),
-        ColDef(
-          StateColumnId,
-          row => statusText(row.status, row.runningStep),
-          header = "State",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
+        // ColDef(
+        //   StateColumnId,
+        //   row => statusText(row.status, row.runningStep),
+        //   header = "State",
+        //   cell = _.value
+        // ).sortable.withFilterMethod(FilterMethod.StringSelect()),
         ColDef(
           InstrumentColumnId,
           _.instrument,
@@ -217,10 +227,22 @@ object SessionQueue
           cell = _.value.shortName
         ).sortable.withFilterMethod(FilterMethod.Select(_.shortName)),
         ColDef(
+          ConfigColumnId,
+          _.configurationSummary.getOrElse("---"),
+          header = "Configuration",
+          cell = _.value
+        ).sortable.withFilterMethod(FilterMethod.StringText()),
+        ColDef(
           TargetColumnId,
           _.title,
           header = "Target",
           cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
+        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
+        ColDef(
+          ConstraintsColumnId,
+          _.constraintsSummary,
+          header = "Constraints",
+          cell = _.value
         ).sortable.withFilterMethod(FilterMethod.StringSelect()),
         ColDef(
           ObsNameColumnId,
@@ -261,14 +283,30 @@ object SessionQueue
               globalFilterFn = FilterMethod.globalFilterFn(cols)
             )
         globalFilter <- useState("")
-      yield <.div(ObserveStyles.SessionQueue)(
-        DebouncedInputText(
-          id = "obs-filter".refined,
-          delayMillis = 250,
-          value = table.getState().globalFilter.getOrElse(""),
-          onChange = v => table.setGlobalFilter(v.some),
-          placeholder = "<Keyword filter>"
-        ),
+      yield Dialog(
+        onHide = props.isNighttimeObsTableOpen.set(false),
+        visible = props.isNighttimeObsTableShown,
+        position = DialogPosition.Top,
+        closeOnEscape = !props.isNighttimeObsTableForced,
+        closable = !props.isNighttimeObsTableForced,
+        modal = !props.isNighttimeObsTableForced,
+        dismissableMask = !props.isNighttimeObsTableForced,
+        resizable = true,
+        clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
+        header = <.div(^.display.flex, ^.justifyContent.spaceBetween)(
+          <.span(^.width := "25em")("Candidate Observations"),
+          <.span(^.width := "25em")(
+            DebouncedInputText(
+              id = "obs-filter".refined,
+              delayMillis = 250,
+              value = table.getState().globalFilter.getOrElse(""),
+              onChange = v => table.setGlobalFilter(v.some),
+              placeholder = "<Keyword filter>"
+            )
+          ),
+          <.span(^.width := "25em")
+        )
+      )(
         PrimeAutoHeightVirtualizedTable(
           table,
           estimateSize = _ => 30.toPx,

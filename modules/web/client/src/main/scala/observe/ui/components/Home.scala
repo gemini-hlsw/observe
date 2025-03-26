@@ -48,15 +48,14 @@ object Home
 
         val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
 
+        val isNighttimeObsTableOpen: View[Boolean] =
+          props.rootModel.data.zoom(RootModelData.isNighttimeObsTableOpen)
+
         val openObsTable: Callback =
-          props.rootModel.data
-            .zoom(RootModelData.isNighttimeObsTableOpen)
-            .set(true)
+          isNighttimeObsTableOpen.set(true)
 
         val closeObsTable: Callback =
-          props.rootModel.data
-            .zoom(RootModelData.isNighttimeObsTableOpen)
-            .set(false)
+          isNighttimeObsTableOpen.set(false)
 
         val loadObservation: Reusable[Observation.Id => Callback] =
           Reusable
@@ -94,47 +93,48 @@ object Home
                 )
 
             <.div(ObserveStyles.MainPanel)(
-              Dialog(
-                onHide = closeObsTable,
-                visible = rootModelData.isNighttimeObsTableShown,
-                position = DialogPosition.Top,
-                closeOnEscape = !rootModelData.isNighttimeObsTableForced,
-                closable = !rootModelData.isNighttimeObsTableForced,
-                modal = !rootModelData.isNighttimeObsTableForced,
-                dismissableMask = !rootModelData.isNighttimeObsTableForced,
-                resizable = true,
-                clazz = LucumaPrimeStyles.Dialog.Large
-                // header = "Programs",
-              )(
-                rootModelData.readyObservations
-                  .map:
-                    _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
-                      .map: obs =>
-                        SessionQueueRow(
-                          obs,
-                          rootModelData.executionState
-                            .get(obs.obsId)
-                            .map(_.sequenceState)
-                            .getOrElse(SequenceState.Idle),
-                          props.rootModel.data.get.observer,
-                          ObsClass.Nighttime,
-                          loadedObsId.contains_(obs.obsId),
-                          // We can't easily know step numbers nor the total number of steps.
-                          // Maybe we want to show pending and total times instead?
-                          none,
-                          none,
-                          false
-                        )
-                  .renderPot(
-                    SessionQueue(
-                      _,
-                      obsStates,
-                      loadedObs,
-                      loadObservation,
-                      renderExploreLinkToObs
-                    )
+              // Dialog(
+              //   onHide = closeObsTable,
+              //   visible = rootModelData.isNighttimeObsTableShown,
+              //   position = DialogPosition.Top,
+              //   closeOnEscape = !rootModelData.isNighttimeObsTableForced,
+              //   closable = !rootModelData.isNighttimeObsTableForced,
+              //   modal = !rootModelData.isNighttimeObsTableForced,
+              //   dismissableMask = !rootModelData.isNighttimeObsTableForced,
+              //   resizable = true,
+              //   clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup
+              //   // header = "Candidate Observations"
+              // )(
+              rootModelData.readyObservations
+                .map:
+                  _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
+                    .map: obs =>
+                      SessionQueueRow(
+                        obs,
+                        rootModelData.executionState
+                          .get(obs.obsId)
+                          .map(_.sequenceState)
+                          .getOrElse(SequenceState.Idle),
+                        props.rootModel.data.get.observer,
+                        ObsClass.Nighttime,
+                        loadedObsId.contains_(obs.obsId),
+                        // We can't easily know step numbers nor the total number of steps.
+                        // Maybe we want to show pending and total times instead?
+                        none,
+                        none,
+                        false
+                      )
+                .renderPot(
+                  SessionQueue(
+                    _,
+                    obsStates,
+                    loadedObs,
+                    loadObservation,
+                    isNighttimeObsTableOpen,
+                    renderExploreLinkToObs
                   )
-              ),
+                  // )
+                ),
               ConfigPanel(
                 loadedObsId,
                 props.rootModel.data.zoom(RootModelData.observer),

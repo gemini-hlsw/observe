@@ -64,7 +64,7 @@ object ObsHeader
           )
         ),
         <.div(ObserveStyles.ObsSummaryDetails)(
-          <.span(props.observation.configurationSummary),
+          <.span(props.observation.instrumentConfigurationSummary),
           <.span(props.observation.constraintsSummary),
           props.overrides
             .map: overrides =>

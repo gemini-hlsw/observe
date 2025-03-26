@@ -743,7 +743,7 @@ body {
     padding-left: 0.2em;
     padding-right: 0.5em;
 
-    & > button { 
+    & > button {
       height: 100%;
       width: 25px;
     }
@@ -1085,9 +1085,17 @@ body {
   vertical-align: baseline;
 }
 
-.ObserveStyles-obsSummary-title{
+.ObserveStyles-obsSummary-title {
   .ObserveStyles-externalLink {
     font-size: 12px;
     vertical-align: super;
+  }
+}
+
+.ObserveStyles-popup {
+  &.p-dialog {
+    height: 90vh;
+    width: 90vw !important;
+    top: 30px;
   }
 }

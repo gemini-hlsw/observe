@@ -136,6 +136,8 @@ object ObserveStyles:
 
   val ExternalLink: Css = Css("ObserveStyles-externalLink")
 
+  val Popup: Css = Css("ObserveStyles-popup")
+
   object Prime:
     val EmptyProgressBar: Css      = Css("p-progressbar p-component")
     val EmptyProgressBarLabel: Css = Css("p-progressbar-label")
