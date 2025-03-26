@@ -118,7 +118,7 @@ object ObsListPopup
           header = "",
           cell = cell =>
             renderCentered(
-              if (loadedObsId.contains(cell.value) && !cell.row.original.status.canLoad)
+              if (loadedObsId.contains(cell.value))
                 statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
               else
                 Button(
@@ -237,7 +237,7 @@ object ObsListPopup
               ),
               ^.onDoubleClick --> props
                 .loadObs(row.original.obsId)
-                .when_(row.original.status.canLoad)
+              // .unless_(props.loadedObs.map(_.obsId).contains_(row.original.obsId))
             ),
           cellMod = cell =>
             cell.column.id match
