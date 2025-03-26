@@ -990,7 +990,7 @@ body {
 
 .ObserveStyles-obsHeader {
   display: flex;
-  justify-self: space-between;
+  justify-content: space-between;
 
   > div {
     flex: 1 1 auto;
@@ -1021,7 +1021,7 @@ body {
 }
 
 .ObserveStyles-obsLoadSection {
-  flex-grow: 0;
+  flex-grow: 0 !important;
 }
 
 .p-button.p-button-icon-only.ObserveStyles-obsSummary-button {
