@@ -237,7 +237,7 @@ object ObsListPopup
               ),
               ^.onDoubleClick --> props
                 .loadObs(row.original.obsId)
-              // .unless_(props.loadedObs.map(_.obsId).contains_(row.original.obsId))
+                .unless_(props.loadedObs.map(_.obsId).contains_(row.original.obsId))
             ),
           cellMod = cell =>
             cell.column.id match
