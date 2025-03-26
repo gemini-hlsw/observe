@@ -81,7 +81,7 @@ object RootModelData:
       userVault = Pot.pending,
       readyObservations = Pot.pending,
       nighttimeObservation = none,
-      isNighttimeObsTableOpen = true,
+      isNighttimeObsTableOpen = false,
       daytimeObservations = List.empty,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,

@@ -40,7 +40,8 @@ case class SessionQueue(
   isNighttimeObsTableOpen: View[Boolean],
   linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(SessionQueue):
-  val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
+  val obsIdPotOpt: Option[Pot[Observation.Id]] =
+    loadedObs.map(obs => obs.toPot.flatMap(_.config).as(obs.obsId))
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>
@@ -113,11 +114,11 @@ object SessionQueue
       ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] = List(
         ColDef(
           StatusIconColumnId,
-          row => row.obsId,
+          _.obsId,
           header = "",
           cell = cell =>
             renderCentered(
-              if (loadedObsId.contains(cell.value))
+              if (loadedObsId.contains(cell.value) && !cell.row.original.status.canLoad)
                 statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
               else
                 Button(
@@ -233,7 +234,10 @@ object SessionQueue
                 props.obsIdPotOpt.map(_.void),
                 row.original,
                 props.loadedObs.map(_.obsId)
-              )
+              ),
+              ^.onDoubleClick --> props
+                .loadObs(row.original.obsId)
+                .when_(row.original.status.canLoad)
             ),
           cellMod = cell =>
             cell.column.id match

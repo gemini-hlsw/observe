@@ -65,6 +65,9 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   def isIdle: Boolean =
     this === SequenceState.Idle || this === SequenceState.Aborted
 
+  def canLoad: Boolean =
+    !(isRunning || isCompleted)
+
 object SequenceState:
   given Display[SequenceState] = Display.byShortName(_.name)
 
