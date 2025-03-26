@@ -210,7 +210,7 @@ trait ServerEventHandler:
             case Notification.InstrumentInUse(obsId, ins)            =>
               val msgs = List(s"Error in observation $obsId: Instrument $ins already in use")
               showToast(toast, msgs).as(msgs)
-            case Notification.RequestFailed(obsId, msgs)             =>
+            case Notification.LoadingFailed(obsId, msgs)             =>
               rootModelDataMod:
                 RootModelData.nighttimeObservation.some
                   .filter(_.obsId === obsId)

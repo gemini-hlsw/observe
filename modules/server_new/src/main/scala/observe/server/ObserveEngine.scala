@@ -679,7 +679,7 @@ object ObserveEngine {
                   .as(
                     Event.pure(
                       SeqEvent.NotifyUser(
-                        Notification.RequestFailed(
+                        Notification.LoadingFailed(
                           sid,
                           List(s"Error loading observation $sid", e.getMessage)
                         ),
@@ -698,7 +698,7 @@ object ObserveEngine {
                     .as(
                       Event.pure(
                         SeqEvent.NotifyUser(
-                          Notification.RequestFailed(
+                          Notification.LoadingFailed(
                             sid,
                             List(
                               s"Error loading observation $sid"
@@ -735,7 +735,7 @@ object ObserveEngine {
                           (
                             st,
                             SeqEvent.NotifyUser(
-                              Notification.RequestFailed(
+                              Notification.LoadingFailed(
                                 sid,
                                 List(
                                   s"Error loading observation $sid",
