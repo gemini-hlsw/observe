@@ -5,7 +5,9 @@ package observe.server
 
 import cats.Monoid
 import cats.data.NonEmptyList
+import cats.effect.Async
 import cats.effect.IO
+import cats.effect.Ref
 import cats.syntax.all.*
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.NonNegInt
@@ -35,7 +37,9 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.
 import observe.common.test.*
 import observe.engine.EventResult
 import observe.engine.EventResult.Outcome
+import observe.engine.EventResult.SystemUpdate
 import observe.engine.Sequence
+import observe.engine.SystemEvent
 import observe.engine.user
 import observe.model
 import observe.model.ClientId
@@ -65,11 +69,46 @@ class ObserveEngineSuite extends TestCommon {
 
   import TestCommon.*
 
-  val clientId: model.ClientId.Type = ClientId(UUID.randomUUID())
+  private val clientId: model.ClientId.Type = ClientId(UUID.randomUUID())
+  private val observer: Observer            = Observer("Joe".refined)
+  private val operator: Operator            = Operator("Joe".refined)
+
+  private case class EngineObserver[F[_]: Async](
+    oe:           ObserveEngine[F],
+    initialState: EngineState[F] = EngineState.default[F]
+  ):
+    private val state: Ref[F, EngineState[F]] = Ref.unsafe(initialState)
+
+    def executeAndWait(
+      f:     ObserveEngine[F] => F[Unit],
+      until: PartialFunction[(EventResult[SeqEvent], EngineState[F]), Boolean]
+    ): F[EngineState[F]] =
+      for
+        _ <- f(oe)
+        s <- state.get
+        r <- oe.stream(s)
+               //  .evalTap(r => cats.effect.Sync[F].delay(println(s"**** ${r._1}"))) // Uncomment for debugging
+               .takeThrough(r => !until.lift(r).getOrElse(false))
+               .compile
+               .last
+        s1 = r.get._2
+        _ <- state.set(s1)
+      yield s1
+
+    def executeAndWaitResult(
+      f:     ObserveEngine[F] => F[Unit],
+      until: PartialFunction[EventResult[SeqEvent], Boolean]
+    ): F[EngineState[F]] =
+      executeAndWait(f, r => until.lift(r._1).getOrElse(false))
+
+    def executeAndWaitState(
+      f:     ObserveEngine[F] => F[Unit],
+      until: PartialFunction[EngineState[F], Boolean]
+    ): F[EngineState[F]] =
+      executeAndWait(f, r => until.lift(r._2).getOrElse(false))
 
   test("ObserveEngine setOperator should set operator's name") {
-    val operator = Operator("Joe".refined)
-    val s0       = EngineState.default[IO]
+    val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
       sf <- advanceN(oe, s0, oe.setOperator(user, operator), 2)
@@ -125,8 +164,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setObserver should set observer's name") {
-    val observer = Observer("Joe".refined)
-    val s0       = ODBSequencesLoader
+    val s0 = ODBSequencesLoader
       .loadSequenceEndo[IO](
         None,
         sequence(seqObsId1),
@@ -168,7 +206,7 @@ class ObserveEngineSuite extends TestCommon {
       sf <- advanceOne(
               oe,
               s0,
-              oe.start(seqObsId2, user, Observer("Joe".refined), clientId, RunOverride.Default)
+              oe.start(seqObsId2, user, observer, clientId, RunOverride.Default)
             )
     } yield sf
       .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
@@ -201,7 +239,7 @@ class ObserveEngineSuite extends TestCommon {
               oe.start(
                 seqObsId2,
                 user,
-                Observer("Joe".refined),
+                observer,
                 clientId,
                 RunOverride.Default
               ),
@@ -228,7 +266,7 @@ class ObserveEngineSuite extends TestCommon {
               s0,
               oe.configSystem(
                 seqObsId1,
-                Observer("Joe".refined),
+                observer,
                 user,
                 stepId(1),
                 TCS,
@@ -262,7 +300,7 @@ class ObserveEngineSuite extends TestCommon {
               s0,
               oe.configSystem(
                 seqObsId1,
-                Observer("Joe".refined),
+                observer,
                 user,
                 stepId(1),
                 TCS,
@@ -299,14 +337,7 @@ class ObserveEngineSuite extends TestCommon {
         advanceOne(
           oe,
           s0,
-          oe.configSystem(
-            seqObsId2,
-            Observer("Joe".refined),
-            user,
-            stepId(1),
-            TCS,
-            clientId
-          )
+          oe.configSystem(seqObsId2, observer, user, stepId(1), TCS, clientId)
         )
     } yield sf
       .flatMap(
@@ -342,14 +373,7 @@ class ObserveEngineSuite extends TestCommon {
               oe,
               s0,
               oe
-                .configSystem(
-                  seqObsId2,
-                  Observer("Joe".refined),
-                  user,
-                  stepId(1),
-                  Gcal,
-                  clientId
-                ),
+                .configSystem(seqObsId2, observer, user, stepId(1), Gcal, clientId),
               3
             )
     } yield sf
@@ -483,7 +507,7 @@ class ObserveEngineSuite extends TestCommon {
                             oe.start(
                               seqObsId1,
                               user,
-                              Observer("Joe".refined),
+                              observer,
                               clientId,
                               RunOverride.Default
                             )
@@ -514,7 +538,7 @@ class ObserveEngineSuite extends TestCommon {
                             oe.start(
                               seqObsId1,
                               user,
-                              Observer("Joe".refined),
+                              observer,
                               clientId,
                               RunOverride.Default
                             )
@@ -545,7 +569,7 @@ class ObserveEngineSuite extends TestCommon {
                             oe.start(
                               seqObsId1,
                               user,
-                              Observer("Joe".refined),
+                              observer,
                               clientId,
                               RunOverride.Override
                             )
@@ -650,7 +674,6 @@ class ObserveEngineSuite extends TestCommon {
           cl,
           Breakpoint.Disabled
         )
-
     }
 
     SequenceGen[IO](
@@ -718,7 +741,6 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine start should start the sequence if it passes the conditions check") {
-
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
@@ -741,7 +763,7 @@ class ObserveEngineSuite extends TestCommon {
                          observeEngine.start(
                            seqObsId1,
                            user,
-                           Observer("Joe".refined),
+                           observer,
                            clientId,
                            RunOverride.Default
                          )
@@ -773,7 +795,7 @@ class ObserveEngineSuite extends TestCommon {
         observeEngine.start(
           seqObsId1,
           user,
-          Observer("Joe".refined),
+          observer,
           clientId,
           RunOverride.Default
         ) *>
@@ -800,7 +822,6 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine start should start the sequence that fails conditions check if forced") {
-
     val seq = testConditionsSequence
 
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
@@ -822,7 +843,7 @@ class ObserveEngineSuite extends TestCommon {
           observeEngine,
           s0,
           observeEngine
-            .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override),
+            .start(seqObsId1, user, observer, clientId, RunOverride.Override),
           3
         )
     } yield {
@@ -920,52 +941,39 @@ class ObserveEngineSuite extends TestCommon {
           .sequenceStateIndex[IO](seqObsId1)
           .modify(x => Sequence.State.Final(x.toSequence, Running(false, false, true, false)))(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
+      eo             = EngineObserver(observeEngine, s1)
       r             <-
-        observeEngine
-          .loadNextAtom(seqObsId1, user, Observer("Joe".refined), SequenceType.Acquisition) *>
-          observeEngine
-            .stream(s1)
-            .drop(1)
-            .takeThrough(x =>
-              x._1 match {
-                case EventResult.UserCommandResponse(
-                      _,
-                      _,
-                      Some(SeqEvent.AtomCompleted(seqObsId1, SequenceType.Acquisition, acqAtomId))
-                    ) =>
-                  false
-                case _ => true
-              }
-            )
-            .compile
-            .last
+        eo.executeAndWaitResult(
+          _.loadNextAtom(seqObsId1, user, observer, SequenceType.Acquisition),
+          {
+            case EventResult.UserCommandResponse(
+                  _,
+                  _,
+                  Some(SeqEvent.AtomCompleted(seqObsId1, SequenceType.Acquisition, acqAtomId))
+                ) =>
+              true
+          }
+        )
       s             <-
-        observeEngine
-          .loadNextAtom(seqObsId1, user, Observer("Joe".refined), SequenceType.Science) *>
-          observeEngine
-            .stream(s1)
-            .drop(1)
-            .takeThrough(x =>
-              x._1 match {
-                case EventResult.UserCommandResponse(
-                      _,
-                      _,
-                      Some(SeqEvent.AtomCompleted(seqObsId1, SequenceType.Science, acqAtomId))
-                    ) =>
-                  false
-                case _ => true
-              }
-            )
-            .compile
-            .last
+        eo.executeAndWaitResult(
+          _.loadNextAtom(seqObsId1, user, observer, SequenceType.Science),
+          {
+            case EventResult.UserCommandResponse(
+                  _,
+                  _,
+                  Some(SeqEvent.AtomCompleted(seqObsId1, SequenceType.Science, acqAtomId))
+                ) =>
+              true
+          }
+        )
     } yield {
-      r
-        .flatMap(_._2.sequences.get(seqObsId1))
+      r.sequences
+        .get(seqObsId1)
         .flatMap(_.seqGen.nextAtom.steps.headOption)
         .map(z => assertEquals(z.id, acquisitionSteps.get(1).get.id))
         .getOrElse(fail("Bad step id found"))
-      s
-        .flatMap(_._2.sequences.get(seqObsId1))
+      s.sequences
+        .get(seqObsId1)
         .flatMap(_.seqGen.nextAtom.steps.headOption)
         .map(z => assertEquals(z.id, scienceSteps.get(1).get.id))
         .getOrElse(fail("Bad step id found"))
@@ -1003,7 +1011,7 @@ class ObserveEngineSuite extends TestCommon {
 
     for {
       atomIds       <- List
-                         .fill(atomCount)(IO.delay(java.util.UUID.randomUUID()))
+                         .fill(atomCount)(IO.randomUUID)
                          .parSequence
                          .map(_.map(Atom.Id.fromUuid))
       odb           <- TestOdbProxy.build[IO](
@@ -1023,23 +1031,16 @@ class ObserveEngineSuite extends TestCommon {
                          )
                          .apply(EngineState.default[IO])
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
+      eo             = EngineObserver(observeEngine, s0)
       r             <-
-        observeEngine
-          .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
-          observeEngine
-            .stream(s0)
-            .drop(1)
-            .takeThrough(x =>
-              x._1 match {
-                case EventResult.UserCommandResponse(_, _, Some(SeqEvent.AtomCompleted(_, _, _))) =>
-                  false
-                case _                                                                            => true
-              }
-            )
-            .compile
-            .last
-    } yield r
-      .flatMap(_._2.sequences.get(seqObsId1))
+        eo.executeAndWaitResult(
+          _.start(seqObsId1, user, observer, clientId, RunOverride.Override),
+          { case EventResult.UserCommandResponse(_, _, Some(SeqEvent.AtomCompleted(_, _, _))) =>
+            true
+          }
+        )
+    } yield r.sequences
+      .get(seqObsId1)
       .flatMap(_.seqGen.nextAtom.steps.headOption)
       .map(z => assertEquals(z.id, stepId(2 + stepCount)))
       .getOrElse(fail("Bad step id found"))
@@ -1196,14 +1197,11 @@ class ObserveEngineSuite extends TestCommon {
                          )
                          .apply(EngineState.default[IO])
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
-      _             <- observeEngine
-                         .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
-                         observeEngine
-                           .stream(s0)
-                           .drop(1)
-                           .takeThrough(_._2.sequences.get(seqObsId1).exists(x => !isFinished(x.seq.status)))
-                           .compile
-                           .last
+      eo             = EngineObserver(observeEngine, s0)
+      _             <- eo.executeAndWaitState(
+                         _.start(seqObsId1, user, observer, clientId, RunOverride.Override),
+                         _.sequences.get(seqObsId1).forall(x => isFinished(x.seq.status))
+                       )
       res           <- odb.outCapture
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
@@ -1290,14 +1288,11 @@ class ObserveEngineSuite extends TestCommon {
                          )
                          .apply(EngineState.default[IO])
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
-      _             <- observeEngine
-                         .start(seqObsId1, user, Observer("Joe".refined), clientId, RunOverride.Override) *>
-                         observeEngine
-                           .stream(s0)
-                           .drop(1)
-                           .takeThrough(_._2.sequences.get(seqObsId1).exists(x => !isFinished(x.seq.status)))
-                           .compile
-                           .last
+      eo             = EngineObserver(observeEngine, s0)
+      _             <- eo.executeAndWaitState(
+                         _.start(seqObsId1, user, observer, clientId, RunOverride.Override),
+                         _.sequences.get(seqObsId1).forall(x => isFinished(x.seq.status))
+                       )
       res           <- odb.outCapture
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
@@ -1309,5 +1304,71 @@ class ObserveEngineSuite extends TestCommon {
       assertEquals(rest.length, 1)
       assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
     }
+  }
+
+  test("ObserveEngine should reset acquisition sequence if reloaded") {
+    val stepCount = 2
+
+    val steps = NonEmptyList(
+      Step[DynamicConfig.GmosNorth](
+        stepId(1 + stepCount),
+        dynamicCfg1,
+        stepCfg1,
+        telescopeCfg1,
+        StepEstimate.Zero,
+        ObserveClass.Science,
+        Breakpoint.Disabled
+      ),
+      List
+        .range(2, stepCount + 1)
+        .map(i =>
+          Step[DynamicConfig.GmosNorth](
+            stepId(i + stepCount),
+            dynamicCfg1,
+            stepCfg1,
+            telescopeCfg1,
+            StepEstimate.Zero,
+            ObserveClass.Science,
+            Breakpoint.Enabled
+          )
+        )
+    )
+
+    for
+      atomId        <- IO.randomUUID.map(Atom.Id.fromUuid)
+      odb           <- TestOdbProxy.build[IO](
+                         staticCfg1.some,
+                         Atom[DynamicConfig.GmosNorth](atomId, none, steps).some,
+                         List.empty
+                       )
+      systems       <- defaultSystems.map(_.copy(odb = odb))
+      observeEngine <- ObserveEngine.build(Site.GN, systems, defaultSettings)
+      eo             = EngineObserver(observeEngine)
+      s1            <-
+        eo.executeAndWaitResult(
+          _.selectSequence(Instrument.GmosNorth, seqObsId1, observer, user, clientId),
+          { case EventResult.UserCommandResponse(_, _, Some(SeqEvent.LoadSequence(_))) => true }
+        )
+      _              = // Check all steps loaded
+        assertEquals(s1.sequences.get(seqObsId1).get(0).get.seqGen.nextAtom.steps.length, stepCount)
+      _              = // Check no steps were executed
+        assertEquals(s1.sequences.get(seqObsId1).get(0).get.seq.done.length, 0)
+      r             <-
+        eo.executeAndWaitResult(
+          _.start(seqObsId1, user, observer, clientId, RunOverride.Override),
+          { case EventResult.SystemUpdate(SystemEvent.BreakpointReached(_), _) => true }
+        )
+      _              = // Check one step was executed
+        assertEquals(r.sequences.get(seqObsId1).get(0).get.seq.done.length, 1)
+      s1            <-
+        eo.executeAndWaitResult(
+          _.selectSequence(Instrument.GmosNorth, seqObsId1, observer, user, clientId),
+          { case EventResult.UserCommandResponse(_, _, Some(SeqEvent.LoadSequence(_))) => true }
+        )
+    yield
+      // Check all steps loaded
+      assertEquals(s1.sequences.get(seqObsId1).get(0).get.seqGen.nextAtom.steps.length, stepCount)
+      // Check no steps were executed
+      assertEquals(s1.sequences.get(seqObsId1).get(0).get.seq.done.length, 0)
   }
 }

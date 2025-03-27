@@ -72,7 +72,7 @@ trait ObserveEngine[F[_]] {
   val systems: Systems[F]
 
   def start(
-    id:          Observation.Id,
+    obsId:       Observation.Id,
     user:        User,
     observer:    Observer,
     clientId:    ClientId,
@@ -80,26 +80,26 @@ trait ObserveEngine[F[_]] {
   ): F[Unit]
 
   def loadNextAtom(
-    id:       Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     observer: Observer,
     atomType: SequenceType
   ): F[Unit]
 
   def requestPause(
-    id:       Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User
   ): F[Unit]
 
   def requestCancelPause(
-    id:       Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User
   ): F[Unit]
 
   def setBreakpoints(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     observer: Observer,
     stepId:   List[Step.Id],
@@ -109,35 +109,35 @@ trait ObserveEngine[F[_]] {
   def setOperator(user: User, name: Operator): F[Unit]
 
   def setObserver(
-    seqId: Observation.Id,
+    obsId: Observation.Id,
     user:  User,
     name:  Observer
   ): F[Unit]
 
   // Systems overrides
   def setTcsEnabled(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit]
 
   def setGcalEnabled(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit]
 
   def setInstrumentEnabled(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit]
 
   def setDhsEnabled(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     user:     User,
     enabled:  SubsystemEnabled,
     clientId: ClientId
@@ -145,7 +145,7 @@ trait ObserveEngine[F[_]] {
 
   def selectSequence(
     i:        Instrument,
-    sid:      Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User,
     clientId: ClientId
@@ -168,40 +168,40 @@ trait ObserveEngine[F[_]] {
   def requestRefresh(clientId: ClientId): F[Unit]
 
   def stopObserve(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User,
     graceful: Boolean
   ): F[Unit]
 
   def abortObserve(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User
   ): F[Unit]
 
   def pauseObserve(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User,
     graceful: Boolean
   ): F[Unit]
 
   def resumeObserve(
-    seqId:    Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User
   ): F[Unit]
 
-  def addSequencesToQueue(qid: QueueId, seqIds: List[Observation.Id]): F[Unit]
+  def addSequencesToQueue(qid: QueueId, obsIds: List[Observation.Id]): F[Unit]
 
-  def addSequenceToQueue(qid: QueueId, seqId: Observation.Id): F[Unit]
+  def addSequenceToQueue(qid: QueueId, obsId: Observation.Id): F[Unit]
 
-  def removeSequenceFromQueue(qid: QueueId, seqId: Observation.Id): F[Unit]
+  def removeSequenceFromQueue(qid: QueueId, obsId: Observation.Id): F[Unit]
 
   def moveSequenceInQueue(
     qid:   QueueId,
-    seqId: Observation.Id,
+    obsId: Observation.Id,
     delta: Int,
     cid:   ClientId
   ): F[Unit]
@@ -221,7 +221,7 @@ trait ObserveEngine[F[_]] {
    * Triggers the application of a specific step configuration to a system
    */
   def configSystem(
-    sid:      Observation.Id,
+    obsId:    Observation.Id,
     observer: Observer,
     user:     User,
     stepId:   Step.Id,
@@ -258,7 +258,7 @@ object ObserveEngine {
      * @return
      *   true if resources are available
      */
-    private def checkResources(seqId: Observation.Id)(st: EngineState[F]): Boolean = {
+    private def checkResources(obsId: Observation.Id)(st: EngineState[F]): Boolean = {
       // Resources used by running sequences
       val used = resourcesInUse(st)
 
@@ -266,10 +266,10 @@ object ObserveEngine {
       val reservedByQueues = resourcesReserved(st)
 
       st.sequences
-        .get(seqId)
+        .get(obsId)
         .exists(x =>
           x.seqGen.resources.intersect(used).isEmpty && (
-            st.queues.values.filter(_.status(st).running).exists(_.queue.contains(seqId)) ||
+            st.queues.values.filter(_.status(st).running).exists(_.queue.contains(obsId)) ||
               x.seqGen.resources.intersect(reservedByQueues).isEmpty
           )
         )
@@ -569,29 +569,29 @@ object ObserveEngine {
     }
 
     override def requestPause(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User
-    ): F[Unit] = setObserver(seqId, user, observer) *>
-      executeEngine.offer(Event.pause[F, EngineState[F], SeqEvent](seqId, user))
+    ): F[Unit] = setObserver(obsId, user, observer) *>
+      executeEngine.offer(Event.pause[F, EngineState[F], SeqEvent](obsId, user))
 
     override def requestCancelPause(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User
-    ): F[Unit] = setObserver(seqId, user, observer) *>
-      executeEngine.offer(Event.cancelPause[F, EngineState[F], SeqEvent](seqId, user))
+    ): F[Unit] = setObserver(obsId, user, observer) *>
+      executeEngine.offer(Event.cancelPause[F, EngineState[F], SeqEvent](obsId, user))
 
     override def setBreakpoints(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       observer: Observer,
       steps:    List[Step.Id],
       v:        Breakpoint
     ): F[Unit] =
       // Set the observer after the breakpoints are set to do optimistic updates on the UI
-      executeEngine.offer(Event.breakpoints[F, EngineState[F], SeqEvent](seqId, user, steps, v)) *>
-        setObserver(seqId, user, observer)
+      executeEngine.offer(Event.breakpoints[F, EngineState[F], SeqEvent](obsId, user, steps, v)) *>
+        setObserver(obsId, user, observer)
 
     override def setOperator(user: User, name: Operator): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting Operator name to '$name' by ${user.displayName}") *>
@@ -617,18 +617,18 @@ object ObserveEngine {
     }.toHandle
 
     override def setObserver(
-      seqId: Observation.Id,
+      obsId: Observation.Id,
       user:  User,
       name:  Observer
     ): F[Unit] = logDebugEvent(
-      s"ObserveEngine: Setting Observer name to '$name' for sequence '$seqId' by ${user.displayName}"
+      s"ObserveEngine: Setting Observer name to '$name' for sequence '$obsId' by ${user.displayName}"
     ) *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
           (EngineState
-            .atSequence(seqId)
+            .atSequence(obsId)
             .modify(Focus[SequenceData[F]](_.observer).replace(name.some)) >>>
-            refreshSequence(seqId)).withEvent(SetObserver(seqId, user.some, name)).toHandle
+            refreshSequence(obsId)).withEvent(SetObserver(obsId, user.some, name)).toHandle
         )
       )
 
@@ -660,7 +660,7 @@ object ObserveEngine {
 
     override def selectSequence(
       i:        Instrument,
-      sid:      Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User,
       clientId: ClientId
@@ -668,20 +668,21 @@ object ObserveEngine {
       val author = s", by '${user.displayName}' on client ${clientId.value}."
       executeEngine.inject(
         systems.odb
-          .read(sid)
+          // We want the acquisition sequence to reset whenever we load the observation.
+          .read(obsId, reset = true)
           .flatMap(translator.sequence)
           .attempt
           .flatMap(
             _.fold(
               e =>
                 Logger[F]
-                  .warn(e)(s"Error loading observation $sid$author")
+                  .warn(e)(s"Error loading observation $obsId$author")
                   .as(
                     Event.pure(
                       SeqEvent.NotifyUser(
                         Notification.LoadingFailed(
-                          sid,
-                          List(s"Error loading observation $sid", e.getMessage)
+                          obsId,
+                          List(s"Error loading observation $obsId", e.getMessage)
                         ),
                         clientId
                       )
@@ -692,16 +693,16 @@ object ObserveEngine {
                   Logger[F]
                     .warn(
                       err.headOption
-                        .map(e => s"Error loading observation $sid: ${e.getMessage}$author")
-                        .getOrElse(s"Error loading observation $sid")
+                        .map(e => s"Error loading observation $obsId: ${e.getMessage}$author")
+                        .getOrElse(s"Error loading observation $obsId")
                     )
                     .as(
                       Event.pure(
                         SeqEvent.NotifyUser(
                           Notification.LoadingFailed(
-                            sid,
+                            obsId,
                             List(
-                              s"Error loading observation $sid"
+                              s"Error loading observation $obsId"
                             ) ++ err.headOption.toList.map(e => e.getMessage)
                           ),
                           clientId
@@ -711,10 +712,10 @@ object ObserveEngine {
                 case (errs, Some(seq)) =>
                   errs.isEmpty
                     .fold(
-                      Logger[F].warn(s"Loaded observation $sid$author"),
+                      Logger[F].warn(s"Loaded observation $obsId$author"),
                       Logger[F]
                         .warn(
-                          s"Loaded observation $sid with warnings: ${errs.mkString}$author"
+                          s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
                         )
                     )
                     .as(
@@ -724,21 +725,21 @@ object ObserveEngine {
                         if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
                           (
                             st.sequences
-                              .get(sid)
+                              .get(obsId)
                               .fold(
                                 ODBSequencesLoader
                                   .loadSequenceEndo(observer.some, seq, l)
                               )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                            LoadSequence(sid)
+                            LoadSequence(obsId)
                           )
                         } else {
                           (
                             st,
                             SeqEvent.NotifyUser(
                               Notification.LoadingFailed(
-                                sid,
+                                obsId,
                                 List(
-                                  s"Error loading observation $sid",
+                                  s"Error loading observation $obsId",
                                   s"A sequence is running on instrument ${seq.instrument}"
                                 )
                               ),
@@ -879,56 +880,56 @@ object ObserveEngine {
       executeEngine.process(engineEventsHook)(s0)
 
     override def stopObserve(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User,
       graceful: Boolean
-    ): F[Unit] = setObserver(seqId, user, observer) *>
-      systems.odb.stepStop(seqId) *>
+    ): F[Unit] = setObserver(obsId, user, observer) *>
+      systems.odb.stepStop(obsId) *>
       executeEngine
-        .offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, StopGracefully)))
+        .offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(obsId, StopGracefully)))
         .whenA(graceful) *>
       executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                      translator.stopObserve(seqId, graceful)
+        Event.actionStop[F, EngineState[F], SeqEvent](obsId,
+                                                      translator.stopObserve(obsId, graceful)
         )
       )
 
     override def abortObserve(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User
-    ): F[Unit] = setObserver(seqId, user, observer) *>
+    ): F[Unit] = setObserver(obsId, user, observer) *>
       executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](seqId, translator.abortObserve(seqId))
+        Event.actionStop[F, EngineState[F], SeqEvent](obsId, translator.abortObserve(obsId))
       )
 
     override def pauseObserve(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User,
       graceful: Boolean
-    ): F[Unit] = setObserver(seqId, user, observer) *>
+    ): F[Unit] = setObserver(obsId, user, observer) *>
       executeEngine
         .offer(
-          Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(seqId, PauseGracefully))
+          Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(obsId, PauseGracefully))
         )
         .whenA(graceful) *>
       executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](seqId,
-                                                      translator.pauseObserve(seqId, graceful)
+        Event.actionStop[F, EngineState[F], SeqEvent](obsId,
+                                                      translator.pauseObserve(obsId, graceful)
         )
       )
 
     override def resumeObserve(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User
     ): F[Unit] =
-      executeEngine.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(seqId))) *>
-        setObserver(seqId, user, observer) *>
+      executeEngine.offer(Event.modifyState[F, EngineState[F], SeqEvent](clearObsCmd(obsId))) *>
+        setObserver(obsId, user, observer) *>
         executeEngine.offer(
-          Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(seqId))
+          Event.getState[F, EngineState[F], SeqEvent](translator.resumePaused(obsId))
         )
 
     private def queueO(qid: QueueId): Optional[EngineState[F], ExecutionQueue] =
@@ -939,13 +940,13 @@ object ObserveEngine {
 
 //    private def addSeqs(
 //      qid:    QueueId,
-//      seqIds: List[Observation.Id]
+//      obsIds: List[Observation.Id]
 //    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
 //            q    <- st.queues.get(qid)
-//            seqs <- seqIds
+//            seqs <- obsIds
 //                      .filter(sid =>
 //                        st.sequences
 //                          .get(sid)
@@ -978,43 +979,43 @@ object ObserveEngine {
 
     override def addSequencesToQueue(
       qid:    QueueId,
-      seqIds: List[Observation.Id]
+      obsIds: List[Observation.Id]
     ): F[Unit] = Applicative[F].unit
 //    executeEngine.offer(
 //      Event.modifyState[F, EngineState[F], SeqEvent](
-//        addSeqs(qid, seqIds)
-//          .as[SeqEvent](UpdateQueueAdd(qid, seqIds))
+//        addSeqs(qid, obsIds)
+//          .as[SeqEvent](UpdateQueueAdd(qid, obsIds))
 //      )
 //    )
 //
     override def addSequenceToQueue(
       qid:   QueueId,
-      seqId: Observation.Id
+      obsId: Observation.Id
     ): F[Unit] = Applicative[F].unit
-//      addSequencesToQueue(q, qid, List(seqId))
+//      addSequencesToQueue(q, qid, List(obsId))
 //
 //    private def removeSeq(
 //      qid:   QueueId,
-//      seqId: Observation.Id
+//      obsId: Observation.Id
 //    ): HandlerType[F, List[(Observation.Id, ObserveStep.Id)]] =
 //      executeEngine.get.flatMap { st =>
 //        (
 //          for {
 //            q    <- st.queues.get(qid)
-//            if q.queue.contains(seqId)
-//            sstOp = st.sequences.get(seqId).map(_.seq.status)
+//            if q.queue.contains(obsId)
+//            sstOp = st.sequences.get(obsId).map(_.seq.status)
 //            if q.status(st) =!= BatchExecState.Running ||
 //              sstOp.forall(sst => !sst.isRunning && !sst.isCompleted)
-//          } yield executeEngine.modify(queueO(qid).modify(_.removeSeq(seqId))) *>
+//          } yield executeEngine.modify(queueO(qid).modify(_.removeSeq(obsId))) *>
 //            ((q.cmdState, q.status(st)) match {
 //              case (_, BatchExecState.Completed)       =>
 //                executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)])
 //              // If removed sequence was halting the queue, then removing it frees resources to run the next sequences
 //              case (BatchCommandState.Run(o, u, c), _) =>
-//                shouldSchedule(qid, Set(seqId))(st).isEmpty.fold(
+//                shouldSchedule(qid, Set(obsId))(st).isEmpty.fold(
 //                  executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]),
 //                  st.sequences
-//                    .get(seqId)
+//                    .get(obsId)
 //                    .map(x => runNextsInQueue(qid, o, u, c, x.seqGen.resources))
 //                    .getOrElse(executeEngine.pure(List.empty[(Observation.Id, ObserveStep.Id)]))
 //                )
@@ -1025,16 +1026,16 @@ object ObserveEngine {
 
     override def removeSequenceFromQueue(
       qid:   QueueId,
-      seqId: Observation.Id
+      obsId: Observation.Id
     ): F[Unit] = Applicative[F].unit
 //    executeEngine.offer(
 //      Event.modifyState[F, EngineState[F], SeqEvent](
 //        executeEngine.get.flatMap(st =>
-//          removeSeq(qid, seqId)
+//          removeSeq(qid, obsId)
 //            .map(
 //              UpdateQueueRemove(qid,
-//                                List(seqId),
-//                                st.queues.get(qid).map(_.queue.indexOf(seqId)).toList,
+//                                List(obsId),
+//                                st.queues.get(qid).map(_.queue.indexOf(obsId)).toList,
 //                                _
 //              )
 //            )
@@ -1042,26 +1043,26 @@ object ObserveEngine {
 //      )
 //    )
 //
-//    private def moveSeq(qid: QueueId, seqId: Observation.Id, delta: Int): Endo[EngineState[F]] =
+//    private def moveSeq(qid: QueueId, obsId: Observation.Id, delta: Int): Endo[EngineState[F]] =
 //      st =>
 //        st.queues
 //          .get(qid)
-//          .filter(_.queue.contains(seqId))
+//          .filter(_.queue.contains(obsId))
 //          .map { _ =>
-//            queueO(qid).modify(_.moveSeq(seqId, delta))(st)
+//            queueO(qid).modify(_.moveSeq(obsId, delta))(st)
 //          }
 //          .getOrElse(st)
 //
     override def moveSequenceInQueue(
       qid:   QueueId,
-      seqId: Observation.Id,
+      obsId: Observation.Id,
       delta: Int,
       cid:   ClientId
     ): F[Unit] = Applicative[F].unit
 //    executeEngine.offer(
 //      Event.modifyState[F, EngineState[F], SeqEvent](
 //        executeEngine.get.flatMap(_ =>
-//          moveSeq(qid, seqId, delta).withEvent(UpdateQueueMoved(qid, cid, seqId, 0)).toHandle
+//          moveSeq(qid, obsId, delta).withEvent(UpdateQueueMoved(qid, cid, obsId, 0)).toHandle
 //        )
 //      )
 //    )
@@ -1284,7 +1285,7 @@ object ObserveEngine {
     }
 
     private def configSystemHandle(
-      sid:      Observation.Id,
+      obsId:    Observation.Id,
       stepId:   Step.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
@@ -1292,17 +1293,17 @@ object ObserveEngine {
       executeEngine.get.flatMap { st =>
         if (configSystemCheck(sys, st)) {
           st.sequences
-            .get(sid)
+            .get(obsId)
             .flatMap(_.seqGen.configActionCoord(stepId, sys))
             .map(c =>
-              executeEngine.startSingle(ActionCoords(sid, c)).map[SeqEvent] {
-                case EventResult.Outcome.Ok => StartSysConfig(sid, stepId, sys)
+              executeEngine.startSingle(ActionCoords(obsId, c)).map[SeqEvent] {
+                case EventResult.Outcome.Ok => StartSysConfig(obsId, stepId, sys)
                 case _                      => NullSeqEvent
               }
             )
             .getOrElse(executeEngine.pure(NullSeqEvent))
         } else {
-          executeEngine.pure(ResourceBusy(sid, stepId, sys, clientID))
+          executeEngine.pure(ResourceBusy(obsId, stepId, sys, clientID))
         }
       }
 
@@ -1310,16 +1311,16 @@ object ObserveEngine {
      * Triggers the application of a specific step configuration to a system /
      */
     override def configSystem(
-      sid:      Observation.Id,
+      obsId:    Observation.Id,
       observer: Observer,
       user:     User,
       stepId:   Step.Id,
       sys:      Resource | Instrument,
       clientID: ClientId
-    ): F[Unit] = setObserver(sid, user, observer) *>
+    ): F[Unit] = setObserver(obsId, user, observer) *>
       executeEngine.offer(
         Event.modifyState[F, EngineState[F], SeqEvent](
-          configSystemHandle(sid, stepId, sys, clientID)
+          configSystemHandle(obsId, stepId, sys, clientID)
         )
       )
 
@@ -1366,58 +1367,58 @@ object ObserveEngine {
       resource: String,
       modify:   (SubsystemEnabled, SystemOverrides) => SystemOverrides,
       event:    SeqEvent,
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       enabled:  SubsystemEnabled,
       clientId: ClientId
     ): F[Unit] =
       logDebugEvent(
-        s"ObserveEngine: Setting $resource enabled flag to '$enabled' for sequence '$seqId'",
+        s"ObserveEngine: Setting $resource enabled flag to '$enabled' for sequence '$obsId'",
         user,
         clientId
       ) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
             (EngineState
-              .atSequence(seqId)
+              .atSequence(obsId)
               .modify(SequenceData.overrides.modify { x =>
                 modify(enabled, x)
               }) >>>
-              refreshSequence(seqId)).withEvent(event).toHandle
+              refreshSequence(obsId)).withEvent(event).toHandle
           )
         )
     override def setTcsEnabled(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       enabled:  SubsystemEnabled,
       clientId: ClientId
     ): F[Unit] =
       toggleOverride(Resource.TCS.label,
                      (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
-                     SetTcsEnabled(seqId, user.some, enabled),
-                     seqId,
+                     SetTcsEnabled(obsId, user.some, enabled),
+                     obsId,
                      user,
                      enabled,
                      clientId
       )
 
     override def setGcalEnabled(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       enabled:  SubsystemEnabled,
       clientId: ClientId
     ): F[Unit] =
       toggleOverride(Resource.Gcal.label,
                      (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
-                     SetGcalEnabled(seqId, user.some, enabled),
-                     seqId,
+                     SetGcalEnabled(obsId, user.some, enabled),
+                     obsId,
                      user,
                      enabled,
                      clientId
       )
 
     override def setInstrumentEnabled(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       enabled:  SubsystemEnabled,
       clientId: ClientId
@@ -1425,23 +1426,23 @@ object ObserveEngine {
       toggleOverride(
         "Instrument",
         (enabled, x) => if (enabled.value) x.enableInstrument else x.disableInstrument,
-        SetInstrumentEnabled(seqId, user.some, enabled),
-        seqId,
+        SetInstrumentEnabled(obsId, user.some, enabled),
+        obsId,
         user,
         enabled,
         clientId
       )
 
     override def setDhsEnabled(
-      seqId:    Observation.Id,
+      obsId:    Observation.Id,
       user:     User,
       enabled:  SubsystemEnabled,
       clientId: ClientId
     ): F[Unit] =
       toggleOverride("DHS",
                      (enabled, x) => if (enabled.value) x.enableDhs else x.disableDhs,
-                     SetDhsEnabled(seqId, user.some, enabled),
-                     seqId,
+                     SetDhsEnabled(obsId, user.some, enabled),
+                     obsId,
                      user,
                      enabled,
                      clientId: ClientId
