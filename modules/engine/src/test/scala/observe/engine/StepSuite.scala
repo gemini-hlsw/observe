@@ -342,6 +342,7 @@ class StepSuite extends CatsEffectSuite {
                userStop = true,
                internalStop = false,
                isWaitingUserPrompt = false,
+               isWaitingNextAtom = false,
                isStarting = false
              ),
              Map.empty

@@ -20,6 +20,7 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
     userStop:            Boolean,
     internalStop:        Boolean,
     isWaitingUserPrompt: Boolean,
+    isWaitingNextAtom:   Boolean,
     isStarting:          Boolean
   )                        extends SequenceState("Running")
   case Completed           extends SequenceState("Completed")
@@ -28,13 +29,13 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isUserStopRequested: Boolean =
     this match
-      case SequenceState.Running(b, _, _, _) => b
-      case _                                 => false
+      case SequenceState.Running(b, _, _, _, _) => b
+      case _                                    => false
 
   def isInternalStopRequested: Boolean =
     this match
-      case SequenceState.Running(_, b, _, _) => b
-      case _                                 => false
+      case SequenceState.Running(_, b, _, _, _) => b
+      case _                                    => false
 
   def isStopRequested: Boolean =
     isUserStopRequested || isInternalStopRequested
@@ -49,15 +50,13 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isRunning: Boolean =
     this match
-      case SequenceState.Running(_, _, _, _) => true
-      case _                                 => false
+      case SequenceState.Running(_, _, _, _, _) => true
+      case _                                    => false
 
   def isWaitingPrompt: Boolean =
     this match
-      case SequenceState.Running(_, _, isWaitingUserPrompt, isStarting) =>
-        isWaitingUserPrompt && !isStarting
-      case _                                                            =>
-        false
+      case SequenceState.Running(_, _, isWaitingUserPrompt, _, _) => isWaitingUserPrompt
+      case _                                                      => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -77,6 +76,7 @@ object SequenceState:
         userStop = false,
         internalStop = false,
         isWaitingUserPrompt = false,
+        isWaitingNextAtom = false,
         isStarting = false
       )
 
