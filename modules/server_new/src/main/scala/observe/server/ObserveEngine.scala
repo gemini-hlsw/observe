@@ -668,6 +668,7 @@ object ObserveEngine {
       val author = s", by '${user.displayName}' on client ${clientId.value}."
       executeEngine.inject(
         systems.odb
+          // We want the acquisition sequence to reset whenever we load the observation.
           .read(obsId, reset = true)
           .flatMap(translator.sequence)
           .attempt
@@ -699,7 +700,7 @@ object ObserveEngine {
                       Event.pure(
                         SeqEvent.NotifyUser(
                           Notification.LoadingFailed(
-                            sid,
+                            obsId,
                             List(
                               s"Error loading observation $obsId"
                             ) ++ err.headOption.toList.map(e => e.getMessage)
@@ -736,7 +737,7 @@ object ObserveEngine {
                             st,
                             SeqEvent.NotifyUser(
                               Notification.LoadingFailed(
-                                sid,
+                                obsId,
                                 List(
                                   s"Error loading observation $obsId",
                                   s"A sequence is running on instrument ${seq.instrument}"
