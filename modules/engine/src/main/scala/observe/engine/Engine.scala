@@ -55,9 +55,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
               SequenceState.Running(
                 userStop = false,
                 internalStop = false,
-                isWaitingUserPrompt = false,
-                isWaitingNextAtom = true,
-                isStarting = true
+                waitingUserPrompt = false,
+                waitingNextAtom = true,
+                starting = true
               )
             )(
               seq.rollback
@@ -150,9 +150,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     SequenceState.Running(
                       userStop,
                       internalStop,
-                      isWaitingUserPrompt = true,
-                      isWaitingNextAtom = true,
-                      isStarting = false
+                      waitingUserPrompt = true,
+                      waitingNextAtom = true,
+                      starting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
@@ -173,9 +173,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     SequenceState.Running(
                       userStop,
                       internalStop,
-                      isWaitingUserPrompt = true,
-                      isWaitingNextAtom = true,
-                      isStarting = false
+                      waitingUserPrompt = true,
+                      waitingNextAtom = true,
+                      starting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
@@ -192,9 +192,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                          SequenceState.Running(
                            userStop,
                            internalStop,
-                           isWaitingUserPrompt = false,
-                           isWaitingNextAtom = true,
-                           isStarting = false
+                           waitingUserPrompt = false,
+                           waitingNextAtom = true,
+                           starting = false
                          )
                        ) *>
                          send(modifyState(atomReload(this, id)))
@@ -227,9 +227,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                   if (!isStarting && seq.getCurrentBreakpoint) {
                     switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
                   } else
-                    switch(id)(SequenceState.Running(false, false, false, false, false)) *> send(
-                      executing(id)
-                    )
+                    switch(id)(SequenceState.Running(false, false, false, false, false)) *>
+                      send(executing(id))
               }
             }
           case _                                                                  => unit

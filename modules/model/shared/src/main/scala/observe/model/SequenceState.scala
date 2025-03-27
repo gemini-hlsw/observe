@@ -17,11 +17,11 @@ import monocle.macros.GenPrism
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Idle                extends SequenceState("Idle")
   case Running(
-    userStop:            Boolean,
-    internalStop:        Boolean,
-    isWaitingUserPrompt: Boolean,
-    isWaitingNextAtom:   Boolean,
-    isStarting:          Boolean
+    userStop:          Boolean,
+    internalStop:      Boolean,
+    waitingUserPrompt: Boolean,
+    waitingNextAtom:   Boolean,
+    starting:          Boolean
   )                        extends SequenceState("Running")
   case Completed           extends SequenceState("Completed")
   case Failed(msg: String) extends SequenceState("Failed")
@@ -53,10 +53,15 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
       case SequenceState.Running(_, _, _, _, _) => true
       case _                                    => false
 
-  def isWaitingPrompt: Boolean =
+  def isWaitingUserPrompt: Boolean =
     this match
-      case SequenceState.Running(_, _, isWaitingUserPrompt, _, _) => isWaitingUserPrompt
-      case _                                                      => false
+      case SequenceState.Running(_, _, waitingUserPrompt, _, _) => waitingUserPrompt
+      case _                                                    => false
+
+  def isStarting: Boolean =
+    this match
+      case SequenceState.Running(_, _, _, _, starting) => starting
+      case _                                           => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -75,9 +80,9 @@ object SequenceState:
       SequenceState.Running(
         userStop = false,
         internalStop = false,
-        isWaitingUserPrompt = false,
-        isWaitingNextAtom = false,
-        isStarting = false
+        waitingUserPrompt = false,
+        waitingNextAtom = false,
+        starting = false
       )
 
     val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)
@@ -85,8 +90,8 @@ object SequenceState:
     val internalStop: Lens[SequenceState.Running, Boolean] =
       Focus[SequenceState.Running](_.internalStop)
 
-    val isWaitingUserPrompt: Lens[SequenceState.Running, Boolean] =
-      Focus[SequenceState.Running](_.isWaitingUserPrompt)
+    // val isWaitingUserPrompt: Lens[SequenceState.Running, Boolean] =
+    //   Focus[SequenceState.Running](_.isWaitingUserPrompt)
 
-    val isStarting: Lens[SequenceState.Running, Boolean] =
-      Focus[SequenceState.Running](_.isStarting)
+    // val isStarting: Lens[SequenceState.Running, Boolean] =
+    //   Focus[SequenceState.Running](_.isStarting)
