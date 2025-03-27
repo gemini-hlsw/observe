@@ -29,12 +29,15 @@ trait ArbNotification {
   given rcCogen: Cogen[ResourceConflict] =
     Cogen[Observation.Id].contramap(_.obsId)
 
-  given rfArb: Arbitrary[RequestFailed] = Arbitrary[RequestFailed] {
-    arbitrary[List[String]].map(RequestFailed.apply)
+  given rfArb: Arbitrary[LoadingFailed] = Arbitrary[LoadingFailed] {
+    for
+      oid  <- arbitrary[Observation.Id]
+      strs <- arbitrary[List[String]]
+    yield LoadingFailed(oid, strs)
   }
 
-  given rfCogen: Cogen[RequestFailed] =
-    Cogen[List[String]].contramap(_.msgs)
+  given rfCogen: Cogen[LoadingFailed] =
+    Cogen[(Observation.Id, List[String])].contramap(x => (x.obsId, x.msgs))
 
   given inArb: Arbitrary[InstrumentInUse] = Arbitrary[InstrumentInUse] {
     for {
@@ -63,18 +66,18 @@ trait ArbNotification {
     for {
       r <- arbitrary[ResourceConflict]
       a <- arbitrary[InstrumentInUse]
-      f <- arbitrary[RequestFailed]
+      f <- arbitrary[LoadingFailed]
       b <- arbitrary[SubsystemBusy]
       s <- Gen.oneOf(r, a, f, b)
     } yield s
   }
 
   given notCogen: Cogen[Notification] =
-    Cogen[Either[ResourceConflict, Either[InstrumentInUse, Either[RequestFailed, SubsystemBusy]]]]
+    Cogen[Either[ResourceConflict, Either[InstrumentInUse, Either[LoadingFailed, SubsystemBusy]]]]
       .contramap {
         case r: ResourceConflict => Left(r)
         case i: InstrumentInUse  => Right(Left(i))
-        case f: RequestFailed    => Right(Right(Left(f)))
+        case f: LoadingFailed    => Right(Right(Left(f)))
         case b: SubsystemBusy    => Right(Right(Right(b)))
       }
 

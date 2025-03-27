@@ -14,7 +14,6 @@ import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
 import lucuma.react.primereact.Tooltip
 import lucuma.react.primereact.TooltipOptions
-import lucuma.ui.LucumaIcons
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.enums.RunOverride
@@ -28,14 +27,13 @@ import observe.ui.services.SequenceApi
 case class SeqControlButtons(
   obsId:         Observation.Id,
   loadedObsId:   Option[Pot[Observation.Id]],
-  loadObs:       Observation.Id => Callback,
   refreshing:    Pot[View[Boolean]],
   sequenceState: SequenceState,
   requests:      ObservationRequests,
   instrument:    Instrument
 ) extends ReactFnProps(SeqControlButtons):
   val isLoading: Boolean             = props.loadedObsId.exists(_.isPending)
-  val isReady: Boolean               = props.loadedObsId.exists(_.isReady)
+  // val isReady: Boolean               = props.loadedObsId.exists(_.isReady)
   val isUserStopRequested: Boolean   = sequenceState.isUserStopRequested
   val isPauseInFlight: Boolean       = requests.pause === OperationRequest.InFlight
   val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
@@ -57,16 +55,16 @@ object SeqControlButtons
         val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
 
         <.span(
-          Button(
-            clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.loadedObsId.exists(_.isPending),
-            icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
-            tooltip = "Load sequence",
-            tooltipOptions = tooltipOptions,
-            onClick = props.loadObs(props.obsId),
-            disabled = props.isReady
-          ).when(!selectedObsIsLoaded),
+          // Button(
+          //   clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
+          //   loading = props.loadedObsId.exists(_.isPending),
+          //   icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
+          //   loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
+          //   tooltip = "Load sequence",
+          //   tooltipOptions = tooltipOptions,
+          //   onClick = props.loadObs(props.obsId),
+          //   disabled = props.isReady
+          // ).when(!selectedObsIsLoaded),
           Button(
             clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
             icon = Icons.Play.withFixedWidth().withSize(IconSize.LG),

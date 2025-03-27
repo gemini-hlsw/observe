@@ -116,6 +116,18 @@ trait ServerEventHandler:
             )(loadedObservation)
         .getOrElse(loadedObservation)
 
+  private def showToast(toast: ToastRef, msgs: List[String]): IO[Unit] =
+    val node: VdomNode = <.span(msgs.mkTagMod(<.br))
+    toast
+      .show:
+        MessageItem(
+          content = node,
+          severity = Message.Severity.Error,
+          sticky = true,
+          clazz = LucumaStyles.Toast
+        )
+      .to[IO]
+
   protected def processStreamEvent(
     clientConfigMod:    Endo[Pot[ClientConfig]] => IO[Unit],
     rootModelDataMod:   Endo[RootModelData] => IO[Unit],
@@ -190,30 +202,28 @@ trait ServerEventHandler:
       // and in SequenceTable it's being done once per step.
       // However, we need to turn the app initialization on its head in MainApp to achieve this.
       case UserNotification(memo)                                                         =>
-        val msgs: List[String] =
+        val msgs: IO[List[String]] =
           memo match
             case Notification.ResourceConflict(obsId)                =>
-              List(s"Error in observation $obsId: Resource already in use")
+              val msgs = List(s"Error in observation $obsId: Resource already in use")
+              showToast(toast, msgs).as(msgs)
             case Notification.InstrumentInUse(obsId, ins)            =>
-              List(s"Error in observation $obsId: Instrument $ins already in use")
-            case Notification.RequestFailed(msgs)                    =>
-              msgs
+              val msgs = List(s"Error in observation $obsId: Instrument $ins already in use")
+              showToast(toast, msgs).as(msgs)
+            case Notification.LoadingFailed(obsId, msgs)             =>
+              rootModelDataMod:
+                RootModelData.nighttimeObservation.some
+                  .filter(_.obsId === obsId)
+                  .modify:
+                    LoadedObservation.errorMsg.replace(msgs.mkString("; ").some)
+              .as(msgs)
             case Notification.SubsystemBusy(obsId, stepId, resource) =>
-              List(s"Error in observation $obsId, step $stepId: Subsystem $resource already in use")
+              val msgs = List(
+                s"Error in observation $obsId, step $stepId: Subsystem $resource already in use"
+              )
+              showToast(toast, msgs).as(msgs)
 
-        val node: VdomNode = <.span(msgs.mkTagMod(<.br))
-
-        toast
-          .show(
-            MessageItem(
-              content = node,
-              severity = Message.Severity.Error,
-              sticky = true,
-              clazz = LucumaStyles.Toast
-            )
-          )
-          .to[IO] >>
-          logMessage(rootModelDataMod, ObserveLogLevel.Error, msgs.mkString("; "))
+        msgs.flatMap(ms => logMessage(rootModelDataMod, ObserveLogLevel.Error, ms.mkString("; ")))
       case LogEvent(msg)                                                                  =>
         logMessage(rootModelDataMod, msg.level, msg.msg)
 

@@ -18,9 +18,15 @@ import monocle.Lens
 case class LoadedObservation private (
   obsId:      Observation.Id,
   refreshing: Boolean = false,
+  errorMsg:   Option[String] = none,
   config:     Pot[InstrumentExecutionConfig] = Pot.pending,
   visits:     Pot[Option[ExecutionVisits]] = Pot.pending
 ):
+  def toPot: Pot[LoadedObservation] =
+    errorMsg match
+      case Some(msg) => Pot.error(new RuntimeException(msg))
+      case None      => this.ready
+
   private def potFromEitherOption[A](e: Either[Throwable, Option[A]]): Pot[A] =
     e.toTry.toPot.flatMap(_.toPot)
 
@@ -42,7 +48,7 @@ case class LoadedObservation private (
     )
 
   def reset: LoadedObservation =
-    copy(config = Pot.pending, visits = Pot.pending)
+    copy(errorMsg = none, config = Pot.pending, visits = Pot.pending)
 
   lazy val lastVisitId: Option[Visit.Id] =
     visits.toOption.flatten.map:
@@ -54,6 +60,7 @@ object LoadedObservation:
 
   val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
   val refreshing: Lens[LoadedObservation, Boolean]                    = Focus[LoadedObservation](_.refreshing)
+  val errorMsg: Lens[LoadedObservation, Option[String]]               = Focus[LoadedObservation](_.errorMsg)
   val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
     Focus[LoadedObservation](_.config)
   val visits: Lens[LoadedObservation, Pot[Option[ExecutionVisits]]]   =

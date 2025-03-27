@@ -29,7 +29,7 @@ import observe.ui.model.*
 case class ObservationExecutionDisplay(
   selectedObs:      ObsSummary,
   rootModelData:    View[RootModelData],
-  loadObservation:  Observation.Id => Callback,
+  openObsTable:     Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay)
 
@@ -63,7 +63,11 @@ object ObservationExecutionDisplay
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>
-          (lo.obsId.ready, lo.config, visitsViewPot, executionStateOpt.toOptionView.toPot).tupled
+          (lo.toPot.map(_.obsId),
+           lo.config,
+           visitsViewPot,
+           executionStateOpt.toOptionView.toPot
+          ).tupled
 
       val currentRecordedVisit: Option[RecordedVisit] =
         rootModelData.recordedIds.value.get(selectedObsId)
@@ -72,7 +76,6 @@ object ObservationExecutionDisplay
         ObsHeader(
           props.selectedObs,
           executionStateAndConfig.map(_.map(_._1)),
-          props.loadObservation,
           loadedObsViewPot.map(_.zoom(LoadedObservation.refreshing)),
           executionStateOpt.get.map(_.sequenceState).getOrElse(SequenceState.Idle),
           rootModelData.obsRequests.getOrElse(
@@ -81,6 +84,10 @@ object ObservationExecutionDisplay
           ),
           executionStateAndConfig
             .flatMap(_.toOption.map(_._4.zoom(ExecutionState.systemOverrides))),
+          props.rootModelData.zoom(RootModelData.observer),
+          props.rootModelData.zoom(RootModelData.operator),
+          props.rootModelData.zoom(RootModelData.conditions),
+          props.openObsTable,
           props.linkToExploreObs
         ),
         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR

@@ -679,11 +679,9 @@ object ObserveEngine {
                   .as(
                     Event.pure(
                       SeqEvent.NotifyUser(
-                        Notification.RequestFailed(
-                          List(
-                            s"Error loading observation $sid",
-                            e.getMessage
-                          )
+                        Notification.LoadingFailed(
+                          sid,
+                          List(s"Error loading observation $sid", e.getMessage)
                         ),
                         clientId
                       )
@@ -700,7 +698,8 @@ object ObserveEngine {
                     .as(
                       Event.pure(
                         SeqEvent.NotifyUser(
-                          Notification.RequestFailed(
+                          Notification.LoadingFailed(
+                            sid,
                             List(
                               s"Error loading observation $sid"
                             ) ++ err.headOption.toList.map(e => e.getMessage)
@@ -736,7 +735,8 @@ object ObserveEngine {
                           (
                             st,
                             SeqEvent.NotifyUser(
-                              Notification.RequestFailed(
+                              Notification.LoadingFailed(
+                                sid,
                                 List(
                                   s"Error loading observation $sid",
                                   s"A sequence is running on instrument ${seq.instrument}"

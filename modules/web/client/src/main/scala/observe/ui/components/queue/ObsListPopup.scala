@@ -6,6 +6,7 @@ package observe.ui.components.queue
 import cats.Order.given
 import cats.syntax.all.*
 import crystal.Pot
+import crystal.react.View
 import crystal.react.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -15,40 +16,46 @@ import lucuma.core.model.Program
 import lucuma.core.syntax.display.*
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
-import lucuma.react.fa.IconSize
-import lucuma.react.primereact.Button
+import lucuma.react.primereact.*
 import lucuma.react.syntax.*
 import lucuma.react.table.*
+import lucuma.refined.*
 import lucuma.ui.LucumaIcons
+import lucuma.ui.primereact.DebouncedInputText
+import lucuma.ui.primereact.LucumaPrimeStyles
 import lucuma.ui.reusability.given
 import lucuma.ui.table.*
-import observe.model.RunningStep
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.display.given
 import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
 
-case class SessionQueue(
-  queue:            List[SessionQueueRow],
-  obsStates:        Map[Observation.Id, SequenceState],
-  selectObs:        Observation.Id => Callback,
-  loadedObs:        Option[LoadedObservation],
-  loadObs:          Reusable[Observation.Id => Callback],
-  linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
-) extends ReactFnProps(SessionQueue):
-  val obsIdPotOpt: Option[Pot[Observation.Id]] = loadedObs.map(obs => obs.config.as(obs.obsId))
+case class ObsListPopup(
+  queue:                   List[SessionQueueRow],
+  obsStates:               Map[Observation.Id, SequenceState],
+  loadedObs:               Option[LoadedObservation],
+  loadObs:                 Reusable[Observation.Id => Callback],
+  isNighttimeObsTableOpen: View[Boolean],
+  linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
+) extends ReactFnProps(ObsListPopup):
+  val obsIdPotOpt: Option[Pot[Observation.Id]] =
+    loadedObs.map(obs => obs.toPot.flatMap(_.config).as(obs.obsId))
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>
       obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(_.isRunning)
 
-object SessionQueue
-    extends ReactFnComponent[SessionQueue](props =>
-      val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters
+  val isNighttimeObsTableForced: Boolean =
+    loadedObs.isEmpty
+
+  val isNighttimeObsTableShown: Boolean =
+    isNighttimeObsTableForced || isNighttimeObsTableOpen.get
+
+object ObsListPopup
+    extends ReactFnComponent[ObsListPopup](props =>
+      val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters.WithGlobalFilter[String]
 
       def rowClass(
         loadingPotOpt: Option[Pot[Unit]],
@@ -78,78 +85,24 @@ object SessionQueue
             case (Some(Pot.Ready(_)), None)                                                    => LucumaIcons.CircleNotch
             case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
             case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
-              Icons.FileCheck // clazz = selectedIconStyle)
+              Icons.FileCheck
             case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _, _)))                 =>
               LucumaIcons.CircleNotch
-            //      clazz = ObserveStyles.runningIcon
             case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
               Icons.FileCross
-            // Icon(name = "attention", color = Red, clazz = selectedIconStyle)
-            // case _ if b.state.rowLoading.exists(_ === index) =>
-            // Spinning icon while loading
-            // IconRefresh.copy(fitted = true, loading = true, clazz = ObserveStyles.runningIcon)
-            // case _ if isFocused              =>                 // EmptyVdom
-            // Icons.CircleCheck.copy(size = IconSize.LG)
-            // Icon(name = "dot circle outline", clazz = selectedIconStyle)
             case _                                                                             => EmptyVdom
-
-        // linkTo(b.props, pageOf(row))(
-        //   ObserveStyles.queueIconColumn,
         icon
-        // )
-
-      def addToQueueRenderer(row: SessionQueueRow): VdomNode =
-        // val title =
-        //   if (row.inDayCalQueue) "Remove from daycal queue"
-        //   else "Add to daycal queue"
-        // linkTo(b.props, pageOf(row))(
-        //   ObserveStyles.queueIconColumn,
-        //   ^.title := title,
-        if (row.inDayCalQueue)
-          Icons.CircleCheck.copy(size = IconSize.LG)
-          //      size = Large,
-          //      clazz = ObserveStyles.selectedIcon
-          // )
-          // ^.onClick ==> removeFromQueueE(row.obsId)
-        else
-          Icons.Circle.copy(size = IconSize.LG)
-          //      size = Large,
-          //      clazz = ObserveStyles.selectedIcon
-          // )
-          // ^.onClick ==> addToQueueE(row.obsId)
-      // )
-
-      def classIconRenderer(row: SessionQueueRow): VdomNode =
-        val icon: VdomNode =
-          row.obsClass match
-            case ObsClass.Daytime   => Icons.Sun
-            case ObsClass.Nighttime => Icons.Moon
-
-        // linkTo(b.props, pageOf(row))(
-        //   ObserveStyles.queueIconColumn,
-        icon
-        // )
-
-      def statusText(status: SequenceState, runningStep: Option[RunningStep]): String =
-        s"${status.shortName} ${runningStep.map(rs => s" ${rs.shortName}").orEmpty}"
-
-      // private def renderCell(node: VdomNode, css: Css = Css.Empty): VdomNode =
-      //   // <.div(ObserveStyles.QueueText |+| css)(node)
-      //   <.div(css)(node)
 
       def renderCentered(node: VdomNode, css: Css = Css.Empty): VdomNode =
         <.div(ObserveStyles.Centered |+| css)(node)
 
-      // private val IconColumnId: ColumnId       = ColumnId("icon")
-      val StatusIconColumnId: ColumnId = ColumnId("statusIcon")
-      val AddQueueColumnId: ColumnId   = ColumnId("addQueue")
-      val ClassColumnId: ColumnId      = ColumnId("class")
-      val ObsRefColumnId: ColumnId     = ColumnId("observation")
-      val StateColumnId: ColumnId      = ColumnId("state")
-      val InstrumentColumnId: ColumnId = ColumnId("instrument")
-      val TargetColumnId: ColumnId     = ColumnId("target")
-      val ObsNameColumnId: ColumnId    = ColumnId("obsName")
-      val ObserverColumnId: ColumnId   = ColumnId("observer")
+      val StatusIconColumnId: ColumnId  = ColumnId("statusIcon")
+      val ObsRefColumnId: ColumnId      = ColumnId("observation")
+      val InstrumentColumnId: ColumnId  = ColumnId("instrument")
+      val ConfigColumnId: ColumnId      = ColumnId("config")
+      val TargetColumnId: ColumnId      = ColumnId("target")
+      val ObsNameColumnId: ColumnId     = ColumnId("obsName")
+      val ConstraintsColumnId: ColumnId = ColumnId("constraints")
 
       def columns(
         obsStates:        Map[Observation.Id, SequenceState],
@@ -158,10 +111,10 @@ object SessionQueue
         loadedObsId:      Option[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, Nothing, ?, Nothing]] = List(
+      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] = List(
         ColDef(
           StatusIconColumnId,
-          row => row.obsId,
+          _.obsId,
           header = "",
           cell = cell =>
             renderCentered(
@@ -182,20 +135,6 @@ object SessionQueue
           enableSorting = false
         ),
         ColDef(
-          AddQueueColumnId,
-          header = _ => renderCentered(Icons.DaytimeCalendar), // Tooltip: Add all to queue
-          cell = cell => renderCentered(addToQueueRenderer(cell.row.original)),
-          size = 30.toPx,
-          enableResizing = false
-        ),
-        ColDef(
-          ClassColumnId,
-          header = _ => renderCentered(Icons.Clock),           // Tooltip: "Obs. class"
-          cell = cell => renderCentered(classIconRenderer(cell.row.original)),
-          size = 26.toPx,
-          enableResizing = false
-        ),
-        ColDef(
           ObsRefColumnId,
           obs => obs.obsReference.toRight((obs.programId, obs.obsId)),
           header = "Obs. Id",
@@ -204,17 +143,17 @@ object SessionQueue
           size = 240.toPx
         ).sortable.withFilterMethod(FilterMethod.Text(_.fold(_._2.shortName, _.label))),
         ColDef(
-          StateColumnId,
-          row => statusText(row.status, row.runningStep),
-          header = "State",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
-        ColDef(
           InstrumentColumnId,
           _.instrument,
           header = "Instrument",
           cell = _.value.shortName
         ).sortable.withFilterMethod(FilterMethod.Select(_.shortName)),
+        ColDef(
+          ConfigColumnId,
+          _.configurationSummary.getOrElse("---"),
+          header = "Configuration",
+          cell = _.value
+        ).sortable.withFilterMethod(FilterMethod.StringText()),
         ColDef(
           TargetColumnId,
           _.title,
@@ -222,21 +161,21 @@ object SessionQueue
           cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
         ).sortable.withFilterMethod(FilterMethod.StringSelect()),
         ColDef(
+          ConstraintsColumnId,
+          _.constraintsSummary,
+          header = "Constraints",
+          cell = _.value
+        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
+        ColDef(
           ObsNameColumnId,
           _.subtitle.map(_.value).getOrElse("-"),
           header = "Obs. Name",
           cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringText()),
-        ColDef(
-          ObserverColumnId,
-          _.observer.foldMap(_.value.value),
-          header = "Observer",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect())
+        ).sortable.withFilterMethod(FilterMethod.StringText())
       )
 
       for
-        cols  <-
+        cols         <-
           useMemo(
             (props.obsStates,
              props.obsIdPotOpt.map(_.void),
@@ -246,22 +185,48 @@ object SessionQueue
              props.linkToExploreObs
             )
           )(columns(_, _, _, _, _, _))
-        table <-
+        table        <-
           useReactTable:
             TableOptions(
               cols,
               Reusable.implicitly(props.queue),
               enableColumnResizing = true,
+              columnResizeMode = ColumnResizeMode.OnChange,
               enableSorting = true,
               enableFilters = true,
               enableFacetedUniqueValues = true,
-              columnResizeMode = ColumnResizeMode.OnChange
+              enableGlobalFilter = true,
+              globalFilterFn = FilterMethod.globalFilterFn(cols)
             )
-      yield <.div(ObserveStyles.SessionQueue)(
+        globalFilter <- useState("")
+      yield Dialog(
+        onHide = props.isNighttimeObsTableOpen.set(false),
+        visible = props.isNighttimeObsTableShown,
+        position = DialogPosition.Top,
+        closeOnEscape = !props.isNighttimeObsTableForced,
+        closable = !props.isNighttimeObsTableForced,
+        modal = !props.isNighttimeObsTableForced,
+        dismissableMask = !props.isNighttimeObsTableForced,
+        resizable = true,
+        clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
+        header = <.div(ObserveStyles.ObsListHeader)(
+          <.span("Candidate Observations"),
+          <.span(
+            DebouncedInputText(
+              id = "obs-filter".refined,
+              delayMillis = 250,
+              value = table.getState().globalFilter.getOrElse(""),
+              onChange = v => table.setGlobalFilter(v.some),
+              placeholder = "<Keyword filter>"
+            )
+          ),
+          <.span
+        )
+      )(
         PrimeAutoHeightVirtualizedTable(
           table,
           estimateSize = _ => 30.toPx,
-          tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.SessionTable,
+          tableMod = ObserveStyles.ObserveTable |+| ObserveStyles.ObsListTable,
           columnFilterRenderer = FilterMethod.render,
           rowMod = row =>
             TagMod(
@@ -270,7 +235,9 @@ object SessionQueue
                 row.original,
                 props.loadedObs.map(_.obsId)
               ),
-              ^.onClick --> props.selectObs(row.original.obsId)
+              ^.onDoubleClick --> props
+                .loadObs(row.original.obsId)
+                .unless_(props.loadedObs.map(_.obsId).contains_(row.original.obsId))
             ),
           cellMod = cell =>
             cell.column.id match

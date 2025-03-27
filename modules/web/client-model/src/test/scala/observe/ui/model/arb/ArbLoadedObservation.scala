@@ -17,16 +17,21 @@ import org.scalacheck.Cogen
 
 trait ArbLoadedObservation:
   given Arbitrary[LoadedObservation] = Arbitrary:
-    for {
-      obsId  <- arbitrary[Observation.Id]
-      config <- arbitrary[Pot[InstrumentExecutionConfig]]
-    } yield
+    for
+      obsId      <- arbitrary[Observation.Id]
+      refreshing <- arbitrary[Boolean]
+      errorMsg   <- arbitrary[Option[String]]
+      config     <- arbitrary[Pot[InstrumentExecutionConfig]]
+    yield
       val base = LoadedObservation(obsId)
-      config.toOptionTry.fold(base)(t => base.withConfig(t.map(_.some).toEither))
+      (LoadedObservation.refreshing.replace(refreshing) >>>
+        LoadedObservation.errorMsg.replace(errorMsg))(
+        config.toOptionTry.fold(base)(t => base.withConfig(t.map(_.some).toEither))
+      )
 
   given Cogen[LoadedObservation] =
-    Cogen[(Observation.Id, Pot[InstrumentExecutionConfig])]
+    Cogen[(Observation.Id, Boolean, Option[String], Pot[InstrumentExecutionConfig])]
       .contramap: s =>
-        (s.obsId, s.config)
+        (s.obsId, s.refreshing, s.errorMsg, s.config)
 
 object ArbLoadedObservation extends ArbLoadedObservation

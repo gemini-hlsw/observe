@@ -47,8 +47,8 @@ object ObserveStyles:
   val AcquisitionPromptMain: Css = Css("ObserveStyles-acquisitionPrompt-main")
   val AcquisitionPromptBusy: Css = Css("ObserveStyles-acquisitionPrompt-busy")
 
-  val SessionQueue: Css   = Css("ObserveStyles-sessionQueue")
-  val SessionTable: Css   = Css("ObserveStyles-sessionTable")
+  val ObsListHeader: Css  = Css("ObserveStyles-obsListHeader")
+  val ObsListTable: Css   = Css("ObserveStyles-obsListTable")
   val ObsClassSelect: Css = Css("ObserveStyles-obsClassSelect")
   val LoadButtonCell: Css = Css("ObserveStyles-loadButton-cell")
   val LoadButton: Css     = Css("ObserveStyles-loadButton")
@@ -124,17 +124,21 @@ object ObserveStyles:
 
   val SyncingPanel: Css = Css("ObserveStyles-syncingPanel")
 
+  val ObsHeader: Css            = Css("ObserveStyles-obsHeader")
   val ObsSummary: Css           = Css("ObserveStyles-obsSummary")
   val ObsSummaryTitle: Css      = Css("ObserveStyles-obsSummary-title")
   val ObsSummaryDetails: Css    = Css("ObserveStyles-obsSummary-details")
   val ObsSummarySubsystems: Css = Css("ObserveStyles-obsSummary-subsystems")
   val ObsSummaryButton: Css     = Css("ObserveStyles-obsSummary-button")
+  val ObsLoadSection: Css       = Css("ObserveStyles-obsLoadSection")
 
   val LogTable: Css      = Css("ObserveStyles-logTable")
   val LogWarningRow: Css = Css("ObserveStyles-logWarningRow")
   val LogErrorRow: Css   = Css("ObserveStyles-logErrorRow")
 
   val ExternalLink: Css = Css("ObserveStyles-externalLink")
+
+  val Popup: Css = Css("ObserveStyles-popup")
 
   object Prime:
     val EmptyProgressBar: Css      = Css("p-progressbar p-component")
