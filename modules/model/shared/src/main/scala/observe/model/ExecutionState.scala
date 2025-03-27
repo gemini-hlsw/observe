@@ -44,7 +44,7 @@ case class ExecutionState(
     )
 
   lazy val isWaitingAcquisitionPrompt: Boolean =
-    sequenceType === SequenceType.Acquisition && sequenceState.isWaitingNextAtom
+    sequenceType === SequenceType.Acquisition && sequenceState.isWaitingPrompt
 
 object ExecutionState:
   val sequenceState: Lens[ExecutionState, SequenceState]                                          = Focus[ExecutionState](_.sequenceState)

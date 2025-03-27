@@ -239,6 +239,8 @@ object Sequence {
       case _                                 => false
     }
 
+    def isWaitingUserPrompt[F[_]](st: State[F]): Boolean = st.status.isWaitingPrompt
+
     def userStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
       case r @ SequenceState.Running(_, _, _, _) => r.copy(userStop = v)
       case r                                     => r

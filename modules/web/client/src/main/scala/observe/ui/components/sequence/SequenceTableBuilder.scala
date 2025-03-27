@@ -187,7 +187,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
         _                        <-
           useEffectWithDeps(
             (props.executionState.sequenceState.isRunning,
-             props.executionState.sequenceState.isWaitingNextAtom
+             props.executionState.sequenceState.isWaitingPrompt
             )
           ): _ =>
             val autoScrollCandidates: List[String] =

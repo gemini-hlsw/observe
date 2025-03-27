@@ -1706,8 +1706,10 @@ object ObserveEngine {
         // The sequence could be empty
         case Nil => Nil
         // Find first Pending ObserveStep when no ObserveStep is Running and mark it as Running
+        // When waiting user prompt, the sequence is Running, but no steps are.
         case steps
-            if Sequence.State.isRunning(st) && steps.forall(_.status =!= StepState.Running) =>
+            if (Sequence.State.isRunning(st) && !Sequence.State.isWaitingUserPrompt(st)) && steps
+              .forall(_.status =!= StepState.Running) =>
           val (xs, ys) = splitWhere(steps)(_.status === StepState.Pending)
           xs ++ ys.headOption.map(ObserveStep.status.replace(StepState.Running)).toList ++ ys.tail
         case steps
