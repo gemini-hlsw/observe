@@ -939,7 +939,9 @@ class ObserveEngineSuite extends TestCommon {
       s1             =
         EngineState
           .sequenceStateIndex[IO](seqObsId1)
-          .modify(x => Sequence.State.Final(x.toSequence, Running(false, false, true, false)))(s0)
+          .modify(x =>
+            Sequence.State.Final(x.toSequence, Running(false, false, false, true, false))
+          )(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
       eo             = EngineObserver(observeEngine, s1)
       r             <-

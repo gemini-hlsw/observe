@@ -52,7 +52,13 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         {
           putS(id)(
             Sequence.State.status.replace(
-              SequenceState.Running(false, false, isWaitingUserPrompt = true, isStarting = true)
+              SequenceState.Running(
+                userStop = false,
+                internalStop = false,
+                waitingUserPrompt = false,
+                waitingNextAtom = true,
+                starting = true
+              )
             )(
               seq.rollback
             )
@@ -133,7 +139,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     getS(id).flatMap(
       _.map { seq =>
         seq.status match {
-          case SequenceState.Running(userStop, internalStop, _, _) =>
+          case SequenceState.Running(userStop, internalStop, _, _, _) =>
             if (userStop || internalStop) {
               seq.next match {
                 case None                              =>
@@ -144,8 +150,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     SequenceState.Running(
                       userStop,
                       internalStop,
-                      isWaitingUserPrompt = true,
-                      isStarting = false
+                      waitingUserPrompt = true,
+                      waitingNextAtom = true,
+                      starting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed
@@ -166,32 +173,35 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     SequenceState.Running(
                       userStop,
                       internalStop,
-                      isWaitingUserPrompt = true,
-                      isStarting = false
+                      waitingUserPrompt = true,
+                      waitingNextAtom = true,
+                      starting = false
                     )
                   ) *> send(modifyState(atomLoad(this, id)))
                 // Execution completed. Check breakpoint here
                 case Some(qs)                          =>
-                  putS(id)(qs) *> (if (
-                                     qs.getCurrentBreakpoint && !qs.current.execution
-                                       .exists(_.uninterruptible)
-                                   ) {
-                                     switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
-                                   } else if (seq.isLastAction)
-                                     // after the last action of the step, we need to reload the sequence
-                                     switch(id)(
-                                       SequenceState.Running(
-                                         userStop,
-                                         internalStop,
-                                         isWaitingUserPrompt = true,
-                                         isStarting = false
-                                       )
-                                     ) *>
-                                       send(modifyState(atomReload(this, id)))
-                                   else send(executing(id)))
+                  putS(id)(qs) *>
+                    (if (
+                       qs.getCurrentBreakpoint && !qs.current.execution
+                         .exists(_.uninterruptible)
+                     ) {
+                       switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
+                     } else if (seq.isLastAction)
+                       // after the last action of the step, we need to reload the sequence
+                       switch(id)(
+                         SequenceState.Running(
+                           userStop,
+                           internalStop,
+                           waitingUserPrompt = false,
+                           waitingNextAtom = true,
+                           starting = false
+                         )
+                       ) *>
+                         send(modifyState(atomReload(this, id)))
+                     else send(executing(id)))
               }
             }
-          case _                                                   => unit
+          case _                                                      => unit
         }
       }.getOrElse(unit)
     )
@@ -200,7 +210,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     getS(id).flatMap(
       _.map { seq =>
         seq.status match {
-          case SequenceState.Running(userStop, internalStop, true, isStarting) =>
+          case SequenceState.Running(userStop, internalStop, _, true, isStarting) =>
             if (!isStarting && (userStop || internalStop)) {
               seq match {
                 // Final State
@@ -217,12 +227,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                   if (!isStarting && seq.getCurrentBreakpoint) {
                     switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
                   } else
-                    switch(id)(SequenceState.Running(false, false, false, false)) *> send(
-                      executing(id)
-                    )
+                    switch(id)(SequenceState.Running(false, false, false, false, false)) *>
+                      send(executing(id))
               }
             }
-          case _                                                               => unit
+          case _                                                                  => unit
         }
       }.getOrElse(unit)
     )

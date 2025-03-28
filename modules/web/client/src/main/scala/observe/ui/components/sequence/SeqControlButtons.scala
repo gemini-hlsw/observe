@@ -38,7 +38,7 @@ case class SeqControlButtons(
   val isPauseInFlight: Boolean       = requests.pause === OperationRequest.InFlight
   val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
   val isRunning: Boolean             = sequenceState.isRunning
-  val isWaitingNextAtom: Boolean     = sequenceState.isWaitingPrompt
+  val isWaitingNextAtom: Boolean     = sequenceState.isWaitingUserPrompt
   val isRefreshing: Boolean          = props.refreshing.exists(_.get)
 
 object SeqControlButtons
