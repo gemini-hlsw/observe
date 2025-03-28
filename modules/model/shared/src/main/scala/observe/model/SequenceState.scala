@@ -90,8 +90,11 @@ object SequenceState:
     val internalStop: Lens[SequenceState.Running, Boolean] =
       Focus[SequenceState.Running](_.internalStop)
 
-    // val isWaitingUserPrompt: Lens[SequenceState.Running, Boolean] =
-    //   Focus[SequenceState.Running](_.isWaitingUserPrompt)
+    val waitingUserPrompt: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.waitingUserPrompt)
 
-    // val isStarting: Lens[SequenceState.Running, Boolean] =
-    //   Focus[SequenceState.Running](_.isStarting)
+    val waitingNextAtom: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.waitingNextAtom)
+
+    val starting: Lens[SequenceState.Running, Boolean] =
+      Focus[SequenceState.Running](_.starting)
