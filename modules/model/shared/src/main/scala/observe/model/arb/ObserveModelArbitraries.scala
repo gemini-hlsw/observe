@@ -99,9 +99,10 @@ trait ObserveModelArbitraries {
     for {
       u <- arbitrary[Boolean]
       i <- arbitrary[Boolean]
+      w <- arbitrary[Boolean]
       a <- arbitrary[Boolean]
       s <- arbitrary[Boolean]
-    } yield SequenceState.Running(u, i, a, s)
+    } yield SequenceState.Running(u, i, w, a, s)
   }
 
   given Arbitrary[SequenceState] = Arbitrary[SequenceState] {

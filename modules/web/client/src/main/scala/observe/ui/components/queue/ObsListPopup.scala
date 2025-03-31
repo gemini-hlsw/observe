@@ -86,7 +86,7 @@ object ObsListPopup
             case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
             case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
               Icons.FileCheck
-            case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _, _)))                 =>
+            case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _, _, _)))              =>
               LucumaIcons.CircleNotch
             case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
               Icons.FileCross
