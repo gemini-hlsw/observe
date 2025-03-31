@@ -101,7 +101,6 @@ object ObsListPopup
       val InstrumentColumnId: ColumnId  = ColumnId("instrument")
       val ConfigColumnId: ColumnId      = ColumnId("config")
       val TargetColumnId: ColumnId      = ColumnId("target")
-      val ObsNameColumnId: ColumnId     = ColumnId("obsName")
       val ConstraintsColumnId: ColumnId = ColumnId("constraints")
 
       def columns(
@@ -159,19 +158,13 @@ object ObsListPopup
           _.title,
           header = "Target",
           cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
-        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
+        ).sortable.withFilterMethod(FilterMethod.StringText()),
         ColDef(
           ConstraintsColumnId,
           _.constraintsSummary,
           header = "Constraints",
           cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect()),
-        ColDef(
-          ObsNameColumnId,
-          _.subtitle.map(_.value).getOrElse("-"),
-          header = "Obs. Name",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringText())
+        ).sortable.withFilterMethod(FilterMethod.StringSelect())
       )
 
       for
