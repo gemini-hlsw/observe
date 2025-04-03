@@ -36,15 +36,20 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
 import org.scalacheck.Cogen
 import org.scalacheck.Gen
+import eu.timepit.refined.scalacheck.string.given
 
+import ArbClientConfig.given
+import ArbEnumerated.given
+import ArbGid.given
+import ArbLogMessage.given
+import ArbNewType.given
 import ArbNotification.given
 import ArbNsRunningState.given
+import ArbObsRecordedIds.given
 import ArbObservationProgress.given
 import ArbSystem.given
+import ArbUid.given
 import ArbUserPrompt.given
-import ArbClientConfig.given
-import ArbObsRecordedIds.given
-import ArbLogMessage.given
 
 trait ArbClientEvent:
 

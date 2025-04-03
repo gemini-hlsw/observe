@@ -5,6 +5,10 @@ package observe.server.keywords
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
+<<<<<<<.HEAD(=======)
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
+>>>>>>>.e68de528b(checkpoint)
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
@@ -113,7 +117,6 @@ object ConditionOps {
     }
   }
 
-  extension (ce: CloudExtinction.Preset) {
     // We need to use a smaller set of values than we have in core, so we have to keep this.
     def toPercentile: Int = ce match {
       case CloudExtinction.Preset.PointOne       => 50
@@ -128,8 +131,8 @@ object ConditionOps {
 
   extension (constrainSet: ConstraintSet) {
     def asConditions: Conditions = Conditions(
-      constrainSet.cloudExtinction.some,
-      constrainSet.imageQuality.some,
+      constrainSet.cloudExtinction.toCloudExtinction.some,
+      constrainSet.imageQuality.toImageQuality.some,
       constrainSet.skyBackground.some,
       constrainSet.waterVapor.some
     )

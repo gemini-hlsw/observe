@@ -11,6 +11,7 @@ import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import observe.model.Conditions
 import observe.server.tcs.TcsEpics
+import lucuma.core.conditions.*
 
 import ConditionOps.*
 
@@ -48,8 +49,9 @@ object ConditionSetReaderEpics {
         .flatMap(w => conditions.iq.map(_.toPercentile(w, Angle.fromDoubleDegrees(el))))
     )
 
-    override def cloudExtinctionStr: F[String] =
-      percentileStr(conditions.ce.map(_.toPercentile)).pure[F]
+    override def cloudExtinctionStr: F[String] = // TODOOOOOOO
+      "".pure[F]
+      // percentileStr(conditions.ce.map(percentileCloudExtinction(_).value.value)).pure[F]
 
     override def waterVaporStr: F[String] =
       percentileStr(conditions.wv.map(_.percentile.toPercent.toInt)).pure[F]
@@ -64,15 +66,18 @@ object ConditionSetReaderEpics {
 
     override def cloudExtinctionDbl: F[Double] =
       conditions.ce
-        .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
-        .getOrElse(DefaultHeaderValue[Double].default)
-        .pure[F]
+    <<<<<<< HEAD
+      .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
+  =======.map(_.toVegaMagnitude.value.toDouble)
+    >>>>>>> e68de528b(checkpoint)
+      .getOrElse(DefaultHeaderValue[Double].default)
+      .pure[F]
 
-    override def waterVaporDbl: F[Double] =
-      conditions.wv.map(_.toMillimeters(site)).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+  override def waterVaporDbl: F[Double] =
+    conditions.wv.map(_.toMillimeters(site)).getOrElse(DefaultHeaderValue[Double].default).pure[F]
 
-    override def backgroundLightDbl: F[Double] =
-      conditions.sb.map(_.toMicroVolts).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+  override def backgroundLightDbl: F[Double] =
+    conditions.sb.map(_.toMicroVolts).getOrElse(DefaultHeaderValue[Double].default).pure[F]
 }
 
 object DummyConditionSetReader {

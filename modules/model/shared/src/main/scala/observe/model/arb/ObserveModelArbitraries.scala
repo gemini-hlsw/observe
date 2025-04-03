@@ -7,6 +7,9 @@ import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.scalacheck.numeric.given
 import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.arb.*
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
@@ -22,6 +25,7 @@ import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
+import lucuma.core.util.arb.ArbNewType.given
 import observe.model.*
 import observe.model.arb.all.given
 import observe.model.enums.*

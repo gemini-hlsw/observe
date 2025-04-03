@@ -21,6 +21,9 @@ import observe.model.dhs.*
 import observe.model.enums.*
 import observe.model.odb.ObsRecordedIds
 import org.scalacheck.Test as ScalaCheckTest
+import lucuma.core.util.arb.ArbNewType.given
+import lucuma.core.math.arb.ArbRefined.given
+import eu.timepit.refined.scalacheck.string.given
 
 /**
  * Tests Model typeclasses
