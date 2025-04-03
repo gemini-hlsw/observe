@@ -5,6 +5,7 @@ package observe.model.arb
 
 import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
+import eu.timepit.refined.scalacheck.numeric.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
@@ -13,6 +14,7 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
+import lucuma.core.math.arb.ArbQuantity.given
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.given
 import lucuma.core.model.sequence.Step
