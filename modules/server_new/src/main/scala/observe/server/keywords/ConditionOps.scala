@@ -97,7 +97,7 @@ object ConditionOps {
         .map(_.zip(NonEmptyList.of(20, 70, 85, 100)))
     )
 
-  extension (iq: ImageQuality.Preset) {
+  extension (iq: ImageQuality) {
     def toPercentile(wv: Wavelength, elevation: Angle): Int = {
       // Pickering approximation (thanks Andy Stephens)
       val airmass         = 1.0 / sin(
@@ -106,33 +106,26 @@ object ConditionOps {
           1.1
         ))) * Pi / 180
       )
-      val atZenith: Angle = iq.toImageQuality.toAngle * (1.0 / pow(airmass, 0.6))
+      val atZenith: Angle = iq.toAngle * (1.0 / pow(airmass, 0.6))
       binnedLookup(nearestLookup(iqBins)(wv.toMicrometers.value.value.toDouble))(
         atZenith.toDoubleDegrees * 3600.0
       )
     }
   }
 
-  extension (ce: CloudExtinction.Preset) {
-    // We need to use a smaller set of values than we have in core, so we have to keep this.
-    def toPercentile: Int = ce match {
-      case CloudExtinction.Preset.PointOne       => 50
-      case CloudExtinction.Preset.PointThree     => 70
-      case CloudExtinction.Preset.PointFive      => 80
-      case CloudExtinction.Preset.OnePointZero   => 80
-      case CloudExtinction.Preset.OnePointFive   => 100
-      case CloudExtinction.Preset.TwoPointZero   => 100
-      case CloudExtinction.Preset.ThreePointZero => 100
-    }
+  private val CePercentiles = NonEmptyList.of(0.0 -> 50, 0.3 -> 70, 1.0 -> 80, 3.0 -> 100)
+
+  extension (ce: CloudExtinction) {
+    def toPercentile: Int = // We need to use a smaller set of values than the one in core.
+      binnedLookup(CePercentiles)(ce.toVegaMagnitude.toDouble)
   }
 
   extension (constrainSet: ConstraintSet) {
     def asConditions: Conditions = Conditions(
-      constrainSet.cloudExtinction.some,
-      constrainSet.imageQuality.some,
+      constrainSet.cloudExtinction.toCloudExtinction.some,
+      constrainSet.imageQuality.toImageQuality.some,
       constrainSet.skyBackground.some,
       constrainSet.waterVapor.some
     )
   }
-
 }

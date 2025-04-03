@@ -4,12 +4,14 @@
 package observe.model.arb
 
 import cats.syntax.all.*
+import eu.timepit.refined.scalacheck.numeric.given
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.math.arb.ArbQuantity.given
 import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
@@ -35,8 +37,8 @@ trait ObserveModelArbitraries {
 
   given Arbitrary[Conditions] = Arbitrary[Conditions] {
     for {
-      ce <- arbitrary[Option[CloudExtinction.Preset]]
-      iq <- arbitrary[Option[ImageQuality.Preset]]
+      ce <- arbitrary[Option[CloudExtinction]]
+      iq <- arbitrary[Option[ImageQuality]]
       sb <- arbitrary[Option[SkyBackground]]
       wv <- arbitrary[Option[WaterVapor]]
     } yield Conditions(ce, iq, sb, wv)
@@ -155,11 +157,7 @@ trait ObserveModelArbitraries {
 
   given Cogen[Conditions] =
     Cogen[
-      (Option[CloudExtinction.Preset],
-       Option[ImageQuality.Preset],
-       Option[SkyBackground],
-       Option[WaterVapor]
-      )
+      (Option[CloudExtinction], Option[ImageQuality], Option[SkyBackground], Option[WaterVapor])
     ].contramap(c => (c.ce, c.iq, c.sb, c.wv))
 
   given [A: Cogen]: Cogen[SequencesQueue[A]] =

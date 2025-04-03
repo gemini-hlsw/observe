@@ -7,6 +7,7 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits.*
+import coulomb.policy.strict.given
 import eu.timepit.refined.cats.given
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
@@ -179,7 +180,7 @@ class StepsViewSuite extends TestCommon {
   }
 
   test("StepsView setImageQuality should set Image Quality condition") {
-    val iq = ImageQuality.Preset.PointTwo
+    val iq = ImageQuality.Preset.PointTwo.toImageQuality
     val s0 = EngineState.default[IO]
 
     (for {
@@ -202,7 +203,7 @@ class StepsViewSuite extends TestCommon {
   }
 
   test("StepsView setCloudExtintion should set Cloud Extinction condition") {
-    val ce = CloudExtinction.Preset.PointThree
+    val ce = CloudExtinction.Preset.PointThree.toCloudExtinction
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine

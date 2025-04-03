@@ -113,7 +113,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def setConditions(conditions: Conditions, user: User): F[Unit] =
     Applicative[F].unit
 
-  override def setImageQuality(iq: ImageQuality.Preset, user: User, clientId: ClientId): F[Unit] =
+  override def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
   override def setWaterVapor(wv: WaterVapor, user: User, clientId: ClientId): F[Unit] =
@@ -122,11 +122,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
   override def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
-  override def setCloudExtinction(
-    cc:       CloudExtinction.Preset,
-    user:     User,
-    clientId: ClientId
-  ): F[Unit] =
+  override def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit] =
     Applicative[F].unit
 
   override def requestRefresh(clientId: ClientId): F[Unit] = Applicative[F].unit

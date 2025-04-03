@@ -24,7 +24,7 @@ extension (e: SeqEvent)
       case SetImageQuality(_, _)         => true
       case SetWaterVapor(_, _)           => true
       case SetSkyBackground(_, _)        => true
-      case SetCloudCover(_, _)           => true
+      case SetCloudExtinction(_, _)      => true
       case LoadSequence(_)               => true
       case UnloadSequence(_)             => true
       case UpdateQueueAdd(_, _)          => true
