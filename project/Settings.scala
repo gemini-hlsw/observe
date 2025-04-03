@@ -54,7 +54,7 @@ object Settings {
     val lucumaCore      = "0.119.1"
     val lucumaUI        = "0.135.2"
     val lucumaSchemas   = "0.123.2"
-    val lucumaSSO       = "0.8.7"
+    val lucumaSSO       = "0.8.8"
     val lucumaODBSchema = "0.19.0"
 
     // Clue
