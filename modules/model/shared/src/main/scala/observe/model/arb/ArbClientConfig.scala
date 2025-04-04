@@ -3,13 +3,15 @@
 
 package observe.model.arb
 
+import eu.timepit.refined.scalacheck.string.given
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.core.enums.Site
+import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbNewType.given
 import observe.model.ClientConfig
 import observe.model.ClientId
 import observe.model.Version
-import observe.model.arb.ObserveModelArbitraries.given
 import org.http4s.Uri
 import org.http4s.laws.discipline.arbitrary.http4sTestingCogenForUri
 import org.scalacheck.Arbitrary

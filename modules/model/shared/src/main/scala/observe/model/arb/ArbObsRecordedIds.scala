@@ -3,11 +3,10 @@
 
 package observe.model.arb
 
-import lucuma.core.arb.newTypeArbitrary
-import lucuma.core.arb.newTypeCogen
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
 import observe.model.odb.DatasetIdMap
@@ -24,11 +23,6 @@ import org.scalacheck.Cogen
 import ArbDhsTypes.given
 
 trait ArbObsRecordedIds:
-  given Arbitrary[RecordedAtomId] = newTypeArbitrary(RecordedAtomId)
-  given Arbitrary[RecordedStepId] = newTypeArbitrary(RecordedStepId)
-
-  given Arbitrary[DatasetIdMap] = newTypeArbitrary(DatasetIdMap)
-
   given Arbitrary[RecordedStep] = Arbitrary:
     for
       stepId     <- arbitrary[RecordedStepId]
@@ -46,13 +40,6 @@ trait ArbObsRecordedIds:
       visitId <- arbitrary[Visit.Id]
       atom    <- arbitrary[Option[RecordedAtom]]
     yield RecordedVisit(visitId, atom)
-
-  given Arbitrary[ObsRecordedIds] = newTypeArbitrary(ObsRecordedIds)
-
-  given Cogen[RecordedAtomId] = newTypeCogen(RecordedAtomId)
-  given Cogen[RecordedStepId] = newTypeCogen(RecordedStepId)
-
-  given Cogen[DatasetIdMap] = newTypeCogen(DatasetIdMap)
 
   given Cogen[RecordedStep] =
     Cogen[(RecordedStepId, DatasetIdMap)].contramap(x => (x.stepId, x.datasetIds))

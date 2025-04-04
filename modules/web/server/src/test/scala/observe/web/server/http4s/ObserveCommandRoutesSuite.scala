@@ -6,10 +6,10 @@ package observe.web.server.http4s
 import cats.effect.IO
 import cats.syntax.all.*
 import io.circe.syntax.*
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import observe.model.ClientId
@@ -55,7 +55,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
                   Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/iq"))
-                    .withEntity((ImageQuality.PointTwo: ImageQuality).asJson)
+                    .withEntity((ImageQuality.Preset.PointTwo: ImageQuality.Preset).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
     yield (l.map(_.status), b)
@@ -83,7 +83,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
                   Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/ce"))
-                    .withEntity((CloudExtinction.PointFive: CloudExtinction).asJson)
+                    .withEntity((CloudExtinction.Preset.PointFive: CloudExtinction.Preset).asJson)
                 ).value
       b      <- l.traverse(_.as[String])
     yield (l.map(_.status), b)

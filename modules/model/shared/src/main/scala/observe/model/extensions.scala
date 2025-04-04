@@ -32,6 +32,5 @@ object extensions:
       case Instrument.GmosNorth  => Site.GN.some
       case Instrument.Gnirs      => Site.GN.some
       case Instrument.Niri       => Site.GN.some
-      case Instrument.Nifs       => Site.GN.some
       // None
       case _                     => none

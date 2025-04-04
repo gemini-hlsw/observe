@@ -18,14 +18,14 @@ import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Pipe
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ConstraintSet
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
@@ -157,13 +157,13 @@ trait ObserveEngine[F[_]] {
 
   def setConditions(conditions: Conditions, user: User): F[Unit]
 
-  def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit]
+  def setImageQuality(iq: ImageQuality.Preset, user: User, clientId: ClientId): F[Unit]
 
   def setWaterVapor(wv: WaterVapor, user: User, clientId: ClientId): F[Unit]
 
   def setSkyBackground(sb: SkyBackground, user: User, clientId: ClientId): F[Unit]
 
-  def setCloudExtinction(cc: CloudExtinction, user: User, clientId: ClientId): F[Unit]
+  def setCloudExtinction(cc: CloudExtinction.Preset, user: User, clientId: ClientId): F[Unit]
 
   def requestRefresh(clientId: ClientId): F[Unit]
 
@@ -317,14 +317,14 @@ object ObserveEngine {
     }
 
     private def checkCloudCover(
-      actual:    Option[CloudExtinction],
-      requested: CloudExtinction
+      actual:    Option[CloudExtinction.Preset],
+      requested: CloudExtinction.Preset
     ): Boolean =
       actual.forall(_ <= requested)
 
     private def checkImageQuality(
-      actual:    Option[ImageQuality],
-      requested: ImageQuality
+      actual:    Option[ImageQuality.Preset],
+      requested: ImageQuality.Preset
     ): Boolean =
       actual.forall(_ <= requested)
 
@@ -349,10 +349,20 @@ object ObserveEngine {
       val reqWV              = requiredObsConditions.waterVapor
 
       val ccCmp = (!checkCloudCover(actualObsConditions.ce, reqCE))
-        .option(Discrepancy(actualObsConditions.ce.fold(UnknownStr)(_.label), reqCE.label))
+        .option(
+          Discrepancy(
+            actualObsConditions.ce.fold(UnknownStr)(_.toCloudExtinction.label),
+            reqCE.toCloudExtinction.label
+          )
+        )
 
       val iqCmp = (!checkImageQuality(actualObsConditions.iq, reqIQ))
-        .option(Discrepancy(actualObsConditions.iq.fold(UnknownStr)(_.label), reqIQ.label))
+        .option(
+          Discrepancy(
+            actualObsConditions.iq.fold(UnknownStr)(_.toImageQuality.label),
+            reqIQ.toImageQuality.label
+          )
+        )
 
       val sbCmp = (!checkSkyBackground(actualObsConditions.sb, reqSB))
         .option(Discrepancy(actualObsConditions.sb.fold(UnknownStr)(_.label), reqSB.label))
@@ -797,7 +807,7 @@ object ObserveEngine {
         )
       )
 
-    override def setImageQuality(iq: ImageQuality, user: User, clientId: ClientId): F[Unit] =
+    override def setImageQuality(iq: ImageQuality.Preset, user: User, clientId: ClientId): F[Unit] =
       logDebugEvent(s"ObserveEngine: Setting image quality to $iq", user, clientId) *>
         executeEngine.offer(
           Event.modifyState[F, EngineState[F], SeqEvent](
@@ -828,7 +838,7 @@ object ObserveEngine {
         )
 
     override def setCloudExtinction(
-      ce:       CloudExtinction,
+      ce:       CloudExtinction.Preset,
       user:     User,
       clientId: ClientId
     ): F[Unit] = logDebugEvent(s"ObserveEngine: Setting cloud cover to $ce", user, clientId) *>

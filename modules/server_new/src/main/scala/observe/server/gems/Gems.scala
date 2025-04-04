@@ -117,15 +117,15 @@ object Gems {
   // set by the operator.
   private def combine(opConfig: GemsConfig, stepConfig: GemsConfig): GemsConfig =
     GemsOn(
-      Cwfs1Usage.fromBoolean(opConfig.isCwfs1Used && stepConfig.isCwfs1Used),
-      Cwfs2Usage.fromBoolean(opConfig.isCwfs2Used && stepConfig.isCwfs2Used),
-      Cwfs3Usage.fromBoolean(opConfig.isCwfs3Used && stepConfig.isCwfs3Used),
-      Odgw1Usage.fromBoolean(opConfig.isOdgw1Used && stepConfig.isOdgw1Used),
-      Odgw2Usage.fromBoolean(opConfig.isOdgw2Used && stepConfig.isOdgw2Used),
-      Odgw3Usage.fromBoolean(opConfig.isOdgw3Used && stepConfig.isOdgw3Used),
-      Odgw4Usage.fromBoolean(opConfig.isOdgw4Used && stepConfig.isOdgw4Used),
-      P1Usage.fromBoolean(opConfig.isP1Used && stepConfig.isP1Used),
-      OIUsage.fromBoolean(opConfig.isOIUsed && stepConfig.isOIUsed)
+      Cwfs1Usage(opConfig.isCwfs1Used && stepConfig.isCwfs1Used),
+      Cwfs2Usage(opConfig.isCwfs2Used && stepConfig.isCwfs2Used),
+      Cwfs3Usage(opConfig.isCwfs3Used && stepConfig.isCwfs3Used),
+      Odgw1Usage(opConfig.isOdgw1Used && stepConfig.isOdgw1Used),
+      Odgw2Usage(opConfig.isOdgw2Used && stepConfig.isOdgw2Used),
+      Odgw3Usage(opConfig.isOdgw3Used && stepConfig.isOdgw3Used),
+      Odgw4Usage(opConfig.isOdgw4Used && stepConfig.isOdgw4Used),
+      P1Usage(opConfig.isP1Used && stepConfig.isP1Used),
+      OIUsage(opConfig.isOIUsed && stepConfig.isOIUsed)
     )
 
   def fromConfig[F[_]: MonadThrow: Logger](
@@ -146,15 +146,15 @@ object Gems {
     new GemsImpl[F](
       c,
       GemsOn(
-        Cwfs1Usage.fromBoolean(cwfs1.exists(_ === StepGuideState.Enabled)),
-        Cwfs2Usage.fromBoolean(cwfs2.exists(_ === StepGuideState.Enabled)),
-        Cwfs3Usage.fromBoolean(cwfs3.exists(_ === StepGuideState.Enabled)),
-        Odgw1Usage.fromBoolean(odgw1.exists(_ === StepGuideState.Enabled)),
-        Odgw2Usage.fromBoolean(odgw2.exists(_ === StepGuideState.Enabled)),
-        Odgw3Usage.fromBoolean(odgw3.exists(_ === StepGuideState.Enabled)),
-        Odgw4Usage.fromBoolean(odgw4.exists(_ === StepGuideState.Enabled)),
-        P1Usage.fromBoolean(p1.exists(_ === StepGuideState.Enabled)),
-        OIUsage.fromBoolean(oi.exists(_ === StepGuideState.Enabled))
+        Cwfs1Usage(cwfs1.exists(_ === StepGuideState.Enabled)),
+        Cwfs2Usage(cwfs2.exists(_ === StepGuideState.Enabled)),
+        Cwfs3Usage(cwfs3.exists(_ === StepGuideState.Enabled)),
+        Odgw1Usage(odgw1.exists(_ === StepGuideState.Enabled)),
+        Odgw2Usage(odgw2.exists(_ === StepGuideState.Enabled)),
+        Odgw3Usage(odgw3.exists(_ === StepGuideState.Enabled)),
+        Odgw4Usage(odgw4.exists(_ === StepGuideState.Enabled)),
+        P1Usage(p1.exists(_ === StepGuideState.Enabled)),
+        OIUsage(oi.exists(_ === StepGuideState.Enabled))
       ),
       guideConfigDb
     ): Gems[F]

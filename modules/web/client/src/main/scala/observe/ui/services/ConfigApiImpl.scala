@@ -8,10 +8,10 @@ import cats.effect.Resource
 import cats.syntax.all.*
 import crystal.react.*
 import io.circe.*
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import observe.model.ClientId
 import observe.model.Observer
@@ -35,13 +35,13 @@ case class ConfigApiImpl(
           .post(path, data)
           .flatTap(_ => apiStatus.async.set(ApiStatus.Idle))
 
-  override def setImageQuality(iq: ImageQuality): IO[Unit]       =
+  override def setImageQuality(iq: ImageQuality.Preset): IO[Unit]       =
     request(Uri.Path.empty / client.clientId.value / "iq", iq)
-  override def setCloudExtinction(ce: CloudExtinction): IO[Unit] =
+  override def setCloudExtinction(ce: CloudExtinction.Preset): IO[Unit] =
     request(Uri.Path.empty / client.clientId.value / "ce", ce)
-  override def setWaterVapor(wv: WaterVapor): IO[Unit]           =
+  override def setWaterVapor(wv: WaterVapor): IO[Unit]                  =
     request(Uri.Path.empty / client.clientId.value / "wv", wv)
-  override def setSkyBackground(sb: SkyBackground): IO[Unit]     =
+  override def setSkyBackground(sb: SkyBackground): IO[Unit]            =
     request(Uri.Path.empty / client.clientId.value / "sb", sb)
 
   override def setOperator(operator: Option[Operator]): IO[Unit]                        =

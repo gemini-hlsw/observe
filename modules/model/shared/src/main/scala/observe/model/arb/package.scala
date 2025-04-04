@@ -16,7 +16,6 @@ object all
     with ArbStepConfig
     with ArbDhsTypes
     with ArbNsSubexposure
-    with ArbGmosParameters
     with ArbNsRunningState
     with ArbStepProgress
     with ArbObservationProgress

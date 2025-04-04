@@ -5,14 +5,14 @@ package observe.server.keywords
 
 import cats.data.NonEmptyList
 import cats.syntax.all.*
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
+import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ConstraintSet
+import lucuma.core.model.ImageQuality
 import observe.model.Conditions
 
 import scala.annotation.tailrec
@@ -97,7 +97,7 @@ object ConditionOps {
         .map(_.zip(NonEmptyList.of(20, 70, 85, 100)))
     )
 
-  extension (iq: ImageQuality) {
+  extension (iq: ImageQuality.Preset) {
     def toPercentile(wv: Wavelength, elevation: Angle): Int = {
       // Pickering approximation (thanks Andy Stephens)
       val airmass         = 1.0 / sin(
@@ -106,22 +106,22 @@ object ConditionOps {
           1.1
         ))) * Pi / 180
       )
-      val atZenith: Angle = iq.toAngle * (1.0 / pow(airmass, 0.6))
+      val atZenith: Angle = iq.toImageQuality.toAngle * (1.0 / pow(airmass, 0.6))
       binnedLookup(nearestLookup(iqBins)(wv.toMicrometers.value.value.toDouble))(
         atZenith.toDoubleDegrees * 3600.0
       )
     }
   }
 
-  extension (ce: CloudExtinction) {
+  extension (ce: CloudExtinction.Preset) {
     def toPercentile: Int = ce match {
-      case CloudExtinction.PointOne       => 50
-      case CloudExtinction.PointThree     => 70
-      case CloudExtinction.PointFive      => 80
-      case CloudExtinction.OnePointZero   => 80
-      case CloudExtinction.OnePointFive   => 100
-      case CloudExtinction.TwoPointZero   => 100
-      case CloudExtinction.ThreePointZero => 100
+      case CloudExtinction.Preset.PointOne       => 50
+      case CloudExtinction.Preset.PointThree     => 70
+      case CloudExtinction.Preset.PointFive      => 80
+      case CloudExtinction.Preset.OnePointZero   => 80
+      case CloudExtinction.Preset.OnePointFive   => 100
+      case CloudExtinction.Preset.TwoPointZero   => 100
+      case CloudExtinction.Preset.ThreePointZero => 100
     }
   }
 

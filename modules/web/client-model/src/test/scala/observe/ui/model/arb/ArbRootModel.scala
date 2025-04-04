@@ -11,6 +11,7 @@ import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
 import lucuma.ui.sso.UserVault
 import lucuma.ui.sso.arb.ArbUserVault.given

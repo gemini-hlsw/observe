@@ -9,7 +9,7 @@ import crystal.react.hooks.*
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.util.NewType
+import lucuma.core.util.NewBoolean
 import lucuma.react.common.*
 import lucuma.react.fa.FontAwesomeIcon
 import lucuma.react.primereact.Button
@@ -38,13 +38,11 @@ case class TopBar(
 
 object TopBar
     extends ReactFnComponent[TopBar](props =>
-      object IsAboutOpen extends NewType[Boolean]
+      object IsAboutOpen extends NewBoolean
 
       type ForceRerender = ForceRerender.Type
-      object ForceRerender extends NewType[Boolean]:
-        extension (s: ForceRerender)
-          def flip: ForceRerender =
-            if (s.value) ForceRerender(true) else ForceRerender(false)
+      object ForceRerender extends NewBoolean:
+        extension (s: ForceRerender) def flip: ForceRerender = if s then False else True
 
       for
         ctx         <- useContext(AppContext.ctx)

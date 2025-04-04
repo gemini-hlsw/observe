@@ -9,10 +9,10 @@ import eu.timepit.refined.cats.*
 import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.optics.*
 import lucuma.core.validation.InputValidSplitEpi
 import lucuma.react.common.*
@@ -41,12 +41,12 @@ object ConfigPanel
       yield
         import ctx.given
 
-        val iq: View[Option[ImageQuality]] =
+        val iq: View[Option[ImageQuality.Preset]] =
           props.conditions
             .zoom(Conditions.iq)
             .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
 
-        val ce: View[Option[CloudExtinction]] =
+        val ce: View[Option[CloudExtinction.Preset]] =
           props.conditions
             .zoom(Conditions.ce)
             .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
