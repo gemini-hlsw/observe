@@ -5,9 +5,13 @@ package observe.model
 
 import cats.kernel.laws.discipline.*
 import eu.timepit.refined.cats.given
+import eu.timepit.refined.scalacheck.string.given
 import io.circe.testing.CodecTests
 import io.circe.testing.instances.*
+import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbNewType.given
 import observe.model.GmosParameters.*
 import observe.model.arb.ArbClientConfig.given
 import observe.model.arb.ArbStepProgress.given

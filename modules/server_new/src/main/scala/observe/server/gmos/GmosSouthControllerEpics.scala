@@ -35,7 +35,6 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South.typ
       case GmosSouthFpu.Ifu2Slits     => "IFU-2"
       case GmosSouthFpu.IfuRed        => "IFU-B"
       case GmosSouthFpu.IfuBlue       => "IFU-R"
-      case GmosSouthFpu.Bhros         => ""
       case GmosSouthFpu.IfuNS2Slits   => "IFU-NS-2"
       case GmosSouthFpu.IfuNSBlue     => "IFU-NS-B"
       case GmosSouthFpu.IfuNSRed      => "IFU-NS-R"

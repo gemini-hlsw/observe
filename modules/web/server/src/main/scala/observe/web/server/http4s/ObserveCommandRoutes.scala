@@ -6,10 +6,10 @@ package observe.web.server.http4s
 import cats.effect.Async
 import cats.syntax.all.*
 import fs2.compression.Compression
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
 import lucuma.sso.client.SsoClient
@@ -29,11 +29,11 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
   oe:        ObserveEngine[F]
 ) extends Http4sDsl[F] {
 
-  given EntityDecoder[F, WaterVapor]      = jsonOf[F, WaterVapor]
-  given EntityDecoder[F, ImageQuality]    = jsonOf[F, ImageQuality]
-  given EntityDecoder[F, SkyBackground]   = jsonOf[F, SkyBackground]
-  given EntityDecoder[F, CloudExtinction] = jsonOf[F, CloudExtinction]
-  given EntityDecoder[F, List[Step.Id]]   = jsonOf[F, List[Step.Id]]
+  given wvDecoder: EntityDecoder[F, WaterVapor]             = jsonOf[F, WaterVapor]
+  given iqDecoder: EntityDecoder[F, ImageQuality.Preset]    = jsonOf[F, ImageQuality.Preset]
+  given sbDecoder: EntityDecoder[F, SkyBackground]          = jsonOf[F, SkyBackground]
+  given ceDecoder: EntityDecoder[F, CloudExtinction.Preset] = jsonOf[F, CloudExtinction.Preset]
+  given stepsDecoder: EntityDecoder[F, List[Step.Id]]       = jsonOf[F, List[Step.Id]]
 
   private val commandServices: HttpRoutes[F] = HttpRoutes.of[F] {
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "start" /
@@ -136,7 +136,7 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
 
     case req @ POST -> Root / ClientIDVar(clientId) / "iq" =>
       ssoClient.require(req): user =>
-        req.decode[ImageQuality](iq => oe.setImageQuality(iq, user, clientId) *> NoContent())
+        req.decode[ImageQuality.Preset](iq => oe.setImageQuality(iq, user, clientId) *> NoContent())
 
     case req @ POST -> Root / ClientIDVar(clientId) / "wv" =>
       ssoClient.require(req): user =>
@@ -148,7 +148,9 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
 
     case req @ POST -> Root / ClientIDVar(clientId) / "ce" =>
       ssoClient.require(req): user =>
-        req.decode[CloudExtinction](ce => oe.setCloudExtinction(ce, user, clientId) *> NoContent())
+        req.decode[CloudExtinction.Preset](ce =>
+          oe.setCloudExtinction(ce, user, clientId) *> NoContent()
+        )
 
     case req @ POST -> Root / "load" / InstrumentVar(i) / ObsIdVar(obsId) /
         ClientIDVar(clientId) / ObserverVar(observer) =>

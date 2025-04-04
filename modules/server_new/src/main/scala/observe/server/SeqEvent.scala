@@ -3,12 +3,12 @@
 
 package observe.server
 
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
@@ -50,10 +50,10 @@ object SeqEvent:
     clientId:   ClientId
   ) extends SeqEvent
   case class ClearLoadedSequences(user: Option[User])                            extends SeqEvent
-  case class SetImageQuality(iq: ImageQuality, user: Option[User])               extends SeqEvent
+  case class SetImageQuality(iq: ImageQuality.Preset, user: Option[User])        extends SeqEvent
   case class SetWaterVapor(wv: WaterVapor, user: Option[User])                   extends SeqEvent
   case class SetSkyBackground(wv: SkyBackground, user: Option[User])             extends SeqEvent
-  case class SetCloudCover(cc: CloudExtinction, user: Option[User])              extends SeqEvent
+  case class SetCloudCover(cc: CloudExtinction.Preset, user: Option[User])       extends SeqEvent
   case class NotifyUser(memo: Notification, clientID: ClientId)                  extends SeqEvent
   case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)              extends SeqEvent
   case class StartQueue(

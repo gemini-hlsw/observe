@@ -200,12 +200,13 @@ object MainApp extends ServerEventHandler:
                 dispatcher                                 <- Dispatcher.parallel[IO]
                 given WebSocketJsBackend[IO]                = WebSocketJsBackend[IO](dispatcher)
                 given WebSocketJsClient[IO, ObservationDB] <-
-                  Resource.eval:
+                  Resource.eval(
                     WebSocketJsClient.of[IO, ObservationDB](
                       clientConfig.odbUri.toString,
                       "ODB",
                       reconnectionStrategy
                     )
+                  )
               yield AppContext[IO](
                 AppContext.version(clientConfig.environment),
                 SSOClient(SSOConfig(clientConfig.ssoUri)),

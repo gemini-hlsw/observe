@@ -3,6 +3,7 @@
 
 package observe.model.arb
 
+import eu.timepit.refined.scalacheck.string.given
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
@@ -10,6 +11,7 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.ClientConfig
 import observe.model.Conditions

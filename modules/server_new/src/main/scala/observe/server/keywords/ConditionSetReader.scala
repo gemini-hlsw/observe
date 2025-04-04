@@ -57,12 +57,15 @@ object ConditionSetReaderEpics {
       percentileStr(conditions.sb.map(_.toPercentile)).pure[F]
 
     override def imageQualityDbl: F[Double] = conditions.iq
-      .map(_.toArcSeconds.value.toDouble)
+      .map(_.toImageQuality.toArcSeconds.value.toDouble)
       .getOrElse(DefaultHeaderValue[Double].default)
       .pure[F]
 
     override def cloudExtinctionDbl: F[Double] =
-      conditions.ce.map(_.toBrightness).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+      conditions.ce
+        .map(_.toCloudExtinction.toVegaMagnitude.value.toDouble)
+        .getOrElse(DefaultHeaderValue[Double].default)
+        .pure[F]
 
     override def waterVaporDbl: F[Double] =
       conditions.wv.map(_.toMillimeters(site)).getOrElse(DefaultHeaderValue[Double].default).pure[F]
@@ -89,12 +92,15 @@ object DummyConditionSetReader {
         percentileStr(conditions.sb.map(_.toPercentile)).pure[F]
 
       override def imageQualityDbl: F[Double] = conditions.iq
-        .map(_.toArcSeconds.value.toDouble)
+        .map(_.toImageQuality.toArcSeconds.value.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
       override def cloudExtinctionDbl: F[Double] =
-        conditions.ce.map(_.toBrightness).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+        conditions.ce
+          .map(_.toCloudExtinction.toVegaMagnitude.value.toDouble)
+          .getOrElse(DefaultHeaderValue[Double].default)
+          .pure[F]
 
       override def waterVaporDbl: F[Double] = conditions.wv
         .map(_.toMillimeters(site))

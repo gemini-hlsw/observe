@@ -3,10 +3,13 @@
 
 package observe.model.arb
 
+import eu.timepit.refined.scalacheck.string.given
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
+import lucuma.core.math.arb.ArbRefined.given
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.ExecutionState
 import observe.model.NsRunningState

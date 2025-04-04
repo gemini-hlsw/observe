@@ -6,19 +6,19 @@ package observe.model.arb
 import cats.syntax.all.*
 import eu.timepit.refined.scalacheck.string.given
 import eu.timepit.refined.types.string.NonEmptyString
-import lucuma.core.arb.*
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.math.arb.ArbRefined.given
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.User
 import lucuma.core.model.arb.ArbUser.given
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbEnumerated.given
 import lucuma.core.util.arb.ArbGid.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
 import observe.model.arb.all.given
@@ -31,16 +31,12 @@ import org.scalacheck.Gen
 import scala.collection.immutable.SortedMap
 
 trait ObserveModelArbitraries {
-
   private val maxListSize = 2
-
-  given Arbitrary[Operator] = newTypeArbitrary(Operator)
-  given Cogen[Operator]     = newTypeCogen(Operator)
 
   given Arbitrary[Conditions] = Arbitrary[Conditions] {
     for {
-      ce <- arbitrary[Option[CloudExtinction]]
-      iq <- arbitrary[Option[ImageQuality]]
+      ce <- arbitrary[Option[CloudExtinction.Preset]]
+      iq <- arbitrary[Option[ImageQuality.Preset]]
       sb <- arbitrary[Option[SkyBackground]]
       wv <- arbitrary[Option[WaterVapor]]
     } yield Conditions(ce, iq, sb, wv)
@@ -67,15 +63,6 @@ trait ObserveModelArbitraries {
       } yield SequencesQueue(Map.empty, c, o, SortedMap.empty, b)
     }
 
-  given Arbitrary[ClientId] = newTypeArbitrary(ClientId)
-  given Cogen[ClientId]     = newTypeCogen(ClientId)
-
-  given Arbitrary[QueueId] = newTypeArbitrary(QueueId)
-  given Cogen[QueueId]     = newTypeCogen(QueueId)
-
-  given Arbitrary[SubsystemEnabled] = newTypeArbitrary(SubsystemEnabled)
-  given Cogen[SubsystemEnabled]     = newTypeCogen(SubsystemEnabled)
-
   given Arbitrary[ActionType] = Arbitrary[ActionType] {
     for {
       c <- arbitrary[Resource].map(ActionType.Configure.apply)
@@ -83,9 +70,6 @@ trait ObserveModelArbitraries {
       b <- Gen.oneOf(c, a)
     } yield b
   }
-
-  given Arbitrary[Observer] = newTypeArbitrary(Observer)
-  given Cogen[Observer]     = newTypeCogen(Observer)
 
   given Arbitrary[SequenceMetadata] = Arbitrary[SequenceMetadata] {
     for {
@@ -171,7 +155,11 @@ trait ObserveModelArbitraries {
 
   given Cogen[Conditions] =
     Cogen[
-      (Option[CloudExtinction], Option[ImageQuality], Option[SkyBackground], Option[WaterVapor])
+      (Option[CloudExtinction.Preset],
+       Option[ImageQuality.Preset],
+       Option[SkyBackground],
+       Option[WaterVapor]
+      )
     ].contramap(c => (c.ce, c.iq, c.sb, c.wv))
 
   given [A: Cogen]: Cogen[SequencesQueue[A]] =
@@ -215,9 +203,6 @@ trait ObserveModelArbitraries {
   given Cogen[ExecutionQueueView] =
     Cogen[(QueueId, String, BatchCommandState, BatchExecState, List[Observation.Id])]
       .contramap(x => (x.id, x.name, x.cmdState, x.execState, x.queue))
-
-  given Arbitrary[Version] = newTypeArbitrary(Version)
-  given Cogen[Version]     = newTypeCogen(Version)
 }
 
 object ObserveModelArbitraries extends ObserveModelArbitraries

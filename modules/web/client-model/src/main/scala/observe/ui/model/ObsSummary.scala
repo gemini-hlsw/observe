@@ -61,7 +61,7 @@ case class ObsSummary(
     s"${instrument.shortName} ${configurationSummary.orEmpty}"
 
   lazy val constraintsSummary: String =
-    s"${constraints.imageQuality.label} ${constraints.cloudExtinction.label} ${constraints.skyBackground.label} ${constraints.waterVapor.label}"
+    s"${constraints.imageQuality.toImageQuality.label} ${constraints.cloudExtinction.toCloudExtinction.label} ${constraints.skyBackground.label} ${constraints.waterVapor.label}"
 
   lazy val refAndId: String =
     obsReference.fold(obsId.shortName)(ref => s"${ref.label} (${obsId.shortName})")

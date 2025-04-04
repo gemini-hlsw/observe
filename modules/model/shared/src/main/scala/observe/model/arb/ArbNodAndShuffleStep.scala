@@ -12,6 +12,7 @@ import lucuma.core.model.sequence.arb.ArbStepConfig.given
 import lucuma.core.model.sequence.arb.ArbTelescopeConfig.given
 import lucuma.core.util.TimeSpan
 import lucuma.core.util.arb.ArbEnumerated.given
+import lucuma.core.util.arb.ArbNewType.given
 import lucuma.core.util.arb.ArbTimeSpan.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.*
@@ -26,7 +27,6 @@ import org.scalacheck.Cogen
 import org.scalacheck.Gen
 
 import ArbDhsTypes.given
-import ArbGmosParameters.given
 import ArbInstrumentDynamicConfig.given
 import ArbNsRunningState.given
 import ArbStepState.given

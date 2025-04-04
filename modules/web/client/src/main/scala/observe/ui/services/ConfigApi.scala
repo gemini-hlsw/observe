@@ -7,20 +7,20 @@ import cats.MonadThrow
 import cats.effect.IO
 import japgolly.scalajs.react.React
 import japgolly.scalajs.react.feature.Context
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.SubsystemEnabled
 
 trait ConfigApi[F[_]: MonadThrow]:
-  def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
-  def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
-  def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
-  def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
+  def setImageQuality(iq:    ImageQuality.Preset): F[Unit]    = NotAuthorized
+  def setCloudExtinction(ce: CloudExtinction.Preset): F[Unit] = NotAuthorized
+  def setWaterVapor(wv:      WaterVapor): F[Unit]             = NotAuthorized
+  def setSkyBackground(sb:   SkyBackground): F[Unit]          = NotAuthorized
 
   def setOperator(operator: Option[Operator]): F[Unit] = NotAuthorized
   def setObserver(obsId:    Observation.Id, observer: Option[Observer]): F[Unit] = NotAuthorized

@@ -5,6 +5,7 @@ package observe.model
 
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.model.sequence.Step
+import lucuma.core.util.NewBoolean
 import lucuma.core.util.NewType
 
 import java.util.UUID
@@ -24,10 +25,8 @@ type Observer = Observer.Type
 object Operator extends NewType[NonEmptyString]
 type Operator = Operator.Type
 
-object SubsystemEnabled extends NewType[Boolean] {
-  val Enabled  = SubsystemEnabled(true)
-  val Disabled = SubsystemEnabled(false)
-}
+object SubsystemEnabled extends NewBoolean:
+  inline def Enabled = True; inline def Disabled = False
 
 type SubsystemEnabled = SubsystemEnabled.Type
 

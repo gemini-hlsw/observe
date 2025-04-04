@@ -10,16 +10,16 @@ import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
-import lucuma.core.enums.CloudExtinction
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
+import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import lucuma.core.model.Program
 import lucuma.core.model.sequence.Atom
@@ -134,8 +134,8 @@ object TestOdbProxy {
                     ),
                     Data.Observation.TargetEnvironment(none, GuideEnvironment(List.empty)),
                     ConstraintSet(
-                      ImageQuality.TwoPointZero,
-                      CloudExtinction.TwoPointZero,
+                      ImageQuality.Preset.TwoPointZero,
+                      CloudExtinction.Preset.TwoPointZero,
                       SkyBackground.Bright,
                       WaterVapor.Wet,
                       ElevationRange.AirMass.Default

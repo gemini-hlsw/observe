@@ -13,7 +13,6 @@ import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Breakpoint
-import lucuma.core.enums.CloudExtinction
 import lucuma.core.enums.GmosAmpCount
 import lucuma.core.enums.GmosAmpGain
 import lucuma.core.enums.GmosAmpReadMode
@@ -26,7 +25,6 @@ import lucuma.core.enums.GmosNorthStageMode
 import lucuma.core.enums.GmosRoi
 import lucuma.core.enums.GmosXBinning
 import lucuma.core.enums.GmosYBinning
-import lucuma.core.enums.ImageQuality
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
 import lucuma.core.enums.ObservationWorkflowState
@@ -38,8 +36,10 @@ import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.WaterVapor
 import lucuma.core.math.Offset
 import lucuma.core.math.Wavelength
+import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ConstraintSet
 import lucuma.core.model.ElevationRange
+import lucuma.core.model.ImageQuality
 import lucuma.core.model.Program
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
@@ -323,8 +323,8 @@ object TestCommon {
       ),
       TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
-        ImageQuality.PointOne,
-        CloudExtinction.PointOne,
+        ImageQuality.Preset.PointOne,
+        CloudExtinction.Preset.PointOne,
         SkyBackground.Dark,
         WaterVapor.Median,
         ElevationRange.AirMass.Default
@@ -465,8 +465,8 @@ object TestCommon {
       ),
       TargetEnvironment(None, GuideEnvironment(List.empty)),
       ConstraintSet(
-        ImageQuality.PointOne,
-        CloudExtinction.PointOne,
+        ImageQuality.Preset.PointOne,
+        CloudExtinction.Preset.PointOne,
         SkyBackground.Dark,
         WaterVapor.Median,
         ElevationRange.AirMass.Default
