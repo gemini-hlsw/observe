@@ -677,91 +677,92 @@ object ObserveEngine {
     ): F[Unit] =
       val author = s", by '${user.displayName}' on client ${clientId.value}."
       executeEngine.inject(
-        systems.odb
-          // We want the acquisition sequence to reset whenever we load the observation.
-          .read(obsId, reset = true)
-          .flatMap(translator.sequence)
-          .attempt
-          .flatMap(
-            _.fold(
-              e =>
-                Logger[F]
-                  .warn(e)(s"Error loading observation $obsId$author")
-                  .as(
-                    Event.pure(
-                      SeqEvent.NotifyUser(
-                        Notification.LoadingFailed(
-                          obsId,
-                          List(s"Error loading observation $obsId", e.getMessage)
-                        ),
-                        clientId
-                      )
-                    )
-                  ),
-              {
-                case (err, None)       =>
+        // We want the acquisition sequence to reset whenever we load the observation.
+        systems.odb.resetAcquisition(obsId) >>
+          systems.odb
+            .read(obsId)
+            .flatMap(translator.sequence)
+            .attempt
+            .flatMap(
+              _.fold(
+                e =>
                   Logger[F]
-                    .warn(
-                      err.headOption
-                        .map(e => s"Error loading observation $obsId: ${e.getMessage}$author")
-                        .getOrElse(s"Error loading observation $obsId")
-                    )
+                    .warn(e)(s"Error loading observation $obsId$author")
                     .as(
                       Event.pure(
                         SeqEvent.NotifyUser(
                           Notification.LoadingFailed(
                             obsId,
-                            List(
-                              s"Error loading observation $obsId"
-                            ) ++ err.headOption.toList.map(e => e.getMessage)
+                            List(s"Error loading observation $obsId", e.getMessage)
                           ),
                           clientId
                         )
                       )
-                    )
-                case (errs, Some(seq)) =>
-                  errs.isEmpty
-                    .fold(
-                      Logger[F].warn(s"Loaded observation $obsId$author"),
-                      Logger[F]
-                        .warn(
-                          s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
+                    ),
+                {
+                  case (err, None)       =>
+                    Logger[F]
+                      .warn(
+                        err.headOption
+                          .map(e => s"Error loading observation $obsId: ${e.getMessage}$author")
+                          .getOrElse(s"Error loading observation $obsId")
+                      )
+                      .as(
+                        Event.pure(
+                          SeqEvent.NotifyUser(
+                            Notification.LoadingFailed(
+                              obsId,
+                              List(
+                                s"Error loading observation $obsId"
+                              ) ++ err.headOption.toList.map(e => e.getMessage)
+                            ),
+                            clientId
+                          )
                         )
-                    )
-                    .as(
-                      Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                        val l = EngineState
-                          .instrumentLoaded[F](seq.instrument)
-                        if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
-                          (
-                            st.sequences
-                              .get(obsId)
-                              .fold(
-                                ODBSequencesLoader
-                                  .loadSequenceEndo(observer.some, seq, l)
-                              )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                            LoadSequence(obsId)
+                      )
+                  case (errs, Some(seq)) =>
+                    errs.isEmpty
+                      .fold(
+                        Logger[F].warn(s"Loaded observation $obsId$author"),
+                        Logger[F]
+                          .warn(
+                            s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
                           )
-                        } else {
-                          (
-                            st,
-                            SeqEvent.NotifyUser(
-                              Notification.LoadingFailed(
-                                obsId,
-                                List(
-                                  s"Error loading observation $obsId",
-                                  s"A sequence is running on instrument ${seq.instrument}"
-                                )
-                              ),
-                              clientId
+                      )
+                      .as(
+                        Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                          val l = EngineState
+                            .instrumentLoaded[F](seq.instrument)
+                          if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
+                            (
+                              st.sequences
+                                .get(obsId)
+                                .fold(
+                                  ODBSequencesLoader
+                                    .loadSequenceEndo(observer.some, seq, l)
+                                )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                              LoadSequence(obsId)
                             )
-                          )
-                        }
-                      }.toHandle)
-                    )
-              }
+                          } else {
+                            (
+                              st,
+                              SeqEvent.NotifyUser(
+                                Notification.LoadingFailed(
+                                  obsId,
+                                  List(
+                                    s"Error loading observation $obsId",
+                                    s"A sequence is running on instrument ${seq.instrument}"
+                                  )
+                                ),
+                                clientId
+                              )
+                            )
+                          }
+                        }.toHandle)
+                      )
+                }
+              )
             )
-          )
       )
 
     private def logDebugEvent(msg: String): F[Unit] =

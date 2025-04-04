@@ -94,7 +94,8 @@ sealed trait OdbEventCommands[F[_]] {
 }
 
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
-  def read(oid: Observation.Id, reset: Boolean = false): F[ObsQuery.Data.Observation]
+  def read(oid:               Observation.Id): F[ObsQuery.Data.Observation]
+  def resetAcquisition(obsId: Observation.Id): F[Unit]
 }
 
 object OdbProxy {
@@ -102,15 +103,18 @@ object OdbProxy {
     evCmds: OdbEventCommands[F]
   )(using Sync[F], FetchClient[F, ObservationDB]): OdbProxy[F] =
     new OdbProxy[F] {
-      def read(oid: Observation.Id, reset: Boolean): F[ObsQuery.Data.Observation] =
+      def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
         ObsQuery[F]
-          .query(oid, reset)
+          .query(oid)
           .raiseGraphQLErrors
           .flatMap:
             _.observation.fold(
               Sync[F].raiseError[ObsQuery.Data.Observation]:
                 ObserveFailure.Unexpected(s"OdbProxy: Unable to read observation $oid")
             )(_.pure[F])
+
+      def resetAcquisition(obsId: Observation.Id): F[Unit] =
+        ResetAcquisitionMutation[F].execute(obsId = obsId).void
 
       export evCmds.*
     }
@@ -531,9 +535,13 @@ object OdbProxy {
   class DummyOdbProxy[F[_]: Sync] extends OdbProxy[F] {
     val evCmds = new DummyOdbCommands[F]
 
-    override def read(oid: Observation.Id, reset: Boolean): F[ObsQuery.Data.Observation] =
+    override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
       MonadThrow[F]
         .raiseError(ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented."))
+
+    override def resetAcquisition(obsId: Observation.Id): F[Unit] =
+      MonadThrow[F]
+        .raiseError(ObserveFailure.Unexpected("TestOdbProxy.resetAcquisition: Not implemented."))
 
     export evCmds.{
       datasetEndExposure,
