@@ -192,7 +192,7 @@ object TcsNorthControllerEpicsAo {
         adjustedDemand =
           tcs
             .focus(_.gds.aoguide)
-            .andThen(AoGuide.value)
+            .andThen(AoGuide.Value)
             .andThen(GuiderConfig.tracking)
             .modify(t => (pr.forceFreeze && t.isActive).fold(ProbeTrackingConfig.Off, t))
         _             <- pr.pause.getOrElse(Applicative[F].unit)
@@ -319,11 +319,11 @@ object TcsNorthControllerEpicsAo {
         .gds[Site.GN.type]
         .modify(
           AoGuidersConfig.pwfs1
-            .andThen(P1Config.value)
+            .andThen(P1Config.Value)
             .andThen(GuiderConfig.detector)
             .replace(calc(current.base.pwfs1.detector, demand.gds.pwfs1.value.detector)) >>>
             AoGuidersConfig.oiwfs
-              .andThen(OIConfig.value)
+              .andThen(OIConfig.Value)
               .andThen(GuiderConfig.detector)
               .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.value.detector))
         ) >>> m1Enabled.fold(

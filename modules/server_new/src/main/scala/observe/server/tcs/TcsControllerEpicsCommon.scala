@@ -237,15 +237,15 @@ object TcsControllerEpicsCommon {
 
     (BasicTcsConfig.gds.modify(
       BasicGuidersConfig.pwfs1
-        .andThen(TcsController.P1Config.value)
+        .andThen(TcsController.P1Config.Value)
         .andThen(GuiderConfig.detector)
         .replace(calc(current.pwfs1.detector, demand.gds.pwfs1.value.detector)) >>>
         BasicGuidersConfig.pwfs2
-          .andThen(TcsController.P2Config.value)
+          .andThen(TcsController.P2Config.Value)
           .andThen(GuiderConfig.detector)
           .replace(calc(current.pwfs2.detector, demand.gds.pwfs2.value.detector)) >>>
         BasicGuidersConfig.oiwfs
-          .andThen(TcsController.OIConfig.value)
+          .andThen(TcsController.OIConfig.Value)
           .andThen(GuiderConfig.detector)
           .replace(calc(current.oiwfs.detector, demand.gds.oiwfs.value.detector))
     ) >>> BasicTcsConfig.gc.modify(
@@ -818,7 +818,7 @@ object TcsControllerEpicsCommon {
             .focus(_.gds)
             .modify(
               BasicGuidersConfig.pwfs1
-                .andThen(TcsController.P1Config.value)
+                .andThen(TcsController.P1Config.Value)
                 .modify(
                   GuiderConfig.tracking.modify { tr =>
                     if (tr.isActive) ProbeTrackingConfig.Frozen else tr
@@ -826,7 +826,7 @@ object TcsControllerEpicsCommon {
                     GuiderConfig.detector.replace(GuiderSensorOff)
                 ) >>>
                 BasicGuidersConfig.pwfs2
-                  .andThen(TcsController.P2Config.value)
+                  .andThen(TcsController.P2Config.Value)
                   .modify(
                     GuiderConfig.tracking.modify { tr =>
                       if (tr.isActive) ProbeTrackingConfig.Frozen else tr
@@ -834,7 +834,7 @@ object TcsControllerEpicsCommon {
                       GuiderConfig.detector.replace(GuiderSensorOff)
                   ) >>>
                 BasicGuidersConfig.oiwfs
-                  .andThen(TcsController.OIConfig.value)
+                  .andThen(TcsController.OIConfig.Value)
                   .modify(
                     GuiderConfig.tracking.modify { tr =>
                       if (tr.isActive) ProbeTrackingConfig.Frozen else tr

@@ -39,7 +39,7 @@ object SubsystemOverrides
         ): VdomNode =
           CheckboxView(
             id = label,
-            value = enabled.as(SubsystemEnabled.value),
+            value = enabled.as(SubsystemEnabled.Value),
             label = label.value,
             disabled = configApi.isBlocked
           )

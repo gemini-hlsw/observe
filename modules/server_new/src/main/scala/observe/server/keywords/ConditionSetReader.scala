@@ -51,19 +51,20 @@ object ConditionSetReaderEpics {
     override def cloudExtinctionStr: F[String] =
       percentileStr(conditions.ce.map(_.toPercentile)).pure[F]
 
-    override def waterVaporStr: F[String] = percentileStr(conditions.wv.map(_.toPercentile)).pure[F]
+    override def waterVaporStr: F[String] =
+      percentileStr(conditions.wv.map(_.percentile.toPercent.toInt)).pure[F]
 
     override def backgroundLightStr: F[String] =
-      percentileStr(conditions.sb.map(_.toPercentile)).pure[F]
+      percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
     override def imageQualityDbl: F[Double] = conditions.iq
-      .map(_.toImageQuality.toArcSeconds.value.toDouble)
+      .map(_.toImageQuality.toArcSeconds.toDouble)
       .getOrElse(DefaultHeaderValue[Double].default)
       .pure[F]
 
     override def cloudExtinctionDbl: F[Double] =
       conditions.ce
-        .map(_.toCloudExtinction.toVegaMagnitude.value.toDouble)
+        .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
@@ -86,19 +87,19 @@ object DummyConditionSetReader {
         percentileStr(conditions.ce.map(_.toPercentile)).pure[F]
 
       override def waterVaporStr: F[String] =
-        percentileStr(conditions.wv.map(_.toPercentile)).pure[F]
+        percentileStr(conditions.wv.map(_.percentile.toPercent.toInt)).pure[F]
 
       override def backgroundLightStr: F[String] =
-        percentileStr(conditions.sb.map(_.toPercentile)).pure[F]
+        percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
       override def imageQualityDbl: F[Double] = conditions.iq
-        .map(_.toImageQuality.toArcSeconds.value.toDouble)
+        .map(_.toImageQuality.toArcSeconds.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
       override def cloudExtinctionDbl: F[Double] =
         conditions.ce
-          .map(_.toCloudExtinction.toVegaMagnitude.value.toDouble)
+          .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
           .getOrElse(DefaultHeaderValue[Double].default)
           .pure[F]
 
