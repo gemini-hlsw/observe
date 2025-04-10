@@ -24,9 +24,6 @@ import observe.model.enums.Resource
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen
-import lucuma.core.util.arb.ArbNewType.given
-import lucuma.core.math.arb.ArbRefined.given
-import eu.timepit.refined.scalacheck.string.given
 
 import ArbObserveStep.given
 

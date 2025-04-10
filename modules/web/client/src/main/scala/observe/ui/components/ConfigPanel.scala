@@ -41,12 +41,12 @@ object ConfigPanel
       yield
         import ctx.given
 
-        val iq: View[Option[ImageQuality.Preset]] =
+        val iq: View[Option[ImageQuality]] =
           props.conditions
             .zoom(Conditions.iq)
             .withOnMod(_.map(configApi.setImageQuality).orEmpty.runAsync)
 
-        val ce: View[Option[CloudExtinction.Preset]] =
+        val ce: View[Option[CloudExtinction]] =
           props.conditions
             .zoom(Conditions.ce)
             .withOnMod(_.map(configApi.setCloudExtinction).orEmpty.runAsync)
@@ -67,24 +67,24 @@ object ConfigPanel
         <.div(ObserveStyles.ConfigSection)(
           <.div(ObserveStyles.ConditionsSection)(
             <.span(ObserveStyles.ConditionsLabel)("Current Conditions"),
-            <.div(ObserveStyles.ImageQualityArea)(
-              FormEnumDropdownOptionalView(
-                id = "imageQuality".refined,
-                label = "IQ",
-                value = iq,
-                showClear = false,
-                disabled = configApi.isBlocked
-              )
-            ),
-            <.div(ObserveStyles.CloudExtinctionArea)(
-              FormEnumDropdownOptionalView(
-                id = "cloudExtinction".refined,
-                label = "CE",
-                value = ce,
-                showClear = false,
-                disabled = configApi.isBlocked
-              )
-            ),
+            // <.div(ObserveStyles.ImageQualityArea)(
+            //   FormEnumDropdownOptionalView(
+            //     id = "imageQuality".refined,
+            //     label = "IQ",
+            //     value = iq,
+            //     showClear = false,
+            //     disabled = configApi.isBlocked
+            //   )
+            // ),
+            // <.div(ObserveStyles.CloudExtinctionArea)(
+            //   FormEnumDropdownOptionalView(
+            //     id = "cloudExtinction".refined,
+            //     label = "CE",
+            //     value = ce,
+            //     showClear = false,
+            //     disabled = configApi.isBlocked
+            //   )
+            // ),
             <.div(ObserveStyles.WaterVaporArea)(
               FormEnumDropdownOptionalView(
                 id = "waterVapor".refined,

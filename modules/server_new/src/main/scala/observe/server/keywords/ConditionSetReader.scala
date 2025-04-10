@@ -11,7 +11,6 @@ import lucuma.core.math.Angle
 import lucuma.core.math.Wavelength
 import observe.model.Conditions
 import observe.server.tcs.TcsEpics
-import lucuma.core.conditions.*
 
 import ConditionOps.*
 
@@ -60,24 +59,21 @@ object ConditionSetReaderEpics {
       percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
     override def imageQualityDbl: F[Double] = conditions.iq
-      .map(_.toImageQuality.toArcSeconds.toDouble)
+      .map(_.toArcSeconds.toDouble)
       .getOrElse(DefaultHeaderValue[Double].default)
       .pure[F]
 
     override def cloudExtinctionDbl: F[Double] =
       conditions.ce
-    <<<<<<< HEAD
-      .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
-  =======.map(_.toVegaMagnitude.value.toDouble)
-    >>>>>>> e68de528b(checkpoint)
-      .getOrElse(DefaultHeaderValue[Double].default)
-      .pure[F]
+        .map(_.toVegaMagnitude.toDouble)
+        .getOrElse(DefaultHeaderValue[Double].default)
+        .pure[F]
 
-  override def waterVaporDbl: F[Double] =
-    conditions.wv.map(_.toMillimeters(site)).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+    override def waterVaporDbl: F[Double] =
+      conditions.wv.map(_.toMillimeters(site)).getOrElse(DefaultHeaderValue[Double].default).pure[F]
 
-  override def backgroundLightDbl: F[Double] =
-    conditions.sb.map(_.toMicroVolts).getOrElse(DefaultHeaderValue[Double].default).pure[F]
+    override def backgroundLightDbl: F[Double] =
+      conditions.sb.map(_.toMicroVolts).getOrElse(DefaultHeaderValue[Double].default).pure[F]
 }
 
 object DummyConditionSetReader {
@@ -98,13 +94,13 @@ object DummyConditionSetReader {
         percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
       override def imageQualityDbl: F[Double] = conditions.iq
-        .map(_.toImageQuality.toArcSeconds.toDouble)
+        .map(_.toArcSeconds.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
       override def cloudExtinctionDbl: F[Double] =
         conditions.ce
-          .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
+          .map(_.toVegaMagnitude.toDouble)
           .getOrElse(DefaultHeaderValue[Double].default)
           .pure[F]
 

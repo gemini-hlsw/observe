@@ -17,10 +17,10 @@ import observe.model.Operator
 import observe.model.SubsystemEnabled
 
 trait ConfigApi[F[_]: MonadThrow]:
-  def setImageQuality(iq:    ImageQuality.Preset): F[Unit]    = NotAuthorized
-  def setCloudExtinction(ce: CloudExtinction.Preset): F[Unit] = NotAuthorized
-  def setWaterVapor(wv:      WaterVapor): F[Unit]             = NotAuthorized
-  def setSkyBackground(sb:   SkyBackground): F[Unit]          = NotAuthorized
+  def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
+  def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
+  def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
+  def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
 
   def setOperator(operator: Option[Operator]): F[Unit] = NotAuthorized
   def setObserver(obsId:    Observation.Id, observer: Option[Observer]): F[Unit] = NotAuthorized

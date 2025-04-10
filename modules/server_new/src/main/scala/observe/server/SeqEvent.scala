@@ -50,10 +50,10 @@ object SeqEvent:
     clientId:   ClientId
   ) extends SeqEvent
   case class ClearLoadedSequences(user: Option[User])                            extends SeqEvent
-  case class SetImageQuality(iq: ImageQuality.Preset, user: Option[User])        extends SeqEvent
+  case class SetImageQuality(iq: ImageQuality, user: Option[User])               extends SeqEvent
   case class SetWaterVapor(wv: WaterVapor, user: Option[User])                   extends SeqEvent
   case class SetSkyBackground(wv: SkyBackground, user: Option[User])             extends SeqEvent
-  case class SetCloudCover(cc: CloudExtinction.Preset, user: Option[User])       extends SeqEvent
+  case class SetCloudExtinction(cc: CloudExtinction, user: Option[User])         extends SeqEvent
   case class NotifyUser(memo: Notification, clientID: ClientId)                  extends SeqEvent
   case class RequestConfirmation(prompt: UserPrompt, cid: ClientId)              extends SeqEvent
   case class StartQueue(

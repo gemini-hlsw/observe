@@ -9,6 +9,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Ref
 import cats.syntax.all.*
+import coulomb.policy.strict.given
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.NonNegShort
@@ -120,7 +121,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setImageQuality should set Image Quality condition") {
-    val iq = ImageQuality.Preset.PointEight
+    val iq = ImageQuality.Preset.PointEight.toImageQuality
     val s0 = EngineState.default[IO]
 
     (for {
@@ -144,7 +145,7 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   test("ObserveEngine setCloudExtinction should set Cloud Extinction condition") {
-    val ce = CloudExtinction.Preset.TwoPointZero
+    val ce = CloudExtinction.Preset.TwoPointZero.toCloudExtinction
     val s0 = EngineState.default[IO]
     (for {
       oe <- observeEngine
@@ -750,10 +751,14 @@ class ObserveEngineSuite extends TestCommon {
       seq,
       EngineState.instrumentLoaded(Instrument.GmosNorth)
     ) >>>
-      EngineState.conditions.andThen(Conditions.iq).replace(ImageQuality.Preset.PointTwo.some) >>>
+      EngineState.conditions
+        .andThen(Conditions.iq)
+        .replace(ImageQuality.Preset.PointTwo.toImageQuality.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Median.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Dark.some) >>>
-      EngineState.conditions.andThen(Conditions.ce).replace(CloudExtinction.Preset.PointFive.some))
+      EngineState.conditions
+        .andThen(Conditions.ce)
+        .replace(CloudExtinction.Preset.PointFive.toCloudExtinction.some))
       .apply(EngineState.default[IO])
 
     (for {
@@ -786,12 +791,12 @@ class ObserveEngineSuite extends TestCommon {
     ) >>>
       EngineState.conditions
         .andThen(Conditions.iq)
-        .replace(ImageQuality.Preset.OnePointZero.some) >>>
+        .replace(ImageQuality.Preset.OnePointZero.toImageQuality.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
       EngineState.conditions
         .andThen(Conditions.ce)
-        .replace(CloudExtinction.Preset.OnePointZero.some))
+        .replace(CloudExtinction.Preset.OnePointZero.toCloudExtinction.some))
       .apply(EngineState.default[IO])
 
     for {
@@ -837,12 +842,12 @@ class ObserveEngineSuite extends TestCommon {
     ) >>>
       EngineState.conditions
         .andThen(Conditions.iq)
-        .replace(ImageQuality.Preset.OnePointZero.some) >>>
+        .replace(ImageQuality.Preset.OnePointZero.toImageQuality.some) >>>
       EngineState.conditions.andThen(Conditions.wv).replace(WaterVapor.Dry.some) >>>
       EngineState.conditions.andThen(Conditions.sb).replace(SkyBackground.Darkest.some) >>>
       EngineState.conditions
         .andThen(Conditions.ce)
-        .replace(CloudExtinction.Preset.OnePointZero.some))
+        .replace(CloudExtinction.Preset.OnePointZero.toCloudExtinction.some))
       .apply(EngineState.default[IO])
 
     for {
