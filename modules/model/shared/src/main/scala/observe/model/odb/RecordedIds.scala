@@ -34,7 +34,7 @@ object DatasetIdMap extends NewType[Map[ImageFileId, Dataset.Id]]:
   val Empty: DatasetIdMap                                             =
     DatasetIdMap(Map.empty)
   def at(fileId: ImageFileId): Lens[DatasetIdMap, Option[Dataset.Id]] =
-    value.at(fileId)
+    Value.at(fileId)
 type DatasetIdMap = DatasetIdMap.Type
 
 given KeyEncoder[ImageFileId] = KeyEncoder.instance(_.value)
@@ -80,5 +80,5 @@ object ObsRecordedIds extends NewType[Map[Observation.Id, RecordedVisit]]:
   val Empty: ObsRecordedIds                                                  =
     ObsRecordedIds(Map.empty)
   def at(obsId: Observation.Id): Lens[ObsRecordedIds, Option[RecordedVisit]] =
-    value.at(obsId)
+    Value.at(obsId)
 type ObsRecordedIds = ObsRecordedIds.Type

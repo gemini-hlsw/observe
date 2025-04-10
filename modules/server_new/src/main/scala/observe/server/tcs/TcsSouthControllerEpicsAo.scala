@@ -387,12 +387,12 @@ object TcsSouthControllerEpicsAo {
         .modify(
           AoGuidersConfig
             .pwfs1[GemsGuiders]
-            .andThen(TcsController.P1Config.value)
+            .andThen(TcsController.P1Config.Value)
             .andThen(GuiderConfig.detector)
             .replace(calc(current.base.pwfs1.detector, demand.gds.pwfs1.value.detector)) >>>
             AoGuidersConfig
               .oiwfs[GemsGuiders]
-              .andThen(TcsController.OIConfig.value)
+              .andThen(TcsController.OIConfig.Value)
               .andThen(GuiderConfig.detector)
               .replace(calc(current.base.oiwfs.detector, demand.gds.oiwfs.value.detector))
         ) >>>

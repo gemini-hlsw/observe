@@ -40,10 +40,6 @@ object TopBar
     extends ReactFnComponent[TopBar](props =>
       object IsAboutOpen extends NewBoolean
 
-      type ForceRerender = ForceRerender.Type
-      object ForceRerender extends NewBoolean:
-        extension (s: ForceRerender) def flip: ForceRerender = if s then False else True
-
       for
         ctx         <- useContext(AppContext.ctx)
         isAboutOpen <- useStateView(IsAboutOpen(false))
@@ -96,7 +92,7 @@ object TopBar
                 .unsafeFrom(
                   s"${ctx.version.value} / Server: ${props.clientConfig.version.value.value}"
                 ),
-              isAboutOpen.as(IsAboutOpen.value)
+              isAboutOpen.as(IsAboutOpen.Value)
             )
           else
             EmptyVdom,

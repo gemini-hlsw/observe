@@ -327,7 +327,7 @@ object TestCommon {
         CloudExtinction.Preset.PointOne,
         SkyBackground.Dark,
         WaterVapor.Median,
-        ElevationRange.AirMass.Default
+        ElevationRange.ByAirMass.Default
       ),
       List.empty,
       Execution(
@@ -469,7 +469,7 @@ object TestCommon {
         CloudExtinction.Preset.PointOne,
         SkyBackground.Dark,
         WaterVapor.Median,
-        ElevationRange.AirMass.Default
+        ElevationRange.ByAirMass.Default
       ),
       List.empty,
       Execution(

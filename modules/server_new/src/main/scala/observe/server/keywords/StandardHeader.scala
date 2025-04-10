@@ -190,15 +190,15 @@ class StandardHeader[F[_]: Sync: Logger](
   def requestedAirMassAngle(id: ImageFileId): F[Unit] =
     obsReader.requestedConditions.elevationRange
       .map {
-        case ElevationRange.AirMass(min, max)             =>
+        case ElevationRange.ByAirMass(min, max)             =>
           List(
-            buildDouble(max.value.toDouble.pure[F], KeywordName.REQMAXAM),
-            buildDouble(min.value.toDouble.pure[F], KeywordName.REQMINAM)
+            buildDouble(max.toBigDecimal.toDouble.pure[F], KeywordName.REQMAXAM),
+            buildDouble(min.toBigDecimal.toDouble.pure[F], KeywordName.REQMINAM)
           )
-        case ElevationRange.HourAngle(minHours, maxHours) =>
+        case ElevationRange.ByHourAngle(minHours, maxHours) =>
           List(
-            buildDouble(maxHours.value.toDouble.pure[F], KeywordName.REQMAXHA),
-            buildDouble(minHours.value.toDouble.pure[F], KeywordName.REQMINHA)
+            buildDouble(maxHours.toBigDecimal.toDouble.pure[F], KeywordName.REQMAXHA),
+            buildDouble(minHours.toBigDecimal.toDouble.pure[F], KeywordName.REQMINHA)
           )
       }
       .flatMap(sendKeywords[F](id, kwClient, _))

@@ -114,6 +114,7 @@ object ConditionOps {
   }
 
   extension (ce: CloudExtinction.Preset) {
+    // We need to use a smaller set of values than we have in core, so we have to keep this.
     def toPercentile: Int = ce match {
       case CloudExtinction.Preset.PointOne       => 50
       case CloudExtinction.Preset.PointThree     => 70
@@ -122,24 +123,6 @@ object ConditionOps {
       case CloudExtinction.Preset.OnePointFive   => 100
       case CloudExtinction.Preset.TwoPointZero   => 100
       case CloudExtinction.Preset.ThreePointZero => 100
-    }
-  }
-
-  extension (wv: WaterVapor) {
-    def toPercentile: Int = wv match {
-      case WaterVapor.VeryDry => 20
-      case WaterVapor.Dry     => 50
-      case WaterVapor.Median  => 80
-      case WaterVapor.Wet     => 100
-    }
-  }
-
-  extension (bg: SkyBackground) {
-    def toPercentile: Int = bg match {
-      case SkyBackground.Darkest => 20
-      case SkyBackground.Dark    => 50
-      case SkyBackground.Gray    => 80
-      case SkyBackground.Bright  => 100
     }
   }
 

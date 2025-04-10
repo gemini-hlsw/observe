@@ -115,7 +115,7 @@ object ConfigPanel
                 value = op,
                 validFormat = InputValidSplitEpi
                   .fromIso(OptionNonEmptyStringIso.reverse)
-                  .andThen(Operator.value.reverse.option),
+                  .andThen(Operator.Value.reverse.option),
                 disabled = configApi.isBlocked
               )
             ),
@@ -133,7 +133,7 @@ object ConfigPanel
                   value = obs,
                   validFormat = InputValidSplitEpi
                     .fromIso(OptionNonEmptyStringIso.reverse)
-                    .andThen(Observer.value.reverse.option),
+                    .andThen(Observer.Value.reverse.option),
                   disabled = configApi.isBlocked
                 )
             )

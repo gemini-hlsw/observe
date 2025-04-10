@@ -137,7 +137,7 @@ object TestOdbProxy {
                     CloudExtinction.Preset.TwoPointZero,
                     SkyBackground.Bright,
                     WaterVapor.Wet,
-                    ElevationRange.AirMass.Default
+                    ElevationRange.ByAirMass.Default
                   ),
                   List.empty,
                   Data.Observation.Execution(

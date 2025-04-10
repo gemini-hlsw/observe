@@ -398,7 +398,7 @@ class ObserveEngineSuite extends TestCommon {
       CloudExtinction.Preset.PointFive,
       SkyBackground.Dark,
       WaterVapor.Median,
-      ElevationRange.HourAngle.Default
+      ElevationRange.ByHourAngle.Default
     )
 
     val stepList: NonEmptyList[Step[DynamicConfig.GmosNorth]] = obsTypes.zipWithIndex.map {
@@ -662,7 +662,7 @@ class ObserveEngineSuite extends TestCommon {
       CloudExtinction.Preset.PointFive,
       SkyBackground.Dark,
       WaterVapor.Median,
-      ElevationRange.HourAngle.Default
+      ElevationRange.ByHourAngle.Default
     )
 
     val stepList: NonEmptyList[Step[DynamicConfig.GmosNorth]] = obsTypes.zipWithIndex.map {
