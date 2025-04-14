@@ -18,7 +18,6 @@ import lucuma.core.model.validation.ModelValidators
 import lucuma.core.optics.*
 import lucuma.core.syntax.validation.*
 import lucuma.core.validation.*
-import lucuma.core.validation.InputValidSplitEpi
 import lucuma.react.common.*
 import lucuma.react.primereact.TooltipOptions
 import lucuma.refined.*
