@@ -48,9 +48,8 @@ object ConditionSetReaderEpics {
         .flatMap(w => conditions.iq.map(_.toPercentile(w, Angle.fromDoubleDegrees(el))))
     )
 
-    override def cloudExtinctionStr: F[String] = // TODOOOOOOO
-      "".pure[F]
-      // percentileStr(conditions.ce.map(percentileCloudExtinction(_).value.value)).pure[F]
+    override def cloudExtinctionStr: F[String] =
+      percentileStr(conditions.ce.map(_.toPercentile)).pure[F]
 
     override def waterVaporStr: F[String] =
       percentileStr(conditions.wv.map(_.percentile.toPercent.toInt)).pure[F]

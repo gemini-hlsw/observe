@@ -20,8 +20,6 @@ import lucuma.core.refined.given
 import monocle.Focus
 import monocle.Lens
 
-val x = summon[Decoder[CloudExtinction]]
-
 case class Conditions(
   ce: Option[CloudExtinction],
   iq: Option[ImageQuality],
