@@ -4,6 +4,7 @@
 package observe.ui.components
 
 import cats.syntax.all.*
+import coulomb.policy.strict.given
 import crystal.react.*
 import eu.timepit.refined.cats.*
 import eu.timepit.refined.types.string.NonEmptyString
@@ -13,10 +14,15 @@ import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
+import lucuma.core.model.validation.ModelValidators
 import lucuma.core.optics.*
+import lucuma.core.syntax.validation.*
+import lucuma.core.validation.*
 import lucuma.core.validation.InputValidSplitEpi
 import lucuma.react.common.*
+import lucuma.react.primereact.TooltipOptions
 import lucuma.refined.*
+import lucuma.ui.input.ChangeAuditor
 import lucuma.ui.optics.*
 import lucuma.ui.primereact.FormEnumDropdownOptionalView
 import lucuma.ui.primereact.FormInputTextView
@@ -67,24 +73,30 @@ object ConfigPanel
         <.div(ObserveStyles.ConfigSection)(
           <.div(ObserveStyles.ConditionsSection)(
             <.span(ObserveStyles.ConditionsLabel)("Current Conditions"),
-            // <.div(ObserveStyles.ImageQualityArea)(
-            //   FormEnumDropdownOptionalView(
-            //     id = "imageQuality".refined,
-            //     label = "IQ",
-            //     value = iq,
-            //     showClear = false,
-            //     disabled = configApi.isBlocked
-            //   )
-            // ),
-            // <.div(ObserveStyles.CloudExtinctionArea)(
-            //   FormEnumDropdownOptionalView(
-            //     id = "cloudExtinction".refined,
-            //     label = "CE",
-            //     value = ce,
-            //     showClear = false,
-            //     disabled = configApi.isBlocked
-            //   )
-            // ),
+            <.div(ObserveStyles.ImageQualityArea)(
+              FormInputTextView(
+                id = "imageQuality".refined,
+                label = "IQ",
+                value = iq,
+                validFormat = ModelValidators.ImageQualityValidWedge.optional
+                  .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
+                changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
+                disabled = configApi.isBlocked,
+                tooltipOptions = TooltipOptions.Top
+              )
+            ),
+            <.div(ObserveStyles.CloudExtinctionArea)(
+              FormInputTextView(
+                id = "cloudExtinction".refined,
+                label = "CE",
+                value = ce,
+                validFormat = ModelValidators.CloudExtinctionValidWedge.optional
+                  .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
+                changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
+                disabled = configApi.isBlocked,
+                tooltipOptions = TooltipOptions.Top
+              )
+            ),
             <.div(ObserveStyles.WaterVaporArea)(
               FormEnumDropdownOptionalView(
                 id = "waterVapor".refined,
