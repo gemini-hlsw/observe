@@ -58,13 +58,13 @@ object ConditionSetReaderEpics {
       percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
     override def imageQualityDbl: F[Double] = conditions.iq
-      .map(_.toImageQuality.toArcSeconds.toDouble)
+      .map(_.toArcSeconds.toDouble)
       .getOrElse(DefaultHeaderValue[Double].default)
       .pure[F]
 
     override def cloudExtinctionDbl: F[Double] =
       conditions.ce
-        .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
+        .map(_.toVegaMagnitude.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
@@ -93,13 +93,13 @@ object DummyConditionSetReader {
         percentileStr(conditions.sb.map(_.percentile.toPercent.toInt)).pure[F]
 
       override def imageQualityDbl: F[Double] = conditions.iq
-        .map(_.toImageQuality.toArcSeconds.toDouble)
+        .map(_.toArcSeconds.toDouble)
         .getOrElse(DefaultHeaderValue[Double].default)
         .pure[F]
 
       override def cloudExtinctionDbl: F[Double] =
         conditions.ce
-          .map(_.toCloudExtinction.toVegaMagnitude.toDouble)
+          .map(_.toVegaMagnitude.toDouble)
           .getOrElse(DefaultHeaderValue[Double].default)
           .pure[F]
 

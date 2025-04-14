@@ -14,42 +14,46 @@ class ConditionOpsSuite extends FunSuite {
 
   test("ConditionOps calculate image quality percentile from double value") {
     assertEquals(
-      ImageQuality.Preset.PointSix.toPercentile(
+      ImageQuality.Preset.PointSix.toImageQuality.toPercentile(
         Wavelength.unsafeFromIntPicometers(475000),
         Angle.Angle90
       ),
       20
     )
     assertEquals(
-      ImageQuality.Preset.PointSix.toPercentile(
+      ImageQuality.Preset.PointSix.toImageQuality.toPercentile(
         Wavelength.unsafeFromIntPicometers(630000),
         Angle.Angle90
       ),
       70
     )
-    assertEquals(ImageQuality.Preset.PointEight.toPercentile(
-                   Wavelength.unsafeFromIntPicometers(1200000),
-                   Angle.Angle90
-                 ),
-                 85
+    assertEquals(
+      ImageQuality.Preset.PointEight.toImageQuality.toPercentile(
+        Wavelength.unsafeFromIntPicometers(1200000),
+        Angle.Angle90
+      ),
+      85
     )
-    assertEquals(ImageQuality.Preset.OnePointZero.toPercentile(
-                   Wavelength.unsafeFromIntPicometers(1200000),
-                   Angle.Angle90
-                 ),
-                 100
+    assertEquals(
+      ImageQuality.Preset.OnePointZero.toImageQuality.toPercentile(
+        Wavelength.unsafeFromIntPicometers(1200000),
+        Angle.Angle90
+      ),
+      100
     )
-    assertEquals(ImageQuality.Preset.OnePointZero.toPercentile(
-                   Wavelength.unsafeFromIntPicometers(1650000),
-                   Angle.Angle90
-                 ),
-                 100
+    assertEquals(
+      ImageQuality.Preset.OnePointZero.toImageQuality.toPercentile(
+        Wavelength.unsafeFromIntPicometers(1650000),
+        Angle.Angle90
+      ),
+      100
     )
-    assertEquals(ImageQuality.Preset.PointSix.toPercentile(
-                   Wavelength.unsafeFromIntPicometers(11700000),
-                   Angle.Angle90
-                 ),
-                 100
+    assertEquals(
+      ImageQuality.Preset.PointSix.toImageQuality.toPercentile(
+        Wavelength.unsafeFromIntPicometers(11700000),
+        Angle.Angle90
+      ),
+      100
     )
   }
 

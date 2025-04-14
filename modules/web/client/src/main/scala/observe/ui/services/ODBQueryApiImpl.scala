@@ -67,5 +67,5 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
       .UpdateDatasetQa[IO]
       .execute(datasetId, qaFields.qaState.orUnassign, qaFields.comment.orUnassign)
       .void
-      .onError: e =>
-        Logger[IO].error(e)(s"Error updating dataset QA state for $datasetId")
+      .onError:
+        case e => Logger[IO].error(e)(s"Error updating dataset QA state for $datasetId")

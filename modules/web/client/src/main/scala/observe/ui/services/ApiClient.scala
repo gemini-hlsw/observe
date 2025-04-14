@@ -18,7 +18,7 @@ case class ApiClient(
   basePath:      Uri.Path,
   clientId:      ClientId,
   getAuthHeader: IO[Option[Authorization]],
-  onError:       Throwable => IO[Unit]
+  onError:       PartialFunction[Throwable, IO[Unit]]
 ) extends BaseApi[IO]:
   def get(path: Uri.Path): IO[Unit] =
     getAuthHeader.flatMap:

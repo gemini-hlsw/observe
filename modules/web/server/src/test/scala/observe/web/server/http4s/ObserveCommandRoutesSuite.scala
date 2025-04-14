@@ -5,7 +5,9 @@ package observe.web.server.http4s
 
 import cats.effect.IO
 import cats.syntax.all.*
+import io.circe.refined.given
 import io.circe.syntax.*
+import lucuma.core.circe.coulomb.given
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.CloudExtinction
@@ -55,7 +57,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
                   Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/iq"))
-                    .withEntity((ImageQuality.Preset.PointTwo: ImageQuality.Preset).asJson)
+                    .withEntity(ImageQuality.Preset.PointTwo.toImageQuality.asJson)
                 ).value
       b      <- l.traverse(_.as[String])
     yield (l.map(_.status), b)
@@ -83,7 +85,7 @@ class ObserveCommandRoutesSuite extends munit.CatsEffectSuite with TestRoutes:
       wsb    <- WebSocketBuilder2[IO]
       l      <- s(
                   Request[IO](method = Method.POST, uri = Uri.unsafeFromString(s"/${clientId.value}/ce"))
-                    .withEntity((CloudExtinction.Preset.PointFive: CloudExtinction.Preset).asJson)
+                    .withEntity(CloudExtinction.Preset.PointFive.toCloudExtinction.asJson)
                 ).value
       b      <- l.traverse(_.as[String])
     yield (l.map(_.status), b)
