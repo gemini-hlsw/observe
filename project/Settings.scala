@@ -21,7 +21,7 @@ object Settings {
 
     val http4sVersion              = "0.23.30"
     val http4sDomVersion           = "0.2.11"
-    val http4sJdkHttpClientVersion = "0.9.2"
+    val http4sJdkHttpClientVersion = "0.10.0"
     val http4sScalaXmlVersion      = "0.23.14"
     val natchezVersion             = "0.3.7"
 
@@ -150,8 +150,9 @@ object Settings {
     val Http4sJDKClient  =
       Def.setting(
         Seq(
-          "org.http4s" %% "http4s-dsl"          % LibraryVersions.http4sVersion,
-          "org.http4s" %% "http4s-ember-client" % LibraryVersions.http4sVersion
+          "org.http4s" %% "http4s-dsl"             % LibraryVersions.http4sVersion,
+          "org.http4s" %% "http4s-ember-client"    % LibraryVersions.http4sVersion,
+          "org.http4s" %% "http4s-jdk-http-client" % LibraryVersions.http4sJdkHttpClientVersion
         )
       )
     val Http4sServer     = "org.http4s" %% "http4s-server"    % LibraryVersions.http4sVersion
