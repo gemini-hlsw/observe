@@ -68,6 +68,12 @@ extension [F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
     StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandleT[EventType[F]]
 }
 
+extension [F[_]: Applicative, A](f: EngineState[F] => F[(EngineState[F], A)]) {
+  def toHandleF[B >: A]: HandlerType[F, B] = // Type trick to allow unions of a supertype
+    StateT[F, EngineState[F], B](st => f(st).map(x => x: (EngineState[F], B)))
+      .toHandleT[EventType[F]]
+}
+
 extension (r: Either[Throwable, Response])
   def toResult[F[_]]: Result = r.fold(
     e =>

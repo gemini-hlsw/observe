@@ -5,6 +5,7 @@ package observe.server
 
 import cats.Endo
 import cats.Monad
+import cats.Monoid
 import cats.effect.Async
 import cats.effect.Ref
 import cats.effect.Temporal
@@ -218,11 +219,13 @@ trait ObserveEngine[F[_]] {
   private[server] def loadSequenceEndo(
     observer: Option[Observer],
     seqg:     SequenceGen[F],
-    l:        Lens[EngineState[F], Option[SequenceData[F]]]
-  ): Endo[EngineState[F]] = ODBSequencesLoader.loadSequenceEndo(observer, seqg, l)
+    l:        Lens[EngineState[F], Option[SequenceData[F]]],
+    cleanup:  F[Unit]
+  ): Endo[EngineState[F]] = ODBSequencesLoader.loadSequenceEndo(observer, seqg, l, cleanup)
 }
 
 object ObserveEngine {
+
   def createTranslator[F[_]: Async: Logger](
     site:          Site,
     systems:       Systems[F],
@@ -397,12 +400,13 @@ object ObserveEngine {
     site:    Site,
     systems: Systems[F],
     conf:    ObserveEngineConfiguration
-  ): F[ObserveEngine[F]] = for {
+  )(using Monoid[F[Unit]]): F[ObserveEngine[F]] = for {
     rc  <- Ref.of[F, Conditions](Conditions.Default)
     tr  <- createTranslator(site, systems, rc)
-    eng <- Engine.build[F, EngineState[F], SeqEvent](EngineState.engineState[F],
-                                                     onAtomComplete[F](systems.odb, tr),
-                                                     onAtomReload[F](systems.odb, tr)
+    eng <- Engine.build[F, EngineState[F], SeqEvent](
+             EngineState.engineState[F],
+             onAtomComplete[F](systems.odb, tr),
+             onAtomReload[F](systems.odb, tr)
            )
   } yield new ObserveEngineImpl[F](eng, systems, conf, tr, rc)
 
@@ -514,19 +518,27 @@ object ObserveEngine {
         }
       )
 
-  private def onAtomReload[F[_]: Monad](
+  def onAtomReload[F[_]: Monad](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
     executeEngine: Engine[F, EngineState[F], SeqEvent],
-    obsId:         Observation.Id
+    obsId:         Observation.Id,
+    onAtomReload:  OnAtomReloadAction
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
     Handle
       .get[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
       .map(EngineState.atSequence[F](obsId).getOption)
       .flatMap {
         _.map { seq =>
-          tryAtomReload[F](odb, translator, executeEngine, obsId, seq.seqGen.nextAtom.sequenceType)
+          tryAtomReload[F](
+            odb,
+            translator,
+            executeEngine,
+            obsId,
+            seq.seqGen.nextAtom.sequenceType,
+            onAtomReload
+          )
             .as(SeqEvent.NullSeqEvent)
         }.getOrElse(
           Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](NullSeqEvent)
@@ -538,7 +550,8 @@ object ObserveEngine {
     translator:    SeqTranslate[F],
     executeEngine: Engine[F, EngineState[F], SeqEvent],
     obsId:         Observation.Id,
-    atomType:      SequenceType
+    atomType:      SequenceType,
+    onAtomReload:  OnAtomReloadAction
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit] =
     Handle
       .fromStream[F, EngineState[F], Event[F, EngineState[F], SeqEvent]](Stream.eval {
@@ -552,7 +565,16 @@ object ObserveEngine {
                   val state = updateAtom(obsId, atm)(st)
                   (state, ())
                 }.toHandle
-                  .flatMap(_ => executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent))
+                  .flatMap(_ =>
+                    if onAtomReload == OnAtomReloadAction.StartNewAtom then
+                      executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
+                    else // if !sequenceState.isRunning then // If seq is running we can't update
+                      Handle.pure:
+                        SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+                    // else
+                    //   Handle.pure:
+                    //     SeqEvent.NullSeqEvent
+                  )
               )
             }
             .getOrElse(Event.nullEvent)
