@@ -43,6 +43,7 @@ import org.http4s.client.websocket.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Authorization
 import org.typelevel.log4cats.Logger
+import io.circe.syntax.*
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -108,23 +109,27 @@ object Systems {
 
     def odbProxy[F[_]: Async: Logger: Http4sHttpBackend]: F[OdbProxy[F]] =
       for
-        given FetchClient[F, ObservationDB]     <-
+        given FetchClient[F, ObservationDB] <-
           Http4sHttpClient.of[F, ObservationDB](
             settings.odbHttp,
             "ODB",
             Headers(Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken)))
           )
-        odbCommands                             <-
+        odbCommands                         <-
           if (settings.odbNotifications)
             Ref
               .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
               .map(OdbProxy.OdbCommandsImpl[F](_))
           else new OdbProxy.DummyOdbCommands[F].pure[F]
-        wsClient                                 = WSClient[F](respondToPings = true)(_ => ???) // Low-level connect not implemented
-        given Http4sWebSocketBackend[F]          = Http4sWebSocketBackend[F](wsClient)
-        given StreamingClient[F, ObservationDB] <-
+        wsClient                             = WSClient[F](respondToPings = true)(_ => ???) // Low-level connect not implemented
+        given Http4sWebSocketBackend[F]      = Http4sWebSocketBackend[F](wsClient)
+        streamingClient                     <-
           Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB", WsReconnectionStrategy)
-        odbSubscriber                            = OdbSubscriber[F]()
+        _                                   <-
+          streamingClient.connect(
+            Map(Authorization.name.toString -> sso.serviceToken.asJson).pure[F]
+          )
+        odbSubscriber                        = OdbSubscriber[F]()(using streamingClient)
       yield OdbProxy[F](odbCommands, odbSubscriber)
 
     def dhs[F[_]: Async: Logger](site: Site, httpClient: Client[F]): F[DhsClientProvider[F]] =
