@@ -9,7 +9,10 @@ import clue.StreamingClient
 import lucuma.core.model.Observation
 import lucuma.schemas.ObservationDB
 import observe.common.ObsQueriesGQL
+import lucuma.schemas.odb.input.*
 
 case class OdbSubscriber[F[_]]()(using client: StreamingClient[F, ObservationDB]):
   def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]] =
-    ObsQueriesGQL.ObservationEditSubscription.subscribe(obsId).map(_.void)
+    ObsQueriesGQL.ObsEditSubscription
+      .subscribe(obsId.toObservationEditInput)
+      .map(_.filter(_.data.exists(_.observationEdit.observationId == obsId)).void)
