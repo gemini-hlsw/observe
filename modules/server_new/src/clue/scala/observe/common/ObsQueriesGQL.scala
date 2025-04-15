@@ -296,18 +296,6 @@ object ObsQueriesGQL:
     """
 
   @GraphQL
-  trait ObservationEditSubscription extends GraphQLOperation[ObservationDB]:
-    val document = """
-      subscription($obsId: ObservationId!) {
-        observationEdit(observationId: $obsId) {
-          value {
-            id
-          }
-        }
-      }
-    """
-
-  @GraphQL
   trait AddSequenceEventMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($vId: VisitId!, $cmd: SequenceCommand!) {
@@ -447,8 +435,8 @@ object ObsQueriesGQL:
   @GraphQL
   trait ObsEditSubscription extends GraphQLOperation[ObservationDB]:
     val document = """
-      subscription($obsId: ObservationId!) {
-        observationEdit(input: { observationId: $obsId }) {
+      subscription($input: ObservationEditInput!) {
+        observationEdit(input: $input) {
           observationId
         }
       }
