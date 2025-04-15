@@ -17,6 +17,7 @@ import clue.http4s.Http4sWebSocketBackend
 import clue.http4s.Http4sWebSocketClient
 import clue.websocket.ReconnectionStrategy
 import edu.gemini.epics.acm.CaService
+import io.circe.syntax.*
 import lucuma.core.enums.Site
 import lucuma.schemas.ObservationDB
 import mouse.boolean.*
@@ -41,9 +42,8 @@ import org.http4s.client.Client
 import org.http4s.client.middleware.Logger as Http4sLogger
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Authorization
-import org.typelevel.log4cats.Logger
-import io.circe.syntax.*
 import org.http4s.jdkhttpclient.JdkWSClient
+import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -98,7 +98,7 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
-    val WsReconnectionStrategy: ReconnectionStrategy =
+    private val WsReconnectStrategy: ReconnectionStrategy =
       (attempt, reason) =>
         // Increase the delay to get exponential backoff with a minimum of 1s and a max of 30s
         // TODO If it's a Not authorized, do not backoff, retry on constant period.
@@ -107,26 +107,24 @@ object Systems {
           TimeUnit.SECONDS
         ).some
 
+    private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken))
+
     def odbProxy[F[_]: Async: Logger: Http4sHttpBackend]: F[OdbProxy[F]] =
       for
         given FetchClient[F, ObservationDB] <-
-          Http4sHttpClient.of[F, ObservationDB](
-            settings.odbHttp,
-            "ODB",
-            Headers(Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken)))
-          )
+          Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
         odbCommands                         <-
           if (settings.odbNotifications)
             Ref.of[F, ObsRecordedIds](ObsRecordedIds.Empty).map(OdbProxy.OdbCommandsImpl[F](_))
           else
             OdbProxy.DummyOdbCommands[F].pure[F]
-        wsClient                            <- JdkWSClient.simple[F].useForever
+        wsClient                            <- JdkWSClient.simple[F].allocated.map(_._1)
         given Http4sWebSocketBackend[F]      = Http4sWebSocketBackend[F](wsClient)
         streamingClient                     <-
-          Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB", WsReconnectionStrategy)
+          Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB-WS", WsReconnectStrategy)
         _                                   <-
           streamingClient.connect:
-            Map(Authorization.name.toString -> sso.serviceToken.asJson).pure[F]
+            Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson).pure[F]
         odbSubscriber                        = OdbSubscriber[F]()(using streamingClient)
       yield OdbProxy[F](odbCommands, odbSubscriber)
 

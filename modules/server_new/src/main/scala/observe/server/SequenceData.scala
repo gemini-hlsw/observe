@@ -17,7 +17,8 @@ case class SequenceData[F[_]](
   seq:            Sequence.State[F],
   pendingObsCmd:  Option[PendingObserveCmd],
   visitStartDone: Boolean,
-  atomStartDone:  Boolean
+  atomStartDone:  Boolean,
+  cleanup:        F[Unit]
 ) {
   def withCompleteVisitStart: SequenceData[F] = this.copy(visitStartDone = true)
   def withCompleteAtomStart: SequenceData[F]  = this.copy(atomStartDone = true)
@@ -30,7 +31,8 @@ object SequenceData {
     overrides:     SystemOverrides,
     seqGen:        SequenceGen[F],
     seq:           Sequence.State[F],
-    pendingObsCmd: Option[PendingObserveCmd]
+    pendingObsCmd: Option[PendingObserveCmd],
+    cleanup:       F[Unit]
   ): SequenceData[F[_]] = SequenceData(
     observer,
     overrides,
@@ -38,7 +40,8 @@ object SequenceData {
     seq,
     pendingObsCmd,
     false,
-    false
+    false,
+    cleanup
   )
 
   def pendingObsCmd[F[_]]: Lens[SequenceData[F], Option[PendingObserveCmd]] =
