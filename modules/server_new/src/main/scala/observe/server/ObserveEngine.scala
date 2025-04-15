@@ -686,106 +686,114 @@ object ObserveEngine {
         // We want the acquisition sequence to reset whenever we load the observation.
         // TODO The next 2 could be done in parallel.
         systems.odb.resetAcquisition(obsId) >>
+
           systems.odb
-            .obsEditSubscription(obsId)
-            .flatMap: obsEditSignal =>
-              obsEditSignal // TODO Invoke something that refreshes the sequence
-                .evalMap(_ => println("******** Update RECEIVED").pure[F])
-                .compile
-                .drain
-                .background
-                .void
-            .allocated
-            .flatMap { (_, cleanup) =>
-              systems.odb
-                .read(obsId)
-                .flatMap(translator.sequence)
-                .attempt
-                .flatMap(
-                  _.fold(
-                    e =>
-                      Logger[F]
-                        .warn(e)(s"Error loading observation $obsId$author")
-                        .as(
-                          Event.pure(
-                            SeqEvent.NotifyUser(
-                              Notification.LoadingFailed(
-                                obsId,
-                                List(s"Error loading observation $obsId", e.getMessage)
-                              ),
-                              clientId
-                            )
+            .read(obsId)
+            .flatMap(translator.sequence)
+            .attempt
+            .flatMap(
+              _.fold(
+                e =>
+                  Logger[F]
+                    .warn(e)(s"Error loading observation $obsId$author")
+                    .as(
+                      Event.pure(
+                        SeqEvent.NotifyUser(
+                          Notification.LoadingFailed(
+                            obsId,
+                            List(s"Error loading observation $obsId", e.getMessage)
+                          ),
+                          clientId
+                        )
+                      )
+                    ),
+                {
+                  case (err, None)       =>
+                    Logger[F]
+                      .warn(
+                        err.headOption
+                          .map(e => s"Error loading observation $obsId: ${e.getMessage}$author")
+                          .getOrElse(s"Error loading observation $obsId")
+                      )
+                      .as(
+                        Event.pure(
+                          SeqEvent.NotifyUser(
+                            Notification.LoadingFailed(
+                              obsId,
+                              List(
+                                s"Error loading observation $obsId"
+                              ) ++ err.headOption.toList.map(e => e.getMessage)
+                            ),
+                            clientId
                           )
-                        ),
-                    {
-                      case (err, None)       =>
+                        )
+                      )
+                  case (errs, Some(seq)) =>
+                    errs.isEmpty
+                      .fold(
+                        Logger[F].warn(s"Loaded observation $obsId$author"),
                         Logger[F]
                           .warn(
-                            err.headOption
-                              .map(e => s"Error loading observation $obsId: ${e.getMessage}$author")
-                              .getOrElse(s"Error loading observation $obsId")
+                            s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
                           )
-                          .as(
-                            Event.pure(
-                              SeqEvent.NotifyUser(
-                                Notification.LoadingFailed(
-                                  obsId,
-                                  List(
-                                    s"Error loading observation $obsId"
-                                  ) ++ err.headOption.toList.map(e => e.getMessage)
-                                ),
-                                clientId
-                              )
-                            )
-                          )
-                      case (errs, Some(seq)) =>
-                        errs.isEmpty
-                          .fold(
-                            Logger[F].warn(s"Loaded observation $obsId$author"),
-                            Logger[F]
-                              .warn(
-                                s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
-                              )
-                          )
-                          .as(
-                            Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                              val l = EngineState.instrumentLoaded[F](seq.instrument)
-                              if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
-                                st.sequencesByInstrument
-                                  .get(seq.instrument)
-                                  .foldMap(_.cleanup) // End background obsEdit subscription
-                                  .as(
-                                    (st.sequences
-                                       .get(obsId)
-                                       .fold(
-                                         ODBSequencesLoader
-                                           .loadSequenceEndo(observer.some, seq, l, cleanup)
-                                       )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                                     LoadSequence(obsId)
-                                    )
+                      )
+                      .as(
+                        Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                          val l = EngineState.instrumentLoaded[F](seq.instrument)
+                          if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
+                            st.sequencesByInstrument
+                              .get(seq.instrument)
+                              .foldMap(_.cleanup) >> // End background obsEdit subscription
+                              systems.odb
+                                .obsEditSubscription(obsId)
+                                .flatMap: obsEditSignal =>
+                                  obsEditSignal // TODO Invoke something that refreshes the sequence
+                                    // .evalMap(_ => println("******** Update RECEIVED").pure[F])
+                                    .evalMap: _ =>
+                                      println("******** Update RECEIVED").pure[F] >>
+                                        executeEngine.offer:
+                                          Event.modifyState(
+                                            onAtomReload[F](systems.odb, translator)(
+                                              executeEngine,
+                                              obsId
+                                            )
+                                          )
+                                    .compile
+                                    .drain
+                                    .background
+                                    .void
+                                .allocated
+                                .map { (_, cleanup) =>
+                                  (st.sequences
+                                     .get(obsId)
+                                     .fold(
+                                       ODBSequencesLoader
+                                         .loadSequenceEndo(observer.some, seq, l, cleanup)
+                                     )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                                   LoadSequence(obsId)
                                   )
-                              } else {
-                                (
-                                  st,
-                                  SeqEvent
-                                    .NotifyUser(
-                                      Notification.LoadingFailed(
-                                        obsId,
-                                        List(
-                                          s"Error loading observation $obsId",
-                                          s"A sequence is running on instrument ${seq.instrument}"
-                                        )
-                                      ),
-                                      clientId
-                                    ): SeqEvent
-                                ).pure[F]
-                              }
-                            }.toHandleF)
-                          )
-                    }
-                  )
-                )
-            }
+                                }
+                          } else {
+                            (
+                              st,
+                              SeqEvent
+                                .NotifyUser(
+                                  Notification.LoadingFailed(
+                                    obsId,
+                                    List(
+                                      s"Error loading observation $obsId",
+                                      s"A sequence is running on instrument ${seq.instrument}"
+                                    )
+                                  ),
+                                  clientId
+                                ): SeqEvent
+                            ).pure[F]
+                          }
+                        }.toHandleF)
+                      )
+                }
+              )
+            )
       )
 
     private def logDebugEvent(msg: String): F[Unit] =
