@@ -6,6 +6,7 @@ package observe.server.odb
 import cats.data.NonEmptyList
 import cats.effect.Concurrent
 import cats.effect.Ref
+import cats.effect.kernel.Resource
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.NonNegShort
@@ -107,6 +108,9 @@ object TestOdbProxy {
     .of[F, State](State(acquisition, sciences, None, List.empty, None, List.empty))
     .map(rf =>
       new TestOdbProxy[F] {
+        override def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]] =
+          Resource.pure(fs2.Stream.empty)
+
         private def addEvent(ev: OdbEvent): F[Unit] =
           rf.modify(s => (s.focus(_.out).modify(_.appended(ev)), ()))
 
