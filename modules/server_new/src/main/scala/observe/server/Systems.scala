@@ -39,11 +39,11 @@ import org.http4s.Credentials
 import org.http4s.Headers
 import org.http4s.client.Client
 import org.http4s.client.middleware.Logger as Http4sLogger
-import org.http4s.client.websocket.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Authorization
 import org.typelevel.log4cats.Logger
 import io.circe.syntax.*
+import org.http4s.jdkhttpclient.JdkWSClient
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
@@ -117,18 +117,16 @@ object Systems {
           )
         odbCommands                         <-
           if (settings.odbNotifications)
-            Ref
-              .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
-              .map(OdbProxy.OdbCommandsImpl[F](_))
-          else new OdbProxy.DummyOdbCommands[F].pure[F]
-        wsClient                             = WSClient[F](respondToPings = true)(_ => ???) // Low-level connect not implemented
+            Ref.of[F, ObsRecordedIds](ObsRecordedIds.Empty).map(OdbProxy.OdbCommandsImpl[F](_))
+          else
+            OdbProxy.DummyOdbCommands[F].pure[F]
+        wsClient                            <- JdkWSClient.simple[F].useForever
         given Http4sWebSocketBackend[F]      = Http4sWebSocketBackend[F](wsClient)
         streamingClient                     <-
           Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB", WsReconnectionStrategy)
         _                                   <-
-          streamingClient.connect(
+          streamingClient.connect:
             Map(Authorization.name.toString -> sso.serviceToken.asJson).pure[F]
-          )
         odbSubscriber                        = OdbSubscriber[F]()(using streamingClient)
       yield OdbProxy[F](odbCommands, odbSubscriber)
 
