@@ -5,6 +5,7 @@ package observe.server.odb
 
 import cats.Applicative
 import cats.MonadThrow
+import cats.effect.Resource
 import cats.effect.Sync
 import cats.effect.kernel.Ref
 import cats.syntax.all.*
@@ -96,11 +97,14 @@ sealed trait OdbEventCommands[F[_]] {
 trait OdbProxy[F[_]] extends OdbEventCommands[F] {
   def read(oid:               Observation.Id): F[ObsQuery.Data.Observation]
   def resetAcquisition(obsId: Observation.Id): F[Unit]
+
+  def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]]
 }
 
 object OdbProxy {
   def apply[F[_]](
-    evCmds: OdbEventCommands[F]
+    evCmds:     OdbEventCommands[F],
+    subscriber: OdbSubscriber[F]
   )(using Sync[F], FetchClient[F, ObservationDB]): OdbProxy[F] =
     new OdbProxy[F] {
       def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
@@ -117,6 +121,7 @@ object OdbProxy {
         ResetAcquisitionMutation[F].execute(obsId = obsId).void
 
       export evCmds.*
+      export subscriber.*
     }
 
   class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {
@@ -542,6 +547,13 @@ object OdbProxy {
     override def resetAcquisition(obsId: Observation.Id): F[Unit] =
       MonadThrow[F]
         .raiseError(ObserveFailure.Unexpected("TestOdbProxy.resetAcquisition: Not implemented."))
+
+    override def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]] =
+      Resource.eval(
+        MonadThrow[F].raiseError(
+          ObserveFailure.Unexpected("TestOdbProxy.obsEditSubscription: Not implemented")
+        )
+      )
 
     export evCmds.{
       datasetEndExposure,

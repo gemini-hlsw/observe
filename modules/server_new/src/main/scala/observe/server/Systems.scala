@@ -13,6 +13,8 @@ import cats.syntax.all.*
 import clue.*
 import clue.http4s.Http4sHttpBackend
 import clue.http4s.Http4sHttpClient
+import clue.http4s.Http4sWebSocketBackend
+import clue.http4s.Http4sWebSocketClient
 import clue.websocket.ReconnectionStrategy
 import edu.gemini.epics.acm.CaService
 import lucuma.core.enums.Site
@@ -30,12 +32,14 @@ import observe.server.gws.*
 import observe.server.keywords.*
 import observe.server.odb.OdbProxy
 import observe.server.odb.OdbProxy.DummyOdbProxy
+import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
 import org.http4s.Credentials
 import org.http4s.Headers
 import org.http4s.client.Client
 import org.http4s.client.middleware.Logger as Http4sLogger
+import org.http4s.client.websocket.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Authorization
 import org.typelevel.log4cats.Logger
@@ -93,21 +97,35 @@ object Systems {
             TimeUnit.SECONDS
           ).some
 
+    val WsReconnectionStrategy: ReconnectionStrategy =
+      (attempt, reason) =>
+        // Increase the delay to get exponential backoff with a minimum of 1s and a max of 30s
+        // TODO If it's a Not authorized, do not backoff, retry on constant period.
+        FiniteDuration(
+          math.min(30.0, math.pow(2, attempt.toDouble - 1)).toLong,
+          TimeUnit.SECONDS
+        ).some
+
     def odbProxy[F[_]: Async: Logger: Http4sHttpBackend]: F[OdbProxy[F]] =
       for
-        given FetchClient[F, ObservationDB] <-
+        given FetchClient[F, ObservationDB]     <-
           Http4sHttpClient.of[F, ObservationDB](
             settings.odbHttp,
             "ODB",
             Headers(Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken)))
           )
-        odbCommands                         <-
+        odbCommands                             <-
           if (settings.odbNotifications)
             Ref
               .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
               .map(OdbProxy.OdbCommandsImpl[F](_))
           else new OdbProxy.DummyOdbCommands[F].pure[F]
-      yield OdbProxy[F](odbCommands)
+        wsClient                                 = WSClient[F](respondToPings = true)(_ => ???) // Low-level connect not implemented
+        given Http4sWebSocketBackend[F]          = Http4sWebSocketBackend[F](wsClient)
+        given StreamingClient[F, ObservationDB] <-
+          Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB", WsReconnectionStrategy)
+        odbSubscriber                            = OdbSubscriber[F]()
+      yield OdbProxy[F](odbCommands, odbSubscriber)
 
     def dhs[F[_]: Async: Logger](site: Site, httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)
