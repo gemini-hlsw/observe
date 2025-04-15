@@ -26,8 +26,6 @@ case class AcquisitionPrompt(
 
 object AcquisitionPrompt
     extends ReactFnComponent[AcquisitionPrompt](props =>
-      // TODO REMOVE ISINFLIGHT!
-
       <.div(ObserveStyles.AcquisitionPrompt)(
         Icons.CircleQuestion.withSize(IconSize.LG),
         <.div(ObserveStyles.AcquisitionPromptMain)(
@@ -37,7 +35,7 @@ object AcquisitionPrompt
               size = Button.Size.Small,
               icon = props.clicked.get match
                 case Some(SequenceType.Science) => LucumaIcons.CircleNotch
-                case _                          => Icons.CircleCheck,
+                case _                          => Icons.Play,
               label = "Yes, start observation",
               disabled = props.clicked.get.isDefined,
               severity = props.clicked.get match
