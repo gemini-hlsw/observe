@@ -4,6 +4,7 @@
 package observe.web.server.http4s
 
 import cats.effect.Async
+import cats.effect.std.SecureRandom
 import cats.effect.std.UUIDGen
 import cats.syntax.all.*
 import eu.timepit.refined.types.string.NonEmptyString
@@ -119,10 +120,11 @@ class ObserveEventRoutes[F[_]: Async: Compression](
 
       // Create a client specific websocket
       for {
-        clientId <- UUIDGen[F].randomUUID.map(ClientId(_))
-        _        <- clientsDb.newClient(clientId, clientSocket, userAgent)
-        _        <- L.info(s"New client $clientSocket => ${clientId.value}")
-        streams   =
+        given SecureRandom[F] <- SecureRandom.javaSecuritySecureRandom[F]
+        clientId              <- UUIDGen.fromSecureRandom[F].randomUUID.map(ClientId(_))
+        _                     <- clientsDb.newClient(clientId, clientSocket, userAgent)
+        _                     <- L.info(s"New client $clientSocket => ${clientId.value}")
+        streams                =
           Stream(
             pingStream,
             engineEvents(clientId),
@@ -131,9 +133,9 @@ class ObserveEventRoutes[F[_]: Async: Compression](
               .map(_ => Ping()) // Request an initial refresh
           ).parJoinUnbounded
             .onFinalize[F](clientsDb.removeClient(clientId))
-        ws       <- webSocketBuilder
-                      .withFilterPingPongs(false)
-                      .build(streams, clientEventsSink(clientId))
+        ws                    <- webSocketBuilder
+                                   .withFilterPingPongs(false)
+                                   .build(streams, clientEventsSink(clientId))
       } yield ws
 
     }
