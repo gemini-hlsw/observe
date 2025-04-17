@@ -201,15 +201,13 @@ trait ServerEventHandler:
       // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
       // and in SequenceTable it's being done once per step.
       // However, we need to turn the app initialization on its head in MainApp to achieve this.
-      case UserNotification(memo)                                                         =>
+      case UserNotification(notification)                                                 =>
         val msgs: IO[List[String]] =
-          memo match
+          notification match
             case Notification.ResourceConflict(obsId)                =>
-              val msgs = List(s"Error in observation $obsId: Resource already in use")
-              showToast(toast, msgs).as(msgs)
+              List(s"Error in observation $obsId: Resource already in use").pure[IO]
             case Notification.InstrumentInUse(obsId, ins)            =>
-              val msgs = List(s"Error in observation $obsId: Instrument $ins already in use")
-              showToast(toast, msgs).as(msgs)
+              List(s"Error in observation $obsId: Instrument $ins already in use").pure[IO]
             case Notification.LoadingFailed(obsId, msgs)             =>
               rootModelDataMod:
                 RootModelData.nighttimeObservation.some
@@ -218,12 +216,12 @@ trait ServerEventHandler:
                     LoadedObservation.errorMsg.replace(msgs.mkString("; ").some)
               .as(msgs)
             case Notification.SubsystemBusy(obsId, stepId, resource) =>
-              val msgs = List(
-                s"Error in observation $obsId, step $stepId: Subsystem $resource already in use"
-              )
-              showToast(toast, msgs).as(msgs)
+              List(s"Error in observation $obsId, step $stepId: Subsystem $resource already in use")
+                .pure[IO]
 
-        msgs.flatMap(ms => logMessage(rootModelDataMod, ObserveLogLevel.Error, ms.mkString("; ")))
+        msgs.flatMap: ms =>
+          showToast(toast, ms) >>
+            logMessage(rootModelDataMod, ObserveLogLevel.Error, ms.mkString("; "))
       case LogEvent(msg)                                                                  =>
         logMessage(rootModelDataMod, msg.level, msg.msg)
 
