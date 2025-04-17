@@ -71,6 +71,11 @@ object ClientEvent:
     ): ObserveState =
       ObserveState(view.sequencesState, view.conditions, view.operator, recordedIds)
 
+  case class StepExecuted(obsId: Observation.Id) extends AllClientEvent
+      derives Eq,
+        Encoder.AsObject,
+        Decoder
+
   case class SingleActionEvent(
     obsId:     Observation.Id,
     stepId:    Step.Id,
@@ -106,6 +111,7 @@ object ClientEvent:
     case e @ BaDum                            => e.asJson
     case e @ InitialEvent(_)                  => e.asJson
     case e @ ObserveState(_, _, _, _)         => e.asJson
+    case e @ StepExecuted(_)                  => e.asJson
     case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
     case e @ ChecksOverrideEvent(_)           => e.asJson
     case e @ ProgressEvent(_)                 => e.asJson
@@ -118,6 +124,7 @@ object ClientEvent:
       Decoder[BaDum.type].widen,
       Decoder[InitialEvent].widen,
       Decoder[ObserveState].widen,
+      Decoder[StepExecuted].widen,
       Decoder[SingleActionEvent].widen,
       Decoder[ChecksOverrideEvent].widen,
       Decoder[ProgressEvent].widen,
