@@ -45,7 +45,7 @@ case class ObsListPopup(
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>
-      obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(_.isRunning)
+      obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(s => !s.canUnload)
 
   val isNighttimeObsTableForced: Boolean =
     loadedObs.isEmpty
@@ -230,7 +230,9 @@ object ObsListPopup
               ),
               ^.onDoubleClick --> props
                 .loadObs(row.original.obsId)
-                .unless_(props.loadedObs.map(_.obsId).contains_(row.original.obsId))
+                .unless_(
+                  props.loadedObs.map(_.obsId).contains_(row.original.obsId) || props.isProcessing
+                )
             ),
           cellMod = cell =>
             cell.column.id match

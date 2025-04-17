@@ -113,7 +113,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   def canUnload(id: Observation.Id)(st: S): Boolean =
     stateL.sequenceStateIndex(id).getOption(st).forall(canUnload)
 
-  def canUnload(seq: Sequence.State[F]): Boolean = !Sequence.State.isRunning(seq)
+  def canUnload(seq: Sequence.State[F]): Boolean = Sequence.State.canUnload(seq)
 
   /**
    * Refresh the steps executions of an existing sequence. Does not add nor remove steps.

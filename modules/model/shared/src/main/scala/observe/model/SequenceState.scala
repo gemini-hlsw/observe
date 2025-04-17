@@ -58,6 +58,10 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
       case SequenceState.Running(_, _, waitingUserPrompt, _, _) => waitingUserPrompt
       case _                                                    => false
 
+  // A sequence can be unloaded if it's not running or if it's running but waiting for user prompt.
+  def canUnload: Boolean =
+    !isRunning || isWaitingUserPrompt
+
   def isStarting: Boolean =
     this match
       case SequenceState.Running(_, _, _, _, starting) => starting
