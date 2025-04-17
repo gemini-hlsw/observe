@@ -232,6 +232,8 @@ object Sequence {
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
 
+    def canUnload[F[_]](st: State[F]): Boolean = st.status.canUnload
+
     def userStopRequested[F[_]](st: State[F]): Boolean = st.status.isUserStopRequested
 
     def anyStopRequested[F[_]](st: State[F]): Boolean = st.status match {

@@ -81,7 +81,7 @@ object ObsHeader
             tooltip = "Load another sequence",
             tooltipOptions = TooltipOptions(position = Tooltip.Position.Top, showDelay = 100),
             onClick = props.openObsTable,
-            disabled = props.sequenceState.isRunning
+            disabled = !props.sequenceState.canUnload
           )
         )
       )
