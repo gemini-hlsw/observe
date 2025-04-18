@@ -70,7 +70,7 @@ class ObserveEventRoutes[F[_]: Async: Compression](
 
       def initialEvent(clientId: ClientId): Stream[F, WebSocketFrame] =
         Stream.emit(
-          toFrame(
+          toFrame[ClientEvent](
             InitialEvent(
               ClientConfig(
                 site,
