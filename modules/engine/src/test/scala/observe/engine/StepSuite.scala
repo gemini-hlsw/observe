@@ -209,7 +209,7 @@ class StepSuite extends CatsEffectSuite {
   // The test will just run step and compare the output with the predefined sequence of updates.
 
   // The difficult part is to set the pause command to interrupts the step execution in the middle.
-  test("pause should stop execution in response to a pause command") {
+  test("pause should stop execution in response to a pause command, after current step completes") {
     def qs0(eng: Engine[IO, TestState, Unit]): TestState =
       TestState(
         sequences = Map(
@@ -225,6 +225,14 @@ class StepSuite extends CatsEffectSuite {
                    executions = List(
                      NonEmptyList.of(configureTcs, configureInst, triggerPause(eng)), // Execution
                      NonEmptyList.one(observe)                                        // Execution
+                   )
+                 ),
+                 EngineStep(
+                   id = stepId(2),
+                   breakpoint = Breakpoint.Disabled,
+                   executions = List(
+                     NonEmptyList.of(configureTcs, configureInst), // Execution
+                     NonEmptyList.one(observe)                     // Execution
                    )
                  )
                )
@@ -247,15 +255,10 @@ class StepSuite extends CatsEffectSuite {
                .map(_._2)
     } yield u.sequences(seqId)
 
-    m.compile.last.map {
-      _.exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
-          (zipper.focus.toStep match {
-            case EngineStep(_, _, List(ex1, ex2)) =>
-              Execution(ex1.toList).results.length == 3 && Execution(ex2.toList).actions.length == 1
-            case _                                => false
-          }) && status === SequenceState.Idle
-        case _                                        => false
+    m.compile.last.map { l =>
+      l.exists {
+        case Sequence.State.Zipper(zipper, _, _) => zipper.done.length === 1 // Only 1 step executed
+        case _                                   => false
       }
     }.assert
 
