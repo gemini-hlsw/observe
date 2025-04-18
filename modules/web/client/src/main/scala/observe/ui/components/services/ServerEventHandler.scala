@@ -192,7 +192,7 @@ trait ServerEventHandler:
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
-      case ClientEvent.StepExecuted(_)                                                    =>
+      case ClientEvent.StepComplete(_)                                                    =>
         Audio.StepBeep.play
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some)) // >>
