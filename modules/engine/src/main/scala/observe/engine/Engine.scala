@@ -255,10 +255,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
             // The sequence is marked as completed here
             putS(id)(seq) *> send(finished(id))
           case seq @ Sequence.State.Zipper(z, _, _) =>
-            val stepId = z.focus.toStep.id
-
-            println(s"CURRENT ACTIONS: ${seq.current.actions}")
-
+            val stepId                        = z.focus.toStep.id
             val u: List[Stream[F, EventType]] =
               seq.current.actions
                 .map(_.gen)
