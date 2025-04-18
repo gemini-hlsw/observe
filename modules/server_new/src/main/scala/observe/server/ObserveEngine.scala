@@ -1816,8 +1816,8 @@ object ObserveEngine {
                 r.msg.some
               ).toList
             ) ++ buildObserveStateStream(svs, odbProxy)
-          case SystemEvent.Executed(obsId)                                         =>
-            Stream.emit(StepExecuted(obsId): TargetedClientEvent) ++
+          case SystemEvent.StepComplete(obsId)                                     =>
+            Stream.emit(StepComplete(obsId): TargetedClientEvent) ++
               buildObserveStateStream(svs, odbProxy)
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)

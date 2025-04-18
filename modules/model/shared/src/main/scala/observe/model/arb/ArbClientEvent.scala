@@ -73,10 +73,10 @@ trait ArbClientEvent:
       )
     )
 
-  given Arbitrary[ClientEvent.StepExecuted] = Arbitrary:
-    arbitrary[Observation.Id].map(ClientEvent.StepExecuted(_))
+  given Arbitrary[ClientEvent.StepComplete] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.StepComplete(_))
 
-  given Cogen[ClientEvent.StepExecuted] =
+  given Cogen[ClientEvent.StepComplete] =
     Cogen[Observation.Id].contramap(_.obsId)
 
   given Cogen[ClientEvent.ObserveState] =
@@ -142,7 +142,7 @@ trait ArbClientEvent:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
       arbitrary[ClientEvent.ObserveState],
-      arbitrary[ClientEvent.StepExecuted],
+      arbitrary[ClientEvent.StepComplete],
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
@@ -159,7 +159,7 @@ trait ArbClientEvent:
         Either[
           ClientEvent.ObserveState,
           Either[
-            ClientEvent.StepExecuted,
+            ClientEvent.StepComplete,
             Either[
               ClientEvent.SingleActionEvent,
               Either[
@@ -183,7 +183,7 @@ trait ArbClientEvent:
       case ClientEvent.BaDum                                => Left(())
       case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
       case e @ ClientEvent.ObserveState(_, _, _, _)         => Right(Right(Left(e)))
-      case e @ ClientEvent.StepExecuted(_)                  => Right(Right(Right(Left(e))))
+      case e @ ClientEvent.StepComplete(_)                  => Right(Right(Right(Left(e))))
       case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Right(Left(e)))))
       case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Right(Left(e))))))
       case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Right(Left(e)))))))
