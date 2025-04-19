@@ -55,7 +55,7 @@ trait ServerEventHandler:
     msg match
       case NonEmptyString(nes) =>
         LogMessage
-          .now(logLevel, nes.value)
+          .now[IO](logLevel, nes.value)
           .flatMap: logMsg =>
             rootModelDataMod(RootModelData.globalLog.modify(_.append(logMsg)))
 
@@ -198,10 +198,12 @@ trait ServerEventHandler:
         Audio.SequencePaused.play
       case ClientEvent.BreakpointReached(_)                                               =>
         Audio.BreakpointReached.play
-      case ClientEvent.AcquisitionPromptReached(obsId)                                    =>
+      case ClientEvent.AcquisitionPromptReached(_)                                        =>
         Audio.AcquisitionPrompt.play
-      case ClientEvent.SequenceComplete(obsId)                                            =>
+      case ClientEvent.SequenceComplete(_)                                                =>
         Audio.SequenceComplete.play
+      case ClientEvent.SequenceFailed(_, errorMsg)                                        =>
+        showToast(toast, List(errorMsg)) >> Audio.SequenceError.play
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some)) // >>
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>
@@ -234,7 +236,8 @@ trait ServerEventHandler:
           showToast(toast, ms) >>
             logMessage(rootModelDataMod, ObserveLogLevel.Error, ms.mkString("; "))
       case LogEvent(msg)                                                                  =>
-        logMessage(rootModelDataMod, msg.level, msg.msg)
+        showToast(toast, List(msg.msg)).whenA(msg.level === ObserveLogLevel.Error) >>
+          logMessage(rootModelDataMod, msg.level, msg.msg)
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]

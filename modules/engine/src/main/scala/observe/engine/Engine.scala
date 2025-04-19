@@ -75,13 +75,13 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
 
   def startSingle(c: ActionCoords): HandleType[Outcome] = get.flatMap { st =>
     val x = for {
-      seq <- stateL.sequenceStateIndex(c.sid).getOption(st)
+      seq <- stateL.sequenceStateIndex(c.obsId).getOption(st)
       if (seq.status.isIdle || seq.status.isError) && !seq.getSingleState(c.actCoords).active
       act <- seq.rollback.getSingleAction(c.actCoords)
     } yield act.gen
 
     x.map { p =>
-      modifyS(c.sid)(u => u.startSingle(c.actCoords)) *>
+      modifyS(c.obsId)(u => u.startSingle(c.actCoords)) *>
         Handle
           .fromStream[F, S, EventType](
             p.attempt.flatMap {
@@ -102,10 +102,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   }
 
   private def completeSingleRun[V <: RetVal](c: ActionCoords, r: V): HandleType[Unit] =
-    modifyS(c.sid)(_.completeSingle(c.actCoords, r))
+    modifyS(c.obsId)(_.completeSingle(c.actCoords, r))
 
   private def failSingleRun(c: ActionCoords, e: Result.Error): HandleType[Unit] =
-    modifyS(c.sid)(_.failSingle(c.actCoords, e))
+    modifyS(c.obsId)(_.failSingle(c.actCoords, e))
 
   /**
    * Tells if a sequence can be safely removed
@@ -140,16 +140,12 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       _.map { seq =>
         seq.status match {
           case SequenceState.Running(userStop, internalStop, _, _, _) =>
-            println(s"******** ${seq.next}")
-
             seq.next match {
               // Empty state
-              case None     =>
+              case None                                  =>
                 send(finished(id))
               // Final State
-              case Some(
-                    qs @ Sequence.State.Final(_, _)
-                  ) => // TODO Should this be only in acquisition??
+              case Some(qs @ Sequence.State.Final(_, _)) =>
                 putS(id)(qs) *> switch(id)(
                   SequenceState.Running(
                     userStop,
@@ -160,7 +156,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                   )
                 ) *> send(modifyState(atomLoad(this, id)))
               // Step execution completed. Check requested stop and breakpoint here.
-              case Some(qs) =>
+              case Some(qs)                              =>
                 putS(id)(qs) *>
                   (if (qs.getCurrentBreakpoint && !qs.current.execution.exists(_.uninterruptible)) {
                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
@@ -169,7 +165,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                      if (userStop || internalStop) {
                        if (qs.current.execution.exists(_.uninterruptible))
                          send(executing(id)) *> send(stepComplete(id))
-                       else switch(id)(SequenceState.Idle) *> send(sequencePaused(id))
+                       else
+                         switch(id)(SequenceState.Idle) *> send(sequencePaused(id))
                      } else {
                        // after the last action of the step, we need to reload the sequence
                        switch(id)(

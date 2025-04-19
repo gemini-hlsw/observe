@@ -31,7 +31,8 @@ object ObserveFailure {
   final case class InvalidOp(errMsg: String) extends ObserveFailure
 
   /** Indicates an unexpected problem while performing a Observe operation. */
-  final case class Unexpected(msg: String) extends ObserveFailure
+  final case class Unexpected(msg: String) extends ObserveFailure:
+    override def getMessage(): String = msg
 
   /** Indicates an attempt to enqueue an empty sequence */
   final case class EmptySequence(title: String) extends ObserveFailure

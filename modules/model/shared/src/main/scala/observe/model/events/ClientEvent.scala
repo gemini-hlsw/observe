@@ -94,3 +94,6 @@ object ClientEvent:
   case class LogEvent(msg: LogMessage) extends AllClientEvent derives Eq
 
   case class SequenceComplete(obsId: Observation.Id) extends AllClientEvent derives Eq
+
+  case class SequenceFailed(obsId: Observation.Id, errorMsg: String) extends AllClientEvent
+      derives Eq

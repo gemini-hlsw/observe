@@ -161,6 +161,12 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.SequenceComplete] =
     Cogen[Observation.Id].contramap(_.obsId)
 
+  given Arbitrary[ClientEvent.SequenceFailed] = Arbitrary:
+    arbitrary[(Observation.Id, String)].map(ClientEvent.SequenceFailed(_, _))
+
+  given Cogen[ClientEvent.SequenceFailed] =
+    Cogen[(Observation.Id, String)].contramap(x => (x.obsId, x.errorMsg))
+
   given Arbitrary[ClientEvent] = Arbitrary:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
@@ -175,7 +181,8 @@ trait ArbClientEvent:
       arbitrary[ClientEvent.AtomLoaded],
       arbitrary[ClientEvent.UserNotification],
       arbitrary[ClientEvent.LogEvent],
-      arbitrary[ClientEvent.SequenceComplete]
+      arbitrary[ClientEvent.SequenceComplete],
+      arbitrary[ClientEvent.SequenceFailed]
     )
 
   given Cogen[ClientEvent] =
@@ -205,7 +212,10 @@ trait ArbClientEvent:
                             ClientEvent.UserNotification,
                             Either[
                               ClientEvent.LogEvent,
-                              ClientEvent.SequenceComplete
+                              Either[
+                                ClientEvent.SequenceComplete,
+                                ClientEvent.SequenceFailed
+                              ]
                             ]
                           ]
                         ]
@@ -240,7 +250,17 @@ trait ArbClientEvent:
       case e @ ClientEvent.LogEvent(_)                      =>
         Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e)))))))))))))
       case e @ ClientEvent.SequenceComplete(_)              =>
-        Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(e)))))))))))))
+        Right(
+          Right(
+            Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e))))))))))))
+          )
+        )
+      case e @ ClientEvent.SequenceFailed(_, _)             =>
+        Right(
+          Right(
+            Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(e))))))))))))
+          )
+        )
 
 end ArbClientEvent
 

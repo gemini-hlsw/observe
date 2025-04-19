@@ -881,8 +881,11 @@ object ObserveEngine {
             Stream.eval(notifyODB(x).attempt)
           .flatMap:
             case Right((ev, qState)) => toClientEvent[F](ev, qState, systems.odb)
-            // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
-            case Left(_)             => Stream.empty
+            case Left(e)             =>
+              Stream.eval:
+                LogMessage
+                  .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
+                  .map(LogEvent(_))
 
     override def stream(
       s0: EngineState[F]
@@ -1661,8 +1664,6 @@ object ObserveEngine {
     svs:      => SequencesQueue[SequenceView],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
-    println(s"*!*!*!*!*!* $v")
-
     v match
       case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid)                   =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
@@ -1813,15 +1814,17 @@ object ObserveEngine {
                 ClientEvent.SingleActionState.Completed
               ).toList
             ) ++ buildObserveStateStream(svs, odbProxy)
-          case SystemEvent.SingleRunFailed(c, r)                                   =>
+          case SystemEvent.SingleRunFailed(c, Result.Error(msg))                   =>
             Stream.emits(
               singleActionClientEvent(
                 c,
                 qState,
                 ClientEvent.SingleActionState.Failed,
-                r.msg.some
+                msg.some
               ).toList
-            ) ++ buildObserveStateStream(svs, odbProxy)
+            ) ++
+              Stream.emit(SequenceFailed(c.obsId, msg): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
           case SystemEvent.StepComplete(obsId)                                     =>
             Stream.emit(StepComplete(obsId): TargetedClientEvent) ++
               buildObserveStateStream(svs, odbProxy)
@@ -1832,6 +1835,9 @@ object ObserveEngine {
               buildObserveStateStream(svs, odbProxy)
           case SystemEvent.SequenceComplete(obsId)                                 =>
             Stream.emit(SequenceComplete(obsId): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
+          case SystemEvent.Failed(obsId, _, Result.Error(msg))                     =>
+            Stream.emit(SequenceFailed(obsId, msg): TargetedClientEvent) ++
               buildObserveStateStream(svs, odbProxy)
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)
@@ -1845,9 +1851,9 @@ object ObserveEngine {
     errorMsg:     Option[String] = none
   ): Option[TargetedClientEvent] =
     qState.sequences
-      .get(c.sid)
+      .get(c.obsId)
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
-      .map(res => SingleActionEvent(c.sid, c.actCoords.stepId, res, clientAction, errorMsg))
+      .map(res => SingleActionEvent(c.obsId, c.actCoords.stepId, res, clientAction, errorMsg))
 
   private def onAtomComplete[F[_]: Monad](
     odb:           OdbProxy[F],
