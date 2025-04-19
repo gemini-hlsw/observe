@@ -470,7 +470,8 @@ class StepSuite extends CatsEffectSuite {
       val executionsCompleted = x.map(_._1).collect { case SystemUpdate(x: Executed, _) => x }
       assertEquals(executionsCompleted.length, 3)
 
-      val sequencesCompleted = x.map(_._1).collect { case SystemUpdate(x: Finished, _) => x }
+      val sequencesCompleted =
+        x.map(_._1).collect { case SystemUpdate(x: SequenceComplete, _) => x }
       assertEquals(sequencesCompleted.length, 1)
 
       x.lastOption

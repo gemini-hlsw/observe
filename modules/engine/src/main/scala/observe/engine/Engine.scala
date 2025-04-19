@@ -140,12 +140,16 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
       _.map { seq =>
         seq.status match {
           case SequenceState.Running(userStop, internalStop, _, _, _) =>
+            println(s"******** ${seq.next}")
+
             seq.next match {
               // Empty state
-              case None                              =>
+              case None     =>
                 send(finished(id))
               // Final State
-              case Some(qs: Sequence.State.Final[F]) =>
+              case Some(
+                    qs @ Sequence.State.Final(_, _)
+                  ) => // TODO Should this be only in acquisition??
                 putS(id)(qs) *> switch(id)(
                   SequenceState.Running(
                     userStop,
@@ -155,32 +159,31 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                     starting = false
                   )
                 ) *> send(modifyState(atomLoad(this, id)))
-              // Execution completed. Check requested stop and breakpoint here.
-              case Some(qs)                          =>
+              // Step execution completed. Check requested stop and breakpoint here.
+              case Some(qs) =>
                 putS(id)(qs) *>
                   (if (qs.getCurrentBreakpoint && !qs.current.execution.exists(_.uninterruptible)) {
                      switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
                    } else if (seq.isLastAction) {
-                     send(stepComplete(id)) *>
-                       // Only process stop states after the last action of the step.
-                       (if (userStop || internalStop) {
-                          if (qs.current.execution.exists(_.uninterruptible)) send(executing(id))
-                          else switch(id)(SequenceState.Idle)
-                        } else {
-                          // after the last action of the step, we need to reload the sequence
-                          switch(id)(
-                            SequenceState.Running(
-                              userStop,
-                              internalStop,
-                              waitingUserPrompt = false,
-                              waitingNextAtom = true,
-                              starting = false
-                            )
-                          ) *> send(modifyState(atomReload(this, id)))
-                        })
+                     // Only process stop states after the last action of the step.
+                     if (userStop || internalStop) {
+                       if (qs.current.execution.exists(_.uninterruptible))
+                         send(executing(id)) *> send(stepComplete(id))
+                       else switch(id)(SequenceState.Idle) *> send(sequencePaused(id))
+                     } else {
+                       // after the last action of the step, we need to reload the sequence
+                       switch(id)(
+                         SequenceState.Running(
+                           userStop,
+                           internalStop,
+                           waitingUserPrompt = false,
+                           waitingNextAtom = true,
+                           starting = false
+                         )
+                       ) *> send(modifyState(atomReload(this, id))) *> send(stepComplete(id))
+                     }
                    } else send(executing(id)))
             }
-          // }
           case _                                                      => unit
         }
       }.getOrElse(unit)
@@ -207,7 +210,9 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                   if (!isStarting && seq.getCurrentBreakpoint) {
                     switch(id)(SequenceState.Idle) *> send(breakpointReached(id))
                   } else
-                    switch(id)(SequenceState.Running(false, false, false, false, false)) *>
+                    switch(id)(
+                      SequenceState.Running(userStop, internalStop, false, false, false)
+                    ) *>
                       send(executing(id))
               }
             }
@@ -444,8 +449,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
           s"because " +
           s"required systems are in use."
       ) *> pure(SystemUpdate(se, Outcome.Ok))
-    case BreakpointReached(_)       =>
-      debug("Engine: Breakpoint reached") *>
+    case BreakpointReached(obsId)   =>
+      debug(s"Engine: Breakpoint reached in observation [$obsId]") *>
         pure(SystemUpdate(se, Outcome.Ok))
     case Executed(id)               =>
       debug(s"Engine: Execution $id completed") *>
@@ -456,7 +461,10 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     case StepComplete(obsId)        =>
       debug(s"Engine: Step completed for observation [$obsId]") *>
         pure(SystemUpdate(se, Outcome.Ok))
-    case Finished(id)               =>
+    case SequencePaused(obsId)      =>
+      debug(s"Engine: Sequence paused for observation [$obsId]") *>
+        pure(SystemUpdate(se, Outcome.Ok))
+    case SequenceComplete(id)       =>
       debug("Engine: Finished") *>
         switch(id)(SequenceState.Completed) *> pure(SystemUpdate(se, Outcome.Ok))
     case SingleRunCompleted(c, r)   =>

@@ -194,6 +194,14 @@ trait ServerEventHandler:
           configApiStatusMod(_ => ApiStatus.Idle)
       case ClientEvent.StepComplete(_)                                                    =>
         Audio.StepBeep.play
+      case ClientEvent.SequencePaused(_)                                                  =>
+        Audio.SequencePaused.play
+      case ClientEvent.BreakpointReached(_)                                               =>
+        Audio.BreakpointReached.play
+      case ClientEvent.AcquisitionPromptReached(obsId)                                    =>
+        Audio.AcquisitionPrompt.play
+      case ClientEvent.SequenceComplete(obsId)                                            =>
+        Audio.SequenceComplete.play
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some)) // >>
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>

@@ -47,15 +47,6 @@ import ArbSystem.given
 import ArbUserPrompt.given
 
 trait ArbClientEvent:
-
-  given Arbitrary[ClientEvent.ObserveState] = Arbitrary:
-    for
-      s    <- arbitrary[SequencesQueue[SequenceView]]
-      c    <- arbitrary[Conditions]
-      o    <- arbitrary[Option[Operator]]
-      rids <- arbitrary[ObsRecordedIds]
-    yield ClientEvent.ObserveState(s.sequencesState, c, o, rids)
-
   given Cogen[ExecutionState] =
     Cogen[
       (SequenceState,
@@ -73,16 +64,42 @@ trait ArbClientEvent:
       )
     )
 
+  given Arbitrary[ClientEvent.ObserveState] = Arbitrary:
+    for
+      s    <- arbitrary[SequencesQueue[SequenceView]]
+      c    <- arbitrary[Conditions]
+      o    <- arbitrary[Option[Operator]]
+      rids <- arbitrary[ObsRecordedIds]
+    yield ClientEvent.ObserveState(s.sequencesState, c, o, rids)
+
+  given Cogen[ClientEvent.ObserveState] =
+    Cogen[(List[(Observation.Id, ExecutionState)], Conditions, ObsRecordedIds)].contramap(x =>
+      (x.sequenceExecution.toList, x.conditions, x.currentRecordedIds)
+    )
+
   given Arbitrary[ClientEvent.StepComplete] = Arbitrary:
     arbitrary[Observation.Id].map(ClientEvent.StepComplete(_))
 
   given Cogen[ClientEvent.StepComplete] =
     Cogen[Observation.Id].contramap(_.obsId)
 
-  given Cogen[ClientEvent.ObserveState] =
-    Cogen[(List[(Observation.Id, ExecutionState)], Conditions, ObsRecordedIds)].contramap(x =>
-      (x.sequenceExecution.toList, x.conditions, x.currentRecordedIds)
-    )
+  given Arbitrary[ClientEvent.SequencePaused] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.SequencePaused(_))
+
+  given Cogen[ClientEvent.SequencePaused] =
+    Cogen[Observation.Id].contramap(_.obsId)
+
+  given Arbitrary[ClientEvent.BreakpointReached] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.BreakpointReached(_))
+
+  given Cogen[ClientEvent.BreakpointReached] =
+    Cogen[Observation.Id].contramap(_.obsId)
+
+  given Arbitrary[ClientEvent.AcquisitionPromptReached] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.AcquisitionPromptReached(_))
+
+  given Cogen[ClientEvent.AcquisitionPromptReached] =
+    Cogen[Observation.Id].contramap(_.obsId)
 
   given Arbitrary[ClientEvent.InitialEvent] = Arbitrary:
     arbitrary[ClientConfig].map(ClientEvent.InitialEvent(_))
@@ -138,17 +155,27 @@ trait ArbClientEvent:
   given Cogen[ClientEvent.LogEvent] =
     Cogen[LogMessage].contramap(_.msg)
 
+  given Arbitrary[ClientEvent.SequenceComplete] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.SequenceComplete(_))
+
+  given Cogen[ClientEvent.SequenceComplete] =
+    Cogen[Observation.Id].contramap(_.obsId)
+
   given Arbitrary[ClientEvent] = Arbitrary:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
       arbitrary[ClientEvent.ObserveState],
       arbitrary[ClientEvent.StepComplete],
+      arbitrary[ClientEvent.SequencePaused],
+      arbitrary[ClientEvent.BreakpointReached],
+      arbitrary[ClientEvent.AcquisitionPromptReached],
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
       arbitrary[ClientEvent.AtomLoaded],
       arbitrary[ClientEvent.UserNotification],
-      arbitrary[ClientEvent.LogEvent]
+      arbitrary[ClientEvent.LogEvent],
+      arbitrary[ClientEvent.SequenceComplete]
     )
 
   given Cogen[ClientEvent] =
@@ -161,16 +188,28 @@ trait ArbClientEvent:
           Either[
             ClientEvent.StepComplete,
             Either[
-              ClientEvent.SingleActionEvent,
+              ClientEvent.SequencePaused,
               Either[
-                ClientEvent.ChecksOverrideEvent,
+                ClientEvent.BreakpointReached,
                 Either[
-                  ClientEvent.ProgressEvent,
+                  ClientEvent.AcquisitionPromptReached,
                   Either[
-                    ClientEvent.AtomLoaded,
+                    ClientEvent.SingleActionEvent,
                     Either[
-                      ClientEvent.UserNotification,
-                      ClientEvent.LogEvent
+                      ClientEvent.ChecksOverrideEvent,
+                      Either[
+                        ClientEvent.ProgressEvent,
+                        Either[
+                          ClientEvent.AtomLoaded,
+                          Either[
+                            ClientEvent.UserNotification,
+                            Either[
+                              ClientEvent.LogEvent,
+                              ClientEvent.SequenceComplete
+                            ]
+                          ]
+                        ]
+                      ]
                     ]
                   ]
                 ]
@@ -184,15 +223,24 @@ trait ArbClientEvent:
       case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
       case e @ ClientEvent.ObserveState(_, _, _, _)         => Right(Right(Left(e)))
       case e @ ClientEvent.StepComplete(_)                  => Right(Right(Right(Left(e))))
-      case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Right(Left(e)))))
-      case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Right(Left(e))))))
-      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Right(Left(e)))))))
-      case e @ ClientEvent.AtomLoaded(_, _, _)              =>
+      case e @ ClientEvent.SequencePaused(_)                => Right(Right(Right(Right(Left(e)))))
+      case e @ ClientEvent.BreakpointReached(_)             => Right(Right(Right(Right(Right(Left(e))))))
+      case e @ ClientEvent.AcquisitionPromptReached(_)      =>
+        Right(Right(Right(Right(Right(Right(Left(e)))))))
+      case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) =>
         Right(Right(Right(Right(Right(Right(Right(Left(e))))))))
-      case e @ ClientEvent.UserNotification(_)              =>
+      case e @ ClientEvent.ChecksOverrideEvent(_)           =>
         Right(Right(Right(Right(Right(Right(Right(Right(Left(e)))))))))
+      case e @ ClientEvent.ProgressEvent(_)                 =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e))))))))))
+      case e @ ClientEvent.AtomLoaded(_, _, _)              =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e)))))))))))
+      case e @ ClientEvent.UserNotification(_)              =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e))))))))))))
       case e @ ClientEvent.LogEvent(_)                      =>
-        Right(Right(Right(Right(Right(Right(Right(Right(Right(e)))))))))
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Left(e)))))))))))))
+      case e @ ClientEvent.SequenceComplete(_)              =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(Right(e)))))))))))))
 
 end ArbClientEvent
 

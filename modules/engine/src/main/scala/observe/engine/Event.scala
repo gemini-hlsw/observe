@@ -100,6 +100,8 @@ object Event {
     EventSystem[F, S, U](Paused(id, i, c))
   def breakpointReached[F[_], S, U](id: Observation.Id): Event[F, S, U]                =
     EventSystem[F, S, U](BreakpointReached(id))
+  def sequencePaused[F[_], S, U](obsId: Observation.Id): Event[F, S, U]                =
+    EventSystem[F, S, U](SequencePaused(obsId))
   def busy[F[_], S, U](id: Observation.Id, clientId: ClientId): Event[F, S, U]         =
     EventSystem[F, S, U](Busy(id, clientId))
   def executed[F[_], S, U](id: Observation.Id): Event[F, S, U]                         =
@@ -108,14 +110,15 @@ object Event {
     EventSystem[F, S, U](Executing(id))
   def stepComplete[F[_], S, U](id: Observation.Id): Event[F, S, U]                     =
     EventSystem[F, S, U](StepComplete(id))
-  def finished[F[_], S, U](id: Observation.Id): Event[F, S, U] = EventSystem[F, S, U](Finished(id))
-  def nullEvent[F[_], S, U]: Event[F, S, U]                                         = EventSystem[F, S, U](Null)
+  def finished[F[_], S, U](id: Observation.Id): Event[F, S, U]                         =
+    EventSystem[F, S, U](SequenceComplete(id))
+  def nullEvent[F[_], S, U]: Event[F, S, U]                                            = EventSystem[F, S, U](Null)
   def singleRunCompleted[F[_], R <: Result.RetVal, S, U](
     c: ActionCoords,
     r: Result.OK[R]
   ): Event[F, S, U] =
     EventSystem[F, S, U](SingleRunCompleted(c, r))
-  def singleRunFailed[F[_], S, U](c: ActionCoords, e: Result.Error): Event[F, S, U] =
+  def singleRunFailed[F[_], S, U](c: ActionCoords, e: Result.Error): Event[F, S, U]    =
     EventSystem[F, S, U](SingleRunFailed(c, e))
 
 }

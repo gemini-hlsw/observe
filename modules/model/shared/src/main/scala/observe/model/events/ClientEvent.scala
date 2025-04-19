@@ -67,6 +67,12 @@ object ClientEvent:
 
   case class StepComplete(obsId: Observation.Id) extends AllClientEvent derives Eq
 
+  case class SequencePaused(obsId: Observation.Id) extends AllClientEvent derives Eq
+
+  case class BreakpointReached(obsId: Observation.Id) extends AllClientEvent derives Eq
+
+  case class AcquisitionPromptReached(obsId: Observation.Id) extends AllClientEvent derives Eq
+
   case class SingleActionEvent(
     obsId:     Observation.Id,
     stepId:    Step.Id,
@@ -86,3 +92,5 @@ object ClientEvent:
   case class UserNotification(memo: Notification) extends SingleClientEvent derives Eq
 
   case class LogEvent(msg: LogMessage) extends AllClientEvent derives Eq
+
+  case class SequenceComplete(obsId: Observation.Id) extends AllClientEvent derives Eq
