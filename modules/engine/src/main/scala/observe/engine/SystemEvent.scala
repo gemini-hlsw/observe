@@ -40,7 +40,9 @@ object SystemEvent {
   case class BreakpointReached(id: Observation.Id)                extends SystemEvent
   case class Executed(id: Observation.Id)                         extends SystemEvent
   case class Executing(id: Observation.Id)                        extends SystemEvent
-  case class Finished(id: Observation.Id)                         extends SystemEvent
+  case class StepComplete(id: Observation.Id)                     extends SystemEvent
+  case class SequencePaused(id: Observation.Id)                   extends SystemEvent
+  case class SequenceComplete(id: Observation.Id)                 extends SystemEvent
   case object Null                                                extends SystemEvent
 
   // Single action commands
