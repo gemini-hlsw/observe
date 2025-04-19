@@ -11,7 +11,6 @@ import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.*
-import io.circe.syntax.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
@@ -32,7 +31,7 @@ import observe.model.enums.Resource
 import observe.model.given
 import observe.model.odb.ObsRecordedIds
 
-sealed trait ClientEvent derives Eq
+sealed trait ClientEvent derives Eq, Encoder.AsObject, Decoder
 
 object ClientEvent:
   sealed trait AllClientEvent    extends ClientEvent derives Eq
@@ -43,16 +42,13 @@ object ClientEvent:
     case Completed extends SingleActionState("completed")
     case Failed    extends SingleActionState("failed")
 
-  case object BaDum extends AllClientEvent: // derives Eq, Encoder, Decoder
+  case object BaDum extends AllClientEvent derives Eq:
     given Encoder[BaDum.type] = Encoder[String].contramap(_ => "BaDum")
     given Decoder[BaDum.type] = Decoder[String].flatMap:
       case "BaDum" => Decoder.const(BaDum)
       case _       => Decoder.failedWithMessage("Not a heartbeat event")
 
-  case class InitialEvent(clientConfig: ClientConfig) extends AllClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+  case class InitialEvent(clientConfig: ClientConfig) extends AllClientEvent derives Eq
 
   case class ObserveState(
     sequenceExecution:  Map[Observation.Id, ExecutionState],
@@ -60,9 +56,7 @@ object ClientEvent:
     operator:           Option[Operator],
     currentRecordedIds: ObsRecordedIds
   ) extends AllClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+      derives Eq
 
   object ObserveState:
     def fromSequenceViewQueue(
@@ -71,6 +65,8 @@ object ClientEvent:
     ): ObserveState =
       ObserveState(view.sequencesState, view.conditions, view.operator, recordedIds)
 
+  case class StepComplete(obsId: Observation.Id) extends AllClientEvent derives Eq
+
   case class SingleActionEvent(
     obsId:     Observation.Id,
     stepId:    Step.Id,
@@ -78,50 +74,15 @@ object ClientEvent:
     event:     SingleActionState,
     error:     Option[String]
   ) extends AllClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+      derives Eq
 
-  case class ChecksOverrideEvent(prompt: ChecksOverride) extends SingleClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+  case class ChecksOverrideEvent(prompt: ChecksOverride) extends SingleClientEvent derives Eq
 
-  case class ProgressEvent(progress: ObservationProgress) extends AllClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+  case class ProgressEvent(progress: ObservationProgress) extends AllClientEvent derives Eq
 
   case class AtomLoaded(obsId: Observation.Id, sequenceType: SequenceType, atomId: Atom.Id)
-      extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
+      extends AllClientEvent derives Eq
 
-  case class UserNotification(memo: Notification) extends SingleClientEvent
-      derives Eq,
-        Encoder.AsObject,
-        Decoder
+  case class UserNotification(memo: Notification) extends SingleClientEvent derives Eq
 
-  case class LogEvent(msg: LogMessage) extends AllClientEvent derives Eq, Encoder.AsObject, Decoder
-
-  given Encoder[ClientEvent] = Encoder.instance:
-    case e @ BaDum                            => e.asJson
-    case e @ InitialEvent(_)                  => e.asJson
-    case e @ ObserveState(_, _, _, _)         => e.asJson
-    case e @ SingleActionEvent(_, _, _, _, _) => e.asJson
-    case e @ ChecksOverrideEvent(_)           => e.asJson
-    case e @ ProgressEvent(_)                 => e.asJson
-    case e @ AtomLoaded(_, _, _)              => e.asJson
-    case e @ UserNotification(_)              => e.asJson
-    case e @ LogEvent(_)                      => e.asJson
-
-  given Decoder[ClientEvent] =
-    List[Decoder[ClientEvent]](
-      Decoder[BaDum.type].widen,
-      Decoder[InitialEvent].widen,
-      Decoder[ObserveState].widen,
-      Decoder[SingleActionEvent].widen,
-      Decoder[ChecksOverrideEvent].widen,
-      Decoder[ProgressEvent].widen,
-      Decoder[AtomLoaded].widen,
-      Decoder[UserNotification].widen,
-      Decoder[LogEvent].widen
-    ).reduceLeft(_ or _)
+  case class LogEvent(msg: LogMessage) extends AllClientEvent derives Eq

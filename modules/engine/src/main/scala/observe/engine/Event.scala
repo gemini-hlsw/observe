@@ -106,6 +106,8 @@ object Event {
     EventSystem[F, S, U](Executed(id))
   def executing[F[_], S, U](id: Observation.Id): Event[F, S, U]                        =
     EventSystem[F, S, U](Executing(id))
+  def stepComplete[F[_], S, U](id: Observation.Id): Event[F, S, U]                     =
+    EventSystem[F, S, U](StepComplete(id))
   def finished[F[_], S, U](id: Observation.Id): Event[F, S, U] = EventSystem[F, S, U](Finished(id))
   def nullEvent[F[_], S, U]: Event[F, S, U]                                         = EventSystem[F, S, U](Null)
   def singleRunCompleted[F[_], R <: Result.RetVal, S, U](
