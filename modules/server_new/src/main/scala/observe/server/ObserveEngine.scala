@@ -881,8 +881,11 @@ object ObserveEngine {
             Stream.eval(notifyODB(x).attempt)
           .flatMap:
             case Right((ev, qState)) => toClientEvent[F](ev, qState, systems.odb)
-            // case Left(x)             => Stream.eval(Logger[F].error(x)("Error notifying the ODB").as(NullEvent))
-            case Left(_)             => Stream.empty
+            case Left(e)             =>
+              Stream.eval:
+                LogMessage
+                  .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
+                  .map(LogEvent(_))
 
     override def stream(
       s0: EngineState[F]
@@ -900,8 +903,9 @@ object ObserveEngine {
         .offer(Event.modifyState[F, EngineState[F], SeqEvent](setObsCmd(obsId, StopGracefully)))
         .whenA(graceful) *>
       executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](obsId,
-                                                      translator.stopObserve(obsId, graceful)
+        Event.actionStop[F, EngineState[F], SeqEvent](
+          obsId,
+          translator.stopObserve(obsId, graceful)
         )
       )
 
@@ -926,8 +930,9 @@ object ObserveEngine {
         )
         .whenA(graceful) *>
       executeEngine.offer(
-        Event.actionStop[F, EngineState[F], SeqEvent](obsId,
-                                                      translator.pauseObserve(obsId, graceful)
+        Event.actionStop[F, EngineState[F], SeqEvent](
+          obsId,
+          translator.pauseObserve(obsId, graceful)
         )
       )
 
@@ -1251,7 +1256,7 @@ object ObserveEngine {
     private def engineEventsHook
       : PartialFunction[SystemEvent,
                         Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit]
-      ] = { case SystemEvent.Finished(sid) =>
+      ] = { case SystemEvent.SequenceComplete(sid) =>
       executeEngine.liftF[Unit](systems.odb.sequenceEnd(sid).void)
     }
 //    {
@@ -1660,10 +1665,10 @@ object ObserveEngine {
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
     v match
-      case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid) =>
+      case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid)                   =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
       // case RequestConfirmation(m, cid)        => Stream.emit(UserPromptNotification(m, cid))
-      case StartSysConfig(oid, stepId, res)                                 =>
+      case StartSysConfig(oid, stepId, res)                                                   =>
         Stream.emit[F, TargetedClientEvent](
           SingleActionEvent(oid, stepId, res, ClientEvent.SingleActionState.Started, none)
         ) ++ buildObserveStateStream(svs, odbProxy)
@@ -1671,12 +1676,14 @@ object ObserveEngine {
       // case ResourceBusy(oid, sid, res, cid)   =>
       //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
       // case NoMoreAtoms(_)                     => Stream.empty
-      case NewAtomLoaded(obsId, sequenceType, atomId)                       =>
+      case NewAtomLoaded(obsId, sequenceType, atomId)                                         =>
         Stream.emit[F, TargetedClientEvent](ClientEvent.AtomLoaded(obsId, sequenceType, atomId)) ++
           buildObserveStateStream(svs, odbProxy)
-      case e if e.isModelUpdate                                             =>
+      case AtomCompleted(obsId, sequenceType, _) if sequenceType === SequenceType.Acquisition =>
+        Stream.emit[F, TargetedClientEvent](ClientEvent.AcquisitionPromptReached(obsId))
+      case e if e.isModelUpdate                                                               =>
         buildObserveStateStream(svs, odbProxy)
-      case _                                                                => Stream.empty
+      case _                                                                                  => Stream.empty
 
   private def executionQueueViews[F[_]](
     st: EngineState[F]
@@ -1807,17 +1814,30 @@ object ObserveEngine {
                 ClientEvent.SingleActionState.Completed
               ).toList
             ) ++ buildObserveStateStream(svs, odbProxy)
-          case SystemEvent.SingleRunFailed(c, r)                                   =>
+          case SystemEvent.SingleRunFailed(c, Result.Error(msg))                   =>
             Stream.emits(
               singleActionClientEvent(
                 c,
                 qState,
                 ClientEvent.SingleActionState.Failed,
-                r.msg.some
+                msg.some
               ).toList
-            ) ++ buildObserveStateStream(svs, odbProxy)
+            ) ++
+              Stream.emit(SequenceFailed(c.obsId, msg): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
           case SystemEvent.StepComplete(obsId)                                     =>
             Stream.emit(StepComplete(obsId): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
+          case SystemEvent.SequencePaused(obsId)                                   =>
+            Stream.emit(SequencePaused(obsId): TargetedClientEvent)
+          case SystemEvent.BreakpointReached(obsId)                                =>
+            Stream.emit(BreakpointReached(obsId): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
+          case SystemEvent.SequenceComplete(obsId)                                 =>
+            Stream.emit(SequenceComplete(obsId): TargetedClientEvent) ++
+              buildObserveStateStream(svs, odbProxy)
+          case SystemEvent.Failed(obsId, _, Result.Error(msg))                     =>
+            Stream.emit(SequenceFailed(obsId, msg): TargetedClientEvent) ++
               buildObserveStateStream(svs, odbProxy)
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)
@@ -1831,9 +1851,9 @@ object ObserveEngine {
     errorMsg:     Option[String] = none
   ): Option[TargetedClientEvent] =
     qState.sequences
-      .get(c.sid)
+      .get(c.obsId)
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
-      .map(res => SingleActionEvent(c.sid, c.actCoords.stepId, res, clientAction, errorMsg))
+      .map(res => SingleActionEvent(c.obsId, c.actCoords.stepId, res, clientAction, errorMsg))
 
   private def onAtomComplete[F[_]: Monad](
     odb:           OdbProxy[F],
@@ -1853,11 +1873,13 @@ object ObserveEngine {
             (seq.seqGen.nextAtom.sequenceType match {
               case SequenceType.Acquisition =>
                 Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
-                  SeqEvent.AtomCompleted(obsId,
-                                         SequenceType.Acquisition,
-                                         seq.seqGen.nextAtom.atomId
+                  SeqEvent.AtomCompleted(
+                    obsId,
+                    SequenceType.Acquisition,
+                    seq.seqGen.nextAtom.atomId
                   )
-                )
+                ) // *> executeEngine.offer(acquisitionPromptReached(obsId))
+              // send(acquisitionPromptReached(id))
               case SequenceType.Science     =>
                 tryNewAtom[F](odb, translator, executeEngine, obsId, SequenceType.Science)
                   .as(

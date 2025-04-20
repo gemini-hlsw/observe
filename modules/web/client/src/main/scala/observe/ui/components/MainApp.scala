@@ -260,7 +260,7 @@ object MainApp extends ServerEventHandler:
                         )
                       .to[IO] >>
                       LogMessage
-                        .now(ObserveLogLevel.Error, t.getMessage)
+                        .now[IO](ObserveLogLevel.Error, t.getMessage)
                         .flatMap: logMsg =>
                           rootModelData.async
                             .zoom(RootModelData.globalLog)

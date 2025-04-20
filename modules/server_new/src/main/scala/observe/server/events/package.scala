@@ -62,7 +62,7 @@ extension (e: SystemEvent)
       case SystemEvent.Failed(id, _, _)           => true
       case SystemEvent.Executed(_)                => true
       case SystemEvent.Executing(_)               => true
-      case SystemEvent.Finished(_)                => true
+      case SystemEvent.SequenceComplete(_)        => true
       case SystemEvent.Paused(id, _, _)           => true
       case SystemEvent.BreakpointReached(id)      => true
       case _                                      => false
