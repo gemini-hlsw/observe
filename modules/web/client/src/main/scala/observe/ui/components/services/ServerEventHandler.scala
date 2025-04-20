@@ -43,6 +43,7 @@ import observe.ui.model.RootModelData
 import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
+import observe.ui.utils.Audio
 import org.typelevel.log4cats.Logger
 
 trait ServerEventHandler:
@@ -191,6 +192,8 @@ trait ServerEventHandler:
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
+      case ClientEvent.StepComplete(_)                                                    =>
+        Audio.StepBeep.play
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some))
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>

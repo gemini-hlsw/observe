@@ -18,6 +18,4 @@ class ClientEventSuite extends munit.DisciplineSuite:
   checkAll("Eq[InitialEvent]", EqTests[ClientEvent.InitialEvent].eqv)
   checkAll("Eq[ObserveState]", EqTests[ClientEvent.ObserveState].eqv)
   checkAll("Eq[ClientEvent]", EqTests[ClientEvent].eqv)
-  checkAll("Codec[InitialEvent]", CodecTests[ClientEvent.InitialEvent].unserializableCodec)
-  checkAll("Codec[ObserveState]", CodecTests[ClientEvent.ObserveState].unserializableCodec)
   checkAll("Codec[ClientEvent]", CodecTests[ClientEvent].unserializableCodec)

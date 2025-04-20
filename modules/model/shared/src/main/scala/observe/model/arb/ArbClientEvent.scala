@@ -73,6 +73,12 @@ trait ArbClientEvent:
       )
     )
 
+  given Arbitrary[ClientEvent.StepComplete] = Arbitrary:
+    arbitrary[Observation.Id].map(ClientEvent.StepComplete(_))
+
+  given Cogen[ClientEvent.StepComplete] =
+    Cogen[Observation.Id].contramap(_.obsId)
+
   given Cogen[ClientEvent.ObserveState] =
     Cogen[(List[(Observation.Id, ExecutionState)], Conditions, ObsRecordedIds)].contramap(x =>
       (x.sequenceExecution.toList, x.conditions, x.currentRecordedIds)
@@ -136,6 +142,7 @@ trait ArbClientEvent:
     Gen.oneOf(
       arbitrary[ClientEvent.InitialEvent],
       arbitrary[ClientEvent.ObserveState],
+      arbitrary[ClientEvent.StepComplete],
       arbitrary[ClientEvent.SingleActionEvent],
       arbitrary[ClientEvent.ChecksOverrideEvent],
       arbitrary[ClientEvent.ProgressEvent],
@@ -152,16 +159,19 @@ trait ArbClientEvent:
         Either[
           ClientEvent.ObserveState,
           Either[
-            ClientEvent.SingleActionEvent,
+            ClientEvent.StepComplete,
             Either[
-              ClientEvent.ChecksOverrideEvent,
+              ClientEvent.SingleActionEvent,
               Either[
-                ClientEvent.ProgressEvent,
+                ClientEvent.ChecksOverrideEvent,
                 Either[
-                  ClientEvent.AtomLoaded,
+                  ClientEvent.ProgressEvent,
                   Either[
-                    ClientEvent.UserNotification,
-                    ClientEvent.LogEvent
+                    ClientEvent.AtomLoaded,
+                    Either[
+                      ClientEvent.UserNotification,
+                      ClientEvent.LogEvent
+                    ]
                   ]
                 ]
               ]
@@ -173,13 +183,16 @@ trait ArbClientEvent:
       case ClientEvent.BaDum                                => Left(())
       case e @ ClientEvent.InitialEvent(_)                  => Right(Left(e))
       case e @ ClientEvent.ObserveState(_, _, _, _)         => Right(Right(Left(e)))
-      case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Left(e))))
-      case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Left(e)))))
-      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Left(e))))))
-      case e @ ClientEvent.AtomLoaded(_, _, _)              => Right(Right(Right(Right(Right(Right(Left(e)))))))
-      case e @ ClientEvent.UserNotification(_)              =>
+      case e @ ClientEvent.StepComplete(_)                  => Right(Right(Right(Left(e))))
+      case e @ ClientEvent.SingleActionEvent(_, _, _, _, _) => Right(Right(Right(Right(Left(e)))))
+      case e @ ClientEvent.ChecksOverrideEvent(_)           => Right(Right(Right(Right(Right(Left(e))))))
+      case e @ ClientEvent.ProgressEvent(_)                 => Right(Right(Right(Right(Right(Right(Left(e)))))))
+      case e @ ClientEvent.AtomLoaded(_, _, _)              =>
         Right(Right(Right(Right(Right(Right(Right(Left(e))))))))
-      case e @ ClientEvent.LogEvent(_)                      => Right(Right(Right(Right(Right(Right(Right(Right(e))))))))
+      case e @ ClientEvent.UserNotification(_)              =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Left(e)))))))))
+      case e @ ClientEvent.LogEvent(_)                      =>
+        Right(Right(Right(Right(Right(Right(Right(Right(Right(e)))))))))
 
 end ArbClientEvent
 
