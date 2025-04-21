@@ -793,6 +793,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     svs:      => SequencesQueue[SequenceView],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
+    println(s"******** $v")
+
     v match
       case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid)                   =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
@@ -1495,23 +1497,28 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       clientId: ClientId
     )
 
+  // Reloads the current atom if the observation is edited in ODB, only if the sequence is not running.
+  // We want this to reload regenerated steps if the QA of their recent execution does not pass.
+  // If the sequence is running, this signal is ignored and the atom will be reloaded at the end of current step anyway.
   private def processObsEditOdbSignal(obsId: Observation.Id): F[Unit] =
-    executeEngine
-      .offer:
-        Event.modifyState:
-          executeEngine.get
-            .map(EngineState.atSequence(obsId).getOption(_))
-            .flatMap: seq =>
-              if seq.exists(x => !x.seq.status.isRunning) then
-                ObserveEngine.onAtomReload[F](systems.odb, translator)(
-                  executeEngine,
-                  obsId,
-                  OnAtomReloadAction.NoAction
-                )
-              else
-                Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent]:
-                  NullSeqEvent
+    Logger[F].debug(s"Observation [$obsId] was edited in ODB") >>
+      executeEngine
+        .offer:
+          Event.modifyState:
+            executeEngine.get
+              .map(EngineState.atSequence(obsId).getOption(_))
+              .flatMap: seq =>
+                if seq.exists(x => !x.seq.status.isRunning) then
+                  ObserveEngine.onAtomReload[F](systems.odb, translator)(
+                    executeEngine,
+                    obsId,
+                    OnAtomReloadAction.NoAction
+                  )
+                else
+                  Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent]:
+                    NullSeqEvent
 
+  // Subscribes to obsEdit changes in the ODB.
   private def mountOdbObsSubscription(obsId: Observation.Id): F[F[Unit]] =
     systems.odb
       .obsEditSubscription(obsId)

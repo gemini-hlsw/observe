@@ -433,8 +433,7 @@ object ObserveEngine {
                     SequenceType.Acquisition,
                     seq.seqGen.nextAtom.atomId
                   )
-                ) // *> executeEngine.offer(acquisitionPromptReached(obsId))
-              // send(acquisitionPromptReached(id))
+                )
               case SequenceType.Science     =>
                 tryNewAtom[F](odb, translator, executeEngine, obsId, SequenceType.Science)
                   .as(
@@ -518,7 +517,7 @@ object ObserveEngine {
         }
       )
 
-  def onAtomReload[F[_]: Monad](
+  def onAtomReload[F[_]: Monad: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -545,7 +544,7 @@ object ObserveEngine {
         )
       }
 
-  private def tryAtomReload[F[_]: Monad](
+  private def tryAtomReload[F[_]: Monad: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F, EngineState[F], SeqEvent],
@@ -555,29 +554,27 @@ object ObserveEngine {
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit] =
     Handle
       .fromStream[F, EngineState[F], Event[F, EngineState[F], SeqEvent]](Stream.eval {
-        odb.read(obsId).map { x =>
-          // Read the next atom from the odb and replaces the current atom
-          translator
-            .nextAtom(x, atomType)
-            ._2
-            .map { atm =>
-              Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                  val state = updateAtom(obsId, atm)(st)
-                  (state, ())
-                }.toHandle
-                  .flatMap(_ =>
-                    if onAtomReload == OnAtomReloadAction.StartNewAtom then
-                      executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
-                    else // if !sequenceState.isRunning then // If seq is running we can't update
-                      Handle.pure:
-                        SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
-                    // else
-                    //   Handle.pure:
-                    //     SeqEvent.NullSeqEvent
-                  )
-              )
-            }
-            .getOrElse(Event.nullEvent)
-        }
+        Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
+          odb.read(obsId).map { x =>
+            // Read the next atom from the odb and replaces the current atom
+            translator
+              .nextAtom(x, atomType)
+              ._2
+              .map { atm =>
+                Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+                    val state = updateAtom(obsId, atm)(st)
+                    (state, ())
+                  }.toHandle
+                    .flatMap(_ =>
+                      if onAtomReload == OnAtomReloadAction.StartNewAtom then
+                        executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
+                      else
+                        Handle.pure:
+                          SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+                    )
+                )
+              }
+              .getOrElse(Event.nullEvent)
+          }
       })
 }

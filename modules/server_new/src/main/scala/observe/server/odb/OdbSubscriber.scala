@@ -8,8 +8,8 @@ import cats.syntax.all.*
 import clue.StreamingClient
 import lucuma.core.model.Observation
 import lucuma.schemas.ObservationDB
-import observe.common.ObsQueriesGQL
 import lucuma.schemas.odb.input.*
+import observe.common.ObsQueriesGQL
 
 case class OdbSubscriber[F[_]]()(using client: StreamingClient[F, ObservationDB]):
   def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]] =
