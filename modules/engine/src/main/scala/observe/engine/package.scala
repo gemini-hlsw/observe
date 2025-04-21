@@ -28,3 +28,6 @@ extension [F[_]](v: List[Action[F]]) {
   def prepend(ac: List[ParallelActions[F]]): List[ParallelActions[F]] =
     NonEmptyList.fromList(v).foldRight(ac)(_ :: _)
 }
+
+enum OnAtomReloadAction:
+  case NoAction, StartNewAtom
