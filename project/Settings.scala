@@ -93,16 +93,14 @@ object Settings {
     val CatsEffect =
       Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
     val Fs2        = Def.setting("co.fs2" %%% "fs2-core" % LibraryVersions.fs2Version)
-    val Fs2IO      = "co.fs2" %% "fs2-io" % LibraryVersions.fs2Version % "test"
+    val Fs2IO      = "co.fs2"               %% "fs2-io"       % LibraryVersions.fs2Version % "test"
     val Mouse      = Def.setting("org.typelevel" %%% "mouse" % LibraryVersions.mouseVersion)
-    val UnboundId  =
-      "com.unboundid" % "unboundid-ldapsdk-minimal-edition" % LibraryVersions.unboundId
-    val JwtCore   = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
-    val JwtCirce  = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
-    val Slf4j     = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
-    val JuliSlf4j = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
-    val NopSlf4j  = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
-    val CatsTime  = Def.setting(
+    val JwtCore    = "com.github.jwt-scala" %% "jwt-core"     % LibraryVersions.jwt
+    val JwtCirce   = "com.github.jwt-scala" %% "jwt-circe"    % LibraryVersions.jwt
+    val Slf4j      = "org.slf4j"             % "slf4j-api"    % LibraryVersions.slf4j
+    val JuliSlf4j  = "org.slf4j"             % "jul-to-slf4j" % LibraryVersions.slf4j
+    val NopSlf4j   = "org.slf4j"             % "slf4j-nop"    % LibraryVersions.slf4j
+    val CatsTime   = Def.setting(
       "org.typelevel" %%% "cats-time-testkit" % LibraryVersions.catsTime % Test
     )
 

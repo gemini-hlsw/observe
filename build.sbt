@@ -181,7 +181,6 @@ lazy val observe_web_server = project
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
-      UnboundId,
       LucumaSSO.value,
       JwtCore,
       JwtCirce,
