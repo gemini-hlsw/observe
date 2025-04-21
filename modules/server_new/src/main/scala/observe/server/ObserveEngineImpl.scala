@@ -547,9 +547,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                     .fold(
                       Logger[F].warn(s"Loaded observation $obsId$author"),
                       Logger[F]
-                        .warn(
+                        .warn:
                           s"Loaded observation $obsId with warnings: ${errs.mkString}$author"
-                        )
                     )
                     .as(
                       Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
@@ -558,51 +557,17 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                           st.sequencesByInstrument
                             .get(seq.instrument)
                             .foldMap(_.cleanup) >> // End background obsEdit subscription
-                            systems.odb
-                              .obsEditSubscription(obsId)
-                              .flatMap: obsEditSignal =>
-                                obsEditSignal
-                                  .evalMap { _ =>
-                                    executeEngine
-                                      .offer {
-                                        Event.modifyState(
-                                          executeEngine.get
-                                            .map(EngineState.atSequence(obsId).getOption(_))
-                                            .flatMap { seq =>
-                                              if seq.exists(x => !x.seq.status.isRunning) then
-                                                ObserveEngine.onAtomReload[F](
-                                                  systems.odb,
-                                                  translator
-                                                )(
-                                                  executeEngine,
-                                                  obsId,
-                                                  OnAtomReloadAction.NoAction
-                                                )
-                                              else
-                                                Handle.pure[F,
-                                                            EngineState[F],
-                                                            Event[F, EngineState[F], SeqEvent],
-                                                            SeqEvent
-                                                ](NullSeqEvent)
-                                            }
-                                        )
-                                      }
-                                  }
-                                  .compile
-                                  .drain
-                                  .background
-                                  .void
-                              .allocated
-                              .map { (_, cleanup) =>
-                                (st.sequences
-                                   .get(obsId)
-                                   .fold(
-                                     ODBSequencesLoader
-                                       .loadSequenceEndo(observer.some, seq, l, cleanup)
-                                   )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                                 LoadSequence(obsId)
-                                )
-                              }
+                            // Start new obsEdit subscription
+                            mountOdbObsSubscription(obsId).map { cleanup =>
+                              (st.sequences
+                                 .get(obsId)
+                                 .fold(
+                                   ODBSequencesLoader
+                                     .loadSequenceEndo(observer.some, seq, l, cleanup)
+                                 )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                               LoadSequence(obsId)
+                              )
+                            }
                         } else {
                           (
                             st,
@@ -1520,13 +1485,44 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit] =
-    toggleOverride("DHS",
-                   (enabled, x) => if (enabled.value) x.enableDhs else x.disableDhs,
-                   SetDhsEnabled(obsId, user.some, enabled),
-                   obsId,
-                   user,
-                   enabled,
-                   clientId: ClientId
+    toggleOverride(
+      "DHS",
+      (enabled, x) => if (enabled.value) x.enableDhs else x.disableDhs,
+      SetDhsEnabled(obsId, user.some, enabled),
+      obsId,
+      user,
+      enabled,
+      clientId: ClientId
     )
+
+  private def processObsEditOdbSignal(obsId: Observation.Id): F[Unit] =
+    executeEngine
+      .offer:
+        Event.modifyState:
+          executeEngine.get
+            .map(EngineState.atSequence(obsId).getOption(_))
+            .flatMap: seq =>
+              if seq.exists(x => !x.seq.status.isRunning) then
+                ObserveEngine.onAtomReload[F](systems.odb, translator)(
+                  executeEngine,
+                  obsId,
+                  OnAtomReloadAction.NoAction
+                )
+              else
+                Handle.pure[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent]:
+                  NullSeqEvent
+
+  private def mountOdbObsSubscription(obsId: Observation.Id): F[F[Unit]] =
+    systems.odb
+      .obsEditSubscription(obsId)
+      .flatMap: obsEditSignal =>
+        obsEditSignal
+          .evalMap(_ => processObsEditOdbSignal(obsId))
+          .compile
+          .drain
+          .background
+          .void
+      .allocated
+      .map(_._2)
 
 }
