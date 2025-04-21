@@ -6,6 +6,7 @@ package observe.server
 import cats.Applicative
 import cats.Endo
 import cats.Functor
+import cats.Monoid
 import cats.MonoidK
 import cats.data.NonEmptyList
 import cats.effect.Async
@@ -64,13 +65,14 @@ import scala.concurrent.duration.*
 import SeqEvent.*
 import ClientEvent.*
 
-class ObserveEngineImpl[F[_]: Async: Logger](
+private class ObserveEngineImpl[F[_]: Async: Logger](
   executeEngine:                    Engine[F, EngineState[F], SeqEvent],
   override val systems:             Systems[F],
   @annotation.unused settings:      ObserveEngineConfiguration,
   translator:                       SeqTranslate[F],
   @annotation.unused conditionsRef: Ref[F, Conditions]
-) extends ObserveEngine[F] {
+)(using Monoid[F[Unit]])
+    extends ObserveEngine[F] {
 
   /**
    * Check if the resources to run a sequence are available
@@ -497,6 +499,7 @@ class ObserveEngineImpl[F[_]: Async: Logger](
     val author = s", by '${user.displayName}' on client ${clientId.value}."
     executeEngine.inject(
       // We want the acquisition sequence to reset whenever we load the observation.
+      // TODO The next 2 could be done in parallel.
       systems.odb.resetAcquisition(obsId) >>
         systems.odb
           .read(obsId)
@@ -550,34 +553,73 @@ class ObserveEngineImpl[F[_]: Async: Logger](
                     )
                     .as(
                       Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
-                        val l = EngineState
-                          .instrumentLoaded[F](seq.instrument)
+                        val l = EngineState.instrumentLoaded[F](seq.instrument)
                         if (l.get(st).forall(s => executeEngine.canUnload(s.seq))) {
-                          (
-                            st.sequences
-                              .get(obsId)
-                              .fold(
-                                ODBSequencesLoader
-                                  .loadSequenceEndo(observer.some, seq, l)
-                              )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
-                            LoadSequence(obsId)
-                          )
+                          st.sequencesByInstrument
+                            .get(seq.instrument)
+                            .foldMap(_.cleanup) >> // End background obsEdit subscription
+                            systems.odb
+                              .obsEditSubscription(obsId)
+                              .flatMap: obsEditSignal =>
+                                obsEditSignal
+                                  .evalMap { _ =>
+                                    executeEngine
+                                      .offer {
+                                        Event.modifyState(
+                                          executeEngine.get
+                                            .map(EngineState.atSequence(obsId).getOption(_))
+                                            .flatMap { seq =>
+                                              if seq.exists(x => !x.seq.status.isRunning) then
+                                                ObserveEngine.onAtomReload[F](
+                                                  systems.odb,
+                                                  translator
+                                                )(
+                                                  executeEngine,
+                                                  obsId,
+                                                  OnAtomReloadAction.NoAction
+                                                )
+                                              else
+                                                Handle.pure[F,
+                                                            EngineState[F],
+                                                            Event[F, EngineState[F], SeqEvent],
+                                                            SeqEvent
+                                                ](NullSeqEvent)
+                                            }
+                                        )
+                                      }
+                                  }
+                                  .compile
+                                  .drain
+                                  .background
+                                  .void
+                              .allocated
+                              .map { (_, cleanup) =>
+                                (st.sequences
+                                   .get(obsId)
+                                   .fold(
+                                     ODBSequencesLoader
+                                       .loadSequenceEndo(observer.some, seq, l, cleanup)
+                                   )(_ => ODBSequencesLoader.reloadSequenceEndo(seq, l))(st),
+                                 LoadSequence(obsId)
+                                )
+                              }
                         } else {
                           (
                             st,
-                            SeqEvent.NotifyUser(
-                              Notification.LoadingFailed(
-                                obsId,
-                                List(
-                                  s"Error loading observation $obsId",
-                                  s"A sequence is running on instrument ${seq.instrument}"
-                                )
-                              ),
-                              clientId
-                            )
-                          )
+                            SeqEvent
+                              .NotifyUser(
+                                Notification.LoadingFailed(
+                                  obsId,
+                                  List(
+                                    s"Error loading observation $obsId",
+                                    s"A sequence is running on instrument ${seq.instrument}"
+                                  )
+                                ),
+                                clientId
+                              ): SeqEvent
+                          ).pure[F]
                         }
-                      }.toHandle)
+                      }.toHandleF)
                     )
               }
             )
@@ -698,14 +740,14 @@ class ObserveEngineImpl[F[_]: Async: Logger](
       .flatMap(_.seqGen.resourceAtCoords(c.actCoords))
       .map(res => SingleActionEvent(c.obsId, c.actCoords.stepId, res, clientAction, errorMsg))
 
-  private def splitWhere[A](l: List[A])(p: A => Boolean): (List[A], List[A]) =
-    l.splitAt(l.indexWhere(p))
-
   private def viewSequence[F[_]](obsSeq: SequenceData[F]): SequenceView = {
     val st         = obsSeq.seq
     val seq        = st.toSequence
     val instrument = obsSeq.seqGen.instrument
     val seqType    = obsSeq.seqGen.nextAtom.sequenceType
+
+    def splitWhere[A](l: List[A])(p: A => Boolean): (List[A], List[A]) =
+      l.splitAt(l.indexWhere(p))
 
     def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
       case s: SequenceGen.PendingStepGen[F] => s.resources.toList
