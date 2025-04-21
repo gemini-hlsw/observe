@@ -36,7 +36,7 @@ object Settings {
     val janino              = "3.1.12"
     val pureConfig          = "0.17.8"
     val monocleVersion      = "3.3.0"
-    val circeVersion        = "0.14.12"
+    val circeVersion        = "0.14.13"
     val circeRefinedVersion = "0.15.1"
 
     // test libraries
