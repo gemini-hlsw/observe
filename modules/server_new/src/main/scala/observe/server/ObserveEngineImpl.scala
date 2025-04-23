@@ -793,8 +793,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     svs:      => SequencesQueue[SequenceView],
     odbProxy: OdbProxy[F]
   ): Stream[F, TargetedClientEvent] =
-    println(s"******** $v")
-
     v match
       case RequestConfirmation(c @ UserPrompt.ChecksOverride(_, _, _), cid)                   =>
         Stream.emit(ClientEvent.ChecksOverrideEvent(c).forClient(cid))
