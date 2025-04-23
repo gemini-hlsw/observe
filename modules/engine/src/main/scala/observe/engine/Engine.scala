@@ -31,7 +31,11 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   streamQueue: Queue[F, Stream[F, Event[F, S, U]]],
   inputQueue:  Queue[F, Event[F, S, U]],
   atomLoad:    (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
-  atomReload:  (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+  atomReload:  (
+    Engine[F, S, U],
+    Observation.Id,
+    OnAtomReloadAction
+  ) => Handle[F, S, Event[F, S, U], U]
 ) {
   val L: Logger[F] = Logger[F]
 
@@ -62,7 +66,7 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
             )(
               seq.rollback
             )
-          ) *> send(modifyState(atomReload(this, id)))
+          ) *> send(modifyState(atomReload(this, id, OnAtomReloadAction.StartNewAtom)))
         }.whenA(seq.status.isIdle || seq.status.isError)
       case None      => unit
     }
@@ -177,7 +181,8 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
                            waitingNextAtom = true,
                            starting = false
                          )
-                       ) *> send(modifyState(atomReload(this, id))) *> send(stepComplete(id))
+                       ) *> send(modifyState(atomReload(this, id, OnAtomReloadAction.StartNewAtom)))
+                         *> send(stepComplete(id))
                      }
                    } else send(executing(id)))
             }
@@ -577,7 +582,11 @@ object Engine {
   def build[F[_]: Concurrent: Logger, S, U](
     stateL:         State[F, S],
     loadNextAtom:   (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U],
-    reloadNextAtom: (Engine[F, S, U], Observation.Id) => Handle[F, S, Event[F, S, U], U]
+    reloadNextAtom: (
+      Engine[F, S, U],
+      Observation.Id,
+      OnAtomReloadAction
+    ) => Handle[F, S, Event[F, S, U], U]
   ): F[Engine[F, S, U]] = for {
     sq <- Queue.unbounded[F, Stream[F, Event[F, S, U]]]
     iq <- Queue.unbounded[F, Event[F, S, U]]

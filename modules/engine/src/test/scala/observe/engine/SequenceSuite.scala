@@ -36,7 +36,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
   private val executionEngine = Engine.build[IO, TestState, Unit](
     TestState,
     (eng, obsId) => eng.startNewAtom(obsId),
-    (eng, obsId) => eng.startNewAtom(obsId)
+    (eng, obsId, _) => eng.startNewAtom(obsId)
   )
 
   def simpleStep(id: Step.Id, breakpoint: Breakpoint): EngineStep[IO] =

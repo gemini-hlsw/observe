@@ -18,7 +18,6 @@ import observe.model.CalibrationQueueName
 import observe.model.Conditions
 import observe.model.Observation
 import observe.model.Operator
-import observe.model.QueueId
 
 case class EngineState[F[_]](
   queues:     ExecutionQueues,
@@ -29,6 +28,11 @@ case class EngineState[F[_]](
   lazy val sequences: Map[Observation.Id, SequenceData[F]] =
     List(selected.gmosNorth, selected.gmosSouth).flattenOption
       .map(x => x.seqGen.obsData.id -> x)
+      .toMap
+
+  lazy val sequencesByInstrument: Map[Instrument, SequenceData[F]] =
+    List(selected.gmosNorth, selected.gmosSouth).flattenOption
+      .map(x => x.seqGen.instrument -> x)
       .toMap
 }
 

@@ -102,7 +102,8 @@ object ODBSequencesLoader {
   private[server] def loadSequenceEndo[F[_]](
     observer: Option[Observer],
     seqg:     SequenceGen[F],
-    l:        Lens[EngineState[F], Option[SequenceData[F]]]
+    l:        Lens[EngineState[F], Option[SequenceData[F]]],
+    cleanup:  F[Unit]
   ): Endo[EngineState[F]] = st =>
     l.replace(
       SequenceData[F](
@@ -118,7 +119,8 @@ object ODBSequencesLoader {
             HeaderExtraData(st.conditions, st.operator, observer)
           )
         ),
-        none
+        none,
+        cleanup
       ).some
     )(st)
 
