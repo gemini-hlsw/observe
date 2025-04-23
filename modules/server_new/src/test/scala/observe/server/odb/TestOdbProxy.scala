@@ -292,7 +292,6 @@ object TestOdbProxy {
   case class StepAbort(obsId: Observation.Id)                                 extends OdbEvent
   case class StepStop(obsId: Observation.Id)                                  extends OdbEvent
   case class AtomEnd(obsId: Observation.Id)                                   extends OdbEvent
-  case class SequenceEnd(obsId: Observation.Id)                               extends OdbEvent
   case class ObsContinue(obsId: Observation.Id)                               extends OdbEvent
   case class ObsPause(obsId: Observation.Id, reason: String)                  extends OdbEvent
   case class ObsStop(obsId: Observation.Id, reason: String)                   extends OdbEvent
