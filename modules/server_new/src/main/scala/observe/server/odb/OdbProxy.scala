@@ -86,7 +86,6 @@ sealed trait OdbEventCommands[F[_]] {
   def stepAbort(obsId:           Observation.Id): F[Boolean]
   def stepStop(obsId:            Observation.Id): F[Boolean]
   def atomEnd(obsId:             Observation.Id): F[Boolean]
-  def sequenceEnd(obsId:         Observation.Id): F[Boolean]
   def obsContinue(obsId:         Observation.Id): F[Boolean]
   def obsPause(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:             Observation.Id, reason: String): F[Boolean]
@@ -170,9 +169,6 @@ object OdbProxy {
     def stepStop(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
     def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
-
-    override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-      false.pure[F]
 
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       false.pure[F]
@@ -407,12 +403,6 @@ object OdbProxy {
         _      <- L.debug("ODB event atomEnd sent")
       } yield true
 
-    override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-      for {
-        _ <- setCurrentVisitId(obsId, none)
-        _ <- L.debug(s"Skipped sending ODB event sequenceEnd for obsId: $obsId")
-      } yield true
-
     override def obsContinue(obsId: Observation.Id): F[Boolean] =
       for {
         _       <- L.debug(s"Send ODB event observationContinue for obsId: $obsId")
@@ -565,7 +555,6 @@ object OdbProxy {
       obsContinue,
       obsPause,
       obsStop,
-      sequenceEnd,
       sequenceStart,
       stepStop
     }

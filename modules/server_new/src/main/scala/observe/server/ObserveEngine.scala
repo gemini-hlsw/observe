@@ -448,24 +448,32 @@ object ObserveEngine {
   private def updateAtom[F[_]](obsId: Observation.Id, atm: AtomGen[F]) = (st: EngineState[F]) =>
     EngineState
       .atSequence[F](obsId)
-      .modify { seq =>
-        val sg: SequenceData[F] =
-          seq.focus(_.seqGen.nextAtom).replace(atm)
-        sg
+      .modify { (seqData: SequenceData[F]) =>
+        val newSeqData: SequenceData[F] = // Replace nextAtom
+          seqData.focus(_.seqGen.nextAtom).replace(atm)
+
+        newSeqData
           .focus(_.seq)
-          .modify(s =>
-            val ns = Sequence.State.init(
-              Sequence.sequence[F](
-                obsId,
-                atm.atomId,
-                toStepList(
-                  sg.seqGen,
-                  sg.overrides,
-                  HeaderExtraData(st.conditions, st.operator, sg.observer)
+          .modify(s => // Initialize the sequence state
+            val newState: Sequence.State[F] =
+              Sequence.State.init(
+                Sequence.sequence[F](
+                  obsId,
+                  atm.atomId,
+                  toStepList(
+                    newSeqData.seqGen,
+                    newSeqData.overrides,
+                    HeaderExtraData(st.conditions, st.operator, newSeqData.observer)
+                  )
                 )
               )
-            )
-            Sequence.State.status.replace(s.status)(ns)
+
+            // Revive sequence if it was completed
+            val newSeqState: SequenceState =
+              if s.status.isCompleted && atm.steps.nonEmpty then SequenceState.Idle
+              else s.status
+
+            Sequence.State.status.replace(newSeqState)(newState)
           )
       }(st)
 

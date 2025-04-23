@@ -40,6 +40,7 @@ case class SeqControlButtons(
   val isRunning: Boolean             = sequenceState.isRunning
   val isWaitingNextAtom: Boolean     = sequenceState.isWaitingUserPrompt
   val isRefreshing: Boolean          = props.refreshing.exists(_.get)
+  val isCompleted: Boolean           = sequenceState.isCompleted
 
 object SeqControlButtons
     extends ReactFnComponent[SeqControlButtons](props =>
@@ -71,7 +72,7 @@ object SeqControlButtons
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
-            disabled = props.isLoading || props.isRefreshing
+            disabled = props.isLoading || props.isRefreshing || props.isCompleted
           ).when(selectedObsIsLoaded && !props.isRunning),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,

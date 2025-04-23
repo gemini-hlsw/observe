@@ -247,9 +247,6 @@ object TestOdbProxy {
         override def atomEnd(obsId: Observation.Id): F[Boolean] =
           rf.update(_.completeCurrentAtom) *> addEvent(AtomEnd(obsId)).as(true)
 
-        override def sequenceEnd(obsId: Observation.Id): F[Boolean] =
-          addEvent(SequenceEnd(obsId)).as(true)
-
         override def obsContinue(obsId: Observation.Id): F[Boolean] =
           addEvent(ObsContinue(obsId)).as(true)
 
