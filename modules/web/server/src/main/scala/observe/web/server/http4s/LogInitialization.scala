@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package web.server.common
+package observe.web.server.http4s
 
 import cats.effect.Sync
 import org.slf4j.bridge.SLF4JBridgeHandler

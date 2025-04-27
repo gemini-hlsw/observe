@@ -26,7 +26,7 @@ case class TLSConfig(keyStore: Path, keyStorePwd: String, certPwd: String) deriv
 /**
  * Configuration for the web server side of the observe
  * @param host
- *   Host name to listen, typicall 0.0.0.0
+ *   Host name to listen, typically 0.0.0.0
  * @param port
  *   Port to listen for web requestes
  * @param insecurePort

@@ -156,16 +156,15 @@ jobs:
       - name: Login to Docker Hub
         run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login --username nlsoftware --password-stdin
 
-      - name: Build and Publish Docker image
-        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy/docker:publish'
-
-      - name: Deploy and release app in Heroku
+      - name: Login to Heroku
         run: |
           npm install -g heroku
           heroku container:login
-          docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
-          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web
+
+      - name: Build and Publish Docker image
+        run: sbt -v -J-Xmx6g '++ ${{ matrix.scala }}' deploy/dockerPublishAll
+
+      - name: Release apps in Heroku
+        run: |
           heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GN }} -v
-          docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web
-          docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web
           heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GS }} -v
