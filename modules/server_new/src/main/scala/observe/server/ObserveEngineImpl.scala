@@ -921,7 +921,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   override def stream(
     s0: EngineState[F]
   ): Stream[F, (EventResult[SeqEvent], EngineState[F])] =
-    executeEngine.process(engineEventsHook)(s0)
+    // TODO We are never using the process function. Consider removing the `process` method and just returning the stream.
+    executeEngine.process(PartialFunction.empty)(s0)
 
   override def stopObserve(
     obsId:    Observation.Id,
@@ -1284,12 +1285,12 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
 //        )
 //      )
 //
-  private def engineEventsHook
-    : PartialFunction[SystemEvent,
-                      Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit]
-    ] = { case SystemEvent.SequenceComplete(sid) =>
-    executeEngine.liftF[Unit](systems.odb.sequenceEnd(sid).void)
-  }
+  // private def engineEventsHook
+  //   : PartialFunction[SystemEvent,
+  //                     Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit]
+  //   ] = { case SystemEvent.SequenceComplete(sid) =>
+  //   executeEngine.liftF[Unit](systems.odb.sequenceEnd(sid).void)
+  // }
 //    {
 //      // Responds to events that could trigger the scheduling of the next sequence in the queue:
 //      case SystemEvent.Finished(sid) =>

@@ -1247,8 +1247,7 @@ class ObserveEngineSuite extends TestCommon {
       ) { case (b, _) =>
         assertAtom(b, SequenceType.Science, stepCount, stepCount)
       }
-      assertEquals(rest.length, 1)
-      assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
+      assertEquals(rest.length, 0)
     }
   }
 
@@ -1339,8 +1338,7 @@ class ObserveEngineSuite extends TestCommon {
       } { case (b, _) =>
         assertAtom(b, SequenceType.Science, stepCount, 2)
       }
-      assertEquals(rest.length, 1)
-      assertEquals(rest.take(1), List(TestOdbProxy.SequenceEnd(seqObsId1)))
+      assertEquals(rest.length, 0)
     }
   }
 
