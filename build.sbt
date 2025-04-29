@@ -471,12 +471,14 @@ lazy val deploy = project
   .dependsOn(observe_web_server)
   .settings(deployedAppSettings: _*)
   .settings(
-    description           := "Observe Server",
-    Docker / packageName  := "gpp-obs",
+    description            := "Observe Server",
+    Docker / packageName   := "gpp-obs",
+    Docker / daemonUserUid := Some("3624"),
+    Docker / daemonUser    := "software",
     dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
-    dockerUpdateLatest    := false,
-    dockerUsername        := Some("noirlab"),
-    dockerPublishLocalAll := Def.taskDyn {
+    dockerUpdateLatest     := false,
+    dockerUsername         := Some("noirlab"),
+    dockerPublishLocalAll  := Def.taskDyn {
       val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
       val versionStr      = (ThisBuild / version).value
       val baseDir         = (ThisProject / baseDirectory).value.toString
@@ -485,7 +487,7 @@ lazy val deploy = project
         dockerPublishAll(basePackageName, versionStr, baseDir, push = false)
       }
     }.value,
-    dockerPublishAll      := Def.taskDyn {
+    dockerPublishAll       := Def.taskDyn {
       val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
       val versionStr      = (ThisBuild / version).value
       val baseDir         = (ThisProject / baseDirectory).value.toString

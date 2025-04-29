@@ -2,10 +2,13 @@
 
 SCRIPTS_DIR=~/observe
 
-SITE=$(cat "$SCRIPTS_DIR/site")
+. $SCRIPTS_DIR/config.sh
 
 $SCRIPTS_DIR/stop.sh
 
-docker pull noirlab/gpp-obs-$SITE:latest
+IMAGE=noirlab/gpp-obs-$SITE:$VERSION
+
+echo "Pulling image [$IMAGE]..."
+docker pull $IMAGE
 
 $SCRIPTS_DIR/start.sh
