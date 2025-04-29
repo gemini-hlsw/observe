@@ -1,5 +1,2 @@
-Place this files on the servers and create a `site` file that contains one of the following:
-staging-gn
-staging-gs
-production-gn
-production-gs
+- Place these files on `~/observe` in each server.
+- Set the site tag in `config.sh`.

@@ -406,9 +406,11 @@ lazy val observeLinux = Seq(
   }
 )
 
+/** Deploy images for all sites to the local Docker * */
 lazy val dockerPublishLocalAll =
   taskKey[Int]("Build docker images for all sites and environments")
 
+/** Deploy images for all sites to their respective repositories * */
 lazy val dockerPublishAll =
   taskKey[Int]("Build and push docker images for all sites and environments")
 
