@@ -38,8 +38,6 @@ import org.http4s.server.middleware.Logger as Http4sLogger
 import org.http4s.server.websocket.WebSocketBuilder2
 import org.typelevel.log4cats.Logger
 import pureconfig.*
-import web.server.common.LogInitialization
-import web.server.common.RedirectToHttpsRoutes
 
 import java.io.FileInputStream
 import java.nio.file.Files as JavaFiles
@@ -55,18 +53,19 @@ object WebServerLauncher extends IOApp with LogInitialization {
   // Try to load configs for deployment and staging and fall back to the common one in the class path
   private def config[F[_]: Sync: Logger]: F[ConfigObjectSource] =
     for
-      confDir <- baseDir[F].map(_.resolve("conf"))
-      deploy   = confDir.resolve("local").resolve("app.conf")
-      staging  = confDir.resolve("app.conf")
-      _       <- Logger[F].info("Loading configuration:")
-      _       <- Logger[F].info(s" - $deploy (present: ${JavaFiles.exists(deploy)}), with fallback:")
-      _       <- Logger[F].info(s" - $staging (present: ${JavaFiles.exists(staging)}), with fallback:")
-      _       <- Logger[F].info(s" - <resources>/app.conf")
+      confDir    <- baseDir[F].map(_.resolve("conf"))
+      secretsConf = confDir.resolve("local").resolve("secrets.conf")
+      siteConf    = confDir.resolve("site.conf")
+      _          <- Logger[F].info("Loading configuration:")
+      _          <- Logger[F].info:
+                      s" - $secretsConf (present: ${JavaFiles.exists(secretsConf)}), with fallback:"
+      _          <- Logger[F].info(s" - $siteConf (present: ${JavaFiles.exists(siteConf)}), with fallback:")
+      _          <- Logger[F].info(s" - <resources>/base.conf")
     yield ConfigSource
-      .file(deploy)
+      .file(secretsConf)
       .optional
       .withFallback:
-        ConfigSource.file(staging).optional.withFallback(ConfigSource.resources("app.conf"))
+        ConfigSource.file(siteConf).optional.withFallback(ConfigSource.resources("base.conf"))
 
   private def makeContext[F[_]: Sync](tls: TLSConfig): F[SSLContext] = Sync[F].delay {
     val ksStream   = new FileInputStream(tls.keyStore.toFile.getAbsolutePath)

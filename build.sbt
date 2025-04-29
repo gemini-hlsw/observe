@@ -74,25 +74,28 @@ lazy val dockerHubLogin =
     name = Some("Login to Docker Hub")
   )
 
-lazy val sbtDockerPublish =
-  WorkflowStep.Sbt(
-    List("deploy/docker:publish"),
-    name = Some("Build and Publish Docker image")
-  )
-
-lazy val herokuDeployAndRelease =
+lazy val herokuLogin =
   WorkflowStep.Run(
     List(
       "npm install -g heroku",
-      "heroku container:login",
-      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
-      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GN }}/web",
+      "heroku container:login"
+    ),
+    name = Some("Login to Heroku")
+  )
+
+lazy val sbtDockerPublishAll =
+  WorkflowStep.Sbt(
+    List("deploy/dockerPublishAll"),
+    name = Some("Build and Publish Docker image")
+  )
+
+lazy val herokuRelease =
+  WorkflowStep.Run(
+    List(
       "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GN }} -v",
-      "docker tag noirlab/gpp-obs registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
-      "docker push registry.heroku.com/${{ secrets.HEROKU_APP_NAME_GS }}/web",
       "heroku container:release web -a ${{ secrets.HEROKU_APP_NAME_GS }} -v"
     ),
-    name = Some("Deploy and release app in Heroku")
+    name = Some("Release apps in Heroku")
   )
 
 ThisBuild / githubWorkflowAddedJobs +=
@@ -102,8 +105,9 @@ ThisBuild / githubWorkflowAddedJobs +=
     githubWorkflowJobSetup.value.toList :::
       setupNodeNpmInstall :::
       dockerHubLogin ::
-      sbtDockerPublish ::
-      herokuDeployAndRelease ::
+      herokuLogin ::
+      sbtDockerPublishAll ::
+      herokuRelease ::
       Nil,
     scalas = List(scalaVersion.value),
     javas = githubWorkflowJavaVersions.value.toList.take(1),
@@ -199,44 +203,8 @@ lazy val observe_web_server = project
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.web.server"
   )
-  .settings(
-    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith(".conf")) },
-    Compile / packageBin / mappings ~= { _.filter(!_._1.getName.endsWith("logback.xml")) }
-  )
   .dependsOn(observe_server)
   .dependsOn(observe_model.jvm % "compile->compile;test->test")
-
-/**
- * Mappings common to applications, including configuration and web application
- */
-lazy val deployedAppMappings = Seq(
-  Universal / mappings ++= {
-    val clientDir = (observe_web_client / build).value
-    directory(clientDir).flatMap(path =>
-      // Don't include environment confs, if present.
-      if (path._2.endsWith(".conf.json")) None
-      else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
-    )
-  },
-
-  // The only thing we include from the base deployment app is app.conf. We remove the "conf" path.
-  Compile / packageBin / mappings ~= {
-    _.filter(_._1.getName.endsWith(".conf")).map(mapping => mapping._1 -> mapping._1.getName)
-  }
-)
-
-// Mappings for a particular release.
-lazy val releaseAppMappings = Seq(
-  // Copy the resource directory, with customized configuration files, but first remove existing mappings.
-  Universal / mappings := { // maps =>
-    val resourceDir         = (Compile / resourceDirectory).value
-    val resourceDirMappings =
-      directory(resourceDir).map(path => path._1 -> path._1.relativeTo(resourceDir).get.getPath)
-    val resourceDirFiles    = resourceDirMappings.map(_._2)
-    (Universal / mappings).value.filterNot(map => resourceDirFiles.contains(map._2)) ++
-      resourceDirMappings
-  }
-)
 
 lazy val observe_ui_model = project
   .in(file("modules/web/client-model"))
@@ -369,9 +337,23 @@ lazy val observe_engine = project
   )
 
 /**
+ * Mappings common to applications, including configuration and web application
+ */
+lazy val deployedAppMappings = Seq(
+  Universal / mappings ++= {
+    val clientDir = (observe_web_client / build).value
+    directory(clientDir).flatMap(path =>
+      // Don't include environment confs, if present.
+      if (path._2.endsWith(".conf.json")) None
+      else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
+    )
+  }
+)
+
+/**
  * Common settings for the Observe instances
  */
-lazy val observeCommonSettings = Seq(
+lazy val deployedAppSettings = Seq(
   // Main class for launching
   Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
   // Name of the launch script
@@ -382,12 +364,8 @@ lazy val observeCommonSettings = Seq(
   makeBatScripts                  := Seq.empty,
   // Specify a different name for the config file
   bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
-  bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
-  // Copy logback.xml to let users customize it on site
-  Universal / mappings += {
-    val f = (observe_web_server / Compile / resourceDirectory).value / "logback.xml"
-    f -> ("conf/" + f.getName)
-  },
+  // TODO Find a way to allow overriding logback.xml with a local one outside the container.
+  // bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
   // Launch options
   Universal / javaOptions ++= Seq(
     // -J params will be added as jvm parameters
@@ -398,7 +376,7 @@ lazy val observeCommonSettings = Seq(
     "-J-Dcom.sun.management.jmxremote.authenticate=false",
     "-J-Dcom.sun.management.jmxremote.port=2407",
     "-J-Dcom.sun.management.jmxremote.ssl=false",
-    // Ensure the local is correctly set
+    // Ensure the locale is correctly set
     "-J-Duser.language=en",
     "-J-Duser.country=US",
     // Support remote debugging
@@ -411,7 +389,7 @@ lazy val observeCommonSettings = Seq(
     "-J-XX:HeapDumpPath=/tmp",
     "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
   )
-) ++ commonSettings
+) ++ deployedAppMappings ++ commonSettings
 
 /**
  * Settings for Observe in Linux
@@ -428,6 +406,61 @@ lazy val observeLinux = Seq(
   }
 )
 
+/** Deploy images for all sites to the local Docker * */
+lazy val dockerPublishLocalAll =
+  taskKey[Int]("Build docker images for all sites and environments")
+
+/** Deploy images for all sites to their respective repositories * */
+lazy val dockerPublishAll =
+  taskKey[Int]("Build and push docker images for all sites and environments")
+
+val herokuAppNameGn = sys.env.get("HEROKU_APP_NAME_GN").getOrElse("observe-dev-gn")
+val herokuAppNameGs = sys.env.get("HEROKU_APP_NAME_GS").getOrElse("observe-dev-gs")
+
+def dockerPublishAll(
+  basePackageName: String,
+  version:         String,
+  baseDirectory:   String,
+  push:            Boolean
+): Int = {
+  def publishDeployment(
+    deploymentId:        String,
+    packageNameOverride: Option[String],
+    createVersionTag:    Boolean
+  ): Int =
+    IO.withTemporaryFile(s"Dockerfile-$deploymentId-", "") { tmpFile =>
+      val dockerFile          = s"""
+        |FROM $basePackageName:$version
+        |COPY confs/$deploymentId/* conf/
+        |""".stripMargin
+      IO.write(tmpFile, dockerFile)
+      val packageName: String = packageNameOverride.getOrElse(s"$basePackageName-$deploymentId")
+      val tags: List[String]  = List("latest") ++ (if (createVersionTag) List(version) else Nil)
+      val tagsStr: String     = tags.map(t => s"-t $packageName:$t").mkString(" ")
+      val buildCmd            = s"docker build --platform linux/amd64 $baseDirectory $tagsStr -f ${tmpFile}"
+      val pushCmd             = s"docker push -a $packageName"
+
+      (buildCmd !) + (if (push) pushCmd ! else 0)
+    }
+
+  // If no name is specified (2nd element of the tuple), will use the default of base package name + deploymentId (1st element of the tuple).
+  val deployments: List[(String, Option[String])] =
+    List(
+      "heroku-gn"     -> Some(s"registry.heroku.com/${herokuAppNameGn}/web"),
+      "heroku-gs"     -> Some(s"registry.heroku.com/${herokuAppNameGs}/web"),
+      "staging-gn"    -> None,
+      "staging-gs"    -> None,
+      "production-gn" -> None,
+      "production-gs" -> None
+    )
+    // List("local" -> None) // For local testing
+
+  deployments.foldLeft(0) { case (accum, (id, packageNameOverride)) =>
+    // If no package name override, create a version tag.
+    accum + publishDeployment(id, packageNameOverride, packageNameOverride.isEmpty)
+  }
+}
+
 /**
  * Project for the observe server app for development
  */
@@ -438,13 +471,31 @@ lazy val deploy = project
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .dependsOn(observe_web_server)
-  .settings(observeCommonSettings: _*)
-  .settings(deployedAppMappings: _*)
-  .settings(releaseAppMappings: _*)
+  .settings(deployedAppSettings: _*)
   .settings(
-    description          := "Observe Server",
-    Docker / packageName := "gpp-obs",
+    description            := "Observe Server",
+    Docker / packageName   := "gpp-obs",
+    Docker / daemonUserUid := Some("3624"),
+    Docker / daemonUser    := "software",
     dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
-    dockerUpdateLatest   := true,
-    dockerUsername       := Some("noirlab")
+    dockerUpdateLatest     := false,
+    dockerUsername         := Some("noirlab"),
+    dockerPublishLocalAll  := Def.taskDyn {
+      val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
+      val versionStr      = (ThisBuild / version).value
+      val baseDir         = (ThisProject / baseDirectory).value.toString
+      Def.task {
+        val _ = (Docker / publishLocal).value
+        dockerPublishAll(basePackageName, versionStr, baseDir, push = false)
+      }
+    }.value,
+    dockerPublishAll       := Def.taskDyn {
+      val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
+      val versionStr      = (ThisBuild / version).value
+      val baseDir         = (ThisProject / baseDirectory).value.toString
+      Def.task {
+        val _ = (Docker / publish).value
+        dockerPublishAll(basePackageName, versionStr, baseDir, push = true)
+      }
+    }.value
   )
