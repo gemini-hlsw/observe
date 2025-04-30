@@ -1,4 +1,4 @@
-val sbtLucumaVersion = "0.12.10"
+val sbtLucumaVersion = "0.12.11"
 addSbtPlugin("edu.gemini" % "sbt-lucuma-app" % sbtLucumaVersion)
 addSbtPlugin("edu.gemini" % "sbt-lucuma-css" % sbtLucumaVersion)
 
@@ -13,6 +13,3 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 
 // Generate code for GraphQL queries
 addSbtPlugin("edu.gemini" % "sbt-clue" % "0.43.1")
-
-// TODO Remove this when we can upgrade in sbt-lucuma
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.19.0")
