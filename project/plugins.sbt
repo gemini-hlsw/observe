@@ -13,3 +13,6 @@ addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.11.1")
 
 // Generate code for GraphQL queries
 addSbtPlugin("edu.gemini" % "sbt-clue" % "0.43.1")
+
+// TODO Remove this when we can upgrade in sbt-lucuma
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.19.0")

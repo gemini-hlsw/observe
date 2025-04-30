@@ -20,7 +20,7 @@ object Settings {
     val catsParseVersion  = "1.1.0"
 
     val http4sVersion              = "0.23.30"
-    val http4sDomVersion           = "0.2.11"
+    val http4sDomVersion           = "0.2.12"
     val http4sJdkHttpClientVersion = "0.10.0"
     val http4sScalaXmlVersion      = "0.23.14"
     val natchezVersion             = "0.3.7"
@@ -51,11 +51,11 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.124.0"
-    val lucumaUI        = "0.139.2"
-    val lucumaSchemas   = "0.130.1"
-    val lucumaSSO       = "0.8.10"
-    val lucumaODBSchema = "0.19.4"
+    val lucumaCore      = "0.125.0"
+    val lucumaUI        = "0.140.1"
+    val lucumaSchemas   = "0.131.1"
+    val lucumaSSO       = "0.8.11"
+    val lucumaODBSchema = "0.19.5"
 
     // Clue
     val clue = "0.43.1"
