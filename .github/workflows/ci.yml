@@ -166,5 +166,5 @@ jobs:
 
       - name: Release apps in Heroku
         run: |
-          heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GN || "observe-dev-gn" }} -v
-          heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || "observe-dev-gn" }} -v
+          heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GN || 'observe-dev-gn' }} -v
+          heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gn' }} -v

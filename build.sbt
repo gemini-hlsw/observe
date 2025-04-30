@@ -92,8 +92,8 @@ lazy val sbtDockerPublishAll =
 lazy val herokuRelease =
   WorkflowStep.Run(
     List(
-      """heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GN || "observe-dev-gn" }} -v""",
-      """heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || "observe-dev-gn" }} -v"""
+      "heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GN || 'observe-dev-gn' }} -v",
+      "heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gn' }} -v"
     ),
     name = Some("Release apps in Heroku")
   )
