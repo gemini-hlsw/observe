@@ -114,7 +114,7 @@ The only things not included in `site.conf` are the secrets. Namely: the SSO ser
 
 For Heroku, the SSO service token needs to be provided as an environment variable.
 
-For Starging and Production, the SSO service token and TLS passphrases need to be provided in a local file `~/observe/conf/local/secrets.conf`. The whole `~/observe/conf/local` directory is [bind mounted](https://docs.docker.com/storage/bind-mounts/) into the container by `start.sh`.
+For Starging and Production, the SSO service token and TLS passphrases need to be provided in a local file `~/observe/conf/secrets.conf`. The whole `~/observe/conf` directory is [bind mounted](https://docs.docker.com/storage/bind-mounts/) into the container by `start.sh`.
 
 A typical `secrets.conf` will look like this:
 

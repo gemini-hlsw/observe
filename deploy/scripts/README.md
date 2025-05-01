@@ -3,7 +3,7 @@
 
 You can use the commands in `install.sh` to copy the latest version of the scripts:
 ```
-https://raw.githubusercontent.com/gemini-hlsw/observe/refs/heads/main/deploy/scripts/install.sh >install.sh
+curl https://raw.githubusercontent.com/gemini-hlsw/observe/refs/heads/main/deploy/scripts/install.sh >install.sh
 chmod +x install.sh
 ./install.sh
 ```
