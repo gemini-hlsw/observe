@@ -74,28 +74,25 @@ lazy val dockerHubLogin =
     name = Some("Login to Docker Hub")
   )
 
-lazy val herokuLogin =
-  WorkflowStep.Run(
-    List(
-      "npm install -g heroku",
-      "heroku container:login"
-    ),
-    name = Some("Login to Heroku")
-  )
-
-lazy val sbtDockerPublishAll =
+lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
-    List("deploy/dockerPublishAll"),
+    List("deploy/docker:publish"),
     name = Some("Build and Publish Docker image")
   )
 
 lazy val herokuRelease =
   WorkflowStep.Run(
     List(
+      "npm install -g heroku",
+      "heroku container:login",
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ vars.HEROKU_APP_NAME_GN || 'observe-dev-gn' }}/web",
+      "docker push registry.heroku.com/${{ vars.HEROKU_APP_NAME_GN || 'observe-dev-gn' }}/web",
       "heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GN || 'observe-dev-gn' }} -v",
-      "heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gn' }} -v"
+      "docker tag noirlab/gpp-obs registry.heroku.com/${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gs' }}/web",
+      "docker push registry.heroku.com/${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gs' }} -v",
+      "heroku container:release web -a ${{ vars.HEROKU_APP_NAME_GS || 'observe-dev-gs' }} -v"
     ),
-    name = Some("Release apps in Heroku")
+    name = Some("Deploy and release app in Heroku")
   )
 
 ThisBuild / githubWorkflowAddedJobs +=
@@ -105,8 +102,7 @@ ThisBuild / githubWorkflowAddedJobs +=
     githubWorkflowJobSetup.value.toList :::
       setupNodeNpmInstall :::
       dockerHubLogin ::
-      herokuLogin ::
-      sbtDockerPublishAll ::
+      sbtDockerPublish ::
       herokuRelease ::
       Nil,
     scalas = List(scalaVersion.value),
@@ -337,16 +333,22 @@ lazy val observe_engine = project
   )
 
 /**
- * Mappings common to applications, including configuration and web application
+ * Mappings common to applications, including configurations and web application.
  */
 lazy val deployedAppMappings = Seq(
   Universal / mappings ++= {
-    val clientDir = (observe_web_client / build).value
-    directory(clientDir).flatMap(path =>
-      // Don't include environment confs, if present.
-      if (path._2.endsWith(".conf.json")) None
-      else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
+    val clientDir: File                         = (observe_web_client / build).value
+    val clientMappings: Seq[(File, String)]     =
+      directory(clientDir).flatMap(path =>
+        // Don't include environment confs, if present.
+        if (path._2.endsWith(".conf.json")) None
+        else Some(path._1 -> ("app/" + path._1.relativeTo(clientDir).get.getPath))
+      )
+    val siteConfigDir: File                     = (ThisProject / baseDirectory).value / "conf"
+    val siteConfigMappings: Seq[(File, String)] = directory(siteConfigDir).map(path =>
+      path._1 -> ("conf/" + path._1.relativeTo(siteConfigDir).get.getPath)
     )
+    clientMappings ++ siteConfigMappings
   }
 )
 
@@ -406,61 +408,6 @@ lazy val observeLinux = Seq(
   }
 )
 
-/** Deploy images for all sites to the local Docker * */
-lazy val dockerPublishLocalAll =
-  taskKey[Int]("Build docker images for all sites and environments")
-
-/** Deploy images for all sites to their respective repositories * */
-lazy val dockerPublishAll =
-  taskKey[Int]("Build and push docker images for all sites and environments")
-
-val herokuAppNameGn = sys.env.get("HEROKU_APP_NAME_GN").getOrElse("observe-dev-gn")
-val herokuAppNameGs = sys.env.get("HEROKU_APP_NAME_GS").getOrElse("observe-dev-gs")
-
-def dockerPublishAll(
-  basePackageName: String,
-  version:         String,
-  baseDirectory:   String,
-  push:            Boolean
-): Int = {
-  def publishDeployment(
-    deploymentId:        String,
-    packageNameOverride: Option[String],
-    createVersionTag:    Boolean
-  ): Int =
-    IO.withTemporaryFile(s"Dockerfile-$deploymentId-", "") { tmpFile =>
-      val dockerFile          = s"""
-        |FROM $basePackageName:$version
-        |COPY confs/$deploymentId/* conf/
-        |""".stripMargin
-      IO.write(tmpFile, dockerFile)
-      val packageName: String = packageNameOverride.getOrElse(s"$basePackageName-$deploymentId")
-      val tags: List[String]  = List("latest") ++ (if (createVersionTag) List(version) else Nil)
-      val tagsStr: String     = tags.map(t => s"-t $packageName:$t").mkString(" ")
-      val buildCmd            = s"docker build --platform linux/amd64 $baseDirectory $tagsStr -f ${tmpFile}"
-      val pushCmd             = s"docker push -a $packageName"
-
-      (buildCmd !) + (if (push) pushCmd ! else 0)
-    }
-
-  // If no name is specified (2nd element of the tuple), will use the default of base package name + deploymentId (1st element of the tuple).
-  val deployments: List[(String, Option[String])] =
-    List(
-      "heroku-gn"     -> Some(s"registry.heroku.com/${herokuAppNameGn}/web"),
-      "heroku-gs"     -> Some(s"registry.heroku.com/${herokuAppNameGs}/web"),
-      "staging-gn"    -> None,
-      "staging-gs"    -> None,
-      "production-gn" -> None,
-      "production-gs" -> None
-    )
-    // List("local" -> None) // For local testing
-
-  deployments.foldLeft(0) { case (accum, (id, packageNameOverride)) =>
-    // If no package name override, create a version tag.
-    accum + publishDeployment(id, packageNameOverride, packageNameOverride.isEmpty)
-  }
-}
-
 /**
  * Project for the observe server app for development
  */
@@ -478,24 +425,6 @@ lazy val deploy = project
     Docker / daemonUserUid := Some("3624"),
     Docker / daemonUser    := "software",
     dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
-    dockerUpdateLatest     := false,
-    dockerUsername         := Some("noirlab"),
-    dockerPublishLocalAll  := Def.taskDyn {
-      val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
-      val versionStr      = (ThisBuild / version).value
-      val baseDir         = (ThisProject / baseDirectory).value.toString
-      Def.task {
-        val _ = (Docker / publishLocal).value
-        dockerPublishAll(basePackageName, versionStr, baseDir, push = false)
-      }
-    }.value,
-    dockerPublishAll       := Def.taskDyn {
-      val basePackageName = s"${dockerUsername.value.mkString("/")}/${(Docker / packageName).value}"
-      val versionStr      = (ThisBuild / version).value
-      val baseDir         = (ThisProject / baseDirectory).value.toString
-      Def.task {
-        val _ = (Docker / publish).value
-        dockerPublishAll(basePackageName, versionStr, baseDir, push = true)
-      }
-    }.value
+    dockerUpdateLatest     := true,
+    dockerUsername         := Some("noirlab")
   )
