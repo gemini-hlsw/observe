@@ -40,6 +40,7 @@ project/boot/
 project/plugins/project/
 sbt-ctags-dep-srcs/
 buildinfo.properties
+sbt-launch.jar
 
 # Scala-IDE specific
 .scala_dependencies

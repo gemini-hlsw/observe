@@ -55,7 +55,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
     for
       confDir    <- baseDir[F].map(_.resolve("conf"))
       secretsConf = confDir.resolve("local").resolve("secrets.conf")
-      siteConf    = confDir.resolve("site.conf")
+      site        = sys.env.get("SITE").getOrElse(sys.error("SITE environment variable not set"))
+      siteConf    = confDir.resolve(site).resolve("site.conf")
       _          <- Logger[F].info("Loading configuration:")
       _          <- Logger[F].info:
                       s" - $secretsConf (present: ${JavaFiles.exists(secretsConf)}), with fallback:"

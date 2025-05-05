@@ -6,7 +6,7 @@ SCRIPTS_DIR=~/observe
 
 $SCRIPTS_DIR/stop.sh
 
-IMAGE=noirlab/gpp-obs-$SITE:$VERSION
+IMAGE=noirlab/gpp-obs:$VERSION
 
 echo "Logging into DockerHub..."
 echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USER --password-stdin
