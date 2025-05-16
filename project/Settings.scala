@@ -33,7 +33,6 @@ object Settings {
     val log4cats            = "2.7.0"
     val log4catsLogLevel    = "0.3.1"
     val logback             = "1.5.18"
-    val janino              = "3.1.12"
     val pureConfig          = "0.17.9"
     val monocleVersion      = "3.3.0"
     val circeVersion        = "0.14.13"
@@ -113,9 +112,8 @@ object Settings {
     val Log4CatsNoop     =
       Def.setting("org.typelevel" %%% "log4cats-noop" % LibraryVersions.log4cats % "test")
     val Logback          = Seq(
-      "ch.qos.logback"      % "logback-core"    % LibraryVersions.logback,
-      "ch.qos.logback"      % "logback-classic" % LibraryVersions.logback,
-      "org.codehaus.janino" % "janino"          % LibraryVersions.janino
+      "ch.qos.logback" % "logback-core"    % LibraryVersions.logback,
+      "ch.qos.logback" % "logback-classic" % LibraryVersions.logback
     )
     val Log4CatsLogLevel = Def.setting(
       Seq(

@@ -366,8 +366,7 @@ lazy val deployedAppSettings = Seq(
   makeBatScripts                  := Seq.empty,
   // Specify a different name for the config file
   bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
-  // TODO Find a way to allow overriding logback.xml with a local one outside the container.
-  // bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/logback.xml"""",
+  bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/$SITE/logback.xml"""",
   // Launch options
   Universal / javaOptions ++= Seq(
     // -J params will be added as jvm parameters
