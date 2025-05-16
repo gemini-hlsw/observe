@@ -4,6 +4,9 @@
 package observe.web.server.http4s
 
 import cats.effect.Sync
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.core.util.StatusPrinter
+import org.slf4j.LoggerFactory
 import org.slf4j.bridge.SLF4JBridgeHandler
 import org.typelevel.log4cats.Logger as TLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -20,4 +23,5 @@ trait LogInitialization:
     SLF4JBridgeHandler.install()
     // Required to include debugging info, may affect performance though
     Logger.getGlobal.setLevel(Level.FINE)
+    StatusPrinter.print(LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext])
     Slf4jLogger.getLoggerFromName[F]("observe")
