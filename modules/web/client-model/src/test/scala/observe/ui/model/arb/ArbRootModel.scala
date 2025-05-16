@@ -29,6 +29,7 @@ import observe.model.arb.ArbObsRecordedIds.given
 import observe.model.arb.ArbStepProgress.given
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.odb.ObsRecordedIds
+import observe.ui.model.IsAudioActivated
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObsSummary
 import observe.ui.model.ObservationRequests
@@ -64,7 +65,25 @@ trait ArbRootModel:
       op    <- arbitrary[Option[Operator]]
       usm   <- arbitrary[Option[NonEmptyString]]
       log   <- arbitrary[FixedLengthBuffer[LogMessage]]
-    yield RootModelData(uv, ros, nto, inoto, dtos, es, ri, sp, uss, or, cs, obs, op, usm, log)
+      audio <- arbitrary[IsAudioActivated]
+    yield RootModelData(
+      uv,
+      ros,
+      nto,
+      inoto,
+      dtos,
+      es,
+      ri,
+      sp,
+      uss,
+      or,
+      cs,
+      obs,
+      op,
+      usm,
+      log,
+      audio
+    )
 
   given Cogen[RootModelData] = Cogen[
     (
@@ -82,7 +101,8 @@ trait ArbRootModel:
       Option[Observer],
       Option[Operator],
       Option[NonEmptyString],
-      FixedLengthBuffer[LogMessage]
+      FixedLengthBuffer[LogMessage],
+      IsAudioActivated
     )
   ].contramap: x =>
     (x.userVault,
@@ -99,7 +119,8 @@ trait ArbRootModel:
      x.observer,
      x.operator,
      x.userSelectionMessage,
-     x.globalLog
+     x.globalLog,
+     x.isAudioActivated
     )
 
 object ArbRootModel extends ArbRootModel

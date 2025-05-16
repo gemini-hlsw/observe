@@ -154,6 +154,14 @@ object Icons:
   private val faSun: FAIcon = js.native
 
   @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faVolume")
+  private val faVolume: FAIcon = js.native
+
+  @js.native
+  @JSImport("@fortawesome/pro-solid-svg-icons", "faVolumeSlash")
+  private val faVolumeSlash: FAIcon = js.native
+
+  @js.native
   @JSImport("@fortawesome/sharp-solid-svg-icons", "faXmark")
   private val faXMark: FAIcon = js.native
 
@@ -195,6 +203,8 @@ object Icons:
     faSquarePlus,
     faStop,
     faSun,
+    faVolume,
+    faVolumeSlash,
     faXMark
   )
 
@@ -234,6 +244,8 @@ object Icons:
   inline def SquarePlus        = FontAwesomeIcon(faSquarePlus)
   inline def Stop              = FontAwesomeIcon(faStop)
   inline def Sun               = FontAwesomeIcon(faSun)
+  inline def Volume            = FontAwesomeIcon(faVolume)
+  inline def VolumeSlash       = FontAwesomeIcon(faVolumeSlash)
   inline def XMark             = FontAwesomeIcon(faXMark)
 
   val CancelPause =

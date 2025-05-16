@@ -37,6 +37,7 @@ import observe.model.events.ClientEvent
 import observe.model.events.ClientEvent.LogEvent
 import observe.model.events.ClientEvent.SingleActionState
 import observe.model.events.ClientEvent.UserNotification
+import observe.ui.model.IsAudioActivated
 import observe.ui.model.LoadedObservation
 import observe.ui.model.ObservationRequests
 import observe.ui.model.RootModelData
@@ -129,15 +130,24 @@ trait ServerEventHandler:
         )
       .to[IO]
 
+  protected def showToast(
+    toast: ToastRef,
+    msg:   String
+  ): IO[Unit] =
+    showToast(toast, List(msg))
+
   protected def processStreamEvent(
     clientConfigMod:    Endo[Pot[ClientConfig]] => IO[Unit],
     rootModelDataMod:   Endo[RootModelData] => IO[Unit],
     syncStatusMod:      Endo[Option[SyncStatus]] => IO[Unit],
     configApiStatusMod: Endo[ApiStatus] => IO[Unit],
+    isAudioActivated:   IO[IsAudioActivated],
     toast:              ToastRef
   )(
     event:              ClientEvent
   )(using Logger[IO]): IO[Unit] =
+    def playAudio(sound: Audio): IO[Unit] = sound.play.when(isAudioActivated.map(a => a: Boolean))
+
     event match
       case ClientEvent.BaDum                                                              =>
         IO.unit
@@ -193,17 +203,17 @@ trait ServerEventHandler:
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
       case ClientEvent.StepComplete(_)                                                    =>
-        Audio.StepBeep.play
+        playAudio(Audio.StepBeep)
       case ClientEvent.SequencePaused(_)                                                  =>
-        Audio.SequencePaused.play
+        playAudio(Audio.SequencePaused)
       case ClientEvent.BreakpointReached(_)                                               =>
-        Audio.BreakpointReached.play
+        playAudio(Audio.SequencePaused)
       case ClientEvent.AcquisitionPromptReached(_)                                        =>
-        Audio.AcquisitionPrompt.play
+        playAudio(Audio.AcquisitionPrompt)
       case ClientEvent.SequenceComplete(_)                                                =>
-        Audio.SequenceComplete.play
+        playAudio(Audio.SequenceComplete)
       case ClientEvent.SequenceFailed(_, errorMsg)                                        =>
-        showToast(toast, List(errorMsg)) >> Audio.SequenceError.play
+        showToast(toast, List(errorMsg)) >> playAudio(Audio.SequenceError)
       case ClientEvent.ProgressEvent(ObservationProgress(obsId, stepProgress))            =>
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some)) // >>
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>

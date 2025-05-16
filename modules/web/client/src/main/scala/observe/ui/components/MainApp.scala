@@ -177,6 +177,7 @@ object MainApp extends ServerEventHandler:
         clientConfigPot  <- useStateView(Pot.pending[ClientConfig])
         rootModelData    <- useStateView(RootModelData.Initial)
         configApiStatus  <- useStateView(ApiStatus.Idle)
+        isAudioActivated <- useShadowRef(rootModelData.get.isAudioActivated)
         _                <-
           useEffectStreamWhenDepsReady(wsConnection.flatMap(_.toPot)):
             _.receiveStream // Setup server event processor (2)
@@ -188,6 +189,7 @@ object MainApp extends ServerEventHandler:
                     rootModelData.async.mod,
                     syncStatus.async.mod,
                     configApiStatus.async.mod,
+                    isAudioActivated.getAsync,
                     toastRef
                   )(event)
                 case Left(error)  =>
