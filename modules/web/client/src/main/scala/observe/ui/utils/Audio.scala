@@ -17,6 +17,14 @@ private trait AudioResourceRaw extends js.Object
 
 extension (raw: AudioResourceRaw) private def resource: String = raw.toString
 
+@JSImport("@resources/sounds/soundactivated.mp3", JSImport.Default)
+@js.native
+private object SoundActivatedMp3 extends AudioResourceRaw
+
+@JSImport("@resources/sounds/soundactivated.webm", JSImport.Default)
+@js.native
+private object SoundActivatedWebM extends AudioResourceRaw
+
 @JSImport("@resources/sounds/beep-22.mp3", JSImport.Default)
 @js.native
 private object BeepMp3 extends AudioResourceRaw
@@ -32,14 +40,6 @@ private object SequencePausedMp3 extends AudioResourceRaw
 @JSImport("@resources/sounds/sequencepaused.webm", JSImport.Default)
 @js.native
 private object SequencePausedWebM extends AudioResourceRaw
-
-@JSImport("@resources/sounds/breakpointreached.mp3", JSImport.Default)
-@js.native
-private object BreakpointReachedMp3 extends AudioResourceRaw
-
-@JSImport("@resources/sounds/breakpointreached.webm", JSImport.Default)
-@js.native
-private object BreakpointReachedWebM extends AudioResourceRaw
 
 @JSImport("@resources/sounds/acquisitionprompt.mp3", JSImport.Default)
 @js.native
@@ -89,9 +89,9 @@ enum Audio(mp3: AudioResourceRaw, webm: AudioResourceRaw):
 
   val play: IO[Unit] = IO(rawAudio.play())
 
+  case SoundActivated    extends Audio(SoundActivatedMp3, SoundActivatedWebM)
   case StepBeep          extends Audio(BeepMp3, BeepWebM)
   case SequencePaused    extends Audio(SequencePausedMp3, SequencePausedWebM)
-  case BreakpointReached extends Audio(BreakpointReachedMp3, BreakpointReachedWebM)
   case AcquisitionPrompt extends Audio(AcquisitionPromptMp3, AcquisitionPromptWebM)
   case SequenceComplete  extends Audio(SequenceCompleteMp3, SequenceCompleteWebM)
   case SequenceError     extends Audio(SequenceErrorMp3, SequenceErrorWebM)

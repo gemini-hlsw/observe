@@ -28,12 +28,15 @@ import observe.model.ClientConfig
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.AppContext
+import observe.ui.model.IsAudioActivated
+import observe.ui.utils.Audio
 
 case class TopBar(
-  clientConfig: ClientConfig,
-  vault:        View[UserVault],
-  theme:        View[Theme],
-  onLogout:     IO[Unit]
+  clientConfig:     ClientConfig,
+  vault:            View[UserVault],
+  theme:            View[Theme],
+  isAudioActivated: View[IsAudioActivated],
+  onLogout:         IO[Unit]
 ) extends ReactFnProps(TopBar)
 
 object TopBar
@@ -51,21 +54,45 @@ object TopBar
 
         def logout: IO[Unit] = ctx.ssoClient.logout >> props.onLogout
 
-        val firstItems = List(
-          MenuItem.Item(
-            label = "About Observe",
-            icon = Icons.CircleInfo,
-            command = isAboutOpen.set(IsAboutOpen(true))
-          ),
-          MenuItem.Item(label = "Logout", icon = Icons.Logout, command = logout.runAsync)
-        )
+        val audioSubMenu =
+          MenuItem.SubMenu(
+            label = "Sounds",
+            icon = Icons.Volume.withFixedWidth()
+          )(
+            MenuItem.Item(
+              label = "On",
+              icon = Icons.Volume.withFixedWidth(),
+              disabled = props.isAudioActivated.get,
+              command = props.isAudioActivated.set(IsAudioActivated.True) >>
+                Audio.SoundActivated.play.runAsyncAndForget
+            ),
+            MenuItem.Item(
+              label = "Off",
+              icon = Icons.VolumeSlash.withFixedWidth(),
+              disabled = !props.isAudioActivated.get,
+              command = props.isAudioActivated.set(IsAudioActivated.False)
+            )
+          )
 
-        val lastItems = List(
-          MenuItem.Separator,
+        val firstItems = List(
+          audioSubMenu,
           ThemeSubMenu(props.theme)
         )
 
-        val menuItems = firstItems ::: lastItems
+        val lastItems = List(
+          MenuItem.Item(
+            label = "About Observe",
+            icon = Icons.CircleInfo.withFixedWidth(),
+            command = isAboutOpen.set(IsAboutOpen(true))
+          ),
+          MenuItem.Item(
+            label = "Logout",
+            icon = Icons.Logout.withFixedWidth(),
+            command = logout.runAsync
+          )
+        )
+
+        val menuItems = (firstItems :+ MenuItem.Separator) ::: lastItems
 
         React.Fragment(
           Toolbar(

@@ -41,7 +41,8 @@ case class RootModelData(
   observer:                Option[Observer],
   operator:                Option[Operator],
   userSelectionMessage:    Option[NonEmptyString],
-  globalLog:               FixedLengthBuffer[LogMessage]
+  globalLog:               FixedLengthBuffer[LogMessage],
+  isAudioActivated:        IsAudioActivated
 ) derives Eq:
   // TODO Readonly mode won't depend on user logged or not, but on their permissions.
   // For the moment we are requiring the STAFF role, so all logged users can operate.
@@ -92,7 +93,8 @@ object RootModelData:
       observer = none,
       operator = none,
       userSelectionMessage = none,
-      globalLog = FixedLengthBuffer.unsafe(MaxGlobalLogEntries)
+      globalLog = FixedLengthBuffer.unsafe(MaxGlobalLogEntries),
+      isAudioActivated = IsAudioActivated.True
     )
 
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
@@ -120,5 +122,7 @@ object RootModelData:
     Focus[RootModelData](_.userSelectionMessage)
   val globalLog: Lens[RootModelData, FixedLengthBuffer[LogMessage]]              =
     Focus[RootModelData](_.globalLog)
+  val isAudioActivated: Lens[RootModelData, IsAudioActivated]                    =
+    Focus[RootModelData](_.isAudioActivated)
 
 case class RootModel(clientConfig: Pot[ClientConfig], data: View[RootModelData])

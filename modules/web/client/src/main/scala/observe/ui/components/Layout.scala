@@ -62,6 +62,7 @@ object Layout
                       clientConfig,
                       userVault,
                       theme,
+                      props.rootModel.data.zoom(RootModelData.isAudioActivated),
                       props.rootModel.data.zoom(RootModelData.userVault).set(Pot(none)).toAsync
                     ),
               Toast(Toast.Position.BottomRight, baseZIndex = 2000).withRef(ctx.toast.ref),
