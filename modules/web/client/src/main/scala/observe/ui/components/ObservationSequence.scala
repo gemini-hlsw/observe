@@ -128,7 +128,7 @@ object ObservationSequence
               }.orEmpty // If there are no visits, there's nothing to change.
 
         props.config match // TODO Show visits even if sequence data is not available
-          case InstrumentExecutionConfig.GmosNorth(config) =>
+          case InstrumentExecutionConfig.GmosNorth(config)  =>
             GmosNorthSequenceTable(
               props.clientMode,
               props.obsId,
@@ -148,7 +148,7 @@ object ObservationSequence
               onDatasetQAChange,
               datasetIdsInFlight.value
             )
-          case InstrumentExecutionConfig.GmosSouth(config) =>
+          case InstrumentExecutionConfig.GmosSouth(config)  =>
             GmosSouthSequenceTable(
               props.clientMode,
               props.obsId,
@@ -156,6 +156,26 @@ object ObservationSequence
               props.visits.get
                 .collect:
                   case ExecutionVisits.GmosSouth(visits) => visits.toList
+                .orEmpty,
+              props.executionState.get,
+              props.currentRecordedVisit,
+              props.progress,
+              props.selectedStep,
+              props.setSelectedStep,
+              props.requests,
+              isPreview = false,
+              onBreakpointFlip,
+              onDatasetQAChange,
+              datasetIdsInFlight.value
+            )
+          case InstrumentExecutionConfig.Flamingos2(config) =>
+            Flamingos2SequenceTable(
+              props.clientMode,
+              props.obsId,
+              config,
+              props.visits.get
+                .collect:
+                  case ExecutionVisits.Flamingos2(visits) => visits.toList
                 .orEmpty,
               props.executionState.get,
               props.currentRecordedVisit,
