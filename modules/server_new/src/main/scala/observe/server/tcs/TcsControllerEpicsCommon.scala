@@ -525,7 +525,7 @@ object TcsControllerEpicsCommon {
         case Niri_f6 | Niri_f14 | Niri_f32 => ports.niriPort
         case Nifs                          => ports.nifsPort
         case Gnirs                         => ports.gnirsPort
-        case F2                            => ports.flamingos2Port
+        case Flamingos2                    => ports.flamingos2Port
         case Gpi                           => ports.gpiPort
         case Ghost                         => ports.ghostPort
         case Gsaoi                         => ports.gsaoiPort

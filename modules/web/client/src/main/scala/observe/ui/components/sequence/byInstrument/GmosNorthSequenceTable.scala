@@ -8,7 +8,6 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
-import lucuma.core.model.sequence.gmos.*
 import lucuma.react.common.*
 import lucuma.react.resizeDetector.hooks.*
 import lucuma.schemas.model.Visit
@@ -24,7 +23,7 @@ import observe.ui.model.enums.ClientMode
 case class GmosNorthSequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
-  config:               ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth],
+  config:               ExecutionConfig.GmosNorth,
   visits:               List[Visit.GmosNorth],
   executionState:       ExecutionState,
   currentRecordedVisit: Option[RecordedVisit],
@@ -37,10 +36,9 @@ case class GmosNorthSequenceTable(
   onDatasetQaChange:    Dataset.Id => EditableQaFields => Callback,
   datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosNorthSequenceTable.component)
-    with SequenceTable[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-      Instrument.GmosNorth,
-      config.static.nodAndShuffle
+    with SequenceTable[gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth](
+      Instrument.GmosNorth
     )
 
 object GmosNorthSequenceTable
-    extends SequenceTableBuilder[StaticConfig.GmosNorth, DynamicConfig.GmosNorth]
+    extends SequenceTableBuilder[gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth]

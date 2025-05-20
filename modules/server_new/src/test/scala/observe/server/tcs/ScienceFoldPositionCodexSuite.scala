@@ -3,7 +3,7 @@
 
 package observe.server.tcs
 
-import lucuma.core.enums.LightSinkName.F2
+import lucuma.core.enums.LightSinkName.Flamingos2
 import lucuma.core.enums.LightSinkName.Gmos
 import lucuma.core.enums.LightSinkName.Gsaoi
 import lucuma.core.enums.LightSinkName.Nifs
@@ -23,7 +23,7 @@ class ScienceFoldPositionCodexSuite extends munit.FunSuite:
   private val gcal2nifs1 = ("gcal2nifs1", ScienceFold.Position(GCAL, Nifs, 1))
   private val gsaoi5     = ("gsaoi5", ScienceFold.Position(Sky, Gsaoi, 5))
   private val ao2niri32  = ("ao2nirif32p5", ScienceFold.Position(AO, Niri_f32, 5))
-  private val f21        = ("f21", ScienceFold.Position(Sky, F2, 1))
+  private val f21        = ("f21", ScienceFold.Position(Sky, Flamingos2, 1))
   private val testVals   = List(ao2gmos3, gcal2nifs1, gsaoi5, ao2niri32, f21)
 
   test("ScienceFoldPositionCodex should properly decode EPICS strings into ScienceFold values"):

@@ -11,7 +11,6 @@ import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
-import lucuma.core.model.sequence.gmos.*
 import lucuma.schemas.model.Visit
 import lucuma.ui.sequence.*
 import observe.model.ExecutionState
@@ -24,9 +23,8 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 
 // Helper to build Props classes for instrument sequence tables.
-private trait SequenceTable[S, D <: DynamicConfig](
-  protected[sequence] val instrument:    Instrument,
-  protected[sequence] val nodAndShuffle: Option[GmosNodAndShuffle]
+private trait SequenceTable[S, D](
+  protected[sequence] val instrument: Instrument
 ):
   def clientMode: ClientMode
   def obsId: Observation.Id
@@ -58,7 +56,7 @@ private trait SequenceTable[S, D <: DynamicConfig](
     lastVisitStepIds.filter((_, generatedId) => activeStepId === generatedId).map(_._1)
 
   private def futureSteps(atoms: List[Atom[D]]): List[SequenceRow.FutureStep[D]] =
-    SequenceRow.FutureStep.fromAtoms(atoms, _ => none) // TODO Pass signal to noise
+    SequenceRow.FutureStep.fromAtoms(atoms, none) // TODO Pass signal to noise
 
   protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
     executionState.loadedSteps.filterNot(_.isFinished)

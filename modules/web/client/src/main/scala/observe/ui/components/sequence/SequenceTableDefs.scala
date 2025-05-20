@@ -205,8 +205,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                           )
       )
     ) ++
-      SequenceColumns
-        .gmosColumns(ColDef, _._1.some, _._2.some)
+      SequenceColumns(ColDef, _._1.some, _._2.some).forGmos
         .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
