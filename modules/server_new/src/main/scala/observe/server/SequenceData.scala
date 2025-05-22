@@ -13,7 +13,7 @@ import observe.model.enums.PendingObserveCmd
 case class SequenceData[F[_]](
   observer:       Option[Observer],
   overrides:      SystemOverrides,
-  seqGen:         SequenceGen[F],
+  seqGen:         InstrumentSequenceGen[F],
   seq:            Sequence.State[F],
   pendingObsCmd:  Option[PendingObserveCmd],
   visitStartDone: Boolean,
@@ -29,7 +29,7 @@ object SequenceData {
   def apply[F[_]](
     observer:      Option[Observer],
     overrides:     SystemOverrides,
-    seqGen:        SequenceGen[F],
+    seqGen:        InstrumentSequenceGen[F],
     seq:           Sequence.State[F],
     pendingObsCmd: Option[PendingObserveCmd],
     cleanup:       F[Unit]

@@ -67,10 +67,10 @@ import observe.server.tcs.TcsController.LightPath
 import observe.server.tcs.TcsController.LightSource
 import org.typelevel.log4cats.Logger
 
-trait SeqTranslate[F[_], S, D] {
-  def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F, S, D]])]
+trait SeqTranslate[F[_]] {
+  def sequence[S, D](sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F, S, D]])]
 
-  def nextAtom(
+  def nextAtom[D](
     sequence: OdbObservation,
     atomType: SequenceType
   ): (List[Throwable], Option[SequenceGen.AtomGen[F, D]])
@@ -95,12 +95,12 @@ trait SeqTranslate[F[_], S, D] {
 
 object SeqTranslate {
 
-  class SeqTranslateImpl[F[_]: Async: Logger, S, D](
+  class SeqTranslateImpl[F[_]: Async: Logger](
     site:                             Site,
     systemss:                         Systems[F],
     gmosNsCmd:                        Ref[F, Option[NSObserveCommand]],
     @annotation.unused conditionsRef: Ref[F, Conditions]
-  ) extends SeqTranslate[F, S, D] {
+  ) extends SeqTranslate[F] {
 
     private val overriddenSystems = new OverriddenSystems[F](systemss)
 
@@ -211,13 +211,15 @@ object SeqTranslate {
 
     override def sequence(
       sequence: OdbObservation
-    ): F[(List[Throwable], Option[SequenceGen[F, S, D]])] =
+    ): F[(List[Throwable], Option[InstrumentSequenceGen[F]])] =
       sequence.execution.config match {
-        case Some(c @ InstrumentExecutionConfig.GmosNorth(_)) =>
+        case Some(c @ InstrumentExecutionConfig.GmosNorth(_))  =>
           buildSequenceGmosN(sequence, c).pure[F]
-        case Some(c @ InstrumentExecutionConfig.GmosSouth(_)) =>
+        case Some(c @ InstrumentExecutionConfig.GmosSouth(_))  =>
           buildSequenceGmosS(sequence, c).pure[F]
-        case _                                                =>
+        case Some(c @ InstrumentExecutionConfig.Flamingos2(_)) =>
+          buildSequenceFlamingos2(sequence, c).pure[F]
+        case _                                                 =>
           ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
       }
 
@@ -308,7 +310,10 @@ object SeqTranslate {
     private def buildSequenceGmosN(
       obsCfg: OdbObservation,
       data:   InstrumentExecutionConfig.GmosNorth
-    ): (List[Throwable], Option[SequenceGen[F, S, D]]) =
+    ): (
+      List[Throwable],
+      Option[SequenceGen[F, gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth]]
+    ) =
       buildSequence(
         obsCfg,
         data.executionConfig,
@@ -335,7 +340,10 @@ object SeqTranslate {
     private def buildSequenceGmosS(
       obsCfg: OdbObservation,
       data:   InstrumentExecutionConfig.GmosSouth
-    ): (List[Throwable], Option[SequenceGen[F, S, D]]) =
+    ): (
+      List[Throwable],
+      Option[SequenceGen[F, gmos.StaticConfig.GmosSouth, gmos.DynamicConfig.GmosSouth]]
+    ) =
       buildSequence(
         obsCfg,
         data.executionConfig,
@@ -359,7 +367,15 @@ object SeqTranslate {
             )
       )
 
-    private def deliverObserveCmd(seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
+    private def buildSequenceFlamingos2(
+      obsCfg: OdbObservation,
+      data:   InstrumentExecutionConfig.Flamingos2
+    ): (
+      List[Throwable],
+      Option[SequenceGen[F, Flamingos2StaticConfig, Flamingos2DynamicConfig]]
+    ) = ???
+
+    private def deliverObserveCmd[D](seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
       st: EngineState[F]
     ): Option[Stream[F, EventType[F]]] = {
 
@@ -821,11 +837,10 @@ object SeqTranslate {
             )
     }
 
-    override def nextAtom(
+    override def nextAtom[D](
       sequence: OdbObservation,
       atomType: SequenceType
-    ): (List[Throwable], Option[SequenceGen.AtomGen[F, D]]) =
-      // TODO Abstract types into subclasses?
+    ): (List[Throwable], Option[SequenceGen.InstrumentAtomGen[F]]) =
       sequence.execution.config
         .map {
           case InstrumentExecutionConfig.GmosNorth(executionConfig)  =>
@@ -904,11 +919,11 @@ object SeqTranslate {
         .getOrElse((List.empty, none))
   }
 
-  def apply[F[_]: Async: Logger, S, D](
+  def apply[F[_]: Async: Logger](
     site:          Site,
     systems:       Systems[F],
     conditionsRef: Ref[F, Conditions]
-  ): F[SeqTranslate[F, S, D]] =
+  ): F[SeqTranslate[F]] =
     Ref
       .of[F, Option[NSObserveCommand]](none)
       .map(new SeqTranslateImpl(site, systems, _, conditionsRef))

@@ -100,7 +100,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def findStartingStep(
     obs:    SequenceData[F],
     stepId: Option[Step.Id]
-  ): Option[SequenceGen.StepGen[F]] = for {
+  ): Option[SequenceGen.InstrumentStepGen[F]] = for {
     stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
     stpGen <- obs.seqGen.nextAtom.steps.find(_.id === stp)
   } yield stpGen
@@ -108,7 +108,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def findFirstCheckRequiredStep(
     obs:    SequenceData[F],
     stepId: Step.Id
-  ): Option[SequenceGen.StepGen[F]] =
+  ): Option[SequenceGen.InstrumentStepGen[F]] =
     obs.seqGen.nextAtom.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
 
   /**
@@ -322,14 +322,15 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                 sp    <- findFirstCheckRequiredStep(seq, ststp.id)
               } yield sequenceTcsTargetMatch(seq).map { tchk =>
                 (ststp.some,
-                 List(tchk,
-                      observingConditionsMatch(st.conditions, seq.seqGen.obsData.constraintSet)
+                 List(
+                   tchk,
+                   observingConditionsMatch(st.conditions, seq.seqGen.obsData.constraintSet)
                  )
                    .collect { case Some(x) => x }
                    .widen[SeqCheck]
                 )
               })
-                .getOrElse((none[SequenceGen.StepGen[F]], List.empty[SeqCheck]).pure[F])
+                .getOrElse((none[SequenceGen.InstrumentStepGen[F]], List.empty[SeqCheck]).pure[F])
             }
             .flatMap { case (stpg, checks) =>
               (checkResources(id)(st), stpg, checks, runOverride) match {
@@ -714,9 +715,9 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     def splitWhere[A](l: List[A])(p: A => Boolean): (List[A], List[A]) =
       l.splitAt(l.indexWhere(p))
 
-    def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
-      case s: SequenceGen.PendingStepGen[F] => s.resources.toList
-      case _                                => List.empty
+    def resources(s: SequenceGen.InstrumentStepGen[F]): List[Resource | Instrument] = s match {
+      case s: SequenceGen.PendingStepGen[F, ?] => s.resources.toList
+      case _                                   => List.empty
     }
 
     def engineSteps(seq: Sequence[F]): List[ObserveStep] =

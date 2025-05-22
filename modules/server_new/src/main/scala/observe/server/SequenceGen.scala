@@ -30,12 +30,25 @@ import observe.model.enums.Resource
  * It is combined with header parameters to build an engine.Sequence. It allows to rebuild the
  * engine sequence whenever any of those parameters change.
  */
+trait InstrumentSequenceGen[F[_]] {
+  type Static
+  type Dynamic
+
+  def obsData: OdbObservation
+  def instrument: Instrument
+  def staticCfg: Static
+  def nextAtom: SequenceGen.AtomGen[F, Dynamic]
+}
+
 case class SequenceGen[F[_], S, D](
   obsData:    OdbObservation,
   instrument: Instrument,
   staticCfg:  S,
   nextAtom:   SequenceGen.AtomGen[F, D]
-) {
+) extends InstrumentSequenceGen[F] {
+  type Static  = S
+  type Dynamic = D
+
   val resources: Set[Resource | Instrument] = nextAtom.steps
     .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _) =>
       resources
@@ -60,11 +73,21 @@ case class SequenceGen[F[_], S, D](
 
 object SequenceGen {
 
+  trait InstrumentAtomGen[F[_]] {
+    type Dynamic
+
+    def atomId: Atom.Id
+    def sequenceType: SequenceType
+    def steps: List[SequenceGen.StepGen[F, Dynamic]]
+  }
+
   case class AtomGen[F[_], D](
     atomId:       Atom.Id,
     sequenceType: SequenceType,
     steps:        List[SequenceGen.StepGen[F, D]]
-  )
+  ) extends InstrumentAtomGen[F] {
+    type Dynamic = D
+  }
 
   trait StepStatusGen
 
@@ -72,7 +95,20 @@ object SequenceGen {
     object Null extends StepStatusGen
   }
 
-  sealed trait StepGen[F[_], D] {
+  sealed trait InstrumentStepGen[F[_]] {
+    type Dynamic
+
+    def id: Step.Id
+    def dataId: DataId
+    def genData: StepStatusGen
+    def instConfig: Dynamic
+    def config: StepConfig
+    def telescopeConfig: CoreTelescopeConfig
+  }
+
+  sealed trait StepGen[F[_], D] extends InstrumentStepGen[F] {
+    type Dynamic = D
+
     val id: Step.Id
     val dataId: DataId
     val genData: StepStatusGen
