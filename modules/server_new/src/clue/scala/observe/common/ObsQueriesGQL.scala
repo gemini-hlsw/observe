@@ -423,6 +423,31 @@ object ObsQueriesGQL:
       """
 
   @GraphQL
+  trait RecordFlamingos2StepMutation extends GraphQLOperation[ObservationDB]:
+    val document = """
+      mutation($input: RecordFlamingos2StepInput!) {
+        recordFlamingos2Step(input: $input) {
+          stepRecord {
+            id
+          }
+        }
+      }
+      """
+
+  @GraphQL
+  trait RecordFlamingos2VisitMutation extends GraphQLOperation[ObservationDB]:
+    val document =
+      """
+      mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!) {
+        recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg } ) {
+          visit {
+            id
+          }
+        }
+      }
+      """
+
+  @GraphQL
   trait ResetAcquisitionMutation extends GraphQLOperation[ObservationDB]:
     val document = """
       mutation($obsId: ObservationId!) {
