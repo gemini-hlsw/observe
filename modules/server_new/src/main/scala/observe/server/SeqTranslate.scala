@@ -25,9 +25,9 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step as OdbStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
 import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.gmos
 import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation

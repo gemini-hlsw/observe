@@ -456,11 +456,8 @@ object ObserveEngine {
         .atSequence[F](obsId)
         .modify { (seqData: SequenceData[F]) =>
           val newSeqData: SequenceData[F] = // Replace nextAtom
-            atm.fold(seqData)(
-              SequenceData.seqGen
-                .andThen(SequenceGen.nextAtom)
-                .replace(_)(seqData)
-            )
+            atm.fold(seqData): a =>
+              SequenceData.seqGen.modify(SequenceGen.replaceNextAtom(a))(seqData)
 
           newSeqData
             .focus(_.seq)

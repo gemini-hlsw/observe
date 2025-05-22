@@ -3,10 +3,10 @@
 
 package observe.model.arb
 
-import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
-import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
 import lucuma.core.model.sequence.flamingos2.arb.ArbFlamingos2DynamicConfig.given
+import lucuma.core.model.sequence.gmos
+import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
 import observe.model.InstrumentDynamicConfig
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*

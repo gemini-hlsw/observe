@@ -166,7 +166,7 @@ object TestOdbProxy {
                 )
             }
 
-        override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] = addEvent(
+        override def visitStart[S](obsId: Observation.Id, staticCfg: S): F[Unit] = addEvent(
           VisitStart(obsId, staticCfg)
         )
 
@@ -185,9 +185,9 @@ object TestOdbProxy {
             rf.update(State.currentAtom.replace(generatedId))
         }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
 
-        override def stepStartStep(
+        override def stepStartStep[D](
           obsId:           Observation.Id,
-          dynamicConfig:   DynamicConfig,
+          dynamicConfig:   D,
           stepConfig:      StepConfig,
           telescopeConfig: CoreTelescopeConfig,
           observeClass:    ObserveClass,
@@ -263,7 +263,7 @@ object TestOdbProxy {
     )
 
   sealed trait OdbEvent
-  case class VisitStart(obsId: Observation.Id, staticCfg: StaticConfig)       extends OdbEvent
+  case class VisitStart[S](obsId: Observation.Id, staticCfg: S)               extends OdbEvent
   case class SequenceStart(obsId: Observation.Id)                             extends OdbEvent
   case class AtomStart(
     obsId:        Observation.Id,
@@ -271,9 +271,9 @@ object TestOdbProxy {
     sequenceType: SequenceType,
     stepCount:    NonNegShort
   ) extends OdbEvent
-  case class StepStartStep(
+  case class StepStartStep[D](
     obsId:           Observation.Id,
-    dynamicConfig:   DynamicConfig,
+    dynamicConfig:   D,
     stepConfig:      StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     observeClass:    ObserveClass

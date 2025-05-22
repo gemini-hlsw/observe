@@ -372,7 +372,7 @@ object TestCommon {
       )
     )
 
-  def sequence(id: Observation.Id): SequenceGen[IO] =
+  def sequence(id: Observation.Id): SequenceGen.GmosNorth[IO] =
     SequenceGen.GmosNorth[IO](
       odbObservation(id, 1),
       staticCfg1,

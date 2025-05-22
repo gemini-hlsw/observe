@@ -30,15 +30,15 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.core.model.sequence.gmos
-import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.gmos
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.ObservationDB.Types.RecordAtomInput
+import lucuma.schemas.ObservationDB.Types.RecordFlamingos2StepInput
 import lucuma.schemas.ObservationDB.Types.RecordGmosNorthStepInput
 import lucuma.schemas.ObservationDB.Types.RecordGmosSouthStepInput
-import lucuma.schemas.ObservationDB.Types.RecordFlamingos2StepInput
 import lucuma.schemas.odb.input.*
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*

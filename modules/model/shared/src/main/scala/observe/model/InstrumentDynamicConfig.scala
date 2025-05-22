@@ -12,10 +12,10 @@ import io.circe.Encoder
 import io.circe.JsonObject
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
-import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
-import lucuma.odb.json.gmos.given
+import lucuma.core.model.sequence.gmos
 import lucuma.odb.json.flamingos2.given
+import lucuma.odb.json.gmos.given
 import lucuma.odb.json.time.transport.given
 import lucuma.odb.json.wavelength.transport.given
 

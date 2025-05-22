@@ -9,12 +9,16 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.gmos
-import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
-import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.gmos
+import monocle.Focus
+import monocle.Lens
+import monocle.Prism
+import monocle.macros.GenPrism
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.Action
@@ -27,11 +31,6 @@ import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Resource
-import monocle.macros.GenPrism
-import monocle.Prism
-import monocle.Lens
-import monocle.Optional
-import monocle.Focus
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.
@@ -268,33 +267,15 @@ object SequenceGen {
   def flamingos2[F[_]]: Prism[SequenceGen[F], Flamingos2[F]] =
     GenPrism[SequenceGen[F], Flamingos2[F]]
 
-  def nextAtom[F[_]]: Optional[SequenceGen[F], AtomGen[F]] =
-    Optional[SequenceGen[F], AtomGen[F]](p =>
-      gmosNorth
-        .andThen(GmosNorth.nextAtom)
-        .getOption(p)
-        .orElse(
-          gmosSouth
-            .andThen(GmosSouth.nextAtom)
-            .getOption(p)
-            .orElse(
-              flamingos2
-                .andThen(Flamingos2.nextAtom)
-                .getOption(p)
-            )
-        )
-    ) {
-      case v @ SequenceGen.AtomGen.GmosNorth[F](_, _, _)  => {
-        case p @ GmosNorth[F](_, _, _) => GmosNorth.nextAtom[F].replace(v)(p)
-        case p                         => p
-      }
-      case v @ SequenceGen.AtomGen.GmosSouth[F](_, _, _)  => {
-        case p @ GmosSouth[F](_, _, _) => GmosSouth.nextAtom[F].replace(v)(p)
-        case p                         => p
-      }
-      case v @ SequenceGen.AtomGen.Flamingos2[F](_, _, _) => {
-        case p @ Flamingos2[F](_, _, _) => Flamingos2.nextAtom[F].replace(v)(p)
-        case p                          => p
-      }
-    }
+  def replaceNextAtom[F[_]](atom: AtomGen[F])(seq: SequenceGen[F]): SequenceGen[F] =
+    (seq, atom) match
+      case (s @ SequenceGen.GmosNorth[F](_, _, _), a @ AtomGen.GmosNorth[F](_, _, _))   =>
+        gmosNorth.andThen(GmosNorth.nextAtom).replace(a)(s)
+      case (s @ SequenceGen.GmosSouth[F](_, _, _), a @ AtomGen.GmosSouth[F](_, _, _))   =>
+        gmosSouth.andThen(GmosSouth.nextAtom).replace(a)(s)
+      case (s @ SequenceGen.Flamingos2[F](_, _, _), a @ AtomGen.Flamingos2[F](_, _, _)) =>
+        flamingos2.andThen(Flamingos2.nextAtom).replace(a)(s)
+      case _                                                                            =>
+        throw new IllegalArgumentException:
+          s"Instrument mismatch when replacing atom in sequence. Atom: [$atom], Sequence: [$seq]."
 }
