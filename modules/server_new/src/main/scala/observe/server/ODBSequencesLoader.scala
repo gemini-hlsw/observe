@@ -95,13 +95,13 @@ object ODBSequencesLoader {
     id:        Observation.Id,
     atomId:    Atom.Id,
     overrides: SystemOverrides,
-    seq:       InstrumentSequenceGen[F],
+    seq:       SequenceGen[F],
     d:         HeaderExtraData
   ): Sequence[F] = Sequence.sequence(id, atomId, toStepList(seq, overrides, d))
 
   private[server] def loadSequenceEndo[F[_]](
     observer: Option[Observer],
-    seqg:     InstrumentSequenceGen[F],
+    seqg:     SequenceGen[F],
     l:        Lens[EngineState[F], Option[SequenceData[F]]],
     cleanup:  F[Unit]
   ): Endo[EngineState[F]] = st =>
@@ -125,7 +125,7 @@ object ODBSequencesLoader {
     )(st)
 
   private[server] def reloadSequenceEndo[F[_]](
-    seqg: InstrumentSequenceGen[F],
+    seqg: SequenceGen[F],
     l:    Lens[EngineState[F], Option[SequenceData[F]]]
   ): Endo[EngineState[F]] = st =>
     l.andThen(option.some)

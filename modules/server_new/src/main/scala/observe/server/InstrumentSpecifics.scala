@@ -8,10 +8,8 @@ import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.ObserveClass
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.StaticConfig
 
-trait InstrumentSpecifics[S <: StaticConfig, D <: DynamicConfig] extends InstrumentGuide {
+trait InstrumentSpecifics[S, D] extends InstrumentGuide {
   def calcStepType(
     stepConfig:   StepConfig,
     staticConfig: S,

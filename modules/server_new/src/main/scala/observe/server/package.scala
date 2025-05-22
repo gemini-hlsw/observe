@@ -56,7 +56,7 @@ private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 type EventQueue[F[_]] = Queue[F, EventType[F]]
 
 def toStepList[F[_]](
-  seq:       InstrumentSequenceGen[F],
+  seq:       SequenceGen[F],
   overrides: SystemOverrides,
   d:         HeaderExtraData
 ): List[engine.EngineStep[F]] =

@@ -9,6 +9,9 @@ import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.gmos
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
@@ -24,30 +27,25 @@ import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Resource
+import monocle.macros.GenPrism
+import monocle.Prism
+import monocle.Lens
+import monocle.Optional
+import monocle.Focus
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.
  * It is combined with header parameters to build an engine.Sequence. It allows to rebuild the
  * engine sequence whenever any of those parameters change.
  */
-trait InstrumentSequenceGen[F[_]] {
-  type Static
-  type Dynamic
+sealed trait SequenceGen[F[_]] {
+  type S
+  type D
+  def instrument: Instrument
 
   def obsData: OdbObservation
-  def instrument: Instrument
-  def staticCfg: Static
-  def nextAtom: SequenceGen.AtomGen[F, Dynamic]
-}
-
-case class SequenceGen[F[_], S, D](
-  obsData:    OdbObservation,
-  instrument: Instrument,
-  staticCfg:  S,
-  nextAtom:   SequenceGen.AtomGen[F, D]
-) extends InstrumentSequenceGen[F] {
-  type Static  = S
-  type Dynamic = D
+  def staticCfg: S
+  def nextAtom: SequenceGen.AtomGen[F]
 
   val resources: Set[Resource | Instrument] = nextAtom.steps
     .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _) =>
@@ -72,21 +70,84 @@ case class SequenceGen[F[_], S, D](
 }
 
 object SequenceGen {
+  case class GmosNorth[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: gmos.StaticConfig.GmosNorth,
+    nextAtom:  SequenceGen.AtomGen.GmosNorth[F]
+  ) extends SequenceGen[F] {
+    type S = gmos.StaticConfig.GmosNorth
+    type D = gmos.DynamicConfig.GmosNorth
 
-  trait InstrumentAtomGen[F[_]] {
-    type Dynamic
+    val instrument: Instrument = Instrument.GmosNorth
+  }
+
+  object GmosNorth {
+    def nextAtom[F[_]]: Lens[GmosNorth[F], AtomGen.GmosNorth[F]] = Focus[GmosNorth[F]](_.nextAtom)
+  }
+
+  case class GmosSouth[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: gmos.StaticConfig.GmosSouth,
+    nextAtom:  SequenceGen.AtomGen.GmosSouth[F]
+  ) extends SequenceGen[F] {
+    type S = gmos.StaticConfig.GmosSouth
+    type D = gmos.DynamicConfig.GmosSouth
+
+    val instrument: Instrument = Instrument.GmosSouth
+  }
+
+  object GmosSouth {
+    def nextAtom[F[_]]: Lens[GmosSouth[F], AtomGen.GmosSouth[F]] = Focus[GmosSouth[F]](_.nextAtom)
+  }
+
+  case class Flamingos2[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: Flamingos2StaticConfig,
+    nextAtom:  SequenceGen.AtomGen.Flamingos2[F]
+  ) extends SequenceGen[F] {
+    type S = Flamingos2StaticConfig
+    type D = Flamingos2DynamicConfig
+
+    val instrument: Instrument = Instrument.Flamingos2
+  }
+
+  object Flamingos2 {
+    def nextAtom[F[_]]: Lens[Flamingos2[F], AtomGen.Flamingos2[F]] =
+      Focus[Flamingos2[F]](_.nextAtom)
+  }
+
+  sealed trait AtomGen[F[_]] {
+    type D
 
     def atomId: Atom.Id
     def sequenceType: SequenceType
-    def steps: List[SequenceGen.StepGen[F, Dynamic]]
+    def steps: List[SequenceGen.StepGen[F, D]]
   }
 
-  case class AtomGen[F[_], D](
-    atomId:       Atom.Id,
-    sequenceType: SequenceType,
-    steps:        List[SequenceGen.StepGen[F, D]]
-  ) extends InstrumentAtomGen[F] {
-    type Dynamic = D
+  object AtomGen {
+    case class GmosNorth[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosNorth]]
+    ) extends AtomGen[F] {
+      type D = gmos.DynamicConfig.GmosNorth
+    }
+
+    case class GmosSouth[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosSouth]]
+    ) extends AtomGen[F] {
+      type D = gmos.DynamicConfig.GmosSouth
+    }
+
+    case class Flamingos2[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, Flamingos2DynamicConfig]]
+    ) extends AtomGen[F] {
+      type D = Flamingos2DynamicConfig
+    }
   }
 
   trait StepStatusGen
@@ -202,4 +263,38 @@ object SequenceGen {
   ): Option[Int] =
     steps.zipWithIndex.find(_._1.id === stepId).map(_._2)
 
+  def gmosNorth[F[_]]: Prism[SequenceGen[F], GmosNorth[F]]   = GenPrism[SequenceGen[F], GmosNorth[F]]
+  def gmosSouth[F[_]]: Prism[SequenceGen[F], GmosSouth[F]]   = GenPrism[SequenceGen[F], GmosSouth[F]]
+  def flamingos2[F[_]]: Prism[SequenceGen[F], Flamingos2[F]] =
+    GenPrism[SequenceGen[F], Flamingos2[F]]
+
+  def nextAtom[F[_]]: Optional[SequenceGen[F], AtomGen[F]] =
+    Optional[SequenceGen[F], AtomGen[F]](p =>
+      gmosNorth
+        .andThen(GmosNorth.nextAtom)
+        .getOption(p)
+        .orElse(
+          gmosSouth
+            .andThen(GmosSouth.nextAtom)
+            .getOption(p)
+            .orElse(
+              flamingos2
+                .andThen(Flamingos2.nextAtom)
+                .getOption(p)
+            )
+        )
+    ) {
+      case v @ SequenceGen.AtomGen.GmosNorth[F](_, _, _)  => {
+        case p @ GmosNorth[F](_, _, _) => GmosNorth.nextAtom[F].replace(v)(p)
+        case p                         => p
+      }
+      case v @ SequenceGen.AtomGen.GmosSouth[F](_, _, _)  => {
+        case p @ GmosSouth[F](_, _, _) => GmosSouth.nextAtom[F].replace(v)(p)
+        case p                         => p
+      }
+      case v @ SequenceGen.AtomGen.Flamingos2[F](_, _, _) => {
+        case p @ Flamingos2[F](_, _, _) => Flamingos2.nextAtom[F].replace(v)(p)
+        case p                          => p
+      }
+    }
 }

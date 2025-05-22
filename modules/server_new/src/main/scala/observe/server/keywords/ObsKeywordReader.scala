@@ -15,7 +15,6 @@ import lucuma.core.model.TimingWindowEnd
 import lucuma.core.model.TimingWindowRepeat
 import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.TimeSpan
 import lucuma.schemas.ObservationDB.Enums.GuideProbe
 import mouse.all.*
@@ -71,7 +70,7 @@ final case class TimingWindowKeywords(
 )
 
 object ObsKeywordReader {
-  def apply[F[_]: Sync, D <: DynamicConfig](
+  def apply[F[_]: Sync, D](
     obsCfg: Observation,
     step:   OcsStep[D],
     site:   Site,

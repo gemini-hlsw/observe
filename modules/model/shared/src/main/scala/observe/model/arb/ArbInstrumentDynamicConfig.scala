@@ -3,8 +3,10 @@
 
 package observe.model.arb
 
-import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.gmos
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
 import lucuma.core.model.sequence.gmos.arb.ArbDynamicConfig.given
+import lucuma.core.model.sequence.flamingos2.arb.ArbFlamingos2DynamicConfig.given
 import observe.model.InstrumentDynamicConfig
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.*
@@ -14,13 +16,19 @@ import org.scalacheck.Gen
 trait ArbInstrumentDynamicConfig:
   given Arbitrary[InstrumentDynamicConfig] = Arbitrary:
     Gen.oneOf(
-      arbitrary[DynamicConfig.GmosNorth].map(InstrumentDynamicConfig.GmosNorth(_)),
-      arbitrary[DynamicConfig.GmosSouth].map(InstrumentDynamicConfig.GmosSouth(_))
+      arbitrary[gmos.DynamicConfig.GmosNorth].map(InstrumentDynamicConfig.GmosNorth(_)),
+      arbitrary[gmos.DynamicConfig.GmosSouth].map(InstrumentDynamicConfig.GmosSouth(_))
     )
 
   given Cogen[InstrumentDynamicConfig] =
-    Cogen[Either[DynamicConfig.GmosNorth, DynamicConfig.GmosSouth]].contramap:
-      case InstrumentDynamicConfig.GmosNorth(c) => Left(c)
-      case InstrumentDynamicConfig.GmosSouth(c) => Right(c)
+    Cogen[
+      Either[
+        Either[gmos.DynamicConfig.GmosNorth, gmos.DynamicConfig.GmosSouth],
+        Flamingos2DynamicConfig
+      ]
+    ].contramap:
+      case InstrumentDynamicConfig.GmosNorth(c)  => Left(Left(c))
+      case InstrumentDynamicConfig.GmosSouth(c)  => Left(Right(c))
+      case InstrumentDynamicConfig.Flamingos2(c) => Right(c)
 
 object ArbInstrumentDynamicConfig extends ArbInstrumentDynamicConfig

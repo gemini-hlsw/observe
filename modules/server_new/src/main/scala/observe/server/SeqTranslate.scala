@@ -68,12 +68,12 @@ import observe.server.tcs.TcsController.LightSource
 import org.typelevel.log4cats.Logger
 
 trait SeqTranslate[F[_]] {
-  def sequence[S, D](sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F, S, D]])]
+  def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])]
 
-  def nextAtom[D](
+  def nextAtom(
     sequence: OdbObservation,
     atomType: SequenceType
-  ): (List[Throwable], Option[SequenceGen.AtomGen[F, D]])
+  ): (List[Throwable], Option[SequenceGen.AtomGen[F]])
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
     tio: Temporal[F]
@@ -211,7 +211,7 @@ object SeqTranslate {
 
     override def sequence(
       sequence: OdbObservation
-    ): F[(List[Throwable], Option[InstrumentSequenceGen[F]])] =
+    ): F[(List[Throwable], Option[SequenceGen[F]])] =
       sequence.execution.config match {
         case Some(c @ InstrumentExecutionConfig.GmosNorth(_))  =>
           buildSequenceGmosN(sequence, c).pure[F]
@@ -223,15 +223,16 @@ object SeqTranslate {
           ApplicativeThrow[F].raiseError(new Exception("Unknown sequence type"))
       }
 
-    private def buildNextAtom[S, D](
-      sequence:   OdbObservation,
-      data:       ExecutionConfig[S, D],
-      seqType:    SequenceType,
-      insSpec:    InstrumentSpecifics[S, D],
-      instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
-      instHeader: D => KeywordsClient[F] => Header[F],
-      startIdx:   PosInt = PosInt.unsafeFrom(1)
-    ): (List[Throwable], Option[SequenceGen.AtomGen[F, D]]) = {
+    private def buildNextAtom[S, D, AG[_[_]]](
+      sequence:      OdbObservation,
+      data:          ExecutionConfig[S, D],
+      seqType:       SequenceType,
+      insSpec:       InstrumentSpecifics[S, D],
+      instf:         (SystemOverrides, StepType, D) => InstrumentSystem[F],
+      instHeader:    D => KeywordsClient[F] => Header[F],
+      constructAtom: (Atom.Id, SequenceType, List[SequenceGen.StepGen[F, D]]) => AG[F],
+      startIdx:      PosInt = PosInt.unsafeFrom(1)
+    ): (List[Throwable], Option[AG[F]]) = {
       val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) = seqType match {
         case SequenceType.Acquisition =>
           data.acquisition
@@ -263,48 +264,34 @@ object SeqTranslate {
               }
           }.separate
 
-          (a,
-           b.nonEmpty
-             .option(
-               SequenceGen.AtomGen(
-                 atom.id,
-                 sequenceType,
-                 b
-               )
-             )
-          )
+          (a, b.nonEmpty.option(constructAtom(atom.id, sequenceType, b)))
         }
         .getOrElse((List.empty, none))
     }
 
-    private def buildSequence[S <: gmos.StaticConfig, D <: gmos.DynamicConfig](
-      sequence:   OdbObservation,
-      data:       ExecutionConfig[S, D],
-      insSpec:    InstrumentSpecifics[S, D],
-      instf:      (SystemOverrides, StepType, D) => InstrumentSystem[F],
-      instHeader: D => KeywordsClient[F] => Header[F]
-    ): (List[Throwable], Option[SequenceGen[F, S, D]]) = {
+    private def buildSequence[S, D, AG[_[_]]](
+      sequence:      OdbObservation,
+      data:          ExecutionConfig[S, D],
+      insSpec:       InstrumentSpecifics[S, D],
+      instf:         (SystemOverrides, StepType, D) => InstrumentSystem[F],
+      instHeader:    D => KeywordsClient[F] => Header[F],
+      contructSeq:   (obsData: OdbObservation, staticCfg: S, nextAtom: AG[F]) => SequenceGen[F],
+      constructAtom: (Atom.Id, SequenceType, List[SequenceGen.StepGen[F, D]]) => AG[F]
+    ): (List[Throwable], Option[SequenceGen[F]]) = {
       val startIdx: PosInt = PosInt.unsafeFrom(1)
-      val (a, b)           = buildNextAtom[S, D](
-        sequence,
-        data,
-        SequenceType.Acquisition,
-        insSpec,
-        instf,
-        instHeader,
-        startIdx
-      )
+      val (a, b)           =
+        buildNextAtom[S, D, AG](
+          sequence,
+          data,
+          SequenceType.Acquisition,
+          insSpec,
+          instf,
+          instHeader,
+          constructAtom,
+          startIdx
+        )
 
-      (a,
-       b.map(x =>
-         SequenceGen(
-           sequence,
-           insSpec.instrument,
-           data.static,
-           x
-         )
-       )
-      )
+      (a, b.map(x => contructSeq(sequence, data.static, x)))
     }
 
     private def buildSequenceGmosN(
@@ -312,7 +299,7 @@ object SeqTranslate {
       data:   InstrumentExecutionConfig.GmosNorth
     ): (
       List[Throwable],
-      Option[SequenceGen[F, gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth]]
+      Option[SequenceGen[F]]
     ) =
       buildSequence(
         obsCfg,
@@ -334,7 +321,9 @@ object SeqTranslate {
               GmosObsKeywordsReader(data.executionConfig.static, d),
               systemss.gmosKeywordReader,
               systemss.tcsKeywordReader
-            )
+            ),
+        SequenceGen.GmosNorth[F](_, _, _),
+        SequenceGen.AtomGen.GmosNorth[F](_, _, _)
       )
 
     private def buildSequenceGmosS(
@@ -342,7 +331,7 @@ object SeqTranslate {
       data:   InstrumentExecutionConfig.GmosSouth
     ): (
       List[Throwable],
-      Option[SequenceGen[F, gmos.StaticConfig.GmosSouth, gmos.DynamicConfig.GmosSouth]]
+      Option[SequenceGen[F]]
     ) =
       buildSequence(
         obsCfg,
@@ -364,7 +353,9 @@ object SeqTranslate {
               GmosObsKeywordsReader(data.executionConfig.static, d),
               systemss.gmosKeywordReader,
               systemss.tcsKeywordReader
-            )
+            ),
+        SequenceGen.GmosSouth[F](_, _, _),
+        SequenceGen.AtomGen.GmosSouth[F](_, _, _)
       )
 
     private def buildSequenceFlamingos2(
@@ -372,7 +363,7 @@ object SeqTranslate {
       data:   InstrumentExecutionConfig.Flamingos2
     ): (
       List[Throwable],
-      Option[SequenceGen[F, Flamingos2StaticConfig, Flamingos2DynamicConfig]]
+      Option[SequenceGen[F]]
     ) = ???
 
     private def deliverObserveCmd[D](seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
@@ -837,14 +828,18 @@ object SeqTranslate {
             )
     }
 
-    override def nextAtom[D](
+    override def nextAtom(
       sequence: OdbObservation,
       atomType: SequenceType
-    ): (List[Throwable], Option[SequenceGen.InstrumentAtomGen[F]]) =
+    ): (List[Throwable], Option[SequenceGen.AtomGen[F]]) =
       sequence.execution.config
         .map {
           case InstrumentExecutionConfig.GmosNorth(executionConfig)  =>
-            buildNextAtom[gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth](
+            buildNextAtom[
+              gmos.StaticConfig.GmosNorth,
+              gmos.DynamicConfig.GmosNorth,
+              SequenceGen.AtomGen.GmosNorth
+            ](
               sequence,
               executionConfig,
               atomType,
@@ -865,10 +860,15 @@ object SeqTranslate {
                     GmosObsKeywordsReader(executionConfig.static, d),
                     systemss.gmosKeywordReader,
                     systemss.tcsKeywordReader
-                  )
+                  ),
+              SequenceGen.AtomGen.GmosNorth[F](_, _, _)
             )
           case InstrumentExecutionConfig.GmosSouth(executionConfig)  =>
-            buildNextAtom[gmos.StaticConfig.GmosSouth, gmos.DynamicConfig.GmosSouth](
+            buildNextAtom[
+              gmos.StaticConfig.GmosSouth,
+              gmos.DynamicConfig.GmosSouth,
+              SequenceGen.AtomGen.GmosSouth
+            ](
               sequence,
               executionConfig,
               atomType,
@@ -889,10 +889,15 @@ object SeqTranslate {
                     GmosObsKeywordsReader(executionConfig.static, d),
                     systemss.gmosKeywordReader,
                     systemss.tcsKeywordReader
-                  )
+                  ),
+              SequenceGen.AtomGen.GmosSouth[F](_, _, _)
             )
           case InstrumentExecutionConfig.Flamingos2(executionConfig) =>
-            buildNextAtom[Flamingos2StaticConfig, Flamingos2DynamicConfig](
+            buildNextAtom[
+              Flamingos2StaticConfig,
+              Flamingos2DynamicConfig,
+              SequenceGen.AtomGen.Flamingos2
+            ](
               sequence,
               executionConfig,
               atomType,
@@ -913,7 +918,8 @@ object SeqTranslate {
                     ???, // GmosObsKeywordsReader(executionConfig.static, d),
                     systemss.gmosKeywordReader,
                     systemss.tcsKeywordReader
-                  )
+                  ),
+              SequenceGen.AtomGen.Flamingos2.apply[F]
             )
         }
         .getOrElse((List.empty, none))

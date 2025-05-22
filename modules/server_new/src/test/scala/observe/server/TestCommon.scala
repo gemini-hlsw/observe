@@ -372,51 +372,16 @@ object TestCommon {
       )
     )
 
-  def sequence(id: Observation.Id): SequenceGen[IO] = SequenceGen[IO](
-    odbObservation(id, 1),
-    instrument = Instrument.GmosNorth,
-    staticCfg1,
-    SequenceGen.AtomGen(
-      atomId1,
-      SequenceType.Science,
-      steps = List(
-        SequenceGen.PendingStepGen(
-          id = stepId(1),
-          Monoid.empty[DataId],
-          resources = Set(Instrument.GmosNorth, Resource.TCS),
-          _ => InstrumentSystem.Uncontrollable,
-          generator = SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            configs = Map(),
-            odbAction[IO],
-            odbAction[IO],
-            post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
-            odbAction[IO],
-            odbAction[IO]
-          ),
-          StepStatusGen.Null,
-          dynamicCfg1,
-          stepCfg1,
-          telescopeCfg1,
-          breakpoint = Breakpoint.Disabled
-        )
-      )
-    )
-  )
-
-  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] = SequenceGen[IO](
-    odbObservation(id, n),
-    instrument = Instrument.GmosNorth,
-    staticCfg1,
-    SequenceGen.AtomGen(
-      atomId1,
-      SequenceType.Science,
-      steps = List
-        .range(1, n + 1)
-        .map(i =>
+  def sequence(id: Observation.Id): SequenceGen[IO] =
+    SequenceGen.GmosNorth[IO](
+      odbObservation(id, 1),
+      staticCfg1,
+      SequenceGen.AtomGen.GmosNorth(
+        atomId1,
+        SequenceType.Science,
+        steps = List(
           SequenceGen.PendingStepGen(
-            id = stepId(i),
+            id = stepId(1),
             Monoid.empty[DataId],
             resources = Set(Instrument.GmosNorth, Resource.TCS),
             _ => InstrumentSystem.Uncontrollable,
@@ -437,8 +402,43 @@ object TestCommon {
             breakpoint = Breakpoint.Disabled
           )
         )
+      )
     )
-  )
+
+  def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] =
+    SequenceGen.GmosNorth[IO](
+      odbObservation(id, n),
+      staticCfg1,
+      SequenceGen.AtomGen.GmosNorth(
+        atomId1,
+        SequenceType.Science,
+        steps = List
+          .range(1, n + 1)
+          .map(i =>
+            SequenceGen.PendingStepGen(
+              id = stepId(i),
+              Monoid.empty[DataId],
+              resources = Set(Instrument.GmosNorth, Resource.TCS),
+              _ => InstrumentSystem.Uncontrollable,
+              generator = SequenceGen.StepActionsGen(
+                odbAction[IO],
+                odbAction[IO],
+                configs = Map(),
+                odbAction[IO],
+                odbAction[IO],
+                post = (_, _) => List(NonEmptyList.one(pendingAction[IO](Instrument.GmosNorth))),
+                odbAction[IO],
+                odbAction[IO]
+              ),
+              StepStatusGen.Null,
+              dynamicCfg1,
+              stepCfg1,
+              telescopeCfg1,
+              breakpoint = Breakpoint.Disabled
+            )
+          )
+      )
+    )
 
   def generateSequence[F[_]: Async: Logger](
     obs:     ODBObservation,
@@ -453,106 +453,106 @@ object TestCommon {
     id:        Observation.Id,
     ins:       Instrument,
     resources: Set[Resource | Instrument]
-  ): SequenceGen[IO] = SequenceGen[IO](
-    ODBObservation(
-      id = id,
-      title = "Test Observation".refined,
-      ODBObservation.Workflow(ObservationWorkflowState.Ready),
-      ODBObservation.Program(
-        Program.Id(PosLong.unsafeFrom(123)),
-        None,
-        ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
-      ),
-      TargetEnvironment(None, GuideEnvironment(List.empty)),
-      ConstraintSet(
-        ImageQuality.Preset.PointOne,
-        CloudExtinction.Preset.PointOne,
-        SkyBackground.Dark,
-        WaterVapor.Median,
-        ElevationRange.ByAirMass.Default
-      ),
-      List.empty,
-      Execution(
-        GmosNorth(
-          ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-            staticCfg1,
-            ExecutionSequence[DynamicConfig.GmosNorth](
-              Atom[DynamicConfig.GmosNorth](
-                atomId1,
-                None,
-                NonEmptyList(
-                  Step[DynamicConfig.GmosNorth](
-                    stepId(1),
-                    dynamicCfg1,
-                    stepCfg1,
-                    telescopeCfg1,
-                    StepEstimate.Zero,
-                    ObserveClass.Science,
-                    Breakpoint.Disabled
-                  ),
-                  List.empty
-                )
-              ),
-              List.empty,
-              false
-            ).some,
-            None
-          )
-        ).some
-      )
-    ),
-    instrument = Instrument.GmosNorth,
-    staticCfg1,
-    SequenceGen.AtomGen(
-      atomId1,
-      SequenceType.Science,
-      steps = List(
-        SequenceGen.PendingStepGen(
-          id = stepId(1),
-          Monoid.empty[DataId],
-          resources = resources,
-          _ => InstrumentSystem.Uncontrollable,
-          generator = SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            configs =
-              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            odbAction[IO],
-            odbAction[IO],
-            post = (_, _) => Nil,
-            odbAction[IO],
-            odbAction[IO]
-          ),
-          StepStatusGen.Null,
-          dynamicCfg1,
-          stepCfg1,
-          telescopeCfg1,
-          breakpoint = Breakpoint.Disabled
+  ): SequenceGen[IO] =
+    SequenceGen.GmosNorth[IO](
+      ODBObservation(
+        id = id,
+        title = "Test Observation".refined,
+        ODBObservation.Workflow(ObservationWorkflowState.Ready),
+        ODBObservation.Program(
+          Program.Id(PosLong.unsafeFrom(123)),
+          None,
+          ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
         ),
-        SequenceGen.PendingStepGen(
-          id = stepId(2),
-          Monoid.empty[DataId],
-          resources = resources,
-          _ => InstrumentSystem.Uncontrollable,
-          generator = SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            configs =
-              resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
-            odbAction[IO],
-            odbAction[IO],
-            post = (_, _) => Nil,
-            odbAction[IO],
-            odbAction[IO]
+        TargetEnvironment(None, GuideEnvironment(List.empty)),
+        ConstraintSet(
+          ImageQuality.Preset.PointOne,
+          CloudExtinction.Preset.PointOne,
+          SkyBackground.Dark,
+          WaterVapor.Median,
+          ElevationRange.ByAirMass.Default
+        ),
+        List.empty,
+        Execution(
+          GmosNorth(
+            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+              staticCfg1,
+              ExecutionSequence[DynamicConfig.GmosNorth](
+                Atom[DynamicConfig.GmosNorth](
+                  atomId1,
+                  None,
+                  NonEmptyList(
+                    Step[DynamicConfig.GmosNorth](
+                      stepId(1),
+                      dynamicCfg1,
+                      stepCfg1,
+                      telescopeCfg1,
+                      StepEstimate.Zero,
+                      ObserveClass.Science,
+                      Breakpoint.Disabled
+                    ),
+                    List.empty
+                  )
+                ),
+                List.empty,
+                false
+              ).some,
+              None
+            )
+          ).some
+        )
+      ),
+      staticCfg1,
+      SequenceGen.AtomGen.GmosNorth(
+        atomId1,
+        SequenceType.Science,
+        steps = List(
+          SequenceGen.PendingStepGen(
+            id = stepId(1),
+            Monoid.empty[DataId],
+            resources = resources,
+            _ => InstrumentSystem.Uncontrollable,
+            generator = SequenceGen.StepActionsGen(
+              odbAction[IO],
+              odbAction[IO],
+              configs =
+                resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+              odbAction[IO],
+              odbAction[IO],
+              post = (_, _) => Nil,
+              odbAction[IO],
+              odbAction[IO]
+            ),
+            StepStatusGen.Null,
+            dynamicCfg1,
+            stepCfg1,
+            telescopeCfg1,
+            breakpoint = Breakpoint.Disabled
           ),
-          StepStatusGen.Null,
-          dynamicCfg1,
-          stepCfg1,
-          telescopeCfg1,
-          breakpoint = Breakpoint.Disabled
+          SequenceGen.PendingStepGen(
+            id = stepId(2),
+            Monoid.empty[DataId],
+            resources = resources,
+            _ => InstrumentSystem.Uncontrollable,
+            generator = SequenceGen.StepActionsGen(
+              odbAction[IO],
+              odbAction[IO],
+              configs =
+                resources.map(r => r -> { (_: SystemOverrides) => pendingAction[IO](r) }).toMap,
+              odbAction[IO],
+              odbAction[IO],
+              post = (_, _) => Nil,
+              odbAction[IO],
+              odbAction[IO]
+            ),
+            StepStatusGen.Null,
+            dynamicCfg1,
+            stepCfg1,
+            telescopeCfg1,
+            breakpoint = Breakpoint.Disabled
+          )
         )
       )
     )
-  )
 
 }
