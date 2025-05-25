@@ -111,9 +111,8 @@ object EngineState {
   def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
     EngineState.sequenceStateIndex(sid)
 
-  implicit final class WithEventOps[F[_]](val f: Endo[EngineState[F]]) extends AnyVal {
+  extension [F[_]](f: Endo[EngineState[F]])
     def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }
-  }
 
   def queues[F[_]]: Lens[EngineState[F], ExecutionQueues] = Focus[EngineState[F]](_.queues)
 

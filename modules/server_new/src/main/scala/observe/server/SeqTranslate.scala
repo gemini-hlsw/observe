@@ -44,6 +44,8 @@ import observe.server.SequenceGen.StepGen
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.altair.AltairControllerDisabled
+import observe.server.flamingos2.Flamingos2Controller
+import observe.server.flamingos2.Flamingos2ControllerDisabled
 import observe.server.gcal.*
 import observe.server.gems.Gems
 import observe.server.gems.GemsController
@@ -946,16 +948,16 @@ object SeqTranslate {
 
   class OverriddenSystems[F[_]: Sync: Logger](systems: Systems[F]) {
 
-    private val tcsSouthDisabled: TcsSouthController[F]   = new TcsSouthControllerDisabled[F]
-    private val tcsNorthDisabled: TcsNorthController[F]   = new TcsNorthControllerDisabled[F]
-    private val gemsDisabled: GemsController[F]           = new GemsControllerDisabled[F]
-    private val altairDisabled: AltairController[F]       = new AltairControllerDisabled[F]
-    private val dhsDisabled: DhsClientProvider[F]         = (_: String) => new DhsClientDisabled[F]
-    private val gcalDisabled: GcalController[F]           = new GcalControllerDisabled[F]
-//    private val flamingos2Disabled: Flamingos2Controller[F] = new Flamingos2ControllerDisabled[F]
-    private val gmosSouthDisabled: GmosSouthController[F] =
+    private val tcsSouthDisabled: TcsSouthController[F]     = new TcsSouthControllerDisabled[F]
+    private val tcsNorthDisabled: TcsNorthController[F]     = new TcsNorthControllerDisabled[F]
+    private val gemsDisabled: GemsController[F]             = new GemsControllerDisabled[F]
+    private val altairDisabled: AltairController[F]         = new AltairControllerDisabled[F]
+    private val dhsDisabled: DhsClientProvider[F]           = (_: String) => new DhsClientDisabled[F]
+    private val gcalDisabled: GcalController[F]             = new GcalControllerDisabled[F]
+    private val flamingos2Disabled: Flamingos2Controller[F] = new Flamingos2ControllerDisabled[F]
+    private val gmosSouthDisabled: GmosSouthController[F]   =
       new GmosControllerDisabled[F, GmosSite.South.type]("GMOS-S")
-    private val gmosNorthDisabled: GmosNorthController[F] =
+    private val gmosNorthDisabled: GmosNorthController[F]   =
       new GmosControllerDisabled[F, GmosSite.North.type]("GMOS-N")
 //    private val gsaoiDisabled: GsaoiController[F]           = new GsaoiControllerDisabled[F]
 //    private val gpiDisabled: GpiController[F]               = new GpiControllerDisabled[F](systems.gpi.statusDb)
@@ -988,9 +990,9 @@ object SeqTranslate {
       if (overrides.isGcalEnabled.value) systems.gcal
       else gcalDisabled
 
-//    def flamingos2(overrides: SystemOverrides): Flamingos2Controller[F] =
-//      if (overrides.isInstrumentEnabled) systems.flamingos2
-//      else flamingos2Disabled
+    def flamingos2(overrides: SystemOverrides): Flamingos2Controller[F] =
+      if (overrides.isInstrumentEnabled) systems.flamingos2
+      else flamingos2Disabled
 
     def gmosNorth(overrides: SystemOverrides): GmosNorthController[F] =
       if (overrides.isInstrumentEnabled.value) systems.gmosNorth

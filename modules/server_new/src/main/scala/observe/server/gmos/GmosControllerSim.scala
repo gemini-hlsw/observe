@@ -161,11 +161,11 @@ object GmosControllerSim {
       ): Stream[F, Progress] = (
         if (curr.firstSubexposure)
           Stream.emit(ObsProgress(total, RemainingTime(total), ObserveStage.Preparing)) ++
-            countdown[F](total, elapsed.self)
+            countdown[F](total, elapsed.value)
         else if (curr.lastSubexposure)
-          countdown[F](total, elapsed.self) ++
+          countdown[F](total, elapsed.value) ++
             Stream.emit(ObsProgress(total, RemainingTime(TimeSpan.Zero), ObserveStage.ReadingOut))
-        else countdown[F](total, elapsed.self)
+        else countdown[F](total, elapsed.value)
       ).map { p =>
         val sub = NsSubexposure(
           NsCycles(curr.totalCycles),

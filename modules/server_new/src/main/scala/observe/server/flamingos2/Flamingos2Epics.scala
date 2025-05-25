@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package observe.server.flamingos2
@@ -8,12 +8,12 @@ import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
 import edu.gemini.epics.acm.*
+import lucuma.core.util.TimeSpan
 import observe.model.enums.ApplyCommandResult
 import observe.server.EpicsCommandBase
 import observe.server.EpicsCommandBase.setParameter
 import observe.server.EpicsSystem
 import observe.server.EpicsUtil.*
-import lucuma.core.util.TimeSpan
 
 final class Flamingos2Epics[F[_]: Async](epicsService: CaService, tops: Map[String, String]) {
   val sysName       = "FLAMINGOS-2"

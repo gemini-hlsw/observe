@@ -6,6 +6,7 @@ package observe.server
 import cats.data.Kleisli
 import fs2.Stream
 import lucuma.core.enums.Instrument
+import lucuma.core.util.NewType
 import lucuma.core.util.TimeSpan
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
@@ -63,5 +64,6 @@ object InstrumentSystem {
   final case class UnpausableControl[+F[_]](stop: StopObserveCmd[F], abort: AbortObserveCmd[F])
       extends ObserveControl[F]
 
-  final case class ElapsedTime(self: TimeSpan) extends AnyVal
+  object ElapsedTime extends NewType[TimeSpan]
+  type ElapsedTime = ElapsedTime.Type
 }

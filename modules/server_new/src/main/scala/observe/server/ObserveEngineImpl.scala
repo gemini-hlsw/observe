@@ -856,11 +856,11 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
           // TODO: Sequence completed event not emitted by engine.
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))   =>
             Stream.emit(
-              ProgressEvent(ObservationProgress(i, StepProgress.Regular(s, t, r.self, v)))
+              ProgressEvent(ObservationProgress(i, StepProgress.Regular(s, t, r.value, v)))
             )
           case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u))) =>
             Stream.emit(
-              ProgressEvent(ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u)))
+              ProgressEvent(ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.value, v, u)))
             )
           // case SystemEvent.Busy(id, clientId)                                       =>
           //   Stream.emit(UserNotification(ResourceConflict(id), clientId))
