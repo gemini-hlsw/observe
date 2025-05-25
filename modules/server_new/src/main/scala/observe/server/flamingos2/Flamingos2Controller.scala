@@ -19,6 +19,7 @@ import observe.model.enums.ObserveCommandResult
 import observe.server.Progress
 
 import scala.concurrent.duration.Duration
+import lucuma.core.util.NewType
 
 trait Flamingos2Controller[F[_]] {
   import Flamingos2Controller._
@@ -58,41 +59,45 @@ object Flamingos2Controller {
     object Dark    extends Grism
   }
 
-  type ExposureTime = Duration
+  type ExposureTime = TimeSpan
 
-  sealed trait BiasMode
-  object BiasMode {
-    object Imaging  extends BiasMode
-    object LongSlit extends BiasMode
-    object MOS      extends BiasMode
-  }
+  // sealed trait BiasMode
+  // object BiasMode {
+  //   object Imaging  extends BiasMode
+  //   object LongSlit extends BiasMode
+  //   object MOS      extends BiasMode
+  // }
+  // TODO Is this correct? Is this just code that was repeated?? Do we want the newtype?
+  // object BiasMode extends NewType[Flamingos2Decker]
+  // type BiasMode = BiasMode.Type
 
   final case class CCConfig(
-    w:   Flamingos2WindowCover,
-    d:   Flamingos2Decker,
-    fpu: FocalPlaneUnit,
-    f:   Flamingos2Filter,
-    l:   Flamingos2LyotWheel,
-    g:   Grism
+    windowCover: Flamingos2WindowCover,
+    // d:           Flamingos2Decker,
+    fpu:         FocalPlaneUnit,
+    f:           Flamingos2Filter,
+    l:           Flamingos2LyotWheel,
+    g:           Grism
   ) {
-    def setWindowCover(windowCover: Flamingos2WindowCover): CCConfig = this.copy(w = windowCover)
-    def setDecker(decker:           Flamingos2Decker): CCConfig      = this.copy(d = decker)
-    def setFPU(focalPlaneUnit:      FocalPlaneUnit): CCConfig        = this.copy(fpu = focalPlaneUnit)
-    def setFilter(filter:           Flamingos2Filter): CCConfig      = this.copy(f = filter)
-    def setLyot(lyot:               Flamingos2LyotWheel): CCConfig   = this.copy(l = lyot)
-    def setGrism(grism:             Grism): CCConfig                 = this.copy(g = grism)
+    def setWindowCover(windowCover: Flamingos2WindowCover): CCConfig =
+      this.copy(windowCover = windowCover)
+    // def setDecker(decker:      Flamingos2Decker): CCConfig    = this.copy(d = decker)
+    def setFPU(focalPlaneUnit: FocalPlaneUnit): CCConfig      = this.copy(fpu = focalPlaneUnit)
+    def setFilter(filter:      Flamingos2Filter): CCConfig    = this.copy(f = filter)
+    def setLyot(lyot:          Flamingos2LyotWheel): CCConfig = this.copy(l = lyot)
+    def setGrism(grism:        Grism): CCConfig               = this.copy(g = grism)
   }
 
   final case class DCConfig(
     t: ExposureTime,
     n: Flamingos2Reads,
     r: Flamingos2ReadoutMode,
-    b: BiasMode
+    d: Flamingos2Decker
   ) {
     def setExposureTime(exposureTime: ExposureTime): DCConfig          = this.copy(t = exposureTime)
     def setNumReads(numReads:         Flamingos2Reads): DCConfig       = this.copy(n = numReads)
     def setReadoutMode(readoutMode:   Flamingos2ReadoutMode): DCConfig = this.copy(r = readoutMode)
-    def setBiasMode(biasMode:         BiasMode): DCConfig              = this.copy(b = biasMode)
+    def setDecker(decker:             Flamingos2Decker): DCConfig      = this.copy(d = decker)
   }
 
   final case class Flamingos2Config(cc: CCConfig, dc: DCConfig) {

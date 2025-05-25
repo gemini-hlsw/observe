@@ -36,6 +36,9 @@ import lucuma.core.util.TimeSpan
 import lucuma.core.enums.Flamingos2ReadMode
 import lucuma.core.enums.Flamingos2Decker
 import lucuma.core.enums.Flamingos2WindowCover
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.enums.Flamingos2Disperser
 
 final case class Flamingos2[F[_]: Async: Logger](
   f2Controller:      Flamingos2Controller[F],
@@ -64,9 +67,7 @@ final case class Flamingos2[F[_]: Async: Logger](
   // FLAMINGOS-2 does not support abort or stop.
   override def observe: Kleisli[F, ImageFileId, ObserveCommandResult] =
     Kleisli { fileId =>
-      calcObserveTime.flatMap { x =>
-        f2Controller.observe(fileId, x)
-      }
+      f2Controller.observe(fileId, config.dc.t)
     }
 
   override def configure: F[ConfigResult[F]] =
@@ -83,10 +84,11 @@ final case class Flamingos2[F[_]: Async: Logger](
 
   override def calcObserveTime: F[TimeSpan] =
     Sync[F].delay(
-      config
-        .extractObsAs[JDouble](EXPOSURE_TIME_PROP)
-        .map(x => Seconds(x.toDouble))
-        .getOrElse(Seconds(360))
+      config.dc.t
+        //   config
+        //     .extractObsAs[JDouble](EXPOSURE_TIME_PROP)
+        //     .map(x => Seconds(x.toDouble))
+        //     .getOrElse(Seconds(360))
     )
 
   override def observeProgress(
@@ -145,61 +147,66 @@ object Flamingos2 {
     case _                 => Flamingos2WindowCover.Open
   }
 
-  implicit def grismFromSPDisperser(d: Disperser): Grism = d match {
-    case Disperser.NONE    => Grism.Open
-    case Disperser.R1200HK => Grism.R1200HK
-    case Disperser.R1200JH => Grism.R1200JH
-    case Disperser.R3000   => Grism.R3000
+  implicit def grismFromSPDisperser(d: Option[Flamingos2Disperser]): Grism = d match {
+    case None                              => Grism.Open
+    case Some(Flamingos2Disperser.R1200HK) => Grism.R1200HK
+    case Some(Flamingos2Disperser.R1200JH) => Grism.R1200JH
+    case Some(Flamingos2Disperser.R3000)   => Grism.R3000
   }
 
-  private def disperserFromObserveType(observeType: String, d: Disperser): Grism =
+  private def disperserFromObserveType(observeType: String, d: Option[Flamingos2Disperser]): Grism =
     observeType match {
       case DARK_OBSERVE_TYPE => Grism.Dark
-      case _                 => d
+      case _                 => grismFromSPDisperser(d)
     }
 
   // This method deals with engineering parameters that can come as a T or an Option[T]
-  private def extractEngineeringParam[T](item: Extracted[CleanConfig], default: T)(implicit
-    clazz: ClassTag[T]
-  ): Either[ExtractFailure, T] = item.as[T].recoverWith {
-    case _: ConfigUtilOps.KeyNotFound     => Right(default)
-    case _: ConfigUtilOps.ConversionError =>
-      item
-        .as[edu.gemini.shared.util.immutable.Option[T]]
-        .map(_.getOrElse(default))
-  }
+  // private def extractEngineeringParam[T](item: Extracted[CleanConfig], default: T)(implicit
+  //   clazz: ClassTag[T]
+  // ): Either[ExtractFailure, T] = item.as[T].recoverWith {
+  //   case _: ConfigUtilOps.KeyNotFound     => Right(default)
+  //   case _: ConfigUtilOps.ConversionError =>
+  //     item
+  //       .as[edu.gemini.shared.util.immutable.Option[T]]
+  //       .map(_.getOrElse(default))
+  // }
 
-  def ccConfigFromSequenceConfig: Either[ObserveFailure, CCConfig] =
-    (for {
-      obsType <- config.extractObsAs[String](OBSERVE_TYPE_PROP)
-      // WINDOW_COVER_PROP is optional. It can be a WindowCover, an Option[WindowCover], or not be present. If no
-      // value is given, then window cover position is inferred from observe type.
-      p       <- extractEngineeringParam(config.extract(INSTRUMENT_KEY / WINDOW_COVER_PROP),
-                                         windowCoverFromObserveType(obsType)
-                 )
-      q       <- config.extractInstAs[Decker](DECKER_PROP)
-      r       <- fpuConfig(config)
-      f       <- config.extractInstAs[Filter](FILTER_PROP)
-      s       <- if (f.isObsolete) ContentError(s"Obsolete filter ${f.displayValue}").asLeft
-                 else f.asRight
-      t       <- config.extractInstAs[LyotWheel](LYOT_WHEEL_PROP)
-      u       <- config.extractInstAs[Disperser](DISPERSER_PROP).map(disperserFromObserveType(obsType, _))
-    } yield CCConfig(p, q, r, s, t, u)).leftMap(e =>
-      SeqexecFailure.Unexpected(ConfigUtilOps.explain(e))
+  // def ccConfigFromSequenceConfig: Either[ObserveFailure, CCConfig] =
+  //   (for {
+  //     obsType <- config.extractObsAs[String](OBSERVE_TYPE_PROP)
+  //     // WINDOW_COVER_PROP is optional. It can be a WindowCover, an Option[WindowCover], or not be present. If no
+  //     // value is given, then window cover position is inferred from observe type.
+  //     p       <- extractEngineeringParam(config.extract(INSTRUMENT_KEY / WINDOW_COVER_PROP),
+  //                                        windowCoverFromObserveType(obsType)
+  //                )
+  //     q       <- config.extractInstAs[Decker](DECKER_PROP)
+  //     r       <- fpuConfig(config)
+  //     f       <- config.extractInstAs[Filter](FILTER_PROP)
+  //     s       <- if (f.isObsolete) ContentError(s"Obsolete filter ${f.displayValue}").asLeft
+  //                else f.asRight
+  //     t       <- config.extractInstAs[LyotWheel](LYOT_WHEEL_PROP)
+  //     u       <- config.extractInstAs[Disperser](DISPERSER_PROP).map(disperserFromObserveType(obsType, _))
+  //   } yield CCConfig(p, q, r, s, t, u)).leftMap(e =>
+  //     SeqexecFailure.Unexpected(ConfigUtilOps.explain(e))
+  // )
+
+  def ccConfigFromSequenceConfig(staticConfig: Flamingos2StaticConfig): CCConfig =
+    CCConfig(
+      config.windowCover,
+      config.decker,
+      fpuFromFPUnit(config.fpu),
+      config.filter,
+      config.lyotWheel,
+      config.grism
     )
 
-  def dcConfigFromSequenceConfig: Either[ObserveFailure, DCConfig] =
-    (for {
-      p <- config.extractObsAs[JDouble](EXPOSURE_TIME_PROP).map(x => Duration(x, SECONDS))
-      // Reads is usually inferred from the read mode, but it can be explicit.
-      a <- config.extractInstAs[ReadMode](READMODE_PROP).map(readsFromReadMode)
-      q <- extractEngineeringParam(config.extract(OBSERVE_KEY / READS_PROP), a)
-      // Readout mode defaults to SCIENCE if not present.
-      r <- extractEngineeringParam(config.extract(INSTRUMENT_KEY / READOUT_MODE_PROP),
-                                   ReadoutMode.SCIENCE
-           )
-      s <- config.extractInstAs[Decker](DECKER_PROP)
-    } yield DCConfig(p, q, r, s)).leftMap(e => SeqexecFailure.Unexpected(ConfigUtilOps.explain(e)))
+  def dcConfigFromSequenceConfig(dynamicConfig: Flamingos2DynamicConfig): DCConfig =
+    DCConfig(
+      dynamicConfig.exposure,
+      dynamicConfig.reads,
+      dynamicConfig.readoutMode,
+      dynamicConfig.decker
+    )
 
   def fromSequenceConfig[F[_]]: Either[ObserveFailure, Flamingos2Config] = for {
     p <- ccConfigFromSequenceConfig(config)

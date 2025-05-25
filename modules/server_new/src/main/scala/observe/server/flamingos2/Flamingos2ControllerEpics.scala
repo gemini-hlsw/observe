@@ -30,11 +30,11 @@ trait Flamingos2Encoders {
       case Flamingos2ReadoutMode.Engineering => "ENG"
     }
 
-  given EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
-    case BiasMode.Imaging  => "Imaging"
-    case BiasMode.LongSlit => "Long_Slit"
-    case BiasMode.MOS      => "Mos"
-  }
+  // given EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
+  //   case BiasMode.Imaging  => "Imaging"
+  //   case BiasMode.LongSlit => "Long_Slit"
+  //   case BiasMode.MOS      => "Mos"
+  // }
 
   given EncodeEpicsValue[Flamingos2WindowCover, String] = EncodeEpicsValue {
     case Flamingos2WindowCover.Open  => "Open"
@@ -42,7 +42,8 @@ trait Flamingos2Encoders {
   }
 
   given EncodeEpicsValue[Flamingos2Decker, String] = EncodeEpicsValue {
-    case Flamingos2Decker.Imaging  => "Open"
+    // case Flamingos2Decker.Imaging  => "Open"
+    case Flamingos2Decker.Imaging  => "Imaging"
     case Flamingos2Decker.LongSlit => "Long_Slit"
     case Flamingos2Decker.MOS      => "Mos"
   }
@@ -114,7 +115,7 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
       _ <- sys.dcConfigCmd.setExposureTime(dc.t.toSeconds.toDouble)
       _ <- sys.dcConfigCmd.setNumReads(dc.n.reads)
       _ <- sys.dcConfigCmd.setReadoutMode(encode(dc.r))
-      _ <- sys.dcConfigCmd.setBiasMode(encode(dc.b))
+      _ <- sys.dcConfigCmd.setBiasMode(encode(dc.d))
     } yield ()
 
     private def filterAndLyot(cc: CCConfig): (Option[String], String) =
@@ -134,8 +135,8 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
       val fpu                      = encode(cc.fpu)
       val (filterValue, lyotValue) = filterAndLyot(cc)
       for {
-        _ <- sys.configCmd.setWindowCover(encode(cc.w))
-        _ <- sys.configCmd.setDecker(encode(cc.d))
+        _ <- sys.configCmd.setWindowCover(encode(cc.windowCover))
+        // _ <- sys.configCmd.setDecker(encode(cc.d))
         _ <- sys.configCmd.setMOS(fpu._1)
         _ <- sys.configCmd.setMask(fpu._2)
         _ <- filterValue.map(sys.configCmd.setFilter).getOrElse(Async[F].unit)
