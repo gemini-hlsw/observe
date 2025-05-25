@@ -8,3 +8,4 @@ curl https://raw.githubusercontent.com/gemini-hlsw/observe/refs/heads/main/deplo
 curl https://raw.githubusercontent.com/gemini-hlsw/observe/refs/heads/main/deploy/scripts/update.sh >update.sh
 chmod +x *.sh
 mkdir ~/observe/conf
+mkdir ~/observe/log
