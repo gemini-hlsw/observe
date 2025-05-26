@@ -30,11 +30,11 @@ trait Flamingos2Encoders {
       case Flamingos2ReadoutMode.Engineering => "ENG"
     }
 
-  // given EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
-  //   case BiasMode.Imaging  => "Imaging"
-  //   case BiasMode.LongSlit => "Long_Slit"
-  //   case BiasMode.MOS      => "Mos"
-  // }
+  given EncodeEpicsValue[BiasMode, String] = EncodeEpicsValue {
+    case Flamingos2Decker.Imaging  => "Imaging"
+    case Flamingos2Decker.LongSlit => "Long_Slit"
+    case Flamingos2Decker.MOS      => "Mos"
+  }
 
   given EncodeEpicsValue[Flamingos2WindowCover, String] = EncodeEpicsValue {
     case Flamingos2WindowCover.Open  => "Open"
@@ -42,8 +42,7 @@ trait Flamingos2Encoders {
   }
 
   given EncodeEpicsValue[Flamingos2Decker, String] = EncodeEpicsValue {
-    // case Flamingos2Decker.Imaging  => "Open"
-    case Flamingos2Decker.Imaging  => "Imaging"
+    case Flamingos2Decker.Imaging  => "Open"
     case Flamingos2Decker.LongSlit => "Long_Slit"
     case Flamingos2Decker.MOS      => "Mos"
   }
@@ -62,7 +61,6 @@ trait Flamingos2Encoders {
       case FocalPlaneUnit.Custom(s)   => ("null", s)
     }
 
-  // Removed obsolete filter positions Open and DK_G0807
   given EncodeEpicsValue[Flamingos2Filter, Option[String]] =
     EncodeEpicsValue.applyO {
       case Flamingos2Filter.Y      => "YJH_G0818"
@@ -75,20 +73,15 @@ trait Flamingos2Encoders {
       case Flamingos2Filter.KShort => "Ks_G0804"
       case Flamingos2Filter.KBlue  => "K-blue_G0814"
       case Flamingos2Filter.KRed   => "K-red_G0815"
-      // case Flamingos2Filter.OPEN => "Open" // Is THIS NONE???? TODO
     }
 
   implicit val encodeLyotPosition: EncodeEpicsValue[Flamingos2LyotWheel, String] =
-    EncodeEpicsValue { // TODO Remove non-existing ones? What's the value for F16?
-      // case Flamingos2LyotWheel.Open       => "f/16_G5830"
-      // case Flamingos2LyotWheel.High       => "null"
-      // case Flamingos2LyotWheel.Low        => "null"
+    EncodeEpicsValue {
+      case Flamingos2LyotWheel.F16       => "f/16_G5830"
       case Flamingos2LyotWheel.GemsOver  => "GEMS_over_G5836"
       case Flamingos2LyotWheel.GemsUnder => "GEMS_under_G5835"
-      // case Flamingos2LyotWheel.GEMS      => "Gems_G5835"
       case Flamingos2LyotWheel.HartmannA => "Hart1_G5833"
       case Flamingos2LyotWheel.HartmannB => "Hart2_G5834"
-      // case Flamingos2LyotWheel.F16 => ???
     }
 
   implicit val encodeGrismPosition: EncodeEpicsValue[Grism, String] = EncodeEpicsValue {
@@ -112,23 +105,22 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
   )(implicit L: Logger[F]): Flamingos2Controller[F] = new Flamingos2Controller[F] {
 
     private def setDCConfig(dc: DCConfig): F[Unit] = for {
-      _ <- sys.dcConfigCmd.setExposureTime(dc.t.toSeconds.toDouble)
-      _ <- sys.dcConfigCmd.setNumReads(dc.n.reads)
-      _ <- sys.dcConfigCmd.setReadoutMode(encode(dc.r))
-      _ <- sys.dcConfigCmd.setBiasMode(encode(dc.d))
+      _ <- sys.dcConfigCmd.setExposureTime(dc.exposureTime.toSeconds.toDouble)
+      _ <- sys.dcConfigCmd.setNumReads(dc.reads.reads)
+      _ <- sys.dcConfigCmd.setReadoutMode(encode(dc.readoutMode))
+      _ <- sys.dcConfigCmd.setBiasMode(encode(dc.decker))
     } yield ()
 
     private def filterAndLyot(cc: CCConfig): (Option[String], String) =
-      if (filterInLyotWheel(cc.f)) {
+      if (filterInLyotWheel(cc.filter)) {
         (
-          // encode(Flamingos2Filter.Open),
           "Open".some,
-          encode(cc.f).getOrElse(encode(cc.l))
+          encode(cc.filter).getOrElse(encode(cc.lyotWheel))
         )
       } else
         (
-          encode(cc.f),
-          encode(cc.l)
+          encode(cc.filter),
+          encode(cc.lyotWheel)
         )
 
     private def setCCConfig(cc: CCConfig): F[Unit] = {
@@ -136,12 +128,12 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
       val (filterValue, lyotValue) = filterAndLyot(cc)
       for {
         _ <- sys.configCmd.setWindowCover(encode(cc.windowCover))
-        // _ <- sys.configCmd.setDecker(encode(cc.d))
+        _ <- sys.configCmd.setDecker(encode(cc.decker))
         _ <- sys.configCmd.setMOS(fpu._1)
         _ <- sys.configCmd.setMask(fpu._2)
         _ <- filterValue.map(sys.configCmd.setFilter).getOrElse(Async[F].unit)
         _ <- sys.configCmd.setLyot(lyotValue)
-        _ <- sys.configCmd.setGrism(encode(cc.g))
+        _ <- sys.configCmd.setGrism(encode(cc.grism))
       } yield ()
     }
 

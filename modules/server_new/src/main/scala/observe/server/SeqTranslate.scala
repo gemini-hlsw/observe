@@ -44,6 +44,7 @@ import observe.server.SequenceGen.StepGen
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.altair.AltairControllerDisabled
+import observe.server.flamingos2.Flamingos2
 import observe.server.flamingos2.Flamingos2Controller
 import observe.server.flamingos2.Flamingos2ControllerDisabled
 import observe.server.gcal.*
@@ -846,14 +847,18 @@ object SeqTranslate {
               executionConfig,
               atomType,
               GmosNorth.specifics,
-              (ov: SystemOverrides, t: StepType, d: gmos.DynamicConfig.GmosNorth) =>
+              (
+                systemOverrides: SystemOverrides,
+                stepType:        StepType,
+                dynamicConfig:   gmos.DynamicConfig.GmosNorth
+              ) =>
                 GmosNorth.build(
-                  overriddenSystems.gmosNorth(ov),
-                  overriddenSystems.dhs(ov),
+                  overriddenSystems.gmosNorth(systemOverrides),
+                  overriddenSystems.dhs(systemOverrides),
                   gmosNsCmd,
-                  t,
+                  stepType,
                   executionConfig.static,
-                  d
+                  dynamicConfig
                 ),
               (d: gmos.DynamicConfig.GmosNorth) =>
                 (kwClient: KeywordsClient[F]) =>
@@ -875,14 +880,18 @@ object SeqTranslate {
               executionConfig,
               atomType,
               GmosSouth.specifics,
-              (ov: SystemOverrides, t: StepType, d: gmos.DynamicConfig.GmosSouth) =>
+              (
+                systemOverrides: SystemOverrides,
+                stepType:        StepType,
+                dynamicConfig:   gmos.DynamicConfig.GmosSouth
+              ) =>
                 GmosSouth.build(
-                  overriddenSystems.gmosSouth(ov),
-                  overriddenSystems.dhs(ov),
+                  overriddenSystems.gmosSouth(systemOverrides),
+                  overriddenSystems.dhs(systemOverrides),
                   gmosNsCmd,
-                  t,
+                  stepType,
                   executionConfig.static,
-                  d
+                  dynamicConfig
                 ),
               (d: gmos.DynamicConfig.GmosSouth) =>
                 (kwClient: KeywordsClient[F]) =>
@@ -903,24 +912,24 @@ object SeqTranslate {
               sequence,
               executionConfig,
               atomType,
-              ???, // GmosSouth.specifics,
-              (ov: SystemOverrides, t: StepType, d: Flamingos2DynamicConfig) => ???,
-              // GmosSouth.build(
-              //   overriddenSystems.gmosSouth(ov),
-              //   overriddenSystems.dhs(ov),
-              //   gmosNsCmd,
-              //   t,
-              //   executionConfig.static,
-              //   d
+              Flamingos2.specifics,
+              (
+                systemOverrides: SystemOverrides,
+                stepType:        StepType,
+                dynamicConfig:   Flamingos2DynamicConfig
+              ) =>
+                Flamingos2.build(
+                  overriddenSystems.flamingos2(systemOverrides),
+                  overriddenSystems.dhs(systemOverrides),
+                  dynamicConfig
+                ),
+              (d: Flamingos2DynamicConfig) => (kwClient: KeywordsClient[F]) => ???,
+              // GmosHeader.header(
+              //   kwClient,
+              //   ???, // GmosObsKeywordsReader(executionConfig.static, d),
+              //   systemss.gmosKeywordReader,
+              //   systemss.tcsKeywordReader
               // ),
-              (d: Flamingos2DynamicConfig) =>
-                (kwClient: KeywordsClient[F]) =>
-                  GmosHeader.header(
-                    kwClient,
-                    ???, // GmosObsKeywordsReader(executionConfig.static, d),
-                    systemss.gmosKeywordReader,
-                    systemss.tcsKeywordReader
-                  ),
               SequenceGen.AtomGen.Flamingos2.apply[F]
             )
         }
