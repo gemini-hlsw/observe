@@ -11,9 +11,9 @@
 
     <!-- Files are rotated daily for up to 90 days -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/gemsoft/var/log/observe/observe.log</file>
+        <file>/log/observe.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/gemsoft/var/log/observe/observe.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/log/observe.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>90</maxHistory>
             <totalSizeCap>3GB</totalSizeCap>
         </rollingPolicy>
