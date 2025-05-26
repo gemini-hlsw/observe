@@ -4,33 +4,35 @@
 package observe.server.flamingos2
 
 import cats.data.Kleisli
-import cats.effect.Sync
-import cats.syntax.all._
 import cats.effect.Async
-import fs2.Stream
-import org.typelevel.log4cats.Logger
-import lucuma.core.enums.LightSinkName
-import observe.model.dhs.ImageFileId
-import lucuma.core.enums.Instrument
-import observe.model.enums.ObserveCommandResult
-import observe.server._
-import observe.server.flamingos2.Flamingos2Controller._
-import observe.server.keywords.{DhsClient, DhsClientProvider, DhsInstrument, KeywordsClient}
-import observe.server.tcs.FOCAL_PLANE_SCALE
-import lucuma.core.util.TimeSpan
-import lucuma.core.enums.Flamingos2WindowCover
-import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
-import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
-import lucuma.core.enums.Flamingos2Disperser
-import observe.model.enums.ExecutionStepType
-import lucuma.core.enums.Flamingos2Fpu
-import lucuma.core.model.sequence.flamingos2.Flamingos2FpuMask
+import cats.effect.Sync
+import cats.syntax.all.*
+import coulomb.Quantity
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter
-import coulomb.Quantity
+import fs2.Stream
+import lucuma.core.enums.Flamingos2Disperser
+import lucuma.core.enums.Flamingos2Fpu
+import lucuma.core.enums.Flamingos2WindowCover
+import lucuma.core.enums.Instrument
+import lucuma.core.enums.LightSinkName
+import lucuma.core.enums.StepType as CoreStepType
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2FpuMask
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.util.TimeSpan
+import observe.model.dhs.ImageFileId
+import observe.model.enums.ObserveCommandResult
+import observe.server.*
+import observe.server.flamingos2.Flamingos2Controller.*
+import observe.server.keywords.DhsClient
+import observe.server.keywords.DhsClientProvider
+import observe.server.keywords.DhsInstrument
+import observe.server.keywords.KeywordsClient
+import observe.server.tcs.FOCAL_PLANE_SCALE
 import observe.server.tcs.FocalPlaneScale.*
-import observe.server.gsaoi.WindowCover
+import org.typelevel.log4cats.Logger
 
 final case class Flamingos2[F[_]: Async: Logger](
   controller:        Flamingos2Controller[F],
@@ -101,11 +103,10 @@ object Flamingos2 {
     case Flamingos2FpuMask.Custom(_, _)   => FocalPlaneUnit.Custom("")
   }
 
-  // TODO Revisit this once we have Dark Observations
-  // private def windowCoverFromObsType(observationType: ObservationType): Flamingos2WindowCover =
-  //   observationType match
-  //     case ObservationType.Dark => Flamingos2WindowCover.Close
-  //     case _                      => Flamingos2WindowCover.Open
+  private def windowCoverFromStepType(stepType: CoreStepType): Flamingos2WindowCover =
+    stepType match
+      case CoreStepType.Dark => Flamingos2WindowCover.Close
+      case _                 => Flamingos2WindowCover.Open
 
   private def grismFromSPDisperser(disperser: Option[Flamingos2Disperser]): Grism =
     disperser match
@@ -114,25 +115,25 @@ object Flamingos2 {
       case Some(Flamingos2Disperser.R1200JH) => Grism.R1200JH
       case Some(Flamingos2Disperser.R3000)   => Grism.R3000
 
-  // TODO Revisit this once we have Dark Observations
-  // private def grismFromDisperserAndObserveType(
-  //   disperser: Option[Flamingos2Disperser],
-  //   observationType: ObservationType
-  // ): Grism =
-  //   observationType match
-  //     case ObservationType.Dark => Grism.Dark
-  //     case _                      => grismFromSPDisperser(disperser)
+  private def grismFromDisperserAndStepType(
+    disperser: Option[Flamingos2Disperser],
+    stepType:  CoreStepType
+  ): Grism =
+    stepType match
+      case CoreStepType.Dark => Grism.Dark
+      case _                 => grismFromSPDisperser(disperser)
 
-  private def ccConfigFromSequenceConfig(dynamicConfig: Flamingos2DynamicConfig): CCConfig =
+  private def ccConfigFromSequenceConfig(
+    dynamicConfig: Flamingos2DynamicConfig,
+    stepType:      CoreStepType
+  ): CCConfig =
     CCConfig(
-      // windowCoverFromObsType(observationType), // TODO: Revisit this once we have Dark Observations
-      Flamingos2WindowCover.Open, // For now we always use Open
+      windowCoverFromStepType(stepType),
       dynamicConfig.decker,
       fpuFromFpuMask(dynamicConfig.fpu),
       dynamicConfig.filter,
       dynamicConfig.lyotWheel,
-      // grismFromDisperserAndObserveType(dynamicConfig.disperser, observationType) // TODO: Revisit this once we have Dark Observations
-      grismFromSPDisperser(dynamicConfig.disperser)
+      grismFromDisperserAndStepType(dynamicConfig.disperser, stepType)
     )
 
   private def dcConfigFromSequenceConfig(dynamicConfig: Flamingos2DynamicConfig): DCConfig =
@@ -143,20 +144,24 @@ object Flamingos2 {
       dynamicConfig.decker
     )
 
-  private def fromSequenceConfig[F[_]](dynamicConfig: Flamingos2DynamicConfig): Flamingos2Config =
+  private def fromSequenceConfig[F[_]](
+    dynamicConfig: Flamingos2DynamicConfig,
+    stepType:      CoreStepType
+  ): Flamingos2Config =
     Flamingos2Config(
-      ccConfigFromSequenceConfig(dynamicConfig),
+      ccConfigFromSequenceConfig(dynamicConfig, stepType),
       dcConfigFromSequenceConfig(dynamicConfig)
     )
 
   def build[F[_]: Async: Logger](
     controller:        Flamingos2Controller[F],
     dhsClientProvider: DhsClientProvider[F],
+    stepType:          CoreStepType,
     dynamicConfig:     Flamingos2DynamicConfig
   ): Flamingos2[F] = Flamingos2(
     controller,
     dhsClientProvider,
-    fromSequenceConfig(dynamicConfig)
+    fromSequenceConfig(dynamicConfig, stepType)
   )
 
   object specifics extends InstrumentSpecifics[Flamingos2StaticConfig, Flamingos2DynamicConfig] {

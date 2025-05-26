@@ -17,6 +17,7 @@ import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
+import lucuma.core.enums.StepType as CoreStepType
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence
 import lucuma.core.model.sequence.Atom
@@ -231,7 +232,7 @@ object SeqTranslate {
       data:          ExecutionConfig[S, D],
       seqType:       SequenceType,
       insSpec:       InstrumentSpecifics[S, D],
-      instf:         (SystemOverrides, StepType, D) => InstrumentSystem[F],
+      instf:         (SystemOverrides, CoreStepType, StepType, D) => InstrumentSystem[F],
       instHeader:    D => KeywordsClient[F] => Header[F],
       constructAtom: (Atom.Id, SequenceType, List[SequenceGen.StepGen[F, D]]) => AG[F],
       startIdx:      PosInt = PosInt.unsafeFrom(1)
@@ -261,7 +262,7 @@ object SeqTranslate {
                   PosInt.unsafeFrom(startIdx.value + i),
                   t,
                   insSpec,
-                  (ov: SystemOverrides) => instf(ov, t, x.instrumentConfig),
+                  (ov: SystemOverrides) => instf(ov, x.stepConfig.stepType, t, x.instrumentConfig),
                   instHeader(x.instrumentConfig)
                 )
               }
@@ -276,7 +277,7 @@ object SeqTranslate {
       sequence:      OdbObservation,
       data:          ExecutionConfig[S, D],
       insSpec:       InstrumentSpecifics[S, D],
-      instf:         (SystemOverrides, StepType, D) => InstrumentSystem[F],
+      instf:         (SystemOverrides, CoreStepType, StepType, D) => InstrumentSystem[F],
       instHeader:    D => KeywordsClient[F] => Header[F],
       contructSeq:   (obsData: OdbObservation, staticCfg: S, nextAtom: AG[F]) => SequenceGen[F],
       constructAtom: (Atom.Id, SequenceType, List[SequenceGen.StepGen[F, D]]) => AG[F]
@@ -308,7 +309,7 @@ object SeqTranslate {
         obsCfg,
         data.executionConfig,
         GmosNorth.specifics,
-        (ov: SystemOverrides, t: StepType, d: gmos.DynamicConfig.GmosNorth) =>
+        (ov: SystemOverrides, _, t: StepType, d: gmos.DynamicConfig.GmosNorth) =>
           GmosNorth.build(
             overriddenSystems.gmosNorth(ov),
             overriddenSystems.dhs(ov),
@@ -340,7 +341,7 @@ object SeqTranslate {
         obsCfg,
         data.executionConfig,
         GmosSouth.specifics,
-        (ov: SystemOverrides, t: StepType, d: gmos.DynamicConfig.GmosSouth) =>
+        (ov: SystemOverrides, _, t: StepType, d: gmos.DynamicConfig.GmosSouth) =>
           GmosSouth.build(
             overriddenSystems.gmosSouth(ov),
             overriddenSystems.dhs(ov),
@@ -847,11 +848,7 @@ object SeqTranslate {
               executionConfig,
               atomType,
               GmosNorth.specifics,
-              (
-                systemOverrides: SystemOverrides,
-                stepType:        StepType,
-                dynamicConfig:   gmos.DynamicConfig.GmosNorth
-              ) =>
+              (systemOverrides, _, stepType, dynamicConfig) =>
                 GmosNorth.build(
                   overriddenSystems.gmosNorth(systemOverrides),
                   overriddenSystems.dhs(systemOverrides),
@@ -880,11 +877,7 @@ object SeqTranslate {
               executionConfig,
               atomType,
               GmosSouth.specifics,
-              (
-                systemOverrides: SystemOverrides,
-                stepType:        StepType,
-                dynamicConfig:   gmos.DynamicConfig.GmosSouth
-              ) =>
+              (systemOverrides, _, stepType, dynamicConfig) =>
                 GmosSouth.build(
                   overriddenSystems.gmosSouth(systemOverrides),
                   overriddenSystems.dhs(systemOverrides),
@@ -913,14 +906,11 @@ object SeqTranslate {
               executionConfig,
               atomType,
               Flamingos2.specifics,
-              (
-                systemOverrides: SystemOverrides,
-                stepType:        StepType,
-                dynamicConfig:   Flamingos2DynamicConfig
-              ) =>
+              (systemOverrides, coreStepType, _, dynamicConfig) =>
                 Flamingos2.build(
                   overriddenSystems.flamingos2(systemOverrides),
                   overriddenSystems.dhs(systemOverrides),
+                  coreStepType,
                   dynamicConfig
                 ),
               (d: Flamingos2DynamicConfig) => (kwClient: KeywordsClient[F]) => ???,
