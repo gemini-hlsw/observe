@@ -48,6 +48,7 @@ import observe.server.altair.AltairControllerDisabled
 import observe.server.flamingos2.Flamingos2
 import observe.server.flamingos2.Flamingos2Controller
 import observe.server.flamingos2.Flamingos2ControllerDisabled
+import observe.server.flamingos2.Flamingos2Header
 import observe.server.gcal.*
 import observe.server.gems.Gems
 import observe.server.gems.GemsController
@@ -368,7 +369,27 @@ object SeqTranslate {
     ): (
       List[Throwable],
       Option[SequenceGen[F]]
-    ) = ???
+    ) = buildSequence(
+      obsCfg,
+      data.executionConfig,
+      Flamingos2.specifics,
+      (systemOverrides, coreStepType, _, dynamicConfig) =>
+        Flamingos2.build(
+          overriddenSystems.flamingos2(systemOverrides),
+          overriddenSystems.dhs(systemOverrides),
+          coreStepType,
+          dynamicConfig
+        ),
+      (dynamicConfig: Flamingos2DynamicConfig) =>
+        (kwClient: KeywordsClient[F]) =>
+          Flamingos2Header.header(
+            kwClient,
+            Flamingos2Header.ObsKeywordsReader(data.executionConfig.static, dynamicConfig),
+            systemss.tcsKeywordReader
+          ),
+      SequenceGen.Flamingos2[F](_, _, _),
+      SequenceGen.AtomGen.Flamingos2[F](_, _, _)
+    )
 
     private def deliverObserveCmd[D](seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
       st: EngineState[F]
@@ -857,11 +878,11 @@ object SeqTranslate {
                   executionConfig.static,
                   dynamicConfig
                 ),
-              (d: gmos.DynamicConfig.GmosNorth) =>
+              (dynamicConfig: gmos.DynamicConfig.GmosNorth) =>
                 (kwClient: KeywordsClient[F]) =>
                   GmosHeader.header(
                     kwClient,
-                    GmosObsKeywordsReader(executionConfig.static, d),
+                    GmosObsKeywordsReader(executionConfig.static, dynamicConfig),
                     systemss.gmosKeywordReader,
                     systemss.tcsKeywordReader
                   ),
@@ -886,11 +907,11 @@ object SeqTranslate {
                   executionConfig.static,
                   dynamicConfig
                 ),
-              (d: gmos.DynamicConfig.GmosSouth) =>
+              (dynamicConfig: gmos.DynamicConfig.GmosSouth) =>
                 (kwClient: KeywordsClient[F]) =>
                   GmosHeader.header(
                     kwClient,
-                    GmosObsKeywordsReader(executionConfig.static, d),
+                    GmosObsKeywordsReader(executionConfig.static, dynamicConfig),
                     systemss.gmosKeywordReader,
                     systemss.tcsKeywordReader
                   ),
@@ -913,13 +934,13 @@ object SeqTranslate {
                   coreStepType,
                   dynamicConfig
                 ),
-              (d: Flamingos2DynamicConfig) => (kwClient: KeywordsClient[F]) => ???,
-              // GmosHeader.header(
-              //   kwClient,
-              //   ???, // GmosObsKeywordsReader(executionConfig.static, d),
-              //   systemss.gmosKeywordReader,
-              //   systemss.tcsKeywordReader
-              // ),
+              (dynamicConfig: Flamingos2DynamicConfig) =>
+                (kwClient: KeywordsClient[F]) =>
+                  Flamingos2Header.header(
+                    kwClient,
+                    Flamingos2Header.ObsKeywordsReader(executionConfig.static, dynamicConfig),
+                    systemss.tcsKeywordReader
+                  ),
               SequenceGen.AtomGen.Flamingos2.apply[F]
             )
         }

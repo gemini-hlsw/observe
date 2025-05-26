@@ -1,118 +1,97 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-// package observe.server.flamingos2
+package observe.server.flamingos2
 
-// import cats.Applicative
-// import cats.data.EitherT
-// import cats.effect.Sync
-// import cats.syntax.all._
-// import edu.gemini.spModel.data.YesNoType
-// import edu.gemini.spModel.gemini.flamingos2.Flamingos2.MOS_PREIMAGING_PROP
-// import edu.gemini.spModel.gemini.flamingos2.Flamingos2.READMODE_PROP
-// import edu.gemini.spModel.gemini.flamingos2.Flamingos2.ReadMode
-// import org.typelevel.log4cats.Logger
-// import observe.model.enums.KeywordName
-// import observe.model.Observation
-// import observe.model.dhs.ImageFileId
-// import observe.server.CleanConfig
-// import observe.server.CleanConfig.extractItem
-// import observe.server.ConfigUtilOps
-// import observe.server.ConfigUtilOps._
-// import observe.server.SeqexecFailure
-// import observe.server.keywords._
-// import observe.server.tcs.TcsKeywordsReader
+import cats.Applicative
+import cats.effect.Sync
+import cats.syntax.all.*
+import lucuma.core.enums.Flamingos2ReadMode
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.model.Observation
+import observe.model.dhs.ImageFileId
+import observe.model.enums.KeywordName
+import observe.server.keywords.*
+import observe.server.tcs.TcsKeywordsReader
+import org.typelevel.log4cats.Logger
 
-// object Flamingos2Header {
-//   def header[F[_]: Sync: Logger](
-//     kwClient:          KeywordsClient[F],
-//     f2ObsReader:       Flamingos2Header.ObsKeywordsReader[F],
-//     tcsKeywordsReader: TcsKeywordsReader[F]
-//   ): Header[F] =
-//     new Header[F] {
-//       override def sendBefore(obsId: Observation.Id, id: ImageFileId): F[Unit] =
-//         sendKeywords(
-//           id,
-//           kwClient,
-//           List(
-//             buildBoolean(f2ObsReader.preimage,
-//                          KeywordName.PREIMAGE,
-//                          DefaultHeaderValue.FalseDefaultValue
-//             ),
-//             buildString(tcsKeywordsReader.date, KeywordName.DATE_OBS),
-//             buildString(tcsKeywordsReader.ut, KeywordName.TIME_OBS),
-//             buildString(f2ObsReader.readMode, KeywordName.READMODE),
-//             buildInt32(f2ObsReader.nReads, KeywordName.NREADS)
-//           )
-//         )
+object Flamingos2Header {
+  def header[F[_]: Sync: Logger](
+    kwClient:          KeywordsClient[F],
+    f2ObsReader:       Flamingos2Header.ObsKeywordsReader[F],
+    tcsKeywordsReader: TcsKeywordsReader[F]
+  ): Header[F] =
+    new Header[F] {
+      override def sendBefore(
+        obsId:   Observation.Id,
+        id:      ImageFileId,
+        dataset: Option[Dataset.Reference]
+      ): F[Unit] =
+        sendKeywords(
+          id,
+          kwClient,
+          List(
+            buildBoolean(
+              f2ObsReader.preimage,
+              KeywordName.PREIMAGE,
+              DefaultHeaderValue.FalseDefaultValue
+            ),
+            buildString(tcsKeywordsReader.date, KeywordName.DATE_OBS),
+            buildString(tcsKeywordsReader.ut, KeywordName.TIME_OBS),
+            buildString(f2ObsReader.readMode, KeywordName.READMODE),
+            buildInt32(f2ObsReader.nReads, KeywordName.NREADS)
+          )
+        )
 
-//       override def sendAfter(id: ImageFileId): F[Unit] = Applicative[F].unit
-//     }
+      override def sendAfter(id: ImageFileId): F[Unit] = Applicative[F].unit
+    }
 
-//   trait ObsKeywordsReader[F[_]] {
-//     def preimage: F[Boolean]
-//     def readMode: F[String]
-//     def nReads: F[Int]
-//   }
+  trait ObsKeywordsReader[F[_]] {
+    def preimage: F[Boolean]
+    def readMode: F[String]
+    def nReads: F[Int]
+  }
 
-//   object ObsKeywordsReaderODB {
-//     def apply[F[_]: Sync](config: CleanConfig): ObsKeywordsReader[F] =
-//       new ObsKeywordsReader[F] {
-//         def getPreimage: F[YesNoType] =
-//           EitherT(
-//             Sync[F].delay(
-//               config
-//                 .extractInstAs[YesNoType](MOS_PREIMAGING_PROP)
-//                 .leftMap[Throwable](e => SeqexecFailure.Unexpected(ConfigUtilOps.explain(e)))
-//             )
-//           ).rethrowT
+  object ObsKeywordsReader {
+    def apply[F[_]: Applicative](
+      staticConfig:  Flamingos2StaticConfig,
+      dynamicConfig: Flamingos2DynamicConfig
+    ): ObsKeywordsReader[F] =
+      new ObsKeywordsReader[F] {
+        override def preimage: F[Boolean] = staticConfig.mosPreImaging.toBoolean.pure[F]
+        override def readMode: F[String]  =
+          dynamicConfig.readMode match
+            case Flamingos2ReadMode.Bright => "Bright".pure[F]
+            case Flamingos2ReadMode.Medium => "Medium".pure[F]
+            case Flamingos2ReadMode.Faint  => "Dark".pure[F]
 
-//         def getReadMode: F[ReadMode] =
-//           EitherT(
-//             Sync[F].delay(
-//               config
-//                 .extractInstAs[ReadMode](READMODE_PROP)
-//                 .leftMap[Throwable](e => SeqexecFailure.Unexpected(ConfigUtilOps.explain(e)))
-//             )
-//           ).rethrowT
+        override def nReads: F[Int] = dynamicConfig.reads.reads.pure[F]
+      }
+  }
 
-//         override def preimage: F[Boolean] = getPreimage.map(_.toBoolean)
-//         override def readMode: F[String]  =
-//           getReadMode.map {
-//             case ReadMode.BRIGHT_OBJECT_SPEC => "Bright"
-//             case ReadMode.MEDIUM_OBJECT_SPEC => "Medium"
-//             case ReadMode.FAINT_OBJECT_SPEC  => "Dark"
-//           }
-//         override def nReads: F[Int]       =
-//           getReadMode.map {
-//             case ReadMode.BRIGHT_OBJECT_SPEC => 1
-//             case ReadMode.MEDIUM_OBJECT_SPEC => 4
-//             case ReadMode.FAINT_OBJECT_SPEC  => 8
-//           }
-//       }
-//   }
+  trait InstKeywordsReader[F[_]] {
+    def getHealth: F[String]
+    def getState: F[String]
+  }
 
-//   trait InstKeywordsReader[F[_]] {
-//     def getHealth: F[String]
-//     def getState: F[String]
-//   }
+  object InstKeywordReaderDummy {
+    def apply[F[_]: Applicative]: InstKeywordsReader[F] =
+      new InstKeywordsReader[F] {
+        override def getHealth: F[String] = "GOOD".pure[F]
 
-//   object InstKeywordReaderDummy {
-//     def apply[F[_]: Applicative]: InstKeywordsReader[F] =
-//       new InstKeywordsReader[F] {
-//         override def getHealth: F[String] = "GOOD".pure[F]
+        override def getState: F[String] = "RUNNING".pure[F]
+      }
+  }
 
-//         override def getState: F[String] = "RUNNING".pure[F]
-//       }
-//   }
+  object InstKeywordReaderEpics {
+    def apply[F[_]](sys: Flamingos2Epics[F]): InstKeywordsReader[F] =
+      new InstKeywordsReader[F] {
+        override def getHealth: F[String] = sys.health
 
-//   object InstKeywordReaderEpics {
-//     def apply[F[_]](sys: Flamingos2Epics[F]): InstKeywordsReader[F] =
-//       new InstKeywordsReader[F] {
-//         override def getHealth: F[String] = sys.health
+        override def getState: F[String] = sys.state
+      }
+  }
 
-//         override def getState: F[String] = sys.state
-//       }
-//   }
-
-// }
+}
