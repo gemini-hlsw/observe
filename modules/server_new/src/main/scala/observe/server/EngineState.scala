@@ -127,8 +127,8 @@ object EngineState {
         else es
     )
 
-  def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
-    EngineState.sequenceStateIndex(sid)
+  def engineState[F[_]]: Engine.State[F, EngineState[F]] =
+    (sid: Observation.Id) => EngineState.sequenceStateIndex(sid)
 
   extension [F[_]](f: Endo[EngineState[F]])
     def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }

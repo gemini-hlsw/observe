@@ -81,20 +81,20 @@ trait SeqTranslate[F[_]] {
   ): (List[Throwable], Option[SequenceGen.AtomGen[F]])
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
-    tio: Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EventType[F]]]
+    Temporal[F]
+  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
 
   def abortObserve(seqId: Observation.Id)(using
-    tio: Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EventType[F]]]
+    Temporal[F]
+  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
 
   def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
-    tio: Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EventType[F]]]
+    Temporal[F]
+  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
 
   def resumePaused(seqId: Observation.Id)(using
-    tio: Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EventType[F]]]
+    Temporal[F]
+  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
 
 }
 
@@ -393,7 +393,7 @@ object SeqTranslate {
 
     private def deliverObserveCmd[D](seqId: Observation.Id, f: ObserveControl[F] => F[Unit])(
       st: EngineState[F]
-    ): Option[Stream[F, EventType[F]]] = {
+    ): Option[Stream[F, EngineEvent[F]]] = {
 
       def isObserving(v: Action[F]): Boolean =
         v.kind === ActionType.Observe && v.state.runState.started
@@ -414,16 +414,16 @@ object SeqTranslate {
       )
     }
 
-    private def handleError: Either[Throwable, Unit] => F[EventType[F]] = {
+    private def handleError: Either[Throwable, Unit] => F[EngineEvent[F]] = {
       case Left(e: ObserveFailure) => Event.logErrorMsgF(ObserveFailure.explain(e))
       case Left(e: Throwable)      =>
         Event.logErrorMsgF(ObserveFailure.explain(ObserveFailure.ObserveException(e)))
-      case _                       => Event.nullEvent[F, EngineState[F], SeqEvent].pure[F].widen[EventType[F]]
+      case _                       => Event.nullEvent[F, EngineState[F], SeqEvent].pure[F].widen[EngineEvent[F]]
     }
 
     override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = st => {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(StopObserveCmd(stop), _, _, _, _, _) => stop(graceful)
         case UnpausableControl(StopObserveCmd(stop), _)           => stop(graceful)
@@ -434,7 +434,7 @@ object SeqTranslate {
 
     override def abortObserve(seqId: Observation.Id)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = st => {
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = st => {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(_, AbortObserveCmd(abort), _, _, _, _) => abort
         case UnpausableControl(_, AbortObserveCmd(abort))           => abort
@@ -446,7 +446,7 @@ object SeqTranslate {
 
     override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = {
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(_, _, PauseObserveCmd(pause), _, _, _) => pause(graceful)
         case _                                                      => Applicative[F].unit
@@ -456,7 +456,7 @@ object SeqTranslate {
 
     override def resumePaused(seqId: Observation.Id)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] = (st: EngineState[F]) => {
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = (st: EngineState[F]) => {
       val observeIndex: Option[(ObserveContext[F], Option[TimeSpan], Int)] =
         st.sequences
           .get(seqId)
@@ -477,7 +477,7 @@ object SeqTranslate {
           )
 
       observeIndex.map { case (obCtx, t, i) =>
-        Stream.emit[F, EventType[F]](
+        Stream.emit[F, EngineEvent[F]](
           Event.actionResume[F, EngineState[F], SeqEvent](
             seqId,
             i,
@@ -492,7 +492,7 @@ object SeqTranslate {
 
     private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
       st: EngineState[F]
-    ): Option[Stream[F, EventType[F]]] =
+    ): Option[Stream[F, EngineEvent[F]]] =
       st.sequences
         .get(seqId)
         .flatMap(
@@ -512,12 +512,12 @@ object SeqTranslate {
 
     private def stopPaused(
       seqId: Observation.Id
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] =
       endPaused(seqId, _.stopPaused)
 
     private def abortPaused(
       seqId: Observation.Id
-    ): EngineState[F] => Option[Stream[F, EventType[F]]] =
+    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] =
       endPaused(seqId, _.abortPaused)
 
     import TcsController.Subsystem.*

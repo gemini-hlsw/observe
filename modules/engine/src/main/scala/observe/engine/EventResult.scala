@@ -10,9 +10,9 @@ object EventResult:
     case Ok, Failure
 
   case class UserCommandResponse[F[_], U](
-    ue:      UserEvent[F, ?, U],
-    outcome: Outcome,
-    ud:      Option[U]
+    userEvent: UserEvent[F, ?, U],
+    outcome:   Outcome,
+    ud:        Option[U]
   ) extends EventResult[U]
 
   case class SystemUpdate[F[_], U](se: SystemEvent, outcome: Outcome) extends EventResult[U]

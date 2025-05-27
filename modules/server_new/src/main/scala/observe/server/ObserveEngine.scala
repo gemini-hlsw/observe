@@ -420,7 +420,7 @@ object ObserveEngine {
     obsId:         Observation.Id
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
     Handle
-      .get[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
+      .getState[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
       .map(EngineState.atSequence[F](obsId).getOption)
       .flatMap {
         _.map { seq =>
@@ -494,15 +494,16 @@ object ObserveEngine {
     obsId:         Observation.Id,
     atomType:      SequenceType
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit] =
-    Handle
-      .fromStream[F, EngineState[F], Event[F, EngineState[F], SeqEvent]](
-        Stream.eval {
-          odb.read(obsId).map { x =>
-            translator
-              .nextAtom(x, atomType)
-              ._2
-              .map { atm =>
-                Event.modifyState[F, EngineState[F], SeqEvent]({ (st: EngineState[F]) =>
+    Handle.fromEventStream(
+      Stream.eval {
+        odb.read(obsId).map { x =>
+          translator
+            .nextAtom(x, atomType)
+            ._2
+            .map { atm =>
+              Event.modifyState[F, EngineState[F], SeqEvent](
+                Handle
+                  .modifyState { (st: EngineState[F]) =>
                     val inst: Instrument = EngineState
                       .atSequence[F](obsId)
                       .getOption(st)
@@ -510,7 +511,8 @@ object ObserveEngine {
                       .getOrElse(Instrument.GmosNorth)
                     val state            = updateAtom(obsId, atm.some)(st)
                     (state, inst)
-                  }.toHandle.flatMap(inst =>
+                  }
+                  .flatMap(inst =>
                     executeEngine.startNewAtom(obsId) *>
                       Handle.liftF[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent](
                         odb
@@ -524,16 +526,16 @@ object ObserveEngine {
                           .as(SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId))
                       )
                   )
-                )
-              }
-              .getOrElse(
-                Event.modifyState[F, EngineState[F], SeqEvent](
-                  executeEngine.startNewAtom(obsId).as(SeqEvent.NoMoreAtoms(obsId))
-                )
               )
-          }
+            }
+            .getOrElse(
+              Event.modifyState[F, EngineState[F], SeqEvent](
+                executeEngine.startNewAtom(obsId).as(SeqEvent.NoMoreAtoms(obsId))
+              )
+            )
         }
-      )
+      }
+    )
 
   def onAtomReload[F[_]: MonadThrow: Logger](
     odb:           OdbProxy[F],
@@ -544,7 +546,7 @@ object ObserveEngine {
     onAtomReload:  OnAtomReloadAction
   ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
     Handle
-      .get[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
+      .getState[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
       .map(EngineState.atSequence[F](obsId).getOption)
       .flatMap {
         _.map { seq =>
@@ -569,39 +571,44 @@ object ObserveEngine {
     obsId:         Observation.Id,
     atomType:      SequenceType,
     onAtomReload:  OnAtomReloadAction
-  ): Handle[F, EngineState[F], EventType[F], Unit] =
-    Handle
-      .fromStream[F, EngineState[F], EventType[F]](Stream.eval {
-        Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
-          odb
-            .read(obsId)
-            .map { odbObs =>
-              // Read the next atom from the odb and replaces the current atom
-              val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
-              Event
-                .modifyState[F, EngineState[F], SeqEvent]({ (oldState: EngineState[F]) =>
+  ): Handle[F, EngineState[F], EngineEvent[F], Unit] =
+    Handle.fromSingleEvent[F, EngineState[F], EngineEvent[F]] {
+      Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
+        odb
+          .read(obsId)
+          // TODO Simulate error.
+          .map { odbObs =>
+            // Read the next atom from the odb and replaces the current atom
+            val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
+            Event
+              .modifyState[F, EngineState[F], SeqEvent](
+                Handle
+                  .modifyState { (oldState: EngineState[F]) =>
                     val newState: EngineState[F] = updateAtom(obsId, atomGen)(oldState)
                     (newState, ())
-                  }.toHandle
-                    .flatMap[SeqEvent] { atomIdOpt =>
-                      atomGen.fold(
-                        Handle
-                          .fromStream[F, EngineState[F], EventType[F]](Stream(finished(obsId)))
-                          .as(SeqEvent.NullSeqEvent)
-                      ) { atm =>
-                        if onAtomReload == OnAtomReloadAction.StartNewAtom then
-                          executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
-                        else
-                          Handle.pure:
-                            SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
-                      }
+                  }
+                  .flatMap[SeqEvent] { atomIdOpt =>
+                    atomGen.fold(
+                      Handle
+                        .fromEventStream[F, EngineState[F], EngineEvent[F]](Stream(finished(obsId)))
+                        .as(SeqEvent.NullSeqEvent)
+                    ) { atm =>
+                      if onAtomReload == OnAtomReloadAction.StartNewAtom then
+                        executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
+                      else
+                        Handle.pure:
+                          SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
                     }
-                )
-            }
-            .handleErrorWith { e =>
-              Logger[F]
-                .error(e)(s"Error reloading atom for observation [$obsId]")
-                .as(Event.nullEvent) // TODO Bubble this error up to the UIs
-            }
-      })
+                  }
+              )
+          }
+          .handleErrorWith { e =>
+            Logger[F]
+              .error(e)(s"Error reloading atom for observation [$obsId]")
+              .as( // TODO We may need a new event here.
+                Event.failed(obsId, 0, Result.Error(e.getMessage))
+              )    // TODO Bubble this error up to the UIs
+            // TODO Clear the rest of the sequence!
+          }
+    }
 }
