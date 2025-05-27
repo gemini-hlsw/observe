@@ -161,22 +161,24 @@ object Flamingos2ControllerEpics extends Flamingos2Encoders {
     } yield ()
 
     override def observeProgress(total: TimeSpan): fs2.Stream[F, Progress] = {
-      val s = ProgressUtil.fromStateTOption[F, TimeSpan](_ =>
-        StateT[F, TimeSpan, Option[Progress]] { st =>
-          val m = if (total >= st) total else st
-          val p =
-            for {
-              obst <- sys.observeState
-              rem  <- sys.countdown
-              v    <- (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut).mapN(
-                        ObserveStage.fromBooleans
-                      )
-            } yield // TODO Unsafe get?
-              if (obst.isBusy) ObsProgress(m, RemainingTime(TimeSpan.fromSeconds(rem).get), v).some
-              else none
-          p.map(p => (m, p))
-        }
-      )
+      val s: TimeSpan => fs2.Stream[F, Progress] =
+        ProgressUtil.fromStateTOption[F, TimeSpan](_ =>
+          StateT[F, TimeSpan, Option[Progress]] { (st: TimeSpan) =>
+            val max: TimeSpan                    = if (total >= st) total else st
+            val progress: F[Option[ObsProgress]] =
+              for {
+                obst <- sys.observeState
+                rem  <- sys.countdown
+                v    <- (sys.dcIsPreparing, sys.dcIsAcquiring, sys.dcIsReadingOut).mapN(
+                          ObserveStage.fromBooleans
+                        )
+              } yield
+                if (obst.isBusy)
+                  ObsProgress(max, RemainingTime(TimeSpan.fromSeconds(rem).get), v).some
+                else none
+            progress.map(p => (max, p))
+          }
+        )
       s(total)
         .dropWhile(_.remaining.value.isZero) // drop leading zeros
         .takeThrough: // drop all tailing zeros but the first one

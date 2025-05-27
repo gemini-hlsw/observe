@@ -212,7 +212,6 @@ object TcsNorth {
     val gwoi   = targets.guideEnvironment.guideTargets
       .exists(_.probe === GuideProbe.GmosOIWFS)
       .option(telescopeConfig.guiding)
-    // TODO FLAMINGOS2 ????
     val gwao   = none.map(_ => guiding)
     val offset =
       InstrumentOffset(
