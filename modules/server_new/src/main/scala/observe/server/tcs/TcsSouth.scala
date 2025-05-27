@@ -9,6 +9,7 @@ import cats.syntax.all.*
 import coulomb.*
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
+import lucuma.core.enums.GuideProbe
 import lucuma.core.enums.M1Source
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
@@ -20,7 +21,6 @@ import lucuma.core.model.GemsConfig
 import lucuma.core.model.GemsConfig.*
 import lucuma.core.model.GuideConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.schemas.ObservationDB.Enums.GuideProbe
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.model.enums.NodAndShuffleStage
@@ -231,14 +231,15 @@ object TcsSouth {
     val guiding: StepGuideState = telescopeConfig.guiding
 
     val gwp1   = targets.guideEnvironment.guideTargets
-      .exists(_.probe === GuideProbe.Pwfs1)
+      .exists(_.probe === GuideProbe.PWFS1)
       .option(telescopeConfig.guiding)
     val gwp2   = targets.guideEnvironment.guideTargets
-      .exists(_.probe === GuideProbe.Pwfs2)
+      .exists(_.probe === GuideProbe.PWFS2)
       .option(telescopeConfig.guiding)
     val gwoi   = targets.guideEnvironment.guideTargets
-      .exists(_.probe === GuideProbe.GmosOiwfs)
+      .exists(_.probe === GuideProbe.GmosOIWFS)
       .option(telescopeConfig.guiding)
+    // TODO FLAMINGOS2 ????
     val gwc1   = none.map(_ => guiding)
     val gwc2   = none.map(_ => guiding)
     val gwc3   = none.map(_ => guiding)

@@ -8,6 +8,9 @@ import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
 import lucuma.core.model
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.schemas.odb.Flamingos2DynamicConfigSubquery
+import lucuma.schemas.odb.GmosSouthDynamicConfigSubquery
+import lucuma.schemas.odb.GmosNorthDynamicConfigSubquery
 
 // gql: import io.circe.refined.*
 // gql: import lucuma.schemas.decoders.given
@@ -17,9 +20,9 @@ object ObsQueriesGQL:
 
   @GraphQL
   trait ObsQuery extends GraphQLOperation[ObservationDB]:
-    val document = """
-      query($obsId: ObservationId!) {
-        observation(observationId: $obsId) {
+    val document = s"""
+      query($$obsId: ObservationId!) {
+        observation(observationId: $$obsId) {
           id
           title
           workflow {
@@ -87,33 +90,29 @@ object ObsQueriesGQL:
                   stageMode
                   detector
                   mosPreImaging
-                  nodAndShuffle {
-                    ...nodAndShuffleFields
-                  }
+                  nodAndShuffle { ...nodAndShuffleFields }
                 }
-                acquisition {
-                  ...gmosNorthSequenceFields
-                }
-                science {
-                  ...gmosNorthSequenceFields
-                }
+                acquisition { ...gmosNorthSequenceFields }
+                science { ...gmosNorthSequenceFields }
               }
               gmosSouth {
                 static {
                   stageMode
                   detector
                   mosPreImaging
-                  nodAndShuffle {
-                    ...nodAndShuffleFields
-                  }
+                  nodAndShuffle { ...nodAndShuffleFields }
                 }
-                acquisition {
-                  ...gmosSouthSequenceFields
-                }
-                science {
-                  ...gmosSouthSequenceFields
-                }
+                acquisition { ...gmosSouthSequenceFields }
+                science { ...gmosSouthSequenceFields }
               }
+              flamingos2 {
+                static {
+                  mosPreImaging
+                  useElectronicOffsetting
+                }
+                acquisition { ...flamingos2SequenceFields }
+                science { ...flamingos2SequenceFields }
+              }      
             }
           }
         }
@@ -175,48 +174,18 @@ object ObsQueriesGQL:
         description
         steps {
           id
-          instrumentConfig {
-            exposure { microseconds }
-            readout {
-              xBin
-              yBin
-              ampCount
-              ampGain
-              ampReadMode
-            }
-            dtax
-            roi
-            gratingConfig {
-              grating
-              order
-              wavelength { picometers }
-            }
-            filter
-            fpu {
-              builtin
-            }
-          }
-          stepConfig {
-            ...stepConfigFields
-          }
-          telescopeConfig {
-            ...telescopeConfigFields
-          }
-          estimate {
-            ...stepEstimateFields
-          }
+          instrumentConfig $GmosNorthDynamicConfigSubquery
+          stepConfig { ...stepConfigFields }
+          telescopeConfig { ...telescopeConfigFields }
+          estimate { ...stepEstimateFields }
           observeClass
           breakpoint
         }
       }
 
       fragment gmosNorthSequenceFields on GmosNorthExecutionSequence {
-        nextAtom {
-          ...gmosNorthAtomFields
-        }
-        possibleFuture {
-          ...gmosNorthAtomFields
-        }
+        nextAtom { ...gmosNorthAtomFields }
+        possibleFuture { ...gmosNorthAtomFields }
         hasMore
       }
 
@@ -225,50 +194,43 @@ object ObsQueriesGQL:
         description
         steps {
           id
-          instrumentConfig {
-            exposure { microseconds }
-            readout {
-              xBin
-              yBin
-              ampCount
-              ampGain
-              ampReadMode
-            }
-            dtax
-            roi
-            gratingConfig {
-              grating
-              order
-              wavelength { picometers }
-            }
-            filter
-            fpu {
-              builtin
-            }
-          }
-          stepConfig {
-            ...stepConfigFields
-          }
-          telescopeConfig {
-            ...telescopeConfigFields
-          }
-          estimate {
-            ...stepEstimateFields
-          }
+          instrumentConfig $GmosSouthDynamicConfigSubquery
+          stepConfig { ...stepConfigFields }
+          telescopeConfig { ...telescopeConfigFields }
+          estimate { ...stepEstimateFields }
           observeClass
           breakpoint
         }
       }
 
       fragment gmosSouthSequenceFields on GmosSouthExecutionSequence {
-        nextAtom {
-          ...gmosSouthAtomFields
-        }
-        possibleFuture {
-          ...gmosSouthAtomFields
-        }
+        nextAtom { ...gmosSouthAtomFields }
+        possibleFuture { ...gmosSouthAtomFields }
         hasMore
       }
+
+      fragment flamingos2AtomFields on Flamingos2Atom {
+        id
+        description
+        steps {
+          id
+          instrumentConfig $Flamingos2DynamicConfigSubquery
+          stepConfig { ...stepConfigFields }
+          telescopeConfig {
+            offset { ...offsetFields }
+            guiding
+          }
+          estimate { ...stepEstimateFields }
+          observeClass
+          breakpoint
+        }
+      }
+
+      fragment flamingos2SequenceFields on Flamingos2ExecutionSequence {
+        nextAtom { ...flamingos2AtomFields }
+        possibleFuture { ...flamingos2AtomFields }
+        hasMore
+      }      
 
       fragment offsetFields on Offset {
         p { microarcseconds }

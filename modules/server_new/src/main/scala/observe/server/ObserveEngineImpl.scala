@@ -608,7 +608,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         Event.modifyState[F, EngineState[F], SeqEvent](
           EngineState
             .selected[F]
-            .replace(Selected(none, none))
+            .replace(Selected.none)
             .withEvent(ClearLoadedSequences(user.some))
             .toHandle
         )
@@ -828,7 +828,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       SequencesQueue(
         List(
           qState.selected.gmosSouth.map(x => Instrument.GmosSouth -> x.seqGen.obsData.id),
-          qState.selected.gmosNorth.map(x => Instrument.GmosNorth -> x.seqGen.obsData.id)
+          qState.selected.gmosNorth.map(x => Instrument.GmosNorth -> x.seqGen.obsData.id),
+          qState.selected.flamingos2.map(x => Instrument.Flamingos2 -> x.seqGen.obsData.id)
         ).flattenOption.toMap,
         qState.conditions,
         qState.operator,
@@ -1407,7 +1408,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def refreshSequences: Endo[EngineState[F]] = (st: EngineState[F]) =>
     List(
       EngineState.gmosNorthSequence[F],
-      EngineState.gmosSouthSequence[F]
+      EngineState.gmosSouthSequence[F],
+      EngineState.flamingos2Sequence[F]
     ).map(_.modify(updateSequenceEndo(st.conditions, st.operator)))
       .combineAll(MonoidK[Endo].algebra)(st)
 
@@ -1441,13 +1443,14 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit] =
-    toggleOverride(Resource.TCS.label,
-                   (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
-                   SetTcsEnabled(obsId, user.some, enabled),
-                   obsId,
-                   user,
-                   enabled,
-                   clientId
+    toggleOverride(
+      Resource.TCS.label,
+      (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
+      SetTcsEnabled(obsId, user.some, enabled),
+      obsId,
+      user,
+      enabled,
+      clientId
     )
 
   override def setGcalEnabled(
@@ -1456,13 +1459,14 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit] =
-    toggleOverride(Resource.Gcal.label,
-                   (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
-                   SetGcalEnabled(obsId, user.some, enabled),
-                   obsId,
-                   user,
-                   enabled,
-                   clientId
+    toggleOverride(
+      Resource.Gcal.label,
+      (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
+      SetGcalEnabled(obsId, user.some, enabled),
+      obsId,
+      user,
+      enabled,
+      clientId
     )
 
   override def setInstrumentEnabled(
