@@ -172,12 +172,11 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
         odbQueryApi              <- useContext(ODBQueryApi.ctx)
         virtualizerRef           <- useRef(none[HTMLTableVirtualizer])
         _                        <-
-          useEffectOnMount:
+          useEffectOnMount: // If sequence is not running, auto select next step.
             val autoScrollCandidates: List[String] =
               AlertRowId.toString +:
                 (props.runningStepId ++ props.nextStepId).map(_.toString).toList
 
-            // If sequence is not running, auto select next step.
             Callback.when(props.runningStepId.isEmpty)(
               props.nextStepId.map(props.setSelectedStepId).orEmpty
             ) >>
@@ -185,17 +184,17 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
                 .delayMs(1) // https://github.com/TanStack/virtual/issues/615
                 .toCallback
         _                        <-
+          // When sequence changes state or step, auto scroll to running step.
           useEffectWithDeps(
             (props.executionState.sequenceState.isRunning,
-             props.executionState.sequenceState.isWaitingUserPrompt
+             props.executionState.sequenceState.isWaitingUserPrompt,
+             props.runningStepId
             )
-          ): _ =>
+          ): (_, _, runningStepId) =>
             val autoScrollCandidates: List[String] =
-              AlertRowId.toString +: props.runningStepId.map(_.toString).toList
+              AlertRowId.toString +: runningStepId.map(_.toString).toList
 
-            // When sequence starts or stops into a non-idle state, auto scroll to running step.
-            Callback.when(props.executionState.sequenceState.isInProcess):
-              scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
+            scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
         _                        <- // If sequence completes, expand last visit.
           useEffectWithDeps(props.executionState.sequenceState):
             case SequenceState.Completed =>
