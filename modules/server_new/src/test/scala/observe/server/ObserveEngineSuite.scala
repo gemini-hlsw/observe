@@ -84,7 +84,7 @@ class ObserveEngineSuite extends TestCommon {
 
     def executeAndWait(
       f:     ObserveEngine[F] => F[Unit],
-      until: PartialFunction[(EventResult[SeqEvent], EngineState[F]), Boolean]
+      until: PartialFunction[(EventResult, EngineState[F]), Boolean]
     ): F[EngineState[F]] =
       for
         _ <- f(oe)
@@ -100,7 +100,7 @@ class ObserveEngineSuite extends TestCommon {
 
     def executeAndWaitResult(
       f:     ObserveEngine[F] => F[Unit],
-      until: PartialFunction[EventResult[SeqEvent], Boolean]
+      until: PartialFunction[EventResult, Boolean]
     ): F[EngineState[F]] =
       executeAndWait(f, r => until.lift(r._1).getOrElse(false))
 
@@ -202,7 +202,7 @@ class ObserveEngineSuite extends TestCommon {
           IO.unit
         ) >>>
         EngineState
-          .sequenceStateIndex[IO](seqObsId1)
+          .sequenceStateAt[IO](seqObsId1)
           .andThen(Sequence.State.status[IO])
           .replace(SequenceState.Running.Init)
     ).apply(EngineState.default[IO])
@@ -215,7 +215,7 @@ class ObserveEngineSuite extends TestCommon {
               oe.start(seqObsId2, user, observer, clientId, RunOverride.Default)
             )
     } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
+      .flatMap(EngineState.sequenceStateAt[IO](seqObsId2).getOption)
       .exists(_.status.isIdle)).assert
   }
 
@@ -234,7 +234,7 @@ class ObserveEngineSuite extends TestCommon {
           IO.unit
         ) >>>
         EngineState
-          .sequenceStateIndex[IO](seqObsId1)
+          .sequenceStateAt[IO](seqObsId1)
           .andThen(Sequence.State.status[IO])
           .replace(SequenceState.Running.Init)
     ).apply(EngineState.default[IO])
@@ -254,7 +254,7 @@ class ObserveEngineSuite extends TestCommon {
               2
             )
     } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId2).getOption)
+      .flatMap(EngineState.sequenceStateAt[IO](seqObsId2).getOption)
       .exists(_.status.isRunning)).assert
   }
 
@@ -299,7 +299,7 @@ class ObserveEngineSuite extends TestCommon {
       IO.unit
     ) >>>
       EngineState
-        .sequenceStateIndex[IO](seqObsId1)
+        .sequenceStateAt[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
         .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
@@ -339,7 +339,7 @@ class ObserveEngineSuite extends TestCommon {
         IO.unit
       ) >>>
       EngineState
-        .sequenceStateIndex[IO](seqObsId1)
+        .sequenceStateAt[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
         .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
@@ -377,7 +377,7 @@ class ObserveEngineSuite extends TestCommon {
         IO.unit
       ) >>>
       EngineState
-        .sequenceStateIndex[IO](seqObsId1)
+        .sequenceStateAt[IO](seqObsId1)
         .andThen(Sequence.State.status[IO])
         .replace(SequenceState.Running.Init)).apply(EngineState.default[IO])
 
@@ -528,7 +528,7 @@ class ObserveEngineSuite extends TestCommon {
                             )
                  )
     } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)
       .exists(_.status.isRunning)).assert
   }
 
@@ -560,7 +560,7 @@ class ObserveEngineSuite extends TestCommon {
                             )
                  )
     } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)
       .exists(_.status.isIdle)).assert
   }
 
@@ -592,7 +592,7 @@ class ObserveEngineSuite extends TestCommon {
                             )
                  )
     } yield sf
-      .flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+      .flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)
       .exists(_.status.isRunning)).assert
   }
 
@@ -622,7 +622,7 @@ class ObserveEngineSuite extends TestCommon {
 //                          )
 //                        )
 //     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
+//       sf.flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption).map(_.status)
 //     ) { case Some(status) =>
 //       assert(status.isRunning)
 //     }).unsafeRunSync()
@@ -657,7 +657,7 @@ class ObserveEngineSuite extends TestCommon {
 //                    )
 //         )
 //     } yield inside(
-//       sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption).map(_.status)
+//       sf.flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption).map(_.status)
 //     ) { case Some(status) =>
 //       assert(status.isRunning)
 //     }).unsafeRunSync()
@@ -789,7 +789,7 @@ class ObserveEngineSuite extends TestCommon {
                            RunOverride.Default
                          )
                        )
-    } yield sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)).map { s =>
+    } yield sf.flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)).map { s =>
       assert(s.exists(_.status.isRunning))
       assert(s.flatMap(_.currentStep).exists(_.id === stepId(1)))
     }
@@ -828,7 +828,7 @@ class ObserveEngineSuite extends TestCommon {
           observeEngine.stream(s0).take(1).compile.last
     } yield result
       .map { case (out, sf) =>
-        assert(EngineState.sequenceStateIndex[IO](seqObsId1).getOption(sf).exists(_.status.isIdle))
+        assert(EngineState.sequenceStateAt[IO](seqObsId1).getOption(sf).exists(_.status.isIdle))
         assert(out match {
           case EventResult.UserCommandResponse(
                 _,
@@ -879,11 +879,11 @@ class ObserveEngineSuite extends TestCommon {
         )
     } yield {
       assert(
-        sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+        sf.flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)
           .exists(_.status.isRunning)
       )
       assert(
-        sf.flatMap(EngineState.sequenceStateIndex[IO](seqObsId1).getOption)
+        sf.flatMap(EngineState.sequenceStateAt[IO](seqObsId1).getOption)
           .flatMap(_.currentStep)
           .exists(_.id === stepId(1))
       )
@@ -970,7 +970,7 @@ class ObserveEngineSuite extends TestCommon {
                          .apply(EngineState.default[IO])
       s1             =
         EngineState
-          .sequenceStateIndex[IO](seqObsId1)
+          .sequenceStateAt[IO](seqObsId1)
           .modify(x =>
             Sequence.State.Final(x.toSequence, Running(false, false, false, true, false))
           )(s0)

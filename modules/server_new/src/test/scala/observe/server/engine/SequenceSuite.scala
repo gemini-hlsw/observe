@@ -13,10 +13,11 @@ import lucuma.core.model.Observation as LObservation
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import observe.common.test.*
-import observe.engine.TestUtil.TestState
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
+import observe.server.EngineState
+import observe.server.SeqEvent
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -33,10 +34,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   // All tests check the output of running a sequence against the expected sequence of updates.
 
-  private val executionEngine = Engine.build[IO, TestState, Unit](
-    TestState,
-    (eng, obsId) => eng.startNewAtom(obsId),
-    (eng, obsId, _) => eng.startNewAtom(obsId)
+  private val executionEngine = Engine.build[IO](
+    (eng, obsId) => eng.startNewAtom(obsId).as(SeqEvent.NullSeqEvent),
+    (eng, obsId, _) => eng.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
   )
 
   def simpleStep(id: Step.Id, breakpoint: Breakpoint): EngineStep[IO] =
@@ -57,33 +57,32 @@ class SequenceSuite extends munit.CatsEffectSuite {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): IO[Option[TestState]] =
+  def runToCompletion(s0: EngineState[IO]): IO[Option[EngineState[IO]]] =
     for {
       eng <- executionEngine
       _   <-
-        eng.offer(Event.start[IO, TestUtil.TestState, Unit](seqId, user, ClientId(UUID.randomUUID)))
+        eng.offer(Event.start[IO](seqId, user, ClientId(UUID.randomUUID)))
       v   <- eng
                .process(PartialFunction.empty)(s0)
                .drop(1)
-               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).seq.status))
                .compile
                .last
     } yield v.map(_._2)
 
   test("stop on breakpoints") {
 
-    val qs0: TestState =
-      TestState(
-        sequences = Map(
-          (seqId,
-           Sequence.State.init(
-             Sequence.sequence(seqId,
-                               atomId,
-                               List(simpleStep(stepId(1), Breakpoint.Disabled),
-                                    simpleStep(stepId(2), Breakpoint.Enabled)
-                               )
-             )
-           )
+    val qs0: EngineState[IO] =
+      TestUtil.initStateWithSequence(
+        seqId,
+        Sequence.State.init(
+          Sequence.sequence(
+            seqId,
+            atomId,
+            List(
+              simpleStep(stepId(1), Breakpoint.Disabled),
+              simpleStep(stepId(2), Breakpoint.Enabled)
+            )
           )
         )
       )
@@ -93,7 +92,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     (for {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
-      r <- OptionT.pure(t match {
+      r <- OptionT.pure(t.seq match {
              case Sequence.State.Zipper(zipper, status, _) =>
                zipper.done.length === 1 && zipper.pending.isEmpty && status === SequenceState.Idle
              case _                                        => false
@@ -103,20 +102,18 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   test("resume execution to completion after a breakpoint") {
 
-    val qs0: TestState =
-      TestState(
-        sequences = Map(
-          (seqId,
-           Sequence.State.init(
-             Sequence.sequence(
-               id = seqId,
-               atomId,
-               steps = List(simpleStep(stepId(1), Breakpoint.Disabled),
-                            simpleStep(stepId(2), Breakpoint.Enabled),
-                            simpleStep(stepId(3), Breakpoint.Disabled)
-               )
-             )
-           )
+    val qs0: EngineState[IO] =
+      TestUtil.initStateWithSequence(
+        seqId,
+        Sequence.State.init(
+          Sequence.sequence(
+            id = seqId,
+            atomId,
+            steps = List(
+              simpleStep(stepId(1), Breakpoint.Disabled),
+              simpleStep(stepId(2), Breakpoint.Enabled),
+              simpleStep(stepId(3), Breakpoint.Disabled)
+            )
           )
         )
       )
@@ -126,7 +123,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val c1: IO[Boolean] = (for {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
-      r <- OptionT.pure(t match {
+      r <- OptionT.pure(t.seq match {
              case Sequence.State.Zipper(zipper, _, _) =>
                zipper.pending.nonEmpty
              case _                                   => false
@@ -137,7 +134,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
       qs2 <- OptionT(qs1)
       s   <- OptionT(runToCompletion(qs2))
       t   <- OptionT.pure(s.sequences(seqId))
-      r   <- OptionT.pure(t match {
+      r   <- OptionT.pure(t.seq match {
                case f @ Sequence.State.Final(_, status) =>
                  f.done.length === 3 && status === SequenceState.Completed
                case _                                   => false

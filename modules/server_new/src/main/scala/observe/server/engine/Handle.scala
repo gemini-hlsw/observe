@@ -27,17 +27,24 @@ import fs2.Stream
 final case class Handle[F[_], S, E, O](run: StateT[F, S, (O, Stream[F, E])])
 
 object Handle {
-  def fromEventStream[F[_]: Monad, S, E](p: Stream[F, E]): Handle[F, S, E, Unit] =
-    Handle[F, S, E, Unit]:
-      Applicative[StateT[F, S, *]].pure[(Unit, Stream[F, E])](((), p))
+  def fromEventStream[F[_]: Monad, S, E](f: S => Stream[F, E]): Handle[F, S, E, Unit] =
+    getState.flatMap: s =>
+      Handle[F, S, E, Unit]:
+        Applicative[StateT[F, S, *]].pure(((), f(s)))
 
-  def fromSingleEvent[F[_]: Monad, S, E](f: F[E]): Handle[F, S, E, Unit] =
+  inline def fromEventStream[F[_]: Monad, S, E](p: Stream[F, E]): Handle[F, S, E, Unit] =
+    fromEventStream(_ => p)
+
+  inline def fromSingleEventF[F[_]: Monad, S, E](f: F[E]): Handle[F, S, E, Unit] =
     fromEventStream(Stream.eval(f))
 
-  def liftF[F[_]: Monad, S, E, O](f: F[O]): Handle[F, S, E, O] =
+  inline def fromSingleEvent[F[_]: Monad, S, E](e: E): Handle[F, S, E, Unit] =
+    fromSingleEventF(e.pure[F])
+
+  inline def liftF[F[_]: Monad, S, E, O](f: F[O]): Handle[F, S, E, O] =
     fromStateT(StateT.liftF[F, S, O](f))
 
-  def pure[F[_]: Monad, S, E, O](a: O): Handle[F, S, E, O] =
+  inline def pure[F[_]: Monad, S, E, O](a: O): Handle[F, S, E, O] =
     Handle[F, S, E, O]:
       Applicative[StateT[F, S, *]].pure((a, Stream.empty))
 

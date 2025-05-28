@@ -22,13 +22,14 @@ import lucuma.core.model.sequence.Atom
 import lucuma.refined.*
 import observe.common.test.observationId
 import observe.common.test.stepId
-import observe.engine.TestUtil.TestState
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.enums.Resource
 import observe.model.enums.Resource.TCS
+import observe.server.EngineState
+import observe.server.SeqEvent
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -91,39 +92,35 @@ class PackageSuite extends munit.CatsEffectSuite {
     List(NonEmptyList.of(configureTcs, configureInst), NonEmptyList.one(observe))
 
   val seqId: Observation.Id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1))
-  val qs1: TestState        =
-    TestState(
-      sequences = Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = observationId(2),
-             atomId = atomId,
-             steps = List(
-               EngineStep(
-                 id = stepId(1),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = List(
-                   NonEmptyList.of(configureTcs, configureInst), // Execution
-                   NonEmptyList.one(observe)                     // Execution
-                 )
-               ),
-               EngineStep(
-                 id = stepId(2),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = executions
-               )
-             )
-           )
-         )
+  val qs1: EngineState[IO]  =
+    TestUtil.initStateWithSequence(
+      seqId,
+      Sequence.State.init(
+        Sequence.sequence(
+          id = observationId(2),
+          atomId = atomId,
+          steps = List(
+            EngineStep(
+              id = stepId(1),
+              breakpoint = Breakpoint.Disabled,
+              executions = List(
+                NonEmptyList.of(configureTcs, configureInst), // Execution
+                NonEmptyList.one(observe)                     // Execution
+              )
+            ),
+            EngineStep(
+              id = stepId(2),
+              breakpoint = Breakpoint.Disabled,
+              executions = executions
+            )
+          )
         )
       )
     )
 
-  private def executionEngine = Engine.build[IO, TestState, Unit](
-    TestState,
-    (eng, obsId) => eng.startNewAtom(obsId),
-    (eng, obsId, _) => eng.startNewAtom(obsId)
+  private def executionEngine = Engine.build[IO](
+    (eng, obsId) => eng.startNewAtom(obsId).as(SeqEvent.NullSeqEvent),
+    (eng, obsId, _) => eng.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
   )
 
   def isFinished(status: SequenceState): Boolean = status match {
@@ -133,14 +130,14 @@ class PackageSuite extends munit.CatsEffectSuite {
     case _                       => false
   }
 
-  def runToCompletion(s0: TestState): IO[Option[TestState]] =
+  def runToCompletion(s0: EngineState[IO]): IO[Option[EngineState[IO]]] =
     for {
       eng <- executionEngine
-      _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+      _   <- eng.offer(Event.start(seqId, user, clientId))
       v   <- eng
                .process(PartialFunction.empty)(s0)
                .drop(1)
-               .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+               .takeThrough(a => !isFinished(a._2.sequences(seqId).seq.status))
                .compile
                .last
     } yield v.map(_._2)
@@ -149,7 +146,7 @@ class PackageSuite extends munit.CatsEffectSuite {
     val qs =
       for {
         eng <- executionEngine
-        _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+        _   <- eng.offer(Event.start(seqId, user, clientId))
         v   <- eng
                  .process(PartialFunction.empty)(qs1)
                  .take(1)
@@ -157,23 +154,24 @@ class PackageSuite extends munit.CatsEffectSuite {
                  .last
       } yield v.map(_._2)
 
-    qs.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
+    qs.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId).seq))).assert
   }
 
   test("there should be 0 pending executions after execution") {
     val qs = runToCompletion(qs1)
-    qs.map(_.exists(_.sequences(seqId).pending.isEmpty)).assert
+    qs.map(_.exists(_.sequences(seqId).seq.pending.isEmpty)).assert
   }
 
   test("there should be 2 Steps done after execution") {
     val qs = runToCompletion(qs1)
-    qs.map(_.exists(_.sequences(seqId).done.length === 2)).assert
+    qs.map(_.exists(_.sequences(seqId).seq.done.length === 2)).assert
   }
 
-  private def actionPause: IO[Option[TestState]] = {
-    val s0: TestState = TestState(
-      Map(
-        seqId -> Sequence.State.init(
+  private def actionPause: IO[Option[EngineState[IO]]] = {
+    val s0: EngineState[IO] =
+      TestUtil.initStateWithSequence(
+        seqId,
+        Sequence.State.init(
           Sequence.sequence(
             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
             atomId = atomId,
@@ -191,12 +189,11 @@ class PackageSuite extends munit.CatsEffectSuite {
           )
         )
       )
-    )
 
     // take(4): Start, ModifyState, Executing, Paused
     for {
       eng <- executionEngine
-      _   <- eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId))
+      _   <- eng.offer(Event.start[IO](seqId, user, clientId))
       v   <- eng
                .process(PartialFunction.empty)(s0)
                .take(4)
@@ -207,12 +204,12 @@ class PackageSuite extends munit.CatsEffectSuite {
   }
 
   test("sequencestate should stay as running when action pauses itself") {
-    actionPause.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId)))).assert
+    actionPause.map(_.exists(s => Sequence.State.isRunning(s.sequences(seqId).seq))).assert
   }
 
   test("engine should change action state to Paused if output is Paused") {
     val r = actionPause
-    r.map(_.exists(_.sequences(seqId).current.execution.forall(Action.paused))).assert
+    r.map(_.exists(_.sequences(seqId).seq.current.execution.forall(Action.paused))).assert
   }
 
   test("run sequence to completion after resuming a paused action") {
@@ -222,17 +219,14 @@ class PackageSuite extends munit.CatsEffectSuite {
         eng <- OptionT.liftF(executionEngine)
         _   <- OptionT.liftF(
                  eng.offer(
-                   Event.actionResume[IO, TestState, Unit](seqId,
-                                                           0,
-                                                           Stream.eval(IO(Result.OK(DummyResult)))
-                   )
+                   Event.actionResume[IO](seqId, 0, Stream.eval(IO(Result.OK(DummyResult))))
                  )
                )
         r   <- OptionT.liftF(
                  eng
                    .process(PartialFunction.empty)(s)
                    .drop(1)
-                   .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+                   .takeThrough(a => !isFinished(a._2.sequences(seqId).seq.status))
                    .compile
                    .last
                )
@@ -242,8 +236,9 @@ class PackageSuite extends munit.CatsEffectSuite {
     result.value
       .map(
         _.forall(x =>
-          x.sequences(seqId).current.actions.isEmpty && (x
+          x.sequences(seqId).seq.current.actions.isEmpty && (x
             .sequences(seqId)
+            .seq
             .status === SequenceState.Completed)
         )
       )
@@ -259,23 +254,22 @@ class PackageSuite extends munit.CatsEffectSuite {
       finishFlag  <- Semaphore.apply[IO](0)
       eng         <- executionEngine
       r           <- {
-        val qs = TestState(
-          Map(
-            seqId -> Sequence.State.init(
-              Sequence.sequence(
-                id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
-                atomId = atomId,
-                steps = List(
-                  EngineStep(
-                    id = stepId(1),
-                    breakpoint = Breakpoint.Disabled,
-                    executions = List(
-                      NonEmptyList.one(
-                        fromF[IO](ActionType.Configure(TCS),
-                                  startedFlag.release *> finishFlag.acquire *> IO.pure(
-                                    Result.OK(DummyResult)
-                                  )
-                        )
+        val qs = TestUtil.initStateWithSequence(
+          seqId,
+          Sequence.State.init(
+            Sequence.sequence(
+              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
+              atomId = atomId,
+              steps = List(
+                EngineStep(
+                  id = stepId(1),
+                  breakpoint = Breakpoint.Disabled,
+                  executions = List(
+                    NonEmptyList.one(
+                      fromF[IO](ActionType.Configure(TCS),
+                                startedFlag.release *> finishFlag.acquire *> IO.pure(
+                                  Result.OK(DummyResult)
+                                )
                       )
                     )
                   )
@@ -287,17 +281,17 @@ class PackageSuite extends munit.CatsEffectSuite {
 
         List(
           List[IO[Unit]](
-            eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
+            eng.offer(Event.start[IO](seqId, user, clientId)),
             startedFlag.acquire,
             eng.offer(Event.nullEvent),
-            eng.offer(Event.getState[IO, TestState, Unit] { _ =>
-              Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit])
+            eng.offer(Event.getState[IO] { _ =>
+              Stream.eval(finishFlag.release).as(Event.nullEvent)
             })
           ).sequence,
           eng
             .process(PartialFunction.empty)(qs)
             .drop(1)
-            .takeThrough(a => !isFinished(a._2.sequences(seqId).status))
+            .takeThrough(a => !isFinished(a._2.sequences(seqId).seq.status))
             .compile
             .drain
         ).parSequence
@@ -308,33 +302,30 @@ class PackageSuite extends munit.CatsEffectSuite {
   }
 
   test("engine should not capture runtime exceptions.") {
-    def s0(e: Throwable): TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
-             atomId = atomId,
-             steps = List(
-               EngineStep(
-                 id = stepId(1),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = List(
-                   NonEmptyList.one(
-                     fromF[IO](ActionType.Undefined,
-                               IO.apply {
-                                 throw e
-                               }
-                     )
-                   )
-                 )
-               )
-             )
-           )
-         )
+    def s0(e: Throwable): EngineState[IO] =
+      TestUtil.initStateWithSequence(
+        seqId,
+        Sequence.State.init(
+          Sequence.sequence(
+            id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
+            atomId = atomId,
+            steps = List(
+              EngineStep(
+                id = stepId(1),
+                breakpoint = Breakpoint.Disabled,
+                executions = List(
+                  NonEmptyList.one(
+                    fromF[IO](
+                      ActionType.Undefined,
+                      IO.raiseError(e)
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
-    )
 
     runToCompletion(s0(new java.lang.RuntimeException)).attempt.map {
       case Left(_: java.lang.RuntimeException) => true
@@ -343,41 +334,39 @@ class PackageSuite extends munit.CatsEffectSuite {
   }
 
   test("engine should run single Action") {
-    val dummy         = new AtomicInteger(0)
-    val markVal       = 1
-    val sId           = stepId(1)
-    val s0: TestState = TestState(
-      Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = seqId,
-             atomId = atomId,
-             steps = List(
-               EngineStep(
-                 id = sId,
-                 breakpoint = Breakpoint.Disabled,
-                 executions = List(
-                   NonEmptyList.one(
-                     fromF[IO](ActionType.Configure(Resource.TCS),
-                               IO {
-                                 dummy.set(markVal)
-                                 Result.OK(DummyResult)
-                               }
-                     )
-                   )
-                 )
-               )
-             )
-           )
-         )
+    val dummy               = new AtomicInteger(0)
+    val markVal             = 1
+    val sId                 = stepId(1)
+    val s0: EngineState[IO] =
+      TestUtil.initStateWithSequence(
+        seqId,
+        Sequence.State.init(
+          Sequence.sequence(
+            id = seqId,
+            atomId = atomId,
+            steps = List(
+              EngineStep(
+                id = sId,
+                breakpoint = Breakpoint.Disabled,
+                executions = List(
+                  NonEmptyList.one(
+                    fromF[IO](ActionType.Configure(Resource.TCS),
+                              IO {
+                                dummy.set(markVal)
+                                Result.OK(DummyResult)
+                              }
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
-    )
 
-    val c                                       = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
-    def event(eng: Engine[IO, TestState, Unit]) = Event.modifyState[IO, TestState, Unit](
-      eng.startSingle(ActionCoords(seqId, c)).void
+    val c                      = ActionCoordsInSeq(sId, ExecutionIndex(0), ActionIndex(0))
+    def event(eng: Engine[IO]) = Event.modifyState[IO](
+      eng.startSingle(ActionCoords(seqId, c)).as(SeqEvent.NullSeqEvent)
     )
 
     val sfs =
@@ -398,55 +387,51 @@ class PackageSuite extends munit.CatsEffectSuite {
      */
     sfs.map {
       case a :: b :: _ =>
-        TestState.sequenceStateIndex(seqId).getOption(a).exists(_.getSingleState(c).started) &&
-        TestState.sequenceStateIndex(seqId).getOption(b).exists(_.getSingleState(c).completed) &&
+        EngineState.sequenceStateAt(seqId).getOption(a).exists(_.getSingleState(c).started) &&
+        EngineState.sequenceStateAt(seqId).getOption(b).exists(_.getSingleState(c).completed) &&
         dummy.get === markVal
       case _           =>
         false
     }.assert
   }
 
-  val qs2: TestState =
-    TestState(
-      sequences = Map(
-        (seqId,
-         Sequence.State.init(
-           Sequence.sequence(
-             id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
-             atomId = atomId,
-             steps = List(
-               EngineStep(
-                 id = stepId(1),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = List(
-                   NonEmptyList.one(
-                     Action[IO](ActionType.Undefined,
-                                Stream(Result.OK(DummyResult)).covary[IO],
-                                Action.State(Action.ActionState.Completed(DummyResult), List.empty)
-                     )
-                   )
-                 )
-               ),
-               EngineStep(
-                 id = stepId(2),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = executions
-               ),
-               EngineStep(
-                 id = stepId(3),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = executions
-               ),
-               EngineStep(
-                 id = stepId(4),
-                 breakpoint = Breakpoint.Disabled,
-                 executions = executions
-               )
-             )
-           )
-         )
+  val qs2: EngineState[IO] =
+    TestUtil.initStateWithSequence(
+      seqId,
+      Sequence.State.init(
+        Sequence.sequence(
+          id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+          atomId = atomId,
+          steps = List(
+            EngineStep(
+              id = stepId(1),
+              breakpoint = Breakpoint.Disabled,
+              executions = List(
+                NonEmptyList.one(
+                  Action[IO](ActionType.Undefined,
+                             Stream(Result.OK(DummyResult)).covary[IO],
+                             Action.State(Action.ActionState.Completed(DummyResult), List.empty)
+                  )
+                )
+              )
+            ),
+            EngineStep(
+              id = stepId(2),
+              breakpoint = Breakpoint.Disabled,
+              executions = executions
+            ),
+            EngineStep(
+              id = stepId(3),
+              breakpoint = Breakpoint.Disabled,
+              executions = executions
+            ),
+            EngineStep(
+              id = stepId(4),
+              breakpoint = Breakpoint.Disabled,
+              executions = executions
+            )
+          )
         )
       )
     )
-
 }
