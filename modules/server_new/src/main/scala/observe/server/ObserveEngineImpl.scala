@@ -602,7 +602,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
           EngineHandle.modifyState:
             EngineState
               .selected[F]
-              .replace(Selected(none, none))
+              .replace(Selected.none)
               .withEvent(ClearLoadedSequences(user.some))
 
   override def resetConditions: F[Unit] = logDebugEvent("ObserveEngine: Reset conditions") *>
