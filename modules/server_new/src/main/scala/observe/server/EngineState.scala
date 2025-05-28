@@ -103,32 +103,28 @@ object EngineState {
       s.focus(_.selected.flamingos2).replace(d.some)
     }
 
-  def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
-    Optional[EngineState[F], Sequence.State[F]](s =>
+  def sequenceDataAt[F[_]](obsid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
+    Optional[EngineState[F], SequenceData[F]](s =>
       s.selected.gmosSouth
-        .filter(_.seqGen.obsData.id === sid)
-        .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === sid))
-        .orElse(s.selected.flamingos2.filter(_.seqGen.obsData.id === sid))
-        .map(_.seq)
-    )(ss =>
+        .filter(_.seqGen.obsData.id === obsid)
+        .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === obsid))
+        .orElse(s.selected.flamingos2.filter(_.seqGen.obsData.id === obsid))
+    )(sd =>
       es =>
-        if (es.selected.gmosSouth.exists(_.seqGen.obsData.id === sid))
-          es.copy(selected =
-            es.selected.copy(gmosSouth = es.selected.gmosSouth.map(_.copy(seq = ss)))
-          )
-        else if (es.selected.gmosNorth.exists(_.seqGen.obsData.id === sid))
-          es.copy(selected =
-            es.selected.copy(gmosNorth = es.selected.gmosNorth.map(_.copy(seq = ss)))
-          )
-        else if (es.selected.flamingos2.exists(_.seqGen.obsData.id === sid))
-          es.copy(selected =
-            es.selected.copy(flamingos2 = es.selected.flamingos2.map(_.copy(seq = ss)))
-          )
+        if (es.selected.gmosSouth.exists(_.seqGen.obsData.id === obsid))
+          es.copy(selected = es.selected.copy(gmosSouth = sd.some))
+        else if (es.selected.gmosNorth.exists(_.seqGen.obsData.id === obsid))
+          es.copy(selected = es.selected.copy(gmosNorth = sd.some))
+        else if (es.selected.flamingos2.exists(_.seqGen.obsData.id === obsid))
+          es.copy(selected = es.selected.copy(flamingos2 = sd.some))
         else es
     )
 
+  def sequenceStateAt[F[_]](obsid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
+    sequenceDataAt(obsid).andThen(SequenceData.seq)
+
   def engineState[F[_]]: Engine.State[F, EngineState[F]] =
-    (sid: Observation.Id) => EngineState.sequenceStateIndex(sid)
+    (obsId: Observation.Id) => EngineState.sequenceStateAt(obsId)
 
   extension [F[_]](f: Endo[EngineState[F]])
     def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }

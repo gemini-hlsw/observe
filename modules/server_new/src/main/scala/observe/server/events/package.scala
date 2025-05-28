@@ -38,7 +38,7 @@ extension (e: SeqEvent)
       case SequencesStart(_)             => true
       case _                             => false
 
-extension [F[_], S, U](e: UserEvent[F, S, U])
+extension [F[_]](e: UserEvent[F])
   def isModelUpdate: Boolean =
     import UserEvent.*
     e match

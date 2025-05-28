@@ -8,8 +8,6 @@ import cats.effect.IO
 import lucuma.core.model.sequence.Atom
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
-import monocle.law.discipline.OptionalTests
-import observe.engine.TestUtil.TestState
 import observe.model.Observation
 import observe.model.SequenceState
 import observe.model.arb.ObserveModelArbitraries.given
@@ -20,7 +18,6 @@ import org.scalacheck.Cogen
 final class EngineSpec extends munit.DisciplineSuite {
 
   given Eq[Sequence.State[IO]] = Eq.fromUniversalEquals
-  given Eq[TestState]          = Eq.by(x => x.sequences)
 
   given Arbitrary[Sequence[IO]] = Arbitrary {
     for {
@@ -38,16 +35,5 @@ final class EngineSpec extends munit.DisciplineSuite {
 
   given Cogen[Sequence.State[IO]] =
     Cogen[Observation.Id].contramap(_.toSequence.id)
-
-  given Arbitrary[TestState] = Arbitrary {
-    for {
-      q <- arbitrary[Map[Observation.Id, Sequence.State[IO]]]
-    } yield TestState(q)
-  }
-
-  checkAll(
-    "sequence optional",
-    OptionalTests[TestState, Sequence.State[IO], Observation.Id](TestState.sequenceStateIndex)
-  )
 
 }
