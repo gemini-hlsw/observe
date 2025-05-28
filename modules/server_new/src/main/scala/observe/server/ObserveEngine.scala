@@ -418,7 +418,7 @@ object ObserveEngine {
   )(
     executeEngine: Engine[F, EngineState[F], SeqEvent],
     obsId:         Observation.Id
-  ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
+  ): EngineHandle[F, SeqEvent] =
     Handle
       .getState[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
       .map(EngineState.atSequence[F](obsId).getOption)
@@ -493,7 +493,7 @@ object ObserveEngine {
     executeEngine: Engine[F, EngineState[F], SeqEvent],
     obsId:         Observation.Id,
     atomType:      SequenceType
-  ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], Unit] =
+  ): EngineHandle[F, Unit] =
     Handle.fromEventStream(
       Stream.eval {
         odb.read(obsId).map { x =>
@@ -544,7 +544,7 @@ object ObserveEngine {
     executeEngine: Engine[F, EngineState[F], SeqEvent],
     obsId:         Observation.Id,
     onAtomReload:  OnAtomReloadAction
-  ): Handle[F, EngineState[F], Event[F, EngineState[F], SeqEvent], SeqEvent] =
+  ): EngineHandle[F, SeqEvent] =
     Handle
       .getState[F, EngineState[F], Event[F, EngineState[F], SeqEvent]]
       .map(EngineState.atSequence[F](obsId).getOption)
@@ -571,7 +571,7 @@ object ObserveEngine {
     obsId:         Observation.Id,
     atomType:      SequenceType,
     onAtomReload:  OnAtomReloadAction
-  ): Handle[F, EngineState[F], EngineEvent[F], Unit] =
+  ): EngineHandle[F, Unit] =
     Handle.fromSingleEvent[F, EngineState[F], EngineEvent[F]] {
       Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
         odb

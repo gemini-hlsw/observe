@@ -42,8 +42,7 @@ object UserEvent {
   }
   // Generic event to put a function in the main Stream process, which takes an
   // action depending on the current state
-  case class GetState[F[_], S, U](f: S => Option[Stream[F, Event[F, S, U]]])
-      extends UserEvent[F, S, U] {
+  case class GetState[F[_], S, U](f: S => Stream[F, Event[F, S, U]])   extends UserEvent[F, S, U] {
     val user: Option[User] = None
   }
   // Generic event to put a function in the main Process process, which changes the state
@@ -56,7 +55,7 @@ object UserEvent {
   // It sets the Sequence to be stopped. The user function is called only if the Sequence is running.
   case class ActionStop[F[_], S, U](
     id: Observation.Id,
-    f:  S => Option[Stream[F, Event[F, S, U]]]
+    f:  S => Stream[F, Event[F, S, U]]
   ) extends UserEvent[F, S, U] {
     val user: Option[User] = None
   }

@@ -58,28 +58,31 @@ class PackageSuite extends munit.CatsEffectSuite {
   /**
    * Emulates TCS configuration in the real world.
    */
-  val configureTcs: Action[IO] = fromF[IO](ActionType.Configure(TCS),
-                                           for {
-                                             _ <- IO.sleep(200.milliseconds)
-                                           } yield Result.OK(DummyResult)
+  val configureTcs: Action[IO] = fromF[IO](
+    ActionType.Configure(TCS),
+    for {
+      _ <- IO.sleep(200.milliseconds)
+    } yield Result.OK(DummyResult)
   )
 
   /**
    * Emulates Instrument configuration in the real world.
    */
-  val configureInst: Action[IO] = fromF[IO](ActionType.Configure(GmosSouth),
-                                            for {
-                                              _ <- IO.sleep(200.milliseconds)
-                                            } yield Result.OK(DummyResult)
+  val configureInst: Action[IO] = fromF[IO](
+    ActionType.Configure(GmosSouth),
+    for {
+      _ <- IO.sleep(200.milliseconds)
+    } yield Result.OK(DummyResult)
   )
 
   /**
    * Emulates an observation in the real world.
    */
-  val observe: Action[IO] = fromF[IO](ActionType.Observe,
-                                      for {
-                                        _ <- IO.sleep(200.milliseconds)
-                                      } yield Result.OK(DummyResult)
+  val observe: Action[IO] = fromF[IO](
+    ActionType.Observe,
+    for {
+      _ <- IO.sleep(200.milliseconds)
+    } yield Result.OK(DummyResult)
   )
 
   private val clientId: ClientId = ClientId(UUID.randomUUID)
@@ -281,13 +284,14 @@ class PackageSuite extends munit.CatsEffectSuite {
             )
           )
         )
+
         List(
           List[IO[Unit]](
             eng.offer(Event.start[IO, TestState, Unit](seqId, user, clientId)),
             startedFlag.acquire,
             eng.offer(Event.nullEvent),
             eng.offer(Event.getState[IO, TestState, Unit] { _ =>
-              Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit]).some
+              Stream.eval(finishFlag.release).as(Event.nullEvent[IO, TestState, Unit])
             })
           ).sequence,
           eng
