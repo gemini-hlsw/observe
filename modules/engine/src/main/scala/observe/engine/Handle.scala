@@ -43,45 +43,29 @@ object Handle {
 
   given [F[_]: Monad, S, E]: Monad[Handle[F, S, E, *]] =
     new Monad[Handle[F, S, E, *]] {
-      // private def concatOpP(
-      //   op1: Option[Stream[F, E]],
-      //   op2: Option[Stream[F, E]]
-      // ): Option[Stream[F, E]] = (op1, op2) match {
-      //   case (None, None)         => None
-      //   case (Some(p1), None)     => Some(p1)
-      //   case (None, Some(p2))     => Some(p2)
-      //   case (Some(p1), Some(p2)) => Some(p1 ++ p2)
-      // }
-
-      override def pure[O](a: O): Handle[F, S, E, O] = Handle(
-        Applicative[StateT[F, S, *]].pure((a, Stream.empty))
-      )
+      override def pure[O](a: O): Handle[F, S, E, O] =
+        Handle:
+          Applicative[StateT[F, S, *]].pure((a, Stream.empty))
 
       override def flatMap[O, O1](
         fa: Handle[F, S, E, O]
-      )(f: O => Handle[F, S, E, O1]): Handle[F, S, E, O1] = Handle[F, S, E, O1](
-        fa.run.flatMap { case (a, p1) =>
-          f(a).run.map { case (b, p2) =>
-            (b, p1 ++ p2)
-          }
-        }
-      )
+      )(f: O => Handle[F, S, E, O1]): Handle[F, S, E, O1] =
+        Handle[F, S, E, O1]:
+          fa.run.flatMap: (a, p1) =>
+            f(a).run.map: (b, p2) =>
+              (b, p1 ++ p2)
 
       // Kudos to @tpolecat
       def tailRecM[O, O1](a: O)(f: O => Handle[F, S, E, Either[O, O1]]): Handle[F, S, E, O1] = {
-        // We don't really care what this type is
-        // type Unused = Option[Stream[F, E]]
-
         // Construct a StateT that delegates to F's tailRecM
         val st: StateT[F, S, (O1, Stream[F, E])] =
-          StateT { s =>
-            Monad[F].tailRecM[(S, O), (S, (O1, Stream[F, E]))]((s, a)) { case (s, a) =>
-              f(a).run.run(s).map {
-                case (sʹ, (Left(a), _))  => Left((sʹ, a))
-                case (sʹ, (Right(b), u)) => Right((sʹ, (b, u)))
-              }
-            }
-          }
+          StateT: s =>
+            Monad[F].tailRecM[(S, O), (S, (O1, Stream[F, E]))]((s, a)): (s, a) =>
+              f(a).run
+                .run(s)
+                .map:
+                  case (sʹ, (Left(a), _))  => Left((sʹ, a))
+                  case (sʹ, (Right(b), u)) => Right((sʹ, (b, u)))
 
         // Done
         Handle(st)
@@ -91,24 +75,11 @@ object Handle {
   // This class adds a method to Handle similar to flatMap, but the Streams resulting from both Handle instances
   // are concatenated in the reverse order.
   extension [F[_]: Monad, S, E, O](self: Handle[F, S, E, O]) {
-    // private def reverseConcatOpP(
-    //   op1: Option[Stream[F, E]],
-    //   op2: Option[Stream[F, E]]
-    // ): Option[Stream[F, E]] = (op1, op2) match {
-    //   case (None, None)         => None
-    //   case (Some(p1), None)     => Some(p1)
-    //   case (None, Some(p2))     => Some(p2)
-    //   case (Some(p1), Some(p2)) => Some(p2 ++ p1)
-    // }
-
     def reversedStreamFlatMap[O1](f: O => Handle[F, S, E, O1]): Handle[F, S, E, O1] =
-      Handle[F, S, E, O1](
-        self.run.flatMap { case (a, p1) =>
-          f(a).run.map { case (b, p2) =>
+      Handle[F, S, E, O1]:
+        self.run.flatMap: (a, p1) =>
+          f(a).run.map: (b, p2) =>
             (b, p2 ++ p1)
-          }
-        }
-      )
   }
 
   inline def fromStateT[F[_]: Functor, S, E, O](s: StateT[F, S, O]): Handle[F, S, E, O] =
