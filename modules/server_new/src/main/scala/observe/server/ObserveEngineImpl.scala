@@ -299,16 +299,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       sequenceStart(id).map:
         _.map { case (sid, stepId) => SequenceStart(sid, stepId) }.getOrElse(NullSeqEvent)
 
-  // private def getSequenceData(obsId: Observation.Id): Option[EngineHandle[SequenceData[F]]] =
-  //   // Handle.fromStateT:
-  //   val xxx =
-  //     EngineHandle.getState.map { st =>
-  //       EngineState
-  //         .atSequence(obsId)
-  //         .getOption(st) // .fold(EngineHandle.unit)(EngineHandle.pure(_))
-  //     }.run
-  //   ???
-
   private def startChecks(
     startAction: EngineHandle[Unit],
     obsId:       Observation.Id,
