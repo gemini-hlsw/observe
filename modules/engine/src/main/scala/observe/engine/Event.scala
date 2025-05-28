@@ -40,13 +40,13 @@ object Event {
   ): Event[F, S, U] = EventUser[F, S, U](Breakpoints(id, user.some, steps, v))
   def poll[F[_], S, U](clientId: ClientId): Event[F, S, U]                                  =
     EventUser[F, S, U](Poll(clientId))
-  def getState[F[_], S, U](f: S => Option[Stream[F, Event[F, S, U]]]): Event[F, S, U]       =
+  def getState[F[_], S, U](f: S => Stream[F, Event[F, S, U]]): Event[F, S, U]               =
     EventUser[F, S, U](GetState(f))
   def modifyState[F[_], S, U](f: Handle[F, S, Event[F, S, U], U]): Event[F, S, U]           =
     EventUser[F, S, U](ModifyState(f))
   def actionStop[F[_], S, U](
     id: Observation.Id,
-    f:  S => Option[Stream[F, Event[F, S, U]]]
+    f:  S => Stream[F, Event[F, S, U]]
   ): Event[F, S, U] = EventUser[F, S, U](ActionStop(id, f))
   def actionResume[F[_], S, U](
     id: Observation.Id,

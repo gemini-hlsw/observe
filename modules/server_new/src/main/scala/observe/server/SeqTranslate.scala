@@ -82,19 +82,19 @@ trait SeqTranslate[F[_]] {
 
   def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
     Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
+  ): EngineState[F] => Stream[F, EngineEvent[F]]
 
   def abortObserve(seqId: Observation.Id)(using
     Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
+  ): EngineState[F] => Stream[F, EngineEvent[F]]
 
   def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
     Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
+  ): EngineState[F] => Stream[F, EngineEvent[F]]
 
   def resumePaused(seqId: Observation.Id)(using
     Temporal[F]
-  ): EngineState[F] => Option[Stream[F, EngineEvent[F]]]
+  ): EngineState[F] => Stream[F, EngineEvent[F]]
 
 }
 
@@ -423,40 +423,40 @@ object SeqTranslate {
 
     override def stopObserve(seqId: Observation.Id, graceful: Boolean)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = st => {
+    ): EngineState[F] => Stream[F, EngineEvent[F]] = st => {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(StopObserveCmd(stop), _, _, _, _, _) => stop(graceful)
         case UnpausableControl(StopObserveCmd(stop), _)           => stop(graceful)
         case _                                                    => Applicative[F].unit
       }
-      deliverObserveCmd(seqId, f)(st).orElse(stopPaused(seqId).apply(st))
+      deliverObserveCmd(seqId, f)(st).getOrElse(stopPaused(seqId).apply(st))
     }
 
     override def abortObserve(seqId: Observation.Id)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = st => {
+    ): EngineState[F] => Stream[F, EngineEvent[F]] = st => {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(_, AbortObserveCmd(abort), _, _, _, _) => abort
         case UnpausableControl(_, AbortObserveCmd(abort))           => abort
         case _                                                      => Applicative[F].unit
       }
 
-      deliverObserveCmd(seqId, f)(st).orElse(abortPaused(seqId).apply(st))
+      deliverObserveCmd(seqId, f)(st).getOrElse(abortPaused(seqId).apply(st))
     }
 
     override def pauseObserve(seqId: Observation.Id, graceful: Boolean)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = {
+    ): EngineState[F] => Stream[F, EngineEvent[F]] = {
       def f(oc: ObserveControl[F]): F[Unit] = oc match {
         case CompleteControl(_, _, PauseObserveCmd(pause), _, _, _) => pause(graceful)
         case _                                                      => Applicative[F].unit
       }
-      deliverObserveCmd(seqId, f)
+      deliverObserveCmd(seqId, f).map(_.orEmpty)
     }
 
     override def resumePaused(seqId: Observation.Id)(using
       tio: Temporal[F]
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] = (st: EngineState[F]) => {
+    ): EngineState[F] => Stream[F, EngineEvent[F]] = (st: EngineState[F]) => {
       val observeIndex: Option[(ObserveContext[F], Option[TimeSpan], Int)] =
         st.sequences
           .get(seqId)
@@ -487,12 +487,12 @@ object SeqTranslate {
               .handleErrorWith(catchObsErrors[F])
           )
         )
-      }
+      }.orEmpty
     }
 
     private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
       st: EngineState[F]
-    ): Option[Stream[F, EngineEvent[F]]] =
+    ): Stream[F, EngineEvent[F]] =
       st.sequences
         .get(seqId)
         .flatMap(
@@ -509,15 +509,16 @@ object SeqTranslate {
               }
           }
         )
+        .orEmpty
 
     private def stopPaused(
       seqId: Observation.Id
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] =
+    ): EngineState[F] => Stream[F, EngineEvent[F]] =
       endPaused(seqId, _.stopPaused)
 
     private def abortPaused(
       seqId: Observation.Id
-    ): EngineState[F] => Option[Stream[F, EngineEvent[F]]] =
+    ): EngineState[F] => Stream[F, EngineEvent[F]] =
       endPaused(seqId, _.abortPaused)
 
     import TcsController.Subsystem.*

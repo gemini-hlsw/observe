@@ -13,6 +13,7 @@ import lucuma.core.util.TimeSpan
 import observe.engine
 import observe.engine.Engine
 import observe.engine.Event
+import observe.engine.Handle
 import observe.engine.Result
 import observe.engine.Result.PauseContext
 import observe.model.Conditions
@@ -60,6 +61,7 @@ private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 // Some types defined to avoid repeating long type definitions everywhere
 type EngineEvent[F[_]]     = Event[F, EngineState[F], SeqEvent]
 type ExecutionEngine[F[_]] = Engine[F, EngineState[F], SeqEvent]
+type EngineHandle[F[_], A] = Handle[F, EngineState[F], EngineEvent[F], A]
 
 type EventQueue[F[_]] = Queue[F, EngineEvent[F]]
 

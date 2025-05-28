@@ -201,25 +201,25 @@ class SeqTranslateSuite extends TestCommon {
 
   test("SeqTranslate trigger stopObserve command only if exposure is in progress") {
     translator.map { t =>
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s0).isDefined)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s1).isEmpty)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s2).isEmpty)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s3).isDefined)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s4).isDefined)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s5).isEmpty)
-      assert(t.stopObserve(seqObsId1, graceful = false).apply(s6).isEmpty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s0) != Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s1) == Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s2) == Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s3) != Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s4) != Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s5) == Stream.empty)
+      assert(t.stopObserve(seqObsId1, graceful = false).apply(s6) == Stream.empty)
     }
   }
 
   test("SeqTranslate trigger abortObserve command only if exposure is in progress") {
     translator.map { t =>
-      assert(t.abortObserve(seqObsId1).apply(s0).isDefined)
-      assert(t.abortObserve(seqObsId1).apply(s1).isEmpty)
-      assert(t.abortObserve(seqObsId1).apply(s2).isEmpty)
-      assert(t.abortObserve(seqObsId1).apply(s3).isDefined)
-      assert(t.abortObserve(seqObsId1).apply(s4).isDefined)
-      assert(t.abortObserve(seqObsId1).apply(s5).isEmpty)
-      assert(t.abortObserve(seqObsId1).apply(s6).isEmpty)
+      assert(t.abortObserve(seqObsId1).apply(s0) != Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s1) == Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s2) == Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s3) != Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s4) != Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s5) == Stream.empty)
+      assert(t.abortObserve(seqObsId1).apply(s6) == Stream.empty)
     }
   }
 

@@ -81,17 +81,6 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
     // For debugging
     def printSequenceState(id: Observation.Id): EngineHandle[Unit] =
       inspectSequenceState(id)((qs: Sequence.State[F]) => StateT.liftF(L.debug(s"$qs"))).void
-
-    extension [A](f: S => (S, A)) {
-      def toHandle: EngineHandle[A] =
-        Handle.fromStateT(StateT[F, S, A](st => f(st).pure[F]))
-    }
-
-    // extension [F[_]: Applicative, A](f: EngineState[F] => F[(EngineState[F], A)]) {
-    //   def toHandleF[B >: A]: HandlerType[F, B] = // Type trick to allow unions of a supertype
-    //     StateT[F, EngineState[F], B](st => f(st).map(x => x: (EngineState[F], B)))
-    //       .toHandleT[EventType[F]]
-    // }
   }
 
   /**
@@ -339,20 +328,20 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
         .getOrElse(EngineHandle.unit)
     )
 
-  private def getState(f: S => Option[Stream[F, EngineEvent]]): EngineHandle[Unit] =
+  private def getState(f: S => Stream[F, EngineEvent]): EngineHandle[Unit] =
     EngineHandle.getState.flatMap(s =>
       Handle[F, S, EngineEvent, Unit](f(s).pure[StateT[F, S, *]].map(((), _)))
     )
 
   private def actionStop(
     id: Observation.Id,
-    f:  S => Option[Stream[F, EngineEvent]]
+    f:  S => Stream[F, EngineEvent]
   ): EngineHandle[Unit] =
     EngineHandle
       .getSequenceState(id)
       .flatMap(_.map { s =>
         (Handle(
-          StateT[F, S, (Unit, Option[Stream[F, EngineEvent]])](st => ((st, ((), f(st)))).pure[F])
+          StateT[F, S, (Unit, Stream[F, EngineEvent])](st => ((st, ((), f(st)))).pure[F])
         ) *>
           EngineHandle.modifySequenceState(id)(Sequence.State.internalStopSet(true)))
           .whenA(Sequence.State.isRunning(s))
@@ -579,25 +568,22 @@ class Engine[F[_]: MonadThrow: Logger, S, U] private (
   // f takes an event and the current state, it produces a new state, a new value B and more actions
   def mapEvalState(
     initialState: S,
-    f:            (EngineEvent, S) => F[(S, (EventResult[U], S), Option[Stream[F, EngineEvent]])]
+    f:            (EngineEvent, S) => F[(S, (EventResult[U], S), Stream[F, EngineEvent])]
   )(using ev: Concurrent[F]): Stream[F, (EventResult[U], S)] =
     Stream.exec(streamQueue.offer(Stream.fromQueueUnterminated(inputQueue))) ++
       Stream
         .fromQueueUnterminated(streamQueue)
         .parJoinUnbounded
-        .evalMapAccumulate(initialState) { (s, a) =>
-          f(a, s).flatMap {
-            case (ns, b, None)     => (ns, b).pure[F]
-            case (ns, b, Some(st)) => streamQueue.offer(st) >> (ns, b).pure[F]
-          }
-        }
+        .evalMapAccumulate(initialState): (s, a) =>
+          f(a, s).flatMap: (ns, b, st) =>
+            streamQueue.offer(st) >> (ns, b).pure[F]
         .map(_._2)
 
   private def runE(
     onSystemEvent: PartialFunction[SystemEvent, EngineHandle[Unit]]
   )(ev: EngineEvent, s: S)(using
     ci:            Concurrent[F]
-  ): F[(S, (EventResult[U], S), Option[Stream[F, EngineEvent]])] =
+  ): F[(S, (EventResult[U], S), Stream[F, EngineEvent])] =
     run(onSystemEvent)(ev).run.run(s).map { case (si, (r, p)) =>
       (si, (r, si), p)
     }

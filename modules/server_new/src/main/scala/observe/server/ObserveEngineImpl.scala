@@ -299,7 +299,15 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       sequenceStart(id).map:
         _.map { case (sid, stepId) => SequenceStart(sid, stepId) }.getOrElse(NullSeqEvent)
 
-  // private getSequenceData(obsId:       Observation.Id):
+  // private def getSequenceData(obsId: Observation.Id): Option[EngineHandle[SequenceData[F]]] =
+  //   // Handle.fromStateT:
+  //   val xxx =
+  //     EngineHandle.getState.map { st =>
+  //       EngineState
+  //         .atSequence(obsId)
+  //         .getOption(st) // .fold(EngineHandle.unit)(EngineHandle.pure(_))
+  //     }.run
+  //   ???
 
   private def startChecks(
     startAction: EngineHandle[Unit],
@@ -351,7 +359,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         }
         .getOrElse(
           EngineHandle.unit.as[SeqEvent](NullSeqEvent)
-        ) // Trying to run a sequence that does not exists. This should never happen.
+        ) // Trying to run a sequence that does not exist. This should never happen.
     }
 
   // Stars a sequence from the first non executed step. The method checks for resources conflict.
@@ -893,7 +901,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   override def clientEventStream: Stream[F, TargetedClientEvent] =
     Stream.eval(
       executeEngine
-        .offer(Event.getState(_ => heartbeatStream.some))
+        .offer(Event.getState(_ => heartbeatStream))
         .as[TargetedClientEvent](BaDum)
     ) ++
       stream(EngineState.default[F])
