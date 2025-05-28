@@ -6,7 +6,6 @@ package observe.engine
 import cats.effect.IO
 import cats.syntax.option.*
 import eu.timepit.refined.types.string.NonEmptyString
-import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
@@ -29,7 +28,7 @@ object TestUtil {
         gmosNorth = SequenceData(
           observer = none,
           overrides = SystemOverrides.AllEnabled,
-          seqGen = SequenceGen(
+          seqGen = SequenceGen.GmosNorth[IO](
             obsData = OdbObservation(
               id = obsId,
               title = NonEmptyString.unsafeFrom("Test Observation"),
@@ -40,9 +39,8 @@ object TestUtil {
               timingWindows = List.empty,
               execution = null          // Not used in tests
             ),
-            instrument = Instrument.GmosNorth,
             staticCfg = null, // Not used in tests
-            nextAtom = SequenceGen.AtomGen[IO](
+            nextAtom = SequenceGen.AtomGen.GmosNorth[IO](
               atomId = Atom.Id.fromUuid(UUID.randomUUID()),
               sequenceType = SequenceType.Science,
               steps = List.empty
@@ -54,7 +52,8 @@ object TestUtil {
           atomStartDone = false,
           cleanup = IO.unit
         ).some,
-        gmosSouth = none
+        gmosSouth = none,
+        flamingos2 = none
       ),
       conditions = Conditions.Default,
       operator = None
