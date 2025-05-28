@@ -111,9 +111,6 @@ object Handle {
       )
   }
 
-  // extension [F[_]: Functor, S, O](self: StateT[F, S, O])
-  //   def toHandleT[E]: Handle[F, S, E, O] = Handle[F, S, E, O](self.map((_, None)))
-
   inline def fromStateT[F[_]: Functor, S, E, O](s: StateT[F, S, O]): Handle[F, S, E, O] =
     Handle[F, S, E, O](s.map((_, None)))
 
