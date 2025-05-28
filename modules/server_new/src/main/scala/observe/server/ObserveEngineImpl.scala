@@ -311,7 +311,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         .atSequence(obsId)
         .getOption(st)
         .map { seq =>
-          // EngineHandle.getSequenceState(obsId).flatMap { seq =>
           EngineHandle
             .liftF {
               (for {
