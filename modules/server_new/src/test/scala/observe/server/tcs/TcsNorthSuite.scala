@@ -6,12 +6,12 @@ package observe.server.tcs
 import cats.syntax.all.*
 import coulomb.Quantity
 import coulomb.units.accepted.Millimeter
+import lucuma.core.enums.GuideProbe
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.StepGuideState
 import lucuma.core.math.Offset
 import lucuma.core.model.sequence.TelescopeConfig
-import lucuma.schemas.ObservationDB.Enums.GuideProbe
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment.GuideTargets
@@ -31,7 +31,7 @@ class TcsNorthSuite extends munit.FunSuite {
             override def oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] = none
           },
           Data.Observation
-            .TargetEnvironment(none, GuideEnvironment(List(GuideTargets(GuideProbe.GmosOiwfs)))),
+            .TargetEnvironment(none, GuideEnvironment(List(GuideTargets(GuideProbe.GmosOIWFS)))),
           TelescopeConfig.Default,
           LightPath(LightSource.Sky, LightSinkName.Gmos),
           none
@@ -66,7 +66,7 @@ class TcsNorthSuite extends munit.FunSuite {
             override def oiOffsetGuideThreshold: Option[Quantity[Double, Millimeter]] = none
           },
           Data.Observation
-            .TargetEnvironment(none, GuideEnvironment(List(GuideTargets(GuideProbe.GmosOiwfs)))),
+            .TargetEnvironment(none, GuideEnvironment(List(GuideTargets(GuideProbe.GmosOIWFS)))),
           TelescopeConfig(Offset.Zero, StepGuideState.Disabled),
           LightPath(LightSource.Sky, LightSinkName.Gmos),
           none

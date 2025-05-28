@@ -426,7 +426,7 @@ class ObserveEngineSuite extends TestCommon {
         )
     }
 
-    SequenceGen[IO](
+    SequenceGen.GmosNorth[IO](
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
@@ -436,8 +436,9 @@ class ObserveEngineSuite extends TestCommon {
           None,
           ODBObservation.Program.Goa(NonNegInt.unsafeFrom(0))
         ),
-        TargetEnvironment(Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName)),
-                          GuideEnvironment(List.empty)
+        TargetEnvironment(
+          Some(FirstScienceTarget(Target.Id.fromLong(1).get, targetName)),
+          GuideEnvironment(List.empty)
         ),
         reqConditions,
         List.empty,
@@ -459,9 +460,8 @@ class ObserveEngineSuite extends TestCommon {
           ).some
         )
       ),
-      instrument = Instrument.GmosNorth,
       staticCfg1,
-      SequenceGen.AtomGen(
+      SequenceGen.AtomGen.GmosNorth(
         atomId1,
         SequenceType.Science,
         steps = stepList.map { step =>
@@ -693,7 +693,7 @@ class ObserveEngineSuite extends TestCommon {
         )
     }
 
-    SequenceGen[IO](
+    SequenceGen.GmosNorth[IO](
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
@@ -724,9 +724,8 @@ class ObserveEngineSuite extends TestCommon {
           ).some
         )
       ),
-      instrument = Instrument.GmosNorth,
       staticCfg1,
-      SequenceGen.AtomGen(
+      SequenceGen.AtomGen.GmosNorth(
         atomId1,
         SequenceType.Science,
         steps = stepList.map { step =>

@@ -236,7 +236,7 @@ object ObserveEngine {
     SeqTranslate(site, systems, conditionsRef)
 
   private def observations[F[_]](st: EngineState[F]): List[SequenceData[F]] =
-    List(st.selected.gmosSouth, st.selected.gmosNorth).flattenOption
+    List(st.selected.gmosSouth, st.selected.gmosNorth, st.selected.flamingos2).flattenOption
 
   private def systemsBeingConfigured[F[_]](st: EngineState[F]): Set[Resource | Instrument] =
     observations(st)
@@ -456,7 +456,8 @@ object ObserveEngine {
         .atSequence[F](obsId)
         .modify { (seqData: SequenceData[F]) =>
           val newSeqData: SequenceData[F] = // Replace nextAtom
-            atm.fold(seqData)(seqData.focus(_.seqGen.nextAtom).replace(_))
+            atm.fold(seqData): a =>
+              SequenceData.seqGen.modify(SequenceGen.replaceNextAtom(a))(seqData)
 
           newSeqData
             .focus(_.seq)

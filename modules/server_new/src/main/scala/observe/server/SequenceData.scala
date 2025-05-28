@@ -52,4 +52,6 @@ object SequenceData {
   def seq[F[_]]: Lens[SequenceData[F], Sequence.State[F]] = Focus[SequenceData[F]](_.seq)
 
   def overrides[F[_]]: Lens[SequenceData[F], SystemOverrides] = Focus[SequenceData[F]](_.overrides)
+
+  def seqGen[F[_]]: Lens[SequenceData[F], SequenceGen[F]] = Focus[SequenceData[F]](_.seqGen)
 }

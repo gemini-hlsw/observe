@@ -12,8 +12,13 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.gmos
+import monocle.Focus
+import monocle.Lens
+import monocle.Prism
+import monocle.macros.GenPrism
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.engine.Action
@@ -32,12 +37,15 @@ import observe.model.enums.Resource
  * It is combined with header parameters to build an engine.Sequence. It allows to rebuild the
  * engine sequence whenever any of those parameters change.
  */
-case class SequenceGen[F[_]](
-  obsData:    OdbObservation,
-  instrument: Instrument,
-  staticCfg:  StaticConfig,
-  nextAtom:   SequenceGen.AtomGen[F]
-) {
+sealed trait SequenceGen[F[_]] {
+  type S
+  type D
+  def instrument: Instrument
+
+  def obsData: OdbObservation
+  def staticCfg: S
+  def nextAtom: SequenceGen.AtomGen[F]
+
   val resources: Set[Resource | Instrument] = nextAtom.steps
     .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _) =>
       resources
@@ -61,12 +69,85 @@ case class SequenceGen[F[_]](
 }
 
 object SequenceGen {
+  case class GmosNorth[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: gmos.StaticConfig.GmosNorth,
+    nextAtom:  SequenceGen.AtomGen.GmosNorth[F]
+  ) extends SequenceGen[F] {
+    type S = gmos.StaticConfig.GmosNorth
+    type D = gmos.DynamicConfig.GmosNorth
 
-  case class AtomGen[F[_]](
-    atomId:       Atom.Id,
-    sequenceType: SequenceType,
-    steps:        List[SequenceGen.StepGen[F]]
-  )
+    val instrument: Instrument = Instrument.GmosNorth
+  }
+
+  object GmosNorth {
+    def nextAtom[F[_]]: Lens[GmosNorth[F], AtomGen.GmosNorth[F]] = Focus[GmosNorth[F]](_.nextAtom)
+  }
+
+  case class GmosSouth[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: gmos.StaticConfig.GmosSouth,
+    nextAtom:  SequenceGen.AtomGen.GmosSouth[F]
+  ) extends SequenceGen[F] {
+    type S = gmos.StaticConfig.GmosSouth
+    type D = gmos.DynamicConfig.GmosSouth
+
+    val instrument: Instrument = Instrument.GmosSouth
+  }
+
+  object GmosSouth {
+    def nextAtom[F[_]]: Lens[GmosSouth[F], AtomGen.GmosSouth[F]] = Focus[GmosSouth[F]](_.nextAtom)
+  }
+
+  case class Flamingos2[F[_]](
+    obsData:   OdbObservation,
+    staticCfg: Flamingos2StaticConfig,
+    nextAtom:  SequenceGen.AtomGen.Flamingos2[F]
+  ) extends SequenceGen[F] {
+    type S = Flamingos2StaticConfig
+    type D = Flamingos2DynamicConfig
+
+    val instrument: Instrument = Instrument.Flamingos2
+  }
+
+  object Flamingos2 {
+    def nextAtom[F[_]]: Lens[Flamingos2[F], AtomGen.Flamingos2[F]] =
+      Focus[Flamingos2[F]](_.nextAtom)
+  }
+
+  sealed trait AtomGen[F[_]] {
+    type D
+
+    def atomId: Atom.Id
+    def sequenceType: SequenceType
+    def steps: List[SequenceGen.StepGen[F, D]]
+  }
+
+  object AtomGen {
+    case class GmosNorth[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosNorth]]
+    ) extends AtomGen[F] {
+      type D = gmos.DynamicConfig.GmosNorth
+    }
+
+    case class GmosSouth[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosSouth]]
+    ) extends AtomGen[F] {
+      type D = gmos.DynamicConfig.GmosSouth
+    }
+
+    case class Flamingos2[F[_]](
+      atomId:       Atom.Id,
+      sequenceType: SequenceType,
+      steps:        List[SequenceGen.StepGen[F, Flamingos2DynamicConfig]]
+    ) extends AtomGen[F] {
+      type D = Flamingos2DynamicConfig
+    }
+  }
 
   trait StepStatusGen
 
@@ -74,23 +155,36 @@ object SequenceGen {
     object Null extends StepStatusGen
   }
 
-  sealed trait StepGen[F[_]] {
+  sealed trait InstrumentStepGen[F[_]] {
+    type Dynamic
+
+    def id: Step.Id
+    def dataId: DataId
+    def genData: StepStatusGen
+    def instConfig: Dynamic
+    def config: StepConfig
+    def telescopeConfig: CoreTelescopeConfig
+  }
+
+  sealed trait StepGen[F[_], D] extends InstrumentStepGen[F] {
+    type Dynamic = D
+
     val id: Step.Id
     val dataId: DataId
     val genData: StepStatusGen
-    val instConfig: DynamicConfig
+    val instConfig: D
     val config: StepConfig
     val telescopeConfig: CoreTelescopeConfig
   }
 
   object StepGen {
-    def generate[F[_]](
-      stepGen:         StepGen[F],
+    def generate[F[_], D](
+      stepGen:         StepGen[F, D],
       systemOverrides: SystemOverrides,
       ctx:             HeaderExtraData
     ): EngineStep[F] =
       stepGen match {
-        case p: PendingStepGen[F]                   =>
+        case p: PendingStepGen[F, ?]                =>
           EngineStep[F](stepGen.id, p.breakpoint, p.generator.generate(ctx, systemOverrides))
         case CompletedStepGen(id, _, _, _, _, _, _) =>
           EngineStep[F](id, Breakpoint.Disabled, Nil)
@@ -137,35 +231,51 @@ object SequenceGen {
 
   }
 
-  case class PendingStepGen[F[_]](
+  case class PendingStepGen[F[_], D](
     id:              Step.Id,
     dataId:          DataId,
     resources:       Set[Resource | Instrument],
     obsControl:      SystemOverrides => InstrumentSystem.ObserveControl[F],
     generator:       StepActionsGen[F],
     genData:         StepStatusGen = StepStatusGen.Null,
-    instConfig:      DynamicConfig,
+    instConfig:      D,
     config:          StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     breakpoint:      Breakpoint
-  ) extends StepGen[F]
+  ) extends StepGen[F, D]
 
   // Receiving a sequence from the ODB with a completed step without an image file id would be
   // weird, but I still use an Option just in case
-  case class CompletedStepGen[F[_]](
+  case class CompletedStepGen[F[_], D](
     id:              Step.Id,
     dataId:          DataId,
     fileId:          Option[ImageFileId],
     genData:         StepStatusGen = StepStatusGen.Null,
-    instConfig:      DynamicConfig,
+    instConfig:      D,
     config:          StepConfig,
     telescopeConfig: CoreTelescopeConfig
-  ) extends StepGen[F]
+  ) extends StepGen[F, D]
 
-  def stepIndex[F[_]](
-    steps:  List[SequenceGen.StepGen[F]],
+  def stepIndex[F[_], D](
+    steps:  List[SequenceGen.StepGen[F, D]],
     stepId: Step.Id
   ): Option[Int] =
     steps.zipWithIndex.find(_._1.id === stepId).map(_._2)
 
+  def gmosNorth[F[_]]: Prism[SequenceGen[F], GmosNorth[F]]   = GenPrism[SequenceGen[F], GmosNorth[F]]
+  def gmosSouth[F[_]]: Prism[SequenceGen[F], GmosSouth[F]]   = GenPrism[SequenceGen[F], GmosSouth[F]]
+  def flamingos2[F[_]]: Prism[SequenceGen[F], Flamingos2[F]] =
+    GenPrism[SequenceGen[F], Flamingos2[F]]
+
+  def replaceNextAtom[F[_]](atom: AtomGen[F])(seq: SequenceGen[F]): SequenceGen[F] =
+    (seq, atom) match
+      case (s @ SequenceGen.GmosNorth[F](_, _, _), a @ AtomGen.GmosNorth[F](_, _, _))   =>
+        gmosNorth.andThen(GmosNorth.nextAtom).replace(a)(s)
+      case (s @ SequenceGen.GmosSouth[F](_, _, _), a @ AtomGen.GmosSouth[F](_, _, _))   =>
+        gmosSouth.andThen(GmosSouth.nextAtom).replace(a)(s)
+      case (s @ SequenceGen.Flamingos2[F](_, _, _), a @ AtomGen.Flamingos2[F](_, _, _)) =>
+        flamingos2.andThen(Flamingos2.nextAtom).replace(a)(s)
+      case _                                                                            =>
+        throw new IllegalArgumentException:
+          s"Instrument mismatch when replacing atom in sequence. Atom: [$atom], Sequence: [$seq]."
 }

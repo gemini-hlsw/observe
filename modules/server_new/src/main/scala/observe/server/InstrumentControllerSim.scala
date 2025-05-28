@@ -181,7 +181,7 @@ object InstrumentControllerSim {
       total:   TimeSpan,
       elapsed: ElapsedTime
     ): Stream[F, Progress] =
-      ProgressUtil.obsCountdown[F](total, elapsed.self)
+      ProgressUtil.obsCountdown[F](total, elapsed.value)
 
   }
 

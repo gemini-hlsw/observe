@@ -15,7 +15,7 @@ import observe.server.gmos.GmosController.Config.*
 
 class GmosStepsView[F[_]] extends StepsView[F] {
   override def stepView(
-    stepg:         SequenceGen.StepGen[F],
+    stepg:         SequenceGen.InstrumentStepGen[F],
     step:          engine.EngineStep[F],
     altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]

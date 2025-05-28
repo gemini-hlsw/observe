@@ -22,6 +22,6 @@ trait LogInitialization:
     SLF4JBridgeHandler.removeHandlersForRootLogger()
     SLF4JBridgeHandler.install()
     // Required to include debugging info, may affect performance though
-    Logger.getGlobal.setLevel(Level.FINE)
+    Logger.getGlobal.setLevel(Level.ALL)
     StatusPrinter.print(LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext])
     Slf4jLogger.getLoggerFromName[F]("observe")

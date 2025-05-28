@@ -44,33 +44,36 @@ class SeqTranslateSuite extends TestCommon {
       )
     )
 
-  private val seqg = sequence(seqObsId1)
-    .focus(_.nextAtom.steps)
-    .replace(
-      List(
-        SequenceGen.PendingStepGen(
-          stepId(1),
-          Monoid.empty[DataId],
-          Set(Instrument.GmosNorth),
-          _ => InstrumentSystem.Uncontrollable,
-          SequenceGen.StepActionsGen(
-            odbAction[IO],
-            odbAction[IO],
-            Map.empty,
-            odbAction[IO],
-            odbAction[IO],
-            (_, _) => List(observeActions(Action.ActionState.Idle)),
-            odbAction[IO],
-            odbAction[IO]
-          ),
-          StepStatusGen.Null,
-          dynamicCfg1,
-          stepCfg1,
-          telescopeCfg1,
-          breakpoint = Breakpoint.Disabled
+  private val seqg =
+    SequenceGen.replaceNextAtom(
+      sequence(seqObsId1).nextAtom
+        .focus(_.steps)
+        .replace(
+          List(
+            SequenceGen.PendingStepGen(
+              stepId(1),
+              Monoid.empty[DataId],
+              Set(Instrument.GmosNorth),
+              _ => InstrumentSystem.Uncontrollable,
+              SequenceGen.StepActionsGen(
+                odbAction[IO],
+                odbAction[IO],
+                Map.empty,
+                odbAction[IO],
+                odbAction[IO],
+                (_, _) => List(observeActions(Action.ActionState.Idle)),
+                odbAction[IO],
+                odbAction[IO]
+              ),
+              StepStatusGen.Null,
+              dynamicCfg1,
+              stepCfg1,
+              telescopeCfg1,
+              breakpoint = Breakpoint.Disabled
+            )
+          )
         )
-      )
-    )
+    )(sequence(seqObsId1))
 
   // Function to advance the execution of a step up to certain Execution
   @tailrec

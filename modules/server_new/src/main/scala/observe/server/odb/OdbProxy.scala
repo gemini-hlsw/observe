@@ -30,11 +30,13 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
-import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.core.model.sequence.gmos
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.ObservationDB.Scalars.VisitId
 import lucuma.schemas.ObservationDB.Types.RecordAtomInput
+import lucuma.schemas.ObservationDB.Types.RecordFlamingos2StepInput
 import lucuma.schemas.ObservationDB.Types.RecordGmosNorthStepInput
 import lucuma.schemas.ObservationDB.Types.RecordGmosSouthStepInput
 import lucuma.schemas.odb.input.*
@@ -47,9 +49,9 @@ import observe.server.ObserveFailure
 import org.typelevel.log4cats.Logger
 
 sealed trait OdbEventCommands[F[_]] {
-  def visitStart(
+  def visitStart[S](
     obsId:     Observation.Id,
-    staticCfg: StaticConfig
+    staticCfg: S
   ): F[Unit]
   def sequenceStart(
     obsId: Observation.Id
@@ -61,9 +63,9 @@ sealed trait OdbEventCommands[F[_]] {
     stepCount:    NonNegShort,
     generatedId:  Option[Atom.Id]
   ): F[Unit]
-  def stepStartStep(
+  def stepStartStep[D](
     obsId:           Observation.Id,
-    dynamicConfig:   DynamicConfig,
+    dynamicConfig:   D,
     stepConfig:      StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     observeClass:    ObserveClass,
@@ -129,9 +131,9 @@ object OdbProxy {
     ): F[Unit] =
       ().pure[F]
 
-    override def stepStartStep(
+    override def stepStartStep[D](
       obsId:           Observation.Id,
-      dynamicConfig:   DynamicConfig,
+      dynamicConfig:   D,
       stepConfig:      StepConfig,
       telescopeConfig: CoreTelescopeConfig,
       observeClass:    ObserveClass,
@@ -191,7 +193,7 @@ object OdbProxy {
     override def datasetEndWrite(obsId: Observation.Id, fileId: ImageFileId): F[Boolean] =
       false.pure[F]
 
-    override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
+    override def visitStart[S](obsId: Observation.Id, staticCfg: S): F[Unit] =
       Applicative[F].unit
 
     override def atomStart(
@@ -221,9 +223,9 @@ object OdbProxy {
     ) fileName
     else fileName + fitsFileExtension
 
-    override def visitStart(
+    override def visitStart[S](
       obsId:     Observation.Id,
-      staticCfg: StaticConfig
+      staticCfg: S
     ): F[Unit] = for {
       _   <- L.debug(s"Record visit for obsId: $obsId")
       vId <- recordVisit(obsId, staticCfg)
@@ -255,9 +257,9 @@ object OdbProxy {
       _       <- L.debug(s"ODB event sequenceStart sent for obsId: $obsId")
     } yield ()
 
-    override def stepStartStep(
+    override def stepStartStep[D](
       obsId:           Observation.Id,
-      dynamicConfig:   DynamicConfig,
+      dynamicConfig:   D,
       stepConfig:      StepConfig,
       telescopeConfig: CoreTelescopeConfig,
       observeClass:    ObserveClass,
@@ -428,17 +430,17 @@ object OdbProxy {
         _       <- L.debug("ODB event observationStop sent")
       } yield true
 
-    private def recordVisit(
+    private def recordVisit[S](
       obsId:     Observation.Id,
-      staticCfg: StaticConfig
-    ): F[VisitId] = staticCfg match {
-      case s: StaticConfig.GmosNorth => recordGmosNorthVisit(obsId, s)
-      case s: StaticConfig.GmosSouth => recordGmosSouthVisit(obsId, s)
-    }
+      staticCfg: S
+    ): F[VisitId] = staticCfg match
+      case s: gmos.StaticConfig.GmosNorth => recordGmosNorthVisit(obsId, s)
+      case s: gmos.StaticConfig.GmosSouth => recordGmosSouthVisit(obsId, s)
+      case s: Flamingos2StaticConfig      => recordFlamingos2Visit(obsId, s)
 
     private def recordGmosNorthVisit(
       obsId:     Observation.Id,
-      staticCfg: StaticConfig.GmosNorth
+      staticCfg: gmos.StaticConfig.GmosNorth
     ): F[VisitId] =
       RecordGmosNorthVisitMutation[F]
         .execute(obsId, staticCfg.toInput)
@@ -447,12 +449,21 @@ object OdbProxy {
 
     private def recordGmosSouthVisit(
       obsId:     Observation.Id,
-      staticCfg: StaticConfig.GmosSouth
+      staticCfg: gmos.StaticConfig.GmosSouth
     ): F[VisitId] =
       RecordGmosSouthVisitMutation[F]
         .execute(obsId, staticCfg.toInput)
         .raiseGraphQLErrors
         .map(_.recordGmosSouthVisit.visit.id)
+
+    private def recordFlamingos2Visit(
+      obsId:     Observation.Id,
+      staticCfg: Flamingos2StaticConfig
+    ): F[VisitId] =
+      RecordFlamingos2VisitMutation[F]
+        .execute(obsId, staticCfg.toInput)
+        .raiseGraphQLErrors
+        .map(_.recordFlamingos2Visit.visit.id)
 
     private def recordAtom(
       visitId:      Visit.Id,
@@ -468,15 +479,15 @@ object OdbProxy {
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
 
-    private def recordStep(
+    private def recordStep[D](
       atomId:          RecordedAtomId,
-      dynamicConfig:   DynamicConfig,
+      dynamicConfig:   D,
       stepConfig:      StepConfig,
       telescopeConfig: TelescopeConfig,
       observeClass:    ObserveClass,
       generatedId:     Option[Step.Id]
     ): F[RecordedStepId] = dynamicConfig match {
-      case s @ DynamicConfig.GmosNorth(_, _, _, _, _, _, _) =>
+      case s @ gmos.DynamicConfig.GmosNorth(_, _, _, _, _, _, _)  =>
         recordGmosNorthStep:
           RecordGmosNorthStepInput(
             atomId.value,
@@ -486,9 +497,19 @@ object OdbProxy {
             observeClass,
             generatedId.orIgnore
           )
-      case s @ DynamicConfig.GmosSouth(_, _, _, _, _, _, _) =>
+      case s @ gmos.DynamicConfig.GmosSouth(_, _, _, _, _, _, _)  =>
         recordGmosSouthStep:
           RecordGmosSouthStepInput(
+            atomId.value,
+            s.toInput,
+            stepConfig.toInput,
+            telescopeConfig.toInput.assign,
+            observeClass,
+            generatedId.orIgnore
+          )
+      case s @ Flamingos2DynamicConfig(_, _, _, _, _, _, _, _, _) =>
+        recordFlamingos2Step:
+          RecordFlamingos2StepInput(
             atomId.value,
             s.toInput,
             stepConfig.toInput,
@@ -510,6 +531,13 @@ object OdbProxy {
         .execute(input)
         .raiseGraphQLErrors
         .map(_.recordGmosSouthStep.stepRecord.id)
+        .map(RecordedStepId(_))
+
+    private def recordFlamingos2Step(input: RecordFlamingos2StepInput): F[RecordedStepId] =
+      RecordFlamingos2StepMutation[F]
+        .execute(input)
+        .raiseGraphQLErrors
+        .map(_.recordFlamingos2Step.stepRecord.id)
         .map(RecordedStepId(_))
 
     private def recordDataset(
@@ -559,9 +587,9 @@ object OdbProxy {
       stepStop
     }
 
-    override def stepStartStep(
+    override def stepStartStep[D](
       obsId:           Observation.Id,
-      dynamicConfig:   DynamicConfig,
+      dynamicConfig:   D,
       stepConfig:      StepConfig,
       telescopeConfig: CoreTelescopeConfig,
       observeClass:    ObserveClass,
@@ -582,7 +610,7 @@ object OdbProxy {
 
     override def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
-    override def visitStart(obsId: Observation.Id, staticCfg: StaticConfig): F[Unit] =
+    override def visitStart[S](obsId: Observation.Id, staticCfg: S): F[Unit] =
       Applicative[F].unit
 
     override def atomStart(

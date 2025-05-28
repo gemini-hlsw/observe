@@ -6,6 +6,7 @@ package observe.server.keywords
 import cats.effect.Sync
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
+import lucuma.core.enums.GuideProbe
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
@@ -15,9 +16,7 @@ import lucuma.core.model.TimingWindowEnd
 import lucuma.core.model.TimingWindowRepeat
 import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.util.TimeSpan
-import lucuma.schemas.ObservationDB.Enums.GuideProbe
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.Systems
@@ -42,6 +41,7 @@ sealed trait ObsKeywordsReader[F[_]] {
   def pwfs2GuideS: F[String]
   def oiwfsGuide: F[Option[StepGuideState]]
   def oiwfsGuideS: F[String]
+  // def Flamingos2Guide ???? TODO
   def aowfsGuide: F[Option[StepGuideState]]
   def aowfsGuideS: F[String]
   def cwfs1Guide: F[Option[StepGuideState]]
@@ -71,7 +71,7 @@ final case class TimingWindowKeywords(
 )
 
 object ObsKeywordReader {
-  def apply[F[_]: Sync, D <: DynamicConfig](
+  def apply[F[_]: Sync, D](
     obsCfg: Observation,
     step:   OcsStep[D],
     site:   Site,
@@ -146,7 +146,7 @@ object ObsKeywordReader {
 
       override def pwfs1Guide: F[Option[StepGuideState]] =
         obsCfg.targetEnvironment.guideEnvironment.guideTargets
-          .exists(_.probe === GuideProbe.Pwfs1)
+          .exists(_.probe === GuideProbe.PWFS1)
           .option(step.telescopeConfig.guiding)
           .pure[F]
 
@@ -156,7 +156,7 @@ object ObsKeywordReader {
 
       override def pwfs2Guide: F[Option[StepGuideState]] =
         obsCfg.targetEnvironment.guideEnvironment.guideTargets
-          .exists(_.probe === GuideProbe.Pwfs2)
+          .exists(_.probe === GuideProbe.PWFS2)
           .option(step.telescopeConfig.guiding)
           .pure[F]
 
@@ -166,7 +166,7 @@ object ObsKeywordReader {
 
       override def oiwfsGuide: F[Option[StepGuideState]] =
         obsCfg.targetEnvironment.guideEnvironment.guideTargets
-          .exists(_.probe === GuideProbe.GmosOiwfs)
+          .exists(_.probe === GuideProbe.GmosOIWFS)
           .option(step.telescopeConfig.guiding)
           .pure[F]
 

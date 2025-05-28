@@ -30,7 +30,7 @@ trait StepsView[F[_]] {
    * be specialized e.g. for N&S
    */
   def stepView(
-    stepg:         SequenceGen.StepGen[F],
+    stepg:         SequenceGen.InstrumentStepGen[F],
     step:          engine.EngineStep[F],
     altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
     pendingObsCmd: Option[PendingObserveCmd]
@@ -135,7 +135,7 @@ object StepsView {
 
   def defaultStepsView[F[_]]: StepsView[F] = new StepsView[F] {
     def stepView(
-      stepg:         SequenceGen.StepGen[F],
+      stepg:         SequenceGen.InstrumentStepGen[F],
       step:          engine.EngineStep[F],
       altCfgStatus:  List[(Resource | Instrument, ActionStatus)],
       pendingObsCmd: Option[PendingObserveCmd]
@@ -167,6 +167,7 @@ object StepsView {
 
   def stepsView[F[_]](instrument: Instrument): StepsView[F] = instrument match {
     case GmosNorth | GmosSouth => GmosStepsView.stepsView[F]
+    case Flamingos2            => defaultStepsView[F]
     case i                     => sys.error(s"StepsView not implemented for $i")
   }
 }

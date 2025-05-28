@@ -25,6 +25,7 @@ import observe.model.Conditions
 import observe.model.config.*
 import observe.model.odb.ObsRecordedIds
 import observe.server.altair.*
+import observe.server.flamingos2.*
 import observe.server.gcal.*
 import observe.server.gems.*
 import observe.server.gmos.*
@@ -54,7 +55,7 @@ case class Systems[F[_]] private[server] (
   tcsSouth:            TcsSouthController[F],
   tcsNorth:            TcsNorthController[F],
   gcal:                GcalController[F],
-//  flamingos2:          Flamingos2Controller[F],
+  flamingos2:          Flamingos2Controller[F],
   gmosSouth:           GmosSouthController[F],
   gmosNorth:           GmosNorthController[F],
   /*  gnirs:               GnirsController[F],
@@ -358,11 +359,11 @@ object Systems {
         gmosKR        = gmosEpicsO.map(GmosKeywordReaderEpics[IO]).getOrElse(GmosKeywordReaderDummy[IO])
       } yield (gmosSouthCtr, gmosNorthCtr, gmosKR)
 
-    //    def flamingos2: IO[Flamingos2Controller[IO]] =
-    //      if (settings.systemControl.f2.command)
-    //        Flamingos2Epics.instance[IO](service, tops).map(Flamingos2ControllerEpics(_))
-    //      else if (settings.instForceError) Flamingos2ControllerSimBad[IO](settings.failAt)
-    //      else Flamingos2ControllerSim[IO]
+    def flamingos2: IO[Flamingos2Controller[IO]] =
+      if (settings.systemControl.f2.command)
+        Flamingos2Epics.instance[IO](service, tops).map(Flamingos2ControllerEpics(_))
+      else if (settings.instForceError) Flamingos2ControllerSimBad[IO](settings.failAt)
+      else Flamingos2ControllerSim[IO]
     //
     //    def gpi[F[_]: Async: Logger](
     //      httpClient: Client[F]
@@ -402,7 +403,7 @@ object Systems {
     //      (ghostClient, ghostGDS(httpClient)).mapN(GhostController(_, _))
     //    }
     //
-    def gws: IO[GwsKeywordReader[IO]] =
+    def gws: IO[GwsKeywordReader[IO]]            =
       if (settings.systemControl.gws.realKeywords)
         GwsEpics.instance[IO](service, tops).map(GwsKeywordsReaderEpics[IO])
       else GwsKeywordsReaderDummy[IO].pure[IO]
@@ -431,7 +432,7 @@ object Systems {
         w                                                 <- Resource.eval(gemsObjects)
         (gemsCtr, gemsKR, gsaoiCtr, gsaoiKR)               = w
         //        (gnirsCtr, gnirsKR)                        <- Resource.eval(gnirs)
-        //        f2Controller                               <- Resource.eval(flamingos2)
+        f2Controller                                      <- Resource.eval(flamingos2)
         //        (niriCtr, niriKR)                          <- Resource.eval(niri)
         //        (nifsCtr, nifsKR)                          <- Resource.eval(nifs)
         gms                                               <- Resource.eval(gmosObjects(site))
@@ -445,7 +446,7 @@ object Systems {
         tcsGS,
         tcsGN,
         gcalCtr,
-        //        f2Controller,
+        f2Controller,
         gmosSouthCtr,
         gmosNorthCtr,
         //        gnirsCtr,
@@ -498,6 +499,7 @@ object Systems {
           TcsSouthControllerSim[F],
           TcsNorthControllerSim[F],
           GcalControllerSim[F],
+          Flamingos2ControllerDisabled[F],
           GmosControllerDisabled[F, GmosController.GmosSite.South.type]("south"),
           GmosControllerDisabled[F, GmosController.GmosSite.North.type]("north"),
           AltairControllerSim[F],

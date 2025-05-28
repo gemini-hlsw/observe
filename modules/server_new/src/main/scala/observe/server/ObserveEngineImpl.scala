@@ -100,7 +100,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def findStartingStep(
     obs:    SequenceData[F],
     stepId: Option[Step.Id]
-  ): Option[SequenceGen.StepGen[F]] = for {
+  ): Option[SequenceGen.InstrumentStepGen[F]] = for {
     stp    <- stepId.orElse(obs.seq.currentStep.map(_.id))
     stpGen <- obs.seqGen.nextAtom.steps.find(_.id === stp)
   } yield stpGen
@@ -108,7 +108,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def findFirstCheckRequiredStep(
     obs:    SequenceData[F],
     stepId: Step.Id
-  ): Option[SequenceGen.StepGen[F]] =
+  ): Option[SequenceGen.InstrumentStepGen[F]] =
     obs.seqGen.nextAtom.steps.dropWhile(_.id =!= stepId).find(a => stepRequiresChecks(a.config))
 
   /**
@@ -322,14 +322,15 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                 sp    <- findFirstCheckRequiredStep(seq, ststp.id)
               } yield sequenceTcsTargetMatch(seq).map { tchk =>
                 (ststp.some,
-                 List(tchk,
-                      observingConditionsMatch(st.conditions, seq.seqGen.obsData.constraintSet)
+                 List(
+                   tchk,
+                   observingConditionsMatch(st.conditions, seq.seqGen.obsData.constraintSet)
                  )
                    .collect { case Some(x) => x }
                    .widen[SeqCheck]
                 )
               })
-                .getOrElse((none[SequenceGen.StepGen[F]], List.empty[SeqCheck]).pure[F])
+                .getOrElse((none[SequenceGen.InstrumentStepGen[F]], List.empty[SeqCheck]).pure[F])
             }
             .flatMap { case (stpg, checks) =>
               (checkResources(id)(st), stpg, checks, runOverride) match {
@@ -607,7 +608,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         Event.modifyState[F, EngineState[F], SeqEvent](
           EngineState
             .selected[F]
-            .replace(Selected(none, none))
+            .replace(Selected.none)
             .withEvent(ClearLoadedSequences(user.some))
             .toHandle
         )
@@ -714,9 +715,9 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     def splitWhere[A](l: List[A])(p: A => Boolean): (List[A], List[A]) =
       l.splitAt(l.indexWhere(p))
 
-    def resources(s: SequenceGen.StepGen[F]): List[Resource | Instrument] = s match {
-      case s: SequenceGen.PendingStepGen[F] => s.resources.toList
-      case _                                => List.empty
+    def resources(s: SequenceGen.InstrumentStepGen[F]): List[Resource | Instrument] = s match {
+      case s: SequenceGen.PendingStepGen[F, ?] => s.resources.toList
+      case _                                   => List.empty
     }
 
     def engineSteps(seq: Sequence[F]): List[ObserveStep] =
@@ -827,7 +828,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       SequencesQueue(
         List(
           qState.selected.gmosSouth.map(x => Instrument.GmosSouth -> x.seqGen.obsData.id),
-          qState.selected.gmosNorth.map(x => Instrument.GmosNorth -> x.seqGen.obsData.id)
+          qState.selected.gmosNorth.map(x => Instrument.GmosNorth -> x.seqGen.obsData.id),
+          qState.selected.flamingos2.map(x => Instrument.Flamingos2 -> x.seqGen.obsData.id)
         ).flattenOption.toMap,
         qState.conditions,
         qState.operator,
@@ -855,11 +857,11 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
           // TODO: Sequence completed event not emitted by engine.
           case SystemEvent.PartialResult(i, s, _, Partial(ObsProgress(t, r, v)))   =>
             Stream.emit(
-              ProgressEvent(ObservationProgress(i, StepProgress.Regular(s, t, r.self, v)))
+              ProgressEvent(ObservationProgress(i, StepProgress.Regular(s, t, r.value, v)))
             )
           case SystemEvent.PartialResult(i, s, _, Partial(NsProgress(t, r, v, u))) =>
             Stream.emit(
-              ProgressEvent(ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.self, v, u)))
+              ProgressEvent(ObservationProgress(i, StepProgress.NodAndShuffle(s, t, r.value, v, u)))
             )
           // case SystemEvent.Busy(id, clientId)                                       =>
           //   Stream.emit(UserNotification(ResourceConflict(id), clientId))
@@ -1406,7 +1408,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def refreshSequences: Endo[EngineState[F]] = (st: EngineState[F]) =>
     List(
       EngineState.gmosNorthSequence[F],
-      EngineState.gmosSouthSequence[F]
+      EngineState.gmosSouthSequence[F],
+      EngineState.flamingos2Sequence[F]
     ).map(_.modify(updateSequenceEndo(st.conditions, st.operator)))
       .combineAll(MonoidK[Endo].algebra)(st)
 
@@ -1440,13 +1443,14 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit] =
-    toggleOverride(Resource.TCS.label,
-                   (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
-                   SetTcsEnabled(obsId, user.some, enabled),
-                   obsId,
-                   user,
-                   enabled,
-                   clientId
+    toggleOverride(
+      Resource.TCS.label,
+      (enabled, x) => if (enabled.value) x.enableTcs else x.disableTcs,
+      SetTcsEnabled(obsId, user.some, enabled),
+      obsId,
+      user,
+      enabled,
+      clientId
     )
 
   override def setGcalEnabled(
@@ -1455,13 +1459,14 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     enabled:  SubsystemEnabled,
     clientId: ClientId
   ): F[Unit] =
-    toggleOverride(Resource.Gcal.label,
-                   (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
-                   SetGcalEnabled(obsId, user.some, enabled),
-                   obsId,
-                   user,
-                   enabled,
-                   clientId
+    toggleOverride(
+      Resource.Gcal.label,
+      (enabled, x) => if (enabled.value) x.enableGcal else x.disableGcal,
+      SetGcalEnabled(obsId, user.some, enabled),
+      obsId,
+      user,
+      enabled,
+      clientId
     )
 
   override def setInstrumentEnabled(

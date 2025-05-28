@@ -26,12 +26,12 @@ case class EngineState[F[_]](
   operator:   Option[Operator]
 ) {
   lazy val sequences: Map[Observation.Id, SequenceData[F]] =
-    List(selected.gmosNorth, selected.gmosSouth).flattenOption
+    List(selected.gmosNorth, selected.gmosSouth, selected.flamingos2).flattenOption
       .map(x => x.seqGen.obsData.id -> x)
       .toMap
 
   lazy val sequencesByInstrument: Map[Instrument, SequenceData[F]] =
-    List(selected.gmosNorth, selected.gmosSouth).flattenOption
+    List(selected.gmosNorth, selected.gmosSouth, selected.flamingos2).flattenOption
       .map(x => x.seqGen.instrument -> x)
       .toMap
 }
@@ -43,10 +43,13 @@ object EngineState {
   private def selectedGmosNorth[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
     Focus[EngineState[F]](_.selected.gmosNorth)
 
+  private def selectedFlamingos2[F[_]]: Lens[EngineState[F], Option[SequenceData[F]]] =
+    Focus[EngineState[F]](_.selected.flamingos2)
+
   def default[F[_]]: EngineState[F] =
     EngineState[F](
       Map(CalibrationQueueId -> ExecutionQueue.init(CalibrationQueueName)),
-      Selected(none, none),
+      Selected.none,
       Conditions.Default,
       None
     )
@@ -54,9 +57,10 @@ object EngineState {
   def instrumentLoaded[F[_]](
     instrument: Instrument
   ): Lens[EngineState[F], Option[SequenceData[F]]] = instrument match {
-    case Instrument.GmosSouth => EngineState.selectedGmosSouth
-    case Instrument.GmosNorth => EngineState.selectedGmosNorth
-    case i                    => sys.error(s"Unexpected instrument $i")
+    case Instrument.GmosSouth  => EngineState.selectedGmosSouth
+    case Instrument.GmosNorth  => EngineState.selectedGmosNorth
+    case Instrument.Flamingos2 => EngineState.selectedFlamingos2
+    case i                     => sys.error(s"Unexpected instrument $i")
   }
 
   def atSequence[F[_]](sid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
@@ -66,11 +70,14 @@ object EngineState {
           s.gmosNorth
             .find(_.seqGen.obsData.id === sid)
             .orElse(s.gmosSouth.find(_.seqGen.obsData.id === sid))
+            .orElse(s.flamingos2.find(_.seqGen.obsData.id === sid))
         } { d => s =>
           if (s.gmosNorth.exists(_.seqGen.obsData.id === sid))
             s.focus(_.gmosNorth).replace(d.some)
           else if (s.gmosSouth.exists(_.seqGen.obsData.id === sid))
             s.focus(_.gmosSouth).replace(d.some)
+          else if (s.flamingos2.exists(_.seqGen.obsData.id === sid))
+            s.focus(_.flamingos2).replace(d.some)
           else s
         }
       )
@@ -89,11 +96,19 @@ object EngineState {
       s.focus(_.selected.gmosSouth).replace(d.some)
     }
 
+  def flamingos2Sequence[F[_]]: Optional[EngineState[F], SequenceData[F]] =
+    Optional[EngineState[F], SequenceData[F]] {
+      _.selected.flamingos2
+    } { d => s =>
+      s.focus(_.selected.flamingos2).replace(d.some)
+    }
+
   def sequenceStateIndex[F[_]](sid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
     Optional[EngineState[F], Sequence.State[F]](s =>
       s.selected.gmosSouth
         .filter(_.seqGen.obsData.id === sid)
         .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === sid))
+        .orElse(s.selected.flamingos2.filter(_.seqGen.obsData.id === sid))
         .map(_.seq)
     )(ss =>
       es =>
@@ -105,15 +120,18 @@ object EngineState {
           es.copy(selected =
             es.selected.copy(gmosNorth = es.selected.gmosNorth.map(_.copy(seq = ss)))
           )
+        else if (es.selected.flamingos2.exists(_.seqGen.obsData.id === sid))
+          es.copy(selected =
+            es.selected.copy(flamingos2 = es.selected.flamingos2.map(_.copy(seq = ss)))
+          )
         else es
     )
 
   def engineState[F[_]]: Engine.State[F, EngineState[F]] = (sid: Observation.Id) =>
     EngineState.sequenceStateIndex(sid)
 
-  implicit final class WithEventOps[F[_]](val f: Endo[EngineState[F]]) extends AnyVal {
+  extension [F[_]](f: Endo[EngineState[F]])
     def withEvent(ev: SeqEvent): EngineState[F] => (EngineState[F], SeqEvent) = f >>> { (_, ev) }
-  }
 
   def queues[F[_]]: Lens[EngineState[F], ExecutionQueues] = Focus[EngineState[F]](_.queues)
 

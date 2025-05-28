@@ -52,8 +52,9 @@ case class LoadedObservation private (
 
   lazy val lastVisitId: Option[Visit.Id] =
     visits.toOption.flatten.map:
-      case ExecutionVisits.GmosNorth(visits) => visits.last.id
-      case ExecutionVisits.GmosSouth(visits) => visits.last.id
+      case ExecutionVisits.GmosNorth(visits)  => visits.last.id
+      case ExecutionVisits.GmosSouth(visits)  => visits.last.id
+      case ExecutionVisits.Flamingos2(visits) => visits.last.id
 
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)

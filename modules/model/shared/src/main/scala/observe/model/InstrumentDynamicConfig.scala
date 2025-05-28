@@ -5,37 +5,65 @@ package observe.model
 
 import cats.Eq
 import cats.syntax.either.*
+import cats.syntax.eq.*
 import io.circe.Decoder
 import io.circe.DecodingFailure
 import io.circe.Encoder
 import io.circe.JsonObject
 import io.circe.syntax.*
 import lucuma.core.enums.Instrument
-import lucuma.core.model.sequence.gmos.DynamicConfig
+import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
+import lucuma.core.model.sequence.gmos
+import lucuma.odb.json.flamingos2.given
 import lucuma.odb.json.gmos.given
 import lucuma.odb.json.time.transport.given
 import lucuma.odb.json.wavelength.transport.given
 
 // The whole purpose of this class is to bundle the instrument with its dynamic configuration,
 // so that the dynamic configuration can be decoded correctly.
-enum InstrumentDynamicConfig(val instrument: Instrument):
-  def config: DynamicConfig
+sealed trait InstrumentDynamicConfig(val instrument: Instrument):
+  type D
 
-  case GmosNorth(config: DynamicConfig.GmosNorth)
-      extends InstrumentDynamicConfig(Instrument.GmosNorth)
-
-  case GmosSouth(config: DynamicConfig.GmosSouth)
-      extends InstrumentDynamicConfig(Instrument.GmosSouth)
+  def config: D
 
 object InstrumentDynamicConfig:
-  given Eq[InstrumentDynamicConfig] = Eq.by(x => (x.instrument, x.config))
+  case class GmosNorth(config: gmos.DynamicConfig.GmosNorth)
+      extends InstrumentDynamicConfig(Instrument.GmosNorth) {
+    type D = gmos.DynamicConfig.GmosNorth
+  }
+
+  case class GmosSouth(config: gmos.DynamicConfig.GmosSouth)
+      extends InstrumentDynamicConfig(Instrument.GmosSouth) {
+    type D = gmos.DynamicConfig.GmosSouth
+  }
+
+  case class Flamingos2(config: Flamingos2DynamicConfig)
+      extends InstrumentDynamicConfig(Instrument.Flamingos2) {
+    type D = Flamingos2DynamicConfig
+  }
+
+  object GmosNorth:
+    given Eq[GmosNorth] = Eq.by(x => (x.instrument, x.config))
+
+  object GmosSouth:
+    given Eq[GmosSouth] = Eq.by(x => (x.instrument, x.config))
+
+  object Flamingos2:
+    given Eq[Flamingos2] = Eq.by(x => (x.instrument, x.config))
+
+  given Eq[InstrumentDynamicConfig] = Eq:
+    case (a: GmosNorth, b: GmosNorth)   => a === b
+    case (a: GmosSouth, b: GmosSouth)   => a === b
+    case (a: Flamingos2, b: Flamingos2) => a === b
+    case _                              => false
 
   given Encoder.AsObject[InstrumentDynamicConfig] = Encoder.AsObject.instance: idc =>
     JsonObject(
       "instrument" -> idc.instrument.asJson,
       "config"     -> (idc match
-        case InstrumentDynamicConfig.GmosNorth(config) => config.asJson
-        case InstrumentDynamicConfig.GmosSouth(config) => config.asJson
+        case InstrumentDynamicConfig.GmosNorth(config)  => config.asJson
+        case InstrumentDynamicConfig.GmosSouth(config)  => config.asJson
+        case InstrumentDynamicConfig.Flamingos2(config) => config.asJson
       )
     )
 
@@ -43,21 +71,29 @@ object InstrumentDynamicConfig:
     c.downField("instrument")
       .as[Instrument]
       .flatMap:
-        case Instrument.GmosNorth =>
+        case Instrument.GmosNorth  =>
           c.downField("config")
-            .as[DynamicConfig.GmosNorth]
+            .as[gmos.DynamicConfig.GmosNorth]
             .map(InstrumentDynamicConfig.GmosNorth(_))
-        case Instrument.GmosSouth =>
+        case Instrument.GmosSouth  =>
           c.downField("config")
-            .as[DynamicConfig.GmosSouth]
+            .as[gmos.DynamicConfig.GmosSouth]
             .map(InstrumentDynamicConfig.GmosSouth(_))
-        case i                    =>
+        case Instrument.Flamingos2 =>
+          c.downField("config")
+            .as[Flamingos2DynamicConfig]
+            .map(InstrumentDynamicConfig.Flamingos2(_))
+        case i                     =>
           DecodingFailure(
             s"Attempted to decode InstrumentDynamicConfig with unavailable instrument: $i",
             c.history
           ).asLeft
 
-  def fromDynamicConfig(config: DynamicConfig): InstrumentDynamicConfig =
+  def fromDynamicConfig[D](config: D): InstrumentDynamicConfig =
     config match
-      case c @ DynamicConfig.GmosNorth(_, _, _, _, _, _, _) => InstrumentDynamicConfig.GmosNorth(c)
-      case c @ DynamicConfig.GmosSouth(_, _, _, _, _, _, _) => InstrumentDynamicConfig.GmosSouth(c)
+      case c @ gmos.DynamicConfig.GmosNorth(_, _, _, _, _, _, _)  =>
+        InstrumentDynamicConfig.GmosNorth(c)
+      case c @ gmos.DynamicConfig.GmosSouth(_, _, _, _, _, _, _)  =>
+        InstrumentDynamicConfig.GmosSouth(c)
+      case c @ Flamingos2DynamicConfig(_, _, _, _, _, _, _, _, _) =>
+        InstrumentDynamicConfig.Flamingos2(c)
