@@ -73,7 +73,7 @@ trait ArbSystemsControlConfiguration {
       (x.altair,
        x.gems,
        x.dhs,
-       x.f2,
+       x.flamingos2,
        x.gcal,
        x.gmos,
        x.gnirs,
