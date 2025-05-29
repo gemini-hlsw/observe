@@ -72,8 +72,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   @annotation.unused conditionsRef: Ref[F, Conditions]
 )(using Monoid[F[Unit]])
     extends ObserveEngine[F] {
-  // import executeEngine.EngineHandle
-  // import executeEngine.Event[F]
 
   /**
    * Check if the resources to run a sequence are available

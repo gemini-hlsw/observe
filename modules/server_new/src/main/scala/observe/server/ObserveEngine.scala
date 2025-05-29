@@ -556,7 +556,6 @@ object ObserveEngine {
       Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
         odb
           .read(obsId)
-          // TODO Simulate error.
           .map { odbObs =>
             // Read the next atom from the odb and replaces the current atom
             val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
@@ -587,8 +586,7 @@ object ObserveEngine {
               .error(e)(s"Error reloading atom for observation [$obsId]")
               .as( // TODO We may need a new event here.
                 Event.failed(obsId, 0, Result.Error(e.getMessage))
-              )    // TODO Bubble this error up to the UIs
-            // TODO Clear the rest of the sequence!
+              )    // TODO Bubble this error up to the UIs, signal to clear sequence.
           }
     }
 
