@@ -55,18 +55,25 @@ object WebServerLauncher extends IOApp with LogInitialization {
     for
       confDir    <- baseDir[F].map(_.resolve("conf"))
       secretsConf = confDir.resolve("local").resolve("secrets.conf")
+      systemsConf = confDir.resolve("local").resolve("systems.conf")
       site        = sys.env.get("SITE").getOrElse(sys.error("SITE environment variable not set"))
       siteConf    = confDir.resolve(site).resolve("site.conf")
       _          <- Logger[F].info("Loading configuration:")
+      _          <- Logger[F].info:
+                      s" - $systemsConf (present: ${JavaFiles.exists(systemsConf)}), with fallback:"
       _          <- Logger[F].info:
                       s" - $secretsConf (present: ${JavaFiles.exists(secretsConf)}), with fallback:"
       _          <- Logger[F].info(s" - $siteConf (present: ${JavaFiles.exists(siteConf)}), with fallback:")
       _          <- Logger[F].info(s" - <resources>/base.conf")
     yield ConfigSource
-      .file(secretsConf)
+      .file(systemsConf)
       .optional
       .withFallback:
-        ConfigSource.file(siteConf).optional.withFallback(ConfigSource.resources("base.conf"))
+        ConfigSource
+          .file(secretsConf)
+          .optional
+          .withFallback:
+            ConfigSource.file(siteConf).optional.withFallback(ConfigSource.resources("base.conf"))
 
   private def makeContext[F[_]: Sync](tls: TLSConfig): F[SSLContext] = Sync[F].delay {
     val ksStream   = new FileInputStream(tls.keyStore.toFile.getAbsolutePath)
