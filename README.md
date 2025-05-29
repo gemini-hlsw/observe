@@ -116,6 +116,7 @@ web-server {
 }
 ```
 
-NOTES:
+Furthermore, observe will also read a `~/observe/conf/systems.conf`, which should be used to provide frequently changing overrides. The more permanent configurations should be in `site.conf`. In particular all the systems that are to be set to `full` should be done there. Otherwise, they will remain `simulated`.
+
+NOTE:
 - To generate a service token, see the [lucuma-sso documentation](https://github.com/gemini-hlsw/lucuma-sso?tab=readme-ov-file#obtaining-a-service-jwt).
-- In case there's a need to change a configuration urgently without waiting for the deployment cycle, this can be done in `secrets.conf`. If the change is to be permanent, please move it to the repo as soon as it becomes possible and remove it from `secrets.conf`.
