@@ -29,11 +29,11 @@ object Event {
   case class EventSystem[F[_]](se: SystemEvent) extends Event[F]
 
   def start[F[_]](obsId: Observation.Id, user: User, clientId: ClientId): Event[F] =
-    EventUser[F](Start[F](id, user.some, clientId))
+    EventUser[F](Start[F](obsId, user.some, clientId))
   def pause[F[_]](obsId: Observation.Id, user: User): Event[F]                     =
-    EventUser[F](Pause(id, user.some))
+    EventUser[F](Pause(obsId, user.some))
   def cancelPause[F[_]](obsId: Observation.Id, user: User): Event[F]               =
-    EventUser[F](CancelPause(id, user.some))
+    EventUser[F](CancelPause(obsId, user.some))
   def breakpoints[F[_]](
     id:    Observation.Id,
     user:  User,
@@ -49,13 +49,13 @@ object Event {
   def actionStop[F[_]](
     obsId: Observation.Id,
     f:     EngineState[F] => Stream[F, Event[F]]
-  ): Event[F] = EventUser[F](ActionStop(id, f))
+  ): Event[F] = EventUser[F](ActionStop(obsId, f))
   def actionResume[F[_]](
     obsId: Observation.Id,
     i:     Int,
     c:     Stream[F, Result]
   ): Event[F] =
-    EventUser[F](ActionResume(id, i, c))
+    EventUser[F](ActionResume(obsId, i, c))
   def logDebugMsg[F[_]](msg: String, ts: Instant): Event[F]                        =
     EventUser[F](LogDebug(msg, ts))
   def logDebugMsgF[F[_]: Sync](msg: String): F[Event[F]]                           =
@@ -72,7 +72,7 @@ object Event {
   def pure[F[_]: Sync](v: SeqEvent): Event[F] = EventUser[F](Pure(v))
 
   def failed[F[_]](obsId: Observation.Id, i: Int, e: Result.Error): Event[F]  =
-    EventSystem[F](Failed(id, i, e))
+    EventSystem[F](Failed(obsId, i, e))
   def completed[F[_], R <: Result.RetVal](
     id:     Observation.Id,
     stepId: Step.Id,
@@ -99,21 +99,21 @@ object Event {
   ): Event[F] =
     EventSystem[F](PartialResult(id, stepId, i, r))
   def paused[F[_]](obsId: Observation.Id, i: Int, c: Result.Paused): Event[F] =
-    EventSystem[F](Paused(id, i, c))
+    EventSystem[F](Paused(obsId, i, c))
   def breakpointReached[F[_]](obsId: Observation.Id): Event[F]                =
-    EventSystem[F](BreakpointReached(id))
-  def sequencePaused[F[_]](obsobsId: Observation.Id): Event[F]                =
+    EventSystem[F](BreakpointReached(obsId))
+  def sequencePaused[F[_]](obsId: Observation.Id): Event[F]                   =
     EventSystem[F](SequencePaused(obsId))
   def busy[F[_]](obsId: Observation.Id, clientId: ClientId): Event[F]         =
-    EventSystem[F](Busy(id, clientId))
+    EventSystem[F](Busy(obsId, clientId))
   def executed[F[_]](obsId: Observation.Id): Event[F]                         =
-    EventSystem[F](Executed(id))
+    EventSystem[F](Executed(obsId))
   def executing[F[_]](obsId: Observation.Id): Event[F]                        =
-    EventSystem[F](Executing(id))
+    EventSystem[F](Executing(obsId))
   def stepComplete[F[_]](obsId: Observation.Id): Event[F]                     =
-    EventSystem[F](StepComplete(id))
+    EventSystem[F](StepComplete(obsId))
   def finished[F[_]](obsId: Observation.Id): Event[F]                         =
-    EventSystem[F](SequenceComplete(id))
+    EventSystem[F](SequenceComplete(obsId))
   def nullEvent[F[_]]: Event[F]                                               = EventSystem[F](Null)
   def singleRunCompleted[F[_], R <: Result.RetVal](
     c: ActionCoords,
