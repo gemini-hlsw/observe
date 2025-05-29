@@ -19,12 +19,13 @@ object Main:
   @JSExport
   def runIOApp(): Unit = run.unsafeRunAndForget()
 
-  private val setupDOM: IO[Element] = IO:
-    Option(dom.document.getElementById("root")).getOrElse:
-      val elem = dom.document.createElement("div")
-      elem.id = "root"
-      dom.document.body.appendChild(elem)
-      elem
+  private val setupDOM: IO[Element] =
+    IO:
+      Option(dom.document.getElementById("root")).getOrElse:
+        val elem = dom.document.createElement("div")
+        elem.id = "root"
+        dom.document.body.appendChild(elem)
+        elem
 
   private def run: IO[Unit] =
     setupDOM
