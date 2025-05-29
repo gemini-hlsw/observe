@@ -39,6 +39,7 @@ import lucuma.schemas.ObservationDB
 import lucuma.ui.LucumaStyles
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
+import lucuma.ui.utils.showEnvironment
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
 import observe.model.*
@@ -195,6 +196,9 @@ object MainApp extends ServerEventHandler:
                 case Left(error)  =>
                   processStreamError(rootModelData.async.mod)(error)
         ctxPot           <- useState(Pot.pending[AppContext[IO]])
+        _                <-
+          useAsyncEffectWhenDepsReady(clientConfigPot.get): clientConfig => // Show environment
+            showEnvironment[IO](clientConfig.environment)
         _                <-
           useAsyncEffectWhenDepsReady(clientConfigPot.get) { clientConfig => // Build AppContext (4)
             val ctxResource: Resource[IO, AppContext[IO]] =
