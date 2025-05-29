@@ -282,11 +282,6 @@ class Engine[F[_]: MonadThrow: Logger] private (
         .getOrElse(EngineHandle.unit)
     )
 
-  // private def getState(f: EngineState[F] => Stream[F, Event[F]]): EngineHandle[F, Unit] =
-  //   EngineHandle.getState.flatMap(s =>
-  //     Handle[F, S, Event[F], Unit](f(s).pure[StateT[F, S, *]].map(((), _)))
-  //   )
-
   private def actionStop(
     obsId: Observation.Id,
     f:     EngineState[F] => Stream[F, Event[F]]

@@ -103,25 +103,25 @@ object EngineState {
       s.focus(_.selected.flamingos2).replace(d.some)
     }
 
-  def sequenceDataAt[F[_]](obsid: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
+  def sequenceDataAt[F[_]](obsId: Observation.Id): Optional[EngineState[F], SequenceData[F]] =
     Optional[EngineState[F], SequenceData[F]](s =>
       s.selected.gmosSouth
-        .filter(_.seqGen.obsData.id === obsid)
-        .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === obsid))
-        .orElse(s.selected.flamingos2.filter(_.seqGen.obsData.id === obsid))
+        .filter(_.seqGen.obsData.id === obsId)
+        .orElse(s.selected.gmosNorth.filter(_.seqGen.obsData.id === obsId))
+        .orElse(s.selected.flamingos2.filter(_.seqGen.obsData.id === obsId))
     )(sd =>
       es =>
-        if (es.selected.gmosSouth.exists(_.seqGen.obsData.id === obsid))
+        if (es.selected.gmosSouth.exists(_.seqGen.obsData.id === obsId))
           es.copy(selected = es.selected.copy(gmosSouth = sd.some))
-        else if (es.selected.gmosNorth.exists(_.seqGen.obsData.id === obsid))
+        else if (es.selected.gmosNorth.exists(_.seqGen.obsData.id === obsId))
           es.copy(selected = es.selected.copy(gmosNorth = sd.some))
-        else if (es.selected.flamingos2.exists(_.seqGen.obsData.id === obsid))
+        else if (es.selected.flamingos2.exists(_.seqGen.obsData.id === obsId))
           es.copy(selected = es.selected.copy(flamingos2 = sd.some))
         else es
     )
 
-  def sequenceStateAt[F[_]](obsid: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
-    sequenceDataAt(obsid).andThen(SequenceData.seq)
+  def sequenceStateAt[F[_]](obsId: Observation.Id): Optional[EngineState[F], Sequence.State[F]] =
+    sequenceDataAt(obsId).andThen(SequenceData.seq)
 
   def engineState[F[_]]: Engine.State[F, EngineState[F]] =
     (obsId: Observation.Id) => EngineState.sequenceStateAt(obsId)
