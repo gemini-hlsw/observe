@@ -3,7 +3,6 @@
 
 package observe.server
 
-import cats.Applicative
 import cats.ApplicativeThrow
 import cats.Eq
 import cats.Functor
@@ -13,7 +12,6 @@ import cats.data.*
 import cats.syntax.all.*
 import observe.engine
 import observe.engine.*
-import observe.engine.Handle.toHandleT
 import observe.model.*
 import observe.model.enums.*
 
@@ -62,17 +60,6 @@ extension [F[_]](q: ExecutionQueue)
       moveElement(q.queue, (x: ExecutionQueue.SequenceInQueue) => x.obsId === sid, delta)
     )
   def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
-
-extension [F[_]: Applicative, A](f: EngineState[F] => (EngineState[F], A)) {
-  def toHandle: HandlerType[F, A] =
-    StateT[F, EngineState[F], A](st => f(st).pure[F]).toHandleT[EventType[F]]
-}
-
-extension [F[_]: Applicative, A](f: EngineState[F] => F[(EngineState[F], A)]) {
-  def toHandleF[B >: A]: HandlerType[F, B] = // Type trick to allow unions of a supertype
-    StateT[F, EngineState[F], B](st => f(st).map(x => x: (EngineState[F], B)))
-      .toHandleT[EventType[F]]
-}
 
 extension (r: Either[Throwable, Response])
   def toResult[F[_]]: Result = r.fold(

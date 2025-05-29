@@ -22,7 +22,7 @@ import odb.OdbProxy
 final class ODBSequencesLoader[F[_]: Async](
   @unused odbProxy:   OdbProxy[F],
   @unused translator: SeqTranslate[F],
-  @unused execEngine: ExecEngineType[F]
+  @unused execEngine: Engine[F]
 ) {
 
 //  private def unloadEvent(seqId: Observation.Id): EventType[F] =

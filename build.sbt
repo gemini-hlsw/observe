@@ -159,8 +159,7 @@ lazy val root = tlCrossRootProject.aggregate(
   observe_web_client,
   observe_server,
   observe_model,
-  observe_ui_model,
-  observe_engine
+  observe_ui_model
 )
 
 lazy val stateengine = project
@@ -281,10 +280,7 @@ lazy val observe_server = project
     buildInfoObject           := "OcsBuildInfo",
     buildInfoPackage          := "observe.server"
   )
-  .dependsOn(observe_engine    % "compile->compile;test->test",
-//             ocs2_api.jvm,
-             observe_model.jvm % "compile->compile;test->test"
-  )
+  .dependsOn(observe_model.jvm % "compile->compile;test->test")
   .settings(
     unmanagedSources / excludeFilter := (unmanagedSources / excludeFilter).value
       || (Compile / sourceDirectory).value + "/scala/observe/server/flamingos2/*"
@@ -317,19 +313,6 @@ lazy val observe_model = crossProject(JVMPlatform, JSPlatform)
     // And add a custom one
     libraryDependencies += JavaTimeJS.value,
     coverageEnabled := false
-  )
-
-lazy val observe_engine = project
-  .in(file("modules/engine"))
-  .enablePlugins(GitBranchPrompt)
-  .dependsOn(observe_model.jvm % "compile->compile;test->test")
-  .settings(commonSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      Fs2.value,
-      CatsEffect.value,
-      Log4Cats.value
-    ) ++ Monocle.value ++ MUnit.value
   )
 
 /**

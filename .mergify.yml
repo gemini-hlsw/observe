@@ -49,14 +49,6 @@ pull_request_rules:
       add:
       - deploy
       remove: []
-- name: Label engine PRs
-  conditions:
-  - files~=^modules/engine/
-  actions:
-    label:
-      add:
-      - engine
-      remove: []
 - name: Label model PRs
   conditions:
   - files~=^modules/model/
