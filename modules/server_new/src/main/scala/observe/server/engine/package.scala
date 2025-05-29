@@ -40,16 +40,11 @@ extension [F[_]](v: List[Action[F]]) {
 enum OnAtomReloadAction:
   case NoAction, StartNewAtom
 
-// Some types defined to avoid repeating long type definitions everywhere
-// type EngineEvent[F[_]]     = Event[F]
-// type ExecutionEngine[F[_]] = Engine[F]
+// Type defined to avoid repeating long type definitions everywhere
 type EngineHandle[F[_], A] = Handle[F, EngineState[F], Event[F], A]
 
-// type EngineEvent     = Event[F, S, U]
-// type EngineUserEvent[F[_]] = UserEvent[F]
-// type EngineHandle[A] = Handle[F, S, EngineEvent, A]
+// Constructors for `Handle` but with the types specific to the `EngineHandle` type.
 object EngineHandle {
-  // Handle constructors with the types we use
   inline def pure[F[_]: Monad, A](a: A): EngineHandle[F, A] = Handle.pure(a)
 
   inline def fromStateT[F[_]: Functor, O](
