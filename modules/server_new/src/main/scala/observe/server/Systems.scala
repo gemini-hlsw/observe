@@ -360,7 +360,7 @@ object Systems {
       } yield (gmosSouthCtr, gmosNorthCtr, gmosKR)
 
     def flamingos2: IO[Flamingos2Controller[IO]] =
-      if (settings.systemControl.f2.command)
+      if (settings.systemControl.flamingos2.command)
         Flamingos2Epics.instance[IO](service, tops).map(Flamingos2ControllerEpics(_))
       else if (settings.instForceError) Flamingos2ControllerSimBad[IO](settings.failAt)
       else Flamingos2ControllerSim[IO]

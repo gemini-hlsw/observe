@@ -141,7 +141,7 @@ object TestCommon {
       altair = ControlStrategy.Simulated,
       gems = ControlStrategy.Simulated,
       dhs = ControlStrategy.Simulated,
-      f2 = ControlStrategy.Simulated,
+      flamingos2 = ControlStrategy.Simulated,
       gcal = ControlStrategy.Simulated,
       gmos = ControlStrategy.Simulated,
       gnirs = ControlStrategy.Simulated,
