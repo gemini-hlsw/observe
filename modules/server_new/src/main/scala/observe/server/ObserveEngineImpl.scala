@@ -873,8 +873,11 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
             Stream.emit(SequenceComplete(obsId): TargetedClientEvent) ++
               buildObserveStateStream(svs, odbProxy)
           case SystemEvent.Failed(obsId, _, Result.Error(msg))                     =>
-            Stream.emit(SequenceFailed(obsId, msg): TargetedClientEvent) ++
-              buildObserveStateStream(svs, odbProxy)
+            Stream
+              .eval(Logger[F].debug("CAUGHT!!!!"))
+              .flatMap: _ =>
+                Stream.emit(SequenceFailed(obsId, msg): TargetedClientEvent) ++
+                  buildObserveStateStream(svs, odbProxy)
           case e if e.isModelUpdate                                                =>
             buildObserveStateStream(svs, odbProxy)
           case _                                                                   => Stream.empty
