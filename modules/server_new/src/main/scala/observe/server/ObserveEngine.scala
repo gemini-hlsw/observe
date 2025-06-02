@@ -555,6 +555,9 @@ object ObserveEngine {
       Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
         odb
           .read(obsId)
+          .flatTap(_ =>
+            MonadThrow[F].raiseError(new RuntimeException(s"SIMULATED ERROR RELOADING ATOM"))
+          )
           .map { odbObs =>
             // Read the next atom from the odb and replaces the current atom
             val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
