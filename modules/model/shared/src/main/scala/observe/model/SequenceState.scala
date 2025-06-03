@@ -21,7 +21,8 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
     internalStop:      Boolean,
     waitingUserPrompt: Boolean,
     waitingNextAtom:   Boolean,
-    starting:          Boolean
+    starting:          Boolean,
+    isFutureFailed:    IsFutureFailed
   )                        extends SequenceState("Running")
   case Completed           extends SequenceState("Completed")
   case Failed(msg: String) extends SequenceState("Failed")
@@ -29,13 +30,13 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isUserStopRequested: Boolean =
     this match
-      case SequenceState.Running(b, _, _, _, _) => b
-      case _                                    => false
+      case SequenceState.Running(b, _, _, _, _, _) => b
+      case _                                       => false
 
   def isInternalStopRequested: Boolean =
     this match
-      case SequenceState.Running(_, b, _, _, _) => b
-      case _                                    => false
+      case SequenceState.Running(_, b, _, _, _, _) => b
+      case _                                       => false
 
   def isStopRequested: Boolean =
     isUserStopRequested || isInternalStopRequested
@@ -50,13 +51,13 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isRunning: Boolean =
     this match
-      case SequenceState.Running(_, _, _, _, _) => true
-      case _                                    => false
+      case SequenceState.Running(_, _, _, _, _, _) => true
+      case _                                       => false
 
   def isWaitingUserPrompt: Boolean =
     this match
-      case SequenceState.Running(_, _, waitingUserPrompt, _, _) => waitingUserPrompt
-      case _                                                    => false
+      case SequenceState.Running(_, _, waitingUserPrompt, _, _, _) => waitingUserPrompt
+      case _                                                       => false
 
   // A sequence can be unloaded if it's not running or if it's running but waiting for user prompt.
   def canUnload: Boolean =
@@ -64,8 +65,8 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isStarting: Boolean =
     this match
-      case SequenceState.Running(_, _, _, _, starting) => starting
-      case _                                           => false
+      case SequenceState.Running(_, _, _, _, starting, _) => starting
+      case _                                              => false
 
   def isCompleted: Boolean =
     this === SequenceState.Completed
@@ -86,7 +87,8 @@ object SequenceState:
         internalStop = false,
         waitingUserPrompt = false,
         waitingNextAtom = false,
-        starting = false
+        starting = false,
+        IsFutureFailed.False
       )
 
     val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)

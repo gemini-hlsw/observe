@@ -67,6 +67,7 @@ import observe.server.tcs.DummyTcsKeywordsReader
 import observe.server.tcs.TargetKeywordsReader
 
 import java.util.UUID
+import observe.model.IsFutureFailed
 
 class ObserveEngineSuite extends TestCommon {
 
@@ -972,7 +973,10 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateAt[IO](seqObsId1)
           .modify(x =>
-            Sequence.State.Final(x.toSequence, Running(false, false, false, true, false))
+            Sequence.State.Final(
+              x.toSequence,
+              Running(false, false, false, true, false, IsFutureFailed.False)
+            )
           )(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
       eo             = EngineObserver(observeEngine, s1)

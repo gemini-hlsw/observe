@@ -14,6 +14,7 @@ import lucuma.core.model.Observation
 import observe.model.ActionType
 import observe.server.EngineState
 import org.typelevel.log4cats.Logger
+import cats.MonadThrow
 
 // Top level synonyms
 

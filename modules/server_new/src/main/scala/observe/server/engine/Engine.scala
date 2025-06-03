@@ -26,6 +26,7 @@ import Result.RetVal
 import SystemEvent.*
 import UserEvent.*
 import Handle.given
+import observe.model.IsFutureFailed
 
 class Engine[F[_]: MonadThrow: Logger] private (
   streamQueue: Queue[F, Stream[F, Event[F]]],
@@ -52,7 +53,8 @@ class Engine[F[_]: MonadThrow: Logger] private (
                 internalStop = false,
                 waitingUserPrompt = false,
                 waitingNextAtom = true,
-                starting = true
+                starting = true,
+                IsFutureFailed.False
               )
             )(
               seq.rollback
@@ -143,7 +145,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
       .flatMap(
         _.map { seq =>
           seq.status match {
-            case SequenceState.Running(userStop, internalStop, _, _, _) =>
+            case SequenceState.Running(userStop, internalStop, _, _, _, _) =>
               seq.next match {
                 // Empty state
                 case None                                  =>
@@ -156,7 +158,8 @@ class Engine[F[_]: MonadThrow: Logger] private (
                       internalStop,
                       waitingUserPrompt = true,
                       waitingNextAtom = true,
-                      starting = false
+                      starting = false,
+                      IsFutureFailed.False
                     )
                   ) *> send(Event.modifyState(atomLoad(this, id)))
                 // Step execution completed. Check requested stop and breakpoint here.
@@ -181,7 +184,8 @@ class Engine[F[_]: MonadThrow: Logger] private (
                              internalStop,
                              waitingUserPrompt = false,
                              waitingNextAtom = true,
-                             starting = false
+                             starting = false,
+                             IsFutureFailed.False
                            )
                          ) *> send(
                            Event.modifyState(atomReload(this, id, OnAtomReloadAction.StartNewAtom))
@@ -190,7 +194,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
                        }
                      } else send(Event.executing(id)))
               }
-            case _                                                      => EngineHandle.unit
+            case _                                                         => EngineHandle.unit
           }
         }.getOrElse(EngineHandle.unit)
       )
@@ -201,7 +205,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
       .flatMap(
         _.map { seq =>
           seq.status match {
-            case SequenceState.Running(userStop, internalStop, _, true, isStarting) =>
+            case SequenceState.Running(userStop, internalStop, _, true, isStarting, _) =>
               if (!isStarting && (userStop || internalStop)) {
                 seq match {
                   // Final State
@@ -219,12 +223,19 @@ class Engine[F[_]: MonadThrow: Logger] private (
                       switch(id)(SequenceState.Idle) *> send(Event.breakpointReached(id))
                     } else
                       switch(id)(
-                        SequenceState.Running(userStop, internalStop, false, false, false)
+                        SequenceState.Running(
+                          userStop,
+                          internalStop,
+                          false,
+                          false,
+                          false,
+                          IsFutureFailed.False
+                        )
                       ) *>
                         send(Event.executing(id))
                 }
               }
-            case _                                                                  => EngineHandle.unit
+            case _                                                                     => EngineHandle.unit
           }
         }.getOrElse(EngineHandle.unit)
       )

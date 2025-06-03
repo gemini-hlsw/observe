@@ -10,6 +10,7 @@ import lucuma.core.util.Enumerated
 import observe.model.enums.Resource
 
 import java.util.UUID
+import lucuma.core.util.NewBoolean
 
 type ObservationName = String
 type TargetName      = String
@@ -35,3 +36,6 @@ given Enumerated[Resource | Instrument] = Enumerated
   .withTag:
     case r: Resource   => r.tag
     case i: Instrument => i.tag
+
+object IsFutureFailed extends NewBoolean
+type IsFutureFailed = IsFutureFailed.Type

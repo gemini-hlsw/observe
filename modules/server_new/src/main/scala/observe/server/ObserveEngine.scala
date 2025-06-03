@@ -30,7 +30,6 @@ import monocle.Optional
 import monocle.syntax.all.focus
 import mouse.all.*
 import observe.engine
-import observe.engine.Event.finished
 import observe.engine.Handle.given
 import observe.engine.{EngineStep as _, *}
 import observe.model.*
@@ -551,46 +550,63 @@ object ObserveEngine {
     atomType:      SequenceType,
     onAtomReload:  OnAtomReloadAction
   ): EngineHandle[F, Unit] =
-    EngineHandle.fromSingleEventF {
-      Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
-        odb
-          .read(obsId)
-          .flatTap(_ =>
-            MonadThrow[F].raiseError(new RuntimeException(s"SIMULATED ERROR RELOADING ATOM"))
-          )
-          .map { odbObs =>
-            // Read the next atom from the odb and replaces the current atom
-            val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
-            Event
-              .modifyState[F](
-                EngineHandle
-                  .modifyState { (oldState: EngineState[F]) =>
-                    val newState: EngineState[F] = updateAtom(obsId, atomGen)(oldState)
-                    (newState, ())
-                  }
-                  .flatMap[SeqEvent] { _ =>
-                    atomGen.fold(
-                      EngineHandle
-                        .fromSingleEvent(Event.finished(obsId))
-                        .as(SeqEvent.NullSeqEvent)
-                    ) { atm =>
-                      if onAtomReload == OnAtomReloadAction.StartNewAtom then
-                        executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
-                      else
-                        Handle.pure:
-                          SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
-                    }
-                  }
+    EngineHandle.getState.flatMap: s => // Only for simulating error
+      EngineHandle
+        .fromSingleEventF {
+          Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
+            odb
+              .read(obsId) // TODO Maybe we should retry a couple of times before giving up
+              // BEGIN ERROR SIMULATION
+              .flatTap(_ =>
+                Logger[F].debug(s"FLATTAP [${s.selected.gmosNorth.map(_.seq.current)}]") >>
+                  // Simulate an error if we are currently observing
+                  (if s.selected.gmosNorth
+                       .exists(x => x.seq.current.execution.head.kind === ActionType.Observe)
+                   then
+                     MonadThrow[F]
+                       .raiseError(new RuntimeException(s"SIMULATED ERROR RELOADING ATOM"))
+                   else cats.Applicative[F].unit)
               )
-          }
-          .handleErrorWith { e =>
+              // END ERROR SIMULATION
+              .map { odbObs => // Read the next atom from the odb and replaces the current atom
+                Event
+                  .modifyState[F] {
+                    EngineHandle
+                      .modifyState { (oldState: EngineState[F]) =>
+                        val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
+                        val newState: EngineState[F]    = updateAtom(obsId, atomGen)(oldState)
+                        (newState, atomGen)
+                      }
+                      .flatMap[SeqEvent] {
+                        _.fold(
+                          EngineHandle
+                            .fromSingleEvent(Event.finished(obsId))
+                            .as(SeqEvent.NullSeqEvent)
+                        ) { atm =>
+                          if onAtomReload == OnAtomReloadAction.StartNewAtom then
+                            executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
+                          else
+                            Handle.pure:
+                              SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+                        }
+                      }
+                  }
+              }
+        }
+        .handleErrorWith { e =>
+          EngineHandle.modifyStateEmitSingle: oldState =>
             Logger[F]
               .error(e)(s"Error reloading atom for observation [$obsId]")
               .as( // TODO We may need a new event here.
-                Event.failed(obsId, 0, Result.Error(e.getMessage))
+                (oldState,
+                 Event.failed(
+                   obsId,
+                   0,
+                   Result.Error(s"Error reloading atom for observation [$obsId]: ${e.getMessage}")
+                 )
+                )
               )    // TODO Bubble this error up to the UIs, signal to clear sequence.
-          }
-    }
+        }
 
   /**
    * Build Observe and setup epics
