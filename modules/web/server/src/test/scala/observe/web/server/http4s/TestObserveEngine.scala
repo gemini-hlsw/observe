@@ -24,7 +24,6 @@ import observe.model.Observation.Id
 import observe.model.enums.*
 import observe.server.EngineState
 import observe.server.ObserveEngine
-import observe.server.SeqEvent
 import observe.server.Systems
 import observe.server.events.TargetedClientEvent
 import org.typelevel.log4cats.Logger
@@ -194,7 +193,7 @@ class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngi
 
   override def stream(
     s0: EngineState[F]
-  ): fs2.Stream[F, (EventResult[SeqEvent], EngineState[F])] = Stream.empty
+  ): fs2.Stream[F, (EventResult, EngineState[F])] = Stream.empty
 
   override def loadNextAtom(
     id:       Observation.Id,

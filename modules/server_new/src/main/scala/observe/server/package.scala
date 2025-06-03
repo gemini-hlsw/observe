@@ -11,9 +11,7 @@ import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.util.TimeSpan
 import observe.engine
-import observe.engine.Engine
 import observe.engine.Event
-import observe.engine.Handle
 import observe.engine.Result
 import observe.engine.Result.PauseContext
 import observe.model.Conditions
@@ -58,7 +56,12 @@ type ExecutionQueues = Map[QueueId, ExecutionQueue]
 // This is far from ideal but we'll address this in another refactoring
 private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
-type EventQueue[F[_]] = Queue[F, EventType[F]]
+// Some types defined to avoid repeating long type definitions everywhere
+// type EngineEvent[F[_]]     = Event[F, EngineState[F], SeqEvent]
+// type ExecutionEngine[F[_]] = Engine[F, EngineState[F], SeqEvent]
+// type EngineHandle[F[_], A] = Handle[F, EngineState[F], EngineEvent[F], A]
+
+type EventQueue[F[_]] = Queue[F, Event[F]]
 
 def toStepList[F[_]](
   seq:       SequenceGen[F],
@@ -81,11 +84,6 @@ def catchObsErrors[F[_]](t: Throwable)(using L: Logger[F]): Stream[F, Result] = 
     Stream.eval(L.error(e)(s"Observation error: ${e.getMessage}")) *>
       Stream.emit(Result.Error(ObserveFailure.explain(ObserveFailure.ObserveException(e))))
 }
-
-// Some types defined to avoid repeating long type definitions everywhere
-type EventType[F[_]]      = Event[F, EngineState[F], SeqEvent]
-type HandlerType[F[_], A] = Handle[F, EngineState[F], EventType[F], A]
-type ExecEngineType[F[_]] = Engine[F, EngineState[F], SeqEvent]
 
 def overrideLogMessage[F[_]: Logger](systemName: String, op: String): F[Unit] =
   Logger[F].info(s"System $systemName overridden. Operation $op skipped.")
