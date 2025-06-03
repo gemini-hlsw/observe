@@ -571,7 +571,7 @@ object ObserveEngine {
                   .flatMap[SeqEvent] { atomIdOpt =>
                     atomGen.fold(
                       EngineHandle
-                        .fromSingleEvent(finished(obsId))
+                        .fromSingleEvent(Event.finished(obsId))
                         .as(SeqEvent.NullSeqEvent)
                     ) { atm =>
                       if onAtomReload == OnAtomReloadAction.StartNewAtom then
