@@ -341,7 +341,8 @@ class StepSuite extends CatsEffectSuite {
             internalStop = false,
             waitingUserPrompt = false,
             waitingNextAtom = false,
-            starting = false
+            starting = false,
+            IsFutureFailed.False
           ),
           Map.empty
         )

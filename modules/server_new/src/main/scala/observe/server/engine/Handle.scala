@@ -10,6 +10,7 @@ import cats.MonadThrow
 import cats.data.StateT
 import cats.syntax.all.*
 import fs2.Stream
+import cats.MonadThrow
 
 /**
  * Type constructor where all Observe side effect are managed. Handle is a State machine inside a F,

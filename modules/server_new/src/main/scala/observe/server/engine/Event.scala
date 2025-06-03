@@ -46,6 +46,8 @@ object Event {
     EventUser[F](GetState(f))
   def modifyState[F[_]](f: EngineHandle[F, SeqEvent]): Event[F]                    =
     EventUser[F](ModifyState(f))
+  // inline def modifyState[F[_]: Monad](f: EngineState[F] => (EngineState[F], SeqEvent)): Event[F] =
+  //   modifyState(EngineHandle.modifyState(f))
   def actionStop[F[_]](
     obsId: Observation.Id,
     f:     EngineState[F] => Stream[F, Event[F]]

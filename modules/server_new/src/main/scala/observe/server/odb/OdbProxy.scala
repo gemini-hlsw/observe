@@ -385,6 +385,8 @@ object OdbProxy {
         stepId <- getCurrentStepId(obsId)
         _      <- L.debug(s"Send ODB event stepAbort for obsId: $obsId, step $stepId")
         _      <- AddStepEventMutation[F].execute(stepId = stepId.value, stg = StepStage.Abort)
+        // TODO Sometimes we have errors and there's no current step.
+        // Should we send a sequenceEvent ABORT in this case? Should we send it anyway? Some other event?
         _      <- setCurrentStepId(obsId, none)
         _      <- L.debug("ODB event stepAbort sent")
       } yield true
