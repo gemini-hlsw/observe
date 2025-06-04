@@ -39,9 +39,9 @@ import lucuma.schemas.ObservationDB
 import lucuma.ui.LucumaStyles
 import lucuma.ui.components.SolarProgress
 import lucuma.ui.components.state.IfLogged
-import lucuma.ui.utils.showEnvironment
 import lucuma.ui.sso.*
 import lucuma.ui.syntax.all.*
+import lucuma.ui.utils.showEnvironment
 import observe.model.*
 import observe.model.enums.ObserveLogLevel
 import observe.model.events.ClientEvent

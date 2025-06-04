@@ -4,7 +4,6 @@
 package observe.server
 
 import cats.Endo
-import cats.Monad
 import cats.MonadThrow
 import cats.Monoid
 import cats.effect.Async
@@ -395,7 +394,7 @@ object ObserveEngine {
   ): Set[Observation.Id] =
     findRunnableObservations(qid)(st).intersect(sids)
 
-  private def onAtomComplete[F[_]: Monad](
+  private def onAtomComplete[F[_]: MonadThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -470,7 +469,7 @@ object ObserveEngine {
             )
         }(st)
 
-  def tryNewAtom[F[_]: Monad](
+  def tryNewAtom[F[_]: MonadThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F],
