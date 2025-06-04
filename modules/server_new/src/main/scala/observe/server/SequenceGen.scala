@@ -117,10 +117,13 @@ object SequenceGen {
 
   sealed trait AtomGen[F[_]] {
     type D
+    type This
 
     def atomId: Atom.Id
     def sequenceType: SequenceType
     def steps: List[SequenceGen.StepGen[F, D]]
+
+    def truncate: This
   }
 
   object AtomGen {
@@ -129,7 +132,10 @@ object SequenceGen {
       sequenceType: SequenceType,
       steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosNorth]]
     ) extends AtomGen[F] {
-      type D = gmos.DynamicConfig.GmosNorth
+      type D    = gmos.DynamicConfig.GmosNorth
+      type This = GmosNorth[F]
+
+      def truncate: GmosNorth[F] = copy(steps = steps.take(1))
     }
 
     case class GmosSouth[F[_]](
@@ -137,7 +143,11 @@ object SequenceGen {
       sequenceType: SequenceType,
       steps:        List[SequenceGen.StepGen[F, gmos.DynamicConfig.GmosSouth]]
     ) extends AtomGen[F] {
-      type D = gmos.DynamicConfig.GmosSouth
+      type D    = gmos.DynamicConfig.GmosSouth
+      type This = GmosSouth[F]
+
+      def truncate: GmosSouth[F] = copy(steps = steps.take(1))
+
     }
 
     case class Flamingos2[F[_]](
@@ -145,7 +155,10 @@ object SequenceGen {
       sequenceType: SequenceType,
       steps:        List[SequenceGen.StepGen[F, Flamingos2DynamicConfig]]
     ) extends AtomGen[F] {
-      type D = Flamingos2DynamicConfig
+      type D    = Flamingos2DynamicConfig
+      type This = Flamingos2[F]
+
+      def truncate: Flamingos2[F] = copy(steps = steps.take(1))
     }
   }
 
@@ -278,4 +291,10 @@ object SequenceGen {
       case _                                                                            =>
         throw new IllegalArgumentException:
           s"Instrument mismatch when replacing atom in sequence. Atom: [$atom], Sequence: [$seq]."
+
+  def truncateNextAtom[F[_]](seq: SequenceGen[F]): SequenceGen[F] =
+    seq match
+      case s @ GmosNorth(_, _, a)  => gmosNorth.andThen(GmosNorth.nextAtom).replace(a.truncate)(s)
+      case s @ GmosSouth(_, _, a)  => gmosSouth.andThen(GmosSouth.nextAtom).replace(a.truncate)(s)
+      case s @ Flamingos2(_, _, a) => flamingos2.andThen(Flamingos2.nextAtom).replace(a.truncate)(s)
 }

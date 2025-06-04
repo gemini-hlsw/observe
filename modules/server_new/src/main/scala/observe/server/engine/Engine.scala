@@ -381,7 +381,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
    */
   private def fail(obsId: Observation.Id)(i: Int, e: Result.Error): EngineHandle[F, Unit] =
     EngineHandle.modifySequenceState[F](obsId)(_.mark(i)(e)) *>
-      switch(obsId)(SequenceState.Failed(e.msg))
+      switch(obsId)(SequenceState.Error(e.msg))
 
   private def logError(e: Result.Error): EngineHandle[F, Unit] = error(e.errMsg.getOrElse(e.msg))
 

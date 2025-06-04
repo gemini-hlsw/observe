@@ -35,7 +35,7 @@ case class SequenceView(
   // Returns where on the sequence the execution is at
   def runningStep: Option[RunningStep] = status match
     case SequenceState.Running(_, _, _, _, _, _) => progress
-    case SequenceState.Failed(_)                 => progress
+    case SequenceState.Error(_)                  => progress
     case SequenceState.Aborted                   => progress
     case _                                       => none
 

@@ -442,7 +442,7 @@ object ObserveEngine {
 
           newSeqData
             .focus(_.seq)
-            .modify(s => // Initialize the sequence state
+            .modify(oldSeqState => // Initialize the sequence state
               val newState: Sequence.State[F] =
                 Sequence.State.init(
                   atm.fold(Sequence.empty[F](obsId)) { a =>
@@ -460,12 +460,29 @@ object ObserveEngine {
 
               // Revive sequence if it was completed - or complete if no more steps
               val newSeqState: SequenceState =
-                if s.status.isCompleted && atm.nonEmpty then SequenceState.Idle
+                if oldSeqState.status.isCompleted && atm.nonEmpty then SequenceState.Idle
                 else if atm.isEmpty then SequenceState.Completed
-                else s.status
+                else oldSeqState.status
 
               Sequence.State.status.replace(newSeqState)(newState)
             )
+        }(st)
+
+  private def truncateAtom[F[_]](
+    obsId:   Observation.Id,
+    failMsg: String
+  ): Endo[EngineState[F]] =
+    (st: EngineState[F]) =>
+      EngineState
+        .atSequence[F](obsId)
+        .modify {
+          SequenceData.seqGen.modify(SequenceGen.truncateNextAtom[F]) >>>
+            SequenceData.seq
+              .andThen(Sequence.State.status[F])
+              .modify:
+                case r @ SequenceState.Running(_, _, _, _, _, _) =>
+                  SequenceState.Running.isFutureFailed.replace(IsFutureFailed.True)(r)
+                case _                                           => SequenceState.Error(failMsg)
         }(st)
 
   def tryNewAtom[F[_]: MonadThrow](
@@ -601,7 +618,7 @@ object ObserveEngine {
               Logger[F]
                 .error(e)(s"Error reloading atom for observation [$obsId]")
                 .as( // TODO We may need a new event here.
-                  (oldState,
+                  (truncateAtom(obsId, s"Error reloading atom for observation [$obsId]")(oldState),
                    Event.failed(
                      obsId,
                      0,

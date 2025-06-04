@@ -185,7 +185,7 @@ class StepSuite extends CatsEffectSuite {
   def isFinished(status: SequenceState): Boolean = status match {
     case SequenceState.Idle      => true
     case SequenceState.Completed => true
-    case SequenceState.Failed(_) => true
+    case SequenceState.Error(_)  => true
     case SequenceState.Aborted   => true
     case _                       => false
   }
@@ -512,7 +512,7 @@ class StepSuite extends CatsEffectSuite {
                 ex2.toList
               ).results.length == 1 && Execution(ex3.toList).actions.length == 1
             case _                                     => false
-          }) && (status == SequenceState.Failed(errMsg)) // And that it ended in error
+          }) && (status == SequenceState.Error(errMsg)) // And that it ended in error
         case _                                        => false
 
       }
@@ -619,7 +619,7 @@ class StepSuite extends CatsEffectSuite {
         case Sequence.State.Zipper(_, status, _) =>
           // Without the error we should have a value 2
           // And that it ended in error
-          status === SequenceState.Failed(errMsg)
+          status === SequenceState.Error(errMsg)
         case _                                   => false
       }
     }.assert
