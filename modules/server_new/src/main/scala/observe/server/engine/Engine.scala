@@ -536,7 +536,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
   )(ev: Event[F], s: EngineState[F])(using
     ci:            Concurrent[F]
   ): F[(EngineState[F], (EventResult, EngineState[F]), Stream[F, Event[F]])] =
-    run(onSystemEvent)(ev).run.run(s).map { case (si, (r, p)) =>
+    run(onSystemEvent)(ev).stateT.run(s).map { case (si, (r, p)) =>
       (si, (r, si), p)
     }
 
