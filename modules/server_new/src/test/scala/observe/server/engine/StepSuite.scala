@@ -28,6 +28,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import java.util.UUID
 import scala.Function.const
 import scala.concurrent.duration.*
+import observe.model.IsFutureFailed
 
 class StepSuite extends CatsEffectSuite {
 
