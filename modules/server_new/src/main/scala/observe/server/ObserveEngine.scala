@@ -594,18 +594,21 @@ object ObserveEngine {
               }
         }
         .handleErrorWith { e =>
-          EngineHandle.modifyStateEmitSingle: oldState =>
-            Logger[F]
-              .error(e)(s"Error reloading atom for observation [$obsId]")
-              .as( // TODO We may need a new event here.
-                (oldState,
-                 Event.failed(
-                   obsId,
-                   0,
-                   Result.Error(s"Error reloading atom for observation [$obsId]: ${e.getMessage}")
-                 )
-                )
-              )    // TODO Bubble this error up to the UIs, signal to clear sequence.
+          EngineHandle.liftF(
+            Logger[F].error(e)(s"**** ERRRORRRR SUPER ERRRORRRR ****")
+          ) >>
+            EngineHandle.modifyStateEmitSingle: oldState =>
+              Logger[F]
+                .error(e)(s"Error reloading atom for observation [$obsId]")
+                .as( // TODO We may need a new event here.
+                  (oldState,
+                   Event.failed(
+                     obsId,
+                     0,
+                     Result.Error(s"Error reloading atom for observation [$obsId]: ${e.getMessage}")
+                   )
+                  )
+                )    // TODO Bubble this error up to the UIs, signal to clear sequence.
         }
 
   /**
