@@ -14,6 +14,7 @@ import fs2.Stream
 /**
  * Type constructor where all Observe side effect are managed. Handle is a State machine inside a F,
  * which can produce Streams as output. It is combined with the input stream to run observe engine.
+ * Emitted events are concatenated on flatMap.
  *
  * Its type parameters are:
  * @tparam F[_]:

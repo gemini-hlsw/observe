@@ -15,7 +15,7 @@ import monocle.Prism
 import monocle.macros.GenPrism
 
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
-  case Idle                extends SequenceState("Idle")
+  case Idle               extends SequenceState("Idle")
   case Running(
     userStop:          Boolean,
     internalStop:      Boolean,
@@ -23,10 +23,10 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
     waitingNextAtom:   Boolean,
     starting:          Boolean,
     isFutureFailed:    IsFutureFailed
-  )                        extends SequenceState("Running")
-  case Completed           extends SequenceState("Completed")
-  case Failed(msg: String) extends SequenceState("Failed")
-  case Aborted             extends SequenceState("Aborted")
+  )                       extends SequenceState("Running")
+  case Completed          extends SequenceState("Completed")
+  case Error(msg: String) extends SequenceState("Error")
+  case Aborted            extends SequenceState("Aborted")
 
   def isUserStopRequested: Boolean =
     this match
@@ -43,8 +43,8 @@ enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
 
   def isError: Boolean =
     this match
-      case Failed(_) => true
-      case _         => false
+      case Error(_) => true
+      case _        => false
 
   def isInProcess: Boolean =
     this =!= SequenceState.Idle
@@ -104,3 +104,6 @@ object SequenceState:
 
     val starting: Lens[SequenceState.Running, Boolean] =
       Focus[SequenceState.Running](_.starting)
+
+    val isFutureFailed: Lens[SequenceState.Running, IsFutureFailed] =
+      Focus[SequenceState.Running](_.isFutureFailed)

@@ -96,7 +96,7 @@ trait ObserveModelArbitraries {
     for {
       f <- Gen.oneOf(SequenceState.Completed, SequenceState.Idle)
       r <- arbitrary[SequenceState.Running]
-      a <- arbitrary[String].map(SequenceState.Failed.apply)
+      a <- arbitrary[String].map(SequenceState.Error.apply)
       s <- Gen.oneOf(f, r, a)
     } yield s
   }

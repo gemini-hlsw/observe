@@ -81,16 +81,16 @@ object ObsListPopup
       ): VdomNode =
         val icon: VdomNode =
           (loadingPotOpt, statusOpt) match
-            case (Some(Pot.Pending), _)                                                        => LucumaIcons.CircleNotch
-            case (Some(Pot.Ready(_)), None)                                                    => LucumaIcons.CircleNotch
-            case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                                => Icons.FileCheck
-            case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                           =>
+            case (Some(Pot.Pending), _)                                                       => LucumaIcons.CircleNotch
+            case (Some(Pot.Ready(_)), None)                                                   => LucumaIcons.CircleNotch
+            case (Some(Pot.Ready(_)), Some(SequenceState.Idle))                               => Icons.FileCheck
+            case (Some(Pot.Ready(_)), Some(SequenceState.Completed))                          =>
               Icons.FileCheck
-            case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _, _, _, _)))           =>
+            case (Some(Pot.Ready(_)), Some(SequenceState.Running(_, _, _, _, _, _)))          =>
               LucumaIcons.CircleNotch
-            case (Some(Pot.Ready(_)), Some(SequenceState.Failed(_))) | (Some(Pot.Error(_)), _) =>
+            case (Some(Pot.Ready(_)), Some(SequenceState.Error(_))) | (Some(Pot.Error(_)), _) =>
               Icons.FileCross
-            case _                                                                             => EmptyVdom
+            case _                                                                            => EmptyVdom
         icon
 
       def renderCentered(node: VdomNode, css: Css = Css.Empty): VdomNode =
