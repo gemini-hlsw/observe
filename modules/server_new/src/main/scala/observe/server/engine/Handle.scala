@@ -10,7 +10,6 @@ import cats.MonadThrow
 import cats.data.StateT
 import cats.syntax.all.*
 import fs2.Stream
-import cats.MonadThrow
 
 /**
  * Type constructor where all Observe side effect are managed. Handle is a State machine inside a F,
@@ -111,16 +110,11 @@ object Handle {
             Monad[F].tailRecM[(S, (O, Stream[F, E])), (S, (O1, Stream[F, E]))](
               (s, (o, Stream.empty))
             ) { case (s0, (o0, es0)) =>
-              <<<<<<<.HEAD(
-                f(o0).stateT
-                  =======
-                    f(o0).run
-                    >>>>>>> f228898a4(monaderror test)
-                      .run(s0)
-                      .map:
-                        case (s1, (Left(o1), es1))  => Left((s1, (o1, es0 ++ es1)))
-                        case (s1, (Right(o1), es1)) => Right((s1, (o1, es0 ++ es1)))
-              )
+              f(o0).stateT
+                .run(s0)
+                .map:
+                  case (s1, (Left(o1), es1))  => Left((s1, (o1, es0 ++ es1)))
+                  case (s1, (Right(o1), es1)) => Right((s1, (o1, es0 ++ es1)))
             }
 
         // Done

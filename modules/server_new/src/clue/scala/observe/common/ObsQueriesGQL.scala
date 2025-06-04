@@ -25,15 +25,11 @@ object ObsQueriesGQL:
         observation(observationId: $$obsId) {
           id
           title
-          workflow {
-            state
-          }
+          workflow { state }
           program {
             id
             name
-            goa {
-              proprietaryMonths
-            }
+            goa { proprietaryMonths }
           }
           targetEnvironment {
             firstScienceTarget {
@@ -41,9 +37,7 @@ object ObsQueriesGQL:
               targetName: name
             }
             guideEnvironment {
-              guideTargets {
-                probe
-              }
+              guideTargets { probe }
             }
           }
           constraintSet {
@@ -74,9 +68,7 @@ object ObsQueriesGQL:
                   milliseconds
                 }
                 repeat {
-                  period {
-                    milliseconds
-                  }
+                  period { milliseconds }
                   times
                 }
               }
