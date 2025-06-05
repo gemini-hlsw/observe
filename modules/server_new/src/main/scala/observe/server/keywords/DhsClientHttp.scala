@@ -253,7 +253,7 @@ object DhsClientSim {
       .map(LocalDateTime.ofInstant(_, ZoneId.systemDefault))
       .flatMap(apply(site, _))
 
-  private def apply[F[_]: Sync: Logger](site: Site, dateTime: LocalDateTime): F[DhsClient[F]] =
+  def apply[F[_]: Sync: Logger](site: Site, dateTime: LocalDateTime): F[DhsClient[F]] =
     Ref // Initialize with ordinal of 10-second lapse in the day, between 0 and 8640
       .of[F, Int](dateTime.getHour() * 360 + dateTime.getMinute() * 6 + dateTime.getSecond() / 10)
       .map: counter =>
