@@ -12,7 +12,7 @@ import cats.effect.kernel.Ref
 import cats.syntax.all.*
 import clue.*
 import clue.http4s.Http4sHttpBackend
-import clue.http4s.Http4sHttpClient
+// import clue.http4s.Http4sHttpClient
 import clue.http4s.Http4sWebSocketBackend
 import clue.http4s.Http4sWebSocketClient
 import clue.websocket.ReconnectionStrategy
@@ -38,7 +38,7 @@ import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
 import org.http4s.Credentials
-import org.http4s.Headers
+// import org.http4s.Headers
 import org.http4s.client.Client
 import org.http4s.client.middleware.Logger as Http4sLogger
 import org.http4s.ember.client.EmberClientBuilder
