@@ -249,7 +249,7 @@ private class DhsClientSim[F[_]: FlatMap: Logger](site: Site, date: LocalDate, c
 object DhsClientSim {
   def apply[F[_]: Sync: Logger](site: Site): F[DhsClient[F]] =
     Clock[F].monotonic
-      .map(d => Instant.EPOCH.plusNanos(d.toNanos))
+      .map(d => Instant.EPOCH.plusSeconds(d.toSeconds))
       .map(LocalDateTime.ofInstant(_, ZoneId.systemDefault))
       .flatMap(apply(site, _))
 

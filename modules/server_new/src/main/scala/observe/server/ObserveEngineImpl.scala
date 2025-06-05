@@ -662,7 +662,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     // If there is no heartbeat in 5 periods throw an error
     val noHeartbeatDetection =
       ObserveEngine.failIfNoEmitsWithin[F, Event[F]](
-        5 * heartbeatPeriod,
+        50 * heartbeatPeriod, // TODO REVERT TO 5 * heartbeatPeriod
         "Engine heartbeat not detected"
       )
     Stream
