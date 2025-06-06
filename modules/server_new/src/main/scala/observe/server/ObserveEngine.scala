@@ -267,7 +267,7 @@ object ObserveEngine {
       case s if !s.state.isCompleted => s.resources
     }.foldK
 
-    val runningQs = st.queues.values.filter(_.status(st).running)
+    val runningQs = st.queues.values.filter(_.status.running)
 
     runningQs.map(reserved).toList.foldK
 
@@ -565,7 +565,7 @@ object ObserveEngine {
                     val newState: EngineState[F] = updateAtom(obsId, atomGen)(oldState)
                     (newState, ())
                   }
-                  .flatMap[SeqEvent] { atomIdOpt =>
+                  .flatMap[SeqEvent] { _ =>
                     atomGen.fold(
                       EngineHandle
                         .fromSingleEvent(finished(obsId))

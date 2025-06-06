@@ -40,9 +40,6 @@ final case class Flamingos2[F[_]: Async: Logger](
   config:            Flamingos2Controller.Flamingos2Config
 ) extends DhsInstrument[F]
     with InstrumentSystem[F] {
-
-  import Flamingos2._
-
   override val resource: Instrument = Instrument.Flamingos2
 
   override val contributorName: String = "flamingos2"

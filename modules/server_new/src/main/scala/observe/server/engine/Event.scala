@@ -69,7 +69,7 @@ object Event {
   def logErrorMsgF[F[_]: Sync](msg: String): F[Event[F]]                           =
     Sync[F].delay(Instant.now).map(t => EventUser[F](LogError(msg, t)))
 
-  def pure[F[_]: Sync](v: SeqEvent): Event[F] = EventUser[F](Pure(v))
+  def pure[F[_]](v: SeqEvent): Event[F] = EventUser[F](Pure(v))
 
   def failed[F[_]](obsId: Observation.Id, i: Int, e: Result.Error): Event[F]  =
     EventSystem[F](Failed(obsId, i, e))

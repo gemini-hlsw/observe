@@ -6,7 +6,6 @@ package observe.model.events
 import cats.*
 import cats.data.NonEmptyList
 import cats.derived.*
-import cats.syntax.all.*
 import eu.timepit.refined.cats.*
 import io.circe.Decoder
 import io.circe.Encoder

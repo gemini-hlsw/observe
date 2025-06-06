@@ -3,7 +3,6 @@
 
 package observe.ui.components.sequence
 
-import cats.effect.IO
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
@@ -28,7 +27,6 @@ import observe.ui.components.sequence.steps.*
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
-import org.typelevel.log4cats.Logger
 
 import scalajs.js
 
@@ -116,7 +114,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     instrument: Instrument,
     obsId:      Observation.Id,
     isPreview:  Boolean
-  )(using Logger[IO]): List[ColDef.TypeFor[?]] =
+  ): List[ColDef.TypeFor[?]] =
     List(
       SequenceColumns
         .headerCell(HeaderColumnId, ColDef)
@@ -216,6 +214,6 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
         column(
           SettingsColumnId,
           Icons.RectangleList,
-          cell => SettingsCell() // TODO
+          _ => SettingsCell() // TODO
         )
       )

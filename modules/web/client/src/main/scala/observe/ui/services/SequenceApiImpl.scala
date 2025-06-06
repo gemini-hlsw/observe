@@ -23,14 +23,12 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.OperationRequest
 import org.http4s.Query
 import org.http4s.Uri
-import org.typelevel.log4cats.Logger
 
 case class SequenceApiImpl(
   client:   ApiClient,
   observer: Observer,
   requests: View[Map[Observation.Id, ObservationRequests]]
-)(using Logger[IO])
-    extends SequenceApi[IO]:
+) extends SequenceApi[IO]:
 
   private def setInFlight(
     obsId: Observation.Id,

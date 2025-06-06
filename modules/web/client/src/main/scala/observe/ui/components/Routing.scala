@@ -18,14 +18,14 @@ object Routing:
 
       val rules =
         (emptyRule
-          | staticRoute(root / "schedule", Schedule) ~> renderP(rootModel => UnderConstruction())
+          | staticRoute(root / "schedule", Schedule) ~> render(UnderConstruction())
           | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
-          | staticRoute(root / "daytime", Daytime) ~> renderP(rootModel => UnderConstruction())
-          | staticRoute(root / "excluded", Excluded) ~> renderP(rootModel => UnderConstruction()))
+          | staticRoute(root / "daytime", Daytime) ~> render(UnderConstruction())
+          | staticRoute(root / "excluded", Excluded) ~> render(UnderConstruction()))
 
       val configuration =
         rules
-          .notFound(redirectToPage(Nighttime)(SetRouteVia.HistoryPush))
+          .notFound(redirectToPage(Nighttime)(using SetRouteVia.HistoryPush))
           .renderWithP(Layout(_, _))
 
       configuration

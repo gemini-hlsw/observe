@@ -51,7 +51,7 @@ object InstrumentDynamicConfig:
   object Flamingos2:
     given Eq[Flamingos2] = Eq.by(x => (x.instrument, x.config))
 
-  given Eq[InstrumentDynamicConfig] = Eq:
+  given Eq[InstrumentDynamicConfig] = Eq.instance:
     case (a: GmosNorth, b: GmosNorth)   => a === b
     case (a: GmosSouth, b: GmosSouth)   => a === b
     case (a: Flamingos2, b: Flamingos2) => a === b

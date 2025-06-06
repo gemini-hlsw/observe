@@ -45,14 +45,13 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import observe.ui.utils.Audio
-import org.typelevel.log4cats.Logger
 
 trait ServerEventHandler:
   private def logMessage(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit],
     logLevel:         ObserveLogLevel,
     msg:              String
-  )(using Logger[IO]): IO[Unit] =
+  ): IO[Unit] =
     msg match
       case NonEmptyString(nes) =>
         LogMessage
@@ -145,7 +144,7 @@ trait ServerEventHandler:
     toast:              ToastRef
   )(
     event:              ClientEvent
-  )(using Logger[IO]): IO[Unit] =
+  ): IO[Unit] =
     def playAudio(sound: Audio): IO[Unit] = sound.play.when(isAudioActivated.map(a => a: Boolean))
 
     event match
@@ -251,7 +250,7 @@ trait ServerEventHandler:
 
   protected def processStreamError(
     rootModelDataMod: (RootModelData => RootModelData) => IO[Unit]
-  )(error: Throwable)(using Logger[IO]): IO[Unit] =
+  )(error: Throwable): IO[Unit] =
     logMessage(
       rootModelDataMod,
       ObserveLogLevel.Error,

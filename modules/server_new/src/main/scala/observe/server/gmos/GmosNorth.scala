@@ -101,7 +101,6 @@ object GmosNorth {
     dhsClientProvider,
     nsCmdR,
     Gmos.buildConfig[F, GmosSite.North.type, StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-      Instrument.GmosSouth,
       stepType,
       staticCfg,
       dynamicCfg

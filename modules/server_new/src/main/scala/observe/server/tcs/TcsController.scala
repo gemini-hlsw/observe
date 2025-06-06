@@ -11,7 +11,6 @@ import cats.derived.*
 import cats.syntax.all.*
 import coulomb.*
 import coulomb.policy.spire.standard.given
-import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.*
@@ -481,10 +480,7 @@ object TcsController {
       s"(guideConfig = ${x.gc}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds.show}, A&G = ${x.agc.show})"
     }
 
-    given [S <: Site](using
-      x: Show[SiteSpecifics.AoGuidersConfig[S]],
-      y: Show[SiteSpecifics.AoConfig[S]]
-    ): Show[AoTcsConfig[S]] = Show.show { x =>
+    given [S <: Site]: Show[AoTcsConfig[S]] = Show.show { x =>
       s"(guideConfig = ${x.gc}, telConfig = ${x.tc.show}, guidersConfig = ${x.gds}, A&G = ${x.agc.show}, gaos = ${x.gaos})"
     }
 

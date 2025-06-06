@@ -177,9 +177,6 @@ class TcsNorth[F[_]: Sync: Logger] private (
 }
 
 object TcsNorth {
-
-  import Tcs.*
-
   final case class TcsSeqConfig(
     guideWithP1: Option[StepGuideState],
     guideWithP2: Option[StepGuideState],

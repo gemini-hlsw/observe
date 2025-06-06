@@ -168,24 +168,20 @@ class StandardHeader[F[_]: Sync: Logger](
 
   // TODO abstract requestedConditions/requestedAirMassAngle
   def requestedConditions(id: ImageFileId): F[Unit] =
-    tcsReader.elevation.flatMap { el =>
-      tcsReader.sourceATarget.wavelength.flatMap { wavel =>
-        sendKeywords(
-          id,
-          kwClient,
-          List(
-            buildString(obsReader.requestedConditions.imageQualityStr, KeywordName.REQIQ),
-            buildString(obsReader.requestedConditions.cloudExtinctionStr, KeywordName.REQCC),
-            buildString(obsReader.requestedConditions.waterVaporStr, KeywordName.REQWV),
-            buildString(obsReader.requestedConditions.backgroundLightStr, KeywordName.REQBG),
-            buildDouble(obsReader.requestedConditions.imageQualityDbl, KeywordName.REQDIQ),
-            buildDouble(obsReader.requestedConditions.cloudExtinctionDbl, KeywordName.REQDCC),
-            buildDouble(obsReader.requestedConditions.waterVaporDbl, KeywordName.REQDWV),
-            buildDouble(obsReader.requestedConditions.backgroundLightDbl, KeywordName.REQDBG)
-          )
-        )
-      }
-    }
+    sendKeywords(
+      id,
+      kwClient,
+      List(
+        buildString(obsReader.requestedConditions.imageQualityStr, KeywordName.REQIQ),
+        buildString(obsReader.requestedConditions.cloudExtinctionStr, KeywordName.REQCC),
+        buildString(obsReader.requestedConditions.waterVaporStr, KeywordName.REQWV),
+        buildString(obsReader.requestedConditions.backgroundLightStr, KeywordName.REQBG),
+        buildDouble(obsReader.requestedConditions.imageQualityDbl, KeywordName.REQDIQ),
+        buildDouble(obsReader.requestedConditions.cloudExtinctionDbl, KeywordName.REQDCC),
+        buildDouble(obsReader.requestedConditions.waterVaporDbl, KeywordName.REQDWV),
+        buildDouble(obsReader.requestedConditions.backgroundLightDbl, KeywordName.REQDBG)
+      )
+    )
 
   def requestedAirMassAngle(id: ImageFileId): F[Unit] =
     obsReader.requestedConditions.elevationRange

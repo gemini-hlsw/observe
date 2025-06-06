@@ -122,7 +122,7 @@ object OdbProxy {
         ResetAcquisitionMutation[F].execute(obsId = obsId).void
 
       export evCmds.*
-      export subscriber.*
+      export subscriber.obsEditSubscription
     }
 
   class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {

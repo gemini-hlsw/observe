@@ -14,13 +14,11 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.*
-import lucuma.core.model.sequence.gmos.*
 import lucuma.react.SizePx
 import lucuma.react.common.*
 import lucuma.react.primereact.Button
 import lucuma.react.resizeDetector.hooks.*
 import lucuma.react.table.*
-import lucuma.schemas.model.Visit
 import lucuma.schemas.model.enums.StepExecutionState
 import lucuma.typed.tanstackVirtualCore as rawVirtual
 import lucuma.ui.primereact.*
@@ -43,7 +41,7 @@ import org.typelevel.log4cats.Logger
 import scala.scalajs.LinkingInfo
 
 // Helper to build component objects for instrument sequence tables.
-private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends SequenceTableDefs[D]:
+private trait SequenceTableBuilder[S, D: Eq] extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
   private val ScrollOptions =
@@ -205,7 +203,7 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
                 case Expanded.Rows(rows) => Expanded.Rows(rows + (getRowId(sequence.last) -> true))
             case _                       => Callback.empty
       yield
-        extension (step: SequenceRow[DynamicConfig])
+        extension (step: SequenceRow[D])
           def isSelected: Boolean =
             props.selectedStepId match
               case Some(stepId) => step.id.contains(stepId)

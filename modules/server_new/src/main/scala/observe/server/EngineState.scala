@@ -10,7 +10,6 @@ import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import monocle.syntax.all.*
-import observe.engine
 import observe.engine.Engine
 import observe.engine.Sequence
 import observe.model.CalibrationQueueId

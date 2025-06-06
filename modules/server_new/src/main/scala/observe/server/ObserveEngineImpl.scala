@@ -6,7 +6,6 @@ package observe.server
 import cats.Applicative
 import cats.Endo
 import cats.Monoid
-import cats.MonoidK
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Ref
@@ -32,8 +31,8 @@ import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import monocle.function.Index.mapIndex
-import monocle.syntax.all.focus
 import mouse.all.*
+import observe.cats.given
 import observe.engine
 import observe.engine.EventResult.*
 import observe.engine.Handle.given
@@ -65,11 +64,11 @@ import SeqEvent.*
 import ClientEvent.*
 
 private class ObserveEngineImpl[F[_]: Async: Logger](
-  executeEngine:                    Engine[F],
-  override val systems:             Systems[F],
-  @annotation.unused settings:      ObserveEngineConfiguration,
-  translator:                       SeqTranslate[F],
-  @annotation.unused conditionsRef: Ref[F, Conditions]
+  executeEngine:         Engine[F],
+  override val systems:  Systems[F],
+  @unused settings:      ObserveEngineConfiguration,
+  translator:            SeqTranslate[F],
+  @unused conditionsRef: Ref[F, Conditions]
 )(using Monoid[F[Unit]])
     extends ObserveEngine[F] {
 
@@ -89,7 +88,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       .get(obsId)
       .exists(x =>
         x.seqGen.resources.intersect(used).isEmpty && (
-          st.queues.values.filter(_.status(st).running).exists(_.queue.contains(obsId)) ||
+          st.queues.values.filter(_.status.running).exists(_.queue.contains(obsId)) ||
             x.seqGen.resources.intersect(reservedByQueues).isEmpty
         )
       )
@@ -756,7 +755,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     st: EngineState[F]
   ): SortedMap[QueueId, ExecutionQueueView] =
     SortedMap(st.queues.map { case (qid, q) =>
-      qid -> ExecutionQueueView(qid, q.name, q.cmdState, q.status(st), q.queue.map(_.obsId))
+      qid -> ExecutionQueueView(qid, q.name, q.cmdState, q.status, q.queue.map(_.obsId))
     }.toList*)
 
   private def buildObserveStateStream(
@@ -1092,7 +1091,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def clearQ(qid: QueueId): Endo[EngineState[F]] = st =>
     st.queues
       .get(qid)
-      .filter(_.status(st) =!= BatchExecState.Running)
+      .filter(_.status =!= BatchExecState.Running)
       .map { _ =>
         queueO(qid).modify(_.clear)(st)
       }
@@ -1378,12 +1377,13 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     EngineState.atSequence(id).modify(updateSequenceEndo(st.conditions, st.operator))(st)
 
   private def refreshSequences: Endo[EngineState[F]] = (st: EngineState[F]) =>
-    List(
-      EngineState.gmosNorthSequence[F],
-      EngineState.gmosSouthSequence[F],
-      EngineState.flamingos2Sequence[F]
-    ).map(_.modify(updateSequenceEndo(st.conditions, st.operator)))
-      .combineAll(MonoidK[Endo].algebra)(st)
+    val f: Endo[EngineState[F]] =
+      List(
+        EngineState.gmosNorthSequence[F],
+        EngineState.gmosSouthSequence[F],
+        EngineState.flamingos2Sequence[F]
+      ).map(_.modify(updateSequenceEndo(st.conditions, st.operator))).combineAll
+    f(st)
 
   private def toggleOverride(
     resource: String,
@@ -1481,14 +1481,11 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       executeEngine
         .offer:
           Event.modifyState:
-            EngineHandle.getState
-              .map(EngineState.atSequence(obsId).getOption(_))
-              .flatMap: seq =>
-                ObserveEngine.onAtomReload[F](systems.odb, translator)(
-                  executeEngine,
-                  obsId,
-                  OnAtomReloadAction.NoAction
-                )
+            ObserveEngine.onAtomReload[F](systems.odb, translator)(
+              executeEngine,
+              obsId,
+              OnAtomReloadAction.NoAction
+            )
 
   // Subscribes to obsEdit changes in the ODB.
   private def mountOdbObsSubscription(obsId: Observation.Id): F[F[Unit]] =

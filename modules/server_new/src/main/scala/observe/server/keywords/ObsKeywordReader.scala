@@ -13,7 +13,6 @@ import lucuma.core.enums.StepGuideState
 import lucuma.core.enums.StepGuideState.Disabled
 import lucuma.core.enums.StepGuideState.Enabled
 import lucuma.core.model.TimingWindowEnd
-import lucuma.core.model.TimingWindowRepeat
 import lucuma.core.model.sequence.Step as OcsStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.util.TimeSpan

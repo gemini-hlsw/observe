@@ -7,7 +7,6 @@ import cats.syntax.all.*
 import coulomb.policy.strict.given
 import crystal.react.*
 import eu.timepit.refined.cats.*
-import eu.timepit.refined.types.string.NonEmptyString
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.SkyBackground

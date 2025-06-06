@@ -33,7 +33,6 @@ import monocle.Iso
 import monocle.Lens
 import monocle.syntax.all.focus
 import mouse.boolean.*
-import observe.model.enums.*
 import observe.server.EpicsCodex.encode
 import observe.server.EpicsCommand
 import observe.server.ObserveFailure

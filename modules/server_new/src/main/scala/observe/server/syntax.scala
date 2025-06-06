@@ -4,13 +4,11 @@
 package observe.server
 
 import cats.ApplicativeThrow
-import cats.Eq
 import cats.Functor
 import cats.MonadError
 import cats.MonadThrow
 import cats.data.*
 import cats.syntax.all.*
-import observe.engine
 import observe.engine.*
 import observe.model.*
 import observe.model.enums.*
@@ -27,15 +25,7 @@ extension [F[_], A, B](fa: EitherT[F, A, B])
     fa.leftMap(at).rethrowT
 
 extension [F[_]](q: ExecutionQueue)
-  // This assumes that there is only one instance of e in l
-  private def moveElement[T](l: List[T], e: T => Boolean, delta: Int)(using eq: Eq[T]): List[T] =
-    (l.indexWhere(e), l.find(e)) match
-      case (idx, Some(v)) if delta =!= 0 =>
-        val (h, t) = l.filterNot(e).splitAt(idx + delta)
-        (h :+ v) ++ t
-      case _                             => l
-
-  def status(st: EngineState[F]): BatchExecState = {
+  def status: BatchExecState = {
     val statuses: Seq[SequenceState] = q.queue.map(_.state)
 
     q.cmdState match {
@@ -55,10 +45,19 @@ extension [F[_]](q: ExecutionQueue)
     q.copy(queue = q.queue ++ ss)
   def removeSeq(sid: Observation.Id): ExecutionQueue                    =
     q.copy(queue = q.queue.filter(_.obsId =!= sid))
-  def moveSeq(sid: Observation.Id, delta: Int): ExecutionQueue          =
+  def moveSeq(sid: Observation.Id, delta: Int): ExecutionQueue          = {
+    // This assumes that there is only one instance of e in l
+    def moveElement[T](l: List[T], e: T => Boolean, delta: Int): List[T] =
+      (l.indexWhere(e), l.find(e)) match
+        case (idx, Some(v)) if delta =!= 0 =>
+          val (h, t) = l.filterNot(e).splitAt(idx + delta)
+          (h :+ v) ++ t
+        case _                             => l
+
     q.copy(queue =
       moveElement(q.queue, (x: ExecutionQueue.SequenceInQueue) => x.obsId === sid, delta)
     )
+  }
   def clear: ExecutionQueue                                             = q.copy(queue = List.empty)
 
 extension (r: Either[Throwable, Response])

@@ -4,7 +4,6 @@
 package observe.ui.services
 
 import cats.effect.IO
-import cats.syntax.all.*
 import clue.*
 import clue.data.syntax.*
 import crystal.ViewF

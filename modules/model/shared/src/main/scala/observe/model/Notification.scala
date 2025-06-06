@@ -5,7 +5,6 @@ package observe.model
 
 import cats.Eq
 import cats.derived.*
-import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
 import lucuma.core.enums.Instrument

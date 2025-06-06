@@ -9,7 +9,6 @@ import cats.effect.Async
 import cats.syntax.all.*
 import coulomb.ops.algebra.all.given
 import coulomb.policy.standard.given
-import coulomb.syntax.*
 import lucuma.core.enums.ComaOption
 import lucuma.core.enums.M1Source
 import lucuma.core.enums.MountGuideOption
@@ -37,7 +36,7 @@ import observe.server.tcs.TcsController.*
 import observe.server.tcs.TcsControllerEpicsCommon.calcMoveDistanceSquared
 import observe.server.tcs.TcsEpics.ProbeFollowCmd
 import observe.server.tcs.TcsEpics.VirtualGemsTelescope
-import observe.server.tcs.TcsSouthController.{*, given}
+import observe.server.tcs.TcsSouthController.*
 import org.typelevel.log4cats.Logger
 
 /**

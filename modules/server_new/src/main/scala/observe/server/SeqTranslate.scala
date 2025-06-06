@@ -53,7 +53,6 @@ import observe.server.gcal.*
 import observe.server.gems.Gems
 import observe.server.gems.GemsController
 import observe.server.gems.GemsControllerDisabled
-import observe.server.gmos.GmosController
 import observe.server.gmos.GmosController.GmosSite
 import observe.server.gmos.GmosControllerDisabled
 import observe.server.gmos.GmosHeader
@@ -546,7 +545,7 @@ object SeqTranslate {
           TcsSouth.fromConfig[F](
             overriddenSystems.tcsSouth(ov),
             subs,
-            Gems.fromConfig[F](overriddenSystems.gems(ov), systemss.guideDb, obsConfig).some,
+            Gems.fromConfig[F](overriddenSystems.gems(ov), systemss.guideDb).some,
             inst,
             systemss.guideDb
           )(

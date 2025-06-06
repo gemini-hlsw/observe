@@ -4,7 +4,6 @@
 package observe.model.enums
 
 import cats.data.NonEmptyList
-import cats.syntax.option.*
 import lucuma.core.util.Display
 import lucuma.core.util.Enumerated
 

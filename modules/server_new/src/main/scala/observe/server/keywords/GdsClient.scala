@@ -78,7 +78,7 @@ object GdsClient {
 
       // Do the request
       client
-        .expect[Elem](postRequest)(scalaxml.xmlDecoder)
+        .expect[Elem](postRequest)(using scalaxml.xmlDecoder)
         .map(GdsClient.parseError)
         .ensureOr(toObserveFailure)(_.isRight)
         .void
@@ -114,7 +114,7 @@ object GdsClient {
 
       // Do the request
       client
-        .expect[Elem](postRequest)(scalaxml.xmlDecoder)
+        .expect[Elem](postRequest)(using scalaxml.xmlDecoder)
         .map(GdsClient.parseError)
         .ensureOr(toObserveFailure)(_.isRight)
         .void
@@ -140,7 +140,7 @@ object GdsClient {
 
       // Do the request
       client
-        .expect[Elem](postRequest)(scalaxml.xmlDecoder)
+        .expect[Elem](postRequest)(using scalaxml.xmlDecoder)
         .map(GdsClient.parseError)
         .ensureOr(toObserveFailure)(_.isRight)
         .void

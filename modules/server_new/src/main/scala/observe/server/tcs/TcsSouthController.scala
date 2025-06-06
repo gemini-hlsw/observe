@@ -7,7 +7,6 @@ import cats.Show
 import cats.data.NonEmptySet
 import cats.implicits.*
 import lucuma.core.enums.Site
-import lucuma.core.model.GemsConfig
 import lucuma.core.util.NewType
 import observe.model.enums.NodAndShuffleStage
 import observe.server.gems.Gems

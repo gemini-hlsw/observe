@@ -191,13 +191,13 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = (
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
         EngineState.instrumentLoaded(Instrument.GmosNorth),
         IO.unit
       ) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](
           None,
-          sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
+          sequenceWithResources(seqObsId2, Set(Instrument.GmosSouth, TCS)),
           EngineState.instrumentLoaded(Instrument.GmosSouth),
           IO.unit
         ) >>>
@@ -223,13 +223,13 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = (
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
         EngineState.instrumentLoaded(Instrument.GmosNorth),
         IO.unit
       ) >>>
         ODBSequencesLoader.loadSequenceEndo[IO](
           None,
-          sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth)),
+          sequenceWithResources(seqObsId2, Set(Instrument.GmosSouth)),
           EngineState.instrumentLoaded(Instrument.GmosSouth),
           IO.unit
         ) >>>
@@ -262,7 +262,7 @@ class ObserveEngineSuite extends TestCommon {
     val s0 = ODBSequencesLoader
       .loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+        sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
         EngineState.instrumentLoaded(Instrument.GmosNorth),
         IO.unit
       )
@@ -294,7 +294,7 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine should not run a system configuration if sequence is running") {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
       EngineState.instrumentLoaded(Instrument.GmosNorth),
       IO.unit
     ) >>>
@@ -328,13 +328,13 @@ class ObserveEngineSuite extends TestCommon {
   test("ObserveEngine should not run a system configuration if system is in use") {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
       EngineState.instrumentLoaded(Instrument.GmosNorth),
       IO.unit
     ) >>>
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosSouth, TCS)),
+        sequenceWithResources(seqObsId2, Set(Instrument.GmosSouth, TCS)),
         EngineState.instrumentLoaded(Instrument.GmosSouth),
         IO.unit
       ) >>>
@@ -366,13 +366,13 @@ class ObserveEngineSuite extends TestCommon {
   ) {
     val s0 = (ODBSequencesLoader.loadSequenceEndo[IO](
       None,
-      sequenceWithResources(seqObsId1, Instrument.GmosNorth, Set(Instrument.GmosNorth, TCS)),
+      sequenceWithResources(seqObsId1, Set(Instrument.GmosNorth, TCS)),
       EngineState.instrumentLoaded(Instrument.GmosNorth),
       IO.unit
     ) >>>
       ODBSequencesLoader.loadSequenceEndo[IO](
         None,
-        sequenceWithResources(seqObsId2, Instrument.GmosSouth, Set(Instrument.GmosNorth, Gcal)),
+        sequenceWithResources(seqObsId2, Set(Instrument.GmosNorth, Gcal)),
         EngineState.instrumentLoaded(Instrument.GmosSouth),
         IO.unit
       ) >>>

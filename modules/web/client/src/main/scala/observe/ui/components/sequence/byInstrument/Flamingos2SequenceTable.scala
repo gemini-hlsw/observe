@@ -11,7 +11,6 @@ import lucuma.core.model.sequence.*
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
 import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
 import lucuma.react.common.*
-import lucuma.react.resizeDetector.hooks.*
 import lucuma.schemas.model.Visit
 import observe.model.ExecutionState
 import observe.model.StepProgress

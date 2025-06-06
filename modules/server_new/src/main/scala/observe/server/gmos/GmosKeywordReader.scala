@@ -10,7 +10,6 @@ import cats.syntax.all.*
 import lucuma.core.enums.MosPreImaging
 import lucuma.core.math.Angle
 import lucuma.core.math.Offset
-import lucuma.core.model.sequence
 import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.StaticConfig
 import monocle.Focus
@@ -31,8 +30,6 @@ final case class GmosObsKeywordsReader[F[
   staticConfig:  S,
   dynamicConfig: D
 )(using getters: Gmos.ParamGetters[T, S, D]) {
-  import GmosObsKeywordsReader.*
-
   def preimage: F[Boolean] =
     (getters.isMosPreimaging.get(staticConfig) === MosPreImaging.IsMosPreImaging).pure[F]
 

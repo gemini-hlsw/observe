@@ -11,8 +11,6 @@ import cats.effect.Temporal
 import cats.effect.kernel.Ref
 import cats.syntax.all.*
 import clue.*
-import clue.http4s.Http4sHttpBackend
-// import clue.http4s.Http4sHttpClient
 import clue.http4s.Http4sWebSocketBackend
 import clue.http4s.Http4sWebSocketClient
 import clue.websocket.ReconnectionStrategy
@@ -38,10 +36,7 @@ import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
 import org.http4s.Credentials
-// import org.http4s.Headers
 import org.http4s.client.Client
-import org.http4s.client.middleware.Logger as Http4sLogger
-import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.Authorization
 import org.http4s.jdkhttpclient.JdkWSClient
 import org.typelevel.log4cats.Logger
@@ -100,7 +95,7 @@ object Systems {
           ).some
 
     private val WsReconnectStrategy: ReconnectionStrategy =
-      (attempt, reason) =>
+      (attempt, _) =>
         // Increase the delay to get exponential backoff with a minimum of 1s and a max of 30s
         // TODO If it's a Not authorized, do not backoff, retry on constant period.
         FiniteDuration(
@@ -110,7 +105,7 @@ object Systems {
 
     private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken))
 
-    def odbProxy[F[_]: Async: Logger: Http4sHttpBackend]: F[OdbProxy[F]] =
+    def odbProxy[F[_]: Async: Logger /*: Http4sHttpBackend*/ ]: F[OdbProxy[F]] =
       for
         // given FetchClient[F, ObservationDB] <-
         //   Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
@@ -412,18 +407,6 @@ object Systems {
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
       for {
-        httpClient                                        <-
-          EmberClientBuilder
-            .default[IO]
-            .withLogger(Logger[IO])
-            .build
-            .map:
-              Http4sLogger(
-                logHeaders = true,
-                logBody = true,
-                logAction = ((s: String) => Logger[IO].trace(s)).some
-              )(_)
-        given Http4sHttpBackend[IO]                        = Http4sHttpBackend(httpClient)
         odbProxy                                          <- Resource.eval[IO, OdbProxy[IO]](odbProxy[IO])
         dhsClient                                         <- Resource.eval(dhs[IO](site, httpClient))
         gcdb                                              <- Resource.eval(GuideConfigDb.newDb[IO])
