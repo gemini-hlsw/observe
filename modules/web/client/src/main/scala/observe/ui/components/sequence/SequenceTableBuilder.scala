@@ -3,7 +3,6 @@
 
 package observe.ui.components.sequence
 
-import cats.Eq
 import cats.effect.IO
 import cats.syntax.all.*
 import crystal.react.hooks.*
@@ -41,7 +40,7 @@ import org.typelevel.log4cats.Logger
 import scala.scalajs.LinkingInfo
 
 // Helper to build component objects for instrument sequence tables.
-private trait SequenceTableBuilder[S, D: Eq] extends SequenceTableDefs[D]:
+private trait SequenceTableBuilder[S, D] extends SequenceTableDefs[D]:
   private type Props = SequenceTable[S, D]
 
   private val ScrollOptions =
