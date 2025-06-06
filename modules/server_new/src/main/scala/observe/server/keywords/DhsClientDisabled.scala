@@ -22,7 +22,7 @@ class DhsClientDisabled[F[_]: FlatMap: Clock: Logger] extends DhsClient[F] {
     for {
       _    <- overrideLogMessage[F]("DHS", "setKeywords")
       date <- Clock[F].monotonic
-                .map(d => Instant.EPOCH.plusNanos(d.toNanos))
+                .map(d => Instant.EPOCH.plusSeconds(d.toSeconds))
                 .map(LocalDateTime.ofInstant(_, java.time.ZoneOffset.UTC))
     } yield ImageFileId(
       f"S${date.format(format)}S${date.getHour() * 360 + date.getMinute() * 6 + date.getSecond() / 10}%04d"
