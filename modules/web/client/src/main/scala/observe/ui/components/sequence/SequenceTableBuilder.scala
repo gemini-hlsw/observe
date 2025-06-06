@@ -56,17 +56,19 @@ private trait SequenceTableBuilder[S: Eq, D <: DynamicConfig: Eq] extends Sequen
     virtualizerRef: UseRef[Option[HTMLTableVirtualizer]],
     table:          Table[SequenceTableRowType, TableMeta, Nothing, Nothing]
   )(rowIdCandidates: List[String]): Callback =
-    virtualizerRef.get.flatMap: refOpt =>
-      Callback( // Auto scroll to running step or next step.
-        refOpt.map:
-          _.scrollToIndex(
-            table
-              .getRowModel()
-              .rows
-              .indexWhere(row => rowIdCandidates.contains_(row.id.value)) - 1,
-            ScrollOptions
-          )
-      )
+    rowIdCandidates.some
+      .filter(_.nonEmpty)
+      .foldMap: rowIds =>
+        virtualizerRef.get.flatMap: refOpt =>
+          Callback: // Auto scroll to running step or next step.
+            refOpt.map:
+              _.scrollToIndex(
+                table
+                  .getRowModel()
+                  .rows
+                  .indexWhere(row => rowIds.contains_(row.id.value)) - 1,
+                ScrollOptions
+              )
 
   protected[sequence] val component =
     ScalaFnComponent[Props]: props =>
