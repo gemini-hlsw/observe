@@ -21,7 +21,6 @@ import lucuma.sso.client.util.JwtDecoder
 import observe.model.ClientId
 import observe.model.config.*
 import observe.model.events.*
-import observe.server
 import observe.server.CaServiceInit
 import observe.server.ObserveEngine
 import observe.server.Systems
@@ -115,7 +114,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
   private def jwtReader[F[_]: Concurrent](sso: LucumaSSOConfiguration): SsoJwtReader[F] =
     SsoJwtReader(JwtDecoder.withPublicKey(sso.publicKey))
 
-  private def ssoClient[F[_]: Async: Network: Logger](
+  private def ssoClient[F[_]: Async: Logger](
     httpClient: Client[F],
     sso:        LucumaSSOConfiguration
   ): Resource[F, SsoClient[F, User]] =
@@ -235,11 +234,21 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   // Override the default client config
-  private def mkClient(timeout: FiniteDuration)(using Logger[IO]): Resource[IO, Client[IO]] =
+  private def mkClient[F[_]: Async: Network: Logger](
+    timeout: FiniteDuration
+  ): Resource[F, Client[F]] =
     EmberClientBuilder
-      .default[IO]
+      .default[F]
       .withTimeout(timeout)
+      .withLogger(Logger[F])
       .build
+    // Uncomment the following to log HTTP requests and responses
+    // .map:
+    //   Http4sLogger(
+    //     logHeaders = true,
+    //     logBody = true,
+    //     logAction = ((s: String) => Logger[F].trace(s)).some
+    //   )(_)
 
   private def engineIO(
     conf:       ObserveConfiguration,
@@ -262,7 +271,7 @@ object WebServerLauncher extends IOApp with LogInitialization {
         given Logger[IO] <- Resource.eval(setupLogger[IO])
         conf             <- Resource.eval(config[IO].flatMap(loadConfiguration[IO]))
         _                <- Resource.eval(printBanner(conf))
-        cli              <- mkClient(conf.observeEngine.dhsTimeout)
+        cli              <- mkClient[IO](conf.observeEngine.dhsTimeout)
         cs               <- Resource.eval:
                               Ref.of[IO, ClientsSetDb.ClientsSet](Map.empty).map(ClientsSetDb.apply[IO](_))
         _                <- Resource.eval(publishStats(cs).compile.drain.start)

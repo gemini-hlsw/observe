@@ -261,9 +261,7 @@ package object keywords {
   }
 
   extension [F[_]: Functor, A: DefaultHeaderValue](v: F[Option[A]]) {
-    private def D: DefaultHeaderValue[A] = DefaultHeaderValue[A]
-
-    def orDefault: F[A] = v.map(_.getOrElse(D.default))
+    def orDefault: F[A] = v.map(_.getOrElse(DefaultHeaderValue[A].default))
   }
 
   // Keywords are read and they can fail or be missing

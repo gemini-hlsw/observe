@@ -66,7 +66,7 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri, maxKeywords: Int, instr
       baseURI
     )
     clientWithRetry
-      .expect[Either[ObserveFailure, ImageFileId]](req)(
+      .expect[Either[ObserveFailure, ImageFileId]](req)(using
         jsonOf[F, Either[ObserveFailure, ImageFileId]]
       )
       .attemptT
@@ -107,7 +107,7 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri, maxKeywords: Int, instr
             List(internalKeywordConvert(StringKeyword(KeywordName.INSTRUMENT, instrumentName))),
             finalFlag
           )
-        )(jsonOf[F, Either[ObserveFailure, Unit]])
+        )(using jsonOf[F, Either[ObserveFailure, Unit]])
         .attemptT
         .leftMap(ObserveExceptionWhile("sending keywords to DHS", _))
         .flatMap(EitherT.fromEither(_))
@@ -125,7 +125,7 @@ class DhsClientHttp[F[_]](base: Client[F], baseURI: Uri, maxKeywords: Int, instr
                 ),
                 (i === pkgs.length - 1) && finalFlag
               )
-            )(jsonOf[F, Either[ObserveFailure, Unit]])
+            )(using jsonOf[F, Either[ObserveFailure, Unit]])
             .attemptT
             .leftMap(ObserveExceptionWhile("sending keywords to DHS", _))
             .flatMap(EitherT.fromEither(_))

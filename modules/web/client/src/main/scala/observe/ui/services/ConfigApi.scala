@@ -16,20 +16,29 @@ import observe.model.Observer
 import observe.model.Operator
 import observe.model.SubsystemEnabled
 
+import scala.annotation.unused
+
 trait ConfigApi[F[_]: MonadThrow]:
-  def setImageQuality(iq:    ImageQuality): F[Unit]    = NotAuthorized
-  def setCloudExtinction(ce: CloudExtinction): F[Unit] = NotAuthorized
-  def setWaterVapor(wv:      WaterVapor): F[Unit]      = NotAuthorized
-  def setSkyBackground(sb:   SkyBackground): F[Unit]   = NotAuthorized
+  def setImageQuality(@unused iq:    ImageQuality): F[Unit]    = NotAuthorized
+  def setCloudExtinction(@unused ce: CloudExtinction): F[Unit] = NotAuthorized
+  def setWaterVapor(@unused wv:      WaterVapor): F[Unit]      = NotAuthorized
+  def setSkyBackground(@unused b:    SkyBackground): F[Unit]   = NotAuthorized
 
-  def setOperator(operator: Option[Operator]): F[Unit] = NotAuthorized
-  def setObserver(obsId:    Observation.Id, observer: Option[Observer]): F[Unit] = NotAuthorized
-
-  def setTcsEnabled(obsId:  Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
-  def setGcalEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
-  def setInstrumentEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] =
+  def setOperator(@unused operator: Option[Operator]): F[Unit] = NotAuthorized
+  def setObserver(@unused obsId: Observation.Id, @unused observer: Option[Observer]): F[Unit] =
     NotAuthorized
-  def setDhsEnabled(obsId: Observation.Id, enabled: SubsystemEnabled): F[Unit] = NotAuthorized
+
+  def setTcsEnabled(@unused obsId: Observation.Id, @unused enabled: SubsystemEnabled): F[Unit]  =
+    NotAuthorized
+  def setGcalEnabled(@unused obsId: Observation.Id, @unused enabled: SubsystemEnabled): F[Unit] =
+    NotAuthorized
+  def setInstrumentEnabled(
+    @unused obsId:   Observation.Id,
+    @unused enabled: SubsystemEnabled
+  ): F[Unit] =
+    NotAuthorized
+  def setDhsEnabled(@unused obsId: Observation.Id, @unused enabled: SubsystemEnabled): F[Unit]  =
+    NotAuthorized
 
   def isBlocked: Boolean = false
 

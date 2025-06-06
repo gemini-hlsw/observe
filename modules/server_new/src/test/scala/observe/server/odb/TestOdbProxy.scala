@@ -30,14 +30,12 @@ import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import lucuma.core.model.sequence.gmos
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.refined.*
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.focus
-import observe.common.ObsQueriesGQL.ObsQuery
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment

@@ -5,7 +5,6 @@ package observe.model
 
 import cats.derived.*
 import cats.kernel.Order
-import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import observe.model.enums.Resource
 

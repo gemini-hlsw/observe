@@ -12,7 +12,6 @@ import lucuma.core.model.AltairConfig
 import lucuma.core.model.GemsConfig
 import lucuma.core.model.GemsConfig.*
 import lucuma.core.util.TimeSpan
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation
 import observe.server.gems.Gems.GemsWfsState
 import observe.server.tcs.Gaos
 import observe.server.tcs.Gaos.PauseCondition
@@ -130,8 +129,7 @@ object Gems {
 
   def fromConfig[F[_]: MonadThrow: Logger](
     c:             GemsController[F],
-    guideConfigDb: GuideConfigDb[F],
-    obsCfg:        Observation
+    guideConfigDb: GuideConfigDb[F]
   ): Gems[F] = {
     val p1    = none[StepGuideState]
     val oi    = none[StepGuideState]

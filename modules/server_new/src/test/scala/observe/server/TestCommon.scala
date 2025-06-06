@@ -451,7 +451,6 @@ object TestCommon {
 
   def sequenceWithResources(
     id:        Observation.Id,
-    ins:       Instrument,
     resources: Set[Resource | Instrument]
   ): SequenceGen[IO] =
     SequenceGen.GmosNorth[IO](

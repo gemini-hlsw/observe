@@ -28,7 +28,7 @@ import observe.server.Systems
 import observe.server.events.TargetedClientEvent
 import org.typelevel.log4cats.Logger
 
-class TestObserveEngine[F[_]: Sync: Logger](sys: Systems[F]) extends ObserveEngine[F] {
+class TestObserveEngine[F[_]: Sync](sys: Systems[F]) extends ObserveEngine[F] {
   override val systems: Systems[F] = sys
 
   override def start(

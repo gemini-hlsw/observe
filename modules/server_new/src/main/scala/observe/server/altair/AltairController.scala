@@ -3,7 +3,6 @@
 
 package observe.server.altair
 
-import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import lucuma.core.model.AltairConfig
 import lucuma.core.util.TimeSpan

@@ -3,7 +3,6 @@
 
 package observe.server.events
 
-import observe.engine.Result
 import observe.engine.SystemEvent
 import observe.engine.UserEvent
 import observe.server.SeqEvent

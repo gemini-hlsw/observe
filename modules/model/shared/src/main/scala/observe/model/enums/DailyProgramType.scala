@@ -3,7 +3,6 @@
 
 package observe.model.enums
 
-import cats.instances.string.*
 import lucuma.core.enums.ProgramType
 import lucuma.core.util.Enumerated
 

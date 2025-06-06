@@ -192,10 +192,12 @@ object Gmos {
     case _ => 2.0
   }
 
-  def buildConfig[F[
-    _
-  ]: Temporal: Logger, T <: GmosSite, S <: sequence.gmos.StaticConfig, D <: sequence.gmos.DynamicConfig](
-    instrument: Instrument,
+  def buildConfig[
+    F[_],
+    T <: GmosSite,
+    S <: sequence.gmos.StaticConfig,
+    D <: sequence.gmos.DynamicConfig
+  ](
     stepType:   StepType,
     staticCfg:  S,
     dynamicCfg: D

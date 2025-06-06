@@ -10,6 +10,8 @@ import japgolly.scalajs.react.feature.Context
 import lucuma.core.model.sequence.Dataset
 import observe.ui.model.EditableQaFields
 
+import scala.annotation.unused
+
 trait ODBQueryApi[F[_]: Sync]:
   def refreshNighttimeVisits: F[Unit] =
     Sync[F].delay(println("refreshNighttimeVisits invoked with uninitialized ODBQueryApi"))
@@ -17,7 +19,7 @@ trait ODBQueryApi[F[_]: Sync]:
   def refreshNighttimeSequence: F[Unit] =
     Sync[F].delay(println("refreshNighttimeSequence invoked with uninitialized ODBQueryApi"))
 
-  def updateDatasetQa(datasetId: Dataset.Id, qa: EditableQaFields): F[Unit] =
+  def updateDatasetQa(@unused datasetId: Dataset.Id, @unused qa: EditableQaFields): F[Unit] =
     Sync[F].delay(println("updateDatasetQa invoked with uninitialized ODBQueryApi"))
 
 object ODBQueryApi:

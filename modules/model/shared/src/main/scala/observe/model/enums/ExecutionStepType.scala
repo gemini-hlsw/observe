@@ -5,7 +5,6 @@ package observe.model.enums
 
 import cats.*
 import cats.derived.*
-import cats.syntax.all.*
 import lucuma.core.util.Display
 
 enum ExecutionStepType(val label: String) derives Eq:

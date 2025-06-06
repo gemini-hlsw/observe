@@ -8,12 +8,9 @@ import cats.effect.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
 import fs2.concurrent.SignallingRef
-import lucuma.core.enums.MountGuideOption
 import lucuma.core.enums.MountGuideOption.*
 import lucuma.core.model.GuideConfig
-import lucuma.core.model.M1GuideConfig
 import lucuma.core.model.M1GuideConfig.*
-import lucuma.core.model.M2GuideConfig
 import lucuma.core.model.M2GuideConfig.*
 import lucuma.core.model.TelescopeGuideConfig
 import monocle.Focus

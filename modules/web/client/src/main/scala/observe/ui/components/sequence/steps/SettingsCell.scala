@@ -18,7 +18,7 @@ case class SettingsCell(
 ) extends ReactFnProps(SettingsCell)
 
 object SettingsCell
-    extends ReactFnComponent[SettingsCell](props =>
+    extends ReactFnComponent[SettingsCell](_ =>
       // val page = if (props.isPreview) {
       //   Pages.PreviewConfigPage(p.instrument, p.obsId, p.stepId)
       // } else {

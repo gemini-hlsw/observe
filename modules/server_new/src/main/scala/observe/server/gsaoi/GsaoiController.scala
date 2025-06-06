@@ -3,7 +3,6 @@
 
 package observe.server.gsaoi
 
-import cats.Applicative
 import cats.Eq
 import cats.Show
 import lucuma.core.util.NewType
@@ -29,7 +28,7 @@ trait GsaoiController[F[_]] {
 
   def observeProgress(total: TimeSpan): fs2.Stream[F, Progress]
 
-  def calcTotalExposureTime(cfg: DCConfig)(using ev: Applicative[F]): TimeSpan = {
+  def calcTotalExposureTime(cfg: DCConfig): TimeSpan = {
     val readFactor  = 1.2
     val readOutTime = TimeSpan.unsafeFromMicroseconds(15000000)
 

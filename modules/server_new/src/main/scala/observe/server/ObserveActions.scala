@@ -45,7 +45,7 @@ trait ObserveActions {
   /**
    * Send the datasetStart command to the odb
    */
-  private def sendDataStart[F[_]: MonadThrow](
+  private def sendDataStart[F[_]](
     odb:    OdbProxy[F],
     obsId:  Observation.Id,
     fileId: ImageFileId

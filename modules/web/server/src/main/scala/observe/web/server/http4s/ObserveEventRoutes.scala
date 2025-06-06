@@ -33,7 +33,6 @@ import org.http4s.websocket.WebSocketFrame.Pong
 import org.http4s.websocket.WebSocketFrame.Text
 import org.typelevel.log4cats.Logger
 
-import java.util.UUID
 import scala.concurrent.duration.*
 
 /**

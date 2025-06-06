@@ -14,7 +14,6 @@ import lucuma.core.enums.Flamingos2Reads
 import lucuma.core.enums.Flamingos2WindowCover
 import lucuma.core.util.NewType
 import lucuma.core.util.TimeSpan
-import lucuma.core.util.TimeSpan.*
 import observe.model.dhs.ImageFileId
 import observe.model.enums.ObserveCommandResult
 import observe.server.Progress

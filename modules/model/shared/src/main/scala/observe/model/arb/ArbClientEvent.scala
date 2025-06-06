@@ -24,7 +24,6 @@ import observe.model.Operator
 import observe.model.SequenceState
 import observe.model.SequenceView
 import observe.model.SequencesQueue
-import observe.model.UserPrompt
 import observe.model.UserPrompt.ChecksOverride
 import observe.model.arb.ObserveModelArbitraries.given
 import observe.model.enums.ActionStatus

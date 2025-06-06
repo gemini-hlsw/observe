@@ -17,7 +17,6 @@ import lucuma.core.model.sequence.Step
 import lucuma.core.refined.given
 import lucuma.sso.client.SsoClient
 import observe.model.enums.RunOverride
-import observe.server
 import observe.server.ObserveEngine
 import org.http4s.*
 import org.http4s.circe.*

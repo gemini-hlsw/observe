@@ -9,12 +9,14 @@ import lucuma.core.enums.LightSinkName
 import lucuma.core.enums.ObserveClass
 import lucuma.core.model.sequence.StepConfig
 
+import scala.annotation.unused
+
 trait InstrumentSpecifics[S, D] extends InstrumentGuide {
   def calcStepType(
-    stepConfig:   StepConfig,
-    staticConfig: S,
-    instConfig:   D,
-    obsClass:     ObserveClass
+    stepConfig:           StepConfig,
+    @unused staticConfig: S,
+    @unused instConfig:   D,
+    obsClass:             ObserveClass
   ): Either[ObserveFailure, StepType] =
     SeqTranslate.calcStepType(instrument, stepConfig, obsClass)
 

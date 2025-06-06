@@ -9,7 +9,6 @@ import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
 import lucuma.react.common.*
-import lucuma.react.resizeDetector.hooks.*
 import lucuma.schemas.model.Visit
 import observe.model.ExecutionState
 import observe.model.StepProgress

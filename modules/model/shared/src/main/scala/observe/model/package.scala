@@ -3,7 +3,6 @@
 
 package observe.model
 
-import cats.syntax.all.*
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import lucuma.core.enums.Instrument

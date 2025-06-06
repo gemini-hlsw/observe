@@ -4,7 +4,6 @@
 package observe.server
 
 import cats.Endo
-import cats.effect.Async
 import cats.syntax.all.*
 import lucuma.core.model.sequence.Atom
 import monocle.Lens
@@ -19,7 +18,7 @@ import scala.annotation.unused
 
 import odb.OdbProxy
 
-final class ODBSequencesLoader[F[_]: Async](
+final class ODBSequencesLoader[F[_]](
   @unused odbProxy:   OdbProxy[F],
   @unused translator: SeqTranslate[F],
   @unused execEngine: Engine[F]
