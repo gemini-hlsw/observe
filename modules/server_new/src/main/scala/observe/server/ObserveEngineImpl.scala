@@ -888,15 +888,20 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         .as[TargetedClientEvent](BaDum)
     ) ++
       stream(EngineState.default[F])
-        .flatMap: x =>
-          Stream.eval(notifyODB(x).attempt)
-        .flatMap:
-          case Right((ev, qState)) => toClientEvent(ev, qState, systems.odb)
-          case Left(e)             =>
-            Stream.eval:
-              LogMessage
-                .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
-                .map(LogEvent(_))
+        .flatMap: (result, qState) =>
+          Stream(
+            toClientEvent(result, qState, systems.odb),
+            Stream
+              .eval:
+                notifyODB(result, qState).attempt
+              .flatMap:
+                case Right((result, qState)) => Stream.empty
+                case Left(e)                 =>
+                  Stream.eval:
+                    LogMessage
+                      .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
+                      .map(LogEvent(_): TargetedClientEvent)
+          ).parJoinUnbounded
 
   override def stream(s0: EngineState[F]): Stream[F, (EventResult, EngineState[F])] =
     // TODO We are never using the process function. Consider removing the `process` method and just returning the stream.
@@ -1344,15 +1349,15 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     i: (EventResult, EngineState[F])
   ): F[(EventResult, EngineState[F])] =
     (i match {
-      case (SystemUpdate(SystemEvent.Failed(id, _, e), _), _) =>
-        Logger[F].error(s"Error executing $id due to $e") <*
+      case (SystemUpdate(SystemEvent.Failed(obsId, _, e), _), _) =>
+        Logger[F].error(s"Error executing $obsId due to $e") <*
           systems.odb
-            .stepAbort(id)
+            .stepAbort(obsId)
             .ensure(
               ObserveFailure
                 .Unexpected("Unable to send ObservationAborted message to ODB.")
             )(identity)
-      case _                                                  => Applicative[F].unit
+      case _                                                     => Applicative[F].unit
     }).as(i)
 
   private def updateSequenceEndo(
@@ -1479,22 +1484,18 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
             EngineHandle.getState
               .map(EngineState.atSequence(obsId).getOption(_))
               .flatMap: seq =>
-                if seq.exists(x => !x.seq.status.isRunning) then
-                  ObserveEngine.onAtomReload[F](systems.odb, translator)(
-                    executeEngine,
-                    obsId,
-                    OnAtomReloadAction.NoAction
-                  )
-                else
-                  Handle.pure[F, EngineState[F], Event[F], SeqEvent]:
-                    NullSeqEvent
+                ObserveEngine.onAtomReload[F](systems.odb, translator)(
+                  executeEngine,
+                  obsId,
+                  OnAtomReloadAction.NoAction
+                )
 
   // Subscribes to obsEdit changes in the ODB.
   private def mountOdbObsSubscription(obsId: Observation.Id): F[F[Unit]] =
     systems.odb
       .obsEditSubscription(obsId)
       .flatMap: obsEditSignal =>
-        obsEditSignal
+        obsEditSignal // TODO Debounce???
           .evalMap(_ => processObsEditOdbSignal(obsId))
           .compile
           .drain
