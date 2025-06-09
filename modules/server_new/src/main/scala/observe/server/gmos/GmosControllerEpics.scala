@@ -57,9 +57,9 @@ trait GmosEncoders {
     case GmosAmpCount.Twelve => "ALL"
   }
 
-  given EncodeEpicsValue[BinningX, Int] = EncodeEpicsValue(_.count)
+  given EncodeEpicsValue[BinningX, Int] = EncodeEpicsValue(_.count.value)
 
-  given EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count)
+  given EncodeEpicsValue[BinningY, Int] = EncodeEpicsValue(_.count.value)
 
   given disperserOrderEncoder: EncodeEpicsValue[GratingOrder, String] = EncodeEpicsValue(
     _.shortName
@@ -261,9 +261,9 @@ object GmosControllerEpics extends GmosEncoders {
         roi:     Option[ROIValues]
       ): Option[F[Unit]] = (roi, DC.rois.get(index)).mapN { (roi, r) =>
         r.setCcdXstart1(roi.xStart.value) *>
-          r.setCcdXsize1(roi.xSize.value / binning.x.count) *>
+          r.setCcdXsize1(roi.xSize.value / binning.x.count.value) *>
           r.setCcdYstart1(roi.yStart.value) *>
-          r.setCcdYsize1(roi.ySize.value / binning.y.count)
+          r.setCcdYsize1(roi.ySize.value / binning.y.count.value)
       }
 
       private def setFilters(
