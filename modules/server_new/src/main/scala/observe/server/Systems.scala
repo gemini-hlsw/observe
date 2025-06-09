@@ -9,6 +9,7 @@ import cats.effect.IO
 import cats.effect.Resource
 import cats.effect.Temporal
 import cats.effect.kernel.Ref
+import cats.effect.std.SecureRandom
 import cats.syntax.all.*
 import clue.*
 import clue.http4s.Http4sWebSocketBackend
@@ -105,7 +106,7 @@ object Systems {
 
     private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken))
 
-    def odbProxy[F[_]: Async: Logger /*: Http4sHttpBackend*/ ]: F[OdbProxy[F]] =
+    def odbProxy[F[_]: Async: Logger /*: Http4sHttpBackend*/: SecureRandom]: F[OdbProxy[F]] =
       for
         // given FetchClient[F, ObservationDB] <-
         //   Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
