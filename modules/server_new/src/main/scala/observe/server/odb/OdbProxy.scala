@@ -9,7 +9,6 @@ import cats.effect.Resource
 import cats.effect.Sync
 import cats.effect.kernel.Ref
 import cats.syntax.all.*
-import clue.ClientAppliedF.*
 import clue.FetchClient
 import clue.data.syntax.*
 import clue.syntax.*
