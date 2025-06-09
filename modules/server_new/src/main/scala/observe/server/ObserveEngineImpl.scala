@@ -881,26 +881,22 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   }
 
   override def clientEventStream: Stream[F, TargetedClientEvent] =
-    Stream.eval(
-      executeEngine
-        .offer(Event.getState(_ => heartbeatStream))
-        .as[TargetedClientEvent](BaDum)
-    ) ++
-      stream(EngineState.default[F])
-        .flatMap: (result, qState) =>
-          Stream(
-            toClientEvent(result, qState, systems.odb),
-            Stream
-              .eval:
-                notifyODB(result, qState).attempt
-              .flatMap:
-                case Right((result, qState)) => Stream.empty
-                case Left(e)                 =>
-                  Stream.eval:
-                    LogMessage
-                      .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
-                      .map(LogEvent(_): TargetedClientEvent)
-          ).parJoinUnbounded
+    heartbeatStream
+      .as[TargetedClientEvent](BaDum)
+      .merge:
+        stream(EngineState.default[F])
+          .flatMap: (result, qState) =>
+            toClientEvent(result, qState, systems.odb).merge:
+              Stream
+                .eval:
+                  notifyODB(result, qState)
+                    .as(none)
+                    .handleErrorWith: e =>
+                      LogMessage
+                        .now(ObserveLogLevel.Error, s"Error notifying ODB: ${e.getMessage}")
+                        .map(LogEvent(_): TargetedClientEvent)
+                        .map(_.some)
+                .unNone
 
   override def stream(s0: EngineState[F]): Stream[F, (EventResult, EngineState[F])] =
     // TODO We are never using the process function. Consider removing the `process` method and just returning the stream.
