@@ -81,10 +81,10 @@ object GmosController {
     // TODO: Replace by lucuma type when it exists.
     sealed case class ROIDescription(getXStart: Int, getYStart: Int, xSize: Int, ySize: Int) {
       def getXSize(bvalue: BinningX = GmosXBinning.One): Int =
-        xSize / bvalue.count
+        xSize / bvalue.count.value
 
       def getYSize(bvalue: BinningY = GmosYBinning.One): Int =
-        ySize / bvalue.count
+        ySize / bvalue.count.value
     }
 
     // Used for the shutterState
