@@ -35,7 +35,7 @@ object Settings {
     val logback             = "1.5.18"
     val pureConfig          = "0.17.9"
     val monocleVersion      = "3.3.0"
-    val circeVersion        = "0.14.13"
+    val circeVersion        = "0.14.14"
     val circeRefinedVersion = "0.15.1"
 
     // test libraries
