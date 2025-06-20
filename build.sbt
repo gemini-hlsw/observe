@@ -265,11 +265,12 @@ lazy val observe_server = project
         PPrint.value,
         Clue.value,
         ClueHttp4s,
+        ClueNatchez,
         CatsParse.value,
         ACM,
         GiapiScala
       ) ++ Coulomb.value ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++
-        Circe.value,
+        Circe.value ++ Natchez,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server_new"
     ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName

@@ -3,6 +3,7 @@
 
 package observe.server
 
+import _root_.natchez.Trace
 import cats.Monad
 import cats.effect.Async
 import cats.effect.IO
@@ -14,6 +15,7 @@ import cats.syntax.all.*
 import clue.*
 import clue.http4s.Http4sWebSocketBackend
 import clue.http4s.Http4sWebSocketClient
+import clue.natchez.NatchezMiddleware
 import clue.websocket.ReconnectionStrategy
 import edu.gemini.epics.acm.CaService
 import io.circe.syntax.*
@@ -83,7 +85,7 @@ object Systems {
     sso:      LucumaSSOConfiguration,
     service:  CaService,
     tops:     Map[String, String]
-  )(using L: Logger[IO], T: Temporal[IO]) {
+  )(using L: Logger[IO], T: Temporal[IO])(using Trace[IO]) {
     val reconnectionStrategy: ReconnectionStrategy =
       (attempt, reason) =>
         // Web Socket close codes: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent
@@ -106,17 +108,18 @@ object Systems {
 
     private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken))
 
-    def odbProxy[F[_]: Async: Logger /*: Http4sHttpBackend*/: SecureRandom]: F[OdbProxy[F]] =
+    def odbProxy[F[_]: Async: Logger: Trace /*: Http4sHttpBackend*/: SecureRandom]: F[OdbProxy[F]] =
       for
         // given FetchClient[F, ObservationDB] <-
         //   Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
         wsClient                           <- JdkWSClient.simple[F].allocated.map(_._1)
         given Http4sWebSocketBackend[F]     = Http4sWebSocketBackend[F](wsClient)
-        streamingClient                    <-
+        innerClient                        <-
           Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB-WS", WsReconnectStrategy)
         _                                  <-
-          streamingClient.connect:
+          innerClient.connect:
             Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson).pure[F]
+        streamingClient                     = NatchezMiddleware(innerClient)
         // TODO: Remove next line, revert to http client
         given FetchClient[F, ObservationDB] = streamingClient
         odbCommands                        <-
@@ -472,7 +475,7 @@ object Systems {
     settings:   ObserveEngineConfiguration,
     sso:        LucumaSSOConfiguration,
     service:    CaService
-  )(using T: Temporal[IO], L: Logger[IO]): Resource[IO, Systems[IO]] =
+  )(using T: Temporal[IO], L: Logger[IO])(using Trace[IO]): Resource[IO, Systems[IO]] =
     Builder(settings, sso, service, decodeTops(settings.tops)).build(site, httpClient)
 
   def dummy[F[_]: Async: Logger]: F[Systems[F]] =

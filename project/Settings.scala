@@ -23,7 +23,6 @@ object Settings {
     val http4sDomVersion           = "0.2.12"
     val http4sJdkHttpClientVersion = "0.10.0"
     val http4sScalaXmlVersion      = "0.23.15"
-    val natchezVersion             = "0.3.7"
 
     val coulomb             = "0.8.0"
     val commonsHttp         = "3.1"
@@ -33,6 +32,7 @@ object Settings {
     val log4cats            = "2.7.0"
     val log4catsLogLevel    = "0.3.1"
     val logback             = "1.5.18"
+    val natchez             = "0.3.7"
     val pureConfig          = "0.17.9"
     val monocleVersion      = "3.3.0"
     val circeVersion        = "0.14.14"
@@ -50,10 +50,10 @@ object Settings {
     val pprint        = "0.9.0"
 
     // Gemini Libraries
-    val lucumaCore      = "0.133.0"
-    val lucumaSchemas   = "0.140.0"
+    val lucumaCore      = "0.136.1"
+    val lucumaSchemas   = "0.142-5ca4d9f-20250620T221621Z-SNAPSHOT"
     val lucumaSSO       = "0.8.22"
-    val lucumaODBSchema = "0.24.1"
+    val lucumaODBSchema = "0.25.1"
 
     // Gemini UI Libraries
     val crystal     = "0.47.6"
@@ -61,7 +61,7 @@ object Settings {
     val lucumaUI    = "0.144.2"
 
     // Clue
-    val clue = "0.45.0"
+    val clue = "0.46-02a7556-20250620T230549Z-SNAPSHOT"
 
     // ScalaJS libraries
     val javaTimeJS   = "2.6.0"
@@ -124,6 +124,10 @@ object Settings {
       )
     )
     val Logging          = Def.setting(Seq(JuliSlf4j) ++ Logback)
+    val Natchez          = Seq(
+      "org.tpolecat" %% "natchez-core"      % LibraryVersions.natchez,
+      "org.tpolecat" %% "natchez-honeycomb" % LibraryVersions.natchez
+    )
     val PureConfig       = Seq(
       "com.github.pureconfig" %% "pureconfig-core"        % LibraryVersions.pureConfig,
       "com.github.pureconfig" %% "pureconfig-cats"        % LibraryVersions.pureConfig,
@@ -262,6 +266,7 @@ object Settings {
     val ClueGenerator = "edu.gemini" %% "clue-generator" % LibraryVersions.clue
     val ClueHttp4s    = "edu.gemini" %% "clue-http4s"    % LibraryVersions.clue
     val ClueJs        = Def.setting("edu.gemini" %%% "clue-scalajs" % LibraryVersions.clue)
+    val ClueNatchez   = "edu.gemini" %% "clue-natchez"   % LibraryVersions.clue
 
   }
 
