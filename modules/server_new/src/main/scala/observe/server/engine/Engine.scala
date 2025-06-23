@@ -3,9 +3,10 @@
 
 package observe.engine
 
-import cats.*
+import cats.Endo
 import cats.data.StateT
 import cats.effect.Concurrent
+import cats.effect.MonadCancelThrow
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import fs2.Stream
@@ -14,6 +15,7 @@ import monocle.Optional
 import mouse.boolean.*
 import observe.model.Observation
 import observe.model.SequenceState
+import observe.model.SequenceState.*
 import observe.server.EngineState
 import observe.server.SeqEvent
 import org.typelevel.log4cats.Logger
@@ -25,9 +27,8 @@ import Result.PartialVal
 import Result.RetVal
 import UserEvent.*
 import Handle.given
-import observe.model.SequenceState.*
 
-class Engine[F[_]: MonadThrow: Logger] private (
+class Engine[F[_]: MonadCancelThrow: Logger] private (
   streamQueue: Queue[F, Stream[F, Event[F]]],
   inputQueue:  Queue[F, Event[F]],
   atomLoad:    (Engine[F], Observation.Id) => EngineHandle[F, SeqEvent],
@@ -101,7 +102,6 @@ class Engine[F[_]: MonadThrow: Logger] private (
               .as[Outcome](Outcome.Ok)
         }
         .getOrElse(EngineHandle.pure(Outcome.Failure))
-
     }
 
   private def completeSingleRun[V <: RetVal](c: ActionCoords, r: V): EngineHandle[F, Unit] =
@@ -297,14 +297,14 @@ class Engine[F[_]: MonadThrow: Logger] private (
         .sequenceStateAt(obsId)
         .getOption(st)
         .map {
-          case seq @ Sequence.State.Final(_, _)     =>
+          case seq @ Sequence.State.Final(_, _)        =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
               EngineHandle.debug(
                 s"**** {execute} STOPPING SEQUENCE BECAUSE IT IS IN FINAL STATE"
               ) >>
               send(Event.finished(obsId))
-          case seq @ Sequence.State.Zipper(z, _, _) =>
+          case seq @ Sequence.State.Zipper(z, _, _, _) =>
             val stepId                         = z.focus.toStep.id
             val u: List[Stream[F, Event[F]]]   =
               seq.current.actions
@@ -401,7 +401,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
     EngineHandle
       .getSequenceState(obsId)
       .flatMap(_.collect {
-        case s @ Sequence.State.Zipper(z, _, _)
+        case s @ Sequence.State.Zipper(z, _, _, _)
             if Sequence.State.isRunning(s) && s.current.execution.lift(i).exists(Action.paused) =>
           EngineHandle.modifySequenceState[F](obsId)(_.start(i)) *>
             EngineHandle.fromEventStream(act(obsId, z.focus.toStep.id, (cont, i)))
@@ -463,9 +463,7 @@ class Engine[F[_]: MonadThrow: Logger] private (
       EngineHandle.fromEventStream(f) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
     case ModifyState(f)                 =>
-      summon[Monad[EngineHandle[F, *]]].map(f)((r: SeqEvent) =>
-        UserCommandResponse[F](ue, Outcome.Ok, Some(r))
-      )
+      f.map((r: SeqEvent) => UserCommandResponse[F](ue, Outcome.Ok, Some(r)))
     case ActionStop(obsId, f)           =>
       debug("Engine: Action stop requested") *> actionStop(obsId, f) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))

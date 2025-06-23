@@ -3,6 +3,7 @@
 
 package observe.engine
 
+import cats.effect.kernel.Deferred
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
@@ -221,6 +222,7 @@ object Sequence {
 
     def clearSingles: State[F]
 
+    def latch: Option[Deferred[F, Unit]]
   }
 
   object State {
@@ -228,8 +230,8 @@ object Sequence {
     def status[F[_]]: Lens[State[F], SequenceState] =
       // `State` doesn't provide `.copy`
       Lens[State[F], SequenceState](_.status)(s => {
-        case Zipper(st, _, x) => Zipper(st, s, x)
-        case Final(st, _)     => Final(st, s)
+        case Zipper(st, _, x, l) => Zipper(st, s, x, l)
+        case Final(st, _)        => Final(st, s)
       })
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
@@ -264,7 +266,7 @@ object Sequence {
     def init[F[_]](q: Sequence[F]): State[F] =
       Sequence.Zipper
         .zipper[F](q)
-        .map(Zipper(_, SequenceState.Idle, Map.empty))
+        .map(Zipper(_, SequenceState.Idle, Map.empty, none))
         .getOrElse(Final(q, SequenceState.Idle))
 
     /**
@@ -293,7 +295,8 @@ object Sequence {
     case class Zipper[F[_]](
       zipper:     Sequence.Zipper[F],
       status:     SequenceState,
-      singleRuns: Map[ActionCoordsInSeq, ActionState]
+      singleRuns: Map[ActionCoordsInSeq, ActionState],
+      latch:      Option[Deferred[F, Unit]] = none
     ) extends State[F] { self =>
 
       override val next: Option[State[F]] =
@@ -303,7 +306,7 @@ object Sequence {
         zipper.next match
           // Last execution
           case None    => zipper.uncurrentify.map(Final[F](_, status))
-          case Some(x) => Zipper(x, status, singleRuns).some
+          case Some(x) => Zipper(x, status, singleRuns, latch).some
 
       override val isLastAction: Boolean =
         zipper.focus.pending.isEmpty
@@ -458,6 +461,8 @@ object Sequence {
       override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = None
 
       override def clearSingles: State[F] = self
+
+      override val latch: Option[Deferred[F, Unit]] = none
     }
 
   }

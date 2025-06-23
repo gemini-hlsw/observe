@@ -3,11 +3,13 @@
 
 package observe.engine
 
+import cats.Applicative
 import cats.Functor
 import cats.Monad
-import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.data.StateT
+import cats.effect.MonadCancelThrow
+import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import fs2.Stream
 import lucuma.core.model.Observation
@@ -46,47 +48,49 @@ type EngineHandle[F[_], A] = Handle[F, EngineState[F], Event[F], A]
 
 // Constructors for `Handle` but with the types specific to the `EngineHandle` type.
 object EngineHandle {
-  inline def pure[F[_]: MonadThrow, A](a: A): EngineHandle[F, A] = Handle.pure(a)
+  inline def pure[F[_]: MonadCancelThrow, A](a: A): EngineHandle[F, A] = Handle.pure(a)
 
   inline def fromStateT[F[_]: Functor, O](
     s: StateT[F, EngineState[F], O]
   ): EngineHandle[F, O] =
     Handle.fromStateT(s)
 
-  inline def liftF[F[_]: MonadThrow, A](f: F[A]): EngineHandle[F, A] = Handle.liftF(f)
+  inline def liftF[F[_]: MonadCancelThrow, A](f: F[A]): EngineHandle[F, A] = Handle.liftF(f)
 
-  inline def unit[F[_]: MonadThrow]: EngineHandle[F, Unit] = Handle.unit
+  inline def unit[F[_]: MonadCancelThrow]: EngineHandle[F, Unit] = Handle.unit
 
-  inline def modifyStateEmit[F[_]: MonadThrow](
+  inline def modifyStateEmit[F[_]: MonadCancelThrow](
     f: EngineState[F] => F[(EngineState[F], Stream[F, Event[F]])]
   ): EngineHandle[F, Unit] =
     Handle.modifyStateEmit(f)
 
-  inline def modifyStateEmitSingle[F[_]: MonadThrow](
+  inline def modifyStateEmitSingle[F[_]: MonadCancelThrow](
     f: EngineState[F] => F[(EngineState[F], Event[F])]
   ): EngineHandle[F, Unit] =
     Handle.modifyStateEmitSingle(f)
 
-  inline def fromEventStream[F[_]: MonadThrow](
+  inline def fromEventStream[F[_]: MonadCancelThrow](
     f: EngineState[F] => Stream[F, Event[F]]
   ): EngineHandle[F, Unit] =
     Handle.fromEventStream(f)
 
-  inline def fromEventStream[F[_]: MonadThrow](p: Stream[F, Event[F]]): EngineHandle[F, Unit] =
+  inline def fromEventStream[F[_]: MonadCancelThrow](
+    p: Stream[F, Event[F]]
+  ): EngineHandle[F, Unit] =
     Handle.fromEventStream(p)
 
-  inline def fromSingleEventF[F[_]: MonadThrow](f: F[Event[F]]): EngineHandle[F, Unit] =
+  inline def fromSingleEventF[F[_]: MonadCancelThrow](f: F[Event[F]]): EngineHandle[F, Unit] =
     Handle.fromSingleEventF(f)
 
-  inline def fromSingleEvent[F[_]: MonadThrow](e: Event[F]): EngineHandle[F, Unit] =
+  inline def fromSingleEvent[F[_]: MonadCancelThrow](e: Event[F]): EngineHandle[F, Unit] =
     Handle.fromSingleEvent(e)
 
-  inline def getState[F[_]: MonadThrow]: EngineHandle[F, EngineState[F]] = Handle.getState
+  inline def getState[F[_]: MonadCancelThrow]: EngineHandle[F, EngineState[F]] = Handle.getState
 
-  inline def inspectState[F[_]: MonadThrow, A](f: EngineState[F] => A): EngineHandle[F, A] =
+  inline def inspectState[F[_]: MonadCancelThrow, A](f: EngineState[F] => A): EngineHandle[F, A] =
     Handle.inspectState(f)
 
-  inline def modifyStateF[F[_]: MonadThrow, A](
+  inline def modifyStateF[F[_]: MonadCancelThrow, A](
     f: EngineState[F] => F[(EngineState[F], A)]
   ): EngineHandle[F, A] = Handle.modifyStateF(f)
 
@@ -98,15 +102,31 @@ object EngineHandle {
   inline def modifyState_[F[_]: Monad](f: EngineState[F] => EngineState[F]): EngineHandle[F, Unit] =
     Handle.modifyState_(f)
 
-  def getSequenceState[F[_]: MonadThrow](
+  // Ensure latch release
+  // def withLatch[F[_]: MonadCancelThrow, A](f: EngineHandle[F, A] =
+  //   // EngineHandle.
+  //   EngineHandle.bracket
+
+  // You can't do anything with a sequence while it's latched, so you have to wait.
+  def getSequenceState[F[_]: MonadCancelThrow](
     obsId: Observation.Id
   ): EngineHandle[F, Option[Sequence.State[F]]] =
-    inspectState(EngineState.sequenceStateAt(obsId).getOption(_))
+    inspectState[F, Option[Sequence.State[F]]](EngineState.sequenceStateAt(obsId).getOption(_))
+      .flatTap: seqState =>
+        EngineHandle.liftF:
+          seqState
+            .flatMap(_.latch)
+            .fold(Applicative[F].unit)(_.get)
 
-  def inspectSequenceState[F[_]: MonadThrow, A](obsId: Observation.Id)(
+  // def getSequenceState[F[_]: MonadCancelThrow](
+  //   obsId: Observation.Id
+  // ): EngineHandle[F, Option[Sequence.State[F]]] =
+  //   inspectState(EngineState.sequenceStateAt(obsId).getOption(_))
+
+  def inspectSequenceState[F[_]: MonadCancelThrow, A](obsId: Observation.Id)(
     f: Sequence.State[F] => A
   ): EngineHandle[F, Option[A]] =
-    inspectState(EngineState.sequenceStateAt(obsId).getOption(_).map(f))
+    getSequenceState(obsId).map(_.map(f))
 
   def modifySequenceState[F[_]: Monad](obsId: Observation.Id)(
     f: Sequence.State[F] => Sequence.State[F]
@@ -119,10 +139,12 @@ object EngineHandle {
     modifyState_(EngineState.sequenceStateAt(obsId).replace(s))
 
   // For debugging
-  def debug[F[_]: MonadThrow: Logger](msg: String): EngineHandle[F, Unit] =
+  def debug[F[_]: MonadCancelThrow: Logger](msg: String): EngineHandle[F, Unit] =
     liftF(Logger[F].debug(msg))
 
-  def printSequenceState[F[_]: MonadThrow: Logger](obsId: Observation.Id): EngineHandle[F, Unit] =
+  def printSequenceState[F[_]: MonadCancelThrow: Logger](
+    obsId: Observation.Id
+  ): EngineHandle[F, Unit] =
     inspectSequenceState(obsId): (qs: Sequence.State[F]) =>
       StateT.liftF(Logger[F].debug(s"$qs"))
     .void

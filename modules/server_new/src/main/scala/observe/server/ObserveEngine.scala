@@ -4,12 +4,12 @@
 package observe.server
 
 import cats.Endo
-import cats.MonadThrow
 import cats.Monoid
 import cats.effect.Async
+import cats.effect.MonadCancelThrow
 import cats.effect.Ref
+import cats.effect.Sync
 import cats.effect.Temporal
-import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Pipe
@@ -394,7 +394,7 @@ object ObserveEngine {
   ): Set[Observation.Id] =
     findRunnableObservations(qid)(st).intersect(sids)
 
-  private def onAtomComplete[F[_]: MonadThrow](
+  private def onAtomComplete[F[_]: MonadCancelThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -469,7 +469,7 @@ object ObserveEngine {
             )
         }(st)
 
-  def tryNewAtom[F[_]: MonadThrow](
+  def tryNewAtom[F[_]: MonadCancelThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F],
@@ -517,7 +517,7 @@ object ObserveEngine {
       }
     )
 
-  def onAtomReload[F[_]: MonadThrow: Logger](
+  def onAtomReload[F[_]: MonadCancelThrow: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -543,7 +543,7 @@ object ObserveEngine {
         )
       }
 
-  private def tryAtomReload[F[_]: MonadThrow: Logger](
+  private def tryAtomReload[F[_]: MonadCancelThrow: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F],

@@ -8,6 +8,10 @@ import cats.Functor
 import cats.Monad
 import cats.MonadThrow
 import cats.data.StateT
+import cats.effect.MonadCancelThrow
+import cats.effect.kernel.CancelScope
+import cats.effect.kernel.Poll
+import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import fs2.Stream
 
@@ -69,7 +73,7 @@ object Handle {
   inline def fromStateT[F[_]: Functor, S, E, O](s: StateT[F, S, O]): Handle[F, S, E, O] =
     Handle[F, S, E, O](s.map((_, Stream.empty)))
 
-  inline def unit[F[_]: MonadThrow, S, E]: Handle[F, S, E, Unit] =
+  inline def unit[F[_]: MonadCancelThrow, S, E]: Handle[F, S, E, Unit] =
     Applicative[Handle[F, S, E, *]].unit
 
   inline def getState[F[_]: Applicative, S, E]: Handle[F, S, E, S] =
@@ -87,8 +91,10 @@ object Handle {
   inline def modifyState_[F[_]: Applicative, S, E](f: S => S): Handle[F, S, E, Unit] =
     modifyState(s => (f(s), ()))
 
-  given [F[_]: MonadThrow, S, E]: MonadThrow[Handle[F, S, E, *]] =
-    new MonadThrow[Handle[F, S, E, *]] {
+  given [F[_]: MonadCancelThrow, S, E]: MonadCancelThrow[Handle[F, S, E, *]] =
+    // given [F[_]: MonadThrow, S, E]: MonadThrow[Handle[F, S, E, *]] =
+    new MonadCancelThrow[Handle[F, S, E, *]] {
+      // new MonadThrow[Handle[F, S, E, *]] {
 
       override def pure[O](a: O): Handle[F, S, E, O] =
         Handle:
@@ -129,6 +135,39 @@ object Handle {
       ): Handle[F, S, E, A] =
         Handle:
           fa.stateT.handleErrorWith(e => f(e).stateT)
+
+      override def rootCancelScope: CancelScope = MonadCancelThrow[F].rootCancelScope
+
+      override def forceR[A, B](fa: Handle[F, S, E, A])(
+        fb: Handle[F, S, E, B]
+      ): Handle[F, S, E, B] =
+        // fa.asInstanceOf[Handle[F, S, E, Unit]].handleError(_ => ()).productR(fb)
+        Handle:
+          StateT(s => fa.stateT.run(s).forceR(fb.stateT.run(s)))
+
+      override def uncancelable[A](
+        body: Poll[Handle[F, S, E, *]] => Handle[F, S, E, A]
+      ): Handle[F, S, E, A] =
+        Handle:
+          StateT: s =>
+            MonadCancelThrow[F].uncancelable: poll =>
+              def handlePoll: Poll[Handle[F, S, E, *]] =
+                new Poll[Handle[F, S, E, *]] {
+                  def apply[A](fa: Handle[F, S, E, A]): Handle[F, S, E, A] =
+                    Handle:
+                      StateT(s0 => poll(fa.stateT.run(s0)))
+                }
+              body(handlePoll).stateT.run(s)
+
+      override def canceled: Handle[F, S, E, Unit] =
+        liftF(MonadCancelThrow[F].canceled)
+
+      override def onCancel[A](
+        fa:  Handle[F, S, E, A],
+        fin: Handle[F, S, E, Unit]
+      ): Handle[F, S, E, A] =
+        Handle:
+          StateT(s => fa.stateT.run(s).onCancel(fin.stateT.run(s).void))
     }
 
   // This class adds a method to Handle similar to flatMap, but the Streams resulting from both Handle instances

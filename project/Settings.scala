@@ -92,8 +92,13 @@ object Settings {
       )
     )
     val Kittens    = Def.setting("org.typelevel" %%% "kittens" % LibraryVersions.kittens)
-    val CatsEffect =
-      Def.setting("org.typelevel" %%% "cats-effect" % LibraryVersions.catsEffectVersion)
+    val CatsEffect = Def.setting(
+      Seq(
+        "org.typelevel" %%% "cats-effect"         % LibraryVersions.catsEffectVersion,
+        "org.typelevel" %%% "cats-effect-laws"    % LibraryVersions.catsEffectVersion % Test,
+        "org.typelevel" %%% "cats-effect-testkit" % LibraryVersions.catsEffectVersion % Test
+      )
+    )
     val Fs2        = Def.setting("co.fs2" %%% "fs2-core" % LibraryVersions.fs2Version)
     val Fs2IO      = "co.fs2" %% "fs2-io" % LibraryVersions.fs2Version % "test"
     val Mouse      = Def.setting("org.typelevel" %%% "mouse" % LibraryVersions.mouseVersion)

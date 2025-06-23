@@ -9,11 +9,11 @@ import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
 import lucuma.core.util.Display
+import lucuma.core.util.NewBoolean
 import monocle.Focus
 import monocle.Lens
 import monocle.Prism
 import monocle.macros.GenPrism
-import lucuma.core.util.NewBoolean
 
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Idle                extends SequenceState("Idle")
