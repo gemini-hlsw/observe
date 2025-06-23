@@ -119,6 +119,9 @@ object EngineHandle {
     modifyState_(EngineState.sequenceStateAt(obsId).replace(s))
 
   // For debugging
+  def debug[F[_]: MonadThrow: Logger](msg: String): EngineHandle[F, Unit] =
+    liftF(Logger[F].debug(msg))
+
   def printSequenceState[F[_]: MonadThrow: Logger](obsId: Observation.Id): EngineHandle[F, Unit] =
     inspectSequenceState(obsId): (qs: Sequence.State[F]) =>
       StateT.liftF(Logger[F].debug(s"$qs"))

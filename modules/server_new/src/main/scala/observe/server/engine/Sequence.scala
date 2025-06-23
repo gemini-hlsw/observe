@@ -13,6 +13,8 @@ import monocle.macros.GenLens
 import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
+import observe.model.SequenceState.HasInternalStop
+import observe.model.SequenceState.HasUserStop
 
 /**
  * A list of `Step`s grouped by target and instrument.
@@ -245,12 +247,12 @@ object Sequence {
 
     def isStarting[F[_]](st: State[F]): Boolean = st.status.isStarting
 
-    def userStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
+    def userStopSet[F[_]](v: HasUserStop): State[F] => State[F] = status.modify {
       case r @ SequenceState.Running(_, _, _, _, _) => r.copy(userStop = v)
       case r                                        => r
     }
 
-    def internalStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
+    def internalStopSet[F[_]](v: HasInternalStop): State[F] => State[F] = status.modify {
       case r @ SequenceState.Running(_, _, _, _, _) => r.copy(internalStop = v)
       case r                                        => r
     }
@@ -294,11 +296,14 @@ object Sequence {
       singleRuns: Map[ActionCoordsInSeq, ActionState]
     ) extends State[F] { self =>
 
-      override val next: Option[State[F]] = zipper.next match {
-        // Last execution
-        case None    => zipper.uncurrentify.map(Final[F](_, status))
-        case Some(x) => Zipper(x, status, singleRuns).some
-      }
+      override val next: Option[State[F]] =
+
+        println(s"**** {State.Zipper.next} zipper.next: ${zipper.next}, uncurrentify?")
+
+        zipper.next match
+          // Last execution
+          case None    => zipper.uncurrentify.map(Final[F](_, status))
+          case Some(x) => Zipper(x, status, singleRuns).some
 
       override val isLastAction: Boolean =
         zipper.focus.pending.isEmpty

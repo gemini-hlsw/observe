@@ -23,9 +23,9 @@ import EventResult.SystemUpdate
 import EventResult.UserCommandResponse
 import Result.PartialVal
 import Result.RetVal
-import SystemEvent.*
 import UserEvent.*
 import Handle.given
+import observe.model.SequenceState.*
 
 class Engine[F[_]: MonadThrow: Logger] private (
   streamQueue: Queue[F, Stream[F, Event[F]]],
@@ -48,11 +48,11 @@ class Engine[F[_]: MonadThrow: Logger] private (
           EngineHandle.replaceSequenceState(obsId)(
             Sequence.State.status.replace(
               SequenceState.Running(
-                userStop = false,
-                internalStop = false,
-                waitingUserPrompt = false,
-                waitingNextAtom = true,
-                starting = true
+                userStop = HasUserStop.No,
+                internalStop = HasInternalStop.No,
+                waitingUserPrompt = IsWaitingUserPrompt.No,
+                waitingNextAtom = IsWaitingNextAtom.Yes,
+                starting = IsStarting.Yes
               )
             )(
               seq.rollback
@@ -63,10 +63,11 @@ class Engine[F[_]: MonadThrow: Logger] private (
     }
 
   def pause(id: Observation.Id): EngineHandle[F, Unit] =
-    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(true))
+    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.Yes)) *>
+      send(Event.sequencePaused(id))
 
   private def cancelPause(id: Observation.Id): EngineHandle[F, Unit] =
-    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(false))
+    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.No))
 
   def startSingle(c: ActionCoords): EngineHandle[F, Outcome] =
     EngineHandle.getState.flatMap { st =>
@@ -140,97 +141,127 @@ class Engine[F[_]: MonadThrow: Logger] private (
   private def next(obsId: Observation.Id): EngineHandle[F, Unit] =
     EngineHandle
       .getSequenceState(obsId)
-      .flatMap(
-        _.map { seq =>
-
-          println(s"******* CHECKING NEXT FOR COMPLETION: $obsId, ${seq.status}")
-
-          seq.status match {
-            case SequenceState.Running(userStop, internalStop, _, _, _) =>
-              seq.next match {
-                // Empty state
-                case None                                  =>
-                  send(Event.finished(obsId))
-                // Final State
-                case Some(qs @ Sequence.State.Final(_, _)) =>
-                  EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
-                    SequenceState.Running(
-                      userStop,
-                      internalStop,
-                      waitingUserPrompt = true,
-                      waitingNextAtom = true,
-                      starting = false
-                    )
-                  ) *> send(Event.modifyState(atomLoad(this, obsId)))
-                // Step execution completed. Check requested stop and breakpoint here.
-                case Some(qs)                              =>
-                  EngineHandle.replaceSequenceState(obsId)(qs) *>
-                    (if (
-                       qs.getCurrentBreakpoint && !qs.current.execution.exists(_.uninterruptible)
-                     ) {
-                       switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
-                     } else if (seq.isLastAction) {
-                       // Only process stop states after the last action of the step.
-                       if (userStop || internalStop) {
-                         if (qs.current.execution.exists(_.uninterruptible))
-                           send(Event.executing(obsId)) *> send(Event.stepComplete(obsId))
-                         else
-                           switch(obsId)(SequenceState.Idle) *> send(Event.sequencePaused(obsId))
-                       } else {
-                         // after the last action of the step, we need to reload the sequence
-                         switch(obsId)(
-                           SequenceState.Running(
-                             userStop,
-                             internalStop,
-                             waitingUserPrompt = false,
-                             waitingNextAtom = true,
-                             starting = false
-                           )
-                         ) *> send(
-                           Event
-                             .modifyState(atomReload(this, obsId, OnAtomReloadAction.StartNewAtom))
-                         )
-                           *> send(Event.stepComplete(obsId))
-                       }
-                     } else send(Event.executing(obsId)))
+      .flatMap(seqState =>
+        EngineHandle
+          .debug(
+            s"******* {next} CHECKING NEXT FOR COMPLETION, $obsId, NEXT: ${pprint(seqState.map(_.next))}"
+          ) >>
+          seqState
+            .map { seq =>
+              seq.status match {
+                case SequenceState.Running(userStop, internalStop, _, _, _) =>
+                  seq.next match {
+                    // Empty state
+                    case None                                  =>
+                      EngineHandle.debug(s"**** {next} STOPPING SEQUENCE BECAUSE NEXT IS EMPTY") >>
+                        send(Event.finished(obsId))
+                    // Final State
+                    case Some(qs @ Sequence.State.Final(_, _)) =>
+                      EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
+                        SequenceState.Running(
+                          userStop,
+                          internalStop,
+                          waitingUserPrompt = IsWaitingUserPrompt.Yes,
+                          waitingNextAtom = IsWaitingNextAtom.Yes, // TODO Should this be No?
+                          starting = IsStarting.No
+                        )
+                      ) *> send(Event.modifyState(atomLoad(this, obsId)))
+                    // Step execution completed. Check requested stop and breakpoint here.
+                    case Some(qs)                              =>
+                      EngineHandle.replaceSequenceState(obsId)(qs) *>
+                        (if (
+                           qs.getCurrentBreakpoint && !qs.current.execution
+                             .exists(_.uninterruptible)
+                         ) {
+                           switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
+                         } else if (seq.isLastAction) {
+                           // Only process stop states after the last action of the step.
+                           if (userStop || internalStop) {
+                             if (qs.current.execution.exists(_.uninterruptible))
+                               send(Event.executing(obsId)) *> send(Event.stepComplete(obsId))
+                             else
+                               switch(obsId)(SequenceState.Idle) *> send(
+                                 Event.sequencePaused(obsId)
+                               )
+                           } else {
+                             // after the last action of the step, we need to reload the sequence
+                             switch(obsId)(
+                               SequenceState.Running(
+                                 userStop,
+                                 internalStop,
+                                 waitingUserPrompt = IsWaitingUserPrompt.No,
+                                 waitingNextAtom = IsWaitingNextAtom.Yes,
+                                 starting = IsStarting.No
+                               )
+                             ) *> send(
+                               Event
+                                 .modifyState(
+                                   atomReload(this, obsId, OnAtomReloadAction.StartNewAtom)
+                                 )
+                             )
+                               *> send(Event.stepComplete(obsId))
+                           }
+                         } else send(Event.executing(obsId)))
+                  }
+                case _                                                      => EngineHandle.unit
               }
-            case _                                                      => EngineHandle.unit
-          }
-        }.getOrElse(EngineHandle.unit)
+            }
+            .getOrElse(EngineHandle.unit)
       )
 
-  def startNewAtom(id: Observation.Id): EngineHandle[F, Unit] =
+  def startNewAtom(obsId: Observation.Id): EngineHandle[F, Unit] =
     EngineHandle
-      .getSequenceState(id)
-      .flatMap(
-        _.map { seq =>
-          seq.status match {
-            case SequenceState.Running(userStop, internalStop, _, true, isStarting) =>
-              if (!isStarting && (userStop || internalStop)) {
-                seq match {
-                  // Final State
-                  case Sequence.State.Final[F](_, _) => send(Event.finished(id))
-                  // Execution completed
-                  case _                             => switch(id)(SequenceState.Idle)
-                }
-              } else {
-                seq match {
-                  // Final State
-                  case Sequence.State.Final[F](_, _) => send(Event.finished(id))
-                  // Execution completed. Check breakpoint here
-                  case _                             =>
-                    if (!isStarting && seq.getCurrentBreakpoint) {
-                      switch(id)(SequenceState.Idle) *> send(Event.breakpointReached(id))
-                    } else
-                      switch(id)(
-                        SequenceState.Running(userStop, internalStop, false, false, false)
-                      ) *>
-                        send(Event.executing(id))
-                }
+      .getSequenceState(obsId)
+      .flatMap(seqState =>
+        EngineHandle
+          .debug(
+            s"******* {startNewAtom} CHECKING NEXT FOR COMPLETION, $obsId, NEXT: ${pprint(seqState.map(_.next))}"
+          ) >>
+          seqState
+            .map { seq =>
+              seq.status match {
+                case SequenceState
+                      .Running(userStop, internalStop, _, IsWaitingNextAtom.Yes, isStarting) =>
+                  if (!isStarting && (userStop || internalStop)) {
+                    seq match {
+                      // Final State
+                      case Sequence.State.Final[F](_, _) =>
+                        EngineHandle.debug(
+                          s"**** {startNewAtom} STOPPING SEQUENCE INSTEAD OF PENDING STOP"
+                        ) >>
+                          send(Event.finished(obsId))
+                      // Execution completed
+                      case _                             => switch(obsId)(SequenceState.Idle)
+                    }
+                  } else {
+                    seq match {
+                      // Final State
+                      case Sequence.State.Final[F](_, _) =>
+                        EngineHandle.debug(
+                          s"**** {startNewAtom} STOPPING SEQUENCE INSTEAD OF STARTING NEW ATOM BECAUSE WE ARE IN FINAL STATE"
+                        ) >>
+                          send(Event.finished(obsId))
+                      // Execution completed. Check breakpoint here
+                      case _                             =>
+                        if (!isStarting && seq.getCurrentBreakpoint) {
+                          switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
+                        } else
+                          switch(obsId)(
+                            SequenceState.Running(
+                              userStop,
+                              internalStop,
+                              IsWaitingUserPrompt.No,
+                              IsWaitingNextAtom.No,
+                              IsStarting.No
+                            )
+                          ) *>
+                            send(Event.executing(obsId))
+                    }
+                  }
+                case _ => EngineHandle.unit
               }
-            case _                                                                  => EngineHandle.unit
-          }
-        }.getOrElse(EngineHandle.unit)
+            }
+            .getOrElse(EngineHandle.unit)
       )
 
   /**
@@ -268,7 +299,11 @@ class Engine[F[_]: MonadThrow: Logger] private (
         .map {
           case seq @ Sequence.State.Final(_, _)     =>
             // The sequence is marked as completed here
-            EngineHandle.replaceSequenceState(obsId)(seq) *> send(Event.finished(obsId))
+            EngineHandle.replaceSequenceState(obsId)(seq) >>
+              EngineHandle.debug(
+                s"**** {execute} STOPPING SEQUENCE BECAUSE IT IS IN FINAL STATE"
+              ) >>
+              send(Event.finished(obsId))
           case seq @ Sequence.State.Zipper(z, _, _) =>
             val stepId                         = z.focus.toStep.id
             val u: List[Stream[F, Event[F]]]   =
@@ -294,7 +329,9 @@ class Engine[F[_]: MonadThrow: Logger] private (
       .getSequenceState(obsId)
       .flatMap(_.map { s =>
         (EngineHandle.fromEventStream(f) >>
-          EngineHandle.modifySequenceState(obsId)(Sequence.State.internalStopSet(true)))
+          EngineHandle.modifySequenceState(obsId)(
+            Sequence.State.internalStopSet(HasInternalStop.Yes)
+          ))
           .whenA(Sequence.State.isRunning(s))
       }.getOrElse(EngineHandle.unit))
 
@@ -352,7 +389,9 @@ class Engine[F[_]: MonadThrow: Logger] private (
     EngineHandle.modifySequenceState(obsId)(_.mark(i)(p))
 
   def actionPause(id: Observation.Id, i: Int, p: Result.Paused): EngineHandle[F, Unit] =
-    EngineHandle.modifySequenceState(id)(s => Sequence.State.internalStopSet(false)(s).mark(i)(p))
+    EngineHandle.modifySequenceState(id)(s =>
+      Sequence.State.internalStopSet(HasInternalStop.No)(s).mark(i)(p)
+    )
 
   private def actionResume(
     obsId: Observation.Id,
@@ -447,61 +486,63 @@ class Engine[F[_]: MonadThrow: Logger] private (
 
   private def handleSystemEvent(
     se: SystemEvent
-  )(using Concurrent[F]): EngineHandle[F, EventResult] = se match {
-    case Completed(obsId, _, i, r)     =>
-      debug(s"Engine: From sequence $obsId: Action completed ($r)") *>
-        complete(obsId, i, r) *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case StopCompleted(obsId, _, i, r) =>
-      debug(s"Engine: From sequence $obsId: Action completed with stop ($r)") *>
-        stopComplete(obsId, i, r) *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Aborted(obsId, _, i, r)       =>
-      debug(s"Engine: From sequence $obsId: Action completed with abort ($r)") *>
-        abort(obsId, i, r) *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case PartialResult(obsId, _, i, r) =>
-      debug(s"Engine: From sequence $obsId: Partial result ($r)") *>
-        partialResult(obsId, i, r) *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Paused(obsId, i, r)           =>
-      debug("Engine: Action paused") *>
-        actionPause(obsId, i, r) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Failed(obsId, i, e)           =>
-      logError(e) *> fail(obsId)(i, e) *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Busy(obsId, _)                =>
-      warning(
-        s"Cannot run sequence $obsId " +
-          s"because " +
-          s"required systems are in use."
-      ) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case BreakpointReached(obsId)      =>
-      debug(s"Engine: Breakpoint reached in observation [$obsId]") *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Executed(obsId)               =>
-      debug(s"Engine: Execution $obsId completed") *>
-        next(obsId) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Executing(obsId)              =>
-      debug("Engine: Executing") *>
-        execute(obsId) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case StepComplete(obsId)           =>
-      debug(s"Engine: Step completed for observation [$obsId]") *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case SequencePaused(obsId)         =>
-      debug(s"Engine: Sequence paused for observation [$obsId]") *>
-        EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case SequenceComplete(obsId)       =>
-      debug("Engine: Finished") *>
-        switch(obsId)(SequenceState.Completed) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case SingleRunCompleted(c, r)      =>
-      debug(s"Engine: single action $c completed with result $r") *>
-        completeSingleRun(c, r.response) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case SingleRunFailed(c, e)         =>
-      debug(s"Engine: single action $c failed with error $e") *>
-        failSingleRun(c, e) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-    case Null                          => EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
-  }
+  )(using Concurrent[F]): EngineHandle[F, EventResult] =
+    import SystemEvent.*
+    se match {
+      case Completed(obsId, _, i, r)     =>
+        debug(s"Engine: From sequence $obsId: Action completed ($r)") *>
+          complete(obsId, i, r) *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case StopCompleted(obsId, _, i, r) =>
+        debug(s"Engine: From sequence $obsId: Action completed with stop ($r)") *>
+          stopComplete(obsId, i, r) *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Aborted(obsId, _, i, r)       =>
+        debug(s"Engine: From sequence $obsId: Action completed with abort ($r)") *>
+          abort(obsId, i, r) *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case PartialResult(obsId, _, i, r) =>
+        debug(s"Engine: From sequence $obsId: Partial result ($r)") *>
+          partialResult(obsId, i, r) *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Paused(obsId, i, r)           =>
+        debug("Engine: Action paused") *>
+          actionPause(obsId, i, r) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Failed(obsId, i, e)           =>
+        logError(e) *> fail(obsId)(i, e) *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Busy(obsId, _)                =>
+        warning(
+          s"Cannot run sequence $obsId " +
+            s"because " +
+            s"required systems are in use."
+        ) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case BreakpointReached(obsId)      =>
+        debug(s"Engine: Breakpoint reached in observation [$obsId]") *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Executed(obsId)               =>
+        debug(s"Engine: Execution $obsId completed") *>
+          next(obsId) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Executing(obsId)              =>
+        debug("Engine: Executing") *>
+          execute(obsId) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case StepComplete(obsId)           =>
+        debug(s"Engine: Step completed for observation [$obsId]") *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case SequencePaused(obsId)         =>
+        debug(s"Engine: Sequence paused for observation [$obsId]") *>
+          EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case SequenceComplete(obsId)       =>
+        debug("Engine: Finished") *>
+          switch(obsId)(SequenceState.Completed) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case SingleRunCompleted(c, r)      =>
+        debug(s"Engine: single action $c completed with result $r") *>
+          completeSingleRun(c, r.response) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case SingleRunFailed(c, e)         =>
+        debug(s"Engine: single action $c failed with error $e") *>
+          failSingleRun(c, e) *> EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+      case Null                          => EngineHandle.pure(SystemUpdate(se, Outcome.Ok))
+    }
 
   /**
    * Main logical thread to handle events and produce output.

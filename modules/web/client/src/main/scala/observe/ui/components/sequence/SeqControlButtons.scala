@@ -38,7 +38,7 @@ case class SeqControlButtons(
   val isPauseInFlight: Boolean       = requests.pause === OperationRequest.InFlight
   val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
   val isRunning: Boolean             = sequenceState.isRunning
-  val isWaitingNextAtom: Boolean     = sequenceState.isWaitingUserPrompt
+  val isWaitingUserPrompt: Boolean   = sequenceState.isWaitingUserPrompt
   val isRefreshing: Boolean          = props.refreshing.exists(_.get)
   val isCompleted: Boolean           = sequenceState.isCompleted
 
@@ -80,7 +80,7 @@ object SeqControlButtons
             tooltip = "Pause sequence after current exposure",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.pause(props.obsId).runAsync,
-            disabled = props.isPauseInFlight || props.isWaitingNextAtom
+            disabled = props.isPauseInFlight || props.isWaitingUserPrompt
           ).when(selectedObsIsLoaded && props.isRunning && !props.isUserStopRequested),
           Button(
             clazz = ObserveStyles.CancelPauseButton |+| ObserveStyles.ObsSummaryButton,
@@ -88,7 +88,7 @@ object SeqControlButtons
             tooltip = "Cancel process to pause the sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.cancelPause(props.obsId).runAsync,
-            disabled = props.isCancelPauseInFlight || props.isWaitingNextAtom
+            disabled = props.isCancelPauseInFlight || props.isWaitingUserPrompt
           ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
           // Button(
           //   clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
