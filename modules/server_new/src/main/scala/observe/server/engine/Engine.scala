@@ -137,20 +137,23 @@ class Engine[F[_]: MonadThrow: Logger] private (
    *
    * If there are no more pending `Execution`s, it emits the `Finished` event.
    */
-  private def next(id: Observation.Id): EngineHandle[F, Unit] =
+  private def next(obsId: Observation.Id): EngineHandle[F, Unit] =
     EngineHandle
-      .getSequenceState(id)
+      .getSequenceState(obsId)
       .flatMap(
         _.map { seq =>
+
+          println(s"******* CHECKING NEXT FOR COMPLETION: $obsId, ${seq.status}")
+
           seq.status match {
             case SequenceState.Running(userStop, internalStop, _, _, _) =>
               seq.next match {
                 // Empty state
                 case None                                  =>
-                  send(Event.finished(id))
+                  send(Event.finished(obsId))
                 // Final State
                 case Some(qs @ Sequence.State.Final(_, _)) =>
-                  EngineHandle.replaceSequenceState(id)(qs) *> switch(id)(
+                  EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
                     SequenceState.Running(
                       userStop,
                       internalStop,
@@ -158,24 +161,24 @@ class Engine[F[_]: MonadThrow: Logger] private (
                       waitingNextAtom = true,
                       starting = false
                     )
-                  ) *> send(Event.modifyState(atomLoad(this, id)))
+                  ) *> send(Event.modifyState(atomLoad(this, obsId)))
                 // Step execution completed. Check requested stop and breakpoint here.
                 case Some(qs)                              =>
-                  EngineHandle.replaceSequenceState(id)(qs) *>
+                  EngineHandle.replaceSequenceState(obsId)(qs) *>
                     (if (
                        qs.getCurrentBreakpoint && !qs.current.execution.exists(_.uninterruptible)
                      ) {
-                       switch(id)(SequenceState.Idle) *> send(Event.breakpointReached(id))
+                       switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
                      } else if (seq.isLastAction) {
                        // Only process stop states after the last action of the step.
                        if (userStop || internalStop) {
                          if (qs.current.execution.exists(_.uninterruptible))
-                           send(Event.executing(id)) *> send(Event.stepComplete(id))
+                           send(Event.executing(obsId)) *> send(Event.stepComplete(obsId))
                          else
-                           switch(id)(SequenceState.Idle) *> send(Event.sequencePaused(id))
+                           switch(obsId)(SequenceState.Idle) *> send(Event.sequencePaused(obsId))
                        } else {
                          // after the last action of the step, we need to reload the sequence
-                         switch(id)(
+                         switch(obsId)(
                            SequenceState.Running(
                              userStop,
                              internalStop,
@@ -184,11 +187,12 @@ class Engine[F[_]: MonadThrow: Logger] private (
                              starting = false
                            )
                          ) *> send(
-                           Event.modifyState(atomReload(this, id, OnAtomReloadAction.StartNewAtom))
+                           Event
+                             .modifyState(atomReload(this, obsId, OnAtomReloadAction.StartNewAtom))
                          )
-                           *> send(Event.stepComplete(id))
+                           *> send(Event.stepComplete(obsId))
                        }
-                     } else send(Event.executing(id)))
+                     } else send(Event.executing(obsId)))
               }
             case _                                                      => EngineHandle.unit
           }
