@@ -12,3 +12,5 @@ DOCKERHUB_TOKEN=
 # Usually /gemsoft/var/log/gpp/observe for production and /home/software/observe/log for staging.
 LOCAL_LOG_DIR=/home/software/observe/log
 # LOCAL_LOG_DIR=/gemsoft/var/log/gpp/observe
+# Honeycomb API key
+HONEYCOMB_WRITE_KEY=
