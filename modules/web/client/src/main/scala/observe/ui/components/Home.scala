@@ -130,9 +130,10 @@ object Home
                     renderExploreLinkToObs
                   )
               ,
-              Accordion(tabs =
-                List(
-                  AccordionTab(clazz = ObserveStyles.LogArea, header = "Show Log")(
+              Accordion(
+                clazz = ObserveStyles.LogArea,
+                tabs = List(
+                  AccordionTab(header = "Show Log")(
                     <.div(^.height := "200px")(
                       LogArea(clientConfig.site.timezone, rootModelData.globalLog)
                     )
