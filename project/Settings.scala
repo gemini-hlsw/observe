@@ -61,7 +61,7 @@ object Settings {
     val lucumaUI    = "0.144.2"
 
     // Clue
-    val clue = "0.45.0"
+    val clue = "0.46.0"
 
     // ScalaJS libraries
     val javaTimeJS   = "2.6.0"
