@@ -296,8 +296,6 @@ object WebServerLauncher extends IOApp with LogInitialization {
   /** Reads the configuration and launches the observe engine and web server */
   def observe: IO[ExitCode] = {
 
-    // mkTrace:       EntryPoint[F] => F[Trace[F]]
-
     val observe: Resource[IO, ExitCode] =
       for // Initialize log before the engine is setup
         given Logger[IO] <- Resource.eval(setupLogger[IO])
