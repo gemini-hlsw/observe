@@ -527,8 +527,10 @@ class Engine[F[_]: MonadThrow: Logger] private (
         .fromQueueUnterminated(streamQueue)
         .parJoinUnbounded
         .evalMapAccumulate(initialState): (s, a) =>
-          f(a, s).flatMap: (ns, b, st) =>
-            streamQueue.offer(st) >> (ns, b).pure[F]
+          f(a, s).flatMap:
+            // Optimization to avoid processing empty streams.
+            case (ns, b, Stream.empty) => (ns, b).pure[F]
+            case (ns, b, st)           => streamQueue.offer(st) >> (ns, b).pure[F]
         .map(_._2)
 
   private def runE(

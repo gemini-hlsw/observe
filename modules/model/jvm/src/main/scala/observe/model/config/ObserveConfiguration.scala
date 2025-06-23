@@ -30,5 +30,6 @@ case class ObserveConfiguration(
   exploreBaseUrl: Uri,
   lucumaSSO:      LucumaSSOConfiguration,
   observeEngine:  ObserveEngineConfiguration,
-  webServer:      WebServerConfiguration
+  webServer:      WebServerConfiguration,
+  honeycomb:      HoneycombConfiguration
 ) derives Eq
