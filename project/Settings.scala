@@ -32,7 +32,7 @@ object Settings {
     val log4cats            = "2.7.0"
     val log4catsLogLevel    = "0.3.1"
     val logback             = "1.5.18"
-    val natchez             = "0.3.7"
+    val natchez             = "0.3.8"
     val natchezHttp4s       = "0.6.1"
     val pureConfig          = "0.17.9"
     val monocleVersion      = "3.3.0"
