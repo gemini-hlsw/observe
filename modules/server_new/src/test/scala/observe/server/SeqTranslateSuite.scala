@@ -136,7 +136,7 @@ class SeqTranslateSuite extends TestCommon {
       EngineState
         .sequenceStateAt[IO](seqObsId1)
         .modify {
-          case State.Zipper(zipper, status, singleRuns, latch) =>
+          case State.Zipper(zipper, status, singleRuns) =>
             State.Zipper(
               zipper.copy(
                 focus = advanceStepUntil(
@@ -145,10 +145,9 @@ class SeqTranslateSuite extends TestCommon {
                 )
               ),
               status,
-              singleRuns,
-              latch
+              singleRuns
             )
-          case s @ State.Final(_, _)                           => s
+          case s @ State.Final(_, _)                    => s
         } >>>
       EngineState
         .sequenceStateAt[IO](seqObsId1)

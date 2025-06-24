@@ -32,7 +32,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
   streamQueue: Queue[F, Stream[F, Event[F]]],
   inputQueue:  Queue[F, Event[F]],
   atomLoad:    (Engine[F], Observation.Id) => EngineHandle[F, SeqEvent],
-  atomReload:  (Engine[F], Observation.Id, OnAtomReloadAction) => EngineHandle[F, SeqEvent]
+  atomReload:  (Engine[F], Observation.Id, ReloadReason) => EngineHandle[F, SeqEvent]
 ) {
   val L: Logger[F] = Logger[F]
 
@@ -58,14 +58,13 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
             )(
               seq.rollback
             )
-          ) *> send(Event.modifyState(atomReload(this, obsId, OnAtomReloadAction.StartNewAtom)))
+          ) *> send(Event.modifyState(atomReload(this, obsId, ReloadReason.SequenceFlow)))
         }.whenA(seq.status.isIdle || seq.status.isError)
       case None      => Handle.unit
     }
 
   def pause(id: Observation.Id): EngineHandle[F, Unit] =
-    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.Yes)) *>
-      send(Event.sequencePaused(id))
+    EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.Yes))
 
   private def cancelPause(id: Observation.Id): EngineHandle[F, Unit] =
     EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.No))
@@ -196,7 +195,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                              ) *> send(
                                Event
                                  .modifyState(
-                                   atomReload(this, obsId, OnAtomReloadAction.StartNewAtom)
+                                   atomReload(this, obsId, ReloadReason.SequenceFlow)
                                  )
                              )
                                *> send(Event.stepComplete(obsId))
@@ -297,14 +296,14 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
         .sequenceStateAt(obsId)
         .getOption(st)
         .map {
-          case seq @ Sequence.State.Final(_, _)        =>
+          case seq @ Sequence.State.Final(_, _)     =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
               EngineHandle.debug(
                 s"**** {execute} STOPPING SEQUENCE BECAUSE IT IS IN FINAL STATE"
               ) >>
               send(Event.finished(obsId))
-          case seq @ Sequence.State.Zipper(z, _, _, _) =>
+          case seq @ Sequence.State.Zipper(z, _, _) =>
             val stepId                         = z.focus.toStep.id
             val u: List[Stream[F, Event[F]]]   =
               seq.current.actions
@@ -401,7 +400,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
     EngineHandle
       .getSequenceState(obsId)
       .flatMap(_.collect {
-        case s @ Sequence.State.Zipper(z, _, _, _)
+        case s @ Sequence.State.Zipper(z, _, _)
             if Sequence.State.isRunning(s) && s.current.execution.lift(i).exists(Action.paused) =>
           EngineHandle.modifySequenceState[F](obsId)(_.start(i)) *>
             EngineHandle.fromEventStream(act(obsId, z.focus.toStep.id, (cont, i)))
@@ -612,11 +611,7 @@ object Engine {
 
   def build[F[_]: Concurrent: Logger](
     loadNextAtom:   (Engine[F], Observation.Id) => EngineHandle[F, SeqEvent],
-    reloadNextAtom: (
-      Engine[F],
-      Observation.Id,
-      OnAtomReloadAction
-    ) => EngineHandle[F, SeqEvent]
+    reloadNextAtom: (Engine[F], Observation.Id, ReloadReason) => EngineHandle[F, SeqEvent]
   ): F[Engine[F]] = for {
     sq <- Queue.unbounded[F, Stream[F, Event[F]]]
     iq <- Queue.unbounded[F, Event[F]]

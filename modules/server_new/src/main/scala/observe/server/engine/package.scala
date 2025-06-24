@@ -3,13 +3,11 @@
 
 package observe.engine
 
-import cats.Applicative
 import cats.Functor
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.StateT
 import cats.effect.MonadCancelThrow
-import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import fs2.Stream
 import lucuma.core.model.Observation
@@ -40,8 +38,8 @@ extension [F[_]](v: List[Action[F]]) {
     NonEmptyList.fromList(v).foldRight(ac)(_ :: _)
 }
 
-enum OnAtomReloadAction:
-  case NoAction, StartNewAtom
+enum ReloadReason:
+  case SequenceFlow, EditEvent
 
 // Type defined to avoid repeating long type definitions everywhere
 type EngineHandle[F[_], A] = Handle[F, EngineState[F], Event[F], A]
@@ -102,26 +100,10 @@ object EngineHandle {
   inline def modifyState_[F[_]: Monad](f: EngineState[F] => EngineState[F]): EngineHandle[F, Unit] =
     Handle.modifyState_(f)
 
-  // Ensure latch release
-  // def withLatch[F[_]: MonadCancelThrow, A](f: EngineHandle[F, A] =
-  //   // EngineHandle.
-  //   EngineHandle.bracket
-
-  // You can't do anything with a sequence while it's latched, so you have to wait.
   def getSequenceState[F[_]: MonadCancelThrow](
     obsId: Observation.Id
   ): EngineHandle[F, Option[Sequence.State[F]]] =
-    inspectState[F, Option[Sequence.State[F]]](EngineState.sequenceStateAt(obsId).getOption(_))
-      .flatTap: seqState =>
-        EngineHandle.liftF:
-          seqState
-            .flatMap(_.latch)
-            .fold(Applicative[F].unit)(_.get)
-
-  // def getSequenceState[F[_]: MonadCancelThrow](
-  //   obsId: Observation.Id
-  // ): EngineHandle[F, Option[Sequence.State[F]]] =
-  //   inspectState(EngineState.sequenceStateAt(obsId).getOption(_))
+    inspectState(EngineState.sequenceStateAt(obsId).getOption(_))
 
   def inspectSequenceState[F[_]: MonadCancelThrow, A](obsId: Observation.Id)(
     f: Sequence.State[F] => A

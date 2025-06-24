@@ -93,9 +93,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
       r <- OptionT.pure(t.seq match {
-             case Sequence.State.Zipper(zipper, status, _, _) =>
+             case Sequence.State.Zipper(zipper, status, _) =>
                zipper.done.length === 1 && zipper.pending.isEmpty && status === SequenceState.Idle
-             case _                                           => false
+             case _                                        => false
            })
     } yield r).value.map(_.getOrElse(fail("Sequence not found"))).assert
   }
@@ -124,9 +124,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
       r <- OptionT.pure(t.seq match {
-             case Sequence.State.Zipper(zipper, _, _, _) =>
+             case Sequence.State.Zipper(zipper, _, _) =>
                zipper.pending.nonEmpty
-             case _                                      => false
+             case _                                   => false
            })
     } yield r).value.map(_.getOrElse(fail("Sequence not found")))
 
