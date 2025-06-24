@@ -8,8 +8,9 @@ import cats.Functor
 import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.StateT
-import cats.effect.MonadCancelThrow
 import cats.effect.Concurrent
+import cats.effect.MonadCancelThrow
+import cats.effect.kernel.Deferred
 import cats.effect.syntax.all.*
 import cats.syntax.flatMap.*
 import cats.syntax.functor.*
@@ -18,7 +19,6 @@ import lucuma.core.model.Observation
 import observe.model.ActionType
 import observe.server.EngineState
 import org.typelevel.log4cats.Logger
-import cats.effect.kernel.Deferred
 
 // Top level synonyms
 
@@ -138,7 +138,7 @@ object EngineHandle {
     getSequenceState(obsId)
       .flatMap:
         case Some(s) => modifyState_(EngineState.sequenceStateAt(obsId).replace(f(s)))
-        case None    => Applicative[EngineHandle[F, *]].unit
+        case None    => unit
       .uncancelable
 
   def replaceSequenceState[F[_]: MonadCancelThrow](obsId: Observation.Id)(

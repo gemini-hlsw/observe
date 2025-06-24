@@ -71,10 +71,10 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
     EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.No))
 
   def startSingle(c: ActionCoords): EngineHandle[F, Outcome] =
-    EngineHandle.getState.flatMap { st =>
+    EngineHandle.getSequenceState(c.obsId).flatMap { seqState =>
       val resultStream: Option[Stream[F, Result]] =
         for
-          seq <- EngineState.sequenceStateAt(c.obsId).getOption(st)
+          seq <- seqState
           if (seq.status.isIdle || seq.status.isError) && !seq.getSingleState(c.actCoords).active
           act <- seq.rollback.getSingleAction(c.actCoords)
         yield act.gen
@@ -292,11 +292,10 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
   }
 
   private def execute(obsId: Observation.Id)(using Concurrent[F]): EngineHandle[F, Unit] =
-    EngineHandle.getState.flatMap(st =>
-      EngineState
-        .sequenceStateAt(obsId)
-        .getOption(st)
-        .map {
+    EngineHandle
+      .getSequenceState(obsId)
+      .flatMap:
+        _.map:
           case seq @ Sequence.State.Final(_, _)        =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
@@ -317,9 +316,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                 .map(i => EngineHandle.modifySequenceState[F](obsId)(_.start(i)))
                 .toList
             w.sequence *> Handle.fromEventStream(v)
-        }
         .getOrElse(EngineHandle.unit)
-    )
 
   private def actionStop(
     obsId: Observation.Id,

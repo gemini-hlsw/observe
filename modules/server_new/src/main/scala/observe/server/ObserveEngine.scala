@@ -6,8 +6,8 @@ package observe.server
 import cats.Endo
 import cats.Monoid
 import cats.effect.Async
-import cats.effect.MonadCancelThrow
 import cats.effect.Concurrent
+import cats.effect.MonadCancelThrow
 import cats.effect.Ref
 import cats.effect.Sync
 import cats.effect.Temporal
