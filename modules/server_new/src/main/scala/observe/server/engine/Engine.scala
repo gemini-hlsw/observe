@@ -162,7 +162,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                           userStop,
                           internalStop,
                           waitingUserPrompt = IsWaitingUserPrompt.Yes,
-                          waitingNextAtom = IsWaitingNextAtom.Yes, // TODO Should this be No?
+                          waitingNextAtom = IsWaitingNextAtom.Yes,
                           starting = IsStarting.No
                         )
                       ) *> send(Event.modifyState(atomLoad(this, obsId)))
