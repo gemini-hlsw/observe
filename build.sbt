@@ -167,10 +167,9 @@ lazy val stateengine = project
   .settings(
     name := "stateengine",
     libraryDependencies ++= Seq(
-      CatsEffect.value,
       Mouse.value,
       Fs2.value
-    ) ++ MUnit.value ++ Cats.value
+    ) ++ MUnit.value ++ Cats.value ++ CatsEffect.value
   )
 
 lazy val observe_web_server = project
@@ -221,13 +220,12 @@ lazy val observe_web_client = project
     coverageEnabled  := false,
     libraryDependencies ++= Seq(
       Kittens.value,
-      CatsEffect.value,
       Clue.value,
       ClueJs.value,
       Fs2.value,
       Http4sClient.value,
       Http4sDom.value
-    ) ++ Crystal.value ++ LucumaUI.value ++ LucumaSchemas.value ++ ScalaJSReactIO.value ++ Cats.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
+    ) ++ Crystal.value ++ LucumaUI.value ++ LucumaSchemas.value ++ ScalaJSReactIO.value ++ Cats.value ++ CatsEffect.value ++ LucumaReact.value ++ Monocle.value ++ LucumaCore.value ++ Log4CatsLogLevel.value,
     scalacOptions ~= (_.filterNot(Set("-Vtype-diffs"))),
     buildInfoKeys    := Seq[BuildInfoKey](
       scalaVersion,
@@ -270,7 +268,7 @@ lazy val observe_server = project
         ACM,
         GiapiScala
       ) ++ Coulomb.value ++ LucumaSchemas.value ++ MUnit.value ++ Http4s ++ Http4sJDKClient.value ++ PureConfig ++ Monocle.value ++
-        Circe.value ++ Natchez,
+        Circe.value ++ Natchez ++ CatsEffect.value,
     headerSources / excludeFilter := HiddenFileFilter || (file(
       "modules/server_new"
     ) / "src/main/scala/pureconfig/module/http4s/package.scala").getName

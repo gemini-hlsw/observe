@@ -18,6 +18,8 @@ import observe.engine.SystemEvent.*
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
+import observe.model.SequenceState.*
+import observe.model.SequenceState.HasUserStop
 import observe.model.StepState
 import observe.model.enums.Resource
 import observe.server.EngineState
@@ -256,8 +258,9 @@ class StepSuite extends CatsEffectSuite {
 
     m.compile.last.map { l =>
       l.map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, _, _) => zipper.done.length === 1 // Only 1 step executed
-        case _                                   => false
+        case Sequence.State.Zipper(zipper, _, _, _) =>
+          zipper.done.length === 1 // Only 1 step executed
+        case _                                      => false
       }
     }.assert
 
@@ -287,7 +290,8 @@ class StepSuite extends CatsEffectSuite {
             done = Nil
           ),
           SequenceState.Idle,
-          Map.empty
+          Map.empty,
+          none
         )
       )
 
@@ -304,13 +308,13 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map {
       _.map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           (zipper.focus.toStep match {
             case EngineStep(_, _, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
             case _                                => false
           }) && status.isRunning
-        case _                                        => false
+        case _                                           => false
       }
     }.assert
 
@@ -337,13 +341,14 @@ class StepSuite extends CatsEffectSuite {
             done = Nil
           ),
           SequenceState.Running(
-            userStop = true,
-            internalStop = false,
-            waitingUserPrompt = false,
-            waitingNextAtom = false,
-            starting = false
+            HasUserStop.Yes,
+            HasInternalStop.No,
+            IsWaitingUserPrompt.No,
+            IsWaitingNextAtom.No,
+            IsStarting.No
           ),
-          Map.empty
+          Map.empty,
+          none
         )
       )
 
@@ -361,9 +366,9 @@ class StepSuite extends CatsEffectSuite {
     qs1
       .map(x =>
         x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-          case Sequence.State.Zipper(_, status, _) =>
+          case Sequence.State.Zipper(_, status, _, _) =>
             status.isRunning
-          case _                                   => false
+          case _                                      => false
         }
       )
       .assert
@@ -405,13 +410,13 @@ class StepSuite extends CatsEffectSuite {
 
     qss.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           zipper.focus.toStep.match {
             case EngineStep(_, _, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
             case _                                => false
           } && (status === SequenceState.Idle)
-        case _                                        => false
+        case _                                           => false
       }
     }.assert
   }
@@ -502,7 +507,7 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           (zipper.focus.toStep match {
             // Check that the sequence stopped midway
             case EngineStep(_, _, List(ex1, ex2, ex3)) =>
@@ -511,7 +516,7 @@ class StepSuite extends CatsEffectSuite {
               ).results.length == 1 && Execution(ex3.toList).actions.length == 1
             case _                                     => false
           }) && (status == SequenceState.Failed(errMsg)) // And that it ended in error
-        case _                                        => false
+        case _                                           => false
 
       }
     }.assert
@@ -580,10 +585,10 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(_, status, _) =>
+        case Sequence.State.Zipper(_, status, _, _) =>
           // And that it ended in aborted
           status === SequenceState.Aborted
-        case _                                   => false
+        case _                                      => false
       }
     }.assert
   }
@@ -614,11 +619,11 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(_, status, _) =>
+        case Sequence.State.Zipper(_, status, _, _) =>
           // Without the error we should have a value 2
           // And that it ended in error
           status === SequenceState.Failed(errMsg)
-        case _                                   => false
+        case _                                      => false
       }
     }.assert
   }
@@ -693,7 +698,7 @@ class StepSuite extends CatsEffectSuite {
     qss.map { x =>
       val a1 = x.drop(2)
       val a  = a1.headOption.flatMap(y => y.sequences.get(seqId)).map(_.seq) match {
-        case Some(Sequence.State.Zipper(zipper, status, _)) =>
+        case Some(Sequence.State.Zipper(zipper, status, _, _)) =>
           (zipper.focus.focus.execution.headOption match {
             case Some(
                   Action(_, _, Action.State(Action.ActionState.Started, v :: _), _)
@@ -701,7 +706,7 @@ class StepSuite extends CatsEffectSuite {
               v == PartialValDouble(0.5)
             case _ => false
           }) && status.isRunning
-        case _                                              => false
+        case _                                                 => false
       }
       val b  = x.lastOption.flatMap(_.sequences.get(seqId)).map(_.seq) match {
         case Some(Sequence.State.Final(seq, status)) =>

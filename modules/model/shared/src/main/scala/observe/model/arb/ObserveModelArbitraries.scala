@@ -81,13 +81,15 @@ trait ObserveModelArbitraries {
     } yield SequenceMetadata(i, o, n)
   }
 
+  import SequenceState.*
+
   given Arbitrary[SequenceState.Running] = Arbitrary[SequenceState.Running] {
     for {
-      u <- arbitrary[Boolean]
-      i <- arbitrary[Boolean]
-      w <- arbitrary[Boolean]
-      a <- arbitrary[Boolean]
-      s <- arbitrary[Boolean]
+      u <- arbitrary[HasUserStop]
+      i <- arbitrary[HasInternalStop]
+      w <- arbitrary[IsWaitingUserPrompt]
+      a <- arbitrary[IsWaitingNextAtom]
+      s <- arbitrary[IsStarting]
     } yield SequenceState.Running(u, i, w, a, s)
   }
 

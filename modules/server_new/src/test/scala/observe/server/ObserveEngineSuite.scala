@@ -50,7 +50,7 @@ import observe.model.Conditions
 import observe.model.Observer
 import observe.model.Operator
 import observe.model.SequenceState
-import observe.model.SequenceState.Running
+import observe.model.SequenceState.*
 import observe.model.SystemOverrides
 import observe.model.UserPrompt
 import observe.model.dhs.DataId
@@ -972,7 +972,15 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateAt[IO](seqObsId1)
           .modify(x =>
-            Sequence.State.Final(x.toSequence, Running(false, false, false, true, false))
+            Sequence.State.Final(x.toSequence,
+                                 Running(
+                                   HasUserStop.No,
+                                   HasInternalStop.No,
+                                   IsWaitingUserPrompt.No,
+                                   IsWaitingNextAtom.Yes,
+                                   IsStarting.No
+                                 )
+            )
           )(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)
       eo             = EngineObserver(observeEngine, s1)

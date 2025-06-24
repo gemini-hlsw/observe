@@ -4,12 +4,13 @@
 package observe.server
 
 import cats.Endo
-import cats.MonadThrow
 import cats.Monoid
 import cats.effect.Async
+import cats.effect.Concurrent
+import cats.effect.MonadCancelThrow
 import cats.effect.Ref
+import cats.effect.Sync
 import cats.effect.Temporal
-import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Pipe
@@ -30,7 +31,7 @@ import monocle.Optional
 import monocle.syntax.all.focus
 import mouse.all.*
 import observe.engine
-import observe.engine.Event.finished
+import observe.engine.Event
 import observe.engine.Handle.given
 import observe.engine.{EngineStep as _, *}
 import observe.model.*
@@ -394,7 +395,7 @@ object ObserveEngine {
   ): Set[Observation.Id] =
     findRunnableObservations(qid)(st).intersect(sids)
 
-  private def onAtomComplete[F[_]: MonadThrow](
+  private def onAtomComplete[F[_]: MonadCancelThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -469,7 +470,7 @@ object ObserveEngine {
             )
         }(st)
 
-  def tryNewAtom[F[_]: MonadThrow](
+  def tryNewAtom[F[_]: MonadCancelThrow](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F],
@@ -517,7 +518,7 @@ object ObserveEngine {
       }
     )
 
-  def onAtomReload[F[_]: MonadThrow: Logger](
+  def onAtomReload[F[_]: Concurrent: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F]
   )(
@@ -543,7 +544,7 @@ object ObserveEngine {
         )
       }
 
-  private def tryAtomReload[F[_]: MonadThrow: Logger](
+  private def tryAtomReload[F[_]: Concurrent: Logger](
     odb:           OdbProxy[F],
     translator:    SeqTranslate[F],
     executeEngine: Engine[F],
@@ -551,43 +552,48 @@ object ObserveEngine {
     atomType:      SequenceType,
     onAtomReload:  OnAtomReloadAction
   ): EngineHandle[F, Unit] =
-    EngineHandle.fromSingleEventF {
-      Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
-        odb
-          .read(obsId)
-          .map { odbObs =>
-            // Read the next atom from the odb and replaces the current atom
-            val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
-            Event
-              .modifyState[F](
-                EngineHandle
-                  .modifyState { (oldState: EngineState[F]) =>
-                    val newState: EngineState[F] = updateAtom(obsId, atomGen)(oldState)
-                    (newState, ())
-                  }
-                  .flatMap[SeqEvent] { _ =>
-                    atomGen.fold(
-                      EngineHandle
-                        .fromSingleEvent(finished(obsId))
-                        .as(SeqEvent.NullSeqEvent)
-                    ) { atm =>
-                      if onAtomReload == OnAtomReloadAction.StartNewAtom then
-                        executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
-                      else
-                        Handle.pure:
-                          SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+    EngineHandle.withLatch(obsId): // Avoid concurrent state updates while reloading the atom.
+      EngineHandle.fromSingleEventF {
+        Logger[F].debug(s"Reloading atom for observation [$obsId]") >>
+          odb
+            .read(obsId)
+            .map { odbObs =>
+              // Read the next atom from the odb and replaces the current atom
+              Event
+                .modifyState[F](
+                  EngineHandle
+                    .modifyState { (oldState: EngineState[F]) =>
+                      val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
+                      val newState: EngineState[F]    = updateAtom(obsId, atomGen)(oldState)
+                      (newState, atomGen)
                     }
-                  }
-              )
-          }
-          .handleErrorWith { e =>
-            Logger[F]
-              .error(e)(s"Error reloading atom for observation [$obsId]")
-              .as( // TODO We may need a new event here.
-                Event.failed(obsId, 0, Result.Error(e.getMessage))
-              )    // TODO Bubble this error up to the UIs, signal to clear sequence.
-          }
-    }
+                    .flatMap[SeqEvent] { atomGen =>
+                      atomGen.fold(
+                        EngineHandle
+                          .debug("**** STOPPING SEQUENCE BECAUSE OF EMPTY ATOM ON RELOAD") >>
+                          EngineHandle
+                            .fromSingleEvent(Event.finished(obsId))
+                            .as(SeqEvent.NullSeqEvent)
+                      ) { atm =>
+                        if onAtomReload == OnAtomReloadAction.StartNewAtom then
+                          executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
+                        else
+                          EngineHandle.debug(s"**** ATOM UPDATED. NEW ATOM: ${pprint(atm)}") >>
+                            EngineHandle.printSequenceState(obsId) >>
+                            Handle.pure:
+                              SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+                      }
+                    }
+                )
+            }
+            .handleErrorWith { e =>
+              Logger[F]
+                .error(e)(s"Error reloading atom for observation [$obsId]")
+                .as( // TODO We may need a new event here.
+                  Event.failed(obsId, 0, Result.Error(e.getMessage))
+                )    // TODO Bubble this error up to the UIs, signal to clear sequence.
+            }
+      }
 
   /**
    * Build Observe and setup epics

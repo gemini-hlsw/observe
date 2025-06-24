@@ -3,6 +3,7 @@
 
 package observe.engine
 
+import cats.effect.kernel.Deferred
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
@@ -13,6 +14,8 @@ import monocle.macros.GenLens
 import observe.engine.Action.ActionState
 import observe.engine.Result.RetVal
 import observe.model.SequenceState
+import observe.model.SequenceState.HasInternalStop
+import observe.model.SequenceState.HasUserStop
 
 /**
  * A list of `Step`s grouped by target and instrument.
@@ -219,6 +222,9 @@ object Sequence {
 
     def clearSingles: State[F]
 
+    def latch: Option[Deferred[F, Unit]]
+
+    def withLatch(latch: Deferred[F, Unit]): State[F]
   }
 
   object State {
@@ -226,8 +232,8 @@ object Sequence {
     def status[F[_]]: Lens[State[F], SequenceState] =
       // `State` doesn't provide `.copy`
       Lens[State[F], SequenceState](_.status)(s => {
-        case Zipper(st, _, x) => Zipper(st, s, x)
-        case Final(st, _)     => Final(st, s)
+        case Zipper(st, _, x, l) => Zipper(st, s, x, l)
+        case Final(st, _)        => Final(st, s)
       })
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
@@ -245,12 +251,12 @@ object Sequence {
 
     def isStarting[F[_]](st: State[F]): Boolean = st.status.isStarting
 
-    def userStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
+    def userStopSet[F[_]](v: HasUserStop): State[F] => State[F] = status.modify {
       case r @ SequenceState.Running(_, _, _, _, _) => r.copy(userStop = v)
       case r                                        => r
     }
 
-    def internalStopSet[F[_]](v: Boolean): State[F] => State[F] = status.modify {
+    def internalStopSet[F[_]](v: HasInternalStop): State[F] => State[F] = status.modify {
       case r @ SequenceState.Running(_, _, _, _, _) => r.copy(internalStop = v)
       case r                                        => r
     }
@@ -262,7 +268,7 @@ object Sequence {
     def init[F[_]](q: Sequence[F]): State[F] =
       Sequence.Zipper
         .zipper[F](q)
-        .map(Zipper(_, SequenceState.Idle, Map.empty))
+        .map(Zipper(_, SequenceState.Idle, Map.empty, none))
         .getOrElse(Final(q, SequenceState.Idle))
 
     /**
@@ -291,14 +297,18 @@ object Sequence {
     case class Zipper[F[_]](
       zipper:     Sequence.Zipper[F],
       status:     SequenceState,
-      singleRuns: Map[ActionCoordsInSeq, ActionState]
+      singleRuns: Map[ActionCoordsInSeq, ActionState],
+      latch:      Option[Deferred[F, Unit]] = none
     ) extends State[F] { self =>
 
-      override val next: Option[State[F]] = zipper.next match {
-        // Last execution
-        case None    => zipper.uncurrentify.map(Final[F](_, status))
-        case Some(x) => Zipper(x, status, singleRuns).some
-      }
+      override val next: Option[State[F]] =
+
+        println(s"**** {State.Zipper.next} zipper.next: ${zipper.next}, uncurrentify?")
+
+        zipper.next match
+          // Last execution
+          case None    => zipper.uncurrentify.map(Final[F](_, status))
+          case Some(x) => Zipper(x, status, singleRuns, latch).some
 
       override val isLastAction: Boolean =
         zipper.focus.pending.isEmpty
@@ -407,6 +417,9 @@ object Sequence {
         } yield act
 
       override def clearSingles: State[F] = self.copy(singleRuns = Map.empty)
+
+      override def withLatch(latch: Deferred[F, Unit]): State[F] =
+        self.copy(latch = latch.some)
     }
 
     /**
@@ -453,6 +466,10 @@ object Sequence {
       override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = None
 
       override def clearSingles: State[F] = self
+
+      override val latch: Option[Deferred[F, Unit]] = none
+
+      override def withLatch(latch: Deferred[F, Unit]): State[F] = self
     }
 
   }

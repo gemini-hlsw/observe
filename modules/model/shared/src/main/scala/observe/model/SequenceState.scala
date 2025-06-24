@@ -9,6 +9,7 @@ import cats.syntax.all.*
 import io.circe.Decoder
 import io.circe.Encoder
 import lucuma.core.util.Display
+import lucuma.core.util.NewBoolean
 import monocle.Focus
 import monocle.Lens
 import monocle.Prism
@@ -17,11 +18,11 @@ import monocle.macros.GenPrism
 enum SequenceState(val name: String) derives Eq, Encoder, Decoder:
   case Idle                extends SequenceState("Idle")
   case Running(
-    userStop:          Boolean,
-    internalStop:      Boolean,
-    waitingUserPrompt: Boolean,
-    waitingNextAtom:   Boolean,
-    starting:          Boolean
+    userStop:          SequenceState.HasUserStop,
+    internalStop:      SequenceState.HasInternalStop,
+    waitingUserPrompt: SequenceState.IsWaitingUserPrompt,
+    waitingNextAtom:   SequenceState.IsWaitingNextAtom,
+    starting:          SequenceState.IsStarting
   )                        extends SequenceState("Running")
   case Completed           extends SequenceState("Completed")
   case Failed(msg: String) extends SequenceState("Failed")
@@ -79,26 +80,42 @@ object SequenceState:
   val running: Prism[SequenceState, SequenceState.Running] =
     GenPrism[SequenceState, SequenceState.Running]
 
+  object HasUserStop extends NewBoolean { val Yes = True; val No = False }
+  type HasUserStop = HasUserStop.Type
+
+  object HasInternalStop extends NewBoolean { val Yes = True; val No = False }
+  type HasInternalStop = HasInternalStop.Type
+
+  object IsWaitingUserPrompt extends NewBoolean { val Yes = True; val No = False }
+  type IsWaitingUserPrompt = IsWaitingUserPrompt.Type
+
+  object IsWaitingNextAtom extends NewBoolean { val Yes = True; val No = False }
+  type IsWaitingNextAtom = IsWaitingNextAtom.Type
+
+  object IsStarting extends NewBoolean { val Yes = True; val No = False }
+  type IsStarting = IsStarting.Type
+
   object Running:
     val Init: Running =
       SequenceState.Running(
-        userStop = false,
-        internalStop = false,
-        waitingUserPrompt = false,
-        waitingNextAtom = false,
-        starting = false
+        userStop = HasUserStop.No,
+        internalStop = HasInternalStop.No,
+        waitingUserPrompt = IsWaitingUserPrompt.No,
+        waitingNextAtom = IsWaitingNextAtom.No,
+        starting = IsStarting.No
       )
 
-    val userStop: Lens[SequenceState.Running, Boolean] = Focus[SequenceState.Running](_.userStop)
+    val userStop: Lens[SequenceState.Running, HasUserStop] =
+      Focus[SequenceState.Running](_.userStop)
 
-    val internalStop: Lens[SequenceState.Running, Boolean] =
+    val internalStop: Lens[SequenceState.Running, HasInternalStop] =
       Focus[SequenceState.Running](_.internalStop)
 
-    val waitingUserPrompt: Lens[SequenceState.Running, Boolean] =
+    val waitingUserPrompt: Lens[SequenceState.Running, IsWaitingUserPrompt] =
       Focus[SequenceState.Running](_.waitingUserPrompt)
 
-    val waitingNextAtom: Lens[SequenceState.Running, Boolean] =
+    val waitingNextAtom: Lens[SequenceState.Running, IsWaitingNextAtom] =
       Focus[SequenceState.Running](_.waitingNextAtom)
 
-    val starting: Lens[SequenceState.Running, Boolean] =
+    val starting: Lens[SequenceState.Running, IsStarting] =
       Focus[SequenceState.Running](_.starting)

@@ -136,16 +136,19 @@ class SeqTranslateSuite extends TestCommon {
       EngineState
         .sequenceStateAt[IO](seqObsId1)
         .modify {
-          case State.Zipper(zipper, status, singleRuns) =>
-            State.Zipper(zipper.copy(focus =
-                           advanceStepUntil(zipper.focus,
-                                            _.focus.execution.exists(_.kind === ActionType.Observe)
-                           )
-                         ),
-                         status,
-                         singleRuns
+          case State.Zipper(zipper, status, singleRuns, latch) =>
+            State.Zipper(
+              zipper.copy(
+                focus = advanceStepUntil(
+                  zipper.focus,
+                  _.focus.execution.exists(_.kind === ActionType.Observe)
+                )
+              ),
+              status,
+              singleRuns,
+              latch
             )
-          case s @ State.Final(_, _)                    => s
+          case s @ State.Final(_, _)                           => s
         } >>>
       EngineState
         .sequenceStateAt[IO](seqObsId1)
