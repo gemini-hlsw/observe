@@ -223,6 +223,8 @@ object Sequence {
     def clearSingles: State[F]
 
     def latch: Option[Deferred[F, Unit]]
+
+    def withLatch(latch: Deferred[F, Unit]): State[F]
   }
 
   object State {
@@ -415,6 +417,9 @@ object Sequence {
         } yield act
 
       override def clearSingles: State[F] = self.copy(singleRuns = Map.empty)
+
+      override def withLatch(latch: Deferred[F, Unit]): State[F] =
+        self.copy(latch = latch.some)
     }
 
     /**
@@ -463,6 +468,8 @@ object Sequence {
       override def clearSingles: State[F] = self
 
       override val latch: Option[Deferred[F, Unit]] = none
+
+      override def withLatch(latch: Deferred[F, Unit]): State[F] = self
     }
 
   }

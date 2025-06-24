@@ -9,6 +9,8 @@ import cats.Monad
 import cats.data.NonEmptyList
 import cats.data.StateT
 import cats.effect.MonadCancelThrow
+import cats.effect.Concurrent
+import cats.effect.syntax.all.*
 import cats.syntax.flatMap.*
 import cats.syntax.functor.*
 import fs2.Stream
@@ -16,6 +18,7 @@ import lucuma.core.model.Observation
 import observe.model.ActionType
 import observe.server.EngineState
 import org.typelevel.log4cats.Logger
+import cats.effect.kernel.Deferred
 
 // Top level synonyms
 
@@ -103,9 +106,15 @@ object EngineHandle {
     Handle.modifyState_(f)
 
   // Ensure latch release
-  // def withLatch[F[_]: MonadCancelThrow, A](f: EngineHandle[F, A] =
-  //   // EngineHandle.
-  //   EngineHandle.bracket
+  def withLatch[F[_]: Concurrent, A](
+    obsId: Observation.Id
+  )(f: EngineHandle[F, A])(using Logger[F]): EngineHandle[F, A] =
+    debug("***** LATCHING!!") >>
+      liftF(Deferred[F, Unit])
+        .bracket(latch => modifySequenceState[F](obsId)(_.withLatch(latch)) >> f)(latch =>
+          debug("***** UNLATCHING!!") >>
+            liftF(latch.complete(()).void)
+        )
 
   // You can't do anything with a sequence while it's latched, so you have to wait.
   def getSequenceState[F[_]: MonadCancelThrow](
@@ -118,25 +127,24 @@ object EngineHandle {
             .flatMap(_.latch)
             .fold(Applicative[F].unit)(_.get)
 
-  // def getSequenceState[F[_]: MonadCancelThrow](
-  //   obsId: Observation.Id
-  // ): EngineHandle[F, Option[Sequence.State[F]]] =
-  //   inspectState(EngineState.sequenceStateAt(obsId).getOption(_))
-
   def inspectSequenceState[F[_]: MonadCancelThrow, A](obsId: Observation.Id)(
     f: Sequence.State[F] => A
   ): EngineHandle[F, Option[A]] =
     getSequenceState(obsId).map(_.map(f))
 
-  def modifySequenceState[F[_]: Monad](obsId: Observation.Id)(
+  def modifySequenceState[F[_]: MonadCancelThrow](obsId: Observation.Id)(
     f: Sequence.State[F] => Sequence.State[F]
   ): EngineHandle[F, Unit] =
-    modifyState_(EngineState.sequenceStateAt(obsId).modify(f))
+    getSequenceState(obsId)
+      .flatMap:
+        case Some(s) => modifyState_(EngineState.sequenceStateAt(obsId).replace(f(s)))
+        case None    => Applicative[EngineHandle[F, *]].unit
+      .uncancelable
 
-  def replaceSequenceState[F[_]: Monad](obsId: Observation.Id)(
+  def replaceSequenceState[F[_]: MonadCancelThrow](obsId: Observation.Id)(
     s: Sequence.State[F]
   ): EngineHandle[F, Unit] =
-    modifyState_(EngineState.sequenceStateAt(obsId).replace(s))
+    modifySequenceState(obsId)(_ => s)
 
   // For debugging
   def debug[F[_]: MonadCancelThrow: Logger](msg: String): EngineHandle[F, Unit] =
