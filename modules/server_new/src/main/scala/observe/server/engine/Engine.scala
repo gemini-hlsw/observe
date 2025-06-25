@@ -71,10 +71,10 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
     EngineHandle.modifySequenceState(id)(Sequence.State.userStopSet(HasUserStop.No))
 
   def startSingle(c: ActionCoords): EngineHandle[F, Outcome] =
-    EngineHandle.getSequenceState(c.obsId).flatMap { seqState =>
+    EngineHandle.getState.flatMap { st =>
       val resultStream: Option[Stream[F, Result]] =
         for
-          seq <- seqState
+          seq <- EngineState.sequenceStateAt(c.obsId).getOption(st)
           if (seq.status.isIdle || seq.status.isError) && !seq.getSingleState(c.actCoords).active
           act <- seq.rollback.getSingleAction(c.actCoords)
         yield act.gen
@@ -162,7 +162,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                           userStop,
                           internalStop,
                           waitingUserPrompt = IsWaitingUserPrompt.Yes,
-                          waitingNextAtom = IsWaitingNextAtom.Yes,
+                          waitingNextAtom = IsWaitingNextAtom.Yes, // TODO Should this be No?
                           starting = IsStarting.No
                         )
                       ) *> send(Event.modifyState(atomLoad(this, obsId)))
@@ -292,10 +292,11 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
   }
 
   private def execute(obsId: Observation.Id)(using Concurrent[F]): EngineHandle[F, Unit] =
-    EngineHandle
-      .getSequenceState(obsId)
-      .flatMap:
-        _.map:
+    EngineHandle.getState.flatMap(st =>
+      EngineState
+        .sequenceStateAt(obsId)
+        .getOption(st)
+        .map {
           case seq @ Sequence.State.Final(_, _)        =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
@@ -316,7 +317,9 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                 .map(i => EngineHandle.modifySequenceState[F](obsId)(_.start(i)))
                 .toList
             w.sequence *> Handle.fromEventStream(v)
+        }
         .getOrElse(EngineHandle.unit)
+    )
 
   private def actionStop(
     obsId: Observation.Id,
