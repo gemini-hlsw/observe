@@ -1480,7 +1480,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
             ObserveEngine.onAtomReload[F](systems.odb, translator)(
               executeEngine,
               obsId,
-              OnAtomReloadAction.NoAction
+              ReloadReason.EditEvent
             )
 
   // Subscribes to obsEdit changes in the ODB.
