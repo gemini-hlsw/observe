@@ -576,18 +576,14 @@ object ObserveEngine {
                   .flatMap[SeqEvent] { atomGen =>
                     atomGen.fold(
                       EngineHandle
-                        .debug("**** STOPPING SEQUENCE BECAUSE OF EMPTY ATOM ON RELOAD") >>
-                        EngineHandle
-                          .fromSingleEvent(Event.finished(obsId))
-                          .as(SeqEvent.NullSeqEvent)
+                        .fromSingleEvent(Event.finished(obsId))
+                        .as(SeqEvent.NullSeqEvent)
                     ) { atm =>
                       if reloadReason == ReloadReason.SequenceFlow then
                         executeEngine.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
                       else
-                        EngineHandle.debug(s"**** ATOM UPDATED. NEW ATOM: ${pprint(atm)}") >>
-                          EngineHandle.printSequenceState(obsId) >>
-                          Handle.pure:
-                            SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
+                        Handle.pure:
+                          SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
                     }
                   }
               )

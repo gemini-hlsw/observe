@@ -141,126 +141,111 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
     EngineHandle
       .getSequenceState(obsId)
       .flatMap(seqState =>
-        EngineHandle
-          .debug(
-            s"******* {next} CHECKING NEXT FOR COMPLETION, $obsId, NEXT: ${pprint(seqState.map(_.next))}"
-          ) >>
-          seqState
-            .map { seq =>
-              seq.status match {
-                case SequenceState.Running(userStop, internalStop, _, _, _) =>
-                  seq.next match {
-                    // Empty state
-                    case None                                  =>
-                      EngineHandle.debug(s"**** {next} STOPPING SEQUENCE BECAUSE NEXT IS EMPTY") >>
-                        send(Event.finished(obsId))
-                    // Final State
-                    case Some(qs @ Sequence.State.Final(_, _)) =>
-                      EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
-                        SequenceState.Running(
-                          userStop,
-                          internalStop,
-                          waitingUserPrompt = IsWaitingUserPrompt.Yes,
-                          waitingNextAtom = IsWaitingNextAtom.Yes, // TODO Should this be No?
-                          starting = IsStarting.No
-                        )
-                      ) *> send(Event.modifyState(atomLoad(this, obsId)))
-                    // Step execution completed. Check requested stop and breakpoint here.
-                    case Some(qs)                              =>
-                      EngineHandle.replaceSequenceState(obsId)(qs) *>
-                        (if (
-                           qs.getCurrentBreakpoint && !qs.current.execution
-                             .exists(_.uninterruptible)
-                         ) {
-                           switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
-                         } else if (seq.isLastAction) {
-                           // Only process stop states after the last action of the step.
-                           if (userStop || internalStop) {
-                             if (qs.current.execution.exists(_.uninterruptible))
-                               send(Event.executing(obsId)) *> send(Event.stepComplete(obsId))
-                             else
-                               switch(obsId)(SequenceState.Idle) *> send(
-                                 Event.sequencePaused(obsId)
-                               )
-                           } else {
-                             // after the last action of the step, we need to reload the sequence
-                             switch(obsId)(
-                               SequenceState.Running(
-                                 userStop,
-                                 internalStop,
-                                 waitingUserPrompt = IsWaitingUserPrompt.No,
-                                 waitingNextAtom = IsWaitingNextAtom.Yes,
-                                 starting = IsStarting.No
-                               )
-                             ) *> send(
-                               Event
-                                 .modifyState(
-                                   atomReload(this, obsId, ReloadReason.SequenceFlow)
-                                 )
+        seqState
+          .map { seq =>
+            seq.status match {
+              case SequenceState.Running(userStop, internalStop, _, _, _) =>
+                seq.next match {
+                  // Empty state
+                  case None                                  =>
+                    send(Event.finished(obsId))
+                  // Final State
+                  case Some(qs @ Sequence.State.Final(_, _)) =>
+                    EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
+                      SequenceState.Running(
+                        userStop,
+                        internalStop,
+                        waitingUserPrompt = IsWaitingUserPrompt.Yes,
+                        waitingNextAtom = IsWaitingNextAtom.Yes, // TODO Should this be No?
+                        starting = IsStarting.No
+                      )
+                    ) *> send(Event.modifyState(atomLoad(this, obsId)))
+                  // Step execution completed. Check requested stop and breakpoint here.
+                  case Some(qs)                              =>
+                    EngineHandle.replaceSequenceState(obsId)(qs) *>
+                      (if (
+                         qs.getCurrentBreakpoint && !qs.current.execution
+                           .exists(_.uninterruptible)
+                       ) {
+                         switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
+                       } else if (seq.isLastAction) {
+                         // Only process stop states after the last action of the step.
+                         if (userStop || internalStop) {
+                           if (qs.current.execution.exists(_.uninterruptible))
+                             send(Event.executing(obsId)) *> send(Event.stepComplete(obsId))
+                           else
+                             switch(obsId)(SequenceState.Idle) *> send(
+                               Event.sequencePaused(obsId)
                              )
-                               *> send(Event.stepComplete(obsId))
-                           }
-                         } else send(Event.executing(obsId)))
-                  }
-                case _                                                      => EngineHandle.unit
-              }
+                         } else {
+                           // after the last action of the step, we need to reload the sequence
+                           switch(obsId)(
+                             SequenceState.Running(
+                               userStop,
+                               internalStop,
+                               waitingUserPrompt = IsWaitingUserPrompt.No,
+                               waitingNextAtom = IsWaitingNextAtom.Yes,
+                               starting = IsStarting.No
+                             )
+                           ) *> send(
+                             Event
+                               .modifyState(
+                                 atomReload(this, obsId, ReloadReason.SequenceFlow)
+                               )
+                           )
+                             *> send(Event.stepComplete(obsId))
+                         }
+                       } else send(Event.executing(obsId)))
+                }
+              case _                                                      => EngineHandle.unit
             }
-            .getOrElse(EngineHandle.unit)
+          }
+          .getOrElse(EngineHandle.unit)
       )
 
   def startNewAtom(obsId: Observation.Id): EngineHandle[F, Unit] =
     EngineHandle
       .getSequenceState(obsId)
       .flatMap(seqState =>
-        EngineHandle
-          .debug(
-            s"******* {startNewAtom} CHECKING NEXT FOR COMPLETION, $obsId, NEXT: ${pprint(seqState.map(_.next))}"
-          ) >>
-          seqState
-            .map { seq =>
-              seq.status match {
-                case SequenceState
-                      .Running(userStop, internalStop, _, IsWaitingNextAtom.Yes, isStarting) =>
-                  if (!isStarting && (userStop || internalStop)) {
-                    seq match {
-                      // Final State
-                      case Sequence.State.Final[F](_, _) =>
-                        EngineHandle.debug(
-                          s"**** {startNewAtom} STOPPING SEQUENCE INSTEAD OF PENDING STOP"
-                        ) >>
-                          send(Event.finished(obsId))
-                      // Execution completed
-                      case _                             => switch(obsId)(SequenceState.Idle)
-                    }
-                  } else {
-                    seq match {
-                      // Final State
-                      case Sequence.State.Final[F](_, _) =>
-                        EngineHandle.debug(
-                          s"**** {startNewAtom} STOPPING SEQUENCE INSTEAD OF STARTING NEW ATOM BECAUSE WE ARE IN FINAL STATE"
-                        ) >>
-                          send(Event.finished(obsId))
-                      // Execution completed. Check breakpoint here
-                      case _                             =>
-                        if (!isStarting && seq.getCurrentBreakpoint) {
-                          switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
-                        } else
-                          switch(obsId)(
-                            SequenceState.Running(
-                              userStop,
-                              internalStop,
-                              IsWaitingUserPrompt.No,
-                              IsWaitingNextAtom.No,
-                              IsStarting.No
-                            )
-                          ) *>
-                            send(Event.executing(obsId))
-                    }
+        seqState
+          .map { seq =>
+            seq.status match {
+              case SequenceState
+                    .Running(userStop, internalStop, _, IsWaitingNextAtom.Yes, isStarting) =>
+                if (!isStarting && (userStop || internalStop)) {
+                  seq match {
+                    // Final State
+                    case Sequence.State.Final[F](_, _) =>
+                      send(Event.finished(obsId))
+                    // Execution completed
+                    case _                             => switch(obsId)(SequenceState.Idle)
                   }
-                case _ => EngineHandle.unit
-              }
+                } else {
+                  seq match {
+                    // Final State
+                    case Sequence.State.Final[F](_, _) =>
+                      send(Event.finished(obsId))
+                    // Execution completed. Check breakpoint here
+                    case _                             =>
+                      if (!isStarting && seq.getCurrentBreakpoint) {
+                        switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
+                      } else
+                        switch(obsId)(
+                          SequenceState.Running(
+                            userStop,
+                            internalStop,
+                            IsWaitingUserPrompt.No,
+                            IsWaitingNextAtom.No,
+                            IsStarting.No
+                          )
+                        ) *>
+                          send(Event.executing(obsId))
+                  }
+                }
+              case _ => EngineHandle.unit
             }
-            .getOrElse(EngineHandle.unit)
+          }
+          .getOrElse(EngineHandle.unit)
       )
 
   /**
@@ -299,9 +284,6 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
           case seq @ Sequence.State.Final(_, _)     =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
-              EngineHandle.debug(
-                s"**** {execute} STOPPING SEQUENCE BECAUSE IT IS IN FINAL STATE"
-              ) >>
               send(Event.finished(obsId))
           case seq @ Sequence.State.Zipper(z, _, _) =>
             val stepId                         = z.focus.toStep.id

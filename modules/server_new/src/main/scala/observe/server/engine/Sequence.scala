@@ -296,9 +296,6 @@ object Sequence {
     ) extends State[F] { self =>
 
       override val next: Option[State[F]] =
-
-        println(s"**** {State.Zipper.next} zipper.next: ${zipper.next}, uncurrentify?")
-
         zipper.next match
           // Last execution
           case None    => zipper.uncurrentify.map(Final[F](_, status))
