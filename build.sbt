@@ -76,7 +76,7 @@ lazy val dockerHubLogin =
 
 lazy val sbtDockerPublish =
   WorkflowStep.Sbt(
-    List("deploy/docker:publish"),
+    List("clean", "deploy/docker:publish"),
     name = Some("Build and Publish Docker image")
   )
 

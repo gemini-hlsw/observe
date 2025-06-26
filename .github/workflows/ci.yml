@@ -157,7 +157,7 @@ jobs:
         run: echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login --username nlsoftware --password-stdin
 
       - name: Build and Publish Docker image
-        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' deploy/docker:publish'
+        run: 'sbt -v -J-Xmx6g ''++ ${{ matrix.scala }}'' clean deploy/docker:publish'
 
       - name: Deploy and release app in Heroku
         run: |
