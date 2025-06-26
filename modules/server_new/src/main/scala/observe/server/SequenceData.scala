@@ -5,7 +5,7 @@ package observe.server
 
 import monocle.Focus
 import monocle.Lens
-import observe.engine.Sequence
+import observe.server.engine.Sequence
 import observe.model.Observer
 import observe.model.SystemOverrides
 import observe.model.enums.PendingObserveCmd

@@ -6,7 +6,7 @@ package observe.server.gmos
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import mouse.all.*
-import observe.engine
+import observe.server.engine
 import observe.model.*
 import observe.model.enums.*
 import observe.server.*
@@ -55,7 +55,7 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           stepConfig = stepg.config,
           telescopeConfig = stepg.telescopeConfig,
           status = status,
-          breakpoint = step.breakpoint,
+          // breakpoint = step.breakpoint,
           configStatus = configStatus,
           nsStatus = NodAndShuffleStatus(
             observeStatus(step.executions),

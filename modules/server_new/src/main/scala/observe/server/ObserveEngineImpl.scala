@@ -33,11 +33,10 @@ import monocle.Optional
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.cats.given
-import observe.engine
-import observe.engine.EventResult.*
-import observe.engine.Handle.given
-import observe.engine.Result.Partial
-import observe.engine.{EngineStep as _, *}
+import observe.server.engine.EventResult.*
+import observe.server.engine.Handle.given
+import observe.server.engine.Result.Partial
+import observe.server.engine.{EngineStep as _, *}
 import observe.model.*
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
@@ -62,6 +61,7 @@ import scala.concurrent.duration.*
 
 import SeqEvent.*
 import ClientEvent.*
+import observe.server.engine.EngineStep
 
 private class ObserveEngineImpl[F[_]: Async: Logger](
   executeEngine:         Engine[F],
@@ -408,7 +408,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     obsId:    Observation.Id,
     user:     User,
     observer: Observer,
-    steps:    List[Step.Id],
+    steps:    Set[Step.Id],
     v:        Breakpoint
   ): F[Unit] =
     // Set the observer after the breakpoints are set to do optimistic updates on the UI
@@ -732,9 +732,9 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
 
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map {
-      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         =>
+      case ObserveStep.Standard(id, _, _, _, _, _, configStatus, _)         =>
         id -> configStatus.toMap
-      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
+      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, configStatus, _, _) =>
         id -> configStatus.toMap
     }.toMap
 
@@ -747,7 +747,8 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       seqType,
       engSteps,
       None,
-      stepResources
+      stepResources,
+      st.breakpoints.value
     )
   }
 
@@ -1358,16 +1359,18 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
   private def updateSequenceEndo(
     conditions: Conditions,
     operator:   Option[Operator]
-  ): Endo[SequenceData[F]] = (sd: SequenceData[F]) =>
-    SequenceData.seq.modify(
-      executeEngine.updateSteps(
+  ): Endo[SequenceData[F]] =
+    (sd: SequenceData[F]) =>
+      val stepsWithBreakpoints: List[(EngineStep[F], Breakpoint)] =
         toStepList(
           sd.seqGen,
           sd.overrides,
           HeaderExtraData(conditions, operator, sd.observer)
         )
-      )
-    )(sd)
+
+      SequenceData.seq.modify(
+        executeEngine.updateSteps(stepsWithBreakpoints.map(_._1))
+      )(sd)
 
   private def refreshSequence(id: Observation.Id): Endo[EngineState[F]] = (st: EngineState[F]) =>
     EngineState.atSequence(id).modify(updateSequenceEndo(st.conditions, st.operator))(st)

@@ -22,7 +22,7 @@ import observe.common.test.observationId
 import org.scalatest.NonImplicitAssertions
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.Inside.inside
-import observe.engine.Sequence
+import observe.server.engine.Sequence
 import observe.model.enums.Instrument
 import observe.model.enums.Resource.TCS
 import observe.server.TestCommon.*

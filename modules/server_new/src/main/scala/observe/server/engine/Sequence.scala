@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
@@ -10,8 +10,8 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import monocle.Lens
 import monocle.macros.GenLens
-import observe.engine.Action.ActionState
-import observe.engine.Result.RetVal
+import observe.server.engine.Action.ActionState
+import observe.server.engine.Result.RetVal
 import observe.model.SequenceState
 import observe.model.SequenceState.HasInternalStop
 import observe.model.SequenceState.HasUserStop
@@ -20,29 +20,35 @@ import observe.model.SequenceState.HasUserStop
  * A list of `Step`s grouped by target and instrument.
  */
 case class Sequence[F[_]] private (
-  id:     Observation.Id,
-  atomId: Option[Atom.Id],
-  steps:  List[EngineStep[F]]
+  id:          Observation.Id,
+  atomId:      Option[Atom.Id],
+  steps:       List[EngineStep[F]],
+  breakpoints: Breakpoints
 )
 
 object Sequence {
 
-  def empty[F[_]](id: Observation.Id): Sequence[F] = Sequence(id, none, List.empty)
+  def empty[F[_]](obsId: Observation.Id): Sequence[F] =
+    Sequence(obsId, none, List.empty, Breakpoints.empty)
+
   def sequence[F[_]](
-    id:     Observation.Id,
-    atomId: Atom.Id,
-    steps:  List[EngineStep[F]]
-  ): Sequence[F] = Sequence(id, atomId.some, steps)
+    obsId:       Observation.Id,
+    atomId:      Atom.Id,
+    steps:       List[EngineStep[F]],
+    breakpoints: Breakpoints
+  ): Sequence[F] =
+    Sequence(obsId, atomId.some, steps, breakpoints)
 
   /**
    * Sequence Zipper. This structure is optimized for the actual `Sequence` execution.
    */
   case class Zipper[F[_]](
-    id:      Observation.Id,
-    atomId:  Option[Atom.Id],
-    pending: List[EngineStep[F]],
-    focus:   EngineStep.Zipper[F],
-    done:    List[EngineStep[F]]
+    obsId:       Observation.Id,
+    atomId:      Option[Atom.Id],
+    pending:     List[EngineStep[F]],
+    focus:       EngineStep.Zipper[F],
+    done:        List[EngineStep[F]],
+    breakpoints: Breakpoints
   ) {
 
     /**
@@ -63,16 +69,17 @@ object Sequence {
             case stepp :: stepps =>
               (EngineStep.Zipper.currentify(stepp), focus.uncurrentify).mapN((curr, stepd) =>
                 Zipper(
-                  id,
+                  obsId,
                   atomId,
                   stepps,
                   curr,
-                  done :+ stepd
+                  done :+ stepd,
+                  breakpoints
                 )
               )
           }
         // Current step ongoing
-        case Some(stz) => Some(Zipper(id, atomId, pending, stz, done))
+        case Some(stz) => Some(Zipper(obsId, atomId, pending, stz, done, breakpoints))
       }
 
     def rollback: Zipper[F] = this.copy(focus = focus.rollback)
@@ -83,7 +90,7 @@ object Sequence {
      */
     val uncurrentify: Option[Sequence[F]] =
       if (pending.isEmpty)
-        focus.uncurrentify.map(x => Sequence(id, atomId, done :+ x))
+        focus.uncurrentify.map(x => Sequence(obsId, atomId, done :+ x, breakpoints))
       else None
 
     /**
@@ -91,7 +98,7 @@ object Sequence {
      * `Step`s.
      */
     val toSequence: Sequence[F] =
-      Sequence(id, atomId, done ++ List(focus.toStep) ++ pending)
+      Sequence(obsId, atomId, done ++ List(focus.toStep) ++ pending, breakpoints)
   }
 
   object Zipper {
@@ -107,7 +114,7 @@ object Sequence {
           EngineStep.Zipper
             .currentify(step)
             .map(
-              Zipper(seq.id, seq.atomId, steps, _, Nil)
+              Zipper(seq.id, seq.atomId, steps, _, Nil, seq.breakpoints)
             )
       }
 
@@ -119,7 +126,7 @@ object Sequence {
             EngineStep.Zipper
               .currentify(s)
               .map(
-                Zipper(seq.id, seq.atomId, ss, _, done)
+                Zipper(seq.id, seq.atomId, ss, _, done, seq.breakpoints)
               )
         }
       }
@@ -168,7 +175,9 @@ object Sequence {
 
     def rollback: State[F]
 
-    def setBreakpoints(stepId: List[Step.Id], v: Breakpoint): State[F]
+    def breakpoints: Breakpoints
+
+    def setBreakpoints(breakpointsDelta: Set[(Step.Id, Breakpoint)]): State[F]
 
     def getCurrentBreakpoint: Boolean
 
@@ -227,8 +236,8 @@ object Sequence {
     def status[F[_]]: Lens[State[F], SequenceState] =
       // `State` doesn't provide `.copy`
       Lens[State[F], SequenceState](_.status)(s => {
-        case Zipper(st, _, x) => Zipper(st, s, x)
-        case Final(st, _)     => Final(st, s)
+        case Zipper(st, _, x, bs) => Zipper(st, s, x, bs)
+        case Final(st, _)         => Final(st, s)
       })
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
@@ -263,7 +272,7 @@ object Sequence {
     def init[F[_]](q: Sequence[F]): State[F] =
       Sequence.Zipper
         .zipper[F](q)
-        .map(Zipper(_, SequenceState.Idle, Map.empty))
+        .map(Zipper(_, SequenceState.Idle, Map.empty, q.breakpoints))
         .getOrElse(Final(q, SequenceState.Idle))
 
     /**
@@ -276,30 +285,32 @@ object Sequence {
      * @return
      *   The new sequence state
      */
-    def reload[F[_]](steps: List[EngineStep[F]], st: State[F]): State[F] =
-      if (st.status.isRunning) st
-      else {
-        val oldSeq   = st.toSequence
-        val updSteps = oldSeq.steps.zip(steps).map { case (o, n) =>
-          n.copy(breakpoint = o.breakpoint)
-        } ++ steps.drop(oldSeq.steps.length)
-        init(oldSeq.copy(steps = updSteps))
-      }
+    def reload[F[_]](
+      steps:    List[EngineStep[F]],
+      oldState: State[F]
+    ): State[F] =
+      if oldState.status.isRunning
+      then oldState
+      else
+        init(
+          oldState.toSequence.copy(steps = steps)
+        )
 
     /**
      * This is the `State` in Zipper mode, which means is under execution.
      */
     case class Zipper[F[_]](
-      zipper:     Sequence.Zipper[F],
-      status:     SequenceState,
-      singleRuns: Map[ActionCoordsInSeq, ActionState]
+      zipper:      Sequence.Zipper[F],
+      status:      SequenceState,
+      singleRuns:  Map[ActionCoordsInSeq, ActionState],
+      breakpoints: Breakpoints
     ) extends State[F] { self =>
 
       override val next: Option[State[F]] =
         zipper.next match
           // Last execution
           case None    => zipper.uncurrentify.map(Final[F](_, status))
-          case Some(x) => Zipper(x, status, singleRuns).some
+          case Some(x) => Zipper(x, status, singleRuns, breakpoints - zipper.focus.id).some
 
       override val isLastAction: Boolean =
         zipper.focus.pending.isEmpty
@@ -321,22 +332,32 @@ object Sequence {
 
       override def rollback: Zipper[F] = self.copy(zipper = zipper.rollback)
 
-      override def setBreakpoints(stepId: List[Step.Id], v: Breakpoint): State[F] =
-        self.copy(zipper =
-          zipper.copy(
-            pending = zipper.pending.map: s =>
-              if stepId.contains_(s.id)
-              then s.copy(breakpoint = v)
-              else s,
-            focus =
-              if stepId.contains_(zipper.focus.id)
-              then zipper.focus.copy(breakpoint = v)
-              else zipper.focus
-          )
+      // override def setBreakpoints(stepIds: Set[Step.Id], v: Breakpoint): State[F] =
+      override def setBreakpoints(breakpointsDelta: Set[(Step.Id, Breakpoint)]): State[F] =
+        self.copy(
+          breakpoints = breakpointsDelta.foldLeft(breakpoints) {
+            case (accum, (stepId, breakpoint)) =>
+              if breakpoint === Breakpoint.Enabled then accum + stepId else accum - stepId
+          }
         )
+        // if v === Breakpoint.Enabled then self.copy(breakpoints = breakpoints ++ stepIds)
+        // else self.copy(breakpoints = breakpoints -- stepIds)
+        // self.copy(zipper =
+        //   zipper.copy(
+        //     pending = zipper.pending.map: s =>
+        //       if stepId.contains_(s.id)
+        //       then s.copy(breakpoint = v)
+        //       else s,
+        //     focus =
+        //       if stepId.contains_(zipper.focus.id)
+        //       then zipper.focus.copy(breakpoint = v)
+        //       else zipper.focus
+        //   )
+        // )
 
       override def getCurrentBreakpoint: Boolean =
-        (zipper.focus.breakpoint === Breakpoint.Enabled) && zipper.focus.done.isEmpty
+        breakpoints.contains(zipper.focus.id) && zipper.focus.done.isEmpty
+        // (zipper.focus.breakpoint === Breakpoint.Enabled) && zipper.focus.done.isEmpty
 
       override val done: List[EngineStep[F]] = zipper.done
 
@@ -427,7 +448,9 @@ object Sequence {
 
       override def rollback: Final[F] = self
 
-      override def setBreakpoints(stepId: List[Step.Id], v: Breakpoint): State[F] = self
+      override val breakpoints: Breakpoints = Breakpoints.empty
+
+      override def setBreakpoints(breakpointsDelta: Set[(Step.Id, Breakpoint)]): State[F] = self
 
       override def getCurrentBreakpoint: Boolean = false
 
@@ -453,7 +476,7 @@ object Sequence {
 
       override def getSingleAction(c: ActionCoordsInSeq): Option[Action[F]] = None
 
-      override def clearSingles: State[F] = self
+      override val clearSingles: State[F] = self
     }
 
   }

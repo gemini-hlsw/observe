@@ -69,13 +69,13 @@ class ObserveCommandRoutes[F[_]: Async: Compression](
     case req @ POST -> Root / ObsIdVar(obsId) / StepIdVar(stepId) / ClientIDVar(clientId) /
         "breakpoint" / ObserverVar(obs) / BreakpointVar(bp) =>
       ssoClient.require(req): user =>
-        oe.setBreakpoints(obsId, user, obs, List(stepId), bp) *> NoContent()
+        oe.setBreakpoints(obsId, user, obs, Set(stepId), bp) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) /
         "breakpoints" / ObserverVar(obs) / BreakpointVar(bp) =>
       ssoClient.require(req): user =>
         req.decode[List[Step.Id]]: steps =>
-          oe.setBreakpoints(obsId, user, obs, steps, bp) *> NoContent()
+          oe.setBreakpoints(obsId, user, obs, steps.toSet, bp) *> NoContent()
 
     case req @ POST -> Root / ObsIdVar(obsId) / ClientIDVar(clientId) / "stop" /
         ObserverVar(obs) =>

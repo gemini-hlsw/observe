@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2023 Association of Universities for Research in Astronomy, Inc. (AURA)
+// Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
 package stateengine
@@ -71,19 +71,19 @@ object Handler {
       }
     }
 
+  private def reverseConcatOpP[F[_], V](
+    op1: Option[Stream[F, V]],
+    op2: Option[Stream[F, V]]
+  ): Option[Stream[F, V]] = (op1, op2) match {
+    case (None, None)         => None
+    case (Some(p1), None)     => Some(p1)
+    case (None, Some(p2))     => Some(p2)
+    case (Some(p1), Some(p2)) => Some(p2 ++ p1)
+  }
+
   // This class adds a method to Handler similar to flatMap, but the Streams resulting from both Handler instances
   // are concatenated in the reverse order.
-  extension [F[_]: Monad, D, V, A](self: Handler[F, D, V, A]) {
-    private def reverseConcatOpP(
-      op1: Option[Stream[F, V]],
-      op2: Option[Stream[F, V]]
-    ): Option[Stream[F, V]] = (op1, op2) match {
-      case (None, None)         => None
-      case (Some(p1), None)     => Some(p1)
-      case (None, Some(p2))     => Some(p2)
-      case (Some(p1), Some(p2)) => Some(p2 ++ p1)
-    }
-
+  extension [F[_], D, V, A](self: Handler[F, D, V, A]) {
     def reversedStreamFlatMap[B](f: A => Handler[F, D, V, B]): Handler[F, D, V, B] =
       Handler[F, D, V, B](
         self.run.flatMap { case RetVal(a, op1) =>

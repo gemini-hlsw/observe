@@ -32,8 +32,8 @@ import lucuma.core.model.sequence.gmos
 import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
-import observe.engine.*
-import observe.engine.Action.ActionState
+import observe.server.engine.*
+import observe.server.engine.Action.ActionState
 import observe.model.*
 import observe.model.dhs.*
 import observe.model.enums.Resource

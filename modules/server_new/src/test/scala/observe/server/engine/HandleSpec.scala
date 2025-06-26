@@ -18,7 +18,7 @@ import cats.laws.discipline.eq.*
 import cats.syntax.all.*
 import cats.~>
 import fs2.Compiler
-import observe.engine.Handle
+import observe.server.engine.Handle
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Cogen

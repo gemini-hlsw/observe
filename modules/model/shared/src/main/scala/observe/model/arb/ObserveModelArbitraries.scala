@@ -121,7 +121,8 @@ trait ObserveModelArbitraries {
       t  <- arbitrary[List[ObserveStep]]
       i  <- arbitrary[Option[Int]]
       a  <- arbitrary[Map[Step.Id, Map[Resource | Instrument, ActionStatus]]]
-    } yield SequenceView(id, m, s, o, st, t, i, a)
+      b  <- arbitrary[Set[Step.Id]]
+    } yield SequenceView(id, m, s, o, st, t, i, a, b)
   }
   given Arbitrary[SequencesQueue[SequenceView]] = sequencesQueueArb[SequenceView]
 
@@ -150,11 +151,20 @@ trait ObserveModelArbitraries {
         SystemOverrides,
         SequenceType,
         List[ObserveStep],
-        Option[Int]
+        Option[Int],
+        List[Step.Id]
       )
     ]
       .contramap(s =>
-        (s.obsId, s.metadata, s.status, s.systemOverrides, s.sequenceType, s.steps, s.willStopIn)
+        (s.obsId,
+         s.metadata,
+         s.status,
+         s.systemOverrides,
+         s.sequenceType,
+         s.steps,
+         s.willStopIn,
+         s.breakpoints.toList
+        )
       )
 
   given Cogen[Conditions] =

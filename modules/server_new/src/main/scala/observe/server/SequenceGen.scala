@@ -21,12 +21,12 @@ import monocle.Prism
 import monocle.macros.GenPrism
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
-import observe.engine.Action
-import observe.engine.ActionCoordsInSeq
-import observe.engine.ActionIndex
-import observe.engine.EngineStep
-import observe.engine.ExecutionIndex
-import observe.engine.ParallelActions
+import observe.server.engine.Action
+import observe.server.engine.ActionCoordsInSeq
+import observe.server.engine.ActionIndex
+import observe.server.engine.EngineStep
+import observe.server.engine.ExecutionIndex
+import observe.server.engine.ParallelActions
 import observe.model.SystemOverrides
 import observe.model.dhs.DataId
 import observe.model.dhs.ImageFileId
@@ -182,12 +182,14 @@ object SequenceGen {
       stepGen:         StepGen[F, D],
       systemOverrides: SystemOverrides,
       ctx:             HeaderExtraData
-    ): EngineStep[F] =
-      stepGen match {
+    ): (EngineStep[F], Breakpoint) =
+      stepGen match { // TODO Return breakpoints!
         case p: PendingStepGen[F, ?]                =>
-          EngineStep[F](stepGen.id, p.breakpoint, p.generator.generate(ctx, systemOverrides))
+          (EngineStep[F](stepGen.id, /*p.breakpoint,*/ p.generator.generate(ctx, systemOverrides)),
+           p.breakpoint
+          )
         case CompletedStepGen(id, _, _, _, _, _, _) =>
-          EngineStep[F](id, Breakpoint.Disabled, Nil)
+          (EngineStep[F](id, /*Breakpoint.Disabled,*/ Nil), Breakpoint.Disabled)
       }
   }
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.Endo
 import cats.data.StateT
@@ -281,11 +281,11 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
         .sequenceStateAt(obsId)
         .getOption(st)
         .map {
-          case seq @ Sequence.State.Final(_, _)     =>
+          case seq @ Sequence.State.Final(_, _)        =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
               send(Event.finished(obsId))
-          case seq @ Sequence.State.Zipper(z, _, _) =>
+          case seq @ Sequence.State.Zipper(z, _, _, _) =>
             val stepId                         = z.focus.toStep.id
             val u: List[Stream[F, Event[F]]]   =
               seq.current.actions
@@ -382,7 +382,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
     EngineHandle
       .getSequenceState(obsId)
       .flatMap(_.collect {
-        case s @ Sequence.State.Zipper(z, _, _)
+        case s @ Sequence.State.Zipper(z, _, _, _)
             if Sequence.State.isRunning(s) && s.current.execution.lift(i).exists(Action.paused) =>
           EngineHandle.modifySequenceState[F](obsId)(_.start(i)) *>
             EngineHandle.fromEventStream(act(obsId, z.focus.toStep.id, (cont, i)))
@@ -424,42 +424,42 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
   private def send(ev: Event[F]): EngineHandle[F, Unit] = Handle.fromEventStream(Stream(ev))
 
   private def handleUserEvent(ue: UserEvent[F]): EngineHandle[F, EventResult] = ue match {
-    case Start(obsId, _, _)             =>
+    case Start(obsId, _, _)                =>
       debug(s"Engine: Start requested for sequence $obsId") *> start(obsId) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Pause(obsId, _)                =>
+    case Pause(obsId, _)                   =>
       debug(s"Engine: Pause requested for sequence $obsId") *> pause(obsId) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case CancelPause(obsId, _)          =>
+    case CancelPause(obsId, _)             =>
       debug(s"Engine: Pause canceled for sequence $obsId") *> cancelPause(obsId) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Breakpoints(obsId, _, step, v) =>
-      debug(s"Engine: breakpoints changed for sequence $obsId and step $step to $v") *>
-        EngineHandle.modifySequenceState[F](obsId)(_.setBreakpoints(step, v)) *>
+    case Breakpoints(obsId, _, stepIds, v) =>
+      debug(s"Engine: breakpoints changed for sequence $obsId and steps $stepIds to $v") *>
+        EngineHandle.modifySequenceState[F](obsId)(_.setBreakpoints(stepIds.map(id => (id, v)))) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Poll(_)                        =>
+    case Poll(_)                           =>
       debug("Engine: Polling current state") *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case GetState(f)                    =>
+    case GetState(f)                       =>
       EngineHandle.fromEventStream(f) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case ModifyState(f)                 =>
+    case ModifyState(f)                    =>
       f.map((r: SeqEvent) => UserCommandResponse[F](ue, Outcome.Ok, Some(r)))
-    case ActionStop(obsId, f)           =>
+    case ActionStop(obsId, f)              =>
       debug("Engine: Action stop requested") *> actionStop(obsId, f) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case ActionResume(obsId, i, cont)   =>
+    case ActionResume(obsId, i, cont)      =>
       debug("Engine: Action resume requested") *> actionResume(obsId, i, cont) *>
         EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogDebug(msg, _)               =>
+    case LogDebug(msg, _)                  =>
       debug(msg) *> EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogInfo(msg, _)                =>
+    case LogInfo(msg, _)                   =>
       info(msg) *> EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogWarning(msg, _)             =>
+    case LogWarning(msg, _)                =>
       warning(msg) *> EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case LogError(msg, _)               =>
+    case LogError(msg, _)                  =>
       error(msg) *> EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, None))
-    case Pure(v)                        =>
+    case Pure(v)                           =>
       EngineHandle.pure(UserCommandResponse(ue, Outcome.Ok, v.some))
   }
 
@@ -602,12 +602,16 @@ object Engine {
   /**
    * Builds the initial state of a sequence
    */
-  def load[F[_]](seq: Sequence[F]): Sequence.State[F] = Sequence.State.init(seq)
+  def load[F[_]](seq: Sequence[F]): Sequence.State[F] =
+    Sequence.State.init(seq)
 
   /**
    * Redefines an existing sequence. Changes the step actions, removes steps, adds new steps.
    */
-  def reload[F[_]](seq: Sequence.State[F], steps: List[EngineStep[F]]): Sequence.State[F] =
-    Sequence.State.reload(steps, seq)
+  def reload[F[_]](
+    oldSeqState: Sequence.State[F],
+    steps:       List[EngineStep[F]]
+  ): Sequence.State[F] =
+    Sequence.State.reload(steps, oldSeqState)
 
 }

@@ -13,8 +13,8 @@ import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.sequence.Atom
 import munit.CatsEffectSuite
 import observe.common.test.*
-import observe.engine.EventResult.*
-import observe.engine.SystemEvent.*
+import observe.server.engine.EventResult.*
+import observe.server.engine.SystemEvent.*
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState

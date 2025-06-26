@@ -8,7 +8,7 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.eq.*
 import lucuma.core.enums.Instrument
-import observe.engine.*
+import observe.server.engine.*
 import observe.model.enums.*
 import observe.server.TestCommon.*
 

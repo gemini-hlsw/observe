@@ -11,8 +11,8 @@ import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbUid.given
 import observe.model.enums.Instrument
 import observe.model.SystemOverrides
-import observe.engine
-import observe.engine.{Action, ParallelActions}
+import observe.server.engine
+import observe.server.engine.{Action, ParallelActions}
 import SequenceGen.*
 import cats.effect.IO
 import observe.common.test.observationId

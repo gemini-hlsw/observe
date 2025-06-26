@@ -5,7 +5,7 @@ package observe.server
 
 import lucuma.core.util.NewType
 import lucuma.core.util.TimeSpan
-import observe.engine.Result.PartialVal
+import observe.server.engine.Result.PartialVal
 import observe.model.NsSubexposure
 import observe.model.ObserveStage
 import observe.model.dhs.ImageFileId

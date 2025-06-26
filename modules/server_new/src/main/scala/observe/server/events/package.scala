@@ -3,8 +3,8 @@
 
 package observe.server.events
 
-import observe.engine.SystemEvent
-import observe.engine.UserEvent
+import observe.server.engine.SystemEvent
+import observe.server.engine.UserEvent
 import observe.server.SeqEvent
 
 extension (e: SeqEvent)

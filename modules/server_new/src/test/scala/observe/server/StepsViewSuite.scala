@@ -15,7 +15,7 @@ import lucuma.core.enums.WaterVapor
 import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
 import lucuma.refined.*
-import observe.engine.*
+import observe.server.engine.*
 import observe.model.*
 import observe.model.enums.*
 import observe.server.TestCommon.*

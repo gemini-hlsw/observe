@@ -8,8 +8,8 @@ import cats.syntax.all.*
 import lucuma.core.model.sequence.Atom
 import monocle.Lens
 import monocle.std.option
-import observe.engine.Engine
-import observe.engine.Sequence
+import observe.server.engine.Engine
+import observe.server.engine.Sequence
 import observe.model.Observation
 import observe.model.Observer
 import observe.model.SystemOverrides
@@ -17,6 +17,9 @@ import observe.model.SystemOverrides
 import scala.annotation.unused
 
 import odb.OdbProxy
+import lucuma.core.enums.Breakpoint
+import observe.server.engine.EngineStep
+import observe.server.engine.Breakpoints
 
 final class ODBSequencesLoader[F[_]](
   @unused odbProxy:   OdbProxy[F],
@@ -91,12 +94,17 @@ final class ODBSequencesLoader[F[_]](
 object ODBSequencesLoader {
 
   private def toEngineSequence[F[_]](
-    id:        Observation.Id,
-    atomId:    Atom.Id,
-    overrides: SystemOverrides,
-    seq:       SequenceGen[F],
-    d:         HeaderExtraData
-  ): Sequence[F] = Sequence.sequence(id, atomId, toStepList(seq, overrides, d))
+    id:          Observation.Id,
+    atomId:      Atom.Id,
+    overrides:   SystemOverrides,
+    seq:         SequenceGen[F],
+    headerExtra: HeaderExtraData
+  ): Sequence[F] =
+    val stepsWithBreakpoints: List[(EngineStep[F], Breakpoint)] =
+      toStepList(seq, overrides, headerExtra)
+    val steps: List[EngineStep[F]]                              = stepsWithBreakpoints.map(_._1)
+    val breakpoints: Breakpoints                                = Breakpoints.fromStepsWithBreakpoints(stepsWithBreakpoints)
+    Sequence.sequence(id, atomId, steps, breakpoints)
 
   private[server] def loadSequenceEndo[F[_]](
     observer: Option[Observer],
@@ -137,7 +145,7 @@ object ODBSequencesLoader {
               seqg,
               sd.overrides,
               HeaderExtraData(st.conditions, st.operator, sd.observer)
-            )
+            ).map(_._1)
           )
         )
       )(st)
