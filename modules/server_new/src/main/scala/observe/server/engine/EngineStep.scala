@@ -58,7 +58,6 @@ object EngineStep {
    */
   case class Zipper[F[_]](
     id:         Step.Id,
-    // breakpoint: Breakpoint,
     pending:    List[ParallelActions[F]],
     focus:      Execution[F],
     done:       List[ParallelActions[F]],

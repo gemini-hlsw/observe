@@ -1,14 +1,13 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.IO
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
-import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation as LObservation
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
@@ -39,16 +38,14 @@ class SequenceSuite extends munit.CatsEffectSuite {
     (eng, obsId, _) => eng.startNewAtom(obsId).as(SeqEvent.NullSeqEvent)
   )
 
-  def simpleStep(id: Step.Id, breakpoint: Breakpoint): EngineStep[IO] =
+  def simpleStep(id: Step.Id): EngineStep[IO] =
     EngineStep(
       id = id,
-      breakpoint = Breakpoint.Disabled,
       executions = List(
         NonEmptyList.of(action, action), // Execution
         NonEmptyList.one(action)         // Execution
       )
     )
-      .copy(breakpoint = breakpoint)
 
   def isFinished(status: SequenceState): Boolean = status match {
     case SequenceState.Idle      => true
@@ -80,9 +77,10 @@ class SequenceSuite extends munit.CatsEffectSuite {
             seqId,
             atomId,
             List(
-              simpleStep(stepId(1), Breakpoint.Disabled),
-              simpleStep(stepId(2), Breakpoint.Enabled)
-            )
+              simpleStep(stepId(1)),
+              simpleStep(stepId(2))
+            ),
+            breakpoints = Breakpoints(Set(stepId(2)))
           )
         )
       )
@@ -93,9 +91,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
       r <- OptionT.pure(t.seq match {
-             case Sequence.State.Zipper(zipper, status, _) =>
+             case Sequence.State.Zipper(zipper, status, _, _) =>
                zipper.done.length === 1 && zipper.pending.isEmpty && status === SequenceState.Idle
-             case _                                        => false
+             case _                                           => false
            })
     } yield r).value.map(_.getOrElse(fail("Sequence not found"))).assert
   }
@@ -107,13 +105,14 @@ class SequenceSuite extends munit.CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId,
             steps = List(
-              simpleStep(stepId(1), Breakpoint.Disabled),
-              simpleStep(stepId(2), Breakpoint.Enabled),
-              simpleStep(stepId(3), Breakpoint.Disabled)
-            )
+              simpleStep(stepId(1)),
+              simpleStep(stepId(2)),
+              simpleStep(stepId(3))
+            ),
+            breakpoints = Breakpoints(Set(stepId(2)))
           )
         )
       )
@@ -124,9 +123,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
       s <- OptionT(qs1)
       t <- OptionT.pure(s.sequences(seqId))
       r <- OptionT.pure(t.seq match {
-             case Sequence.State.Zipper(zipper, _, _) =>
-               zipper.pending.nonEmpty
-             case _                                   => false
+             case Sequence.State.Zipper(zipper, _, _, _) => zipper.pending.nonEmpty
+             case _                                      => false
            })
     } yield r).value.map(_.getOrElse(fail("Sequence not found")))
 
@@ -168,7 +166,6 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
     EngineStep.Zipper(
       id = stepId(1),
-      breakpoint = Breakpoint.Disabled,
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>
@@ -202,7 +199,7 @@ class SequenceSuite extends munit.CatsEffectSuite {
   )
 
   def simpleSequenceZipper(focus: EngineStep.Zipper[IO]): Sequence.Zipper[IO] =
-    Sequence.Zipper(seqId, atomId.some, Nil, focus, Nil)
+    Sequence.Zipper(seqId, atomId.some, Nil, focus, Nil, Breakpoints.empty)
   val seqz0: Sequence.Zipper[IO]                                              = simpleSequenceZipper(stepz0)
   val seqza0: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepza0)
   val seqza1: Sequence.Zipper[IO]                                             = simpleSequenceZipper(stepza1)
@@ -225,11 +222,14 @@ class SequenceSuite extends munit.CatsEffectSuite {
 
   test("startSingle should mark a single Action as started") {
     val seq = Sequence.State.init(
-      Sequence.sequence(id = seqId,
-                        atomId,
-                        steps = List(simpleStep(stepId(1), Breakpoint.Enabled),
-                                     simpleStep(stepId(2), Breakpoint.Disabled)
-                        )
+      Sequence.sequence(
+        obsId = seqId,
+        atomId,
+        steps = List(
+          simpleStep(stepId(1)),
+          simpleStep(stepId(2))
+        ),
+        breakpoints = Breakpoints(Set(stepId(1)))
       )
     )
 
@@ -245,12 +245,11 @@ class SequenceSuite extends munit.CatsEffectSuite {
   test("startSingle should not start single Action from completed Step") {
     val seq1 = Sequence.State.init(
       Sequence.sequence(
-        id = seqId,
+        obsId = seqId,
         atomId,
         steps = List(
           EngineStep(
             id = stepId(1),
-            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
@@ -258,29 +257,29 @@ class SequenceSuite extends munit.CatsEffectSuite {
           ),
           EngineStep(
             id = stepId(2),
-            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(action, action), // Execution
               NonEmptyList.one(action)         // Execution
             )
           )
-        )
+        ),
+        breakpoints = Breakpoints.empty
       )
     )
     val seq2 = Sequence.State.Final(
       Sequence.sequence(
-        id = seqId,
+        obsId = seqId,
         atomId,
         steps = List(
           EngineStep(
             id = stepId(1),
-            breakpoint = Breakpoint.Disabled,
             executions = List(
               NonEmptyList.of(completedAction, completedAction), // Execution
               NonEmptyList.one(completedAction)                  // Execution
             )
           )
-        )
+        ),
+        breakpoints = Breakpoints.empty
       ),
       SequenceState.Completed
     )
@@ -296,18 +295,18 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val seq = Sequence.State
       .init(
         Sequence.sequence(
-          id = seqId,
+          obsId = seqId,
           atomId,
           steps = List(
             EngineStep(
               id = stepId(1),
-              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.of(action, action), // Execution
                 NonEmptyList.one(action)         // Execution
               )
             )
-          )
+          ),
+          breakpoints = Breakpoints.empty
         )
       )
       .startSingle(c)
@@ -322,18 +321,18 @@ class SequenceSuite extends munit.CatsEffectSuite {
     val seq = Sequence.State
       .init(
         Sequence.sequence(
-          id = seqId,
+          obsId = seqId,
           atomId,
           steps = List(
             EngineStep(
               id = stepId(1),
-              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.of(action, action), // Execution
                 NonEmptyList.one(action)         // Execution
               )
             )
-          )
+          ),
+          breakpoints = Breakpoints.empty
         )
       )
       .startSingle(c)

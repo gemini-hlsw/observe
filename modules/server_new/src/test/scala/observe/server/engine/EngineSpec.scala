@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.Eq
 import cats.effect.IO
@@ -23,7 +23,7 @@ final class EngineSpec extends munit.DisciplineSuite {
     for {
       id  <- arbitrary[Observation.Id]
       aid <- arbitrary[Atom.Id]
-    } yield Sequence.sequence(id, aid, List())
+    } yield Sequence.sequence(id, aid, List(), Breakpoints.empty)
   }
 
   given Arbitrary[Sequence.State[IO]] = Arbitrary {
