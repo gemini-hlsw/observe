@@ -5,6 +5,7 @@ package observe.server.engine
 
 import cats.Functor
 import cats.Monad
+import cats.MonadThrow
 import cats.data.NonEmptyList
 import cats.data.StateT
 import cats.effect.MonadCancelThrow
@@ -67,15 +68,23 @@ object EngineHandle {
   ): EngineHandle[F, Unit] =
     Handle.modifyStateEmitSingle(f)
 
-  inline def fromEventStream[F[_]: MonadCancelThrow](
+  inline def fromEventStream[F[_]: MonadThrow](
     f: EngineState[F] => Stream[F, Event[F]]
   ): EngineHandle[F, Unit] =
     Handle.fromEventStream(f)
 
-  inline def fromEventStream[F[_]: MonadCancelThrow](
+  inline def fromEventStream[F[_]: MonadThrow](
     p: Stream[F, Event[F]]
   ): EngineHandle[F, Unit] =
     Handle.fromEventStream(p)
+
+  inline def fromEvents[F[_]: MonadThrow](
+    f: EngineState[F] => Seq[Event[F]]
+  ): EngineHandle[F, Unit] =
+    Handle.fromEvents(f)
+
+  inline def fromEvents[F[_]: MonadThrow](es: Event[F]*): EngineHandle[F, Unit] =
+    Handle.fromEvents(es*)
 
   inline def fromSingleEventF[F[_]: MonadCancelThrow](f: F[Event[F]]): EngineHandle[F, Unit] =
     Handle.fromSingleEventF(f)
@@ -120,10 +129,13 @@ object EngineHandle {
   ): EngineHandle[F, Unit] =
     modifyState_(EngineState.sequenceStateAt(obsId).replace(s))
 
-  // For debugging
   def debug[F[_]: MonadCancelThrow: Logger](msg: String): EngineHandle[F, Unit] =
     liftF(Logger[F].debug(msg))
 
+  def logError[F[_]: MonadCancelThrow: Logger](e: Throwable)(msg: String): EngineHandle[F, Unit] =
+    liftF(Logger[F].error(e)(msg))
+
+  // For debugging
   def printSequenceState[F[_]: MonadCancelThrow: Logger](
     obsId: Observation.Id
   ): EngineHandle[F, Unit] =

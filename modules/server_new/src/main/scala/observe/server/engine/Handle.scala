@@ -57,6 +57,12 @@ object Handle {
   inline def fromEventStream[F[_]: MonadThrow, S, E](p: Stream[F, E]): Handle[F, S, E, Unit] =
     fromEventStream(_ => p)
 
+  inline def fromEvents[F[_]: MonadThrow, S, E](f: S => Seq[E]): Handle[F, S, E, Unit] =
+    fromEventStream(s => Stream.emits(f(s)))
+
+  inline def fromEvents[F[_]: MonadThrow, S, E](es: E*): Handle[F, S, E, Unit] =
+    fromEvents(_ => es)
+
   inline def fromSingleEventF[F[_]: MonadThrow, S, E](f: F[E]): Handle[F, S, E, Unit] =
     modifyStateEmitSingle(s => f.map((s, _)))
 
