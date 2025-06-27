@@ -30,9 +30,8 @@ object Breakpoints:
     def +(stepId:        Step.Id): Breakpoints = breakpoints + stepId
     def -(stepId:        Step.Id): Breakpoints = breakpoints - stepId
     def merge(breakpointsDelta: BreakpointsDelta): Breakpoints =
-      breakpointsDelta.foldLeft(breakpoints):
-        case (accum, (stepId, breakpoint)) =>
-          if breakpoint === Breakpoint.Enabled then accum + stepId else accum - stepId
+      breakpoints ++ breakpointsDelta.collect:
+        case (stepId, Breakpoint.Enabled) => stepId
 
 object BreakpointsDelta:
   def apply(breakpointsDelta: Set[(Step.Id, Breakpoint)]): BreakpointsDelta =
