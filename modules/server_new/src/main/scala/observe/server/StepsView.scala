@@ -153,7 +153,6 @@ object StepsView {
         stepConfig = stepg.config,
         telescopeConfig = stepg.telescopeConfig,
         status = status,
-        // breakpoint = step.breakpoint,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {

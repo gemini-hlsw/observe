@@ -3,7 +3,6 @@
 
 package observe.model.arb
 
-// import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
@@ -62,7 +61,6 @@ trait ArbNodAndShuffleStep {
         t  <- arbitrary[StepConfig]
         tc <- arbitrary[TelescopeConfig]
         s  <- arbitrary[StepState]
-        // b  <- arbitrary[Breakpoint]
         f  <- arbitrary[Option[dhs.ImageFileId]]
         cs <- arbitrary[List[(Resource, ActionStatus)]]
         os <- arbitrary[NodAndShuffleStatus]
@@ -73,7 +71,6 @@ trait ArbNodAndShuffleStep {
         stepConfig = t,
         telescopeConfig = tc,
         status = s,
-        // breakpoint = b,
         fileId = f,
         configStatus = cs,
         nsStatus = os,
@@ -89,7 +86,6 @@ trait ArbNodAndShuffleStep {
         StepConfig,
         TelescopeConfig,
         StepState,
-        // Breakpoint,
         Option[dhs.ImageFileId],
         List[(Resource | Instrument, ActionStatus)],
         NodAndShuffleStatus
@@ -100,7 +96,6 @@ trait ArbNodAndShuffleStep {
        s.stepConfig,
        s.telescopeConfig,
        s.status,
-       //  s.breakpoint,
        s.fileId,
        s.configStatus,
        s.nsStatus

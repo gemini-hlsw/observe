@@ -183,13 +183,11 @@ object SequenceGen {
       systemOverrides: SystemOverrides,
       ctx:             HeaderExtraData
     ): (EngineStep[F], Breakpoint) =
-      stepGen match { // TODO Return breakpoints!
+      stepGen match {
         case p: PendingStepGen[F, ?]                =>
-          (EngineStep[F](stepGen.id, /*p.breakpoint,*/ p.generator.generate(ctx, systemOverrides)),
-           p.breakpoint
-          )
+          (EngineStep[F](stepGen.id, p.generator.generate(ctx, systemOverrides)), p.breakpoint)
         case CompletedStepGen(id, _, _, _, _, _, _) =>
-          (EngineStep[F](id, /*Breakpoint.Disabled,*/ Nil), Breakpoint.Disabled)
+          (EngineStep[F](id, Nil), Breakpoint.Disabled)
       }
   }
 

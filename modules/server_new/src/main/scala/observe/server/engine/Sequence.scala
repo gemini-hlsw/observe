@@ -341,24 +341,9 @@ object Sequence {
               if breakpoint === Breakpoint.Enabled then accum + stepId else accum - stepId
           }
         )
-        // if v === Breakpoint.Enabled then self.copy(breakpoints = breakpoints ++ stepIds)
-        // else self.copy(breakpoints = breakpoints -- stepIds)
-        // self.copy(zipper =
-        //   zipper.copy(
-        //     pending = zipper.pending.map: s =>
-        //       if stepId.contains_(s.id)
-        //       then s.copy(breakpoint = v)
-        //       else s,
-        //     focus =
-        //       if stepId.contains_(zipper.focus.id)
-        //       then zipper.focus.copy(breakpoint = v)
-        //       else zipper.focus
-        //   )
-        // )
 
       override def getCurrentBreakpoint: Boolean =
         breakpoints.contains(zipper.focus.id) && zipper.focus.done.isEmpty
-        // (zipper.focus.breakpoint === Breakpoint.Enabled) && zipper.focus.done.isEmpty
 
       override val done: List[EngineStep[F]] = zipper.done
 
