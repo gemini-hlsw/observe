@@ -118,7 +118,8 @@ object InstrumentControllerSim {
     }
 
     def observe(fileId: ImageFileId, expTime: TimeSpan): F[ObserveCommandResult] = {
-      val totalTime = expTime +| readOutDelay
+      // val totalTime = expTime +| readOutDelay
+      val totalTime = TimeSpan.fromSeconds(1).get
       log(s"Simulate taking $name observation with label $fileId") *> {
         val upd = { (s: ObserveState) => s.focus(_.stopFlag).replace(false) } >>> {
           _.focus(_.pauseFlag).replace(false)
