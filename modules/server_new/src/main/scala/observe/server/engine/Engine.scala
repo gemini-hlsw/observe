@@ -147,10 +147,10 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
               case SequenceState.Running(userStop, internalStop, _, _, _) =>
                 seq.next match {
                   // Empty state
-                  case None                                  =>
+                  case None                                     =>
                     send(Event.finished(obsId))
                   // Final State
-                  case Some(qs @ Sequence.State.Final(_, _)) =>
+                  case Some(qs @ Sequence.State.Final(_, _, _)) =>
                     EngineHandle.replaceSequenceState(obsId)(qs) *> switch(obsId)(
                       SequenceState.Running(
                         userStop,
@@ -161,7 +161,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                       )
                     ) *> send(Event.modifyState(atomLoad(this, obsId)))
                   // Step execution completed. Check requested stop and breakpoint here.
-                  case Some(qs)                              =>
+                  case Some(qs)                                 =>
                     EngineHandle.replaceSequenceState(obsId)(qs) *>
                       (if (
                          qs.getCurrentBreakpoint && !qs.current.execution
@@ -215,18 +215,18 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
                 if (!isStarting && (userStop || internalStop)) {
                   seq match {
                     // Final State
-                    case Sequence.State.Final[F](_, _) =>
+                    case Sequence.State.Final[F](_, _, _) =>
                       send(Event.finished(obsId))
                     // Execution completed
-                    case _                             => switch(obsId)(SequenceState.Idle)
+                    case _                                => switch(obsId)(SequenceState.Idle)
                   }
                 } else {
                   seq match {
                     // Final State
-                    case Sequence.State.Final[F](_, _) =>
+                    case Sequence.State.Final[F](_, _, _) =>
                       send(Event.finished(obsId))
                     // Execution completed. Check breakpoint here
-                    case _                             =>
+                    case _                                =>
                       if (!isStarting && seq.getCurrentBreakpoint) {
                         switch(obsId)(SequenceState.Idle) *> send(Event.breakpointReached(obsId))
                       } else
@@ -281,7 +281,7 @@ class Engine[F[_]: MonadCancelThrow: Logger] private (
         .sequenceStateAt(obsId)
         .getOption(st)
         .map {
-          case seq @ Sequence.State.Final(_, _)        =>
+          case seq @ Sequence.State.Final(_, _, _)     =>
             // The sequence is marked as completed here
             EngineHandle.replaceSequenceState(obsId)(seq) >>
               send(Event.finished(obsId))

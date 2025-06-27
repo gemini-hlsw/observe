@@ -54,6 +54,7 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.engine.Breakpoints
 import observe.server.engine.EventResult
 import observe.server.engine.EventResult.Outcome
 import observe.server.engine.EventResult.SystemUpdate
@@ -972,14 +973,16 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateAt[IO](seqObsId1)
           .modify(x =>
-            Sequence.State.Final(x.toSequence,
-                                 Running(
-                                   HasUserStop.No,
-                                   HasInternalStop.No,
-                                   IsWaitingUserPrompt.No,
-                                   IsWaitingNextAtom.Yes,
-                                   IsStarting.No
-                                 )
+            Sequence.State.Final(
+              x.toSequence,
+              Running(
+                HasUserStop.No,
+                HasInternalStop.No,
+                IsWaitingUserPrompt.No,
+                IsWaitingNextAtom.Yes,
+                IsStarting.No
+              ),
+              Breakpoints.empty
             )
           )(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)

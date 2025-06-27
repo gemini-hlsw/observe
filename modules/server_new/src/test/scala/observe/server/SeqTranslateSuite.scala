@@ -148,7 +148,7 @@ class SeqTranslateSuite extends TestCommon {
               singleRuns,
               breakpoints
             )
-          case s @ State.Final(_, _)                                 => s
+          case s @ State.Final(_, _, _)                              => s
         } >>>
       EngineState
         .sequenceStateAt[IO](seqObsId1)

@@ -133,9 +133,9 @@ class SequenceSuite extends munit.CatsEffectSuite {
       s   <- OptionT(runToCompletion(qs2))
       t   <- OptionT.pure(s.sequences(seqId))
       r   <- OptionT.pure(t.seq match {
-               case f @ Sequence.State.Final(_, status) =>
+               case f @ Sequence.State.Final(_, status, _) =>
                  f.done.length === 3 && status === SequenceState.Completed
-               case _                                   => false
+               case _                                      => false
              })
     } yield r: Boolean).value.map(_.getOrElse(fail("Sequence not found")))
 
@@ -281,7 +281,8 @@ class SequenceSuite extends munit.CatsEffectSuite {
         ),
         breakpoints = Breakpoints.empty
       ),
-      SequenceState.Completed
+      SequenceState.Completed,
+      Breakpoints.empty
     )
     val c1   = ActionCoordsInSeq(stepId(1), ExecutionIndex(0), ActionIndex(0))
 

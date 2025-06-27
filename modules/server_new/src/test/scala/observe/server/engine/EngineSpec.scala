@@ -30,7 +30,7 @@ final class EngineSpec extends munit.DisciplineSuite {
     for {
       seq <- arbitrary[Sequence[IO]]
       st  <- arbitrary[SequenceState]
-    } yield Sequence.State.Final(seq, st)
+    } yield Sequence.State.Final(seq, st, Breakpoints.empty)
   }
 
   given Cogen[Sequence.State[IO]] =

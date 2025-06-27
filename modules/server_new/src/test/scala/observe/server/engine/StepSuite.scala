@@ -468,9 +468,9 @@ class StepSuite extends CatsEffectSuite {
         .flatMap(_._2.sequences.get(seqId))
         .map(_.seq)
         .exists {
-          case Sequence.State.Final(_, status) =>
+          case Sequence.State.Final(_, status, _) =>
             status === SequenceState.Completed
-          case _                               => false
+          case _                                  => false
         }
     }.assert
   }
@@ -548,9 +548,9 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Final(_, status) =>
+        case Sequence.State.Final(_, status, _) =>
           status === SequenceState.Completed
-        case _                               => false
+        case _                                  => false
       }
     }.assert *>
       ref.get.map(_ === 1).assert
@@ -706,12 +706,12 @@ class StepSuite extends CatsEffectSuite {
         case _                                                 => false
       }
       val b  = x.lastOption.flatMap(_.sequences.get(seqId)).map(_.seq) match {
-        case Some(Sequence.State.Final(seq, status)) =>
+        case Some(Sequence.State.Final(seq, status, _)) =>
           seq.steps.headOption
             .flatMap(_.executions.headOption.map(_.head))
             .map(_.state.runState) == Some(Action.ActionState.Completed(RetValDouble(1.0)))
           && status === SequenceState.Completed
-        case _                                       => false
+        case _                                          => false
       }
       a && b
     }.assert

@@ -143,7 +143,8 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                   )
               ).when(
                 cell.row.index.toInt > 0 &&
-                  List(StepTime.Present, StepTime.Future).contains_(step.stepTime)
+                  List(StepTime.Present, StepTime.Future).contains_(step.stepTime) &&
+                  meta.executionState.runningStepId =!= stepId
               )
             )
       ),

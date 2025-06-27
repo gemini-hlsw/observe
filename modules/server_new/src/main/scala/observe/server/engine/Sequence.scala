@@ -237,7 +237,7 @@ object Sequence {
       // `State` doesn't provide `.copy`
       Lens[State[F], SequenceState](_.status)(s => {
         case Zipper(st, _, x, bs) => Zipper(st, s, x, bs)
-        case Final(st, _)         => Final(st, s)
+        case Final(st, _, bs)     => Final(st, s, bs)
       })
 
     def isRunning[F[_]](st: State[F]): Boolean = st.status.isRunning
@@ -273,7 +273,7 @@ object Sequence {
       Sequence.Zipper
         .zipper[F](q)
         .map(Zipper(_, SequenceState.Idle, Map.empty, q.breakpoints))
-        .getOrElse(Final(q, SequenceState.Idle))
+        .getOrElse(Final(q, SequenceState.Idle, q.breakpoints))
 
     /**
      * Rebuilds the state of a sequence with a new steps definition, but preserving breakpoints and
@@ -307,10 +307,11 @@ object Sequence {
     ) extends State[F] { self =>
 
       override val next: Option[State[F]] =
+        val newBreakpoints: Breakpoints = breakpoints - zipper.focus.id
         zipper.next match
           // Last execution
-          case None    => zipper.uncurrentify.map(Final[F](_, status))
-          case Some(x) => Zipper(x, status, singleRuns, breakpoints - zipper.focus.id).some
+          case None    => zipper.uncurrentify.map(Final[F](_, status, newBreakpoints))
+          case Some(x) => Zipper(x, status, singleRuns, newBreakpoints).some
 
       override val isLastAction: Boolean =
         zipper.focus.pending.isEmpty
@@ -434,7 +435,8 @@ object Sequence {
     /**
      * `State`. This doesn't have any `Step` under execution, there are only completed `Step`s.
      */
-    case class Final[F[_]](seq: Sequence[F], status: SequenceState) extends State[F] { self =>
+    case class Final[F[_]](seq: Sequence[F], status: SequenceState, breakpoints: Breakpoints)
+        extends State[F] { self =>
 
       override val next: Option[State[F]] = None
 
@@ -447,8 +449,6 @@ object Sequence {
       override val pending: List[EngineStep[F]] = Nil
 
       override def rollback: Final[F] = self
-
-      override val breakpoints: Breakpoints = Breakpoints.empty
 
       override def setBreakpoints(breakpointsDelta: Set[(Step.Id, Breakpoint)]): State[F] = self
 
