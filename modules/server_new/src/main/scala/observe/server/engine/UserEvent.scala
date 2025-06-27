@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.syntax.all.*
 import fs2.Stream
@@ -35,7 +35,7 @@ object UserEvent {
   case class Breakpoints[F[_]](
     id:    Observation.Id,
     user:  Option[User],
-    steps: List[Step.Id],
+    steps: Set[Step.Id],
     v:     Breakpoint
   ) extends UserEvent[F]
   case class Poll[F[_]](clientId: ClientId)                            extends UserEvent[F] {

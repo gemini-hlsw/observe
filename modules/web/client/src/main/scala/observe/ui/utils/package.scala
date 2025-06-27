@@ -19,3 +19,9 @@ def textWidth(text: String, font: String): Double = {
 
 def tableTextWidth(text: String): Double =
   textWidth(text, "bold 14px sans-serif")
+
+extension [A](set: Set[A])
+  def toggle(a: A): Set[A] =
+    if set.contains(a)
+    then set - a
+    else set + a

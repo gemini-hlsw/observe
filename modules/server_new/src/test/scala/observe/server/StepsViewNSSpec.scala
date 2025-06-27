@@ -8,9 +8,9 @@ import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.syntax.eq.*
 import lucuma.core.enums.Instrument
-import observe.engine.*
 import observe.model.enums.*
 import observe.server.TestCommon.*
+import observe.server.engine.*
 
 class StepsViewNSSuite extends munit.FunSuite {
 

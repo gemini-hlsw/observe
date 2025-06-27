@@ -1,20 +1,17 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.Ref
 import cats.implicits.*
 import fs2.Stream
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.sequence.Atom
 import munit.CatsEffectSuite
 import observe.common.test.*
-import observe.engine.EventResult.*
-import observe.engine.SystemEvent.*
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.SequenceState
@@ -24,6 +21,8 @@ import observe.model.StepState
 import observe.model.enums.Resource
 import observe.server.EngineState
 import observe.server.SeqEvent
+import observe.server.engine.EventResult.*
+import observe.server.engine.SystemEvent.*
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -69,7 +68,6 @@ class StepSuite extends CatsEffectSuite {
 
     EngineStep.Zipper(
       id = stepId(1),
-      breakpoint = Breakpoint.Disabled,
       pending = pending,
       focus = focus,
       done = done.map(_.map { r =>
@@ -218,12 +216,11 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.of(configureTcs, configureInst, triggerPause(eng)), // Execution
                   NonEmptyList.one(observe)                                        // Execution
@@ -231,13 +228,13 @@ class StepSuite extends CatsEffectSuite {
               ),
               EngineStep(
                 id = stepId(2),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.of(configureTcs, configureInst), // Execution
                   NonEmptyList.one(observe)                     // Execution
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -258,9 +255,9 @@ class StepSuite extends CatsEffectSuite {
 
     m.compile.last.map { l =>
       l.map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, _, _) =>
+        case Sequence.State.Zipper(zipper, _, _, _) =>
           zipper.done.length === 1 // Only 1 step executed
-        case _                                   => false
+        case _                                      => false
       }
     }.assert
 
@@ -275,22 +272,23 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.Zipper(
           Sequence.Zipper(
-            id = observationId(1),
+            obsId = observationId(1),
             atomId = atomId.some,
             pending = Nil,
             focus = EngineStep.Zipper(
               id = stepId(2),
-              breakpoint = Breakpoint.Disabled,
               pending = Nil,
               focus = Execution(List(observe)),
               done = List(NonEmptyList.of(actionCompleted, actionCompleted)),
               rolledback =
-                (Execution(List(configureTcs, configureInst)), List(NonEmptyList.one(observe)))
+                (Execution(List(configureTcs, configureInst)), List(NonEmptyList.one(observe))),
             ),
-            done = Nil
+            done = Nil,
+            Breakpoints.empty
           ),
           SequenceState.Idle,
-          Map.empty
+          Map.empty,
+          Breakpoints.empty
         )
       )
 
@@ -307,13 +305,13 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map {
       _.map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           (zipper.focus.toStep match {
-            case EngineStep(_, _, List(ex1, ex2)) =>
+            case EngineStep(_, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            case _                                => false
+            case _                             => false
           }) && status.isRunning
-        case _                                        => false
+        case _                                           => false
       }
     }.assert
 
@@ -325,19 +323,19 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.Zipper(
           Sequence.Zipper(
-            id = observationId(1),
+            obsId = observationId(1),
             atomId = atomId.some,
             pending = Nil,
             focus = EngineStep.Zipper(
               id = stepId(2),
-              breakpoint = Breakpoint.Disabled,
               pending = Nil,
               focus = Execution(List(observe)),
               done = List(NonEmptyList.of(actionCompleted, actionCompleted)),
               rolledback =
                 (Execution(List(configureTcs, configureInst)), List(NonEmptyList.one(observe)))
             ),
-            done = Nil
+            done = Nil,
+            breakpoints = Breakpoints.empty
           ),
           SequenceState.Running(
             HasUserStop.Yes,
@@ -346,7 +344,8 @@ class StepSuite extends CatsEffectSuite {
             IsWaitingNextAtom.No,
             IsStarting.No
           ),
-          Map.empty
+          Map.empty,
+          Breakpoints.empty
         )
       )
 
@@ -364,9 +363,9 @@ class StepSuite extends CatsEffectSuite {
     qs1
       .map(x =>
         x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-          case Sequence.State.Zipper(_, status, _) =>
+          case Sequence.State.Zipper(_, status, _, _) =>
             status.isRunning
-          case _                                   => false
+          case _                                      => false
         }
       )
       .assert
@@ -379,18 +378,18 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.of(configureTcs, configureInst), // Execution
                   NonEmptyList.one(observe)                     // Execution
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -408,13 +407,13 @@ class StepSuite extends CatsEffectSuite {
 
     qss.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           zipper.focus.toStep.match {
-            case EngineStep(_, _, List(ex1, ex2)) =>
+            case EngineStep(_, List(ex1, ex2)) =>
               Execution(ex1.toList).actions.length == 2 && Execution(ex2.toList).actions.length == 1
-            case _                                => false
+            case _                             => false
           } && (status === SequenceState.Idle)
-        case _                                        => false
+        case _                                           => false
       }
     }.assert
   }
@@ -426,19 +425,19 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.of(configureTcs, configureInst), // Execution
                   NonEmptyList.one(triggerStart(eng)),          // Execution
                   NonEmptyList.one(observe)                     // Execution
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -469,9 +468,9 @@ class StepSuite extends CatsEffectSuite {
         .flatMap(_._2.sequences.get(seqId))
         .map(_.seq)
         .exists {
-          case Sequence.State.Final(_, status) =>
+          case Sequence.State.Final(_, status, _) =>
             status === SequenceState.Completed
-          case _                               => false
+          case _                                  => false
         }
     }.assert
   }
@@ -484,19 +483,19 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.of(configureTcs, configureInst), // Execution
                   NonEmptyList.one(error(errMsg)),
                   NonEmptyList.one(observe)
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -505,16 +504,16 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(zipper, status, _) =>
+        case Sequence.State.Zipper(zipper, status, _, _) =>
           (zipper.focus.toStep match {
             // Check that the sequence stopped midway
-            case EngineStep(_, _, List(ex1, ex2, ex3)) =>
+            case EngineStep(_, List(ex1, ex2, ex3)) =>
               Execution(ex1.toList).results.length == 2 && Execution(
                 ex2.toList
               ).results.length == 1 && Execution(ex3.toList).actions.length == 1
-            case _                                     => false
+            case _                                  => false
           }) && (status == SequenceState.Failed(errMsg)) // And that it ended in error
-        case _                                        => false
+        case _                                           => false
 
       }
     }.assert
@@ -530,17 +529,17 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(action)
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -549,9 +548,9 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Final(_, status) =>
+        case Sequence.State.Final(_, status, _) =>
           status === SequenceState.Completed
-        case _                               => false
+        case _                                  => false
       }
     }.assert *>
       ref.get.map(_ === 1).assert
@@ -564,17 +563,17 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(aborted)
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -583,10 +582,10 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(_, status, _) =>
+        case Sequence.State.Zipper(_, status, _, _) =>
           // And that it ended in aborted
           status === SequenceState.Aborted
-        case _                                   => false
+        case _                                      => false
       }
     }.assert
   }
@@ -598,17 +597,17 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(errorSet2(errMsg))
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -617,11 +616,11 @@ class StepSuite extends CatsEffectSuite {
 
     qs1.map { x =>
       x.flatMap(_.sequences.get(seqId)).map(_.seq).exists {
-        case Sequence.State.Zipper(_, status, _) =>
+        case Sequence.State.Zipper(_, status, _, _) =>
           // Without the error we should have a value 2
           // And that it ended in error
           status === SequenceState.Failed(errMsg)
-        case _                                   => false
+        case _                                      => false
       }
     }.assert
   }
@@ -633,17 +632,17 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(fatalError(errMsg))
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -663,12 +662,11 @@ class StepSuite extends CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(
                     Action(
@@ -686,7 +684,8 @@ class StepSuite extends CatsEffectSuite {
                   )
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -696,7 +695,7 @@ class StepSuite extends CatsEffectSuite {
     qss.map { x =>
       val a1 = x.drop(2)
       val a  = a1.headOption.flatMap(y => y.sequences.get(seqId)).map(_.seq) match {
-        case Some(Sequence.State.Zipper(zipper, status, _)) =>
+        case Some(Sequence.State.Zipper(zipper, status, _, _)) =>
           (zipper.focus.focus.execution.headOption match {
             case Some(
                   Action(_, _, Action.State(Action.ActionState.Started, v :: _), _)
@@ -704,15 +703,15 @@ class StepSuite extends CatsEffectSuite {
               v == PartialValDouble(0.5)
             case _ => false
           }) && status.isRunning
-        case _                                              => false
+        case _                                                 => false
       }
       val b  = x.lastOption.flatMap(_.sequences.get(seqId)).map(_.seq) match {
-        case Some(Sequence.State.Final(seq, status)) =>
+        case Some(Sequence.State.Final(seq, status, _)) =>
           seq.steps.headOption
             .flatMap(_.executions.headOption.map(_.head))
             .map(_.state.runState) == Some(Action.ActionState.Completed(RetValDouble(1.0)))
           && status === SequenceState.Completed
-        case _                                       => false
+        case _                                          => false
       }
       a && b
     }.assert
@@ -741,19 +740,15 @@ class StepSuite extends CatsEffectSuite {
     assert(stepzar1.next.nonEmpty)
   }
 
-  val step0: EngineStep[IO] = EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, Nil)
-  val step1: EngineStep[IO] =
-    EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, List(NonEmptyList.one(action)))
+  val step0: EngineStep[IO] = EngineStep(stepId(1), Nil)
+  val step1: EngineStep[IO] = EngineStep(stepId(1), List(NonEmptyList.one(action)))
   val step2: EngineStep[IO] =
-    EngineStep(stepId(2),
-               breakpoint = Breakpoint.Disabled,
-               List(NonEmptyList.of(action, action), NonEmptyList.one(action))
-    )
+    EngineStep(stepId(2), List(NonEmptyList.of(action, action), NonEmptyList.one(action)))
 
   test("currentify should be None only when a EngineStep is empty of executions") {
     assert(
       EngineStep.Zipper
-        .currentify(EngineStep(stepId(1), breakpoint = Breakpoint.Disabled, Nil))
+        .currentify(EngineStep(stepId(1), Nil))
         .isEmpty
     )
     assert(EngineStep.Zipper.currentify(step0).isEmpty)
@@ -770,7 +765,6 @@ class StepSuite extends CatsEffectSuite {
       EngineStep
         .Zipper(
           id = stepId(1),
-          breakpoint = Breakpoint.Disabled,
           pending = Nil,
           focus = Execution(List(action, actionFailed, actionCompleted)),
           done = Nil,
@@ -786,7 +780,6 @@ class StepSuite extends CatsEffectSuite {
       EngineStep
         .Zipper(
           id = stepId(1),
-          breakpoint = Breakpoint.Disabled,
           pending = Nil,
           focus = Execution(List(actionCompleted, actionCompleted, actionCompleted)),
           done = Nil,
@@ -802,7 +795,6 @@ class StepSuite extends CatsEffectSuite {
       EngineStep
         .Zipper(
           id = stepId(1),
-          breakpoint = Breakpoint.Disabled,
           pending = Nil,
           focus = Execution(List(actionCompleted, action, actionCompleted)),
           done = Nil,
@@ -818,7 +810,6 @@ class StepSuite extends CatsEffectSuite {
       EngineStep
         .Zipper(
           id = stepId(1),
-          breakpoint = Breakpoint.Disabled,
           pending = Nil,
           focus = Execution(List(action, action, action)),
           done = Nil,

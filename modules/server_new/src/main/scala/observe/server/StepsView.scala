@@ -8,10 +8,6 @@ import cats.data.NonEmptyList
 import cats.syntax.all.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.Instrument.*
-import observe.engine
-import observe.engine.Action
-import observe.engine.Action.ActionState
-import observe.engine.ParallelActions
 import observe.model.ActionType
 import observe.model.InstrumentDynamicConfig
 import observe.model.ObserveStep
@@ -21,6 +17,9 @@ import observe.model.enums.ActionStatus
 import observe.model.enums.PendingObserveCmd
 import observe.model.enums.Resource
 import observe.model.given
+import observe.server.engine.Action
+import observe.server.engine.Action.ActionState
+import observe.server.engine.ParallelActions
 import observe.server.gmos.GmosStepsView
 
 trait StepsView[F[_]] {
@@ -154,7 +153,6 @@ object StepsView {
         stepConfig = stepg.config,
         telescopeConfig = stepg.telescopeConfig,
         status = status,
-        breakpoint = step.breakpoint,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),
         fileId = fileId(step.executions).orElse(stepg.some.collect {

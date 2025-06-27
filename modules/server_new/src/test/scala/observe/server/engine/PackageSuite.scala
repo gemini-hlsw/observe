@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.data.NonEmptyList
 import cats.data.OptionT
@@ -10,7 +10,6 @@ import cats.effect.std.Semaphore
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.PosLong
 import fs2.Stream
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument.GmosSouth
 import lucuma.core.model.OrcidId
 import lucuma.core.model.OrcidProfile
@@ -97,12 +96,11 @@ class PackageSuite extends munit.CatsEffectSuite {
       seqId,
       Sequence.State.init(
         Sequence.sequence(
-          id = observationId(2),
+          obsId = observationId(2),
           atomId = atomId,
           steps = List(
             EngineStep(
               id = stepId(1),
-              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.of(configureTcs, configureInst), // Execution
                 NonEmptyList.one(observe)                     // Execution
@@ -110,10 +108,10 @@ class PackageSuite extends munit.CatsEffectSuite {
             ),
             EngineStep(
               id = stepId(2),
-              breakpoint = Breakpoint.Disabled,
               executions = executions
             )
-          )
+          ),
+          breakpoints = Breakpoints.empty
         )
       )
     )
@@ -173,19 +171,19 @@ class PackageSuite extends munit.CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+            obsId = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(
                     fromF[IO](ActionType.Undefined, IO(Result.Paused(new Result.PauseContext {})))
                   )
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -258,23 +256,23 @@ class PackageSuite extends munit.CatsEffectSuite {
           seqId,
           Sequence.State.init(
             Sequence.sequence(
-              id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
+              obsId = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(2)),
               atomId = atomId,
               steps = List(
                 EngineStep(
                   id = stepId(1),
-                  breakpoint = Breakpoint.Disabled,
                   executions = List(
                     NonEmptyList.one(
-                      fromF[IO](ActionType.Configure(TCS),
-                                startedFlag.release *> finishFlag.acquire *> IO.pure(
-                                  Result.OK(DummyResult)
-                                )
+                      fromF[IO](
+                        ActionType.Configure(TCS),
+                        startedFlag.release *> finishFlag.acquire *>
+                          IO.pure(Result.OK(DummyResult))
                       )
                     )
                   )
                 )
-              )
+              ),
+              breakpoints = Breakpoints.empty
             )
           )
         )
@@ -307,12 +305,11 @@ class PackageSuite extends munit.CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
+            obsId = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(4)),
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = stepId(1),
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(
                     fromF[IO](
@@ -322,7 +319,8 @@ class PackageSuite extends munit.CatsEffectSuite {
                   )
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -342,24 +340,25 @@ class PackageSuite extends munit.CatsEffectSuite {
         seqId,
         Sequence.State.init(
           Sequence.sequence(
-            id = seqId,
+            obsId = seqId,
             atomId = atomId,
             steps = List(
               EngineStep(
                 id = sId,
-                breakpoint = Breakpoint.Disabled,
                 executions = List(
                   NonEmptyList.one(
-                    fromF[IO](ActionType.Configure(Resource.TCS),
-                              IO {
-                                dummy.set(markVal)
-                                Result.OK(DummyResult)
-                              }
+                    fromF[IO](
+                      ActionType.Configure(Resource.TCS),
+                      IO {
+                        dummy.set(markVal)
+                        Result.OK(DummyResult)
+                      }
                     )
                   )
                 )
               )
-            )
+            ),
+            breakpoints = Breakpoints.empty
           )
         )
       )
@@ -400,37 +399,35 @@ class PackageSuite extends munit.CatsEffectSuite {
       seqId,
       Sequence.State.init(
         Sequence.sequence(
-          id = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
+          obsId = lucuma.core.model.Observation.Id(PosLong.unsafeFrom(1)),
           atomId = atomId,
           steps = List(
             EngineStep(
               id = stepId(1),
-              breakpoint = Breakpoint.Disabled,
               executions = List(
                 NonEmptyList.one(
-                  Action[IO](ActionType.Undefined,
-                             Stream(Result.OK(DummyResult)).covary[IO],
-                             Action.State(Action.ActionState.Completed(DummyResult), List.empty)
+                  Action[IO](
+                    ActionType.Undefined,
+                    Stream(Result.OK(DummyResult)).covary[IO],
+                    Action.State(Action.ActionState.Completed(DummyResult), List.empty)
                   )
                 )
               )
             ),
             EngineStep(
               id = stepId(2),
-              breakpoint = Breakpoint.Disabled,
               executions = executions
             ),
             EngineStep(
               id = stepId(3),
-              breakpoint = Breakpoint.Disabled,
               executions = executions
             ),
             EngineStep(
               id = stepId(4),
-              breakpoint = Breakpoint.Disabled,
               executions = executions
             )
-          )
+          ),
+          breakpoints = Breakpoints.empty
         )
       )
     )

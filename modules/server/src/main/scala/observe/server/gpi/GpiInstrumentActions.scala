@@ -6,8 +6,8 @@ package observe.server.gpi
 import cats.syntax.all.*
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import observe.engine.ParallelActions
-import observe.engine.Result
+import observe.server.engine.ParallelActions
+import observe.server.engine.Result
 import observe.server.InstrumentActions
 import observe.server.ObserveActions
 import observe.server.ObserveEnvironment

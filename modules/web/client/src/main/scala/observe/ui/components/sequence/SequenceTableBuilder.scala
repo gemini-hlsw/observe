@@ -217,7 +217,7 @@ private trait SequenceTableBuilder[S, D] extends SequenceTableDefs[D]:
             .map: step =>
               val stepIdOpt: Option[Step.Id] = step.id.toOption
               val stepHasBreakpoint: Boolean =
-                stepIdOpt.exists(props.executionState.breakpoints.contains)
+                stepIdOpt.exists(props.executionState.breakpoints.contains_)
 
               TagMod(
                 stepIdOpt

@@ -32,8 +32,6 @@ import lucuma.core.model.sequence.gmos
 import lucuma.core.util.TimeSpan
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
-import observe.engine.*
-import observe.engine.Action.ActionState
 import observe.model.*
 import observe.model.dhs.*
 import observe.model.enums.Resource
@@ -45,6 +43,8 @@ import observe.server.SequenceGen.StepGen
 import observe.server.altair.Altair
 import observe.server.altair.AltairController
 import observe.server.altair.AltairControllerDisabled
+import observe.server.engine.*
+import observe.server.engine.Action.ActionState
 import observe.server.flamingos2.Flamingos2
 import observe.server.flamingos2.Flamingos2Controller
 import observe.server.flamingos2.Flamingos2ControllerDisabled

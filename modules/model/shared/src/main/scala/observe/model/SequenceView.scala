@@ -23,7 +23,8 @@ case class SequenceView(
   sequenceType:    SequenceType,
   steps:           List[ObserveStep],
   willStopIn:      Option[Int],
-  stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]]
+  stepResources:   Map[Step.Id, Map[Resource | Instrument, ActionStatus]],
+  breakpoints:     Set[Step.Id]
 ) derives Eq:
 
   def progress: Option[RunningStep] =

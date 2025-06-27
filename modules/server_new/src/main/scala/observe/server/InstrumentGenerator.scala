@@ -5,7 +5,7 @@ package observe.server
 
 import fs2.Stream
 import lucuma.core.model.sequence.gmos.DynamicConfig
-import observe.engine.Result
+import observe.server.engine.Result
 
 trait InstrumentGenerator[F[_], D <: DynamicConfig] {
   def configure(d: D): F[Result]

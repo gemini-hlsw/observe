@@ -3,11 +3,8 @@
 
 package observe.model.events
 
-import cats.*
-import cats.syntax.all.*
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
-import lucuma.core.enums.Breakpoint
 import lucuma.core.model.Observation
 import observe.model.ExecutionState
 import observe.model.SequenceView
@@ -31,6 +28,6 @@ extension (q: SequenceView)
       None,
       q.stepResources,
       q.systemOverrides,
-      q.steps.mapFilter(s => if (s.breakpoint === Breakpoint.Enabled) s.id.some else none).toSet,
+      q.breakpoints,
       q.pausedStep
     )

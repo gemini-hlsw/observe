@@ -6,7 +6,6 @@ package observe.ui.components.sequence
 import cats.syntax.all.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
@@ -38,7 +37,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     progress:           Option[StepProgress],
     selectedStepId:     Option[Step.Id],
     datasetIdsInFlight: Set[Dataset.Id],
-    onBreakpointFlip:   (Observation.Id, Step.Id, Breakpoint) => Callback,
+    onBreakpointFlip:   (Observation.Id, Step.Id) => Callback,
     onDatasetQaChange:  Dataset.Id => EditableQaFields => Callback
   )
 
@@ -95,11 +94,6 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     )
   )
 
-  private def flippedBreakpoint(breakpoint: Breakpoint): Breakpoint =
-    breakpoint match
-      case Breakpoint.Enabled  => Breakpoint.Disabled
-      case Breakpoint.Disabled => Breakpoint.Enabled
-
 // [T, A, TM, CM, TF, CF, FM]
   private def column[V](
     id:     ColumnId,
@@ -136,8 +130,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                 ObserveStyles.BreakpointHandle,
                 stepId
                   .map: sId =>
-                    ^.onClick ==> (_.stopPropagationCB >>
-                      meta.onBreakpointFlip(obsId, sId, flippedBreakpoint(step.breakpoint)))
+                    ^.onClick ==> (_.stopPropagationCB >> meta.onBreakpointFlip(obsId, sId))
                   .whenDefined
               )(
                 Icons.CircleSolid
@@ -145,11 +138,14 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                   .withClass(
                     ObserveStyles.BreakpointIcon |+|
                       // ObserveStyles.FlippableBreakpoint.when_(canSetBreakpoint) |+|
-                      ObserveStyles.ActiveBreakpoint.when_(
-                        step.breakpoint === Breakpoint.Enabled
-                      )
+                      ObserveStyles.ActiveBreakpoint
+                        .when_(stepId.exists(meta.executionState.breakpoints.contains_(_)))
                   )
-              ).when(cell.row.index.toInt > 0 && step.stepTime === StepTime.Present)
+              ).when(
+                cell.row.index.toInt > 0 &&
+                  List(StepTime.Present, StepTime.Future).contains_(step.stepTime) &&
+                  meta.executionState.runningStepId =!= stepId
+              )
             )
       ),
       column(BreakpointSpaceColumnId, "", _ => EmptyVdom),

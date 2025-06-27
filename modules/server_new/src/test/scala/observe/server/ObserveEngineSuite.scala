@@ -38,12 +38,6 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.FirstScienceTarget
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
-import observe.engine.EventResult
-import observe.engine.EventResult.Outcome
-import observe.engine.EventResult.SystemUpdate
-import observe.engine.Sequence
-import observe.engine.SystemEvent
-import observe.engine.user
 import observe.model
 import observe.model.ClientId
 import observe.model.Conditions
@@ -60,6 +54,13 @@ import observe.model.enums.Resource.TCS
 import observe.model.enums.RunOverride
 import observe.server.SeqEvent.RequestConfirmation
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.engine.Breakpoints
+import observe.server.engine.EventResult
+import observe.server.engine.EventResult.Outcome
+import observe.server.engine.EventResult.SystemUpdate
+import observe.server.engine.Sequence
+import observe.server.engine.SystemEvent
+import observe.server.engine.user
 import observe.server.odb.TestOdbProxy
 import observe.server.odb.TestOdbProxy.StepStartStep
 import observe.server.tcs.DummyTargetKeywordsReader
@@ -972,14 +973,16 @@ class ObserveEngineSuite extends TestCommon {
         EngineState
           .sequenceStateAt[IO](seqObsId1)
           .modify(x =>
-            Sequence.State.Final(x.toSequence,
-                                 Running(
-                                   HasUserStop.No,
-                                   HasInternalStop.No,
-                                   IsWaitingUserPrompt.No,
-                                   IsWaitingNextAtom.Yes,
-                                   IsStarting.No
-                                 )
+            Sequence.State.Final(
+              x.toSequence,
+              Running(
+                HasUserStop.No,
+                HasInternalStop.No,
+                IsWaitingUserPrompt.No,
+                IsWaitingNextAtom.Yes,
+                IsStarting.No
+              ),
+              Breakpoints.empty
             )
           )(s0)
       observeEngine <- ObserveEngine.build(Site.GS, systems, defaultSettings)

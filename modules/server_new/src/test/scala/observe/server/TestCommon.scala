@@ -61,12 +61,6 @@ import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
-import observe.engine
-import observe.engine.Action
-import observe.engine.Response
-import observe.engine.Result
-import observe.engine.Result.PartialVal
-import observe.engine.Result.PauseContext
 import observe.model.ActionType
 import observe.model.ClientId
 import observe.model.Conditions
@@ -77,6 +71,11 @@ import observe.model.config.*
 import observe.model.dhs.*
 import observe.model.enums.Resource
 import observe.server.SequenceGen.StepStatusGen
+import observe.server.engine.Action
+import observe.server.engine.Response
+import observe.server.engine.Result
+import observe.server.engine.Result.PartialVal
+import observe.server.engine.Result.PauseContext
 import observe.server.odb.OdbProxy
 import org.http4s.Uri
 import org.http4s.implicits.*

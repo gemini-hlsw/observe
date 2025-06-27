@@ -29,16 +29,16 @@ import monocle.Lens
 import monocle.Optional
 import monocle.syntax.all.focus
 import mouse.all.*
-import observe.engine
-import observe.engine.Event
-import observe.engine.Handle.given
-import observe.engine.{EngineStep as _, *}
 import observe.model.*
 import observe.model.config.*
 import observe.model.enums.BatchExecState
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.server.SequenceGen.AtomGen
+import observe.server.engine.EngineStep
+import observe.server.engine.Event
+import observe.server.engine.Handle.given
+import observe.server.engine.{EngineStep as _, *}
 import observe.server.events.*
 import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
@@ -83,7 +83,7 @@ trait ObserveEngine[F[_]] {
     obsId:    Observation.Id,
     user:     User,
     observer: Observer,
-    stepId:   List[Step.Id],
+    stepId:   Set[Step.Id],
     v:        Breakpoint
   ): F[Unit]
 
@@ -444,18 +444,17 @@ object ObserveEngine {
           newSeqData
             .focus(_.seq)
             .modify(s => // Initialize the sequence state
+              val steps: List[EngineStep[F]] =
+                toStepList(
+                  newSeqData.seqGen,
+                  newSeqData.overrides,
+                  HeaderExtraData(st.conditions, st.operator, newSeqData.observer)
+                ).map(_._1) // Ignore breakpoints
+
               val newState: Sequence.State[F] =
                 Sequence.State.init(
                   atm.fold(Sequence.empty[F](obsId)) { a =>
-                    Sequence.sequence[F](
-                      obsId,
-                      a.atomId,
-                      toStepList(
-                        newSeqData.seqGen,
-                        newSeqData.overrides,
-                        HeaderExtraData(st.conditions, st.operator, newSeqData.observer)
-                      )
-                    )
+                    Sequence.sequence[F](obsId, a.atomId, steps, s.breakpoints)
                   }
                 )
 

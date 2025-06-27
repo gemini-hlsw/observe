@@ -37,7 +37,6 @@ class ModelLensesSuite extends munit.DisciplineSuite with ModelLenses {
   checkAll("NodAndShuffleStep", PrismTests(ObserveStep.nsStepP))
   checkAll("ObserveStep.status", LensTests(ObserveStep.status))
   checkAll("ObserveStep.id", LensTests(ObserveStep.id))
-  checkAll("ObserveStep.breakpoint", LensTests(ObserveStep.breakpoint))
   checkAll("ObserveStep.observeStatus", OptionalTests(ObserveStep.observeStatus))
   checkAll("ObserveStep.configStatus", OptionalTests(ObserveStep.configStatus))
   checkAll("signedPFormat", FormatTests(signedComponentFormat[Axis.P]).formatWith(stringsOffsets))

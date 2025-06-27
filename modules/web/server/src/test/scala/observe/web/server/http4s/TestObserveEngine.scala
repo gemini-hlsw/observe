@@ -18,13 +18,13 @@ import lucuma.core.model.ImageQuality
 import lucuma.core.model.Observation
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
-import observe.engine.EventResult
 import observe.model.*
 import observe.model.Observation.Id
 import observe.model.enums.*
 import observe.server.EngineState
 import observe.server.ObserveEngine
 import observe.server.Systems
+import observe.server.engine.EventResult
 import observe.server.events.TargetedClientEvent
 import org.typelevel.log4cats.Logger
 
@@ -55,7 +55,7 @@ class TestObserveEngine[F[_]: Sync](sys: Systems[F]) extends ObserveEngine[F] {
     seqId:    Id,
     user:     User,
     observer: Observer,
-    stepId:   List[Step.Id],
+    stepId:   Set[Step.Id],
     v:        Breakpoint
   ): F[Unit] = Applicative[F].unit
 

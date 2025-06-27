@@ -14,20 +14,20 @@ import lucuma.core.enums.Site
 import lucuma.core.util.TimeSpan
 import monocle.syntax.all.focus
 import observe.common.test.*
-import observe.engine.Action
-import observe.engine.EngineStep
-import observe.engine.Execution
-import observe.engine.Response
-import observe.engine.Response.Observed
-import observe.engine.Result
-import observe.engine.Sequence
-import observe.engine.Sequence.State
 import observe.model.ActionType
 import observe.model.Conditions
 import observe.model.SequenceState
 import observe.model.dhs.*
 import observe.server.SequenceGen.StepStatusGen
 import observe.server.TestCommon.*
+import observe.server.engine.Action
+import observe.server.engine.EngineStep
+import observe.server.engine.Execution
+import observe.server.engine.Response
+import observe.server.engine.Response.Observed
+import observe.server.engine.Result
+import observe.server.engine.Sequence
+import observe.server.engine.Sequence.State
 
 import java.time.temporal.ChronoUnit
 import scala.annotation.tailrec
@@ -84,7 +84,7 @@ class SeqTranslateSuite extends TestCommon {
     if (cond(st)) st
     else
       st match {
-        case EngineStep.Zipper(_, _, p :: ps, f, d, _) =>
+        case EngineStep.Zipper(_, p :: ps, f, d, _) =>
           advanceStepUntil(
             st.copy(
               pending = ps,
@@ -122,7 +122,7 @@ class SeqTranslateSuite extends TestCommon {
             ),
             cond
           )
-        case _                                         => st
+        case _                                      => st
       }
 
   val baseState: EngineState[IO] =
@@ -136,7 +136,7 @@ class SeqTranslateSuite extends TestCommon {
       EngineState
         .sequenceStateAt[IO](seqObsId1)
         .modify {
-          case State.Zipper(zipper, status, singleRuns) =>
+          case State.Zipper(zipper, status, singleRuns, breakpoints) =>
             State.Zipper(
               zipper.copy(
                 focus = advanceStepUntil(
@@ -145,9 +145,10 @@ class SeqTranslateSuite extends TestCommon {
                 )
               ),
               status,
-              singleRuns
+              singleRuns,
+              breakpoints
             )
-          case s @ State.Final(_, _)                    => s
+          case s @ State.Final(_, _, _)                              => s
         } >>>
       EngineState
         .sequenceStateAt[IO](seqObsId1)

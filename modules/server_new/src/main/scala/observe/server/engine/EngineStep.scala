@@ -1,24 +1,21 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.engine
+package observe.server.engine
 
 import cats.syntax.all.*
-import lucuma.core.enums.Breakpoint
 import lucuma.core.model.sequence.Step
-import monocle.Focus
 import monocle.Iso
 import monocle.Lens
 import monocle.macros.GenLens
-import observe.engine.Action.ActionState
 import observe.model.StepState
+import observe.server.engine.Action.ActionState
 
 /**
  * A list of `Executions` grouped by observation.
  */
 case class EngineStep[F[_]](
   id:         Step.Id,
-  breakpoint: Breakpoint,
   executions: List[ParallelActions[F]]
 ):
   /**
@@ -46,20 +43,11 @@ case class EngineStep[F[_]](
 
 object EngineStep {
 
-  def isoBool: Iso[Breakpoint, Boolean] =
-    Iso[Breakpoint, Boolean](_ === Breakpoint.Enabled)(b =>
-      if (b) Breakpoint.Enabled else Breakpoint.Disabled
-    )
-
-  def breakpointL[F[_]]: Lens[EngineStep[F], Boolean] =
-    Focus[EngineStep[F]](_.breakpoint).andThen(isoBool)
-
   /**
    * Step Zipper. This structure is optimized for the actual `Step` execution.
    */
   case class Zipper[F[_]](
     id:         Step.Id,
-    breakpoint: Breakpoint,
     pending:    List[ParallelActions[F]],
     focus:      Execution[F],
     done:       List[ParallelActions[F]],
@@ -91,7 +79,7 @@ object EngineStep {
      */
     val uncurrentify: Option[EngineStep[F]] =
       if (pending.isEmpty)
-        focus.uncurrentify.map(x => EngineStep(id, breakpoint, x.prepend(done)))
+        focus.uncurrentify.map(x => EngineStep(id, x.prepend(done)))
       else None
 
     /**
@@ -101,7 +89,6 @@ object EngineStep {
     val toStep: EngineStep[F] =
       EngineStep(
         id = id,
-        breakpoint = breakpoint,
         executions = done ++ focus.toParallelActionsList ++ pending
       )
 
@@ -138,7 +125,6 @@ object EngineStep {
       calcRolledback(step.executions).map { case (x, exes) =>
         Zipper(
           step.id,
-          step.breakpoint,
           exes,
           x,
           Nil,

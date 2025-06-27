@@ -9,11 +9,8 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.util.TimeSpan
-import observe.engine
-import observe.engine.Event
-import observe.engine.Result
-import observe.engine.Result.PauseContext
 import observe.model.Conditions
 import observe.model.Observer
 import observe.model.Operator
@@ -21,6 +18,9 @@ import observe.model.QueueId
 import observe.model.SystemOverrides
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.SequenceGen.StepGen
+import observe.server.engine.Event
+import observe.server.engine.Result
+import observe.server.engine.Result.PauseContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
@@ -56,19 +56,14 @@ type ExecutionQueues = Map[QueueId, ExecutionQueue]
 // This is far from ideal but we'll address this in another refactoring
 private given Logger[IO] = Slf4jLogger.getLoggerFromName[IO]("observe-engine")
 
-// Some types defined to avoid repeating long type definitions everywhere
-// type EngineEvent[F[_]]     = Event[F, EngineState[F], SeqEvent]
-// type ExecutionEngine[F[_]] = Engine[F, EngineState[F], SeqEvent]
-// type EngineHandle[F[_], A] = Handle[F, EngineState[F], EngineEvent[F], A]
-
 type EventQueue[F[_]] = Queue[F, Event[F]]
 
 def toStepList[F[_]](
-  seq:       SequenceGen[F],
-  overrides: SystemOverrides,
-  d:         HeaderExtraData
-): List[engine.EngineStep[F]] =
-  seq.nextAtom.steps.map(StepGen.generate(_, overrides, d))
+  seq:         SequenceGen[F],
+  overrides:   SystemOverrides,
+  headerExtra: HeaderExtraData
+): List[(engine.EngineStep[F], Breakpoint)] =
+  seq.nextAtom.steps.map(StepGen.generate(_, overrides, headerExtra))
 
 // If f is true continue, otherwise fail
 def failUnlessM[F[_]: MonadThrow](f: F[Boolean], err: Exception): F[Unit] =
