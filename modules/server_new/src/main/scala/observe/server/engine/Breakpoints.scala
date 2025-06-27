@@ -3,10 +3,11 @@
 
 package observe.server.engine
 
-import lucuma.core.model.sequence.Step
-import scala.collection.immutable.HashSet
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
+import lucuma.core.model.sequence.Step
+
+import scala.collection.immutable.HashSet
 
 opaque type Breakpoints = Set[Step.Id]
 

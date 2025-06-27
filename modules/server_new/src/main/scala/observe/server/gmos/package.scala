@@ -3,9 +3,9 @@
 
 package observe.server
 
-import observe.server.engine.Result.PartialVal
 import observe.model.NsSubexposure
 import observe.model.enums.NsAction
+import observe.server.engine.Result.PartialVal
 
 import gmos.GmosController.GmosSite
 

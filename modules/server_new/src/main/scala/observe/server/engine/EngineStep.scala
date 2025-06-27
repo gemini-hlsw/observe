@@ -9,8 +9,8 @@ import lucuma.core.model.sequence.Step
 import monocle.Iso
 import monocle.Lens
 import monocle.macros.GenLens
-import observe.server.engine.Action.ActionState
 import observe.model.StepState
+import observe.server.engine.Action.ActionState
 
 /**
  * A list of `Executions` grouped by observation.

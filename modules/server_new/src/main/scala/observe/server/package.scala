@@ -9,10 +9,8 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.syntax.all.*
 import fs2.Stream
+import lucuma.core.enums.Breakpoint
 import lucuma.core.util.TimeSpan
-import observe.server.engine.Event
-import observe.server.engine.Result
-import observe.server.engine.Result.PauseContext
 import observe.model.Conditions
 import observe.model.Observer
 import observe.model.Operator
@@ -20,9 +18,11 @@ import observe.model.QueueId
 import observe.model.SystemOverrides
 import observe.server.InstrumentSystem.ElapsedTime
 import observe.server.SequenceGen.StepGen
+import observe.server.engine.Event
+import observe.server.engine.Result
+import observe.server.engine.Result.PauseContext
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import lucuma.core.enums.Breakpoint
 
 case class Selected[F[_]](
   gmosSouth:  Option[SequenceData[F]],

@@ -29,15 +29,16 @@ import monocle.Lens
 import monocle.Optional
 import monocle.syntax.all.focus
 import mouse.all.*
-import observe.server.engine.Event
-import observe.server.engine.Handle.given
-import observe.server.engine.{EngineStep as _, *}
 import observe.model.*
 import observe.model.config.*
 import observe.model.enums.BatchExecState
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.server.SequenceGen.AtomGen
+import observe.server.engine.EngineStep
+import observe.server.engine.Event
+import observe.server.engine.Handle.given
+import observe.server.engine.{EngineStep as _, *}
 import observe.server.events.*
 import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
@@ -46,7 +47,6 @@ import scala.annotation.unused
 import scala.concurrent.duration.*
 
 import SeqEvent.*
-import observe.server.engine.EngineStep
 
 trait ObserveEngine[F[_]] {
 

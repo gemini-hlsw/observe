@@ -10,13 +10,13 @@ import monocle.Focus
 import monocle.Lens
 import monocle.Optional
 import monocle.syntax.all.*
-import observe.server.engine.Engine
-import observe.server.engine.Sequence
 import observe.model.CalibrationQueueId
 import observe.model.CalibrationQueueName
 import observe.model.Conditions
 import observe.model.Observation
 import observe.model.Operator
+import observe.server.engine.Engine
+import observe.server.engine.Sequence
 
 case class EngineState[F[_]](
   queues:     ExecutionQueues,

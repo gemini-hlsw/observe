@@ -3,9 +3,9 @@
 
 package observe.server.events
 
+import observe.server.SeqEvent
 import observe.server.engine.SystemEvent
 import observe.server.engine.UserEvent
-import observe.server.SeqEvent
 
 extension (e: SeqEvent)
   def isModelUpdate: Boolean =

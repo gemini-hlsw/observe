@@ -5,21 +5,21 @@ package observe.server
 
 import cats.Endo
 import cats.syntax.all.*
+import lucuma.core.enums.Breakpoint
 import lucuma.core.model.sequence.Atom
 import monocle.Lens
 import monocle.std.option
-import observe.server.engine.Engine
-import observe.server.engine.Sequence
 import observe.model.Observation
 import observe.model.Observer
 import observe.model.SystemOverrides
+import observe.server.engine.Breakpoints
+import observe.server.engine.Engine
+import observe.server.engine.EngineStep
+import observe.server.engine.Sequence
 
 import scala.annotation.unused
 
 import odb.OdbProxy
-import lucuma.core.enums.Breakpoint
-import observe.server.engine.EngineStep
-import observe.server.engine.Breakpoints
 
 final class ODBSequencesLoader[F[_]](
   @unused odbProxy:   OdbProxy[F],

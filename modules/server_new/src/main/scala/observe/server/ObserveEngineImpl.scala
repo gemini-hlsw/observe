@@ -33,10 +33,6 @@ import monocle.Optional
 import monocle.function.Index.mapIndex
 import mouse.all.*
 import observe.cats.given
-import observe.server.engine.EventResult.*
-import observe.server.engine.Handle.given
-import observe.server.engine.Result.Partial
-import observe.server.engine.{EngineStep as _, *}
 import observe.model.*
 import observe.model.UserPrompt.Discrepancy
 import observe.model.UserPrompt.ObsConditionsCheckOverride
@@ -50,6 +46,11 @@ import observe.model.enums.PendingObserveCmd.*
 import observe.model.enums.Resource
 import observe.model.enums.RunOverride
 import observe.model.events.*
+import observe.server.engine.EngineStep
+import observe.server.engine.EventResult.*
+import observe.server.engine.Handle.given
+import observe.server.engine.Result.Partial
+import observe.server.engine.{EngineStep as _, *}
 import observe.server.events.*
 import observe.server.odb.OdbProxy
 import org.typelevel.log4cats.Logger
@@ -61,7 +62,6 @@ import scala.concurrent.duration.*
 
 import SeqEvent.*
 import ClientEvent.*
-import observe.server.engine.EngineStep
 
 private class ObserveEngineImpl[F[_]: Async: Logger](
   executeEngine:         Engine[F],

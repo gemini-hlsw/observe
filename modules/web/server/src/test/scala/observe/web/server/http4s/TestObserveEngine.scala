@@ -55,7 +55,7 @@ class TestObserveEngine[F[_]: Sync](sys: Systems[F]) extends ObserveEngine[F] {
     seqId:    Id,
     user:     User,
     observer: Observer,
-    stepId:   List[Step.Id],
+    stepId:   Set[Step.Id],
     v:        Breakpoint
   ): F[Unit] = Applicative[F].unit
 

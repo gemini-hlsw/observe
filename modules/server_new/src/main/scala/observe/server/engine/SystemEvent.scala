@@ -4,9 +4,9 @@
 package observe.server.engine
 
 import lucuma.core.model.sequence.Step
-import observe.server.engine.Result.*
 import observe.model.ClientId
 import observe.model.Observation
+import observe.server.engine.Result.*
 
 /**
  * Events generated internally by the Engine.

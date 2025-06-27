@@ -9,9 +9,9 @@ import cats.MonadError
 import cats.MonadThrow
 import cats.data.*
 import cats.syntax.all.*
-import observe.server.engine.*
 import observe.model.*
 import observe.model.enums.*
+import observe.server.engine.*
 
 extension [F[_]: MonadThrow, A](s: EitherT[F, ObserveFailure, A])
   def liftF: F[A] =

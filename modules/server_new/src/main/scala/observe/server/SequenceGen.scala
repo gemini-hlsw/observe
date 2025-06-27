@@ -21,16 +21,16 @@ import monocle.Prism
 import monocle.macros.GenPrism
 import mouse.all.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
+import observe.model.SystemOverrides
+import observe.model.dhs.DataId
+import observe.model.dhs.ImageFileId
+import observe.model.enums.Resource
 import observe.server.engine.Action
 import observe.server.engine.ActionCoordsInSeq
 import observe.server.engine.ActionIndex
 import observe.server.engine.EngineStep
 import observe.server.engine.ExecutionIndex
 import observe.server.engine.ParallelActions
-import observe.model.SystemOverrides
-import observe.model.dhs.DataId
-import observe.model.dhs.ImageFileId
-import observe.model.enums.Resource
 
 /*
  * SequenceGen keeps all the information extracted from the ODB sequence.

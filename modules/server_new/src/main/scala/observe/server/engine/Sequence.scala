@@ -10,11 +10,11 @@ import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import monocle.Lens
 import monocle.macros.GenLens
-import observe.server.engine.Action.ActionState
-import observe.server.engine.Result.RetVal
 import observe.model.SequenceState
 import observe.model.SequenceState.HasInternalStop
 import observe.model.SequenceState.HasUserStop
+import observe.server.engine.Action.ActionState
+import observe.server.engine.Result.RetVal
 
 /**
  * A list of `Step`s grouped by target and instrument.

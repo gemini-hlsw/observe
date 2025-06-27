@@ -4,9 +4,9 @@
 package observe.server.engine
 
 import lucuma.core.enums.Instrument
-import observe.server.engine.Result.RetVal
 import observe.model.dhs.ImageFileId
 import observe.model.enums.Resource
+import observe.server.engine.Result.RetVal
 
 enum Response extends RetVal:
   case Configured(resource: Resource | Instrument) extends Response
