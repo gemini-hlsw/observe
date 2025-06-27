@@ -37,7 +37,7 @@ private trait SequenceTable[S, D](
   def setSelectedStepId: Step.Id => Callback
   def requests: ObservationRequests
   def isPreview: Boolean
-  def onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback
+  def onBreakpointFlip: (Observation.Id, Step.Id) => Callback
   def onDatasetQaChange: Dataset.Id => EditableQaFields => Callback
   def datasetIdsInFlight: Set[Dataset.Id]
 

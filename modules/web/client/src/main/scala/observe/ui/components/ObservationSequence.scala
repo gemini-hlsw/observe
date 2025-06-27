@@ -32,6 +32,7 @@ import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
 import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
+import observe.ui.utils.*
 
 import scala.collection.immutable.HashSet
 
@@ -96,11 +97,21 @@ object ObservationSequence
         val breakpoints: View[Set[Step.Id]] =
           props.executionState.zoom(ExecutionState.breakpoints)
 
-        val onBreakpointFlip: (Observation.Id, Step.Id, Breakpoint) => Callback =
-          (obsId, stepId, value) =>
+        val onBreakpointFlip: (Observation.Id, Step.Id) => Callback =
+          (obsId, stepId) =>
             breakpoints
-              .mod(set => if (set.contains(stepId)) set - stepId else set + stepId) >>
-              sequenceApi.setBreakpoint(obsId, stepId, value).runAsync
+              .modCB(
+                _.toggle(stepId),
+                newBreakpoints =>
+                  sequenceApi
+                    .setBreakpoint(
+                      obsId,
+                      stepId,
+                      if newBreakpoints.contains(stepId) then Breakpoint.Enabled
+                      else Breakpoint.Disabled
+                    )
+                    .runAsync
+              )
 
         val onDatasetQAChange: Dataset.Id => EditableQaFields => Callback =
           datasetId =>

@@ -4,7 +4,6 @@
 package observe.ui.components.sequence.byInstrument
 
 import japgolly.scalajs.react.*
-import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
@@ -31,7 +30,7 @@ case class GmosNorthSequenceTable(
   setSelectedStepId:    Step.Id => Callback,
   requests:             ObservationRequests,
   isPreview:            Boolean,
-  onBreakpointFlip:     (Observation.Id, Step.Id, Breakpoint) => Callback,
+  onBreakpointFlip:     (Observation.Id, Step.Id) => Callback,
   onDatasetQaChange:    Dataset.Id => EditableQaFields => Callback,
   datasetIdsInFlight:   Set[Dataset.Id]
 ) extends ReactFnProps(GmosNorthSequenceTable.component)

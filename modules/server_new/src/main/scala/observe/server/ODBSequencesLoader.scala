@@ -13,6 +13,7 @@ import observe.model.Observation
 import observe.model.Observer
 import observe.model.SystemOverrides
 import observe.server.engine.Breakpoints
+import observe.server.engine.BreakpointsDelta
 import observe.server.engine.Engine
 import observe.server.engine.EngineStep
 import observe.server.engine.Sequence
@@ -94,16 +95,18 @@ final class ODBSequencesLoader[F[_]](
 object ODBSequencesLoader {
 
   private def toEngineSequence[F[_]](
-    id:          Observation.Id,
-    atomId:      Atom.Id,
-    overrides:   SystemOverrides,
-    seq:         SequenceGen[F],
-    headerExtra: HeaderExtraData
+    id:                   Observation.Id,
+    atomId:               Atom.Id,
+    overrides:            SystemOverrides,
+    seq:                  SequenceGen[F],
+    headerExtra:          HeaderExtraData,
+    preservedBreakpoints: Breakpoints
   ): Sequence[F] =
     val stepsWithBreakpoints: List[(EngineStep[F], Breakpoint)] =
       toStepList(seq, overrides, headerExtra)
     val steps: List[EngineStep[F]]                              = stepsWithBreakpoints.map(_._1)
-    val breakpoints: Breakpoints                                = Breakpoints.fromStepsWithBreakpoints(stepsWithBreakpoints)
+    val breakpoints: Breakpoints                                =
+      preservedBreakpoints.merge(BreakpointsDelta.fromStepsWithBreakpoints(stepsWithBreakpoints))
     Sequence.sequence(id, atomId, steps, breakpoints)
 
   private[server] def loadSequenceEndo[F[_]](
@@ -112,7 +115,7 @@ object ODBSequencesLoader {
     l:        Lens[EngineState[F], Option[SequenceData[F]]],
     cleanup:  F[Unit]
   ): Endo[EngineState[F]] = st =>
-    l.replace(
+    l.modify(oldSeqData =>
       SequenceData[F](
         observer,
         SystemOverrides.AllEnabled,
@@ -123,7 +126,8 @@ object ODBSequencesLoader {
             seqg.nextAtom.atomId,
             SystemOverrides.AllEnabled,
             seqg,
-            HeaderExtraData(st.conditions, st.operator, observer)
+            HeaderExtraData(st.conditions, st.operator, observer),
+            oldSeqData.map(_.seq.breakpoints).getOrElse(Breakpoints.empty)
           )
         ),
         none,

@@ -3,11 +3,10 @@
 
 package observe.server.engine
 
+import lucuma.core.model.sequence.Step
+import scala.collection.immutable.HashSet
 import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
-import lucuma.core.model.sequence.Step
-
-import scala.collection.immutable.HashSet
 
 opaque type Breakpoints = Set[Step.Id]
 
@@ -29,6 +28,10 @@ object Breakpoints:
     def contains(stepId: Step.Id): Boolean     = breakpoints.contains_(stepId)
     def +(stepId:        Step.Id): Breakpoints = breakpoints + stepId
     def -(stepId:        Step.Id): Breakpoints = breakpoints - stepId
+    def merge(breakpointsDelta: BreakpointsDelta): Breakpoints =
+      breakpointsDelta.foldLeft(breakpoints):
+        case (accum, (stepId, breakpoint)) =>
+          if breakpoint === Breakpoint.Enabled then accum + stepId else accum - stepId
 
 object BreakpointsDelta:
   def apply(breakpointsDelta: Set[(Step.Id, Breakpoint)]): BreakpointsDelta =
