@@ -55,17 +55,18 @@ private trait SequenceTableBuilder[S, D] extends SequenceTableDefs[D]:
   )(rowIdCandidates: List[String]): Callback =
     rowIdCandidates.some
       .filter(_.nonEmpty)
-      .foldMap: rowIds =>
+      .flatMap: rowIds =>
+        table
+          .getRowModel()
+          .rows
+          .indexWhere(row => rowIds.contains_(row.id.value))
+          .some
+          .filter(_ >= 0)
+      .foldMap: rowIndex =>
         virtualizerRef.get.flatMap: refOpt =>
           Callback: // Auto scroll to running step or next step.
             refOpt.map:
-              _.scrollToIndex(
-                table
-                  .getRowModel()
-                  .rows
-                  .indexWhere(row => rowIds.contains_(row.id.value)) - 1,
-                ScrollOptions
-              )
+              _.scrollToIndex(rowIndex - 1, ScrollOptions)
 
   protected[sequence] val component =
     ScalaFnComponent[Props]: props =>
@@ -177,7 +178,7 @@ private trait SequenceTableBuilder[S, D] extends SequenceTableDefs[D]:
                 (props.runningStepId ++ props.nextStepId).map(_.toString).toList
 
             Callback.when(props.runningStepId.isEmpty)(
-              props.nextStepId.map(props.setSelectedStepId).orEmpty
+              props.nextStepId.map(props.setSelectedStepId(_)).orEmpty
             ) >>
               scrollToRowId(virtualizerRef, table)(autoScrollCandidates)
                 .delayMs(1) // https://github.com/TanStack/virtual/issues/615
