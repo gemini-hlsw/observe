@@ -3,8 +3,6 @@
 
 package observe.model.events
 
-// import cats.*
-// import cats.syntax.all.*
 import io.circe.KeyDecoder
 import io.circe.KeyEncoder
 import lucuma.core.model.Observation
