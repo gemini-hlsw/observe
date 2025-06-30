@@ -912,8 +912,9 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     setObserver(obsId, user, observer) *>
       systems.odb.stepStop(obsId) *>
       executeEngine
-        .offer(Event.modifyState(setObsCmd(obsId, StopGracefully)))
-        .whenA(graceful) *>
+        .offer:
+          Event.modifyState(setObsCmd(obsId, StopGracefully))
+        .whenA(graceful) >>
       executeEngine.offer:
         Event.actionStop(obsId, translator.stopObserve(obsId, graceful))
 

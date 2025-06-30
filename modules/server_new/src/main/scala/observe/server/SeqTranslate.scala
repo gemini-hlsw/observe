@@ -23,6 +23,7 @@ import lucuma.core.model.sequence
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.InstrumentExecutionConfig
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.Step as OdbStep
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
@@ -489,36 +490,62 @@ object SeqTranslate {
       }.orEmpty
     }
 
-    private def endPaused(seqId: Observation.Id, l: ObserveContext[F] => Stream[F, Result])(
-      st: EngineState[F]
+    private def doEmitReadingOut(
+      obsId:   Observation.Id,
+      stepId:  Step.Id,
+      expTime: TimeSpan
+    ): Stream[F, Event[F]] =
+      Stream.emit:
+        Event.partial(
+          obsId,
+          stepId,
+          0,
+          Result.Partial:
+            ObsProgress(expTime, RemainingTime(TimeSpan.Zero), ObserveStage.ReadingOut)
+        )
+
+    private def endPaused(
+      seqId:          Observation.Id,
+      l:              ObserveContext[F] => Stream[F, Result],
+      emitReadingOut: Boolean
+    )(
+      st:             EngineState[F]
     ): Stream[F, Event[F]] =
       st.sequences
         .get(seqId)
-        .flatMap(
-          _.seq.current.execution.zipWithIndex.find(_._1.kind === ActionType.Observe).flatMap {
-            case (a, i) =>
+        .flatMap(seqData =>
+          seqData.seq.current.execution.zipWithIndex
+            .find(_._1.kind === ActionType.Observe)
+            .flatMap { case (a, i) =>
               a.state.runState match {
                 case ActionState.Paused(c: ObserveContext[F] @unchecked) =>
-                  Stream
-                    .eval(
-                      Event.actionResume(seqId, i, l(c).handleErrorWith(catchObsErrors[F])).pure[F]
-                    )
-                    .some
+                  (seqData.seq.currentStep
+                    .map(_.id)
+                    .map(doEmitReadingOut(seqId, _, c.expTime))
+                    .filter(_ => emitReadingOut)
+                    .orEmpty
+                    ++
+                      Stream
+                        .eval:
+                          Event
+                            .actionResume(seqId, i, l(c).handleErrorWith(catchObsErrors[F]))
+                            .pure[F]
+                  ).some
                 case _                                                   => none
               }
-          }
+            }
         )
         .orEmpty
 
     private def stopPaused(
       seqId: Observation.Id
     ): EngineState[F] => Stream[F, Event[F]] =
-      endPaused(seqId, _.stopPaused)
+      endPaused(seqId, _.stopPaused, emitReadingOut = true)
 
     private def abortPaused(
       seqId: Observation.Id
     ): EngineState[F] => Stream[F, Event[F]] =
-      endPaused(seqId, _.abortPaused)
+      endPaused(seqId, _.abortPaused, emitReadingOut = false)
 
     import TcsController.Subsystem.*
 
