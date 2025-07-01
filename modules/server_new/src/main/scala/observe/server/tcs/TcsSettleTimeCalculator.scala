@@ -47,6 +47,7 @@ object TcsSettleTimeCalculator {
   }
 
   private val s1 = TimeSpan.fromSeconds(1.0).get
+  private val s4 = TimeSpan.fromSeconds(4.0).get
 
   // We are using constant values for now. Values are taken from old Observe
   val settleTimeCalculators: Map[Subsystem, SettleTimeCalculator] = Map(
@@ -56,12 +57,11 @@ object TcsSettleTimeCalculator {
   )
 
   val oiwfsSettleTimeCalculators: Map[Instrument, SettleTimeCalculator] = Map(
-    Instrument.GmosNorth -> constantSettleTime(s1),
-    Instrument.GmosSouth -> constantSettleTime(s1)
-//    Instrument.F2    -> constantSettleTime(1.seconds),
-//    Instrument.Nifs  -> constantSettleTime(4.seconds),
-//    Instrument.Niri  -> constantSettleTime(4.seconds),
-//    Instrument.Gnirs -> constantSettleTime(4.seconds)
+    Instrument.GmosNorth  -> constantSettleTime(s1),
+    Instrument.GmosSouth  -> constantSettleTime(s1),
+    Instrument.Flamingos2 -> constantSettleTime(s1),
+    Instrument.Niri       -> constantSettleTime(s4),
+    Instrument.Gnirs      -> constantSettleTime(s4)
   )
 
   def calcDisplacement(

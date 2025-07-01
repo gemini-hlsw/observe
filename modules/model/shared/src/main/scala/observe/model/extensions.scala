@@ -10,16 +10,15 @@ import lucuma.core.enums.Site
 object extensions:
   extension (i: Instrument)
     def hasOI: Boolean = i match
-      //      case Instrument.F2    => true
-      case Instrument.GmosSouth => true
-      case Instrument.GmosNorth => true
-      case _                    => false
-    //      case Instrument.Nifs  => true
-    //      case Instrument.Niri  => true
-    //      case Instrument.Gnirs => true
-    //      case Instrument.Gsaoi => false
-    //      case Instrument.Gpi   => true
-    //      case Instrument.Ghost => false
+      case Instrument.Flamingos2 => true
+      case Instrument.GmosSouth  => true
+      case Instrument.GmosNorth  => true
+      case Instrument.Niri       => true
+      case Instrument.Gnirs      => true
+      case Instrument.Gsaoi      => false
+      case Instrument.Gpi        => true
+      case Instrument.Ghost      => false
+      case _                     => false
 
     def site: Option[Site] = i match
       // GS
