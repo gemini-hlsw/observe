@@ -78,6 +78,11 @@ trait ServerEventHandler:
     atomListOptional(instrumentOptic, sequenceTypeOptic)
       .modify(_.filterNot(_.id === atomId))
 
+  private val flamingos2ExecutionOptional
+    : Optional[InstrumentExecutionConfig, ExecutionConfig.Flamingos2] =
+    InstrumentExecutionConfig.flamingos2
+      .andThen(InstrumentExecutionConfig.Flamingos2.executionConfig)
+
   private val gmosNorthExecutionOptional
     : Optional[InstrumentExecutionConfig, ExecutionConfig.GmosNorth] =
     InstrumentExecutionConfig.gmosNorth
@@ -103,13 +108,19 @@ trait ServerEventHandler:
       loadedObservation.config.toOption
         .map(_.instrument)
         .collect:
-          case Instrument.GmosNorth =>
+          case Instrument.Flamingos2 =>
+            removeFutureAtomFromLoadedObservation(
+              flamingos2ExecutionOptional,
+              sequenceTypeOptic(sequenceType),
+              atomId
+            )(loadedObservation)
+          case Instrument.GmosNorth  =>
             removeFutureAtomFromLoadedObservation(
               gmosNorthExecutionOptional,
               sequenceTypeOptic(sequenceType),
               atomId
             )(loadedObservation)
-          case Instrument.GmosSouth =>
+          case Instrument.GmosSouth  =>
             removeFutureAtomFromLoadedObservation(
               gmosSouthExecutionOptional,
               sequenceTypeOptic(sequenceType),

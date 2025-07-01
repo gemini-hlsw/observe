@@ -870,13 +870,12 @@ object TcsControllerEpicsCommon {
     ) <= WavelengthTolerance.value
 
   def oiSelectionName(i: Instrument): Option[String] = i match {
-//    case Instrument.F2                                        => "F2".some
-    case Instrument.GmosSouth | Instrument.GmosNorth => "GMOS".some
-//    case Instrument.Gnirs                                     => "GNIRS".some
-//    case Instrument.Niri                                      => "NIRI".some
-//    case Instrument.Nifs                                      => "NIFS".some
-//    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
-    case i                                           => sys.error(s"OI selection not supported for $i")
+    case Instrument.Flamingos2                                => "F2".some
+    case Instrument.GmosSouth | Instrument.GmosNorth          => "GMOS".some
+    case Instrument.Gnirs                                     => "GNIRS".some
+    case Instrument.Niri                                      => "NIRI".some
+    case Instrument.Ghost | Instrument.Gpi | Instrument.Gsaoi => none
+    case i                                                    => sys.error(s"OI selection not supported for $i")
   }
 
   def calcMoveDistanceSquared(
