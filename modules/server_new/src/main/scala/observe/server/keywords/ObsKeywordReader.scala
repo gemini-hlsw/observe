@@ -6,10 +6,7 @@ package observe.server.keywords
 import cats.effect.Sync
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
-import lucuma.core.enums.GuideProbe
-import lucuma.core.enums.ObserveClass
-import lucuma.core.enums.Site
-import lucuma.core.enums.StepGuideState
+import lucuma.core.enums.{GcalArc, GuideProbe, ObserveClass, Site, StepGuideState}
 import lucuma.core.enums.StepGuideState.Disabled
 import lucuma.core.enums.StepGuideState.Enabled
 import lucuma.core.model.TimingWindowEnd
@@ -23,7 +20,6 @@ import observe.server.Systems
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-
 import ConditionOps.*
 
 sealed trait ObsKeywordsReader[F[_]] {
@@ -212,7 +208,12 @@ object ObsKeywordReader {
         case StepConfig.Gcal(lamp, _, _, _) =>
           lamp.toEither.fold[String](
             _ => "GCALflat",
-            _.toList.mkString("", ",", "")
+            _.toList.map{
+              case GcalArc.ArArc => "Ar"
+              case GcalArc.ThArArc => "ThAr"
+              case GcalArc.CuArArc => "CuAr"
+              case GcalArc.XeArc => "Xe"
+            }.mkString("", ",", "")
           )
         case _                              => ""
       }).pure[F]
