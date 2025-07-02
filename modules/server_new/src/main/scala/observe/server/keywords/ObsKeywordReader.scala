@@ -6,6 +6,8 @@ package observe.server.keywords
 import cats.effect.Sync
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
+import lucuma.core.enums.GcalArc
+import lucuma.core.enums.GcalLampType
 import lucuma.core.enums.GuideProbe
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.Site
@@ -87,9 +89,13 @@ object ObsKeywordReader {
         step.stepConfig match {
           case StepConfig.Bias             => "BIAS"
           case StepConfig.Dark             => "DARK"
-          case StepConfig.Gcal(_, _, _, _) => "FLAT"
+          case StepConfig.Gcal(l, _, _, _) =>
+            l.lampType match {
+              case GcalLampType.Arc  => "ARC"
+              case GcalLampType.Flat => "FLAT"
+            }
           case StepConfig.Science          => "OBJECT"
-          case StepConfig.SmartGcal(_)     => "FLAT"
+          case StepConfig.SmartGcal(_)     => "FLAT" // It should never get this case
         }
       ).pure[F]
 
@@ -212,7 +218,14 @@ object ObsKeywordReader {
         case StepConfig.Gcal(lamp, _, _, _) =>
           lamp.toEither.fold[String](
             _ => "GCALflat",
-            _.toList.mkString("", ",", "")
+            _.toList
+              .map {
+                case GcalArc.ArArc   => "Ar"
+                case GcalArc.ThArArc => "ThAr"
+                case GcalArc.CuArArc => "CuAr"
+                case GcalArc.XeArc   => "Xe"
+              }
+              .mkString("", ",", "")
           )
         case _                              => ""
       }).pure[F]
