@@ -12,7 +12,6 @@ import cats.syntax.all.*
 import clue.FetchClient
 import clue.data.syntax.*
 import clue.syntax.*
-import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.AtomStage
 import lucuma.core.enums.DatasetStage
@@ -59,7 +58,6 @@ sealed trait OdbEventCommands[F[_]] {
     obsId:        Observation.Id,
     instrument:   Instrument,
     sequenceType: SequenceType,
-    stepCount:    NonNegShort,
     generatedId:  Option[Atom.Id]
   ): F[Unit]
   def stepStartStep[D](
@@ -199,7 +197,6 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort,
       generatedId:  Option[Atom.Id]
     ): F[Unit] = Applicative[F].unit
 
@@ -235,12 +232,11 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort,
       generatedId:  Option[Atom.Id]
     ): F[Unit] = for {
       visitId <- getCurrentVisitId(obsId)
       _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
-      atomId  <- recordAtom(visitId, sequenceType, stepCount, instrument, generatedId)
+      atomId  <- recordAtom(visitId, sequenceType, instrument, generatedId)
       -       <- setCurrentAtomId(obsId, atomId)
       _       <- AddAtomEventMutation[F]
                    .execute(atomId = atomId.value, stg = AtomStage.StartAtom)
@@ -467,13 +463,12 @@ object OdbProxy {
     private def recordAtom(
       visitId:      Visit.Id,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort,
       instrument:   Instrument,
       generatedId:  Option[Atom.Id]
     ): F[RecordedAtomId] =
       RecordAtomMutation[F]
         .execute:
-          RecordAtomInput(visitId, instrument, sequenceType, stepCount.assign, generatedId.orIgnore)
+          RecordAtomInput(visitId, instrument, sequenceType, generatedId.orIgnore)
         .raiseGraphQLErrors
         .map(_.recordAtom.atomRecord.id)
         .map(RecordedAtomId(_))
@@ -616,7 +611,6 @@ object OdbProxy {
       obsId:        Observation.Id,
       instrument:   Instrument,
       sequenceType: SequenceType,
-      stepCount:    NonNegShort,
       generatedId:  Option[Atom.Id]
     ): F[Unit] = Applicative[F].unit
 

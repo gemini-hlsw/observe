@@ -13,7 +13,6 @@ import cats.effect.syntax.all.*
 import cats.syntax.all.*
 import coulomb.policy.strict.given
 import eu.timepit.refined.cats.given
-import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
@@ -252,7 +251,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                         obsId,
                         seq.seqGen.instrument,
                         seq.seqGen.nextAtom.sequenceType,
-                        NonNegShort.unsafeFrom(seq.seqGen.nextAtom.steps.length.toShort),
                         seq.seqGen.nextAtom.atomId.some
                       )
                       .as(
