@@ -11,7 +11,6 @@ import cats.effect.Ref
 import cats.effect.Sync
 import cats.effect.Temporal
 import cats.syntax.all.*
-import eu.timepit.refined.types.numeric.NonNegShort
 import fs2.Pipe
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
@@ -500,7 +499,6 @@ object ObserveEngine {
                           obsId,
                           inst,
                           atm.sequenceType,
-                          NonNegShort.unsafeFrom(atm.steps.length.toShort),
                           atm.atomId.some
                         )
                         .as(SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId))

@@ -9,7 +9,6 @@ import cats.effect.Ref
 import cats.effect.kernel.Resource
 import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
-import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObservationWorkflowState
@@ -174,14 +173,13 @@ object TestOdbProxy {
           obsId:        Observation.Id,
           instrument:   Instrument,
           sequenceType: SequenceType,
-          stepCount:    NonNegShort,
           generatedId:  Option[Atom.Id]
         ): F[Unit] = (sequenceType match {
           case SequenceType.Acquisition =>
             rf.update(State.currentAtom.replace(generatedId))
           case SequenceType.Science     =>
             rf.update(State.currentAtom.replace(generatedId))
-        }) *> addEvent(AtomStart(obsId, instrument, sequenceType, stepCount))
+        }) *> addEvent(AtomStart(obsId, instrument, sequenceType))
 
         override def stepStartStep[D](
           obsId:           Observation.Id,
@@ -266,8 +264,7 @@ object TestOdbProxy {
   case class AtomStart(
     obsId:        Observation.Id,
     instrument:   Instrument,
-    sequenceType: SequenceType,
-    stepCount:    NonNegShort
+    sequenceType: SequenceType
   ) extends OdbEvent
   case class StepStartStep[D](
     obsId:           Observation.Id,

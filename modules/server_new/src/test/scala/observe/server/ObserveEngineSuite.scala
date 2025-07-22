@@ -12,7 +12,6 @@ import cats.syntax.all.*
 import coulomb.policy.strict.given
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.numeric.NonNegInt
-import eu.timepit.refined.types.numeric.NonNegShort
 import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.*
@@ -1155,10 +1154,9 @@ class ObserveEngineSuite extends TestCommon {
   }
 
   def assertAtom(
-    l:                 List[TestOdbProxy.OdbEvent],
-    seqType:           SequenceType,
-    originalStepCount: Int,
-    atomStepCount:     Int
+    l:             List[TestOdbProxy.OdbEvent],
+    seqType:       SequenceType,
+    atomStepCount: Int
   ): List[TestOdbProxy.OdbEvent] = {
     // First we get AtomStart
     assertEquals(
@@ -1166,8 +1164,7 @@ class ObserveEngineSuite extends TestCommon {
         TestOdbProxy.AtomStart(
           seqObsId1,
           Instrument.GmosNorth,
-          seqType,
-          NonNegShort.unsafeFrom(originalStepCount.toShort)
+          seqType
         )
       ),
       l.take(1)
@@ -1253,9 +1250,9 @@ class ObserveEngineSuite extends TestCommon {
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft(
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount, stepCount)
+        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount)
       ) { case (b, _) =>
-        assertAtom(b, SequenceType.Science, stepCount, stepCount)
+        assertAtom(b, SequenceType.Science, stepCount)
       }
       assertEquals(rest.length, 0)
     }
@@ -1344,9 +1341,9 @@ class ObserveEngineSuite extends TestCommon {
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft {
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount, 3)
+        assertAtom(res.drop(firstEvents.length), SequenceType.Science, 3)
       } { case (b, _) =>
-        assertAtom(b, SequenceType.Science, stepCount, 2)
+        assertAtom(b, SequenceType.Science, 2)
       }
       assertEquals(rest.length, 0)
     }
