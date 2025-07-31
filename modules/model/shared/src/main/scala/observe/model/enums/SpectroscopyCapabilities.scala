@@ -3,7 +3,7 @@
 
 package observe.model.enums
 
-/* TODO: Remove this file after updating dependency on lucuma-core > 0.9.2 */
+/* TODO: Remove this file after updating dependency on lucuma-core > 0.9.3 */
 
 import lucuma.core.util.Enumerated
 
