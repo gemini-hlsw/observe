@@ -26,7 +26,7 @@ trait ArbLoadedObservation:
       val base = LoadedObservation(obsId)
       (LoadedObservation.refreshing.replace(refreshing) >>>
         LoadedObservation.errorMsg.replace(errorMsg))(
-        config.toOptionTry.fold(base)(t => base.withConfig(t.map(_.some).toEither))
+        config.toOptionTry.fold(base)(t => base.withConfig(t.toEither))
       )
 
   given Cogen[LoadedObservation] =

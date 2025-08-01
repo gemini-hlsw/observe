@@ -14,24 +14,25 @@ object ObsQueriesGQL {
   trait ActiveObservationIdsQuery extends GraphQLOperation[ObservationDB] {
     val document = s"""
       query($$site: Site!, $$date: Date!) {
-        observationsByWorkflowState(
-          states: [READY, ONGOING, COMPLETED],
-          WHERE: { 
+        observations(
+          WHERE: {
             site: { EQ: $$site },
             program: {
               AND: [
                 { activeStart: { LTE: $$date } },
-                { activeEnd: { GTE: $$date } } 
+                { activeEnd: { GTE: $$date } }
               ]
             },
-            reference: { IS_NULL: false }
+            reference: { IS_NULL: false },
+            workflow: {
+              IN: [READY, ONGOING, COMPLETED]
+            }
           }
         ) $ObservationSummarySubquery
       }
     """
 
-    object Observations:
-      type Matches = ObsSummary
+    type Data = List[ObsSummary]
   }
 
   @GraphQL

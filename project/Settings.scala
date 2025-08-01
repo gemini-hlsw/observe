@@ -51,15 +51,14 @@ object Settings {
     val pprint        = "0.9.3"
 
     // Gemini Libraries
-    val lucumaCore      = "0.137.4"
-    val lucumaSchemas   = "0.146.0"
+    val lucumaCore      = "0.139.0"
     val lucumaSSO       = "0.9.5"
-    val lucumaODBSchema = "0.25.6"
+    val lucumaODBSchema = "0.26.1"
 
     // Gemini UI Libraries
-    val crystal     = "0.49.0"
-    val lucumaReact = "0.84.0"
-    val lucumaUI    = "0.147.3"
+    val crystal         = "0.49.0"
+    val lucumaReact     = "0.84.0"
+    val lucumaUISchemas = "0.150.0"
 
     // Clue
     val clue = "0.46.0"
@@ -249,8 +248,8 @@ object Settings {
 
     val LucumaUI = Def.setting(
       Seq(
-        "edu.gemini" %%% "lucuma-ui"         % LibraryVersions.lucumaUI,
-        "edu.gemini" %%% "lucuma-ui-testkit" % LibraryVersions.lucumaUI % Test
+        "edu.gemini" %%% "lucuma-ui"         % LibraryVersions.lucumaUISchemas,
+        "edu.gemini" %%% "lucuma-ui-testkit" % LibraryVersions.lucumaUISchemas % Test
       )
     )
 
@@ -260,8 +259,8 @@ object Settings {
     val LucumaSchemas   =
       Def.setting(
         Seq(
-          "edu.gemini" %%% "lucuma-schemas"         % LibraryVersions.lucumaSchemas,
-          "edu.gemini" %%% "lucuma-schemas-testkit" % LibraryVersions.lucumaSchemas % Test
+          "edu.gemini" %%% "lucuma-schemas"         % LibraryVersions.lucumaUISchemas,
+          "edu.gemini" %%% "lucuma-schemas-testkit" % LibraryVersions.lucumaUISchemas % Test
         )
       )
     val LucumaODBSchema =

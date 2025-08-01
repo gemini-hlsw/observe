@@ -27,7 +27,6 @@ import lucuma.core.enums.GmosXBinning
 import lucuma.core.enums.GmosYBinning
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
-import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
@@ -54,6 +53,7 @@ import lucuma.core.model.sequence.gmos.GmosCcdMode
 import lucuma.core.model.sequence.gmos.GmosFpuMask
 import lucuma.core.model.sequence.gmos.GmosGratingConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.util.CalculationState
 import lucuma.core.util.TimeSpan
 import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
@@ -314,7 +314,7 @@ object TestCommon {
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
-      ODBObservation.Workflow(ObservationWorkflowState.Ready),
+      ODBObservation.Workflow(CalculationState.Ready).some,
       ODBObservation.Program(
         Program.Id(PosLong.unsafeFrom(123)),
         None,
@@ -456,7 +456,7 @@ object TestCommon {
       ODBObservation(
         id = id,
         title = "Test Observation".refined,
-        ODBObservation.Workflow(ObservationWorkflowState.Ready),
+        ODBObservation.Workflow(CalculationState.Ready).some,
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None,
