@@ -113,7 +113,7 @@ ThisBuild / githubWorkflowAddedJobs +=
 ThisBuild / lucumaCssExts += "svg"
 
 Global / onChangedBuildSource                   := ReloadOnSourceChanges
-ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaSchemas
+ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaUISchemas
 ThisBuild / scalaVersion                        := "3.7.2"
 ThisBuild / crossScalaVersions                  := Seq("3.7.2")
 ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")

@@ -49,7 +49,7 @@ object Conditions:
 
   val Nominal: Conditions =
     Conditions(
-      CloudExtinction.Preset.OnePointFive.toCloudExtinction.some,
+      CloudExtinction.Preset.OnePointZero.toCloudExtinction.some,
       ImageQuality.Preset.OnePointZero.toImageQuality.some,
       SkyBackground.Gray.some,
       WaterVapor.Wet.some

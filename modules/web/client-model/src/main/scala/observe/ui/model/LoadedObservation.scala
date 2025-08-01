@@ -27,11 +27,14 @@ case class LoadedObservation private (
       case Some(msg) => Pot.error(new RuntimeException(msg))
       case None      => this.ready
 
+  private def potFromEither[A](e: Either[Throwable, A]): Pot[A] =
+    e.toTry.toPot
+
   private def potFromEitherOption[A](e: Either[Throwable, Option[A]]): Pot[A] =
     e.toTry.toPot.flatMap(_.toPot)
 
-  def withConfig(config: Either[Throwable, Option[InstrumentExecutionConfig]]): LoadedObservation =
-    copy(config = potFromEitherOption(config))
+  def withConfig(config: Either[Throwable, InstrumentExecutionConfig]): LoadedObservation =
+    copy(config = potFromEither(config))
 
   def withVisits(visits: Either[Throwable, Option[ExecutionVisits]]): LoadedObservation =
     copy(visits = potFromEitherOption(visits.map(_.some)))

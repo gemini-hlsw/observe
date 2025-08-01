@@ -81,7 +81,7 @@ object GmosNorthEncoders extends GmosControllerEpics.Encoders[GmosSite.North.typ
       case GmosNorthGrating.B1200_G5301 => "B1200+_G5301"
       case GmosNorthGrating.R831_G5302  => "R831+_G5302"
       case GmosNorthGrating.R600_G5304  => "R600+_G5304"
-      case GmosNorthGrating.R400_G5305  => "R400+_G5305"
+      case GmosNorthGrating.R400_G5310  => "R400+_G5310"
       case GmosNorthGrating.R150_G5308  => "R150+_G5308"
       case GmosNorthGrating.B480_G5309  => "B480+_G5309"
     }

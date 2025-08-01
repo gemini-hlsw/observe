@@ -44,7 +44,7 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
         .adaptError:
           case ResponseException(errors, _) =>
             Exception(errors.map(_.message).toList.mkString("\n"))
-        .map(_.observation.map(_.execution.config))
+        .map(_.executionConfig)
         .attempt
         .map:
           _.flatMap:
