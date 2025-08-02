@@ -11,7 +11,6 @@ import cats.syntax.all.*
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.SkyBackground
@@ -31,6 +30,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.util.CalculationState
 import lucuma.refined.*
 import monocle.Focus
 import monocle.Lens
@@ -126,7 +126,7 @@ object TestOdbProxy {
                 .Observation(
                   oid,
                   title = "Test Observation".refined,
-                  ODBObservation.Workflow(ObservationWorkflowState.Ready),
+                  ODBObservation.Workflow(CalculationState.Ready).some,
                   Data.Observation.Program(
                     Program.Id(PosLong.unsafeFrom(1)),
                     None,
