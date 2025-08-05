@@ -30,6 +30,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
+import lucuma.core.util.CalculationState
 import lucuma.refined.*
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
@@ -430,7 +431,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ODBObservation.Workflow(ObservationWorkflowState.Ready),
+        ODBObservation.Workflow(CalculationState.Ready).some,
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None,
@@ -697,7 +698,7 @@ class ObserveEngineSuite extends TestCommon {
       ODBObservation(
         id = seqObsId1,
         title = "Test Observation".refined,
-        ODBObservation.Workflow(ObservationWorkflowState.Ready),
+        ODBObservation.Workflow(CalculationState.Ready).some,
         ODBObservation.Program(
           Program.Id(PosLong.unsafeFrom(123)),
           None,

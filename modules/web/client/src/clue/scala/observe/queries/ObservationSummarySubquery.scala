@@ -27,6 +27,10 @@ object ObservationSummarySubquery
           attachments { id }
           observingMode $ObservingModeSubquery
           reference { label }
-          workflow { state }
+          workflow {
+            value {
+              state
+            }
+          }
         }
       """
