@@ -102,7 +102,8 @@ object ObsSummary:
           .map(_.map(_.get[Option[ObservationReference]]("label")).sequence.map(_.flatten))
           .sequence
           .flatten
-      workflowState      <- c.downField("workflow").get[ObservationWorkflowState]("state")
+      workflowState      <-
+        c.downField("workflow").downField("value").get[ObservationWorkflowState]("state")
     yield ObsSummary(
       id,
       programId,
