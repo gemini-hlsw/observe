@@ -25,9 +25,6 @@ object ObsQueriesGQL:
         observation(observationId: $$obsId) {
           id
           title
-          workflow {
-            state
-          }
           program {
             id
             name
