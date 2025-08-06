@@ -30,7 +30,6 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
-import lucuma.core.util.CalculationState
 import lucuma.refined.*
 import monocle.Focus
 import monocle.Lens
@@ -126,7 +125,6 @@ object TestOdbProxy {
                 .Observation(
                   oid,
                   title = "Test Observation".refined,
-                  ODBObservation.Workflow(CalculationState.Ready).some,
                   Data.Observation.Program(
                     Program.Id(PosLong.unsafeFrom(1)),
                     None,

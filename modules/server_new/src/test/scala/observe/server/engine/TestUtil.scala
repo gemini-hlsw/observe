@@ -8,7 +8,6 @@ import cats.syntax.option.*
 import eu.timepit.refined.types.string.NonEmptyString
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.sequence.Atom
-import lucuma.core.util.CalculationState
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as OdbObservation
 import observe.model.Conditions
 import observe.model.Observation
@@ -32,7 +31,6 @@ object TestUtil {
             obsData = OdbObservation(
               id = obsId,
               title = NonEmptyString.unsafeFrom("Test Observation"),
-              workflow = OdbObservation.Workflow(CalculationState.Ready).some,
               program = null,           // Not used in tests
               targetEnvironment = null, // Not used in tests
               constraintSet = null,     // Not used in tests
