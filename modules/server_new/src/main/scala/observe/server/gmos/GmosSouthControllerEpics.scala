@@ -16,7 +16,6 @@ object GmosSouthEncoders extends GmosControllerEpics.Encoders[GmosSite.South.typ
     EncodeEpicsValue {
       case GmosSouthGrating.B1200_G5321 => "B1200+_G5321"
       case GmosSouthGrating.R831_G5322  => "R831+_G5322"
-      case GmosSouthGrating.B600_G5323  => "B600+_G5323"
       case GmosSouthGrating.R600_G5324  => "R600+_G5324"
       case GmosSouthGrating.R400_G5325  => "R400+_G5325"
       case GmosSouthGrating.R150_G5326  => "R150+_G5326"
