@@ -24,7 +24,9 @@ object ObsQueriesGQL {
             },
             reference: { IS_NULL: false },
             workflow: {
-              IN: [READY, ONGOING, COMPLETED]
+              workflowState: {
+                IN: [READY, ONGOING, COMPLETED]
+              }
             }
           }
         ) {
