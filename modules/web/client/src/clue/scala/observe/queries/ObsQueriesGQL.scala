@@ -6,7 +6,6 @@ package observe.queries
 import clue.GraphQLOperation
 import clue.annotation.GraphQL
 import lucuma.schemas.ObservationDB
-import observe.ui.model.ObsSummary
 
 object ObsQueriesGQL {
 
@@ -25,14 +24,16 @@ object ObsQueriesGQL {
             },
             reference: { IS_NULL: false },
             workflow: {
-              IN: [READY, ONGOING, COMPLETED]
+              workflowState: {
+                IN: [READY, ONGOING, COMPLETED]
+              }
             }
           }
-        ) $ObservationSummarySubquery
+        ) {
+          matches $ObservationSummarySubquery
+        }
       }
     """
-
-    type Data = List[ObsSummary]
   }
 
   @GraphQL

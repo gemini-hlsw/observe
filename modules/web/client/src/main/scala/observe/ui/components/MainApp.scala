@@ -323,9 +323,9 @@ object MainApp extends ServerEventHandler:
                           localObservingNight.toLocalDate
                         )
                         .raiseGraphQLErrors
-                        .flatMap: observations =>
+                        .flatMap: data =>
                           readyObservations.set:
-                            observations.ready
+                            data.observations.matches.ready
                         .recoverWith(t => readyObservations.set(Pot.error(t)))
                         .void
                         .reRunOnResourceSignals:
