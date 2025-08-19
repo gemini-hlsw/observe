@@ -80,7 +80,8 @@ object ConfigPanel
                   .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
                 changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
                 disabled = configApi.isBlocked,
-                tooltipOptions = TooltipOptions.Top
+                tooltipOptions = TooltipOptions.Top,
+                units = "arcsec"
               )
             ),
             <.div(ObserveStyles.CloudExtinctionArea)(
@@ -92,7 +93,8 @@ object ConfigPanel
                   .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
                 changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
                 disabled = configApi.isBlocked,
-                tooltipOptions = TooltipOptions.Top
+                tooltipOptions = TooltipOptions.Top,
+                units = "mags"
               )
             ),
             <.div(ObserveStyles.WaterVaporArea)(
