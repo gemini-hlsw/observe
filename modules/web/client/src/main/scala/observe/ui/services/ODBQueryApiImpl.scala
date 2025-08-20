@@ -14,6 +14,7 @@ import observe.queries.VisitQueriesGQL
 import observe.ui.model.EditableQaFields
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
+import lucuma.ui.sequence.SequenceData
 
 case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservation]])(using
   FetchClient[IO, ObservationDB],
@@ -44,15 +45,15 @@ case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservat
         .adaptError:
           case ResponseException(errors, _) =>
             Exception(errors.map(_.message).toList.mkString("\n"))
-        .map(_.executionConfig)
+        .map(SequenceData.fromOdbResponse)
         .attempt
         .map:
           _.flatMap:
             _.toRight:
               Exception:
                 s"Execution Configuration not defined for observation [${loadedObs.get.obsId}]"
-        .flatMap: config =>
-          nighttimeObservation.mod(_.map(_.withConfig(config)))
+        .flatMap: sequenceData =>
+          nighttimeObservation.mod(_.map(_.withSequenceData(sequenceData)))
 
   override def updateDatasetQa(datasetId: Dataset.Id, qaFields: EditableQaFields): IO[Unit] =
     VisitQueriesGQL

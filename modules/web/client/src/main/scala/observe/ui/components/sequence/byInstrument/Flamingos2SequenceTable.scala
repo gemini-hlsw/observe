@@ -19,11 +19,15 @@ import observe.ui.components.sequence.SequenceTableBuilder
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
+import lucuma.core.enums.SequenceType
+import lucuma.itc.SingleSN
+import lucuma.itc.TotalSN
 
 case class Flamingos2SequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
   config:               ExecutionConfig.Flamingos2,
+  snPerClass:           Map[SequenceType, (SingleSN, TotalSN)],
   visits:               List[Visit.Flamingos2],
   executionState:       ExecutionState,
   currentRecordedVisit: Option[RecordedVisit],

@@ -41,7 +41,7 @@ case class ObsListPopup(
   linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(ObsListPopup):
   val obsIdPotOpt: Option[Pot[Observation.Id]] =
-    loadedObs.map(obs => obs.toPot.flatMap(_.config).as(obs.obsId))
+    loadedObs.map(obs => obs.toPot.flatMap(_.sequenceData).map(_.config).as(obs.obsId))
 
   val isProcessing: Boolean =
     obsIdPotOpt.exists: obsIdPot =>

@@ -10,17 +10,17 @@ import crystal.Pot.Ready
 import crystal.syntax.*
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
-import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.schemas.model.ExecutionVisits
 import monocle.Focus
 import monocle.Lens
+import lucuma.ui.sequence.SequenceData
 
 case class LoadedObservation private (
-  obsId:      Observation.Id,
-  refreshing: Boolean = false,
-  errorMsg:   Option[String] = none,
-  config:     Pot[InstrumentExecutionConfig] = Pot.pending,
-  visits:     Pot[Option[ExecutionVisits]] = Pot.pending
+  obsId:        Observation.Id,
+  refreshing:   Boolean = false,
+  errorMsg:     Option[String] = none,
+  sequenceData: Pot[SequenceData] = Pot.pending,
+  visits:       Pot[Option[ExecutionVisits]] = Pot.pending
 ):
   def toPot: Pot[LoadedObservation] =
     errorMsg match
@@ -33,8 +33,8 @@ case class LoadedObservation private (
   private def potFromEitherOption[A](e: Either[Throwable, Option[A]]): Pot[A] =
     e.toTry.toPot.flatMap(_.toPot)
 
-  def withConfig(config: Either[Throwable, InstrumentExecutionConfig]): LoadedObservation =
-    copy(config = potFromEither(config))
+  def withSequenceData(config: Either[Throwable, SequenceData]): LoadedObservation =
+    copy(sequenceData = potFromEither(config))
 
   def withVisits(visits: Either[Throwable, Option[ExecutionVisits]]): LoadedObservation =
     copy(visits = potFromEitherOption(visits.map(_.some)))
@@ -51,7 +51,7 @@ case class LoadedObservation private (
     )
 
   def reset: LoadedObservation =
-    copy(errorMsg = none, config = Pot.pending, visits = Pot.pending)
+    copy(errorMsg = none, sequenceData = Pot.pending, visits = Pot.pending)
 
   lazy val lastVisitId: Option[Visit.Id] =
     visits.toOption.flatten.map:
@@ -62,10 +62,10 @@ case class LoadedObservation private (
 object LoadedObservation:
   def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
 
-  val obsId: Lens[LoadedObservation, Observation.Id]                  = Focus[LoadedObservation](_.obsId)
-  val refreshing: Lens[LoadedObservation, Boolean]                    = Focus[LoadedObservation](_.refreshing)
-  val errorMsg: Lens[LoadedObservation, Option[String]]               = Focus[LoadedObservation](_.errorMsg)
-  val config: Lens[LoadedObservation, Pot[InstrumentExecutionConfig]] =
-    Focus[LoadedObservation](_.config)
-  val visits: Lens[LoadedObservation, Pot[Option[ExecutionVisits]]]   =
+  val obsId: Lens[LoadedObservation, Observation.Id]                = Focus[LoadedObservation](_.obsId)
+  val refreshing: Lens[LoadedObservation, Boolean]                  = Focus[LoadedObservation](_.refreshing)
+  val errorMsg: Lens[LoadedObservation, Option[String]]             = Focus[LoadedObservation](_.errorMsg)
+  val sequenceData: Lens[LoadedObservation, Pot[SequenceData]]      =
+    Focus[LoadedObservation](_.sequenceData)
+  val visits: Lens[LoadedObservation, Pot[Option[ExecutionVisits]]] =
     Focus[LoadedObservation](_.visits)

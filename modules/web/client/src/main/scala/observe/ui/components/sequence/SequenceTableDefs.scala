@@ -199,6 +199,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                           )
       )
     ) ++
+      // TODO INSTRUMENT SPECIFIC!!!
       SequenceColumns(ColDef, _._1.some, _._2.some).forGmos
         .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(

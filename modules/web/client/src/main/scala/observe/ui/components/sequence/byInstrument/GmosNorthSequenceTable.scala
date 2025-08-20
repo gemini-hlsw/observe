@@ -17,11 +17,15 @@ import observe.ui.components.sequence.SequenceTableBuilder
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
+import lucuma.core.enums.SequenceType
+import lucuma.itc.SingleSN
+import lucuma.itc.TotalSN
 
 case class GmosNorthSequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
   config:               ExecutionConfig.GmosNorth,
+  snPerClass:           Map[SequenceType, (SingleSN, TotalSN)],
   visits:               List[Visit.GmosNorth],
   executionState:       ExecutionState,
   currentRecordedVisit: Option[RecordedVisit],

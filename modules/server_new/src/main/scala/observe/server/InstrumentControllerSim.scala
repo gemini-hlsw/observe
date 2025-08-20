@@ -140,8 +140,8 @@ object InstrumentControllerSim {
         obsStateRef.update(Focus[ObserveState](_.stopFlag).replace(true))
 
     def abortObserve: F[Unit] =
-      log(s"Simulate aborting $name exposure") *> q
-      obsStateRef.update(Focus[ObserveState](_.abortFlag).replace(true))
+      log(s"Simulate aborting $name exposure") *>
+        obsStateRef.update(Focus[ObserveState](_.abortFlag).replace(true))
 
     def endObserve: F[Unit] =
       log(s"Simulate sending endObserve to $name")

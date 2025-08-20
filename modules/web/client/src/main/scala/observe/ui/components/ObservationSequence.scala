@@ -33,12 +33,13 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
 import observe.ui.utils.*
+import lucuma.ui.sequence.SequenceData
 
 import scala.collection.immutable.HashSet
 
 case class ObservationSequence(
   obsId:                Observation.Id,
-  config:               InstrumentExecutionConfig,
+  sequenceData:         SequenceData,
   visits:               View[Option[ExecutionVisits]],
   executionState:       View[ExecutionState],
   currentRecordedVisit: Option[RecordedVisit],
@@ -149,12 +150,13 @@ object ObservationSequence
                     .runAsync
               }.orEmpty // If there are no visits, there's nothing to change.
 
-        props.config match // TODO Show visits even if sequence data is not available
+        props.sequenceData.config match // TODO Show visits even if sequence data is not available
           case InstrumentExecutionConfig.GmosNorth(config)  =>
             GmosNorthSequenceTable(
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.GmosNorth(visits) => visits.toList
@@ -175,6 +177,7 @@ object ObservationSequence
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.GmosSouth(visits) => visits.toList
@@ -195,6 +198,7 @@ object ObservationSequence
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.Flamingos2(visits) => visits.toList

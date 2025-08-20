@@ -9,9 +9,10 @@ import japgolly.scalajs.react.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
-import lucuma.core.math.SignalToNoise
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.*
+import lucuma.itc.SingleSN
+import lucuma.itc.TotalSN
 import lucuma.schemas.model.Visit
 import lucuma.ui.sequence.*
 import observe.model.ExecutionState
@@ -66,6 +67,7 @@ private trait SequenceTable[S, D](
   protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
     executionState.loadedSteps.filterNot(_.isFinished)
 
+  // TODO SN
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
   ): List[CurrentAtomStepRow[D]] =

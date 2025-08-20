@@ -45,6 +45,7 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import observe.ui.utils.Audio
+import lucuma.ui.sequence.SequenceData
 
 trait ServerEventHandler:
   private def logMessage(
@@ -63,8 +64,9 @@ trait ServerEventHandler:
     instrumentOptic:   Optional[InstrumentExecutionConfig, ExecutionConfig[S, D]],
     sequenceTypeOptic: Lens[ExecutionConfig[S, D], Option[ExecutionSequence[D]]]
   ): Optional[LoadedObservation, List[Atom[D]]] =
-    LoadedObservation.config
+    LoadedObservation.sequenceData
       .andThen(Pot.readyPrism)
+      .andThen(SequenceData.config)
       .andThen(instrumentOptic)
       .andThen(sequenceTypeOptic)
       .some
@@ -105,8 +107,8 @@ trait ServerEventHandler:
     atomId:       Atom.Id
   ): LoadedObservation => LoadedObservation =
     loadedObservation =>
-      loadedObservation.config.toOption
-        .map(_.instrument)
+      loadedObservation.sequenceData.toOption
+        .map(_.config.instrument)
         .collect:
           case Instrument.Flamingos2 =>
             removeFutureAtomFromLoadedObservation(
