@@ -49,13 +49,19 @@ case class ObsSummary(
   workflowState:      ObservationWorkflowState
 ) derives Eq:
   lazy val configurationSummary: Option[String] =
-    observingMode.map(_.toBasicConfiguration) match
-      case Some(BasicConfiguration.GmosNorthLongSlit(grating, _, fpu, _)) =>
-        s"${grating.shortName} ${fpu.shortName}".some
-      case Some(BasicConfiguration.GmosSouthLongSlit(grating, _, fpu, _)) =>
-        s"${grating.shortName} ${fpu.shortName}".some
-      case _                                                              =>
-        none
+    observingMode
+      .map(_.toBasicConfiguration)
+      .flatMap:
+        case BasicConfiguration.GmosNorthLongSlit(grating, _, fpu, _) =>
+          s"${grating.shortName} ${fpu.shortName}".some
+        case BasicConfiguration.GmosSouthLongSlit(grating, _, fpu, _) =>
+          s"${grating.shortName} ${fpu.shortName}".some
+        case BasicConfiguration.GmosNorthImaging(filters)             =>
+          filters.map(_.shortName).toList.mkString(", ").some
+        case BasicConfiguration.GmosSouthImaging(filters)             =>
+          filters.map(_.shortName).toList.mkString(", ").some
+        case BasicConfiguration.Flamingos2LongSlit(disperser, _, fpu) =>
+          s"${disperser.shortName} ${fpu.shortName}".some
 
   lazy val instrumentConfigurationSummary: String =
     s"${instrument.shortName} ${configurationSummary.orEmpty}"
