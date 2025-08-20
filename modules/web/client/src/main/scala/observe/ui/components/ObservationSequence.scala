@@ -71,6 +71,16 @@ object ObservationSequence
           .each
           .andThen(StepRecord.GmosSouth.datasets)
 
+      val flamingos2Datasets: Traversal[ExecutionVisits, List[Dataset]] =
+        ExecutionVisits.flamingos2
+          .andThen(ExecutionVisits.Flamingos2.visits)
+          .each
+          .andThen(Visit.Flamingos2.atoms)
+          .each
+          .andThen(AtomRecord.Flamingos2.steps)
+          .each
+          .andThen(StepRecord.Flamingos2.datasets)
+
       // This is only lawful if the traverse returns 0 or 1 instances of A.
       def unsafeHeadOption[T, A](traversal: Traversal[T, A]): Optional[T, A] =
         Optional[T, A](traversal.getAll(_).headOption)(traversal.replace)
@@ -83,7 +93,8 @@ object ObservationSequence
       def datasetWithId(datasetId: Dataset.Id): Traversal[ExecutionVisits, Dataset] =
         Traversal.applyN(
           instrumentDatasetWithId(gmosNorthDatasets)(datasetId),
-          instrumentDatasetWithId(gmosSouthDatasets)(datasetId)
+          instrumentDatasetWithId(gmosSouthDatasets)(datasetId),
+          instrumentDatasetWithId(flamingos2Datasets)(datasetId)
         )
 
       for
