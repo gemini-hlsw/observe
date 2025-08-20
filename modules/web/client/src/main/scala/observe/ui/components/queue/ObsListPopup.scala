@@ -110,62 +110,63 @@ object ObsListPopup
         loadedObsId:      Option[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
-      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] = List(
-        ColDef(
-          StatusIconColumnId,
-          _.obsId,
-          header = "",
-          cell = cell =>
-            renderCentered(
-              if (loadedObsId.contains(cell.value))
-                statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
-              else
-                Button(
-                  icon = Icons.FileArrowUp,
-                  size = Button.Size.Small,
-                  onClick = loadObs(cell.value),
-                  clazz = ObserveStyles.LoadButton,
-                  disabled = isProcessing,
-                  tooltip = "Load observation"
-                )
-            ),
-          size = 25.toPx,
-          enableResizing = false,
-          enableSorting = false
-        ),
-        ColDef(
-          ObsRefColumnId,
-          obs => obs.obsReference.toRight((obs.programId, obs.obsId)),
-          header = "Obs. Id",
-          cell =
-            cell => <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
-          size = 240.toPx
-        ).sortable.withFilterMethod(FilterMethod.Text(_.fold(_._2.shortName, _.label))),
-        ColDef(
-          InstrumentColumnId,
-          _.instrument,
-          header = "Instrument",
-          cell = _.value.shortName
-        ).sortable.withFilterMethod(FilterMethod.Select(_.shortName)),
-        ColDef(
-          ConfigColumnId,
-          _.configurationSummary.getOrElse("---"),
-          header = "Configuration",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringText()),
-        ColDef(
-          TargetColumnId,
-          _.title,
-          header = "Target",
-          cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
-        ).sortable.withFilterMethod(FilterMethod.StringText()),
-        ColDef(
-          ConstraintsColumnId,
-          _.constraintsSummary,
-          header = "Constraints",
-          cell = _.value
-        ).sortable.withFilterMethod(FilterMethod.StringSelect())
-      )
+      ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] =
+        List(
+          ColDef(
+            StatusIconColumnId,
+            _.obsId,
+            header = "",
+            cell = cell =>
+              renderCentered(
+                if (loadedObsId.contains(cell.value))
+                  statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
+                else
+                  Button(
+                    icon = Icons.FileArrowUp,
+                    size = Button.Size.Small,
+                    onClick = loadObs(cell.value),
+                    clazz = ObserveStyles.LoadButton,
+                    disabled = isProcessing,
+                    tooltip = "Load observation"
+                  )
+              ),
+            size = 25.toPx,
+            enableResizing = false,
+            enableSorting = false
+          ),
+          ColDef(
+            ObsRefColumnId,
+            obs => obs.obsReference.toRight((obs.programId, obs.obsId)),
+            header = "Obs. Id",
+            cell = cell =>
+              <.span(cell.value.fold(_._2.shortName, _.label), linkToExploreObs(cell.value)),
+            size = 240.toPx
+          ).sortable.withFilterMethod(FilterMethod.Text(_.fold(_._2.shortName, _.label))),
+          ColDef(
+            InstrumentColumnId,
+            _.instrument,
+            header = "Instrument",
+            cell = _.value.shortName
+          ).sortable.withFilterMethod(FilterMethod.Select(_.shortName)),
+          ColDef(
+            ConfigColumnId,
+            _.configurationSummary.getOrElse("---"),
+            header = "Configuration",
+            cell = _.value
+          ).sortable.withFilterMethod(FilterMethod.StringText()),
+          ColDef(
+            TargetColumnId,
+            _.title,
+            header = "Target",
+            cell = _.value.some.filter(_.nonEmpty).getOrElse(UnknownTargetName)
+          ).sortable.withFilterMethod(FilterMethod.StringText()),
+          ColDef(
+            ConstraintsColumnId,
+            _.constraintsSummary,
+            header = "Constraints",
+            cell = _.value
+          ).sortable.withFilterMethod(FilterMethod.StringSelect())
+        )
 
       for
         cols         <-
