@@ -7,9 +7,9 @@ import cats.syntax.all.*
 import crystal.Pot
 import crystal.arb.given
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.InstrumentExecutionConfig
-import lucuma.core.model.sequence.arb.ArbInstrumentExecutionConfig.given
 import lucuma.core.util.arb.ArbGid.given
+import lucuma.ui.sequence.SequenceData
+import lucuma.ui.sequence.arb.ArbSequenceData.given
 import observe.ui.model.LoadedObservation
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
@@ -18,20 +18,20 @@ import org.scalacheck.Cogen
 trait ArbLoadedObservation:
   given Arbitrary[LoadedObservation] = Arbitrary:
     for
-      obsId      <- arbitrary[Observation.Id]
-      refreshing <- arbitrary[Boolean]
-      errorMsg   <- arbitrary[Option[String]]
-      config     <- arbitrary[Pot[InstrumentExecutionConfig]]
+      obsId        <- arbitrary[Observation.Id]
+      refreshing   <- arbitrary[Boolean]
+      errorMsg     <- arbitrary[Option[String]]
+      sequenceData <- arbitrary[Pot[SequenceData]]
     yield
       val base = LoadedObservation(obsId)
       (LoadedObservation.refreshing.replace(refreshing) >>>
         LoadedObservation.errorMsg.replace(errorMsg))(
-        config.toOptionTry.fold(base)(t => base.withConfig(t.toEither))
+        sequenceData.toOptionTry.fold(base)(sd => base.withSequenceData(sd.toEither))
       )
 
   given Cogen[LoadedObservation] =
-    Cogen[(Observation.Id, Boolean, Option[String], Pot[InstrumentExecutionConfig])]
+    Cogen[(Observation.Id, Boolean, Option[String], Pot[SequenceData])]
       .contramap: s =>
-        (s.obsId, s.refreshing, s.errorMsg, s.config)
+        (s.obsId, s.refreshing, s.errorMsg, s.sequenceData)
 
 object ArbLoadedObservation extends ArbLoadedObservation

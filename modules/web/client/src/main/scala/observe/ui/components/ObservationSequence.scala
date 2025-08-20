@@ -19,6 +19,7 @@ import lucuma.schemas.model.Dataset
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.model.StepRecord
 import lucuma.schemas.model.Visit
+import lucuma.ui.sequence.SequenceData
 import lucuma.ui.syntax.toast.*
 import monocle.Optional
 import monocle.Traversal
@@ -33,7 +34,6 @@ import observe.ui.model.enums.ClientMode
 import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
 import observe.ui.utils.*
-import lucuma.ui.sequence.SequenceData
 
 import scala.collection.immutable.HashSet
 

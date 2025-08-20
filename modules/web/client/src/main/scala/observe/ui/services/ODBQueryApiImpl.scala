@@ -10,11 +10,11 @@ import crystal.ViewF
 import lucuma.core.model.sequence.Dataset
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.odb.SequenceQueriesGQL
+import lucuma.ui.sequence.SequenceData
 import observe.queries.VisitQueriesGQL
 import observe.ui.model.EditableQaFields
 import observe.ui.model.LoadedObservation
 import org.typelevel.log4cats.Logger
-import lucuma.ui.sequence.SequenceData
 
 case class ODBQueryApiImpl(nighttimeObservation: ViewF[IO, Option[LoadedObservation]])(using
   FetchClient[IO, ObservationDB],

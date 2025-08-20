@@ -23,6 +23,7 @@ import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.ToastRef
 import lucuma.ui.LucumaStyles
+import lucuma.ui.sequence.SequenceData
 import monocle.Lens
 import monocle.Optional
 import observe.cats.given
@@ -45,7 +46,6 @@ import observe.ui.model.enums.ApiStatus
 import observe.ui.model.enums.OperationRequest
 import observe.ui.model.enums.SyncStatus
 import observe.ui.utils.Audio
-import lucuma.ui.sequence.SequenceData
 
 trait ServerEventHandler:
   private def logMessage(

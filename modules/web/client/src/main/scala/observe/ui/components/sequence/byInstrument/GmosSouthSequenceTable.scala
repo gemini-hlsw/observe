@@ -5,8 +5,14 @@ package observe.ui.components.sequence.byInstrument
 
 import japgolly.scalajs.react.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.*
+import lucuma.core.model.sequence.Dataset
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.Step
+import lucuma.core.model.sequence.gmos
+import lucuma.itc.SingleSN
+import lucuma.itc.TotalSN
 import lucuma.react.common.*
 import lucuma.schemas.model.Visit
 import observe.model.ExecutionState
@@ -17,9 +23,6 @@ import observe.ui.components.sequence.SequenceTableBuilder
 import observe.ui.model.EditableQaFields
 import observe.ui.model.ObservationRequests
 import observe.ui.model.enums.ClientMode
-import lucuma.core.enums.SequenceType
-import lucuma.itc.SingleSN
-import lucuma.itc.TotalSN
 
 case class GmosSouthSequenceTable(
   clientMode:           ClientMode,
@@ -43,4 +46,6 @@ case class GmosSouthSequenceTable(
     )
 
 object GmosSouthSequenceTable
-    extends SequenceTableBuilder[gmos.StaticConfig.GmosSouth, gmos.DynamicConfig.GmosSouth]
+    extends SequenceTableBuilder[gmos.StaticConfig.GmosSouth, gmos.DynamicConfig.GmosSouth](
+      Instrument.GmosSouth
+    )

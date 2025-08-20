@@ -11,9 +11,9 @@ import crystal.syntax.*
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.schemas.model.ExecutionVisits
+import lucuma.ui.sequence.SequenceData
 import monocle.Focus
 import monocle.Lens
-import lucuma.ui.sequence.SequenceData
 
 case class LoadedObservation private (
   obsId:        Observation.Id,
