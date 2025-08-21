@@ -54,8 +54,8 @@ class GmosStepsView[F[_]] extends StepsView[F] {
           instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
           stepConfig = stepg.config,
           telescopeConfig = stepg.telescopeConfig,
+          signalToNoise = stepg.signalToNoise,
           status = status,
-          // breakpoint = step.breakpoint,
           configStatus = configStatus,
           nsStatus = NodAndShuffleStatus(
             observeStatus(step.executions),

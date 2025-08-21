@@ -8,6 +8,7 @@ import cats.syntax.all.*
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
+import lucuma.core.math.SignalToNoise
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
@@ -47,7 +48,7 @@ sealed trait SequenceGen[F[_]] {
   def nextAtom: SequenceGen.AtomGen[F]
 
   val resources: Set[Resource | Instrument] = nextAtom.steps
-    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _) =>
+    .collect { case SequenceGen.PendingStepGen(_, _, resources, _, _, _, _, _, _, _, _) =>
       resources
     }
     .foldMap(identity)
@@ -55,14 +56,14 @@ sealed trait SequenceGen[F[_]] {
   def configActionCoord(stepId: Step.Id, r: Resource | Instrument): Option[ActionCoordsInSeq] =
     nextAtom.steps
       .find(_.id === stepId)
-      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _) => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.configActionCoord(r))
       .map { case (ex, ac) => ActionCoordsInSeq(stepId, ex, ac) }
 
   def resourceAtCoords(c: ActionCoordsInSeq): Option[Resource | Instrument] =
     nextAtom.steps
       .find(_.id === c.stepId)
-      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _) => p }
+      .collect { case p @ SequenceGen.PendingStepGen(_, _, _, _, _, _, _, _, _, _, _) => p }
       .flatMap(_.generator.resourceAtCoords(c.execIdx, c.actIdx))
 
   def stepIndex(stepId: Step.Id): Option[Int] = SequenceGen.stepIndex(nextAtom.steps, stepId)
@@ -164,17 +165,11 @@ object SequenceGen {
     def instConfig: Dynamic
     def config: StepConfig
     def telescopeConfig: CoreTelescopeConfig
+    def signalToNoise: Option[SignalToNoise]
   }
 
   sealed trait StepGen[F[_], D] extends InstrumentStepGen[F] {
     type Dynamic = D
-
-    val id: Step.Id
-    val dataId: DataId
-    val genData: StepStatusGen
-    val instConfig: D
-    val config: StepConfig
-    val telescopeConfig: CoreTelescopeConfig
   }
 
   object StepGen {
@@ -241,6 +236,7 @@ object SequenceGen {
     instConfig:      D,
     config:          StepConfig,
     telescopeConfig: CoreTelescopeConfig,
+    signalToNoise:   Option[SignalToNoise],
     breakpoint:      Breakpoint
   ) extends StepGen[F, D]
 
@@ -254,7 +250,8 @@ object SequenceGen {
     instConfig:      D,
     config:          StepConfig,
     telescopeConfig: CoreTelescopeConfig
-  ) extends StepGen[F, D]
+  ) extends StepGen[F, D]:
+    val signalToNoise: Option[SignalToNoise] = none
 
   def stepIndex[F[_], D](
     steps:  List[SequenceGen.StepGen[F, D]],

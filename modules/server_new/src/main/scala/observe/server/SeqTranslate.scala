@@ -18,6 +18,7 @@ import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepType as CoreStepType
+import lucuma.core.math.SignalToNoise
 import lucuma.core.math.Wavelength
 import lucuma.core.model.sequence
 import lucuma.core.model.sequence.Atom
@@ -72,7 +73,7 @@ import observe.server.tcs.TcsController.LightSource
 import org.typelevel.log4cats.Logger
 
 trait SeqTranslate[F[_]] {
-  def sequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])]
+  def translateSequence(sequence: OdbObservation): F[(List[Throwable], Option[SequenceGen[F]])]
 
   def nextAtom(
     sequence: OdbObservation,
@@ -108,14 +109,15 @@ object SeqTranslate {
 
     private val overriddenSystems = new OverriddenSystems[F](systemss)
 
-    private def step[S, D](
-      obsCfg:     OdbObservation,
-      step:       OdbStep[D],
-      dataIdx:    PosInt,
-      stepType:   StepType,
-      insSpec:    InstrumentSpecifics[S, D],
-      instf:      SystemOverrides => InstrumentSystem[F],
-      instHeader: KeywordsClient[F] => Header[F]
+    private def translateStep[S, D](
+      obsCfg:        OdbObservation,
+      step:          OdbStep[D],
+      signalToNoise: Option[SignalToNoise],
+      dataIdx:       PosInt,
+      stepType:      StepType,
+      insSpec:       InstrumentSpecifics[S, D],
+      instf:         SystemOverrides => InstrumentSystem[F],
+      instHeader:    KeywordsClient[F] => Header[F]
     ): StepGen[F, D] = {
 
       def buildStep(
@@ -199,6 +201,7 @@ object SeqTranslate {
           instConfig = step.instrumentConfig,
           config = step.stepConfig,
           telescopeConfig = step.telescopeConfig,
+          signalToNoise = signalToNoise,
           breakpoint = step.breakpoint
         )
 
@@ -213,7 +216,7 @@ object SeqTranslate {
       )
     }
 
-    override def sequence(
+    override def translateSequence(
       sequence: OdbObservation
     ): F[(List[Throwable], Option[SequenceGen[F]])] =
       sequence.execution.config match {
@@ -237,39 +240,48 @@ object SeqTranslate {
       constructAtom: (Atom.Id, SequenceType, List[SequenceGen.StepGen[F, D]]) => AG[F],
       startIdx:      PosInt = PosInt.unsafeFrom(1)
     ): (List[Throwable], Option[AG[F]]) = {
-      val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) = seqType match {
-        case SequenceType.Acquisition =>
-          data.acquisition
-            .map(x => (x.nextAtom.some, SequenceType.Acquisition))
-            .getOrElse((data.science.map(_.nextAtom), SequenceType.Science))
-        case SequenceType.Science     => (data.science.map(_.nextAtom), SequenceType.Science)
-      }
+      val (nextAtom, sequenceType): (Option[Atom[D]], SequenceType) =
+        seqType match
+          case SequenceType.Acquisition =>
+            data.acquisition
+              .map(x => (x.nextAtom.some, SequenceType.Acquisition))
+              .getOrElse((data.science.map(_.nextAtom), SequenceType.Science))
+          case SequenceType.Science     => (data.science.map(_.nextAtom), SequenceType.Science)
+
+      val signalToNoise: Option[SignalToNoise] =
+        sequenceType match
+          case SequenceType.Acquisition =>
+            sequence.itc.acquisition.selected.signalToNoiseAt.map(_.single)
+          case SequenceType.Science     =>
+            sequence.itc.science.selected.signalToNoiseAt.map(_.single)
 
       nextAtom
-        .map { atom =>
-          val (a, b) = atom.steps.toList.zipWithIndex.map { case (x, i) =>
-            insSpec
-              .calcStepType(
-                x.stepConfig,
-                data.static,
-                x.instrumentConfig,
-                x.observeClass
-              )
-              .map { t =>
-                step(
-                  sequence,
-                  x,
-                  PosInt.unsafeFrom(startIdx.value + i),
-                  t,
-                  insSpec,
-                  (ov: SystemOverrides) => instf(ov, x.stepConfig.stepType, t, x.instrumentConfig),
-                  instHeader(x.instrumentConfig)
-                )
-              }
-          }.separate
+        .map: atom =>
+          val (failures, seq) =
+            atom.steps.toList.zipWithIndex
+              .map: (step, idx) =>
+                insSpec
+                  .calcStepType(
+                    step.stepConfig,
+                    data.static,
+                    step.instrumentConfig,
+                    step.observeClass
+                  )
+                  .map: stepType =>
+                    translateStep(
+                      sequence,
+                      step,
+                      signalToNoise,
+                      PosInt.unsafeFrom(startIdx.value + idx),
+                      stepType,
+                      insSpec,
+                      (ov: SystemOverrides) =>
+                        instf(ov, step.stepConfig.stepType, stepType, step.instrumentConfig),
+                      instHeader(step.instrumentConfig)
+                    )
+              .separate
 
-          (a, b.nonEmpty.option(constructAtom(atom.id, sequenceType, b)))
-        }
+          (failures, seq.nonEmpty.option(constructAtom(atom.id, sequenceType, seq)))
         .getOrElse((List.empty, none))
     }
 
@@ -403,10 +415,11 @@ object SeqTranslate {
           .exists(isObserving)
         stId   <- obsSeq.seq.currentStep.map(_.id)
         curStp <- obsSeq.seqGen.nextAtom.steps.find(_.id === stId)
-        obsCtr <- curStp.some.collect {
-                    case SequenceGen.PendingStepGen[F, D](_, _, _, obsControl, _, _, _, _, _, _) =>
-                      obsControl
-                  }
+        obsCtr <-
+          curStp.some.collect {
+            case SequenceGen.PendingStepGen[F, D](_, _, _, obsControl, _, _, _, _, _, _, _) =>
+              obsControl
+          }
       } yield Stream.eval(
         f(obsCtr(obsSeq.overrides)).attempt
           .flatMap(handleError)

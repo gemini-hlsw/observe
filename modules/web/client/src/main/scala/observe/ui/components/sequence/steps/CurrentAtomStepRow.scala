@@ -14,7 +14,7 @@ case class CurrentAtomStepRow[+D](
   step:          ObserveStep,
   breakpoint:    Breakpoint,
   isFirstOfAtom: Boolean,
-  signalToNoise: Option[SignalToNoise] = none // TODO Propagate S/N through the server
+  signalToNoise: Option[SignalToNoise]
 ) extends SequenceRow[D]:
   val id                   = step.id.asRight
   val instrumentConfig     = step.instConfig.config.asInstanceOf[D].some

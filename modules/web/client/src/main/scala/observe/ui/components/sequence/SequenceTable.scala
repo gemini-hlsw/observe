@@ -67,7 +67,6 @@ private trait SequenceTable[S, D](
   protected[sequence] lazy val currentAtomPendingSteps: List[ObserveStep] =
     executionState.loadedSteps.filterNot(_.isFinished)
 
-  // TODO SN
   protected[sequence] def currentStepsToRows(
     currentSteps: List[ObserveStep]
   ): List[CurrentAtomStepRow[D]] =
@@ -77,7 +76,8 @@ private trait SequenceTable[S, D](
         breakpoint =
           if (executionState.breakpoints.contains_(step.id)) Breakpoint.Enabled
           else Breakpoint.Disabled,
-        isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id)
+        isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id),
+        step.signalToNoise
       )
 
   // TODO Obtain current atom SN from backend???

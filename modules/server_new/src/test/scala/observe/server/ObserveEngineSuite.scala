@@ -457,6 +457,10 @@ class ObserveEngineSuite extends TestCommon {
               None
             )
           ).some
+        ),
+        ODBObservation.Itc(
+          ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
+          ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
         )
       ),
       staticCfg1,
@@ -484,6 +488,7 @@ class ObserveEngineSuite extends TestCommon {
             step.instrumentConfig,
             step.stepConfig,
             step.telescopeConfig,
+            signalToNoise = none,
             breakpoint = Breakpoint.Disabled
           )
         }.toList
@@ -720,6 +725,10 @@ class ObserveEngineSuite extends TestCommon {
               None
             )
           ).some
+        ),
+        ODBObservation.Itc(
+          ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
+          ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
         )
       ),
       staticCfg1,
@@ -747,6 +756,7 @@ class ObserveEngineSuite extends TestCommon {
             step.instrumentConfig,
             step.stepConfig,
             step.telescopeConfig,
+            signalToNoise = none,
             breakpoint = Breakpoint.Disabled
           )
         }.toList

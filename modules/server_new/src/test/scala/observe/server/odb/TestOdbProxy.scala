@@ -157,6 +157,10 @@ object TestOdbProxy {
                         )
                       )
                     )
+                  ),
+                  ODBObservation.Itc(
+                    ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
+                    ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
                   )
                 )
             }
