@@ -152,6 +152,7 @@ object StepsView {
         instConfig = InstrumentDynamicConfig.fromDynamicConfig(stepg.instConfig),
         stepConfig = stepg.config,
         telescopeConfig = stepg.telescopeConfig,
+        signalToNoise = stepg.signalToNoise,
         status = status,
         configStatus = configStatus,
         observeStatus = observeStatus(step.executions),

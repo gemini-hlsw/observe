@@ -12,11 +12,11 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.Program
-import lucuma.core.model.sequence.InstrumentExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.react.common.*
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.DefaultErrorRender
+import lucuma.ui.sequence.SequenceData
 import lucuma.ui.syntax.all.*
 import observe.model.ExecutionState
 import observe.model.SequenceState
@@ -55,16 +55,12 @@ object ObservationExecutionDisplay
 
       val executionStateAndConfig: Option[
         Pot[
-          (Observation.Id,
-           InstrumentExecutionConfig,
-           View[Option[ExecutionVisits]],
-           View[ExecutionState]
-          )
+          (Observation.Id, SequenceData, View[Option[ExecutionVisits]], View[ExecutionState])
         ]
       ] =
         rootModelData.nighttimeObservation.map: lo =>
           (lo.toPot.map(_.obsId),
-           lo.config,
+           lo.sequenceData,
            visitsViewPot,
            executionStateOpt.toOptionView.toPot
           ).tupled
@@ -93,7 +89,7 @@ object ObservationExecutionDisplay
         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
         executionStateAndConfig.map(
           _.renderPot(
-            { (loadedObsId, config, visits, executionState) =>
+            { (loadedObsId, sequenceData, visits, executionState) =>
               val progress: Option[StepProgress] =
                 rootModelData.obsProgress.get(loadedObsId)
 
@@ -111,7 +107,7 @@ object ObservationExecutionDisplay
 
               ObservationSequence(
                 loadedObsId,
-                config,
+                sequenceData,
                 visits,
                 executionState,
                 currentRecordedVisit,

@@ -4,6 +4,8 @@
 package observe.model.arb
 
 import lucuma.core.enums.Instrument
+import lucuma.core.math.SignalToNoise
+import lucuma.core.math.arb.ArbSignalToNoise
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig
@@ -19,6 +21,7 @@ import org.scalacheck.Cogen
 
 import ArbDhsTypes.given
 import ArbInstrumentDynamicConfig.given
+import ArbSignalToNoise.given
 import ArbStepState.given
 import ArbSystem.given
 
@@ -31,6 +34,7 @@ trait ArbStandardStep {
       t  <- arbitrary[StepConfig]
       s  <- arbitrary[StepState]
       tc <- arbitrary[TelescopeConfig]
+      sn <- arbitrary[Option[SignalToNoise]]
       f  <- arbitrary[Option[dhs.ImageFileId]]
       cs <- arbitrary[List[(Resource, ActionStatus)]]
       os <- arbitrary[ActionStatus]
@@ -39,6 +43,7 @@ trait ArbStandardStep {
       instConfig = d,
       stepConfig = t,
       telescopeConfig = tc,
+      signalToNoise = sn,
       status = s,
       fileId = f,
       configStatus = cs,
@@ -53,6 +58,7 @@ trait ArbStandardStep {
         InstrumentDynamicConfig,
         StepConfig,
         TelescopeConfig,
+        Option[SignalToNoise],
         StepState,
         Option[dhs.ImageFileId],
         List[(Resource | Instrument, ActionStatus)],
@@ -63,6 +69,7 @@ trait ArbStandardStep {
        s.instConfig,
        s.stepConfig,
        s.telescopeConfig,
+       s.signalToNoise,
        s.status,
        s.fileId,
        s.configStatus,

@@ -366,6 +366,10 @@ object TestCommon {
             None
           )
         ).some
+      ),
+      ODBObservation.Itc(
+        ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
+        ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
       )
     )
 
@@ -396,6 +400,7 @@ object TestCommon {
             dynamicCfg1,
             stepCfg1,
             telescopeCfg1,
+            signalToNoise = none,
             breakpoint = Breakpoint.Disabled
           )
         )
@@ -431,6 +436,7 @@ object TestCommon {
               dynamicCfg1,
               stepCfg1,
               telescopeCfg1,
+              signalToNoise = none,
               breakpoint = Breakpoint.Disabled
             )
           )
@@ -443,7 +449,7 @@ object TestCommon {
   ): F[Option[SequenceGen[F]]] = for {
     c  <- Ref.of[F, Conditions](Conditions.Default)
     st <- SeqTranslate(Site.GS, systems, c)
-    sg <- st.sequence(obs)
+    sg <- st.translateSequence(obs)
   } yield sg._2
 
   def sequenceWithResources(
@@ -495,6 +501,10 @@ object TestCommon {
               None
             )
           ).some
+        ),
+        ODBObservation.Itc(
+          ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
+          ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
         )
       ),
       staticCfg1,
@@ -522,6 +532,7 @@ object TestCommon {
             dynamicCfg1,
             stepCfg1,
             telescopeCfg1,
+            signalToNoise = none,
             breakpoint = Breakpoint.Disabled
           ),
           SequenceGen.PendingStepGen(
@@ -544,6 +555,7 @@ object TestCommon {
             dynamicCfg1,
             stepCfg1,
             telescopeCfg1,
+            signalToNoise = none,
             breakpoint = Breakpoint.Disabled
           )
         )

@@ -31,6 +31,8 @@ import scalajs.js
 
 // Offload SequenceTable definitions to improve legibility.
 trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
+  protected def instrument: Instrument
+
   protected case class TableMeta(
     requests:           ObservationRequests,
     executionState:     ExecutionState,
@@ -198,9 +200,16 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                             isPreview = isPreview
                           )
       )
+    ) ++ (
+      instrument match
+        case Instrument.GmosNorth | Instrument.GmosSouth =>
+          SequenceColumns(ColDef, _._1.some, _._2.some).forGmos
+            .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id)))
+        case Instrument.Flamingos2                       =>
+          SequenceColumns(ColDef, _._1.some, _._2.some).forFlamingos2
+            .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id)))
+        case _                                           => List.empty
     ) ++
-      SequenceColumns(ColDef, _._1.some, _._2.some).forGmos
-        .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
         column(CameraColumnId, "Camera"),

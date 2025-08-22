@@ -491,7 +491,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
       systems.odb.resetAcquisition(obsId) >>
         systems.odb
           .read(obsId)
-          .flatMap(translator.sequence)
+          .flatMap(translator.translateSequence)
           .attempt
           .flatMap(
             _.fold(
@@ -730,9 +730,9 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
 
     val engSteps      = engineSteps(seq)
     val stepResources = engSteps.map {
-      case ObserveStep.Standard(id, _, _, _, _, _, configStatus, _)         =>
+      case ObserveStep.Standard(id, _, _, _, _, _, _, configStatus, _)         =>
         id -> configStatus.toMap
-      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, configStatus, _, _) =>
+      case ObserveStep.NodAndShuffle(id, _, _, _, _, _, _, configStatus, _, _) =>
         id -> configStatus.toMap
     }.toMap
 

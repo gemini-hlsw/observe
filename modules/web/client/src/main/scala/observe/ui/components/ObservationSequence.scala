@@ -19,6 +19,7 @@ import lucuma.schemas.model.Dataset
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.schemas.model.StepRecord
 import lucuma.schemas.model.Visit
+import lucuma.ui.sequence.SequenceData
 import lucuma.ui.syntax.toast.*
 import monocle.Optional
 import monocle.Traversal
@@ -38,7 +39,7 @@ import scala.collection.immutable.HashSet
 
 case class ObservationSequence(
   obsId:                Observation.Id,
-  config:               InstrumentExecutionConfig,
+  sequenceData:         SequenceData,
   visits:               View[Option[ExecutionVisits]],
   executionState:       View[ExecutionState],
   currentRecordedVisit: Option[RecordedVisit],
@@ -71,6 +72,16 @@ object ObservationSequence
           .each
           .andThen(StepRecord.GmosSouth.datasets)
 
+      val flamingos2Datasets: Traversal[ExecutionVisits, List[Dataset]] =
+        ExecutionVisits.flamingos2
+          .andThen(ExecutionVisits.Flamingos2.visits)
+          .each
+          .andThen(Visit.Flamingos2.atoms)
+          .each
+          .andThen(AtomRecord.Flamingos2.steps)
+          .each
+          .andThen(StepRecord.Flamingos2.datasets)
+
       // This is only lawful if the traverse returns 0 or 1 instances of A.
       def unsafeHeadOption[T, A](traversal: Traversal[T, A]): Optional[T, A] =
         Optional[T, A](traversal.getAll(_).headOption)(traversal.replace)
@@ -83,7 +94,8 @@ object ObservationSequence
       def datasetWithId(datasetId: Dataset.Id): Traversal[ExecutionVisits, Dataset] =
         Traversal.applyN(
           instrumentDatasetWithId(gmosNorthDatasets)(datasetId),
-          instrumentDatasetWithId(gmosSouthDatasets)(datasetId)
+          instrumentDatasetWithId(gmosSouthDatasets)(datasetId),
+          instrumentDatasetWithId(flamingos2Datasets)(datasetId)
         )
 
       for
@@ -138,12 +150,13 @@ object ObservationSequence
                     .runAsync
               }.orEmpty // If there are no visits, there's nothing to change.
 
-        props.config match // TODO Show visits even if sequence data is not available
+        props.sequenceData.config match // TODO Show visits even if sequence data is not available
           case InstrumentExecutionConfig.GmosNorth(config)  =>
             GmosNorthSequenceTable(
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.GmosNorth(visits) => visits.toList
@@ -164,6 +177,7 @@ object ObservationSequence
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.GmosSouth(visits) => visits.toList
@@ -184,6 +198,7 @@ object ObservationSequence
               props.clientMode,
               props.obsId,
               config,
+              props.sequenceData.snPerClass,
               props.visits.get
                 .collect:
                   case ExecutionVisits.Flamingos2(visits) => visits.toList

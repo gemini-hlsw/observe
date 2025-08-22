@@ -23,6 +23,7 @@ import lucuma.react.primereact.Message
 import lucuma.react.primereact.MessageItem
 import lucuma.react.primereact.ToastRef
 import lucuma.ui.LucumaStyles
+import lucuma.ui.sequence.SequenceData
 import monocle.Lens
 import monocle.Optional
 import observe.cats.given
@@ -63,8 +64,9 @@ trait ServerEventHandler:
     instrumentOptic:   Optional[InstrumentExecutionConfig, ExecutionConfig[S, D]],
     sequenceTypeOptic: Lens[ExecutionConfig[S, D], Option[ExecutionSequence[D]]]
   ): Optional[LoadedObservation, List[Atom[D]]] =
-    LoadedObservation.config
+    LoadedObservation.sequenceData
       .andThen(Pot.readyPrism)
+      .andThen(SequenceData.config)
       .andThen(instrumentOptic)
       .andThen(sequenceTypeOptic)
       .some
@@ -105,8 +107,8 @@ trait ServerEventHandler:
     atomId:       Atom.Id
   ): LoadedObservation => LoadedObservation =
     loadedObservation =>
-      loadedObservation.config.toOption
-        .map(_.instrument)
+      loadedObservation.sequenceData.toOption
+        .map(_.config.instrument)
         .collect:
           case Instrument.Flamingos2 =>
             removeFutureAtomFromLoadedObservation(

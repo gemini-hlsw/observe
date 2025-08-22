@@ -28,9 +28,7 @@ object ObsQueriesGQL:
           program {
             id
             name
-            goa {
-              proprietaryMonths
-            }
+            goa { proprietaryMonths }
           }
           targetEnvironment {
             firstScienceTarget {
@@ -38,9 +36,7 @@ object ObsQueriesGQL:
               targetName: name
             }
             guideEnvironment {
-              guideTargets {
-                probe
-              }
+              guideTargets { probe }
             }
           }
           constraintSet {
@@ -71,9 +67,7 @@ object ObsQueriesGQL:
                   milliseconds
                 }
                 repeat {
-                  period {
-                    milliseconds
-                  }
+                  period { milliseconds }
                   times
                 }
               }
@@ -112,6 +106,7 @@ object ObsQueriesGQL:
               }      
             }
           }
+          itc { ...itcFields }
         }
       }
 
@@ -233,6 +228,19 @@ object ObsQueriesGQL:
         p { microarcseconds }
         q { microarcseconds }
       }
+
+      fragment itcFields on Itc {
+          acquisition {
+            selected {
+              signalToNoiseAt { single }
+            }
+          }
+          science {
+            selected {
+              signalToNoiseAt { single }
+            }
+          }
+        }
     """
 
     object Data:

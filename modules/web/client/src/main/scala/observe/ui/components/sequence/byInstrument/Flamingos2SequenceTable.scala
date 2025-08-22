@@ -5,10 +5,15 @@ package observe.ui.components.sequence.byInstrument
 
 import japgolly.scalajs.react.*
 import lucuma.core.enums.Instrument
+import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
-import lucuma.core.model.sequence.*
+import lucuma.core.model.sequence.Dataset
+import lucuma.core.model.sequence.ExecutionConfig
+import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.flamingos2.Flamingos2DynamicConfig
 import lucuma.core.model.sequence.flamingos2.Flamingos2StaticConfig
+import lucuma.itc.SingleSN
+import lucuma.itc.TotalSN
 import lucuma.react.common.*
 import lucuma.schemas.model.Visit
 import observe.model.ExecutionState
@@ -24,6 +29,7 @@ case class Flamingos2SequenceTable(
   clientMode:           ClientMode,
   obsId:                Observation.Id,
   config:               ExecutionConfig.Flamingos2,
+  snPerClass:           Map[SequenceType, (SingleSN, TotalSN)],
   visits:               List[Visit.Flamingos2],
   executionState:       ExecutionState,
   currentRecordedVisit: Option[RecordedVisit],
@@ -41,4 +47,6 @@ case class Flamingos2SequenceTable(
     )
 
 object Flamingos2SequenceTable
-    extends SequenceTableBuilder[gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth]
+    extends SequenceTableBuilder[Flamingos2StaticConfig, Flamingos2DynamicConfig](
+      Instrument.Flamingos2
+    )
