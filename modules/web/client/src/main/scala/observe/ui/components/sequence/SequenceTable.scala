@@ -68,7 +68,8 @@ private trait SequenceTable[S, D](
     executionState.loadedSteps.filterNot(_.isFinished)
 
   protected[sequence] def currentStepsToRows(
-    currentSteps: List[ObserveStep]
+    currentSteps: List[ObserveStep],
+    sequenceType: SequenceType
   ): List[CurrentAtomStepRow[D]] =
     currentSteps.map: step =>
       CurrentAtomStepRow(
@@ -77,22 +78,22 @@ private trait SequenceTable[S, D](
           if (executionState.breakpoints.contains_(step.id)) Breakpoint.Enabled
           else Breakpoint.Disabled,
         isFirstOfAtom = currentSteps.headOption.exists(_.id === step.id),
-        step.signalToNoise
+        step.signalToNoise.filter: _ =>
+          sequenceType === SequenceType.Science || step.instConfig.config.shouldShowAcquisitionSn
       )
 
-  // TODO Obtain current atom SN from backend???
   protected[sequence] lazy val (currentAcquisitionRows, currentScienceRows)
     : (List[SequenceRow[D]], List[SequenceRow[D]]) =
     executionState.sequenceType match
       case SequenceType.Acquisition =>
-        (currentStepsToRows(currentAtomPendingSteps),
+        (currentStepsToRows(currentAtomPendingSteps, SequenceType.Acquisition),
          config.science.map(s => futureSteps(List(s.nextAtom), SequenceType.Science)).orEmpty
         )
       case SequenceType.Science     =>
         (config.acquisition
            .map(a => futureSteps(List(a.nextAtom), SequenceType.Acquisition))
            .orEmpty,
-         currentStepsToRows(currentAtomPendingSteps)
+         currentStepsToRows(currentAtomPendingSteps, SequenceType.Science)
         )
 
   protected[sequence] lazy val scienceRows: List[SequenceRow[D]] =
