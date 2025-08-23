@@ -234,7 +234,12 @@ object WebServerLauncher extends IOApp with LogInitialization {
   }
 
   private def printBanner[F[_]: Logger](conf: ObserveConfiguration): F[Unit] = {
-    val banner = """
+    val runtime    = Runtime.getRuntime
+    val memorySize = java.lang.management.ManagementFactory
+      .getOperatingSystemMXBean()
+      .asInstanceOf[com.sun.management.OperatingSystemMXBean]
+      .getTotalMemorySize()
+    val banner     = """
    ____  __
   / __ \/ /_  ________  ______   _____
  / / / / __ \/ ___/ _ \/ ___/ | / / _ \
@@ -242,10 +247,16 @@ object WebServerLauncher extends IOApp with LogInitialization {
 \____/_.___/____/\___/_/    |___/\___/
 
 """
-    val msg    =
+    val msg        =
       s"""
       | Start web server for site ${conf.site} on ${conf.environment} environment, version ${OcsBuildInfo.version}
       | Connected to odb by HTTP at ${conf.observeEngine.odbHttp} and by WS at ${conf.observeEngine.odbWs}
+      |
+      | cores              : ${runtime.availableProcessors()}
+      | current JVM memory : ${runtime.totalMemory() / 1024 / 1024} MB
+      | maximum JVM memory : ${runtime.maxMemory() / 1024 / 1024} MB
+      | total RAM          : ${memorySize / 1024 / 1024} MB
+      | java version       : ${System.getProperty("java.version")}
       |
       | Go to https://${conf.webServer.host}:${conf.webServer.port}
       |"""
