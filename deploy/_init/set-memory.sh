@@ -10,32 +10,25 @@ else
   HEAP_PERCENT=${HEROKU_JAVA_HEAP_PERCENT:-$DEFAULT_HEAP_PERCENT}
 
   # Detect cgroup version and read memory limit
-  USE_MAX_RAM_PERCENT=false
-
   if [[ -f /sys/fs/cgroup/memory/memory.limit_in_bytes ]]; then
     limit_bytes=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
     echo "Detected cgroup v1: memory limit ${limit_bytes} bytes"
   elif [[ -f /sys/fs/cgroup/memory.max ]]; then
-    val=$(cat /sys/fs/cgroup/memory.max)
-    echo "Detected cgroup v2: memory limit ${val}"
-    if [[ "$val" == "max" ]]; then
-      USE_MAX_RAM_PERCENT=true
-    else
-      limit_bytes=$val
-    fi
+    limit_bytes=$(cat /sys/fs/cgroup/memory.max)
+    echo "Detected cgroup v2: memory limit ${limit_bytes} bytes"
   else
     limit_bytes=$((DEFAULT_MB * 1024 * 1024))
     echo "Cgroup memory limit not detected, using default ${DEFAULT_MB} MB"
   fi
 
-  if [ "$USE_MAX_RAM_PERCENT" = true ]; then
+  if [[ "$limit_bytes" = "max" ]]; then
     echo "Dyno memory detected: MAX"
 
     echo "Using -XX:MaxRAMPercentage=${HEAP_PERCENT}.0 instead of Xmx/Xms"
     addJava "-XX:MaxRAMPercentage=${HEAP_PERCENT}.0"
   else
     limit_mb=$((limit_bytes / 1024 / 1024))
-    
+
     echo "Dyno memory detected: ${limit_mb} MB"
     heap_mb=$((limit_mb * HEAP_PERCENT / 100))
 
