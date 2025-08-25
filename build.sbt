@@ -13,7 +13,7 @@ val build = taskKey[File]("Build module for deployment")
 name := "observe"
 
 ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
-ThisBuild / dockerBaseImage := "eclipse-temurin:17-jre"
+ThisBuild / dockerBaseImage := "eclipse-temurin:21-jre"
 
 // TODO REMOVE ONCE THIS WORKS AGAIN
 ThisBuild / tlCiScalafmtCheck := false
@@ -352,7 +352,6 @@ lazy val deployedAppSettings = Seq(
   // Launch options
   Universal / javaOptions ++= Seq(
     // -J params will be added as jvm parameters
-    "-J-XX:MaxRAMPercentage=80.0",
     // Support remote JMX access
     "-J-Dcom.sun.management.jmxremote",
     "-J-Dcom.sun.management.jmxremote.authenticate=false",
@@ -361,9 +360,6 @@ lazy val deployedAppSettings = Seq(
     // Ensure the locale is correctly set
     "-J-Duser.language=en",
     "-J-Duser.country=US",
-    // Support remote debugging
-    "-J-Xdebug",
-    "-J-Xnoagent",
     "-J-XX:+HeapDumpOnOutOfMemoryError",
     // Make sure the application exits on OOM
     "-J-XX:+ExitOnOutOfMemoryError",
@@ -406,5 +402,7 @@ lazy val deploy = project
     Docker / daemonUser    := "software",
     dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
     dockerUpdateLatest     := true,
-    dockerUsername         := Some("noirlab")
+    dockerUsername         := Some("noirlab"),
+    // From https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html#bash-and-bat-script-extra-defines
+    bashScriptExtraDefines ++= IO.readLines(baseDirectory.value / "_init" / "set-memory.sh")
   )
