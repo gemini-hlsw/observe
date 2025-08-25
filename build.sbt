@@ -335,41 +335,6 @@ lazy val deployedAppMappings = Seq(
 )
 
 /**
- * Common settings for the Observe instances
- */
-lazy val deployedAppSettings = Seq(
-  // Main class for launching
-  Compile / mainClass             := Some("observe.web.server.http4s.WebServerLauncher"),
-  // Name of the launch script
-  executableScriptName            := "observe-server",
-  // No javadocs
-  Compile / packageDoc / mappings := Seq(),
-  // Don't create launchers for Windows
-  makeBatScripts                  := Seq.empty,
-  // Specify a different name for the config file
-  bashScriptConfigLocation        := Some("${app_home}/../conf/launcher.args"),
-  bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/$SITE/logback.xml"""",
-  // Launch options
-  Universal / javaOptions ++= Seq(
-    // -J params will be added as jvm parameters
-    // Support remote JMX access
-    "-J-Dcom.sun.management.jmxremote",
-    "-J-Dcom.sun.management.jmxremote.authenticate=false",
-    "-J-Dcom.sun.management.jmxremote.port=2407",
-    "-J-Dcom.sun.management.jmxremote.ssl=false",
-    // Ensure the locale is correctly set
-    "-J-Duser.language=en",
-    "-J-Duser.country=US",
-    "-J-XX:+HeapDumpOnOutOfMemoryError",
-    // Make sure the application exits on OOM
-    "-J-XX:+ExitOnOutOfMemoryError",
-    "-J-XX:+CrashOnOutOfMemoryError",
-    "-J-XX:HeapDumpPath=/tmp",
-    "-J-Xrunjdwp:transport=dt_socket,address=8457,server=y,suspend=n"
-  )
-) ++ deployedAppMappings ++ commonSettings
-
-/**
  * Settings for Observe in Linux
  */
 lazy val observeLinux = Seq(
@@ -390,19 +355,20 @@ lazy val observeLinux = Seq(
 lazy val deploy = project
   .in(file("deploy"))
   .enablePlugins(NoPublishPlugin)
-  .enablePlugins(DockerPlugin)
+  .enablePlugins(LucumaDockerPlugin)
   .enablePlugins(JavaServerAppPackaging)
   .enablePlugins(GitBranchPrompt)
   .dependsOn(observe_web_server)
-  .settings(deployedAppSettings: _*)
+  .settings(deployedAppMappings: _*)
+  .settings(commonSettings: _*)
   .settings(
-    description            := "Observe Server",
-    Docker / packageName   := "gpp-obs",
-    Docker / daemonUserUid := Some("3624"),
-    Docker / daemonUser    := "software",
-    dockerBuildOptions ++= Seq("--platform", "linux/amd64"),
-    dockerUpdateLatest     := true,
-    dockerUsername         := Some("noirlab"),
-    // From https://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html#bash-and-bat-script-extra-defines
-    bashScriptExtraDefines ++= IO.readLines(baseDirectory.value / "_init" / "set-memory.sh")
+    description              := "Observe Server",
+    Docker / packageName     := "gpp-obs",
+    // Main class for launching
+    Compile / mainClass      := Some("observe.web.server.http4s.WebServerLauncher"),
+    // Name of the launch script
+    executableScriptName     := "observe-server",
+    // Specify a different name for the config file
+    bashScriptConfigLocation := Some("${app_home}/../conf/launcher.args"),
+    bashScriptExtraDefines += """addJava "-Dlogback.configurationFile=${app_home}/../conf/$SITE/logback.xml""""
   )
