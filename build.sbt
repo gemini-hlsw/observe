@@ -12,9 +12,6 @@ val build = taskKey[File]("Build module for deployment")
 
 name := "observe"
 
-ThisBuild / dockerExposedPorts ++= Seq(9090, 9091) // Must match deployed app.conf web-server.port
-ThisBuild / dockerBaseImage := "eclipse-temurin:21-jre"
-
 // TODO REMOVE ONCE THIS WORKS AGAIN
 ThisBuild / tlCiScalafmtCheck := false
 ThisBuild / tlCiScalafixCheck := false
@@ -362,10 +359,11 @@ lazy val deploy = project
   .settings(deployedAppMappings: _*)
   .settings(commonSettings: _*)
   .settings(
-    description              := "Observe Server",
-    Docker / packageName     := "gpp-obs",
+    description          := "Observe Server",
+    Docker / packageName := "gpp-obs",
     // Main class for launching
-    Compile / mainClass      := Some("observe.web.server.http4s.WebServerLauncher"),
+    Compile / mainClass  := Some("observe.web.server.http4s.WebServerLauncher"),
+    dockerExposedPorts ++= Seq(9090, 9091), // Must match deployed app.conf web-server.port
     // Name of the launch script
     executableScriptName     := "observe-server",
     // Specify a different name for the config file
