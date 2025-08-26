@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@floating-ui/react": "^0.27.12",
-    "@fontsource/lato": "^5.2.5",
+    "@fontsource/lato": "^5.2.6",
     "@fortawesome/fontawesome-pro": "^6.7.2",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/pro-duotone-svg-icons": "^6.7.2",
