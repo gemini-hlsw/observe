@@ -52,7 +52,7 @@ object Settings {
 
     // Gemini Libraries
     val lucumaCore      = "0.141.3"
-    val lucumaSSO       = "0.9.6"
+    val lucumaSSO       = "0.10.0"
     val lucumaODBSchema = "0.26.3"
 
     // Gemini UI Libraries
