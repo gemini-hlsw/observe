@@ -24,7 +24,7 @@ object Settings {
     val http4sJdkHttpClientVersion = "0.10.0"
     val http4sScalaXmlVersion      = "0.24.0"
 
-    val coulomb             = "0.8.0"
+    val coulomb             = "0.9.0"
     val commonsHttp         = "3.1"
     val unboundId           = "3.2.1"
     val jwt                 = "11.0.2"
