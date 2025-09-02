@@ -38,7 +38,7 @@ case class AppContext[F[_]](
   val odbClient: WebSocketJsClient[F, ObservationDB]
 ):
   def initODBClient(payload: F[Map[String, Json]]): F[Unit] =
-    odbClient.connect(payload)
+    odbClient.connect(payload).void
 
   val closeODBClient: F[Unit] =
     odbClient.disconnect(CloseParams(code = 1000))
