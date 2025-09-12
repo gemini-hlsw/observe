@@ -27,7 +27,7 @@ object Settings {
     val coulomb             = "0.8.0"
     val commonsHttp         = "3.1"
     val unboundId           = "3.2.1"
-    val jwt                 = "11.0.2"
+    val jwt                 = "11.0.3"
     val slf4j               = "2.0.17"
     val log4cats            = "2.7.1"
     val log4catsLogLevel    = "0.3.1"
