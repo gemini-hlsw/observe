@@ -6,19 +6,19 @@ package observe.server.odb
 import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.all.*
+import eu.timepit.refined.types.numeric.PosLong
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Atom
+import lucuma.core.model.sequence.Dataset
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
-import lucuma.core.model.sequence.Dataset
-import eu.timepit.refined.types.numeric.PosLong
 
 class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {
   override def sequenceStart(

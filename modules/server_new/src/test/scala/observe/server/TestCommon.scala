@@ -27,7 +27,6 @@ import lucuma.core.enums.GmosXBinning
 import lucuma.core.enums.GmosYBinning
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.MosPreImaging
-import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.Site
 import lucuma.core.enums.SkyBackground
@@ -41,12 +40,8 @@ import lucuma.core.model.ElevationRange
 import lucuma.core.model.ImageQuality
 import lucuma.core.model.Program
 import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.ExecutionConfig
-import lucuma.core.model.sequence.ExecutionSequence
-import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
-import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.GmosCcdMode
@@ -56,7 +51,6 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.refined.auto.*
 import lucuma.core.util.TimeSpan
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
 import observe.common.test.*
@@ -75,6 +69,7 @@ import observe.server.engine.Response
 import observe.server.engine.Result
 import observe.server.engine.Result.PartialVal
 import observe.server.engine.Result.PauseContext
+import observe.server.odb.OdbObservationData
 import observe.server.odb.OdbProxy
 import org.http4s.Uri
 import org.http4s.implicits.*
@@ -309,7 +304,7 @@ object TestCommon {
 
   val telescopeCfg1: CoreTelescopeConfig = CoreTelescopeConfig(Offset.Zero, StepGuideState.Enabled)
 
-  def odbObservation(id: Observation.Id, stepCount: Int = 1): ODBObservation =
+  def odbObservation(id: Observation.Id): ODBObservation =
     ODBObservation(
       id = id,
       title = "Test Observation".refined,
@@ -327,46 +322,6 @@ object TestCommon {
         ElevationRange.ByAirMass.Default
       ),
       List.empty,
-      Execution(
-        GmosNorth(
-          ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-            staticCfg1,
-            ExecutionSequence[DynamicConfig.GmosNorth](
-              Atom[DynamicConfig.GmosNorth](
-                atomId1,
-                None,
-                NonEmptyList(
-                  Step[DynamicConfig.GmosNorth](
-                    stepId(1),
-                    dynamicCfg1,
-                    stepCfg1,
-                    telescopeCfg1,
-                    StepEstimate.Zero,
-                    ObserveClass.Science,
-                    Breakpoint.Disabled
-                  ),
-                  List
-                    .range(2, stepCount + 1)
-                    .map(i =>
-                      Step[DynamicConfig.GmosNorth](
-                        stepId(i),
-                        dynamicCfg1,
-                        stepCfg1,
-                        telescopeCfg1,
-                        StepEstimate.Zero,
-                        ObserveClass.Science,
-                        Breakpoint.Disabled
-                      )
-                    )
-                )
-              ),
-              List.empty,
-              false
-            ).some,
-            None
-          )
-        ).some
-      ),
       ODBObservation.Itc(
         ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
         ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
@@ -375,7 +330,7 @@ object TestCommon {
 
   def sequence(id: Observation.Id): SequenceGen.GmosNorth[IO] =
     SequenceGen.GmosNorth[IO](
-      odbObservation(id, 1),
+      odbObservation(id),
       staticCfg1,
       SequenceGen.AtomGen.GmosNorth(
         atomId1,
@@ -409,7 +364,7 @@ object TestCommon {
 
   def sequenceNSteps(id: Observation.Id, n: Int): SequenceGen[IO] =
     SequenceGen.GmosNorth[IO](
-      odbObservation(id, n),
+      odbObservation(id),
       staticCfg1,
       SequenceGen.AtomGen.GmosNorth(
         atomId1,
@@ -444,12 +399,12 @@ object TestCommon {
     )
 
   def generateSequence[F[_]: Async: Logger](
-    obs:     ODBObservation,
-    systems: Systems[F]
+    odbObsData: OdbObservationData,
+    systems:    Systems[F]
   ): F[Option[SequenceGen[F]]] = for {
     c  <- Ref.of[F, Conditions](Conditions.Default)
     st <- SeqTranslate(Site.GS, systems, c)
-    sg <- st.translateSequence(obs)
+    sg <- st.translateSequence(odbObsData)
   } yield sg._2
 
   def sequenceWithResources(
@@ -474,34 +429,6 @@ object TestCommon {
           ElevationRange.ByAirMass.Default
         ),
         List.empty,
-        Execution(
-          GmosNorth(
-            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-              staticCfg1,
-              ExecutionSequence[DynamicConfig.GmosNorth](
-                Atom[DynamicConfig.GmosNorth](
-                  atomId1,
-                  None,
-                  NonEmptyList(
-                    Step[DynamicConfig.GmosNorth](
-                      stepId(1),
-                      dynamicCfg1,
-                      stepCfg1,
-                      telescopeCfg1,
-                      StepEstimate.Zero,
-                      ObserveClass.Science,
-                      Breakpoint.Disabled
-                    ),
-                    List.empty
-                  )
-                ),
-                List.empty,
-                false
-              ).some,
-              None
-            )
-          ).some
-        ),
         ODBObservation.Itc(
           ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
           ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))

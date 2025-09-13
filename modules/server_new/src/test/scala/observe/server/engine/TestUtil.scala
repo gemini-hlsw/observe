@@ -35,7 +35,7 @@ object TestUtil {
               targetEnvironment = null, // Not used in tests
               constraintSet = null,     // Not used in tests
               timingWindows = List.empty,
-              execution = null,         // Not used in tests
+              // execution = null,         // Not used in tests
               itc = null                // Not used in tests
             ),
             staticCfg = null, // Not used in tests

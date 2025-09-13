@@ -33,8 +33,10 @@ import observe.server.gmos.*
 import observe.server.gsaoi.*
 import observe.server.gws.*
 import observe.server.keywords.*
-import observe.server.odb.OdbProxy
+import observe.server.odb.DummyOdbCommands
 import observe.server.odb.DummyOdbProxy
+import observe.server.odb.OdbCommandsImpl
+import observe.server.odb.OdbProxy
 import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
@@ -46,8 +48,6 @@ import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
-import observe.server.odb.OdbCommandsImpl
-import observe.server.odb.DummyOdbCommands
 
 case class Systems[F[_]] private[server] (
   odb:                 OdbProxy[F],

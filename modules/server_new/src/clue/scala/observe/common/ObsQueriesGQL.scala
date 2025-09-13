@@ -73,40 +73,39 @@ object ObsQueriesGQL:
               }
             }
           }
-          execution {
-            config(futureLimit: 100) {
-              instrument
-              gmosNorth {
-                static {
-                  stageMode
-                  detector
-                  mosPreImaging
-                  nodAndShuffle { ...nodAndShuffleFields }
-                }
-                acquisition { ...gmosNorthSequenceFields }
-                science { ...gmosNorthSequenceFields }
-              }
-              gmosSouth {
-                static {
-                  stageMode
-                  detector
-                  mosPreImaging
-                  nodAndShuffle { ...nodAndShuffleFields }
-                }
-                acquisition { ...gmosSouthSequenceFields }
-                science { ...gmosSouthSequenceFields }
-              }
-              flamingos2 {
-                static {
-                  mosPreImaging
-                  useElectronicOffsetting
-                }
-                acquisition { ...flamingos2SequenceFields }
-                science { ...flamingos2SequenceFields }
-              }      
-            }
-          }
           itc { ...itcFields }
+        }
+
+        executionConfig(futureLimit: 100) {
+          instrument
+          gmosNorth {
+            static {
+              stageMode
+              detector
+              mosPreImaging
+              nodAndShuffle { ...nodAndShuffleFields }
+            }
+            acquisition { ...gmosNorthSequenceFields }
+            science { ...gmosNorthSequenceFields }
+          }
+          gmosSouth {
+            static {
+              stageMode
+              detector
+              mosPreImaging
+              nodAndShuffle { ...nodAndShuffleFields }
+            }
+            acquisition { ...gmosSouthSequenceFields }
+            science { ...gmosSouthSequenceFields }
+          }
+          flamingos2 {
+            static {
+              mosPreImaging
+              useElectronicOffsetting
+            }
+            acquisition { ...flamingos2SequenceFields }
+            science { ...flamingos2SequenceFields }
+          }      
         }
       }
 
@@ -247,8 +246,7 @@ object ObsQueriesGQL:
       object Observation:
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
-        object Execution:
-          type Config = InstrumentExecutionConfig
+      type ExecutionConfig = InstrumentExecutionConfig
 
   @GraphQL
   trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB]:

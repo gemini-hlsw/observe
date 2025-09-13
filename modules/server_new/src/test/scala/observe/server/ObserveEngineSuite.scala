@@ -21,9 +21,6 @@ import lucuma.core.model.ImageQuality
 import lucuma.core.model.Program
 import lucuma.core.model.Target
 import lucuma.core.model.sequence.Atom
-import lucuma.core.model.sequence.ExecutionConfig
-import lucuma.core.model.sequence.ExecutionSequence
-import lucuma.core.model.sequence.InstrumentExecutionConfig.GmosNorth
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.StepEstimate
@@ -32,7 +29,6 @@ import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.refined.auto.*
 import lucuma.core.refined.given
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
-import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.FirstScienceTarget
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
@@ -441,23 +437,23 @@ class ObserveEngineSuite extends TestCommon {
         ),
         reqConditions,
         List.empty,
-        Execution(
-          GmosNorth(
-            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-              staticCfg1,
-              ExecutionSequence[DynamicConfig.GmosNorth](
-                Atom[DynamicConfig.GmosNorth](
-                  atomId1,
-                  None,
-                  stepList
-                ),
-                List.empty,
-                false
-              ).some,
-              None
-            )
-          ).some
-        ),
+        // Execution(
+        //   GmosNorth(
+        //     ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+        //       staticCfg1,
+        //       ExecutionSequence[DynamicConfig.GmosNorth](
+        //         Atom[DynamicConfig.GmosNorth](
+        //           atomId1,
+        //           None,
+        //           stepList
+        //         ),
+        //         List.empty,
+        //         false
+        //       ).some,
+        //       None
+        //     )
+        //   ).some
+        // ),
         ODBObservation.Itc(
           ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
           ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
@@ -709,23 +705,23 @@ class ObserveEngineSuite extends TestCommon {
         TargetEnvironment(None, GuideEnvironment(List.empty)),
         reqConditions,
         List.empty,
-        Execution(
-          GmosNorth(
-            ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-              staticCfg1,
-              ExecutionSequence[DynamicConfig.GmosNorth](
-                Atom[DynamicConfig.GmosNorth](
-                  atomId1,
-                  None,
-                  stepList
-                ),
-                List.empty,
-                false
-              ).some,
-              None
-            )
-          ).some
-        ),
+        // Execution(
+        //   GmosNorth(
+        //     ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
+        //       staticCfg1,
+        //       ExecutionSequence[DynamicConfig.GmosNorth](
+        //         Atom[DynamicConfig.GmosNorth](
+        //           atomId1,
+        //           None,
+        //           stepList
+        //         ),
+        //         List.empty,
+        //         false
+        //       ).some,
+        //       None
+        //     )
+        //   ).some
+        // ),
         ODBObservation.Itc(
           ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
           ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
@@ -960,7 +956,7 @@ class ObserveEngineSuite extends TestCommon {
                          .parSequence
                          .map(_.map(Atom.Id.fromUuid))
       odb           <- TestOdbProxy.build[IO](
-                         staticCfg1.some,
+                         staticCfg1,
                          Atom[DynamicConfig.GmosNorth](acqAtomId, none, acquisitionSteps).some,
                          atomIds.map(i => Atom[DynamicConfig.GmosNorth](i, none, scienceSteps))
                        )
@@ -1067,7 +1063,7 @@ class ObserveEngineSuite extends TestCommon {
                          .parSequence
                          .map(_.map(Atom.Id.fromUuid))
       odb           <- TestOdbProxy.build[IO](
-                         staticCfg1.some,
+                         staticCfg1,
                          none,
                          atomIds.map(i => Atom[DynamicConfig.GmosNorth](i, none, steps))
                        )
@@ -1232,7 +1228,7 @@ class ObserveEngineSuite extends TestCommon {
                          .map(_.map(Atom.Id.fromUuid))
       odb           <-
         TestOdbProxy.build[IO](
-          staticCfg1.some,
+          staticCfg1,
           none,
           atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k)))
         )
@@ -1311,7 +1307,7 @@ class ObserveEngineSuite extends TestCommon {
                          .map(_.map(Atom.Id.fromUuid))
       odb           <-
         TestOdbProxy.build[IO](
-          staticCfg1.some,
+          staticCfg1,
           none,
           atomIds.zipWithIndex.map((i, k) => Atom[DynamicConfig.GmosNorth](i, none, steps(2 * k))),
           s =>
@@ -1388,7 +1384,7 @@ class ObserveEngineSuite extends TestCommon {
     for
       atomId        <- IO.randomUUID.map(Atom.Id.fromUuid)
       odb           <- TestOdbProxy.build[IO](
-                         staticCfg1.some,
+                         staticCfg1,
                          Atom[DynamicConfig.GmosNorth](atomId, none, steps).some,
                          List.empty
                        )

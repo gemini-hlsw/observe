@@ -15,16 +15,15 @@ import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
-import observe.common.ObsQueriesGQL.*
+import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
 import observe.server.ObserveFailure
-import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 
 class DummyOdbProxy[F[_]: Sync] extends OdbProxy[F] {
   val evCmds = new DummyOdbCommands[F]
 
-  override def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
+  override def read(oid: Observation.Id): F[OdbObservationData] =
     MonadThrow[F]
       .raiseError(ObserveFailure.Unexpected("TestOdbProxy.read: Not implemented."))
 

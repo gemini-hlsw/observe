@@ -475,9 +475,9 @@ object ObserveEngine {
     atomType:      SequenceType
   ): EngineHandle[F, Unit] =
     EngineHandle.fromSingleEventF(
-      odb.read(obsId).map { x =>
+      odb.read(obsId).map { odbObsData =>
         translator
-          .nextAtom(x, atomType)
+          .nextAtom(odbObsData, atomType)
           ._2
           .map { atm =>
             Event.modifyState[F](
@@ -560,14 +560,14 @@ object ObserveEngine {
           EngineHandle.fromSingleEvent:
             Event.modifyState[F]:
               (for
-                _        <- EngineHandle.debug(s"Reloading atom for observation [$obsId]")
-                odbObs   <- EngineHandle.liftF(odb.read(obsId))
-                atomGen  <-
+                _          <- EngineHandle.debug(s"Reloading atom for observation [$obsId]")
+                odbObsData <- EngineHandle.liftF(odb.read(obsId))
+                atomGen    <-
                   EngineHandle.modifyState: (oldState: EngineState[F]) =>
-                    val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObs, atomType)._2
+                    val atomGen: Option[AtomGen[F]] = translator.nextAtom(odbObsData, atomType)._2
                     val newState: EngineState[F]    = updateAtom(obsId, atomGen)(oldState)
                     (newState, atomGen)
-                continue <-
+                continue   <-
                   atomGen.fold(
                     EngineHandle.fromSingleEvent(Event.finished(obsId)).as(SeqEvent.NullSeqEvent)
                   ): atm =>

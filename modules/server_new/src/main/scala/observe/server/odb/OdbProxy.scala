@@ -20,7 +20,7 @@ import observe.model.dhs.*
 import observe.server.ObserveFailure
 
 trait OdbProxy[F[_]] private[odb] () extends OdbEventCommands[F] {
-  def read(oid:               Observation.Id): F[ObsQuery.Data.Observation]
+  def read(oid:               Observation.Id): F[OdbObservationData]
   def resetAcquisition(obsId: Observation.Id): F[Unit]
 
   def obsEditSubscription(obsId: Observation.Id): Resource[F, fs2.Stream[F, Unit]]
@@ -30,17 +30,18 @@ object OdbProxy {
   def apply[F[_]](
     evCmds:     OdbEventCommands[F],
     subscriber: OdbSubscriber[F]
-  )(using Sync[F], FetchClient[F, ObservationDB]): OdbProxy[F] =
+  )(using F: Sync[F])(using FetchClient[F, ObservationDB]): OdbProxy[F] =
     new OdbProxy[F] {
-      def read(oid: Observation.Id): F[ObsQuery.Data.Observation] =
+      def read(oid: Observation.Id): F[OdbObservationData] =
         ObsQuery[F]
           .query(oid)
           .raiseGraphQLErrors
-          .flatMap:
-            _.observation.fold(
-              Sync[F].raiseError[ObsQuery.Data.Observation]:
-                ObserveFailure.Unexpected(s"OdbProxy: Unable to read observation $oid")
-            )(_.pure[F])
+          .flatMap: data =>
+            (data.observation, data.executionConfig).tupled
+              .fold(
+                F.raiseError[OdbObservationData]:
+                  ObserveFailure.Unexpected(s"OdbProxy: Unable to read observation $oid")
+              )((obs, ec) => OdbObservationData(obs, ec).pure[F])
 
       def resetAcquisition(obsId: Observation.Id): F[Unit] =
         ResetAcquisitionMutation[F].execute(obsId = obsId).void
