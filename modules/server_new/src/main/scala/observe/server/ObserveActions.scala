@@ -9,7 +9,7 @@ import cats.effect.Temporal
 import cats.syntax.all.*
 import fs2.Stream
 import lucuma.core.util.TimeSpan
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation
 import observe.model.dhs.*
 import observe.model.enums.ObserveCommandResult

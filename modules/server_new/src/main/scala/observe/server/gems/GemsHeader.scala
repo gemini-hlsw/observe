@@ -6,7 +6,7 @@ package observe.server.gems
 import cats.effect.Sync
 import cats.syntax.all.*
 import lucuma.core.enums.StepGuideState
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation.Id
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName

@@ -11,7 +11,7 @@ import coulomb.units.mks.Pascal
 import coulomb.units.si.Second
 import coulomb.units.temperature.Fahrenheit
 import coulomb.units.us.Mile
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName

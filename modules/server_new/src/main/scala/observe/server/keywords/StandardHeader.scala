@@ -10,7 +10,7 @@ import cats.syntax.all.*
 import lucuma.core.enums.Site
 import lucuma.core.enums.StepGuideState
 import lucuma.core.model.ElevationRange
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation.Id
 import observe.model.Observer
 import observe.model.Operator

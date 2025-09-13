@@ -5,7 +5,7 @@ package observe.server.altair
 
 import cats.Applicative
 import cats.effect.Sync
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation.Id
 import observe.model.dhs.ImageFileId
 import observe.model.enums.KeywordName

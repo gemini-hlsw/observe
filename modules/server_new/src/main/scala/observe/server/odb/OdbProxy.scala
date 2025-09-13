@@ -30,7 +30,7 @@ object OdbProxy {
   def apply[F[_]](
     evCmds:     OdbEventCommands[F],
     subscriber: OdbSubscriber[F]
-  )(using F: Sync[F])(using FetchClient[F, ObservationDB]): OdbProxy[F] =
+  )(using FetchClient[F, ObservationDB])(using F: Sync[F]): OdbProxy[F] =
     new OdbProxy[F] {
       def read(oid: Observation.Id): F[OdbObservationData] =
         ObsQuery[F]

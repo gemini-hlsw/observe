@@ -3,7 +3,7 @@
 
 package observe.server.keywords
 
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.Observation.Id
 import observe.model.dhs.ImageFileId
 
