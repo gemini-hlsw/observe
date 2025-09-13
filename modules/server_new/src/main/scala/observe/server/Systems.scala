@@ -34,7 +34,7 @@ import observe.server.gsaoi.*
 import observe.server.gws.*
 import observe.server.keywords.*
 import observe.server.odb.OdbProxy
-import observe.server.odb.OdbProxy.DummyOdbProxy
+import observe.server.odb.DummyOdbProxy
 import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
@@ -46,6 +46,8 @@ import org.typelevel.log4cats.Logger
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
+import observe.server.odb.OdbCommandsImpl
+import observe.server.odb.DummyOdbCommands
 
 case class Systems[F[_]] private[server] (
   odb:                 OdbProxy[F],
@@ -124,9 +126,9 @@ object Systems {
         given FetchClient[F, ObservationDB] = streamingClient
         odbCommands                        <-
           if (settings.odbNotifications)
-            Ref.of[F, ObsRecordedIds](ObsRecordedIds.Empty).map(OdbProxy.OdbCommandsImpl[F](_))
+            Ref.of[F, ObsRecordedIds](ObsRecordedIds.Empty).map(OdbCommandsImpl[F](_))
           else
-            OdbProxy.DummyOdbCommands[F].pure[F]
+            DummyOdbCommands[F].pure[F]
         odbSubscriber                       = OdbSubscriber[F]()(using streamingClient)
       yield OdbProxy[F](odbCommands, odbSubscriber)
 
