@@ -5,7 +5,7 @@ import coulomb.define.*
 
 package object gws {
 
-  export coulomb.units.accepted.{Millibar, ctx_unit_Millibar}
+  export coulomb.units.accepted.Millibar
 
   final type Bar
   given unit_Millibar: DerivedUnit[Bar, 1000 * Millibar, "Bar", "Bar"] = DerivedUnit()

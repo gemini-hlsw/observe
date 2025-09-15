@@ -18,7 +18,7 @@ import lucuma.core.model.StandardUser
 import lucuma.core.model.User
 import lucuma.core.model.UserProfile
 import lucuma.core.model.sequence.Atom
-import lucuma.refined.*
+import lucuma.core.refined.auto.*
 import observe.common.test.observationId
 import observe.common.test.stepId
 import observe.model.ActionType

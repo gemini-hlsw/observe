@@ -3,10 +3,10 @@
 
 package observe.server.gws
 
+import algebra.instances.all.given
 import cats.*
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.policy.standard.given
 import coulomb.units.mks.Pascal
 import coulomb.units.si.Second
 import coulomb.units.temperature.Fahrenheit

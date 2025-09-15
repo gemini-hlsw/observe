@@ -10,7 +10,6 @@ import cats.effect.Ref
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all.*
 import coulomb.Quantity
-import coulomb.policy.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter

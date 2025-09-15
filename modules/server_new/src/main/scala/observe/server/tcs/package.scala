@@ -1,9 +1,8 @@
 package observe.server.tcs
 
-import algebra.instances.all.given
+import algebra.instances.all.*
 import cats.Eq
 import coulomb.*
-import coulomb.policy.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter
@@ -19,6 +18,7 @@ import observe.server.tcs.TcsController.OffsetP
 import observe.server.tcs.TcsController.OffsetQ
 
 import java.time.temporal.ChronoUnit
+import scala.language.implicitConversions
 
 private class FocalPlaneScale(
   angle:  Quantity[Double, ArcSecond],
@@ -53,10 +53,10 @@ object FocalPlaneScale:
 
 extension (a: Angle) {
   def iop: Quantity[Double, ArcSecond] =
-    Angle.signedDecimalMilliarcseconds.get(a).withUnit[ArcSecond]
+    Angle.signedDecimalMilliarcseconds.get(a).withUnit[ArcSecond].toValue[Double]
 
   def ioq: Quantity[Double, ArcSecond] =
-    Angle.signedDecimalMilliarcseconds.get(a).withUnit[ArcSecond]
+    Angle.signedDecimalMilliarcseconds.get(a).withUnit[ArcSecond].toValue[Double]
 }
 
 extension (o: Offset) {

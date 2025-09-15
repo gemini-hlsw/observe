@@ -6,13 +6,13 @@ package observe.ui.components.sequence.byInstrument
 import japgolly.scalajs.react.*
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SequenceType
+import lucuma.core.math.SingleSN
+import lucuma.core.math.TotalSN
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Dataset
 import lucuma.core.model.sequence.ExecutionConfig
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.gmos
-import lucuma.itc.SingleSN
-import lucuma.itc.TotalSN
 import lucuma.react.common.*
 import lucuma.schemas.model.Visit
 import observe.model.ExecutionState

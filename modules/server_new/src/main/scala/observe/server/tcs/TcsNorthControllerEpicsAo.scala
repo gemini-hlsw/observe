@@ -8,8 +8,6 @@ import cats.data.*
 import cats.effect.Async
 import cats.implicits.*
 import coulomb.Quantity
-import coulomb.ops.algebra.all.given
-import coulomb.policy.standard.given
 import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.ComaOption
 import lucuma.core.enums.M1Source

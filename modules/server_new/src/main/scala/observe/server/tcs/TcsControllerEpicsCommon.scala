@@ -3,15 +3,14 @@
 
 package observe.server.tcs
 
-import algebra.instances.all.given
+import algebra.instances.all.*
 import cats.*
 import cats.data.*
 import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.ops.algebra.all.given
-import coulomb.policy.standard.given
+import coulomb.conversion.implicits.given
 import coulomb.syntax.*
 import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.ComaOption

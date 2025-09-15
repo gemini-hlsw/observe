@@ -3,8 +3,8 @@
 
 package observe.ui.components
 
+import cats.Eq
 import cats.syntax.all.*
-import coulomb.policy.strict.given
 import crystal.react.*
 import eu.timepit.refined.cats.*
 import japgolly.scalajs.react.*
@@ -44,6 +44,8 @@ object ConfigPanel
         configApi <- useContext(ConfigApi.ctx)
       yield
         import ctx.given
+        // TODO Remove me when in core
+        given Eq[ImageQuality] = Eq.by(_.value.value)
 
         val iq: View[Option[ImageQuality]] =
           props.conditions

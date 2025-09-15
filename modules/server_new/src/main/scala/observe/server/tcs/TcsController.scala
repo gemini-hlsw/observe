@@ -10,7 +10,6 @@ import cats.data.OneAnd
 import cats.derived.*
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.policy.spire.standard.given
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter
 import lucuma.core.enums.*

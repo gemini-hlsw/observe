@@ -3,9 +3,9 @@
 
 package observe.server.tcs
 
-import algebra.instances.all.given
+import algebra.instances.all.*
 import coulomb.*
-import coulomb.policy.spire.standard.given
+import coulomb.conversion.implicits.given
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Degree
@@ -41,7 +41,7 @@ trait TcsArbitraries {
 
   given Arbitrary[TcsController.OffsetP]          = Arbitrary(
     rangedAngleGen(-offsetLimit, offsetLimit).map(u =>
-      TcsController.OffsetP.apply(u.withUnit[Degree])
+      TcsController.OffsetP.apply(u.withUnit[Degree].toValue[Double])
     )
   )
   given Cogen[TcsController.OffsetP]              =
@@ -63,7 +63,7 @@ trait TcsArbitraries {
     Cogen[(TcsController.OffsetP, TcsController.OffsetQ)].contramap(x => (x.p, x.q))
 
   given Arbitrary[Quantity[Double, ArcSecond]] = Arbitrary(
-    rangedAngleGen(-90.withUnit[Degree], 270.withUnit[Degree]).map(_.withUnit[ArcSecond])
+    rangedAngleGen(-90.0.withUnit[Degree], 270.0.withUnit[Degree]).map(_.withUnit[ArcSecond])
   )
   given Cogen[Quantity[Double, ArcSecond]]     = Cogen[Double].contramap(_.value)
 

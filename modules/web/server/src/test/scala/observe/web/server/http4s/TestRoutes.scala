@@ -10,7 +10,7 @@ import lucuma.core.model.StandardRole
 import lucuma.core.model.StandardUser
 import lucuma.core.model.User
 import lucuma.core.model.UserProfile
-import lucuma.refined.*
+import lucuma.core.refined.auto.*
 import lucuma.sso.client.SsoClient.AbstractSsoClient
 import observe.server.*
 import org.http4s.*

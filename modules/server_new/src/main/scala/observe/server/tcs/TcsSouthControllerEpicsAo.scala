@@ -7,8 +7,6 @@ import cats.*
 import cats.data.NonEmptySet
 import cats.effect.Async
 import cats.syntax.all.*
-import coulomb.ops.algebra.all.given
-import coulomb.policy.standard.given
 import lucuma.core.enums.ComaOption
 import lucuma.core.enums.M1Source
 import lucuma.core.enums.MountGuideOption

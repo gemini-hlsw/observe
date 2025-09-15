@@ -7,7 +7,6 @@ import algebra.instances.all.given
 import cats.data.NonEmptySet
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.policy.spire.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import lucuma.core.enums.Instrument

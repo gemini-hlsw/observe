@@ -30,7 +30,7 @@ import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
-import lucuma.refined.*
+import lucuma.core.refined.auto.*
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.focus
