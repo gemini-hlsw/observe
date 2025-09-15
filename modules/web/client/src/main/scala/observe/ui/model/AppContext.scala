@@ -17,9 +17,9 @@ import japgolly.scalajs.react.feature.Context
 import lucuma.core.enums.ExecutionEnvironment
 import lucuma.react.primereact.ToastRef
 import lucuma.schemas.ObservationDB
+import lucuma.ui.format.versionDateFormatter
+import lucuma.ui.format.versionDateTimeFormatter
 import lucuma.ui.sso.SSOClient
-import lucuma.ui.utils.versionDateFormatter
-import lucuma.ui.utils.versionDateTimeFormatter
 import observe.ui.BuildInfo
 import observe.ui.model.enums.AppTab
 import org.typelevel.log4cats.Logger

@@ -7,14 +7,13 @@ import cats.Id
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.implicits.*
-import coulomb.policy.strict.given
 import eu.timepit.refined.cats.given
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.SkyBackground
 import lucuma.core.enums.WaterVapor
 import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
-import lucuma.refined.*
+import lucuma.core.refined.auto.*
 import observe.model.*
 import observe.model.enums.*
 import observe.server.TestCommon.*
@@ -187,7 +186,7 @@ class StepsViewSuite extends TestCommon {
       oe <- observeEngine
       sf <- advanceN(oe, s0, oe.setImageQuality(iq, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
-      op === iq
+      op == iq
     }).assert
   }
 

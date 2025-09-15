@@ -8,6 +8,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.Quantity
 import coulomb.syntax.*
+import coulomb.units.syntax.*
 import coulomb.units.temperature.*
 import lucuma.core.math.Angle
 import lucuma.core.math.units.MetersPerSecond

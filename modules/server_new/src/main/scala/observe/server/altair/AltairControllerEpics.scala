@@ -9,7 +9,7 @@ import cats.effect.Async
 import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.policy.standard.given
+import coulomb.integrations.cats.all.given
 import coulomb.syntax.*
 import coulomb.units.accepted.ArcSecond
 import coulomb.units.accepted.Millimeter

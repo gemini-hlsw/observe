@@ -24,7 +24,7 @@ object Settings {
     val http4sJdkHttpClientVersion = "0.10.0"
     val http4sScalaXmlVersion      = "0.24.0"
 
-    val coulomb             = "0.8.0"
+    val coulomb             = "0.9.1"
     val commonsHttp         = "3.1"
     val unboundId           = "3.2.1"
     val jwt                 = "11.0.3"
@@ -51,17 +51,17 @@ object Settings {
     val pprint        = "0.9.3"
 
     // Gemini Libraries
-    val lucumaCore      = "0.142.0"
+    val lucumaCore      = "0.144.0"
     val lucumaSSO       = "0.10.0"
-    val lucumaODBSchema = "0.28.2"
+    val lucumaODBSchema = "0.28.3"
 
     // Gemini UI Libraries
     val crystal         = "0.49.0"
     val lucumaReact     = "0.85.0"
-    val lucumaUISchemas = "0.159.2"
+    val lucumaUISchemas = "0.163.2"
 
     // Clue
-    val clue = "0.47.0"
+    val clue = "0.48.0"
 
     // ScalaJS libraries
     val javaTimeJS   = "2.6.0"

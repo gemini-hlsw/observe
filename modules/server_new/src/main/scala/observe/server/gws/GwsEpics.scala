@@ -3,13 +3,14 @@
 
 package observe.server.gws
 
+import algebra.instances.all.given
 import cats.effect.IO
 import cats.effect.Sync
 import cats.syntax.all.*
 import coulomb.*
-import coulomb.policy.standard.given
 import coulomb.syntax.*
 import coulomb.units.accepted.Millibar
+import coulomb.units.syntax.*
 import coulomb.units.temperature.*
 import edu.gemini.epics.acm.CaService
 import lucuma.core.math.Angle
