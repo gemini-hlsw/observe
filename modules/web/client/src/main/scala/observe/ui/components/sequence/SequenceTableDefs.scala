@@ -59,7 +59,7 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
   protected val ImagingMirrorColumnId: ColumnId   = ColumnId("imagingMirror")
   protected val SettingsColumnId: ColumnId        = ColumnId("settings")
 
-  protected val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
+  protected lazy val ColumnSizes: Map[ColumnId, ColumnSize] = Map(
     HeaderColumnId          -> FixedSize(0.toPx),
     BreakpointColumnId      -> FixedSize(0.toPx),
     BreakpointSpaceColumnId -> FixedSize(30.toPx),
@@ -69,20 +69,20 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
     ReadModeColumnId        -> Resizable(180.toPx),
     ImagingMirrorColumnId   -> Resizable(10.toPx),
     SettingsColumnId        -> FixedSize(39.toPx)
-  ) ++ SequenceColumns.BaseColumnSizes
+  ) ++ SequenceColumns.BaseColumnSizes(instrument)
 
   // The order in which they are removed by overflow. The ones at the beginning go first.
   // Missing columns are not removed by overflow. (We declare them in reverse order)
-  protected val ColumnPriorities: List[ColumnId] =
+  protected lazy val ColumnPriorities: List[ColumnId] =
     List(
       CameraColumnId,
       DeckerColumnId,
       ReadModeColumnId,
       ImagingMirrorColumnId,
       SettingsColumnId
-    ).reverse ++ SequenceColumns.BaseColumnPriorities
+    ).reverse ++ SequenceColumns.BaseColumnPriorities(instrument)
 
-  protected val DynTableDef = DynTable(
+  protected lazy val DynTableDef = DynTable(
     ColumnSizes,
     ColumnPriorities,
     DynTable.ColState(
@@ -200,16 +200,9 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                             isPreview = isPreview
                           )
       )
-    ) ++ (
-      instrument match
-        case Instrument.GmosNorth | Instrument.GmosSouth =>
-          SequenceColumns(ColDef, _._1.some, _._2.some).forGmos
-            .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id)))
-        case Instrument.Flamingos2                       =>
-          SequenceColumns(ColDef, _._1.some, _._2.some).forFlamingos2
-            .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id)))
-        case _                                           => List.empty
     ) ++
+      SequenceColumns(ColDef, _._1.some, _._2.some)(instrument)
+        .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
         column(CameraColumnId, "Camera"),
