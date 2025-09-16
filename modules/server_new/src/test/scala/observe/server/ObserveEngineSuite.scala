@@ -9,7 +9,7 @@ import cats.effect.Async
 import cats.effect.IO
 import cats.effect.Ref
 import cats.syntax.all.*
-import eu.timepit.refined.cats.given
+import coulomb.integrations.cats.all.given
 import eu.timepit.refined.types.numeric.NonNegInt
 import eu.timepit.refined.types.numeric.PosLong
 import eu.timepit.refined.types.string.NonEmptyString
@@ -30,6 +30,7 @@ import lucuma.core.model.sequence.StepEstimate
 import lucuma.core.model.sequence.gmos.DynamicConfig
 import lucuma.core.model.sequence.gmos.StaticConfig
 import lucuma.core.refined.auto.*
+import lucuma.core.refined.given
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.Execution
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment
@@ -127,7 +128,7 @@ class ObserveEngineSuite extends TestCommon {
       oe <- observeEngine
       sf <- advanceN(oe, s0, oe.setImageQuality(iq, user, clientId), 2)
     } yield sf.flatMap(EngineState.conditions.andThen(Conditions.iq).get).exists { op =>
-      op == iq
+      op === iq
     }).assert
 
   }

@@ -3,10 +3,9 @@
 
 package observe.ui.components
 
-import cats.Eq
 import cats.syntax.all.*
+import coulomb.integrations.cats.all.given
 import crystal.react.*
-import eu.timepit.refined.cats.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.SkyBackground
@@ -15,6 +14,7 @@ import lucuma.core.model.CloudExtinction
 import lucuma.core.model.ImageQuality
 import lucuma.core.model.validation.ModelValidators
 import lucuma.core.optics.*
+import lucuma.core.refined.given
 import lucuma.core.syntax.validation.*
 import lucuma.core.validation.*
 import lucuma.react.common.*
@@ -44,8 +44,6 @@ object ConfigPanel
         configApi <- useContext(ConfigApi.ctx)
       yield
         import ctx.given
-        // TODO Remove me when in core
-        given Eq[ImageQuality] = Eq.by(_.value.value)
 
         val iq: View[Option[ImageQuality]] =
           props.conditions
