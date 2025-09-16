@@ -319,7 +319,8 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newClientId.flatMap: clientId =>
       RecordGmosNorthVisitMutation[F]
-        .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        // .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        .execute(obsId, staticCfg.toInput, addIdempotencyKey(clientId))
         .raiseGraphQLErrors
         .map(_.recordGmosNorthVisit.visit.id)
 
@@ -329,7 +330,8 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newClientId.flatMap: clientId =>
       RecordGmosSouthVisitMutation[F]
-        .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        // .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        .execute(obsId, staticCfg.toInput, addIdempotencyKey(clientId))
         .raiseGraphQLErrors
         .map(_.recordGmosSouthVisit.visit.id)
 
@@ -339,7 +341,8 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newClientId.flatMap: clientId =>
       RecordFlamingos2VisitMutation[F]
-        .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        // .execute(obsId, staticCfg.toInput, clientId, addIdempotencyKey(clientId))
+        .execute(obsId, staticCfg.toInput, addIdempotencyKey(clientId))
         .raiseGraphQLErrors
         .map(_.recordFlamingos2Visit.visit.id)
 
@@ -353,6 +356,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       RecordAtomMutation[F]
         .execute(
           RecordAtomInput(visitId, instrument, sequenceType, generatedId.orIgnore),
+          // clientId,
           addIdempotencyKey(clientId)
         )
         .raiseGraphQLErrors
@@ -402,7 +406,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def recordGmosNorthStep(input: RecordGmosNorthStepInput): F[RecordedStepId] =
     newClientId.flatMap: clientId =>
       RecordGmosNorthStepMutation[F]
-        .execute(input, addIdempotencyKey(clientId))
+        .execute(input, clientId, addIdempotencyKey(clientId))
         .raiseGraphQLErrors
         .map(_.recordGmosNorthStep.stepRecord.id)
         .map(RecordedStepId(_))
@@ -410,6 +414,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def recordGmosSouthStep(input: RecordGmosSouthStepInput): F[RecordedStepId] =
     newClientId.flatMap: clientId =>
       RecordGmosSouthStepMutation[F]
+        // .execute(input, clientId, addIdempotencyKey(clientId))
         .execute(input, addIdempotencyKey(clientId))
         .raiseGraphQLErrors
         .map(_.recordGmosSouthStep.stepRecord.id)
@@ -432,7 +437,8 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       .flatMap: fileName =>
         newClientId.flatMap: clientId =>
           RecordDatasetMutation[F]
-            .execute(stepId.value, fileName, clientId, addIdempotencyKey(clientId))
+            // .execute(stepId.value, fileName, clientId, addIdempotencyKey(clientId))
+            .execute(stepId.value, fileName, addIdempotencyKey(clientId))
             .raiseGraphQLErrors
             .map(_.recordDataset.dataset)
 

@@ -53,9 +53,22 @@ object EventsGQL:
 
   @GraphQL
   trait RecordDatasetMutation extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($stepId: StepId!, $filename: DatasetFilename!, $clientId: ClientId!) {
+    //     recordDataset(input: { stepId: $stepId, filename: $filename, clientId: $clientId } ) {
+    //       dataset {
+    //         id
+    //         reference {
+    //           label
+    //           observation { label }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($stepId: StepId!, $filename: DatasetFilename!, $clientId: ClientId!) {
-        recordDataset(input: { stepId: $stepId, filename: $filename, clientId: $clientId } ) {
+      mutation($stepId: StepId!, $filename: DatasetFilename!) {
+        recordDataset(input: { stepId: $stepId, filename: $filename } ) {
           dataset {
             id
             reference {
@@ -69,9 +82,16 @@ object EventsGQL:
 
   @GraphQL
   trait RecordAtomMutation extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($input: RecordAtomInput!, $clientId: ClientId!) {
+    //     recordAtom(input: $input, clientId: $clientId) {
+    //       atomRecord { id }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($input: RecordAtomInput!, $clientId: ClientId!) {
-        recordAtom(input: $input, clientId: $clientId) {
+      mutation($input: RecordAtomInput!) {
+        recordAtom(input: $input) {
           atomRecord { id }
         }
       }
@@ -89,30 +109,49 @@ object EventsGQL:
 
   @GraphQL
   trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!, $clientId: ClientId!) {
+    //     recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg, clientId: $clientId } ) {
+    //       visit { id }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!, $clientId: ClientId!) {
-        recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg, clientId: $clientId } ) {
+      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
+        recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg } ) {
           visit { id }
         }
       }
       """
 
   @GraphQL
-  trait RecordGmosSouthStepMutation extends GraphQLOperation[ObservationDB]:
+  trait RecordGmosSouthStepMutation  extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($input: RecordGmosSouthStepInput!, $clientId: ClientId!) {
+    //     recordGmosSouthStep(input: $input, clientId: $clientId) {
+    //       stepRecord { id }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($input: RecordGmosSouthStepInput!, $clientId: ClientId!) {
-        recordGmosSouthStep(input: $input, clientId: $clientId) {
+      mutation($input: RecordGmosSouthStepInput!) {
+        recordGmosSouthStep(input: $input) {
           stepRecord { id }
         }
       }
       """
-
   @GraphQL
   trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB]:
-    val document =
-      """
-      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!, $clientId: ClientId!) {
-        recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg, clientId: $clientId } ) {
+    // val document = """
+    //   mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!, $clientId: ClientId!) {
+    //     recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg, clientId: $clientId } ) {
+    //       visit { id }
+    //     }
+    //   }
+    //   """
+    val document = """
+      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
+        recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg } ) {
           visit { id }
         }
       }
@@ -130,10 +169,18 @@ object EventsGQL:
 
   @GraphQL
   trait RecordFlamingos2VisitMutation extends GraphQLOperation[ObservationDB]:
+    // val document =
+    //   """
+    //   mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!, $clientId: ClientId!) {
+    //     recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg, clientId: $clientId } ) {
+    //       visit { id }
+    //     }
+    //   }
+    //   """
     val document =
       """
-      mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!, $clientId: ClientId!) {
-        recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg, clientId: $clientId } ) {
+      mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!) {
+        recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg } ) {
           visit { id }
         }
       }
