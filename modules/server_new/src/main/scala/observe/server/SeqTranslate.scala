@@ -286,7 +286,6 @@ object SeqTranslate {
     }
 
     private def buildSequence[S, D, AG[_[_]]](
-      // sequence:      ExecutionConfig[gmos.StaticConfig.GmosNorth, gmos.DynamicConfig.GmosNorth],
       observation:     OdbObservation,
       executionConfig: ExecutionConfig[S, D],
       insSpec:         InstrumentSpecifics[S, D],
