@@ -96,7 +96,6 @@ object TestOdbProxy {
     val sciences: Lens[State, List[Atom[DynamicConfig.GmosNorth]]] = Focus[State](_.sciences)
 
   def build[F[_]: Concurrent](
-    // staticCfg:          Option[StaticConfig.GmosNorth] = None,
     staticCfg:          StaticConfig.GmosNorth,
     acquisition:        Option[Atom[DynamicConfig.GmosNorth]],
     sciences:           List[Atom[DynamicConfig.GmosNorth]] = List.empty,
@@ -146,8 +145,6 @@ object TestOdbProxy {
                     ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
                   )
                 ),
-                // Data.Observation.Execution(
-                // staticCfg.map(stc =>
                 InstrumentExecutionConfig.GmosNorth(
                   ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
                     staticCfg,
@@ -162,9 +159,7 @@ object TestOdbProxy {
                       )
                     )
                   )
-                  // )
                 )
-                // ),
               )
             }
 

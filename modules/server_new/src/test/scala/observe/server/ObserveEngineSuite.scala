@@ -436,23 +436,6 @@ class ObserveEngineSuite extends TestCommon {
         ),
         reqConditions,
         List.empty,
-        // Execution(
-        //   GmosNorth(
-        //     ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-        //       staticCfg1,
-        //       ExecutionSequence[DynamicConfig.GmosNorth](
-        //         Atom[DynamicConfig.GmosNorth](
-        //           atomId1,
-        //           None,
-        //           stepList
-        //         ),
-        //         List.empty,
-        //         false
-        //       ).some,
-        //       None
-        //     )
-        //   ).some
-        // ),
         ODBObservation.Itc(
           ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
           ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
@@ -704,23 +687,6 @@ class ObserveEngineSuite extends TestCommon {
         TargetEnvironment(None, GuideEnvironment(List.empty)),
         reqConditions,
         List.empty,
-        // Execution(
-        //   GmosNorth(
-        //     ExecutionConfig[StaticConfig.GmosNorth, DynamicConfig.GmosNorth](
-        //       staticCfg1,
-        //       ExecutionSequence[DynamicConfig.GmosNorth](
-        //         Atom[DynamicConfig.GmosNorth](
-        //           atomId1,
-        //           None,
-        //           stepList
-        //         ),
-        //         List.empty,
-        //         false
-        //       ).some,
-        //       None
-        //     )
-        //   ).some
-        // ),
         ODBObservation.Itc(
           ODBObservation.Itc.Acquisition(ODBObservation.Itc.Acquisition.Selected(none)),
           ODBObservation.Itc.Science(ODBObservation.Itc.Science.Selected(none))
