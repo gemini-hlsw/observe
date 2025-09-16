@@ -63,6 +63,8 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def newClientId: F[Client.Id] =
     UUIDGen[F].randomUUID.map(Client.Id(_))
 
+  // We use the default retry policy in the http4s client. For it to kick in
+  // we need to add the `Idempotency-Key` header to non-GET requests.
   private def addIdempotencyKey(eventId: Client.Id): Endo[Request[F]] = req =>
     req.putHeaders(`Idempotency-Key`(eventId.toString))
 
