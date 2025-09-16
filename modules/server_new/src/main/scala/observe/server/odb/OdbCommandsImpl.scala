@@ -6,7 +6,9 @@ package observe.server.odb
 import cats.Endo
 import cats.effect.Sync
 import cats.effect.kernel.Ref
+import cats.effect.std.UUIDGen
 import cats.syntax.all.*
+import clue.FetchClientWithPars
 import clue.data.syntax.*
 import clue.syntax.*
 import lucuma.core.enums.AtomStage
@@ -16,6 +18,7 @@ import lucuma.core.enums.ObserveClass
 import lucuma.core.enums.SequenceCommand
 import lucuma.core.enums.SequenceType
 import lucuma.core.enums.StepStage
+import lucuma.core.model.Client
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.core.model.sequence.Atom
@@ -39,13 +42,10 @@ import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
 import observe.model.odb.RecordedAtomId
 import observe.model.odb.RecordedStepId
-import org.typelevel.log4cats.Logger
-import lucuma.core.model.Client
-import org.http4s.Request
 import org.http4s.Header
+import org.http4s.Request
 import org.http4s.headers.`Idempotency-Key`
-import clue.FetchClientWithPars
-import cats.effect.std.UUIDGen
+import org.typelevel.log4cats.Logger
 
 case class OdbCommandsImpl[F[_]: UUIDGen](
   idTracker: Ref[F, ObsRecordedIds]
