@@ -200,14 +200,9 @@ trait SequenceTableDefs[D] extends SequenceRowBuilder[D]:
                             isPreview = isPreview
                           )
       )
-    ) ++ (
-      instrument match
-        case Instrument.GmosNorth | Instrument.GmosSouth =>
-          SequenceColumns(ColDef, _._1.some, _._2.some).ForGmos
-        case Instrument.Flamingos2                       =>
-          SequenceColumns(ColDef, _._1.some, _._2.some).ForFlamingos2
-        case _                                           => List.empty
-    ).map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
+    ) ++
+      SequenceColumns(ColDef, _._1.some, _._2.some)(instrument)
+        .map(colDef => colDef.withColumnSize(ColumnSizes(colDef.id))) ++
       List(
         // column(ObsModeColumnId, "Observing Mode"),
         column(CameraColumnId, "Camera"),
