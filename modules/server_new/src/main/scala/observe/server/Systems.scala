@@ -114,8 +114,6 @@ object Systems {
 
     def odbProxy[F[_]: Async: Logger: Trace: Http4sHttpBackend: SecureRandom]: F[OdbProxy[F]] =
       for
-        // given FetchClient[F, ObservationDB] <-
-        // TODO RETRY POLICY THAT RETRIES POSTS!!!
         fetchClient                    <- // Http client used ONLY for recording events.
           Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
         wsClient                       <- JdkWSClient.simple[F].allocated.map(_._1)
