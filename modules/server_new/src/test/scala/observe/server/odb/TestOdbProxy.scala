@@ -34,10 +34,10 @@ import lucuma.core.refined.auto.*
 import monocle.Focus
 import monocle.Lens
 import monocle.syntax.all.focus
+import observe.common.EventsGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.common.ObsQueriesGQL.ObsQuery.Data
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation as ODBObservation
 import observe.common.ObsQueriesGQL.ObsQuery.Data.Observation.TargetEnvironment.GuideEnvironment
-import observe.common.ObsQueriesGQL.RecordDatasetMutation.Data.RecordDataset.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
 

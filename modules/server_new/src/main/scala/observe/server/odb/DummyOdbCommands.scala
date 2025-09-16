@@ -16,7 +16,7 @@ import lucuma.core.model.sequence.Dataset
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig as CoreTelescopeConfig
-import observe.common.ObsQueriesGQL.*
+import observe.common.EventsGQL.*
 import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
 

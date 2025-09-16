@@ -263,7 +263,8 @@ object WebServerLauncher extends IOApp with LogInitialization {
     Logger[F].info(banner + msg)
   }
 
-  // Override the default client config
+  // We build a client with the default retry policy, which will retry GET requests as
+  // well as non-GET requests that contain the `Idempotency-Key` header (which we set in `OdbProxy`).
   private def mkClient[F[_]: Async: Network: Logger](
     timeout: FiniteDuration
   ): Resource[F, Client[F]] =

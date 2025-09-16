@@ -12,7 +12,8 @@ import cats.effect.Temporal
 import cats.effect.kernel.Ref
 import cats.effect.std.SecureRandom
 import cats.syntax.all.*
-import clue.*
+import clue.http4s.Http4sHttpBackend
+import clue.http4s.Http4sHttpClient
 import clue.http4s.Http4sWebSocketBackend
 import clue.http4s.Http4sWebSocketClient
 import clue.natchez.NatchezMiddleware
@@ -41,6 +42,7 @@ import observe.server.odb.OdbSubscriber
 import observe.server.tcs.*
 import org.http4s.AuthScheme
 import org.http4s.Credentials
+import org.http4s.Headers
 import org.http4s.client.Client
 import org.http4s.headers.Authorization
 import org.http4s.jdkhttpclient.JdkWSClient
@@ -110,27 +112,27 @@ object Systems {
 
     private val authHeader = Authorization(Credentials.Token(AuthScheme.Bearer, sso.serviceToken))
 
-    def odbProxy[F[_]: Async: Logger: Trace /*: Http4sHttpBackend*/: SecureRandom]: F[OdbProxy[F]] =
+    def odbProxy[F[_]: Async: Logger: Trace: Http4sHttpBackend: SecureRandom]: F[OdbProxy[F]] =
       for
-        // given FetchClient[F, ObservationDB] <-
-        //   Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
-        wsClient                           <- JdkWSClient.simple[F].allocated.map(_._1)
-        given Http4sWebSocketBackend[F]     = Http4sWebSocketBackend[F](wsClient)
-        innerClient                        <-
+        fetchClient                    <- // Http client used ONLY for recording events.
+          Http4sHttpClient.of[F, ObservationDB](settings.odbHttp, "ODB", Headers(authHeader))
+        wsClient                       <- JdkWSClient.simple[F].allocated.map(_._1)
+        given Http4sWebSocketBackend[F] = Http4sWebSocketBackend[F](wsClient)
+        innerClient                    <-
           Http4sWebSocketClient.of[F, ObservationDB](settings.odbWs, "ODB-WS", WsReconnectStrategy)
-        _                                  <-
+        _                              <-
           innerClient.connect:
             Map(Authorization.name.toString -> authHeader.credentials.renderString.asJson).pure[F]
-        streamingClient                     = NatchezMiddleware(innerClient)
-        // TODO: Remove next line, revert to http client
-        given FetchClient[F, ObservationDB] = streamingClient
-        odbCommands                        <-
+        streamingClient                 = NatchezMiddleware(innerClient)
+        odbCommands                    <-
           if (settings.odbNotifications)
-            Ref.of[F, ObsRecordedIds](ObsRecordedIds.Empty).map(OdbCommandsImpl[F](_))
+            Ref
+              .of[F, ObsRecordedIds](ObsRecordedIds.Empty)
+              .map(OdbCommandsImpl[F](_)(using fetchClient))
           else
             DummyOdbCommands[F].pure[F]
-        odbSubscriber                       = OdbSubscriber[F]()(using streamingClient)
-      yield OdbProxy[F](odbCommands, odbSubscriber)
+        odbSubscriber                   = OdbSubscriber[F]()(using streamingClient)
+      yield OdbProxy[F](odbCommands, odbSubscriber)(using streamingClient)
 
     def dhs[F[_]: Async: Logger](site: Site, httpClient: Client[F]): F[DhsClientProvider[F]] =
       if (settings.systemControl.dhs.command)
@@ -412,6 +414,7 @@ object Systems {
       else GwsKeywordsReaderDummy[IO].pure[IO]
 
     def build(site: Site, httpClient: Client[IO]): Resource[IO, Systems[IO]] =
+      given Http4sHttpBackend[IO] = Http4sHttpBackend(httpClient)
       for {
         odbProxy                                          <- Resource.eval[IO, OdbProxy[IO]](odbProxy[IO])
         dhsClient                                         <- Resource.eval(dhs[IO](site, httpClient))
