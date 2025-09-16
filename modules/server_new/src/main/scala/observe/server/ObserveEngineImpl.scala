@@ -6,13 +6,12 @@ package observe.server
 import cats.Applicative
 import cats.Endo
 import cats.Monoid
-import cats.Order
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.effect.Ref
 import cats.effect.syntax.all.*
 import cats.syntax.all.*
-import eu.timepit.refined.cats.given
+import coulomb.integrations.cats.all.given
 import fs2.Stream
 import lucuma.core.enums.Breakpoint
 import lucuma.core.enums.Instrument
@@ -26,6 +25,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.User
 import lucuma.core.model.sequence.Step
 import lucuma.core.model.sequence.StepConfig as OcsStepConfig
+import lucuma.core.refined.given
 import monocle.Focus
 import monocle.Lens
 import monocle.Optional
@@ -139,9 +139,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
     requested: CloudExtinction.Preset
   ): Boolean =
     actual.forall(_ <= requested.toCloudExtinction)
-
-  // TODO replace it when core gets updates
-  private given Order[ImageQuality] = Order.by(_.value.value)
 
   private def checkImageQuality(
     actual:    Option[ImageQuality],

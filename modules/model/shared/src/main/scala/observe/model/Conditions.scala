@@ -4,7 +4,9 @@
 package observe.model
 
 import cats.Eq
+import cats.derived.*
 import cats.syntax.all.*
+import coulomb.integrations.cats.all.given
 import io.circe.Decoder
 import io.circe.Encoder
 import io.circe.refined.*
@@ -22,7 +24,8 @@ case class Conditions(
   iq: Option[ImageQuality],
   sb: Option[SkyBackground],
   wv: Option[WaterVapor]
-) derives Encoder.AsObject,
+) derives Eq,
+      Encoder.AsObject,
       Decoder
 
 object Conditions:
@@ -68,6 +71,3 @@ object Conditions:
   val iq: Lens[Conditions, Option[ImageQuality]]    = Focus[Conditions](_.iq)
   val sb: Lens[Conditions, Option[SkyBackground]]   = Focus[Conditions](_.sb)
   val wv: Lens[Conditions, Option[WaterVapor]]      = Focus[Conditions](_.wv)
-
-  // TODO Replace when ImageQuality Eq is in place in core
-  given Eq[Conditions] = Eq.by(x => (x.ce, x.iq.map(_.value.value), x.sb, x.wv))
