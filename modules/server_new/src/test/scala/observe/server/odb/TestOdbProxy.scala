@@ -240,9 +240,6 @@ object TestOdbProxy {
         override def stepStop(obsId: Observation.Id): F[Boolean] =
           addEvent(StepStop(obsId)).as(true)
 
-        override def atomEnd(obsId: Observation.Id): F[Boolean] =
-          rf.update(_.completeCurrentAtom) *> addEvent(AtomEnd(obsId)).as(true)
-
         override def obsContinue(obsId: Observation.Id): F[Boolean] =
           addEvent(ObsContinue(obsId)).as(true)
 

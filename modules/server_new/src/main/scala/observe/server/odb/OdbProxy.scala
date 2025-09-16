@@ -19,7 +19,7 @@ import observe.common.ObsQueriesGQL.*
 import observe.model.dhs.*
 import observe.server.ObserveFailure
 
-trait OdbProxy[F[_]] private[odb] () extends OdbEventCommands[F] {
+trait OdbProxy[F[_]] private[odb] () extends OdbCommands[F] {
   def read(oid:               Observation.Id): F[OdbObservationData]
   def resetAcquisition(obsId: Observation.Id): F[Unit]
 
@@ -28,7 +28,7 @@ trait OdbProxy[F[_]] private[odb] () extends OdbEventCommands[F] {
 
 object OdbProxy {
   def apply[F[_]](
-    evCmds:     OdbEventCommands[F],
+    evCmds:     OdbCommands[F],
     subscriber: OdbSubscriber[F]
   )(using FetchClient[F, ObservationDB])(using F: Sync[F]): OdbProxy[F] =
     new OdbProxy[F] {

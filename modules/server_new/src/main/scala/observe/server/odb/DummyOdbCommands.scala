@@ -20,7 +20,7 @@ import observe.common.EventsGQL.*
 import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
 
-class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {
+class DummyOdbCommands[F[_]: Sync] extends OdbCommands[F] {
   override def sequenceStart(
     obsId: Observation.Id
   ): F[Unit] =
@@ -64,8 +64,6 @@ class DummyOdbCommands[F[_]: Sync] extends OdbEventCommands[F] {
   def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
   def stepStop(obsId: Observation.Id): F[Boolean] = false.pure[F]
-
-  def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
   override def obsContinue(obsId: Observation.Id): F[Boolean] =
     false.pure[F]

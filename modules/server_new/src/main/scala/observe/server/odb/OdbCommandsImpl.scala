@@ -11,7 +11,6 @@ import cats.syntax.all.*
 import clue.FetchClientWithPars
 import clue.data.syntax.*
 import clue.syntax.*
-import lucuma.core.enums.AtomStage
 import lucuma.core.enums.DatasetStage
 import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
@@ -52,7 +51,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
 )(using client: FetchClientWithPars[F, Request[F], ObservationDB])(using
   val F:     Sync[F],
   L:         Logger[F]
-) extends OdbEventCommands[F]
+) extends OdbCommands[F]
     with IdTrackerOps[F](idTracker) {
 
   private val FitsFileExtension: String                   = ".fits"
@@ -84,14 +83,12 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
     sequenceType: SequenceType,
     generatedId:  Option[Atom.Id]
   ): F[Unit] = for
-    visitId  <- getCurrentVisitId(obsId)
-    _        <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
-    atomId   <- recordAtom(visitId, sequenceType, instrument, generatedId)
-    -        <- setCurrentAtomId(obsId, atomId)
-    clientId <- newClientId
-    _        <- AddAtomEventMutation[F]
-                  .execute(atomId.value, AtomStage.StartAtom, clientId, addIdempotencyKey(clientId))
-    _        <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
+    visitId <- getCurrentVisitId(obsId)
+    _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
+    // clientId <- newClientId
+    atomId  <- recordAtom(visitId, sequenceType, instrument, generatedId)
+    -       <- setCurrentAtomId(obsId, atomId)
+    _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
   yield ()
 
   override def sequenceStart(
@@ -265,16 +262,6 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
                     .execute(stepId.value, StepStage.Stop, clientId, addIdempotencyKey(clientId))
       _        <- L.debug("ODB event stepStop sent")
     yield true
-
-  override def atomEnd(obsId: Observation.Id): F[Boolean] =
-    for {
-      atomId   <- getCurrentAtomId(obsId)
-      _        <- L.debug(s"Send ODB event atomEnd for obsId: $obsId, atomId: $atomId")
-      clientId <- newClientId
-      _        <- AddAtomEventMutation[F]
-                    .execute(atomId.value, AtomStage.EndAtom, clientId, addIdempotencyKey(clientId))
-      _        <- L.debug("ODB event atomEnd sent")
-    } yield true
 
   override def obsContinue(obsId: Observation.Id): F[Boolean] =
     for

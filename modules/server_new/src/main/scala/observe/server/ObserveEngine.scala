@@ -405,24 +405,21 @@ object ObserveEngine {
       .map(EngineState.atSequence[F](obsId).getOption)
       .flatMap {
         _.map { seq =>
-          Handle.liftF[F, EngineState[F], Event[F], Boolean](
-            odb.atomEnd(obsId)
-          ) *>
-            (seq.seqGen.nextAtom.sequenceType match {
-              case SequenceType.Acquisition =>
-                Handle.pure[F, EngineState[F], Event[F], SeqEvent](
-                  SeqEvent.AtomCompleted(
-                    obsId,
-                    SequenceType.Acquisition,
-                    seq.seqGen.nextAtom.atomId
-                  )
+          seq.seqGen.nextAtom.sequenceType match {
+            case SequenceType.Acquisition =>
+              Handle.pure[F, EngineState[F], Event[F], SeqEvent](
+                SeqEvent.AtomCompleted(
+                  obsId,
+                  SequenceType.Acquisition,
+                  seq.seqGen.nextAtom.atomId
                 )
-              case SequenceType.Science     =>
-                tryNewAtom[F](odb, translator, executeEngine, obsId, SequenceType.Science)
-                  .as(
-                    SeqEvent.AtomCompleted(obsId, SequenceType.Science, seq.seqGen.nextAtom.atomId)
-                  )
-            })
+              )
+            case SequenceType.Science     =>
+              tryNewAtom[F](odb, translator, executeEngine, obsId, SequenceType.Science)
+                .as(
+                  SeqEvent.AtomCompleted(obsId, SequenceType.Science, seq.seqGen.nextAtom.atomId)
+                )
+          }
         }.getOrElse(
           EngineHandle.pure[F, SeqEvent](NullSeqEvent)
         )
