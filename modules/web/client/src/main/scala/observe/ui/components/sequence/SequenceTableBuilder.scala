@@ -142,8 +142,7 @@ private trait SequenceTableBuilder[S, D](protected val instrument: Instrument)
                 scienceSteps,
                 acquisitionPrompt
               )
-        dynTable                 <-
-          useDynTable(DynTableDef, SizePx(resize.width.orEmpty))
+        dynTable                 <- useDynTable(DynTableDef, SizePx(resize.width.orEmpty))
         table                    <-
           useReactTable:
             TableOptions(
