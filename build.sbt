@@ -118,7 +118,6 @@ ThisBuild / scalacOptions ++= Seq(
   // ScalablyTyped macros introduce deprecated methods, this silences those warnings
   "-Wconf:msg=linkingInfo in package scala.scalajs.runtime is deprecated:s"
 )
-// ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
 ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
   "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
