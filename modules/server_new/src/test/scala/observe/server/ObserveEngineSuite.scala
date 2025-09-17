@@ -1124,32 +1124,13 @@ class ObserveEngineSuite extends TestCommon {
 
   def assertAtom(
     l:             List[TestOdbProxy.OdbEvent],
-    seqType:       SequenceType,
     atomStepCount: Int
   ): List[TestOdbProxy.OdbEvent] = {
-    // First we get AtomStart
-    assertEquals(
-      List(
-        TestOdbProxy.AtomStart(
-          seqObsId1,
-          Instrument.GmosNorth,
-          seqType
-        )
-      ),
-      l.take(1)
-    )
-    // Test each step drop the first event fo AtomStart
-    val ss = (1 until atomStepCount).foldLeft(assertStep(l.drop(1))) { case (b, _) =>
+    val ss = (1 until atomStepCount).foldLeft(assertStep(l)) { case (b, _) =>
       assertStep(b)
     }
 
-    // At the end AtomEnd
-    assertEquals(
-      List(TestOdbProxy.AtomEnd(seqObsId1)),
-      ss.take(1)
-    )
-
-    ss.drop(1)
+    ss
   }
 
   test("ObserveEngine start should run the sequence and produce the ODB events") {
@@ -1219,9 +1200,9 @@ class ObserveEngineSuite extends TestCommon {
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft(
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science, stepCount)
+        assertAtom(res.drop(firstEvents.length), stepCount)
       ) { case (b, _) =>
-        assertAtom(b, SequenceType.Science, stepCount)
+        assertAtom(b, stepCount)
       }
       assertEquals(rest.length, 0)
     }
@@ -1310,9 +1291,9 @@ class ObserveEngineSuite extends TestCommon {
     } yield {
       assertEquals(res.take(firstEvents.length), firstEvents)
       val rest = (1 until atomCount).foldLeft {
-        assertAtom(res.drop(firstEvents.length), SequenceType.Science, 3)
+        assertAtom(res.drop(firstEvents.length), 3)
       } { case (b, _) =>
-        assertAtom(b, SequenceType.Science, 2)
+        assertAtom(b, 2)
       }
       assertEquals(rest.length, 0)
     }

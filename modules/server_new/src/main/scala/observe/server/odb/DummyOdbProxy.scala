@@ -73,8 +73,6 @@ class DummyOdbProxy[F[_]: Sync] extends OdbProxy[F] {
 
   override def stepAbort(obsId: Observation.Id): F[Boolean] = false.pure[F]
 
-  override def atomEnd(obsId: Observation.Id): F[Boolean] = false.pure[F]
-
   override def visitStart[S](obsId: Observation.Id, staticCfg: S): F[Unit] =
     Applicative[F].unit
 

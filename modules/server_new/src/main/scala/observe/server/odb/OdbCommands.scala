@@ -15,7 +15,7 @@ import observe.common.EventsGQL.*
 import observe.model.dhs.*
 import observe.model.odb.ObsRecordedIds
 
-trait OdbEventCommands[F[_]] private[odb] () {
+trait OdbCommands[F[_]] private[odb] () {
   def visitStart[S](
     obsId:     Observation.Id,
     staticCfg: S
@@ -53,7 +53,6 @@ trait OdbEventCommands[F[_]] private[odb] () {
   def stepEndStep(obsId:         Observation.Id): F[Boolean]
   def stepAbort(obsId:           Observation.Id): F[Boolean]
   def stepStop(obsId:            Observation.Id): F[Boolean]
-  def atomEnd(obsId:             Observation.Id): F[Boolean]
   def obsContinue(obsId:         Observation.Id): F[Boolean]
   def obsPause(obsId:            Observation.Id, reason: String): F[Boolean]
   def obsStop(obsId:             Observation.Id, reason: String): F[Boolean]

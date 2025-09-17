@@ -174,12 +174,12 @@ object TestOdbProxy {
           instrument:   Instrument,
           sequenceType: SequenceType,
           generatedId:  Option[Atom.Id]
-        ): F[Unit] = (sequenceType match {
+        ): F[Unit] = sequenceType match {
           case SequenceType.Acquisition =>
             rf.update(State.currentAtom.replace(generatedId))
           case SequenceType.Science     =>
             rf.update(State.currentAtom.replace(generatedId))
-        }) *> addEvent(AtomStart(obsId, instrument, sequenceType))
+        }
 
         override def stepStartStep[D](
           obsId:           Observation.Id,
@@ -240,9 +240,6 @@ object TestOdbProxy {
         override def stepStop(obsId: Observation.Id): F[Boolean] =
           addEvent(StepStop(obsId)).as(true)
 
-        override def atomEnd(obsId: Observation.Id): F[Boolean] =
-          rf.update(_.completeCurrentAtom) *> addEvent(AtomEnd(obsId)).as(true)
-
         override def obsContinue(obsId: Observation.Id): F[Boolean] =
           addEvent(ObsContinue(obsId)).as(true)
 
@@ -261,11 +258,6 @@ object TestOdbProxy {
   sealed trait OdbEvent
   case class VisitStart[S](obsId: Observation.Id, staticCfg: S)               extends OdbEvent
   case class SequenceStart(obsId: Observation.Id)                             extends OdbEvent
-  case class AtomStart(
-    obsId:        Observation.Id,
-    instrument:   Instrument,
-    sequenceType: SequenceType
-  ) extends OdbEvent
   case class StepStartStep[D](
     obsId:           Observation.Id,
     dynamicConfig:   D,
@@ -286,9 +278,7 @@ object TestOdbProxy {
   case class StepEndStep(obsId: Observation.Id)                               extends OdbEvent
   case class StepAbort(obsId: Observation.Id)                                 extends OdbEvent
   case class StepStop(obsId: Observation.Id)                                  extends OdbEvent
-  case class AtomEnd(obsId: Observation.Id)                                   extends OdbEvent
   case class ObsContinue(obsId: Observation.Id)                               extends OdbEvent
   case class ObsPause(obsId: Observation.Id, reason: String)                  extends OdbEvent
   case class ObsStop(obsId: Observation.Id, reason: String)                   extends OdbEvent
-
 }
