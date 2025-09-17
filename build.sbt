@@ -113,7 +113,11 @@ Global / onChangedBuildSource                   := ReloadOnSourceChanges
 ThisBuild / scalafixDependencies += "edu.gemini" % "lucuma-schemas_3" % LibraryVersions.lucumaUISchemas
 ThisBuild / scalaVersion                        := "3.7.3"
 ThisBuild / crossScalaVersions                  := Seq("3.7.3")
-ThisBuild / scalacOptions ++= Seq("-language:implicitConversions")
+ThisBuild / scalacOptions ++= Seq(
+  "-language:implicitConversions",
+  // ScalablyTyped macros introduce deprecated methods, this silences those warnings
+  "-Wconf:msg=linkingInfo in package scala.scalajs.runtime is deprecated:s"
+)
 ThisBuild / scalafixResolvers += coursierapi.MavenRepository.of(
   "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 )
