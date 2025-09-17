@@ -58,8 +58,10 @@ object ObservationProgressBar
       for
         ctx             <- useContext(AppContext.ctx)
         remainingShown  <- useState(props.exposureTime)
-        // if less than remainingShown, we keep the shown value until this one catches up
+        // If less than remainingShown, we keep the shown value until this one catches up
         remainingActual <- useRef(props.exposureTime)
+        // In case the instrument reports a larger remaining time than the maximum, we adjust it.
+        maxTime         <- useRef(props.exposureTime)
         _               <-
           useEffectStreamWithDeps(props.isStatic): isStatic =>
             import ctx.given
@@ -69,8 +71,12 @@ object ObservationProgressBar
                 fs2.Stream
                   .awakeEvery[IO](UpdatePeriod)
                   .evalMap: _ =>
-                    val newRemaining = remainingActual.value -| UpdateTimeSpan
-                    remainingActual.setAsync(newRemaining) >>
+                    val newRemaining: TimeSpan = remainingActual.value -| UpdateTimeSpan
+                    val newMaxTime: TimeSpan   =
+                      if (remainingActual.value > maxTime.value) remainingActual.value
+                      else maxTime.value
+                    maxTime.setAsync(newMaxTime) >>
+                      remainingActual.setAsync(newRemaining) >>
                       Option
                         .when(newRemaining < remainingShown.value):
                           remainingShown.setStateAsync(newRemaining)
@@ -97,8 +103,8 @@ object ObservationProgressBar
           <.div(ObserveStyles.Prime.EmptyProgressBarLabel)(msg)
         )
       } { runningProgress =>
-        val elapsedMicros: Long = (props.exposureTime -| remainingShown.value).toMicroseconds
-        val progress: Double    = (elapsedMicros * 100.0) / props.exposureTime.toMicroseconds
+        val elapsedMicros: Long = (maxTime.value -| remainingShown.value).toMicroseconds
+        val progress: Double    = (elapsedMicros * 100.0) / maxTime.value.toMicroseconds
 
         ProgressBar(
           id = "progress",
