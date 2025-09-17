@@ -76,7 +76,7 @@ object ObsQueriesGQL:
           itc { ...itcFields }
         }
 
-        executionConfig(futureLimit: 100) {
+        executionConfig(observationId: $$obsId, futureLimit: 100) {
           instrument
           gmosNorth {
             static {
