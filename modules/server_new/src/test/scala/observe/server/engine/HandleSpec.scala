@@ -42,12 +42,11 @@ class HandleSpec extends munit.DisciplineSuite with TestInstances {
     Cogen[StateT[F, S, (O, List[E])]]
       .contramap(_.stateT.map((o, es) => (o, es.translate(fk).compile.toList)))
 
-  given IO ~> Id =
+  given ioFunc: (IO ~> Id) =
     new (IO ~> Id) {
       def apply[A](fa: IO[A]): Id[A] =
-        fa.unsafeRunSync() 
+        fa.unsafeRunSync()
     }
-
 
   // Adapted from https://github.com/typelevel/cats/blob/main/tests/shared/src/test/scala/cats/tests/IndexedStateTSuite.scala
   given [F[_]: FlatMap, S: ExhaustiveCheck, E, O](using
@@ -63,7 +62,6 @@ class HandleSpec extends munit.DisciplineSuite with TestInstances {
   given Eq[Throwable] = Eq.fromUniversalEquals
 
   given Ticker = Ticker(TestContext())
-
 
   checkAll(
     "Handle[Int].MonadErrorLaws",
