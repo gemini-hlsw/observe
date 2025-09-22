@@ -234,7 +234,7 @@ object TcsSouth {
       .exists(_.probe === GuideProbe.PWFS2)
       .option(telescopeConfig.guiding)
     val gwoi   = targets.guideEnvironment.guideTargets
-      .exists(_.probe === GuideProbe.GmosOIWFS)
+      .exists(x => x.probe === GuideProbe.GmosOIWFS || x.probe === GuideProbe.Flamingos2OIWFS)
       .option(telescopeConfig.guiding)
     val gwc1   = none.map(_ => guiding)
     val gwc2   = none.map(_ => guiding)
