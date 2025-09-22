@@ -147,7 +147,7 @@ object ObsKeywordReader {
           case Enabled  => "guiding"
           case Disabled => "frozen"
         }
-        .getOrElse("frozen")
+        .getOrElse("parked")
 
       override def pwfs1Guide: F[Option[StepGuideState]] =
         obsCfg.targetEnvironment.guideEnvironment.guideTargets
@@ -171,7 +171,7 @@ object ObsKeywordReader {
 
       override def oiwfsGuide: F[Option[StepGuideState]] =
         obsCfg.targetEnvironment.guideEnvironment.guideTargets
-          .exists(_.probe === GuideProbe.GmosOIWFS)
+          .exists(x => x.probe === GuideProbe.GmosOIWFS || x.probe === GuideProbe.Flamingos2OIWFS)
           .option(step.telescopeConfig.guiding)
           .pure[F]
 
