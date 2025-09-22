@@ -51,9 +51,8 @@ object Settings {
     val pprint        = "0.9.3"
 
     // Gemini Libraries
-    val lucumaCore      = "0.144.0"
-    val lucumaSSO       = "0.10.0"
-    val lucumaODBSchema = "0.28.3"
+    val lucumaCore    = "0.144.0"
+    val lucumaServers = "0.50.0"
 
     // Gemini UI Libraries
     val crystal         = "0.49.0"
@@ -254,7 +253,7 @@ object Settings {
     )
 
     val LucumaSSO =
-      Def.setting("edu.gemini" %%% "lucuma-sso-backend-client" % LibraryVersions.lucumaSSO)
+      Def.setting("edu.gemini" %%% "lucuma-sso-backend-client" % LibraryVersions.lucumaServers)
 
     val LucumaSchemas   =
       Def.setting(
@@ -265,7 +264,7 @@ object Settings {
       )
     val LucumaODBSchema =
       Def.setting(
-        "edu.gemini" %%% "lucuma-odb-schema" % LibraryVersions.lucumaODBSchema
+        "edu.gemini" %%% "lucuma-odb-schema" % LibraryVersions.lucumaServers
       )
 
     val Clue          = Def.setting("edu.gemini" %%% "clue-core" % LibraryVersions.clue)
