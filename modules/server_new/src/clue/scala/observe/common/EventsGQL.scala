@@ -89,9 +89,16 @@ object EventsGQL:
 
   @GraphQL
   trait RecordGmosNorthStepMutation extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($input: RecordGmosNorthStepInput!, $clientId: ClientId!) {
+    //     recordGmosNorthStep(input: $input, clientId: $clientId) {
+    //       stepRecord { id }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($input: RecordGmosNorthStepInput!, $clientId: ClientId!) {
-        recordGmosNorthStep(input: $input, clientId: $clientId) {
+      mutation($input: RecordGmosNorthStepInput!) {
+        recordGmosNorthStep(input: $input) {
           stepRecord { id }
         }
       }
@@ -149,9 +156,16 @@ object EventsGQL:
 
   @GraphQL
   trait RecordFlamingos2StepMutation extends GraphQLOperation[ObservationDB]:
+    // val document = """
+    //   mutation($input: RecordFlamingos2StepInput!, $clientId: ClientId!) {
+    //     recordFlamingos2Step(input: $input, clientId: $clientId) {
+    //       stepRecord { id }
+    //     }
+    //   }
+    //   """
     val document = """
-      mutation($input: RecordFlamingos2StepInput!, $clientId: ClientId!) {
-        recordFlamingos2Step(input: $input, clientId: $clientId) {
+      mutation($input: RecordFlamingos2StepInput!) {
+        recordFlamingos2Step(input: $input) {
           stepRecord { id }
         }
       }
