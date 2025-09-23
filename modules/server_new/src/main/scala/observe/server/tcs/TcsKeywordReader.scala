@@ -551,7 +551,11 @@ object TcsKeywordsReaderEpics extends TcsKeywordDefaults {
         xoff <- OptionT(xOffsetOption)
         yoff <- OptionT(yOffsetOption)
         iaa  <- OptionT.liftF(sys.instrAA.map(Angle.fromDoubleDegrees))
-      } yield xoff * -iaa.cos + yoff * iaa.sin
+      } yield Angle.fromBigDecimalArcseconds(
+        Angle.signedDecimalArcseconds.get(xoff) * -iaa.cos + Angle.signedDecimalArcseconds.get(
+          yoff
+        ) * iaa.sin
+      )
     ).value
       .handleError(_ => none)
 
