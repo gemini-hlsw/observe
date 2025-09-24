@@ -10,4 +10,4 @@ addSbtPlugin("io.spray" % "sbt-revolver" % "0.10.0")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.13.1")
 
 // Generate code for GraphQL queries
-addSbtPlugin("edu.gemini" % "sbt-clue" % "0.47.0")
+addSbtPlugin("edu.gemini" % "sbt-clue" % "0.49.0")
