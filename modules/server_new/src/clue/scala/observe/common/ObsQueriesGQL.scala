@@ -19,7 +19,7 @@ import lucuma.schemas.odb.GmosNorthDynamicConfigSubquery
 object ObsQueriesGQL:
 
   @GraphQL
-  trait ObsQuery extends GraphQLOperation[ObservationDB]:
+  trait ObsQuery                 extends GraphQLOperation[ObservationDB]:
     val document = s"""
       query($$obsId: ObservationId!) {
         observation(observationId: $$obsId) {
@@ -247,19 +247,6 @@ object ObsQueriesGQL:
         type ConstraintSet = model.ConstraintSet
         type TimingWindows = model.TimingWindow
       type ExecutionConfig = InstrumentExecutionConfig
-
-  @GraphQL
-  trait ProgramObservationsEditSubscription extends GraphQLOperation[ObservationDB]:
-    val document = """
-      subscription {
-        observationEdit(programId:"p-2") {
-          value {
-            id
-          }
-        }
-      }
-    """
-
   @GraphQL
   trait ResetAcquisitionMutation extends GraphQLOperation[ObservationDB]:
     val document = """
