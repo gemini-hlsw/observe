@@ -43,22 +43,9 @@ object EventsGQL:
 
   @GraphQL
   trait RecordDatasetMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($stepId: StepId!, $filename: DatasetFilename!, $idempotencyKey: IdempotencyKey!) {
-    //     recordDataset(input: { stepId: $stepId, filename: $filename, idempotencyKey: $idempotencyKey } ) {
-    //       dataset {
-    //         id
-    //         reference {
-    //           label
-    //           observation { label }
-    //         }
-    //       }
-    //     }
-    //   }
-    //   """
     val document = """
-      mutation($stepId: StepId!, $filename: DatasetFilename!) {
-        recordDataset(input: { stepId: $stepId, filename: $filename } ) {
+      mutation($stepId: StepId!, $filename: DatasetFilename!, $idempotencyKey: IdempotencyKey!) {
+        recordDataset(input: { stepId: $stepId, filename: $filename, idempotencyKey: $idempotencyKey } ) {
           dataset {
             id
             reference {
@@ -72,13 +59,6 @@ object EventsGQL:
 
   @GraphQL
   trait RecordAtomMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($input: RecordAtomInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordAtom(input: $input, idempotencyKey: $idempotencyKey) {
-    //       atomRecord { id }
-    //     }
-    //   }
-    //   """
     val document = """
       mutation($input: RecordAtomInput!) {
         recordAtom(input: $input) {
@@ -89,13 +69,6 @@ object EventsGQL:
 
   @GraphQL
   trait RecordGmosNorthStepMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($input: RecordGmosNorthStepInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordGmosNorthStep(input: $input, idempotencyKey: $idempotencyKey) {
-    //       stepRecord { id }
-    //     }
-    //   }
-    //   """
     val document = """
       mutation($input: RecordGmosNorthStepInput!) {
         recordGmosNorthStep(input: $input) {
@@ -106,16 +79,9 @@ object EventsGQL:
 
   @GraphQL
   trait RecordGmosNorthVisitMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg, idempotencyKey: $idempotencyKey } ) {
-    //       visit { id }
-    //     }
-    //   }
-    //   """
     val document = """
-      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!) {
-        recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg } ) {
+      mutation($obsId: ObservationId!, $staticCfg: GmosNorthStaticInput!, $idempotencyKey: IdempotencyKey!) {
+        recordGmosNorthVisit(input: { observationId: $obsId, gmosNorth: $staticCfg, idempotencyKey: $idempotencyKey } ) {
           visit { id }
         }
       }
@@ -124,12 +90,6 @@ object EventsGQL:
   @GraphQL
   trait RecordGmosSouthStepMutation  extends GraphQLOperation[ObservationDB]:
     // val document = """
-    //   mutation($input: RecordGmosSouthStepInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordGmosSouthStep(input: $input, idempotencyKey: $idempotencyKey) {
-    //       stepRecord { id }
-    //     }
-    //   }
-    //   """
     val document = """
       mutation($input: RecordGmosSouthStepInput!) {
         recordGmosSouthStep(input: $input) {
@@ -139,16 +99,9 @@ object EventsGQL:
       """
   @GraphQL
   trait RecordGmosSouthVisitMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg, idempotencyKey: $idempotencyKey } ) {
-    //       visit { id }
-    //     }
-    //   }
-    //   """
     val document = """
-      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!) {
-        recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg } ) {
+      mutation($obsId: ObservationId!, $staticCfg: GmosSouthStaticInput!, $idempotencyKey: IdempotencyKey!) {
+        recordGmosSouthVisit(input: { observationId: $obsId, gmosSouth: $staticCfg, idempotencyKey: $idempotencyKey } ) {
           visit { id }
         }
       }
@@ -156,13 +109,6 @@ object EventsGQL:
 
   @GraphQL
   trait RecordFlamingos2StepMutation extends GraphQLOperation[ObservationDB]:
-    // val document = """
-    //   mutation($input: RecordFlamingos2StepInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordFlamingos2Step(input: $input, idempotencyKey: $idempotencyKey) {
-    //       stepRecord { id }
-    //     }
-    //   }
-    //   """
     val document = """
       mutation($input: RecordFlamingos2StepInput!) {
         recordFlamingos2Step(input: $input) {
@@ -173,18 +119,10 @@ object EventsGQL:
 
   @GraphQL
   trait RecordFlamingos2VisitMutation extends GraphQLOperation[ObservationDB]:
-    // val document =
-    //   """
-    //   mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!, $idempotencyKey: IdempotencyKey!) {
-    //     recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg, idempotencyKey: $idempotencyKey } ) {
-    //       visit { id }
-    //     }
-    //   }
-    //   """
     val document =
       """
-      mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!) {
-        recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg } ) {
+      mutation($obsId: ObservationId!, $staticCfg: Flamingos2StaticInput!, $idempotencyKey: IdempotencyKey!) {
+        recordFlamingos2Visit(input: { observationId: $obsId, flamingos2: $staticCfg, idempotencyKey: $idempotencyKey } ) {
           visit { id }
         }
       }
