@@ -36,12 +36,6 @@ trait TcsControllerEncoders {
       case _                                             => "off"
     }
 
-  val encodeM2GuideReset: EncodeEpicsValue[M2GuideConfig, String] =
-    EncodeEpicsValue {
-      case M2GuideConfig.M2GuideOn(_, _) => "off"
-      case M2GuideConfig.M2GuideOff      => "on"
-    }
-
   given EncodeEpicsValue[NodChopTrackingOption, String] =
     EncodeEpicsValue {
       case NodChopTrackingOption.NodChopTrackingOn  => "On"

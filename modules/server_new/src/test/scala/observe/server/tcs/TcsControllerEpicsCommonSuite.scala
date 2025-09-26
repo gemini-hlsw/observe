@@ -415,7 +415,6 @@ class TcsControllerEpicsCommonSuite extends munit.FunSuite {
   private val guideOffEvents = List(
     TestTcsEvent.M1GuideCmd("off"),
     TestTcsEvent.M2GuideCmd("off"),
-    TestTcsEvent.M2GuideConfigCmd("", "", "on"),
     TestTcsEvent.MountGuideCmd("", "off")
   )
 
