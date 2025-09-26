@@ -337,13 +337,6 @@ object TcsControllerEpicsCommon {
             .withDebug(
               s"M2GuideState(${encodeM2Guide.encode(c)} =!= ${encodeM2Guide.encode(d)})"
             )
-        ),
-        (encodeM2GuideReset.encode(d) =!= encodeM2GuideReset.encode(c)).option(
-          epicsSys.m2GuideConfigCmd
-            .setReset(encodeM2GuideReset.encode(d))
-            .withDebug(
-              s"M2GuideReset(${encodeM2GuideReset.encode(c)} =!= ${encodeM2GuideReset.encode(d)})"
-            )
         )
       ).flattenOption
 
