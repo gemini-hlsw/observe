@@ -241,32 +241,6 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
             } else
               EngineHandle.pure(SeqEvent.NullSeqEvent)
 
-          val startAtom: EngineHandle[F, SeqEvent] =
-            if (!seq.atomStartDone) {
-              Handle
-                .fromEventStream[F, EngineState[F], Event[F]](
-                  Stream.eval[F, Event[F]](
-                    systems.odb
-                      .atomStart(
-                        obsId,
-                        seq.seqGen.instrument,
-                        seq.seqGen.nextAtom.sequenceType,
-                        seq.seqGen.nextAtom.atomId.some
-                      )
-                      .as(
-                        Event.modifyState(
-                          EngineHandle
-                            .modifyState_[F]:
-                              EngineState.atSequence(obsId).modify(_.withCompleteAtomStart)
-                            .as(SeqEvent.NullSeqEvent)
-                        )
-                      )
-                  )
-                )
-                .as(SeqEvent.NullSeqEvent)
-            } else
-              Handle.pure(SeqEvent.NullSeqEvent)
-
           seq.seq.currentStep.map { curStep =>
             (
               startVisit *>
@@ -277,8 +251,7 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
                         .sequenceStart(obsId)
                         .as(Event.nullEvent)
                     )
-                  ) *>
-                startAtom
+                  )
             ).as((obsId, curStep.id).some)
           }
         }

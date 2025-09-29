@@ -4,6 +4,7 @@
 package observe.model.arb
 
 import lucuma.core.model.Visit
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Step
 import lucuma.core.util.arb.ArbGid.given
 import lucuma.core.util.arb.ArbNewType.given
@@ -31,9 +32,10 @@ trait ArbObsRecordedIds:
 
   given Arbitrary[RecordedAtom] = Arbitrary:
     for
-      atomId <- arbitrary[RecordedAtomId]
-      step   <- arbitrary[Option[RecordedStep]]
-    yield RecordedAtom(atomId, step)
+      generatedId <- arbitrary[Atom.Id]
+      atomId      <- arbitrary[RecordedAtomId]
+      step        <- arbitrary[Option[RecordedStep]]
+    yield RecordedAtom(generatedId, atomId, step)
 
   given Arbitrary[RecordedVisit] = Arbitrary:
     for
@@ -45,7 +47,9 @@ trait ArbObsRecordedIds:
     Cogen[(RecordedStepId, DatasetIdMap)].contramap(x => (x.stepId, x.datasetIds))
 
   given Cogen[RecordedAtom] =
-    Cogen[(RecordedAtomId, Option[RecordedStep])].contramap(x => (x.atomId, x.step))
+    Cogen[(Atom.Id, RecordedAtomId, Option[RecordedStep])].contramap(x =>
+      (x.generatedId, x.atomId, x.step)
+    )
 
   given Cogen[RecordedVisit] =
     Cogen[(Visit.Id, Option[RecordedAtom])].contramap(x => (x.visitId, x.atom))

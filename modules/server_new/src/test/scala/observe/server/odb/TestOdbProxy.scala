@@ -169,27 +169,19 @@ object TestOdbProxy {
 
         override def sequenceStart(obsId: Observation.Id): F[Unit] = addEvent(SequenceStart(obsId))
 
-        override def atomStart(
-          obsId:        Observation.Id,
-          instrument:   Instrument,
-          sequenceType: SequenceType,
-          generatedId:  Option[Atom.Id]
-        ): F[Unit] = sequenceType match {
-          case SequenceType.Acquisition =>
-            rf.update(State.currentAtom.replace(generatedId))
-          case SequenceType.Science     =>
-            rf.update(State.currentAtom.replace(generatedId))
-        }
-
         override def stepStartStep[D](
           obsId:           Observation.Id,
           dynamicConfig:   D,
           stepConfig:      StepConfig,
           telescopeConfig: CoreTelescopeConfig,
           observeClass:    ObserveClass,
-          generatedId:     Option[Step.Id]
+          generatedId:     Option[Step.Id],
+          generatedAtomId: Atom.Id,
+          instrument:      Instrument,
+          sequenceType:    SequenceType
         ): F[Unit] =
-          rf.update(_.startStep(generatedId)) *>
+          rf.update(State.currentAtom.replace(generatedAtomId.some)) >>
+            rf.update(_.startStep(generatedId)) >>
             addEvent(StepStartStep(obsId, dynamicConfig, stepConfig, telescopeConfig, observeClass))
 
         override def stepStartConfigure(obsId: Observation.Id): F[Unit] = addEvent(

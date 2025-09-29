@@ -3,11 +3,13 @@
 
 package observe.server.odb
 
+import cats.Applicative
 import cats.MonadThrow
 import cats.effect.Ref
 import cats.syntax.all.*
 import lucuma.core.model.Observation
 import lucuma.core.model.Visit
+import lucuma.core.model.sequence.Atom
 import lucuma.core.model.sequence.Dataset
 import observe.model.dhs.ImageFileId
 import observe.model.odb.ObsRecordedIds
@@ -44,23 +46,34 @@ trait IdTrackerOps[F[_]: MonadThrow](idTracker: Ref[F, ObsRecordedIds]):
     //       case _                                       => visitId.map(RecordedVisit(_))
 
   // AtomId is never set to None, there's no "end atom" event in the engine.
-  protected def getCurrentAtomId(obsId: Observation.Id): F[RecordedAtomId] =
-    idTracker.get
-      .map:
-        ObsRecordedIds
-          .at(obsId)
-          .get(_)
-          .flatMap(observe.model.odb.RecordedVisit.atomId.getOption)
-          .toRight(ObserveFailure.Unexpected(s"No current recorded atom for obsId [$obsId]"))
-      .rethrow
+  protected def getCurrentAtomId(
+    obsId:         Observation.Id,
+    generatedId:   Atom.Id,
+    recordNewAtom: Atom.Id => F[RecordedAtomId]
+  ): F[RecordedAtomId] =
+    for
+      currentAtomId <- idTracker.get
+                         .map:
+                           ObsRecordedIds
+                             .at(obsId)
+                             .get(_)
+                             .filter(_.atom.exists(_.generatedId === generatedId))
+                             .flatMap(RecordedVisit.atomId.getOption)
+      atomId        <-
+        currentAtomId.fold(recordNewAtom(generatedId))(Applicative[F].pure(_))
+    yield atomId
 
-  protected def setCurrentAtomId(obsId: Observation.Id, atomId: RecordedAtomId): F[Unit] =
+  protected def setCurrentAtomId(
+    obsId:       Observation.Id,
+    generatedId: Atom.Id,
+    atomId:      RecordedAtomId
+  ): F[Unit] =
     idTracker.update:
       ObsRecordedIds
         .at(obsId)
         .some
         .andThen(observe.model.odb.RecordedVisit.atom)
-        .replace(RecordedAtom(atomId).some)
+        .replace(RecordedAtom(generatedId, atomId).some)
 
   protected def getCurrentStepId(obsId: Observation.Id): F[RecordedStepId] =
     idTracker.get

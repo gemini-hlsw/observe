@@ -17,11 +17,9 @@ case class SequenceData[F[_]](
   seq:            Sequence.State[F],
   pendingObsCmd:  Option[PendingObserveCmd],
   visitStartDone: Boolean,
-  atomStartDone:  Boolean,
   cleanup:        F[Unit]
 ) {
   def withCompleteVisitStart: SequenceData[F] = this.copy(visitStartDone = true)
-  def withCompleteAtomStart: SequenceData[F]  = this.copy(atomStartDone = true)
 }
 
 object SequenceData {
@@ -39,7 +37,6 @@ object SequenceData {
     seqGen,
     seq,
     pendingObsCmd,
-    false,
     false,
     cleanup
   )

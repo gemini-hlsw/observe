@@ -32,7 +32,10 @@ class DummyOdbCommands[F[_]: Sync] extends OdbCommands[F] {
     stepConfig:      StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     observeClass:    ObserveClass,
-    generatedId:     Option[Step.Id]
+    generatedId:     Option[Step.Id],
+    generatedAtomId: Atom.Id,
+    instrument:      Instrument,
+    sequenceType:    SequenceType
   ): F[Unit] = ().pure[F]
 
   override def stepStartConfigure(obsId: Observation.Id): F[Unit] = Applicative[F].unit
@@ -88,13 +91,6 @@ class DummyOdbCommands[F[_]: Sync] extends OdbCommands[F] {
 
   override def visitStart[S](obsId: Observation.Id, staticCfg: S): F[Unit] =
     Applicative[F].unit
-
-  override def atomStart(
-    obsId:        Observation.Id,
-    instrument:   Instrument,
-    sequenceType: SequenceType,
-    generatedId:  Option[Atom.Id]
-  ): F[Unit] = Applicative[F].unit
 
   override def getCurrentRecordedIds: F[ObsRecordedIds] = ObsRecordedIds.Empty.pure[F]
 }
