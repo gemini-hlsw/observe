@@ -368,8 +368,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordGmosNorthVisitMutation[F]
-        // .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
-        .execute(obsId, staticCfg.toInput, addIdempotencyKey(idempotencyKey))
+        .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
         .raiseGraphQLErrors
         .map(_.recordGmosNorthVisit.visit.id)
 
@@ -379,8 +378,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordGmosSouthVisitMutation[F]
-        // .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
-        .execute(obsId, staticCfg.toInput, addIdempotencyKey(idempotencyKey))
+        .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
         .raiseGraphQLErrors
         .map(_.recordGmosSouthVisit.visit.id)
 
@@ -390,8 +388,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   ): F[VisitId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordFlamingos2VisitMutation[F]
-        // .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
-        .execute(obsId, staticCfg.toInput, addIdempotencyKey(idempotencyKey))
+        .execute(obsId, staticCfg.toInput, idempotencyKey, addIdempotencyKey(idempotencyKey))
         .raiseGraphQLErrors
         .map(_.recordFlamingos2Visit.visit.id)
 
@@ -404,8 +401,13 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordAtomMutation[F]
         .execute(
-          RecordAtomInput(visitId, instrument, sequenceType, generatedId.orIgnore),
-          // idempotencyKey,
+          RecordAtomInput(
+            visitId,
+            instrument,
+            sequenceType,
+            generatedId.orIgnore,
+            idempotencyKey.assign
+          ),
           addIdempotencyKey(idempotencyKey)
         )
         .raiseGraphQLErrors
@@ -455,7 +457,10 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def recordGmosNorthStep(input: RecordGmosNorthStepInput): F[RecordedStepId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordGmosNorthStepMutation[F]
-        .execute(input, /*idempotencyKey,*/ addIdempotencyKey(idempotencyKey))
+        .execute(
+          RecordGmosNorthStepInput.idempotencyKey.replace(idempotencyKey.assign)(input),
+          addIdempotencyKey(idempotencyKey)
+        )
         .raiseGraphQLErrors
         .map(_.recordGmosNorthStep.stepRecord.id)
         .map(RecordedStepId(_))
@@ -463,8 +468,10 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def recordGmosSouthStep(input: RecordGmosSouthStepInput): F[RecordedStepId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordGmosSouthStepMutation[F]
-        // .execute(input, idempotencyKey, addIdempotencyKey(idempotencyKey))
-        .execute(input, addIdempotencyKey(idempotencyKey))
+        .execute(
+          RecordGmosSouthStepInput.idempotencyKey.replace(idempotencyKey.assign)(input),
+          addIdempotencyKey(idempotencyKey)
+        )
         .raiseGraphQLErrors
         .map(_.recordGmosSouthStep.stepRecord.id)
         .map(RecordedStepId(_))
@@ -472,7 +479,10 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
   private def recordFlamingos2Step(input: RecordFlamingos2StepInput): F[RecordedStepId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordFlamingos2StepMutation[F]
-        .execute(input, /*idempotencyKey,*/ addIdempotencyKey(idempotencyKey))
+        .execute(
+          RecordFlamingos2StepInput.idempotencyKey.replace(idempotencyKey.assign)(input),
+          addIdempotencyKey(idempotencyKey)
+        )
         .raiseGraphQLErrors
         .map(_.recordFlamingos2Step.stepRecord.id)
         .map(RecordedStepId(_))
@@ -486,8 +496,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       .flatMap: fileName =>
         newIdempotencyKey.flatMap: idempotencyKey =>
           RecordDatasetMutation[F]
-            // .execute(stepId.value, fileName, idempotencyKey, addIdempotencyKey(idempotencyKey))
-            .execute(stepId.value, fileName, addIdempotencyKey(idempotencyKey))
+            .execute(stepId.value, fileName, idempotencyKey, addIdempotencyKey(idempotencyKey))
             .raiseGraphQLErrors
             .map(_.recordDataset.dataset)
 
