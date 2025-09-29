@@ -21,7 +21,7 @@ class DhsClientDisabled[F[_]: FlatMap: Clock: Logger] extends DhsClient[F] {
   override def createImage(p: DhsClient.ImageParameters): F[ImageFileId] =
     for {
       _    <- overrideLogMessage[F]("DHS", "setKeywords")
-      date <- Clock[F].monotonic
+      date <- Clock[F].realTime
                 .map(d => Instant.EPOCH.plusSeconds(d.toSeconds))
                 .map(LocalDateTime.ofInstant(_, java.time.ZoneOffset.UTC))
     } yield ImageFileId(
