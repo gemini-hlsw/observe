@@ -31,7 +31,7 @@ object Settings {
     val slf4j               = "2.0.17"
     val log4cats            = "2.7.1"
     val log4catsLogLevel    = "0.3.1"
-    val logback             = "1.5.18"
+    val logback             = "1.5.19"
     val natchez             = "0.3.8"
     val natchezHttp4s       = "0.6.1"
     val pureConfig          = "0.17.9"
