@@ -479,27 +479,13 @@ object ObserveEngine {
           .map { atm =>
             Event.modifyState[F](
               EngineHandle
-                .modifyState { (st: EngineState[F]) =>
-                  val inst: Instrument = EngineState
-                    .atSequence[F](obsId)
-                    .getOption(st)
-                    .map(_.seqGen.instrument)
-                    .getOrElse(Instrument.GmosNorth)
-                  val state            = updateAtom(obsId, atm.some)(st)
-                  (state, inst)
+                .modifyState_ { (st: EngineState[F]) =>
+                  updateAtom(obsId, atm.some)(st)
                 }
-                .flatMap(inst =>
+                .flatMap(_ =>
                   executeEngine.startNewAtom(obsId) *>
-                    EngineHandle.liftF[F, SeqEvent](
-                      odb
-                        .atomStart(
-                          obsId,
-                          inst,
-                          atm.sequenceType,
-                          atm.atomId.some
-                        )
-                        .as(SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId))
-                    )
+                    EngineHandle.pure:
+                      SeqEvent.NewAtomLoaded(obsId, atm.sequenceType, atm.atomId)
                 )
             )
           }

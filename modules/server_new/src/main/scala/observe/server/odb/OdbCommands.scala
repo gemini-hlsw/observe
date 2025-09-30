@@ -23,19 +23,16 @@ trait OdbCommands[F[_]] private[odb] () {
   def sequenceStart(
     obsId: Observation.Id
   ): F[Unit]
-  def atomStart(
-    obsId:        Observation.Id,
-    instrument:   Instrument,
-    sequenceType: SequenceType,
-    generatedId:  Option[Atom.Id]
-  ): F[Unit]
   def stepStartStep[D](
     obsId:           Observation.Id,
     dynamicConfig:   D,
     stepConfig:      StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     observeClass:    ObserveClass,
-    generatedId:     Option[Step.Id]
+    generatedId:     Option[Step.Id],
+    generatedAtomId: Atom.Id,
+    instrument:      Instrument,
+    sequenceType:    SequenceType
   ): F[Unit]
   def stepStartConfigure(obsId:  Observation.Id): F[Unit]
   def stepEndConfigure(obsId:    Observation.Id): F[Boolean]

@@ -119,7 +119,9 @@ object SeqTranslate {
       stepType:      StepType,
       insSpec:       InstrumentSpecifics[S, D],
       instf:         SystemOverrides => InstrumentSystem[F],
-      instHeader:    KeywordsClient[F] => Header[F]
+      instHeader:    KeywordsClient[F] => Header[F],
+      atomId:        Atom.Id,
+      sequenceType:  SequenceType
     ): StepGen[F, D] = {
 
       def buildStep(
@@ -171,7 +173,10 @@ object SeqTranslate {
                 step.stepConfig,
                 step.telescopeConfig,
                 step.observeClass,
-                step.id.some
+                step.id.some,
+                atomId,
+                insSpec.instrument,
+                sequenceType
               )
               .as(Response.Ignored)
               .toAction(ActionType.OdbEvent),
@@ -277,7 +282,9 @@ object SeqTranslate {
                       insSpec,
                       (ov: SystemOverrides) =>
                         instf(ov, step.stepConfig.stepType, stepType, step.instrumentConfig),
-                      instHeader(step.instrumentConfig)
+                      instHeader(step.instrumentConfig),
+                      atom.id,
+                      sequenceType
                     )
               .separate
 

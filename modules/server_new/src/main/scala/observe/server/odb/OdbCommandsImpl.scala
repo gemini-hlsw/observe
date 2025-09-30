@@ -77,19 +77,20 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       -   <- setCurrentVisitId(obsId, vId.some)
     yield ()
 
-  override def atomStart(
+  private def atomStart(
     obsId:        Observation.Id,
     instrument:   Instrument,
     sequenceType: SequenceType,
-    generatedId:  Option[Atom.Id]
-  ): F[Unit] = for
-    visitId <- getCurrentVisitId(obsId)
-    _       <- L.debug(s"Record atom for obsId: $obsId and visitId: $visitId")
-    // idempotencyKey <- newIdempotencyKey
-    atomId  <- recordAtom(visitId, sequenceType, instrument, generatedId)
-    -       <- setCurrentAtomId(obsId, atomId)
-    _       <- L.debug(s"New atom for obsId: $obsId aid: $atomId")
-  yield ()
+    generatedId:  Atom.Id
+  ): F[RecordedAtomId] =
+    for
+      visitId <- getCurrentVisitId(obsId)
+      _       <-
+        L.debug(s"Record atom for obsId: $obsId and visitId: $visitId - GeneratedId: $generatedId")
+      atomId  <- recordAtom(visitId, sequenceType, instrument, generatedId)
+      -       <- setCurrentAtomId(obsId, generatedId, atomId)
+      _       <- L.debug(s"New atom recorded for obsId: $obsId - Recorded atomId: $atomId")
+    yield atomId
 
   override def sequenceStart(
     obsId: Observation.Id
@@ -109,20 +110,25 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
     stepConfig:      StepConfig,
     telescopeConfig: CoreTelescopeConfig,
     observeClass:    ObserveClass,
-    generatedId:     Option[Step.Id]
+    generatedId:     Option[Step.Id],
+    generatedAtomId: Atom.Id,
+    instrument:      Instrument,
+    sequenceType:    SequenceType
   ): F[Unit] =
     for
-      atomId         <- getCurrentAtomId(obsId)
+      atomId         <-
+        getCurrentAtomId(obsId, generatedAtomId, atomStart(obsId, instrument, sequenceType, _))
       stepId         <-
         recordStep(atomId, dynamicConfig, stepConfig, telescopeConfig, observeClass, generatedId)
       _              <- setCurrentStepId(obsId, stepId.some)
       _              <- L.debug(s"Recorded step for obsId: $obsId, recordedStepId: $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.StartStep,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.StartStep,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug(s"ODB event stepStartStep sent with stepId $stepId")
     yield ()
@@ -133,10 +139,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event stepStartConfigure for obsId: $obsId, step $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.StartConfigure,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.StartConfigure,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug(s"ODB event stepStartConfigure sent with stepId ${stepId.value}")
     yield ()
@@ -147,10 +154,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event stepEndConfigure for obsId: $obsId, step $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.EndConfigure,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.EndConfigure,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event stepEndConfigure sent")
     yield true
@@ -161,10 +169,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event stepStartObserve for obsId: $obsId, step $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.StartObserve,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.StartObserve,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event stepStartObserve sent")
     yield true
@@ -183,10 +192,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Recorded dataset id ${dataset.id}")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(dataset.id,
-                                   DatasetStage.StartExpose,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            dataset.id,
+                            DatasetStage.StartExpose,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event datasetStartExposure sent")
     yield dataset
@@ -197,10 +207,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event datasetEndExposure for obsId: $obsId datasetId: $datasetId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(datasetId,
-                                   DatasetStage.EndExpose,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            datasetId,
+                            DatasetStage.EndExpose,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event datasetEndExposure sent")
     yield true
@@ -211,10 +222,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event datasetStartReadout for obsId: $obsId datasetId: $datasetId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(datasetId,
-                                   DatasetStage.StartReadout,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            datasetId,
+                            DatasetStage.StartReadout,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event datasetStartReadout sent")
     yield true
@@ -225,10 +237,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event datasetEndReadout for obsId: $obsId datasetId: $datasetId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(datasetId,
-                                   DatasetStage.EndReadout,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            datasetId,
+                            DatasetStage.EndReadout,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event datasetEndReadout sent")
     yield true
@@ -239,10 +252,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event datasetStartWrite for obsId: $obsId datasetId: $datasetId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(datasetId,
-                                   DatasetStage.StartWrite,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            datasetId,
+                            DatasetStage.StartWrite,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event datasetStartWrite sent")
     yield true
@@ -253,10 +267,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event datasetEndWrite for obsId: $obsId datasetId: $datasetId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddDatasetEventMutation[F]
-                          .execute(datasetId,
-                                   DatasetStage.EndWrite,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            datasetId,
+                            DatasetStage.EndWrite,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- setCurrentDatasetId(obsId, fileId, none)
       _              <- L.debug("ODB event datasetEndWrite sent")
@@ -268,10 +283,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event stepEndConfigure for obsId: $obsId, step $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.EndObserve,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.EndObserve,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event stepEndObserve sent")
     yield true
@@ -282,10 +298,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       _              <- L.debug(s"Send ODB event stepEndStep for obsId: $obsId, step $stepId")
       idempotencyKey <- newIdempotencyKey
       _              <- AddStepEventMutation[F]
-                          .execute(stepId.value,
-                                   StepStage.EndStep,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            stepId.value,
+                            StepStage.EndStep,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- setCurrentStepId(obsId, none)
       _              <- L.debug("ODB event stepEndStep sent")
@@ -320,10 +337,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       visitId        <- getCurrentVisitId(obsId)
       idempotencyKey <- newIdempotencyKey
       _              <- AddSequenceEventMutation[F]
-                          .execute(visitId,
-                                   SequenceCommand.Continue,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            visitId,
+                            SequenceCommand.Continue,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event observationContinue sent")
     yield true
@@ -334,10 +352,11 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
       visitId        <- getCurrentVisitId(obsId)
       idempotencyKey <- newIdempotencyKey
       _              <- AddSequenceEventMutation[F]
-                          .execute(visitId,
-                                   SequenceCommand.Pause,
-                                   idempotencyKey,
-                                   addIdempotencyKey(idempotencyKey)
+                          .execute(
+                            visitId,
+                            SequenceCommand.Pause,
+                            idempotencyKey,
+                            addIdempotencyKey(idempotencyKey)
                           )
       _              <- L.debug("ODB event observationPause sent")
     yield true
@@ -396,7 +415,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
     visitId:      Visit.Id,
     sequenceType: SequenceType,
     instrument:   Instrument,
-    generatedId:  Option[Atom.Id]
+    generatedId:  Atom.Id
   ): F[RecordedAtomId] =
     newIdempotencyKey.flatMap: idempotencyKey =>
       RecordAtomMutation[F]
@@ -405,7 +424,7 @@ case class OdbCommandsImpl[F[_]: UUIDGen](
             visitId,
             instrument,
             sequenceType,
-            generatedId.orIgnore,
+            generatedId.assign,
             idempotencyKey.assign
           ),
           addIdempotencyKey(idempotencyKey)

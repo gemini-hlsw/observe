@@ -50,11 +50,15 @@ object RecordedStep:
   val stepId: Lens[RecordedStep, RecordedStepId]   = Focus[RecordedStep](_.stepId)
   val datasetIds: Lens[RecordedStep, DatasetIdMap] = Focus[RecordedStep](_.datasetIds)
 
-case class RecordedAtom(atomId: RecordedAtomId, step: Option[RecordedStep] = None)
-    derives Eq,
+case class RecordedAtom(
+  generatedId: Atom.Id,
+  atomId:      RecordedAtomId,
+  step:        Option[RecordedStep] = None
+) derives Eq,
       Encoder.AsObject,
       Decoder
 object RecordedAtom:
+  val generatedId: Lens[RecordedAtom, Atom.Id]       = Focus[RecordedAtom](_.generatedId)
   val atomId: Lens[RecordedAtom, RecordedAtomId]     = Focus[RecordedAtom](_.atomId)
   val step: Lens[RecordedAtom, Option[RecordedStep]] = Focus[RecordedAtom](_.step)
   val stepId: Optional[RecordedAtom, RecordedStepId] =

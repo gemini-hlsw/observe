@@ -47,7 +47,6 @@ object TestUtil {
           seq = seq,
           pendingObsCmd = none,
           visitStartDone = false,
-          atomStartDone = false,
           cleanup = IO.unit
         ).some,
         gmosSouth = none,

@@ -8,9 +8,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import clue.FetchClient
 import clue.syntax.*
-import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObserveClass
-import lucuma.core.enums.SequenceType
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.StepConfig
 import lucuma.core.model.sequence.TelescopeConfig
