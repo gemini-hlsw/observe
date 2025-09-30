@@ -40,7 +40,7 @@ trait ConfigApi[F[_]: MonadThrow]:
   def setDhsEnabled(@unused obsId: Observation.Id, @unused enabled: SubsystemEnabled): F[Unit]  =
     NotAuthorized
 
-  def isBlocked: Boolean = false
+  def isBusy: Boolean = false
 
 object ConfigApi:
   // Default value is NotAuthorized implementations

@@ -40,8 +40,7 @@ object SubsystemOverrides
           CheckboxView(
             id = label,
             value = enabled.as(SubsystemEnabled.Value),
-            label = label.value,
-            disabled = configApi.isBlocked
+            label = label.value
           )
 
         <.span(ObserveStyles.ObsSummarySubsystems)(

@@ -82,4 +82,4 @@ case class ConfigApiImpl(
       ""
     )
 
-  override def isBlocked: Boolean = apiStatus.get == ApiStatus.Busy
+  override def isBusy: Boolean = apiStatus.get == ApiStatus.Busy
