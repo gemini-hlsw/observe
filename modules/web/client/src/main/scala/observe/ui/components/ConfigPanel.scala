@@ -79,7 +79,6 @@ object ConfigPanel
                 validFormat = ModelValidators.ImageQualityValidWedge.optional
                   .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
                 changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
-                disabled = configApi.isBlocked,
                 tooltipOptions = TooltipOptions.Top,
                 units = "arcsec"
               )
@@ -92,7 +91,6 @@ object ConfigPanel
                 validFormat = ModelValidators.CloudExtinctionValidWedge.optional
                   .nonEmpty("Must not be empty".toEitherErrorsUnsafe),
                 changeAuditor = ChangeAuditor.accept.decimal(2.refined).denyNeg,
-                disabled = configApi.isBlocked,
                 tooltipOptions = TooltipOptions.Top,
                 units = "mags"
               )
@@ -102,8 +100,7 @@ object ConfigPanel
                 id = "waterVapor".refined,
                 label = "WV",
                 value = wv,
-                showClear = false,
-                disabled = configApi.isBlocked
+                showClear = false
               )
             ),
             <.div(ObserveStyles.SkyBackgroundArea)(
@@ -111,8 +108,7 @@ object ConfigPanel
                 id = "skyBackground".refined,
                 label = "BG",
                 value = sb,
-                showClear = false,
-                disabled = configApi.isBlocked
+                showClear = false
               )
             )
           ),
@@ -127,8 +123,7 @@ object ConfigPanel
                 value = op,
                 validFormat = InputValidSplitEpi
                   .fromIso(OptionNonEmptyStringIso.reverse)
-                  .andThen(Operator.Value.reverse.option),
-                disabled = configApi.isBlocked
+                  .andThen(Operator.Value.reverse.option)
               )
             ),
             <.div(ObserveStyles.ObserverArea)(
@@ -145,8 +140,7 @@ object ConfigPanel
                   value = obs,
                   validFormat = InputValidSplitEpi
                     .fromIso(OptionNonEmptyStringIso.reverse)
-                    .andThen(Observer.Value.reverse.option),
-                  disabled = configApi.isBlocked
+                    .andThen(Observer.Value.reverse.option)
                 )
             )
           )
