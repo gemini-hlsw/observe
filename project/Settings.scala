@@ -36,7 +36,7 @@ object Settings {
     val natchezHttp4s       = "0.6.1"
     val pureConfig          = "0.17.9"
     val monocleVersion      = "3.3.0"
-    val circeVersion        = "0.14.14"
+    val circeVersion        = "0.14.15"
     val circeRefinedVersion = "0.15.1"
 
     // test libraries
