@@ -38,14 +38,13 @@ object Layout
         odbStatus <- useStreamOnMount(ctx.odbClient.statusStream)
         theme     <- useTheme(initial = Theme.Dark)
       yield
-        val appTab: Option[AppTab]           =
-          AppTab.from(props.resolution.page, props.rootModel.obsInstrument(_))
-        val appTabView: View[Option[AppTab]] =
+        val appTab: AppTab           = AppTab.from(props.resolution.page)
+        val appTabView: View[AppTab] =
           View(
             appTab,
             (mod, cb) =>
-              val newTab: Option[AppTab] = mod(appTab)
-              ctx.pushPage(newTab.getOrElse(Page.Home)) >> cb(appTab, newTab)
+              val newTab = mod(appTab)
+              ctx.pushPage(newTab) >> cb(appTab, newTab)
           )
 
         if (

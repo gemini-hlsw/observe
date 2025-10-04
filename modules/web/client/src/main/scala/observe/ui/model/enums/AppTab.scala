@@ -20,9 +20,9 @@ import observe.ui.model.Page
  * Within a button group, order is determined by the AppTab Order instance, which is determined by
  * the order in AppTab.all.
  */
-enum AppTab: // derives Enumerated:
-  case ObsList                          extends AppTab // ("Observations")
-  case LoadedObs(obsId: Observation.Id) extends AppTab // (instrument.shortName)
+enum AppTab(val title: String): // derives Enumerated:
+  case ObsList                           extends AppTab("Observations")
+  case LoadedObs(instrument: Instrument) extends AppTab(instrument.shortName)
   // case Schedule  extends AppTab("Schedule")
   // case Nighttime extends AppTab("Nighttime")
   // case Daytime   extends AppTab("Daytime")
@@ -30,20 +30,28 @@ enum AppTab: // derives Enumerated:
 
   // lazy val tag: String = title
 
-  lazy val getPage: Page = this match
-    case AppTab.Obs(obsId, _) => Page.Obs(obsId)
-    // case AppTab.Schedule  => Page.Schedule
-    // case AppTab.Nighttime => Page.Nighttime
-    // case AppTab.Daytime   => Page.Daytime
-    // case AppTab.Excluded  => Page.Excluded
+  lazy val getPage: Page =
+    this match
+      case ObsList                      => Page.Observations
+      case AppTab.LoadedObs(instrument) => Page.LoadedInstrument(instrument)
+      // case AppTab.Schedule  => Page.Schedule
+      // case AppTab.Nighttime => Page.Nighttime
+      // case AppTab.Daytime   => Page.Daytime
+      // case AppTab.Excluded  => Page.Excluded
 
 object AppTab:
-  def from(page: Page, obsId: Observation.Id => Option[Instrument]): Option[AppTab] =
+  def from(page: Page): AppTab =
     page match
-      case Page.Obs(obsId) => obsInstrument(obsId).map(i => AppTab.Obs(obsId, i))
+      case Page.Observations        => AppTab.ObsList
+      case Page.LoadedInstrument(i) => AppTab.LoadedObs(i)
       // case Page.Schedule  => AppTab.Schedule
       // case Page.Nighttime => AppTab.Nighttime
       // case Page.Daytime   => AppTab.Daytime
       // case Page.Excluded  => AppTab.Excluded
+
+  given Enumerated[AppTab] =
+    Enumerated
+      .from(AppTab.ObsList, Enumerated[Instrument].all.map(AppTab.LoadedObs(_))*)
+      .withTag(_.title)
 
   given Display[AppTab] = Display.byShortName(_.title)
