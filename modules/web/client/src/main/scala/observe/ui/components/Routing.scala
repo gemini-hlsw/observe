@@ -4,11 +4,14 @@
 package observe.ui.components
 
 import japgolly.scalajs.react.extra.router.*
+import lucuma.core.enums.Instrument
+import lucuma.core.util.Enumerated
 import lucuma.react.common.*
 import lucuma.ui.components.UnderConstruction
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
+import japgolly.scalajs.react.ReactMonocle.*
 
 object Routing:
 
@@ -16,16 +19,26 @@ object Routing:
     RouterWithPropsConfigDsl[Page, RootModel].buildConfig: dsl =>
       import dsl.*
 
+      val instrument: StaticDsl.RouteB[Instrument] =
+        string(Enumerated[Instrument].all.map(_.tag).mkString("(", "|", ")")).pmap(s =>
+          Enumerated[Instrument].fromTag(s)
+        )(_.tag)
+
       val rules =
         (emptyRule
-          | staticRoute(root / "schedule", Schedule) ~> render(UnderConstruction())
-          | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
-          | staticRoute(root / "daytime", Daytime) ~> render(UnderConstruction())
-          | staticRoute(root / "excluded", Excluded) ~> render(UnderConstruction()))
+          | staticRoute(root, Observations) ~> render(UnderConstruction())
+          | dynamicRouteCT((root / instrument).xmapL(LoadedInstrument.iso)) ~> dynRenderP {
+            case (LoadedInstrument(i), m) =>
+              Sequence(m, i)
+          })
+        // | staticRoute(root / "schedule", Schedule) ~> render(UnderConstruction())
+        // | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
+        // | staticRoute(root / "daytime", Daytime) ~> render(UnderConstruction())
+        // | staticRoute(root / "excluded", Excluded) ~> render(UnderConstruction()))
 
       val configuration =
         rules
-          .notFound(redirectToPage(Nighttime)(using SetRouteVia.HistoryPush))
+          .notFound(redirectToPage(Observations)(using SetRouteVia.HistoryPush))
           .renderWithP(Layout(_, _))
 
       configuration

@@ -7,9 +7,15 @@ import cats.Eq
 import cats.derived.*
 // import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
+import monocle.Iso
 
 // TODO Eventually, we will have parameters for sharable URLs
 enum Page derives Eq:
   // case Schedule, Nighttime, Daytime, Excluded
   case Observations                             extends Page
   case LoadedInstrument(instrument: Instrument) extends Page
+
+object Page:
+  object LoadedInstrument:
+    val iso: Iso[Instrument, LoadedInstrument] =
+      Iso[Instrument, LoadedInstrument](Page.LoadedInstrument(_))(_.instrument)

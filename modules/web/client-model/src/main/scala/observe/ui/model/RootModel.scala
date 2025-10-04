@@ -31,7 +31,7 @@ case class RootModelData(
   userVault:            Pot[Option[UserVault]],
   readyObservations:    Pot[List[ObsSummary]],
   loadedObservations:   Map[Observation.Id, LoadedObservation],
-  selectedObservation:  Option[Observation.Id],
+  // selectedObservation:  Option[Observation.Id],
   isObsTableOpen:       Boolean,
   executionState:       Map[Observation.Id, ExecutionState], // Execution state on the server
   recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
@@ -61,8 +61,18 @@ case class RootModelData(
   lazy val loadedObsByInstrument: Map[Instrument, Observation.Id] =
     loadedObservations.keySet.map(obsId => obsInstrument(obsId).map(_ -> obsId)).flatten.toMap
 
-  lazy val selectedObsSummary: Option[ObsSummary] =
-    selectedObservation.flatMap(readyObservationsMap.get)
+  // lazy val selectedObsSummary: Option[ObsSummary] =
+  //   selectedObservation.flatMap(readyObservationsMap.get)
+
+  def withLoadedObservation(obsId: Observation.Id, instrument: Instrument): RootModelData =
+    copy(
+      loadedObservations = loadedObsByInstrument
+        .get(instrument)
+        .fold(loadedObservations)(oldObsId =>
+          loadedObservations - oldObsId
+        ) + (obsId -> LoadedObservation())
+      // selectedObservation = obsId.some
+    )
 
   def isObsLocked(obsId: Observation.Id): Boolean =
     executionState.get(obsId).exists(_.isLocked)
@@ -87,7 +97,7 @@ object RootModelData:
       userVault = Pot.pending,
       readyObservations = Pot.pending,
       loadedObservations = Map.empty,
-      selectedObservation = none,
+      // selectedObservation = none,
       isObsTableOpen = false,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,
@@ -107,8 +117,8 @@ object RootModelData:
     Focus[RootModelData](_.readyObservations)
   val loadedObservations: Lens[RootModelData, Map[Observation.Id, LoadedObservation]] =
     Focus[RootModelData](_.loadedObservations)
-  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]                =
-    Focus[RootModelData](_.selectedObservation)
+  // val selectedObservation: Lens[RootModelData, Option[Observation.Id]]                =
+  //   Focus[RootModelData](_.selectedObservation)
   val isObsTableOpen: Lens[RootModelData, Boolean]                                    =
     Focus[RootModelData](_.isObsTableOpen)
   val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]        =

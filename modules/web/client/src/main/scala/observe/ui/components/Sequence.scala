@@ -9,6 +9,7 @@ import crystal.react.*
 import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.Instrument
 import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
@@ -31,11 +32,12 @@ import observe.ui.model.RootModelData
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
+import observe.ui.model.Page
 
-case class Home(rootModel: RootModel) extends ReactFnProps(Home)
+case class Sequence(rootModel: RootModel, instrument: Instrument) extends ReactFnProps(Home)
 
 object Home
-    extends ReactFnComponent[Home](props =>
+    extends ReactFnComponent[Sequence](props =>
       for
         ctx         <- useContext(AppContext.ctx)
         sequenceApi <- useContext(SequenceApi.ctx)
@@ -63,9 +65,7 @@ object Home
               rootModelData.readyObservationsMap
                 .get(obsId)
                 .foldMap: obsRow =>
-                  props.rootModel.data
-                    .zoom(RootModelData.nighttimeObservation)
-                    .set(LoadedObservation(obsId).some) >>
+                  props.rootModel.data.mod(_.withLoadedObservation(obsId, obsRow.instrument)) >>
                     sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync >>
                     closeObsTable
 
