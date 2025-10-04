@@ -47,14 +47,14 @@ object Home
 
         val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
 
-        val isNighttimeObsTableOpen: View[Boolean] =
-          props.rootModel.data.zoom(RootModelData.isNighttimeObsTableOpen)
+        val isObsTableOpen: View[Boolean] =
+          props.rootModel.data.zoom(RootModelData.isObsTableOpen)
 
         val openObsTable: Callback =
-          isNighttimeObsTableOpen.set(true)
+          isObsTableOpen.set(true)
 
         val closeObsTable: Callback =
-          isNighttimeObsTableOpen.set(false)
+          isObsTableOpen.set(false)
 
         val loadObservation: Reusable[Observation.Id => Callback] =
           Reusable
@@ -117,7 +117,7 @@ object Home
                     obsStates,
                     loadedObs,
                     loadObservation,
-                    isNighttimeObsTableOpen,
+                    isObsTableOpen,
                     renderExploreLinkToObs
                   )
                 ),

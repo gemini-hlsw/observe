@@ -3,12 +3,14 @@
 
 package observe.ui.model
 
+import cats.Eq
+import cats.derived.*
 import cats.syntax.option.*
 import crystal.Pot
 import crystal.Pot.Pending
 import crystal.Pot.Ready
 import crystal.syntax.*
-import lucuma.core.model.Observation
+// import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.sequence.SequenceData
@@ -16,12 +18,13 @@ import monocle.Focus
 import monocle.Lens
 
 case class LoadedObservation private (
-  obsId:        Observation.Id,
+  // obsId:        Observation.Id,
   refreshing:   Boolean = false,
   errorMsg:     Option[String] = none,
   sequenceData: Pot[SequenceData] = Pot.pending,
   visits:       Pot[Option[ExecutionVisits]] = Pot.pending
-):
+  // cancelUpdates: F[Unit]
+) derives Eq:
   def toPot: Pot[LoadedObservation] =
     errorMsg match
       case Some(msg) => Pot.error(new RuntimeException(msg))
@@ -60,9 +63,10 @@ case class LoadedObservation private (
       case ExecutionVisits.Flamingos2(visits) => visits.last.id
 
 object LoadedObservation:
-  def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
+  // def apply(obsId: Observation.Id): LoadedObservation = new LoadedObservation(obsId)
+  def apply(): LoadedObservation = new LoadedObservation()
 
-  val obsId: Lens[LoadedObservation, Observation.Id]                = Focus[LoadedObservation](_.obsId)
+  // val obsId: Lens[LoadedObservation, Observation.Id]                = Focus[LoadedObservation](_.obsId)
   val refreshing: Lens[LoadedObservation, Boolean]                  = Focus[LoadedObservation](_.refreshing)
   val errorMsg: Lens[LoadedObservation, Option[String]]             = Focus[LoadedObservation](_.errorMsg)
   val sequenceData: Lens[LoadedObservation, Pot[SequenceData]]      =

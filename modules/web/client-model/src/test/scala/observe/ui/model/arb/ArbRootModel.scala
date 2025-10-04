@@ -52,9 +52,9 @@ trait ArbRootModel:
     for
       uv    <- arbitrary[Pot[Option[UserVault]]]
       ros   <- arbitrary[Pot[List[ObsSummary]]]
-      nto   <- arbitrary[Option[LoadedObservation]]
-      inoto <- arbitrary[Boolean]
-      dtos  <- arbitrary[List[LoadedObservation]]
+      los   <- arbitrary[Map[Observation.Id, LoadedObservation]]
+      so    <- arbitrary[Option[Observation.Id]]
+      ioto  <- arbitrary[Boolean]
       es    <- arbitrary[Map[Observation.Id, ExecutionState]]
       ri    <- arbitrary[ObsRecordedIds]
       sp    <- arbitrary[Map[Observation.Id, StepProgress]]
@@ -69,9 +69,9 @@ trait ArbRootModel:
     yield RootModelData(
       uv,
       ros,
-      nto,
-      inoto,
-      dtos,
+      los,
+      so,
+      ioto,
       es,
       ri,
       sp,
@@ -89,9 +89,9 @@ trait ArbRootModel:
     (
       Pot[Option[UserVault]],
       Pot[List[ObsSummary]],
-      Option[LoadedObservation],
+      List[(Observation.Id, LoadedObservation)],
+      Option[Observation.Id],
       Boolean,
-      List[LoadedObservation],
       List[(Observation.Id, ExecutionState)],
       ObsRecordedIds,
       List[(Observation.Id, StepProgress)],
@@ -107,9 +107,9 @@ trait ArbRootModel:
   ].contramap: x =>
     (x.userVault,
      x.readyObservations,
-     x.nighttimeObservation,
-     x.isNighttimeObsTableOpen,
-     x.daytimeObservations,
+     x.loadedObservations.toList,
+     x.selectedObservation,
+     x.isObsTableOpen,
      x.executionState.toList,
      x.recordedIds,
      x.obsProgress.toList,

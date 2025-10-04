@@ -10,6 +10,7 @@ import crystal.*
 import crystal.react.View
 import eu.timepit.refined.cats.given
 import eu.timepit.refined.types.string.NonEmptyString
+import lucuma.core.enums.Instrument
 import lucuma.core.model.Observation
 import lucuma.core.model.sequence.Step
 import lucuma.ui.sso.UserVault
@@ -27,22 +28,22 @@ import observe.model.odb.ObsRecordedIds
 import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
-  userVault:               Pot[Option[UserVault]],
-  readyObservations:       Pot[List[ObsSummary]],
-  nighttimeObservation:    Option[LoadedObservation],
-  isNighttimeObsTableOpen: Boolean,
-  daytimeObservations:     List[LoadedObservation],
-  executionState:          Map[Observation.Id, ExecutionState], // Execution state on the server
-  recordedIds:             ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
-  obsProgress:             Map[Observation.Id, StepProgress],
-  userSelectedStep:        Map[Observation.Id, Step.Id],
-  obsRequests:             Map[Observation.Id, ObservationRequests],
-  conditions:              Conditions,
-  observer:                Option[Observer],
-  operator:                Option[Operator],
-  userSelectionMessage:    Option[NonEmptyString],
-  globalLog:               FixedLengthBuffer[LogMessage],
-  isAudioActivated:        IsAudioActivated
+  userVault:            Pot[Option[UserVault]],
+  readyObservations:    Pot[List[ObsSummary]],
+  loadedObservations:   Map[Observation.Id, LoadedObservation],
+  selectedObservation:  Option[Observation.Id],
+  isObsTableOpen:       Boolean,
+  executionState:       Map[Observation.Id, ExecutionState], // Execution state on the server
+  recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
+  obsProgress:          Map[Observation.Id, StepProgress],
+  userSelectedStep:     Map[Observation.Id, Step.Id],
+  obsRequests:          Map[Observation.Id, ObservationRequests],
+  conditions:           Conditions,
+  observer:             Option[Observer],
+  operator:             Option[Operator],
+  userSelectionMessage: Option[NonEmptyString],
+  globalLog:            FixedLengthBuffer[LogMessage],
+  isAudioActivated:     IsAudioActivated
 ) derives Eq:
   // TODO Readonly mode won't depend on user logged or not, but on their permissions.
   // For the moment we are requiring the STAFF role, so all logged users can operate.
@@ -54,10 +55,14 @@ case class RootModelData(
   lazy val readyObservationsMap: Map[Observation.Id, ObsSummary] =
     readyObservations.toOption.orEmpty.map(o => o.obsId -> o).toMap
 
-  lazy val nighttimeObsSummary: Option[ObsSummary] =
-    nighttimeObservation
-      .map(_.obsId)
-      .flatMap(readyObservationsMap.get)
+  def obsInstrument(obsId: Observation.Id): Option[Instrument] =
+    readyObservationsMap.get(obsId).map(_.instrument)
+
+  lazy val loadedObsByInstrument: Map[Instrument, Observation.Id] =
+    loadedObservations.keySet.map(obsId => obsInstrument(obsId).map(_ -> obsId)).flatten.toMap
+
+  lazy val selectedObsSummary: Option[ObsSummary] =
+    selectedObservation.flatMap(readyObservationsMap.get)
 
   def isObsLocked(obsId: Observation.Id): Boolean =
     executionState.get(obsId).exists(_.isLocked)
@@ -81,9 +86,9 @@ object RootModelData:
     RootModelData(
       userVault = Pot.pending,
       readyObservations = Pot.pending,
-      nighttimeObservation = none,
-      isNighttimeObsTableOpen = false,
-      daytimeObservations = List.empty,
+      loadedObservations = Map.empty,
+      selectedObservation = none,
+      isObsTableOpen = false,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,
       obsProgress = Map.empty,
@@ -97,32 +102,32 @@ object RootModelData:
       isAudioActivated = IsAudioActivated.True
     )
 
-  val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                     = Focus[RootModelData](_.userVault)
-  val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]              =
+  val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                          = Focus[RootModelData](_.userVault)
+  val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]                   =
     Focus[RootModelData](_.readyObservations)
-  val nighttimeObservation: Lens[RootModelData, Option[LoadedObservation]]       =
-    Focus[RootModelData](_.nighttimeObservation)
-  val isNighttimeObsTableOpen: Lens[RootModelData, Boolean]                      =
-    Focus[RootModelData](_.isNighttimeObsTableOpen)
-  val daytimeObservations: Lens[RootModelData, List[LoadedObservation]]          =
-    Focus[RootModelData](_.daytimeObservations)
-  val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]   =
+  val loadedObservations: Lens[RootModelData, Map[Observation.Id, LoadedObservation]] =
+    Focus[RootModelData](_.loadedObservations)
+  val selectedObservation: Lens[RootModelData, Option[Observation.Id]]                =
+    Focus[RootModelData](_.selectedObservation)
+  val isObsTableOpen: Lens[RootModelData, Boolean]                                    =
+    Focus[RootModelData](_.isObsTableOpen)
+  val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]        =
     Focus[RootModelData](_.executionState)
-  val recordedIds: Lens[RootModelData, ObsRecordedIds]                           = Focus[RootModelData](_.recordedIds)
-  val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]        =
+  val recordedIds: Lens[RootModelData, ObsRecordedIds]                                = Focus[RootModelData](_.recordedIds)
+  val obsProgress: Lens[RootModelData, Map[Observation.Id, StepProgress]]             =
     Focus[RootModelData](_.obsProgress)
-  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]        =
+  val userSelectedStep: Lens[RootModelData, Map[Observation.Id, Step.Id]]             =
     Focus[RootModelData](_.userSelectedStep)
-  val obsRequests: Lens[RootModelData, Map[Observation.Id, ObservationRequests]] =
+  val obsRequests: Lens[RootModelData, Map[Observation.Id, ObservationRequests]]      =
     Focus[RootModelData](_.obsRequests)
-  val conditions: Lens[RootModelData, Conditions]                                = Focus[RootModelData](_.conditions)
-  val observer: Lens[RootModelData, Option[Observer]]                            = Focus[RootModelData](_.observer)
-  val operator: Lens[RootModelData, Option[Operator]]                            = Focus[RootModelData](_.operator)
-  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]          =
+  val conditions: Lens[RootModelData, Conditions]                                     = Focus[RootModelData](_.conditions)
+  val observer: Lens[RootModelData, Option[Observer]]                                 = Focus[RootModelData](_.observer)
+  val operator: Lens[RootModelData, Option[Operator]]                                 = Focus[RootModelData](_.operator)
+  val userSelectionMessage: Lens[RootModelData, Option[NonEmptyString]]               =
     Focus[RootModelData](_.userSelectionMessage)
-  val globalLog: Lens[RootModelData, FixedLengthBuffer[LogMessage]]              =
+  val globalLog: Lens[RootModelData, FixedLengthBuffer[LogMessage]]                   =
     Focus[RootModelData](_.globalLog)
-  val isAudioActivated: Lens[RootModelData, IsAudioActivated]                    =
+  val isAudioActivated: Lens[RootModelData, IsAudioActivated]                         =
     Focus[RootModelData](_.isAudioActivated)
 
 case class RootModel(clientConfig: Pot[ClientConfig], data: View[RootModelData])

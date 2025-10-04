@@ -33,12 +33,12 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.reusability.given
 
 case class ObsListPopup(
-  queue:                   List[SessionQueueRow],
-  obsStates:               Map[Observation.Id, SequenceState],
-  loadedObs:               Option[LoadedObservation],
-  loadObs:                 Reusable[Observation.Id => Callback],
-  isNighttimeObsTableOpen: View[Boolean],
-  linkToExploreObs:        Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
+  queue:            List[SessionQueueRow],
+  obsStates:        Map[Observation.Id, SequenceState],
+  loadedObs:        Option[LoadedObservation],
+  loadObs:          Reusable[Observation.Id => Callback],
+  isObsTableOpen:   View[Boolean],
+  linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(ObsListPopup):
   val obsIdPotOpt: Option[Pot[Observation.Id]] =
     loadedObs.map(obs => obs.toPot.flatMap(_.sequenceData).map(_.config).as(obs.obsId))
@@ -51,7 +51,7 @@ case class ObsListPopup(
     loadedObs.isEmpty
 
   val isNighttimeObsTableShown: Boolean =
-    isNighttimeObsTableForced || isNighttimeObsTableOpen.get
+    isNighttimeObsTableForced || isObsTableOpen.get
 
 object ObsListPopup
     extends ReactFnComponent[ObsListPopup](props =>
@@ -194,7 +194,7 @@ object ObsListPopup
             )
         globalFilter <- useState("")
       yield Dialog(
-        onHide = props.isNighttimeObsTableOpen.set(false),
+        onHide = props.isObsTableOpen.set(false),
         visible = props.isNighttimeObsTableShown,
         position = DialogPosition.Top,
         closeOnEscape = !props.isNighttimeObsTableForced,

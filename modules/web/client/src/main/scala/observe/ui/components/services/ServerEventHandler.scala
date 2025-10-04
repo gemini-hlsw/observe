@@ -187,7 +187,7 @@ trait ServerEventHandler:
       case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
-        val nighttimeLoadedObsId: Option[Observation.Id] = sequenceExecution.headOption.map(_._1)
+        // val nighttimeLoadedObsId: Option[Observation.Id] = sequenceExecution.headOption.map(_._1)
 
         rootModelDataMod(
           RootModelData.operator.replace(operator) >>>
@@ -198,13 +198,9 @@ trait ServerEventHandler:
             // Or should we only reset the observations that change? In that case, we need to do a thorough comparison.
             // TODO: Maybe just reset in the ApiImpl when we get the response from the server.
             RootModelData.obsRequests.replace(Map.empty) >>>
-            RootModelData.nighttimeObservation.modify { obs =>
-              // Only set if loaded obsId changed, otherwise config is lost.
-              if (nighttimeLoadedObsId.isDefined && obs.map(_.obsId) =!= nighttimeLoadedObsId)
-                nighttimeLoadedObsId.map(LoadedObservation(_))
-              else
-                obs.map(LoadedObservation.refreshing.replace(false))
-            } >>>
+            RootModelData.loadedObservations.each
+              .andThen(LoadedObservation.refreshing)
+              .replace(false) >>>
             sequenceExecution
               .collect:
                 case (obsId, execState) if !execState.sequenceState.isRunning =>
@@ -230,8 +226,10 @@ trait ServerEventHandler:
         rootModelDataMod(RootModelData.obsProgress.at(obsId).replace(stepProgress.some)) // >>
       case ClientEvent.AtomLoaded(obsId, sequenceType, atomId)                            =>
         rootModelDataMod:
-          RootModelData.nighttimeObservation.some.modify:
-            instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)
+          RootModelData.loadedObservations
+            .index(obsId)
+            .modify:
+              instrumentRemoveFutureAtomFromLoadedObservation(sequenceType, atomId)
       // TODO Also requery future sequence here. It may have changed. Or there may be new atoms to load past the limit.
       // We're actually doing it in SequenceTable, but it should be done here, since we only need to do it once per atom,
       // and in SequenceTable it's being done once per step.
@@ -245,8 +243,8 @@ trait ServerEventHandler:
               List(s"Error in observation $obsId: Instrument $ins already in use").pure[IO]
             case Notification.LoadingFailed(obsId, msgs)             =>
               rootModelDataMod:
-                RootModelData.nighttimeObservation.some
-                  .filter(_.obsId === obsId)
+                RootModelData.loadedObservations
+                  .index(obsId)
                   .modify:
                     LoadedObservation.errorMsg.replace(msgs.mkString("; ").some)
               .as(msgs)

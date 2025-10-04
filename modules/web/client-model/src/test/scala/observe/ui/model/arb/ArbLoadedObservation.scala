@@ -18,20 +18,19 @@ import org.scalacheck.Cogen
 trait ArbLoadedObservation:
   given Arbitrary[LoadedObservation] = Arbitrary:
     for
-      obsId        <- arbitrary[Observation.Id]
       refreshing   <- arbitrary[Boolean]
       errorMsg     <- arbitrary[Option[String]]
       sequenceData <- arbitrary[Pot[SequenceData]]
     yield
-      val base = LoadedObservation(obsId)
+      val base = LoadedObservation()
       (LoadedObservation.refreshing.replace(refreshing) >>>
         LoadedObservation.errorMsg.replace(errorMsg))(
         sequenceData.toOptionTry.fold(base)(sd => base.withSequenceData(sd.toEither))
       )
 
   given Cogen[LoadedObservation] =
-    Cogen[(Observation.Id, Boolean, Option[String], Pot[SequenceData])]
+    Cogen[(Boolean, Option[String], Pot[SequenceData])]
       .contramap: s =>
-        (s.obsId, s.refreshing, s.errorMsg, s.sequenceData)
+        (s.refreshing, s.errorMsg, s.sequenceData)
 
 object ArbLoadedObservation extends ArbLoadedObservation
