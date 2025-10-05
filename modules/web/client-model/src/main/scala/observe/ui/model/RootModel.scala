@@ -32,7 +32,7 @@ case class RootModelData(
   readyObservations:    Pot[List[ObsSummary]],
   loadedObservations:   Map[Observation.Id, LoadedObservation],
   // selectedObservation:  Option[Observation.Id],
-  isObsTableOpen:       Boolean,
+  // isObsTableOpen:       Boolean,
   executionState:       Map[Observation.Id, ExecutionState], // Execution state on the server
   recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
   obsProgress:          Map[Observation.Id, StepProgress],
@@ -98,7 +98,7 @@ object RootModelData:
       readyObservations = Pot.pending,
       loadedObservations = Map.empty,
       // selectedObservation = none,
-      isObsTableOpen = false,
+      // isObsTableOpen = false,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,
       obsProgress = Map.empty,
@@ -119,8 +119,8 @@ object RootModelData:
     Focus[RootModelData](_.loadedObservations)
   // val selectedObservation: Lens[RootModelData, Option[Observation.Id]]                =
   //   Focus[RootModelData](_.selectedObservation)
-  val isObsTableOpen: Lens[RootModelData, Boolean]                                    =
-    Focus[RootModelData](_.isObsTableOpen)
+  // val isObsTableOpen: Lens[RootModelData, Boolean]                                    =
+  //   Focus[RootModelData](_.isObsTableOpen)
   val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]        =
     Focus[RootModelData](_.executionState)
   val recordedIds: Lens[RootModelData, ObsRecordedIds]                                = Focus[RootModelData](_.recordedIds)

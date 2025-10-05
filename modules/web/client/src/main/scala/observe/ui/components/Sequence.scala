@@ -23,7 +23,6 @@ import observe.model.ClientConfig
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.components.queue.ObsList
 import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
@@ -54,82 +53,80 @@ object Home
         val loadedObs: Option[LoadedObservation] =
           loadedObsId.flatMap(rootModelData.loadedObservations.get)
 
-        val isObsTableOpen: View[Boolean] =
-          props.rootModel.data.zoom(RootModelData.isObsTableOpen)
+        // val isObsTableOpen: View[Boolean] =
+        //   props.rootModel.data.zoom(RootModelData.isObsTableOpen)
 
-        val openObsTable: Callback =
-          isObsTableOpen.set(true)
+        // val openObsTable: Callback =
+        //   isObsTableOpen.set(true)
 
-        val closeObsTable: Callback =
-          isObsTableOpen.set(false)
+        // val closeObsTable: Callback =
+        //   isObsTableOpen.set(false)
 
-        val loadObservation: Reusable[Observation.Id => Callback] =
-          Reusable
-            .implicitly(rootModelData.readyObservationsMap.keySet)
-            .withValue: obsId =>
-              rootModelData.readyObservationsMap
-                .get(obsId)
-                .foldMap: obsRow =>
-                  props.rootModel.data.mod(_.withLoadedObservation(obsId, obsRow.instrument)) >>
-                    sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync >>
-                    closeObsTable
+        // val loadObservation: Reusable[Observation.Id => Callback] =
+        //   Reusable
+        //     .implicitly(rootModelData.readyObservationsMap.keySet)
+        //     .withValue: obsId =>
+        //       rootModelData.readyObservationsMap
+        //         .get(obsId)
+        //         .foldMap: obsRow =>
+        //           props.rootModel.data.mod(_.withLoadedObservation(obsId, obsRow.instrument)) >>
+        //             sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync // >>
+        //       // closeObsTable
 
-        val obsStates: Map[Observation.Id, SequenceState] =
-          rootModelData.executionState.view.mapValues(_.sequenceState).toMap
-
-        (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
-          .renderPot: (clientConfig, _) =>
-            val renderExploreLinkToObs
-              : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
-              Reusable.always: obsIdOrRef =>
-                <.a(
-                  ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
-                  ^.target.blank,
-                  ^.onClick ==> (e => e.stopPropagationCB),
-                  ObserveStyles.ExternalLink
-                )(Icons.ExternalLink).withTooltip(
-                  content = "Open in Explore",
-                  position = Tooltip.Position.Top,
-                  showDelay = 200
-                )
-
+        // (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
+        //   .renderPot: (clientConfig, _) =>
+        //     val renderExploreLinkToObs
+        //       : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
+        //       Reusable.always: obsIdOrRef =>
+        //         <.a(
+        //           ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
+        //           ^.target.blank,
+        //           ^.onClick ==> (e => e.stopPropagationCB),
+        //           ObserveStyles.ExternalLink
+        //         )(Icons.ExternalLink).withTooltip(
+        //           content = "Open in Explore",
+        //           position = Tooltip.Position.Top,
+        //           showDelay = 200
+        //         )
+        (clientConfigPot, props.rootModel.renderExploreLinkToObs).tupled
+          .renderPot: (clientConfig, renderExploreLinkToObs) =>
             <.div(ObserveStyles.MainPanel)(
-              rootModelData.readyObservations
-                .map:
-                  _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
-                    .map: obs =>
-                      SessionQueueRow(
-                        obs,
-                        rootModelData.executionState
-                          .get(obs.obsId)
-                          .map(_.sequenceState)
-                          .getOrElse(SequenceState.Idle),
-                        props.rootModel.data.get.observer,
-                        ObsClass.Nighttime,
-                        loadedObsId.contains_(obs.obsId),
-                        // We can't easily know step numbers nor the total number of steps.
-                        // Maybe we want to show pending and total times instead?
-                        none,
-                        none,
-                        false
-                      )
-                .renderPot(
-                  ObsList(
-                    _,
-                    obsStates,
-                    rootModelData.loadedObservations,
-                    loadObservation,
-                    isObsTableOpen,
-                    renderExploreLinkToObs
-                  )
-                ),
+              // rootModelData.readyObservations
+              // .map:
+              //   _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
+              //     .map: obs =>
+              //       SessionQueueRow(
+              //         obs,
+              //         rootModelData.executionState
+              //           .get(obs.obsId)
+              //           .map(_.sequenceState)
+              //           .getOrElse(SequenceState.Idle),
+              //         props.rootModel.data.get.observer,
+              //         ObsClass.Nighttime,
+              //         loadedObsId.contains_(obs.obsId),
+              //         // We can't easily know step numbers nor the total number of steps.
+              //         // Maybe we want to show pending and total times instead?
+              //         none,
+              //         none,
+              //         false
+              //       )
+              // .renderPot(
+              //   ObsList(
+              //     _,
+              //     obsStates,
+              //     rootModelData.loadedObservations,
+              //     loadObservation,
+              //     isObsTableOpen,
+              //     renderExploreLinkToObs
+              //   )
+              // ),
               loadedObsId
                 .flatMap(rootModelData.readyObservationsMap.get)
                 .map:
                   ObservationExecutionDisplay(
                     _,
                     props.rootModel.data,
-                    openObsTable,
+                    // openObsTable,
                     renderExploreLinkToObs
                   )
               ,

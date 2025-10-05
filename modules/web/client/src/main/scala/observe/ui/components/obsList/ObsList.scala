@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2025 Association of Universities for Research in Astronomy, Inc. (AURA)
 // For license information see LICENSE or https://opensource.org/licenses/BSD-3-Clause
 
-package observe.ui.components.queue
+package observe.ui.components.obsList
 
 import cats.Order.given
 import cats.syntax.all.*
@@ -22,8 +22,7 @@ import lucuma.react.table.*
 import lucuma.refined.*
 import lucuma.ui.LucumaIcons
 import lucuma.ui.primereact.DebouncedInputText
-import lucuma.ui.primereact.LucumaPrimeStyles
-import lucuma.ui.reusability.given
+// import lucuma.ui.primereact.LucumaPrimeStyles
 import lucuma.ui.table.*
 import observe.model.SequenceState
 import observe.ui.Icons
@@ -31,17 +30,47 @@ import observe.ui.ObserveStyles
 import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.reusability.given
+import observe.ui.model.ObsSummary
+import lucuma.core.enums.ObservationWorkflowState
+import observe.model.ExecutionState
+import observe.model.Observer
+import observe.ui.model.enums.ObsClass
+import observe.model.UnknownTargetName
 
 case class ObsList(
-  queue:            List[SessionQueueRow],
-  obsStates:        Map[Observation.Id, SequenceState],
-  loadedObs:        Map[Observation.Id, LoadedObservation],
-  loadObs:          Reusable[Observation.Id => Callback],
-  isObsTableOpen:   View[Boolean],
-  linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
+  readyObservations: List[ObsSummary],
+  executionState:    Map[Observation.Id, ExecutionState],
+  observer:          Option[Observer],
+  loadedObs:         Map[Observation.Id, LoadedObservation],
+  loadObs:           Reusable[Observation.Id => Callback],
+  // isObsTableOpen:    View[Boolean],
+  linkToExploreObs:  Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(ObsList):
+  val rows: List[SessionQueueRow] =
+    readyObservations
+      .filterNot(_.workflowState === ObservationWorkflowState.Completed)
+      .map: obs =>
+        SessionQueueRow(
+          obs,
+          executionState
+            .get(obs.obsId)
+            .map(_.sequenceState)
+            .getOrElse(SequenceState.Idle),
+          observer,
+          ObsClass.Nighttime,
+          loadedObs.contains(obs.obsId),
+          // We can't easily know step numbers nor the total number of steps.
+          // Maybe we want to show pending and total times instead?
+          none,
+          none,
+          false
+        )
+
+  val obsStates: Map[Observation.Id, SequenceState] =
+    executionState.view.mapValues(_.sequenceState).toMap
+
   val loadedObsPots: Map[Observation.Id, Pot[Unit]] =
-    loadedObs
+    loadedObs.view
       .mapValues: loadedObs =>
         loadedObs.toPot.flatMap(_.sequenceData).map(_.config).void
       .toMap
@@ -51,11 +80,11 @@ case class ObsList(
       obsId ->
         (pot.isPending || pot.toOption.flatMap(_ => obsStates.get(obsId)).exists(s => !s.canUnload))
 
-  val isNighttimeObsTableForced: Boolean =
-    loadedObs.isEmpty
+  // val isNighttimeObsTableForced: Boolean =
+  //   loadedObs.isEmpty
 
-  val isNighttimeObsTableShown: Boolean =
-    isNighttimeObsTableForced || isObsTableOpen.get
+  // val isNighttimeObsTableShown: Boolean =
+  //   isNighttimeObsTableForced || isObsTableOpen.get
 
 object ObsList
     extends ReactFnComponent[ObsList](props =>
@@ -190,7 +219,7 @@ object ObsList
           useReactTable:
             TableOptions(
               cols,
-              Reusable.implicitly(props.queue),
+              Reusable.implicitly(props.rows),
               enableColumnResizing = true,
               columnResizeMode = ColumnResizeMode.OnChange,
               enableSorting = true,
@@ -200,30 +229,44 @@ object ObsList
               globalFilterFn = FilterMethod.globalFilterFn(cols)
             )
         globalFilter <- useState("")
-      yield Dialog(
-        onHide = props.isObsTableOpen.set(false),
-        visible = props.isNighttimeObsTableShown,
-        position = DialogPosition.Top,
-        closeOnEscape = !props.isNighttimeObsTableForced,
-        closable = !props.isNighttimeObsTableForced,
-        modal = !props.isNighttimeObsTableForced,
-        dismissableMask = !props.isNighttimeObsTableForced,
-        resizable = true,
-        clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
-        header = <.div(ObserveStyles.ObsListHeader)(
-          <.span("Candidate Observations"),
-          <.span(
-            DebouncedInputText(
-              id = "obs-filter".refined,
-              delayMillis = 250,
-              value = table.getState().globalFilter.getOrElse(""),
-              onChange = v => table.setGlobalFilter(v.some),
-              placeholder = "<Keyword filter>"
-            )
-          ),
-          <.span
-        )
-      )(
+      yield
+      // yield Dialog(
+      //   onHide = props.isObsTableOpen.set(false),
+      //   visible = props.isNighttimeObsTableShown,
+      //   position = DialogPosition.Top,
+      //   closeOnEscape = !props.isNighttimeObsTableForced,
+      //   closable = !props.isNighttimeObsTableForced,
+      //   modal = !props.isNighttimeObsTableForced,
+      //   dismissableMask = !props.isNighttimeObsTableForced,
+      //   resizable = true,
+      //   clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
+      //   header = <.div(ObserveStyles.ObsListHeader)(
+      //     <.span("Candidate Observations"),
+      //     <.span(
+      //       DebouncedInputText(
+      //         id = "obs-filter".refined,
+      //         delayMillis = 250,
+      //         value = table.getState().globalFilter.getOrElse(""),
+      //         onChange = v => table.setGlobalFilter(v.some),
+      //         placeholder = "<Keyword filter>"
+      //       )
+      //     ),
+      //     <.span
+      //   )
+      // )(
+      // React.Fragment(
+      // <.div(ObserveStyles.ObsListHeader)(
+      <.div(
+        // <.span("Candidate Observations"),
+        <.span(
+          DebouncedInputText(
+            id = "obs-filter".refined,
+            delayMillis = 250,
+            value = table.getState().globalFilter.getOrElse(""),
+            onChange = v => table.setGlobalFilter(v.some),
+            placeholder = "<Keyword filter>"
+          )
+        ),
         PrimeAutoHeightVirtualizedTable(
           table,
           estimateSize = _ => 30.toPx,
@@ -251,4 +294,5 @@ object ObsList
           overscan = 5
         )
       )
+      // )
     )

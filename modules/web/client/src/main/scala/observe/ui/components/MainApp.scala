@@ -351,7 +351,7 @@ object MainApp extends ServerEventHandler:
                 requests = rootModelData.zoom(RootModelData.obsRequests)
               ),
               // ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
-              ODBQueryApiImpl(???)
+              ODBQueryApiImpl(null)
             )
 
         def provideApiCtx(children: VdomNode*) =

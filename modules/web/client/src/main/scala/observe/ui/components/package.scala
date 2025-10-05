@@ -7,6 +7,19 @@ import lucuma.react.primereact.Tooltip
 import lucuma.react.primereact.TooltipOptions
 import observe.ui.model.AppContext
 import org.typelevel.log4cats.Logger
+import observe.ui.model.RootModel
+import crystal.Pot
+import crystal.syntax.*
+import lucuma.core.model.Program
+import observe.model.Observation
+import lucuma.core.model.ObservationReference
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
+import japgolly.scalajs.react.Reusable
+import cats.syntax.all.given
+import observe.ui.Icons
+import observe.ui.ObserveStyles
+import lucuma.react.primereact.tooltip.*
 
 // TODO See if this can be generalized to any number of hooks
 def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T =
@@ -21,3 +34,20 @@ def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T 
 
 val DefaultTooltipOptions =
   TooltipOptions(position = Tooltip.Position.Top, showDelay = 100, autoHide = false)
+
+extension (rootModel: RootModel)
+  def renderExploreLinkToObs
+    : Pot[Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]] =
+    (rootModel.clientConfig, rootModel.data.get.userVault.map(_.toPot).flatten).tupled
+      .map: (clientConfig, _) =>
+        Reusable.always: obsIdOrRef =>
+          <.a(
+            ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
+            ^.target.blank,
+            ^.onClick ==> (e => e.stopPropagationCB),
+            ObserveStyles.ExternalLink
+          )(Icons.ExternalLink).withTooltip(
+            content = "Open in Explore",
+            position = Tooltip.Position.Top,
+            showDelay = 200
+          )

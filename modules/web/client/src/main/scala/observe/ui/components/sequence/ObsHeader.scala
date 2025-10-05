@@ -34,7 +34,7 @@ case class ObsHeader(
   observer:         View[Option[Observer]],
   operator:         View[Option[Operator]],
   conditions:       View[Conditions],
-  openObsTable:     Callback,
+  // openObsTable:     Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObsHeader)
 
@@ -71,18 +71,18 @@ object ObsHeader
           props.observer,
           props.operator,
           props.conditions
-        ),
-        <.div(ObserveStyles.ObsLoadSection)(
-          Button(
-            clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.loadedObsId.exists(_.isPending),
-            icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
-            tooltip = "Load another sequence",
-            tooltipOptions = TooltipOptions(position = Tooltip.Position.Top, showDelay = 100),
-            onClick = props.openObsTable,
-            disabled = !props.sequenceState.canUnload
-          )
         )
+        // <.div(ObserveStyles.ObsLoadSection)(
+        //   Button(
+        //     clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
+        //     loading = props.loadedObsId.exists(_.isPending),
+        //     icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
+        //     loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
+        //     tooltip = "Load another sequence",
+        //     tooltipOptions = TooltipOptions(position = Tooltip.Position.Top, showDelay = 100),
+        //     onClick = props.openObsTable,
+        //     disabled = !props.sequenceState.canUnload
+        //   )
+        // )
       )
     )

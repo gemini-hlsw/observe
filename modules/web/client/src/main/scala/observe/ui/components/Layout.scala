@@ -38,7 +38,8 @@ object Layout
         odbStatus <- useStreamOnMount(ctx.odbClient.statusStream)
         theme     <- useTheme(initial = Theme.Dark)
       yield
-        val appTab: AppTab           = AppTab.from(props.resolution.page)
+        val appTab: AppTab = AppTab.from(props.resolution.page)
+
         val appTabView: View[AppTab] =
           View(
             appTab,
@@ -70,7 +71,15 @@ object Layout
                 "side-tabs".refined,
                 appTabView,
                 ctx.pageUrl(_),
-                _ => true
+                {
+                  case AppTab.LoadedObs(instrument) =>
+                    println(
+                      s"Rendering tab for loaded instrument $instrument: ${props.rootModel.data.get.loadedObsByInstrument
+                          .contains(instrument)}"
+                    )
+                    props.rootModel.data.get.loadedObsByInstrument.contains(instrument)
+                  case _                            => true
+                }
               ),
               <.div(LayoutStyles.MainBody)(
                 props.resolution.renderP(props.rootModel)

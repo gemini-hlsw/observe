@@ -12,6 +12,14 @@ import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
 import japgolly.scalajs.react.ReactMonocle.*
+import japgolly.scalajs.react.vdom.VdomElement
+import observe.ui.components.obsList.ObsListTab
+import lucuma.ui.syntax.all.*
+import observe.ui.model.RootModelData
+import japgolly.scalajs.react.*
+import lucuma.core.model.Observation
+import cats.syntax.all.given
+import crystal.react.View
 
 object Routing:
 
@@ -26,7 +34,7 @@ object Routing:
 
       val rules =
         (emptyRule
-          | staticRoute(root, Observations) ~> render(UnderConstruction())
+          | staticRoute(root, Observations) ~> renderP(p => ObsListTab(p))
           | dynamicRouteCT((root / instrument).xmapL(LoadedInstrument.iso)) ~> dynRenderP {
             case (LoadedInstrument(i), m) =>
               Sequence(m, i)
