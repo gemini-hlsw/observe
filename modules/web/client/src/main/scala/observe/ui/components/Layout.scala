@@ -71,12 +71,12 @@ object Layout
                 "side-tabs".refined,
                 appTabView,
                 ctx.pageUrl(_),
-                {
+                separatorAfter = {
+                  case AppTab.ObsList => true
+                  case _              => false
+                },
+                filterPred = {
                   case AppTab.LoadedObs(instrument) =>
-                    println(
-                      s"Rendering tab for loaded instrument $instrument: ${props.rootModel.data.get.loadedObsByInstrument
-                          .contains(instrument)}"
-                    )
                     props.rootModel.data.get.loadedObsByInstrument.contains(instrument)
                   case _                            => true
                 }
