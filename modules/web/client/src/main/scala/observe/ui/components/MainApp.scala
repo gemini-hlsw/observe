@@ -350,7 +350,8 @@ object MainApp extends ServerEventHandler:
                 observer = observer,
                 requests = rootModelData.zoom(RootModelData.obsRequests)
               ),
-              ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
+              // ODBQueryApiImpl(rootModelData.zoom(RootModelData.nighttimeObservation).async)
+              ODBQueryApiImpl(???)
             )
 
         def provideApiCtx(children: VdomNode*) =
@@ -375,12 +376,14 @@ object MainApp extends ServerEventHandler:
             Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
           )
 
-        val nighttimeObservationSequenceState: SequenceState =
-          rootModelData.get.nighttimeObservation
-            .map(_.obsId)
-            .flatMap(rootModelData.get.executionState.get)
-            .map(_.sequenceState)
-            .getOrElse(SequenceState.Idle)
+        val loadedObservationsSequenceState: Map[Observation.Id, SequenceState] =
+          rootModelData.get.loadedObservations.keys
+            .map: obsId =>
+              obsId -> rootModelData.get.executionState
+                .get(obsId)
+                .map(_.sequenceState)
+                .getOrElse(SequenceState.Idle)
+            .toMap
 
         // When both AppContext and UserVault are ready, proceed to render.
         (ctxPot.value, rootModelData.zoom(RootModelData.userVault).toPotView).tupled.renderPot:
@@ -404,8 +407,8 @@ object MainApp extends ServerEventHandler:
                 provideApiCtx(
                   ResyncingPopup,
                   ObservationSyncer(
-                    rootModelData.zoom(RootModelData.nighttimeObservation),
-                    nighttimeObservationSequenceState
+                    rootModelData.zoom(RootModelData.loadedObservations),
+                    loadedObservationsSequenceState
                   ),
                   router(RootModel(clientConfigPot.get, rootModelData))
                 )

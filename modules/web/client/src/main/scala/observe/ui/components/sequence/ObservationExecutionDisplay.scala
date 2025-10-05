@@ -35,8 +35,8 @@ case class ObservationExecutionDisplay(
 
 object ObservationExecutionDisplay
     extends ReactFnComponent[ObservationExecutionDisplay](props =>
-      val selectedObsId                = props.selectedObs.obsId
-      val rootModelData: RootModelData = props.rootModelData.get
+      val selectedObsId: Observation.Id = props.selectedObs.obsId
+      val rootModelData: RootModelData  = props.rootModelData.get
 
       val executionStateOpt: ViewOpt[ExecutionState] =
         props.rootModelData
@@ -44,7 +44,7 @@ object ObservationExecutionDisplay
 
       val loadedObsViewPot: Pot[View[LoadedObservation]] =
         props.rootModelData
-          .zoom(RootModelData.nighttimeObservation)
+          .zoom(RootModelData.loadedObservations.index(selectedObsId))
           .toOptionView
           .toPot
 
@@ -58,12 +58,14 @@ object ObservationExecutionDisplay
           (Observation.Id, SequenceData, View[Option[ExecutionVisits]], View[ExecutionState])
         ]
       ] =
-        rootModelData.nighttimeObservation.map: lo =>
-          (lo.toPot.map(_.obsId),
-           lo.sequenceData,
-           visitsViewPot,
-           executionStateOpt.toOptionView.toPot
-          ).tupled
+        rootModelData.loadedObservations
+          .get(selectedObsId)
+          .map: lo =>
+            (lo.toPot.as(selectedObsId),
+             lo.sequenceData,
+             visitsViewPot,
+             executionStateOpt.toOptionView.toPot
+            ).tupled
 
       val currentRecordedVisit: Option[RecordedVisit] =
         rootModelData.recordedIds.value.get(selectedObsId)

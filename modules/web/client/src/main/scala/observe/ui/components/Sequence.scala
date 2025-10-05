@@ -23,7 +23,7 @@ import observe.model.ClientConfig
 import observe.model.SequenceState
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import observe.ui.components.queue.ObsListPopup
+import observe.ui.components.queue.ObsList
 import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
@@ -33,6 +33,7 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
 import observe.ui.model.Page
+import java.util.Observer
 
 case class Sequence(rootModel: RootModel, instrument: Instrument) extends ReactFnProps(Home)
 
@@ -47,7 +48,11 @@ object Home
         val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
         val rootModelData: RootModelData       = props.rootModel.data.get
 
-        val loadedObs: Option[LoadedObservation] = rootModelData.nighttimeObservation
+        val loadedObsId: Option[Observation.Id] =
+          rootModelData.loadedObsByInstrument.get(props.instrument)
+
+        val loadedObs: Option[LoadedObservation] =
+          loadedObsId.flatMap(rootModelData.loadedObservations.get)
 
         val isObsTableOpen: View[Boolean] =
           props.rootModel.data.zoom(RootModelData.isObsTableOpen)
@@ -74,9 +79,6 @@ object Home
 
         (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
           .renderPot: (clientConfig, _) =>
-            val loadedObsId: Option[Observation.Id] =
-              rootModelData.nighttimeObservation.map(_.obsId)
-
             val renderExploreLinkToObs
               : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
               Reusable.always: obsIdOrRef =>
@@ -112,16 +114,17 @@ object Home
                         false
                       )
                 .renderPot(
-                  ObsListPopup(
+                  ObsList(
                     _,
                     obsStates,
-                    loadedObs,
+                    rootModelData.loadedObservations,
                     loadObservation,
                     isObsTableOpen,
                     renderExploreLinkToObs
                   )
                 ),
-              rootModelData.nighttimeObsSummary
+              loadedObsId
+                .flatMap(rootModelData.readyObservationsMap.get)
                 .map:
                   ObservationExecutionDisplay(
                     _,

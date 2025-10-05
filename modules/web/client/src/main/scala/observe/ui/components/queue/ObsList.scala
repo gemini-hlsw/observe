@@ -32,20 +32,24 @@ import observe.ui.model.LoadedObservation
 import observe.ui.model.SessionQueueRow
 import observe.ui.model.reusability.given
 
-case class ObsListPopup(
+case class ObsList(
   queue:            List[SessionQueueRow],
   obsStates:        Map[Observation.Id, SequenceState],
-  loadedObs:        Option[LoadedObservation],
+  loadedObs:        Map[Observation.Id, LoadedObservation],
   loadObs:          Reusable[Observation.Id => Callback],
   isObsTableOpen:   View[Boolean],
   linkToExploreObs: Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
-) extends ReactFnProps(ObsListPopup):
-  val obsIdPotOpt: Option[Pot[Observation.Id]] =
-    loadedObs.map(obs => obs.toPot.flatMap(_.sequenceData).map(_.config).as(obs.obsId))
+) extends ReactFnProps(ObsList):
+  val loadedObsPots: Map[Observation.Id, Pot[Unit]] =
+    loadedObs
+      .mapValues: loadedObs =>
+        loadedObs.toPot.flatMap(_.sequenceData).map(_.config).void
+      .toMap
 
-  val isProcessing: Boolean =
-    obsIdPotOpt.exists: obsIdPot =>
-      obsIdPot.isPending || obsIdPot.toOption.flatMap(obsStates.get).exists(s => !s.canUnload)
+  val obsIsProcessing: Map[Observation.Id, Boolean] =
+    loadedObsPots.map: (obsId, pot) =>
+      obsId ->
+        (pot.isPending || pot.toOption.flatMap(_ => obsStates.get(obsId)).exists(s => !s.canUnload))
 
   val isNighttimeObsTableForced: Boolean =
     loadedObs.isEmpty
@@ -53,24 +57,24 @@ case class ObsListPopup(
   val isNighttimeObsTableShown: Boolean =
     isNighttimeObsTableForced || isObsTableOpen.get
 
-object ObsListPopup
-    extends ReactFnComponent[ObsListPopup](props =>
+object ObsList
+    extends ReactFnComponent[ObsList](props =>
       val ColDef = ColumnDef[SessionQueueRow].WithColumnFilters.WithGlobalFilter[String]
 
       def rowClass(
         loadingPotOpt: Option[Pot[Unit]],
         row:           SessionQueueRow,
-        selectedObsId: Option[Observation.Id]
+        loadedObsIds:  Set[Observation.Id]
       ): Css =
-        val isFocused = selectedObsId.contains_(row.obsId)
+        val isLoaded: Boolean = loadedObsIds.contains_(row.obsId)
 
         if (row.status === SequenceState.Completed)
           ObserveStyles.RowPositive
         else if (row.status.isRunning)
           ObserveStyles.RowWarning
-        else if (row.status.isError || (isFocused && loadingPotOpt.exists(_.isError)))
+        else if (row.status.isError || (isLoaded && loadingPotOpt.exists(_.isError)))
           ObserveStyles.RowNegative
-        else if (isFocused && !row.status.isInProcess)
+        else if (isLoaded && !row.status.isInProcess)
           ObserveStyles.RowActive
         else
           Css.Empty
@@ -105,9 +109,9 @@ object ObsListPopup
 
       def columns(
         obsStates:        Map[Observation.Id, SequenceState],
-        loadingPotOpt:    Option[Pot[Unit]],
-        isProcessing:     Boolean,
-        loadedObsId:      Option[Observation.Id],
+        loadedObsPots:    Map[Observation.Id, Pot[Unit]],
+        obsIsProcessing:  Map[Observation.Id, Boolean],
+        // loadedObsIds:     Set[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
       ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] =
@@ -118,15 +122,15 @@ object ObsListPopup
             header = "",
             cell = cell =>
               renderCentered(
-                if (loadedObsId.contains(cell.value))
-                  statusIconRenderer(loadingPotOpt, obsStates.get(cell.value))
+                if (loadedObsPots.contains(cell.value))
+                  statusIconRenderer(loadedObsPots.get(cell.value), obsStates.get(cell.value))
                 else
                   Button(
                     icon = Icons.FileArrowUp,
                     size = Button.Size.Small,
                     onClick = loadObs(cell.value),
                     clazz = ObserveStyles.LoadButton,
-                    disabled = isProcessing,
+                    disabled = obsIsProcessing.get(cell.value).contains(true),
                     tooltip = "Load observation"
                   )
               ),
@@ -168,17 +172,20 @@ object ObsListPopup
           ).sortable.withFilterMethod(FilterMethod.StringSelect())
         )
 
+      // TODO REVISE - OR put somewhere stable.
+      given [K, V: Reusability]: Reusability[Map[K, V]] = Reusability.map
+
       for
         cols         <-
           useMemo(
             (props.obsStates,
-             props.obsIdPotOpt.map(_.void),
-             props.isProcessing,
-             props.loadedObs.map(_.obsId),
+             props.loadedObsPots,
+             props.obsIsProcessing,
+             //  props.loadedObs.map(_.obsId),
              props.loadObs,
              props.linkToExploreObs
             )
-          )(columns(_, _, _, _, _, _))
+          )(columns(_, _, _, _, _))
         table        <-
           useReactTable:
             TableOptions(
@@ -225,14 +232,15 @@ object ObsListPopup
           rowMod = row =>
             TagMod(
               rowClass(
-                props.obsIdPotOpt.map(_.void),
+                props.loadedObsPots.get(row.original.obsId),
                 row.original,
-                props.loadedObs.map(_.obsId)
+                props.loadedObsPots.keySet
               ),
               ^.onDoubleClick --> props
                 .loadObs(row.original.obsId)
                 .unless_(
-                  props.loadedObs.map(_.obsId).contains_(row.original.obsId) || props.isProcessing
+                  props.loadedObsPots.contains(row.original.obsId) ||
+                    props.obsIsProcessing(row.original.obsId)
                 )
             ),
           cellMod = cell =>
