@@ -10,7 +10,6 @@ import crystal.Pot
 import crystal.Pot.Pending
 import crystal.Pot.Ready
 import crystal.syntax.*
-// import lucuma.core.model.Observation
 import lucuma.core.model.Visit
 import lucuma.schemas.model.ExecutionVisits
 import lucuma.ui.sequence.SequenceData

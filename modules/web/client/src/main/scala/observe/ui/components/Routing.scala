@@ -3,23 +3,23 @@
 
 package observe.ui.components
 
+import cats.syntax.all.given
+import crystal.react.View
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.extra.router.*
+import japgolly.scalajs.react.vdom.VdomElement
 import lucuma.core.enums.Instrument
+import lucuma.core.model.Observation
 import lucuma.core.util.Enumerated
 import lucuma.react.common.*
 import lucuma.ui.components.UnderConstruction
+import lucuma.ui.syntax.all.*
+import observe.ui.components.obsList.ObsListTab
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
-import japgolly.scalajs.react.ReactMonocle.*
-import japgolly.scalajs.react.vdom.VdomElement
-import observe.ui.components.obsList.ObsListTab
-import lucuma.ui.syntax.all.*
 import observe.ui.model.RootModelData
-import japgolly.scalajs.react.*
-import lucuma.core.model.Observation
-import cats.syntax.all.given
-import crystal.react.View
 
 object Routing:
 

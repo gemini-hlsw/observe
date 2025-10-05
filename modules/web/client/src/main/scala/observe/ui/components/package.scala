@@ -3,23 +3,23 @@
 
 package observe.ui.components
 
-import lucuma.react.primereact.Tooltip
-import lucuma.react.primereact.TooltipOptions
-import observe.ui.model.AppContext
-import org.typelevel.log4cats.Logger
-import observe.ui.model.RootModel
+import cats.syntax.all.given
 import crystal.Pot
 import crystal.syntax.*
-import lucuma.core.model.Program
-import observe.model.Observation
-import lucuma.core.model.ObservationReference
 import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.Reusable
-import cats.syntax.all.given
+import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.model.ObservationReference
+import lucuma.core.model.Program
+import lucuma.react.primereact.Tooltip
+import lucuma.react.primereact.TooltipOptions
+import lucuma.react.primereact.tooltip.*
+import observe.model.Observation
 import observe.ui.Icons
 import observe.ui.ObserveStyles
-import lucuma.react.primereact.tooltip.*
+import observe.ui.model.AppContext
+import observe.ui.model.RootModel
+import org.typelevel.log4cats.Logger
 
 // TODO See if this can be generalized to any number of hooks
 def usingContext[F[_], P, T](fn: Logger[F] ?=> P => T): (P, AppContext[F]) => T =

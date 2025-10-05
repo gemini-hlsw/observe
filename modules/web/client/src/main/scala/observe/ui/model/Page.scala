@@ -5,7 +5,6 @@ package observe.ui.model
 
 import cats.Eq
 import cats.derived.*
-// import lucuma.core.model.Observation
 import lucuma.core.enums.Instrument
 import monocle.Iso
 

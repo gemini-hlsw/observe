@@ -5,34 +5,21 @@ package observe.ui.components
 
 import cats.syntax.all.*
 import crystal.Pot
-import crystal.react.*
-import crystal.syntax.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
 import lucuma.core.enums.Instrument
-import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Observation
-import lucuma.core.model.ObservationReference
-import lucuma.core.model.Program
 import lucuma.react.common.ReactFnComponent
 import lucuma.react.common.ReactFnProps
 import lucuma.react.primereact.*
-import lucuma.react.primereact.tooltip.*
 import lucuma.ui.syntax.all.*
 import observe.model.ClientConfig
-import observe.model.SequenceState
-import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
-import observe.ui.model.LoadedObservation
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
-import observe.ui.model.SessionQueueRow
-import observe.ui.model.enums.ObsClass
 import observe.ui.services.SequenceApi
-import observe.ui.model.Page
-import java.util.Observer
 
 case class Sequence(rootModel: RootModel, instrument: Instrument) extends ReactFnProps(Home)
 
@@ -42,91 +29,21 @@ object Home
         ctx         <- useContext(AppContext.ctx)
         sequenceApi <- useContext(SequenceApi.ctx)
       yield
-        import ctx.given
-
         val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
         val rootModelData: RootModelData       = props.rootModel.data.get
 
         val loadedObsId: Option[Observation.Id] =
           rootModelData.loadedObsByInstrument.get(props.instrument)
 
-        val loadedObs: Option[LoadedObservation] =
-          loadedObsId.flatMap(rootModelData.loadedObservations.get)
-
-        // val isObsTableOpen: View[Boolean] =
-        //   props.rootModel.data.zoom(RootModelData.isObsTableOpen)
-
-        // val openObsTable: Callback =
-        //   isObsTableOpen.set(true)
-
-        // val closeObsTable: Callback =
-        //   isObsTableOpen.set(false)
-
-        // val loadObservation: Reusable[Observation.Id => Callback] =
-        //   Reusable
-        //     .implicitly(rootModelData.readyObservationsMap.keySet)
-        //     .withValue: obsId =>
-        //       rootModelData.readyObservationsMap
-        //         .get(obsId)
-        //         .foldMap: obsRow =>
-        //           props.rootModel.data.mod(_.withLoadedObservation(obsId, obsRow.instrument)) >>
-        //             sequenceApi.loadObservation(obsId, obsRow.instrument).runAsync // >>
-        //       // closeObsTable
-
-        // (clientConfigPot, rootModelData.userVault.map(_.toPot).flatten).tupled
-        //   .renderPot: (clientConfig, _) =>
-        //     val renderExploreLinkToObs
-        //       : Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode] =
-        //       Reusable.always: obsIdOrRef =>
-        //         <.a(
-        //           ^.href := clientConfig.linkToExploreObs(obsIdOrRef).toString,
-        //           ^.target.blank,
-        //           ^.onClick ==> (e => e.stopPropagationCB),
-        //           ObserveStyles.ExternalLink
-        //         )(Icons.ExternalLink).withTooltip(
-        //           content = "Open in Explore",
-        //           position = Tooltip.Position.Top,
-        //           showDelay = 200
-        //         )
         (clientConfigPot, props.rootModel.renderExploreLinkToObs).tupled
           .renderPot: (clientConfig, renderExploreLinkToObs) =>
             <.div(ObserveStyles.MainPanel)(
-              // rootModelData.readyObservations
-              // .map:
-              //   _.filterNot(_.workflowState === ObservationWorkflowState.Completed)
-              //     .map: obs =>
-              //       SessionQueueRow(
-              //         obs,
-              //         rootModelData.executionState
-              //           .get(obs.obsId)
-              //           .map(_.sequenceState)
-              //           .getOrElse(SequenceState.Idle),
-              //         props.rootModel.data.get.observer,
-              //         ObsClass.Nighttime,
-              //         loadedObsId.contains_(obs.obsId),
-              //         // We can't easily know step numbers nor the total number of steps.
-              //         // Maybe we want to show pending and total times instead?
-              //         none,
-              //         none,
-              //         false
-              //       )
-              // .renderPot(
-              //   ObsList(
-              //     _,
-              //     obsStates,
-              //     rootModelData.loadedObservations,
-              //     loadObservation,
-              //     isObsTableOpen,
-              //     renderExploreLinkToObs
-              //   )
-              // ),
               loadedObsId
                 .flatMap(rootModelData.readyObservationsMap.get)
                 .map:
                   ObservationExecutionDisplay(
                     _,
                     props.rootModel.data,
-                    // openObsTable,
                     renderExploreLinkToObs
                   )
               ,

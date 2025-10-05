@@ -6,10 +6,10 @@ package observe.ui.components.obsList
 import cats.Order.given
 import cats.syntax.all.*
 import crystal.Pot
-import crystal.react.View
 import crystal.react.given
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
+import lucuma.core.enums.ObservationWorkflowState
 import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.Program
@@ -22,28 +22,26 @@ import lucuma.react.table.*
 import lucuma.refined.*
 import lucuma.ui.LucumaIcons
 import lucuma.ui.primereact.DebouncedInputText
-// import lucuma.ui.primereact.LucumaPrimeStyles
 import lucuma.ui.table.*
+import observe.model.ExecutionState
+import observe.model.Observer
 import observe.model.SequenceState
+import observe.model.UnknownTargetName
 import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.model.LoadedObservation
-import observe.ui.model.SessionQueueRow
-import observe.ui.model.reusability.given
 import observe.ui.model.ObsSummary
-import lucuma.core.enums.ObservationWorkflowState
-import observe.model.ExecutionState
-import observe.model.Observer
+import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
-import observe.model.UnknownTargetName
+import observe.ui.model.reusability.given
 
+// TODO EXTERNAL PROCESS THAT KEEPS READY OBSERVATIONS IN SYNC WITH THE BACKEND
 case class ObsList(
   readyObservations: List[ObsSummary],
   executionState:    Map[Observation.Id, ExecutionState],
   observer:          Option[Observer],
   loadedObs:         Map[Observation.Id, LoadedObservation],
   loadObs:           Reusable[Observation.Id => Callback],
-  // isObsTableOpen:    View[Boolean],
   linkToExploreObs:  Reusable[Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode]
 ) extends ReactFnProps(ObsList):
   val rows: List[SessionQueueRow] =
@@ -79,12 +77,6 @@ case class ObsList(
     loadedObsPots.map: (obsId, pot) =>
       obsId ->
         (pot.isPending || pot.toOption.flatMap(_ => obsStates.get(obsId)).exists(s => !s.canUnload))
-
-  // val isNighttimeObsTableForced: Boolean =
-  //   loadedObs.isEmpty
-
-  // val isNighttimeObsTableShown: Boolean =
-  //   isNighttimeObsTableForced || isObsTableOpen.get
 
 object ObsList
     extends ReactFnComponent[ObsList](props =>
@@ -140,7 +132,6 @@ object ObsList
         obsStates:        Map[Observation.Id, SequenceState],
         loadedObsPots:    Map[Observation.Id, Pot[Unit]],
         obsIsProcessing:  Map[Observation.Id, Boolean],
-        // loadedObsIds:     Set[Observation.Id],
         loadObs:          Observation.Id => Callback,
         linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
       ): List[ColumnDef[SessionQueueRow, ?, Nothing, WithFilterMethod, String, ?, Nothing]] =
@@ -210,7 +201,6 @@ object ObsList
             (props.obsStates,
              props.loadedObsPots,
              props.obsIsProcessing,
-             //  props.loadedObs.map(_.obsId),
              props.loadObs,
              props.linkToExploreObs
             )
@@ -230,31 +220,6 @@ object ObsList
             )
         globalFilter <- useState("")
       yield
-      // yield Dialog(
-      //   onHide = props.isObsTableOpen.set(false),
-      //   visible = props.isNighttimeObsTableShown,
-      //   position = DialogPosition.Top,
-      //   closeOnEscape = !props.isNighttimeObsTableForced,
-      //   closable = !props.isNighttimeObsTableForced,
-      //   modal = !props.isNighttimeObsTableForced,
-      //   dismissableMask = !props.isNighttimeObsTableForced,
-      //   resizable = true,
-      //   clazz = LucumaPrimeStyles.Dialog.Large |+| ObserveStyles.Popup,
-      //   header = <.div(ObserveStyles.ObsListHeader)(
-      //     <.span("Candidate Observations"),
-      //     <.span(
-      //       DebouncedInputText(
-      //         id = "obs-filter".refined,
-      //         delayMillis = 250,
-      //         value = table.getState().globalFilter.getOrElse(""),
-      //         onChange = v => table.setGlobalFilter(v.some),
-      //         placeholder = "<Keyword filter>"
-      //       )
-      //     ),
-      //     <.span
-      //   )
-      // )(
-      // React.Fragment(
       // <.div(ObserveStyles.ObsListHeader)(
       <.div(
         // <.span("Candidate Observations"),
@@ -294,5 +259,4 @@ object ObsList
           overscan = 5
         )
       )
-      // )
     )

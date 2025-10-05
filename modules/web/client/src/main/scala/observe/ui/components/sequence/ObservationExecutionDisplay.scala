@@ -29,7 +29,6 @@ import observe.ui.model.*
 case class ObservationExecutionDisplay(
   selectedObs:      ObsSummary,
   rootModelData:    View[RootModelData],
-  // openObsTable:     Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay)
 
@@ -85,7 +84,6 @@ object ObservationExecutionDisplay
           props.rootModelData.zoom(RootModelData.observer),
           props.rootModelData.zoom(RootModelData.operator),
           props.rootModelData.zoom(RootModelData.conditions),
-          // props.openObsTable,
           props.linkToExploreObs
         ),
         // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR

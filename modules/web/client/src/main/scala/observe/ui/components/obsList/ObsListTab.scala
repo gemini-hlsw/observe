@@ -3,17 +3,16 @@
 
 package observe.ui.components.obsList
 
+import cats.syntax.all.given
+import crystal.react.*
 import japgolly.scalajs.react.*
 import lucuma.react.common.*
-import observe.ui.model.RootModelData
-import observe.model.Observation
-import cats.syntax.all.given
 import lucuma.ui.syntax.all.*
-import crystal.react.*
-import crystal.syntax.*
+import observe.model.Observation
+import observe.ui.components.*
 import observe.ui.model.AppContext
 import observe.ui.model.RootModel
-import observe.ui.components.*
+import observe.ui.model.RootModelData
 
 final case class ObsListTab(rootModel: RootModel) extends ReactFnProps(ObsListTab)
 
