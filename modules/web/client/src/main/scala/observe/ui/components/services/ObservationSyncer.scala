@@ -18,25 +18,46 @@ import lucuma.react.common.ReactFnComponent
 import lucuma.react.common.ReactFnProps
 import lucuma.schemas.ObservationDB
 import lucuma.schemas.odb.input.*
-import lucuma.ui.reusability.given
 import lucuma.ui.syntax.effect.*
 import monocle.Iso
-import observe.model.SequenceState
 import observe.queries.ObsQueriesGQL
 import observe.ui.model.AppContext
 import observe.ui.model.LoadedObservation
+import observe.ui.model.reusability.given
 import observe.ui.services.ODBQueryApi
 import observe.ui.services.SequenceApi
 import org.typelevel.log4cats.Logger
 
 // Renderless component that reloads observation summaries and sequences when observations are selected.
 case class ObservationSyncer(
-  loadedObservations: View[Map[Observation.Id, LoadedObservation]],
-  sequenceStates:     Map[Observation.Id, SequenceState] // TODO Unused for the moment
+  loadedObservations: View[Map[Observation.Id, LoadedObservation]]
 ) extends ReactFnProps(ObservationSyncer)
 
 object ObservationSyncer
     extends ReactFnComponent[ObservationSyncer](props =>
+      def updateSequence(
+        obsId:       Observation.Id,
+        obs:         View[LoadedObservation],
+        odbQueryApi: ODBQueryApi[IO]
+      )(using Logger[IO]): IO[Unit] = {
+        val refreshSequence: IO[Unit] =
+          odbQueryApi
+            .querySequence(obsId)
+            .attempt
+            .flatMap: seqData =>
+              obs.async.mod(_.withSequenceData(seqData))
+
+        val refreshVisits: IO[Unit] =
+          odbQueryApi
+            .queryVisits(obsId, obs.get.lastVisitId)
+            .attempt
+            .flatMap: visits =>
+              obs.async.mod(_.addVisits(visits))
+
+        (refreshSequence, refreshVisits).parTupled.void
+      }
+
+      // Resource providing a stream of updates for the given observation.
       def observationUpdater(
         obsId:       Observation.Id,
         obs:         View[LoadedObservation],
@@ -62,32 +83,15 @@ object ObservationSyncer
         val requerySignal: Resource[IO, fs2.Stream[IO, Unit]] =
           (obsChangedSubscription, datasetChangedSubscription).mapN(_.merge(_))
 
-        val refreshSequence: IO[Unit] =
-          odbQueryApi
-            .querySequence(obsId)
-            .attempt
-            .flatMap: seqData =>
-              obs.async.mod(_.withSequenceData(seqData))
-
-        val refreshVisits: IO[Unit] =
-          odbQueryApi
-            .queryVisits(obsId, obs.get.lastVisitId)
-            .attempt
-            .flatMap: visits =>
-              obs.async.mod(_.addVisits(visits))
-
-          // Option
-          //   .unless(subscribedObsId.value.contains(obsId)):
-          //     Resource.pure(
-          //       fs2.Stream.eval:
-          //         subscribedObsId.setAsync(obsId.some)
-          //     ) >>
-        (refreshSequence, refreshVisits).parTupled.void
+        updateSequence(obsId, obs, odbQueryApi)
           .reRunOnResourceSignals:
             requerySignal
-        // .map(_.merge(odbConnectedSignal))
-        // .orEmpty
       }
+
+      def loadedObsView(obsId: Observation.Id): Option[View[LoadedObservation]] =
+        props.loadedObservations
+          .zoom(Iso.id[Map[Observation.Id, LoadedObservation]].index(obsId))
+          .toOptionView
 
       for
         ctx                    <- useContext(AppContext.ctx)
@@ -106,9 +110,7 @@ object ObservationSyncer
 
             val subEffects: Set[IO[Unit]] =
               toSubscribe.map: obsId =>
-                props.loadedObservations
-                  .zoom(Iso.id[Map[Observation.Id, LoadedObservation]].index(obsId))
-                  .toOptionView
+                loadedObsView(obsId)
                   .fold(IO.unit): obsView =>
                     for
                       (_, canceller) <- observationUpdater(obsId, obsView, odbQueryApi)
@@ -127,61 +129,19 @@ object ObservationSyncer
                 yield ()
 
             (subEffects ++ unsubscribeEffects).toList.parSequence_
-      // stoppedSignal      <- useSignalStream(!props.nighttimeObservationSequenceState.isRunning)
-      // odbConnectedSignal <-
-      //   useMemo(stoppedSignal):
-      //     _.map: // Reusable
-      //       _.map: // Pot
-      //         _.filter(_ === true) // Only signal when sequence is stopped
-      //           .void
-      //           .merge: // Signal when ODB reconnects
-      //             ctx.odbClient.statusStream.changes
-      //               .filter(_ === PersistentClientStatus.Connected)
-      //               .void
-      // _                  <-
-      //   useEffectStreamResourceWithDeps(
-      //     (props.nighttimeObservation.get.map(_.obsId).toPot,
-      //      odbConnectedSignal.sequencePot
-      //     ).tupled.toOption
-      //   ): deps =>
-      //     import ctx.given
+        odbConnectionStatus    <- useStreamOnMount(ctx.odbClient.statusStream.changes)
+        _                      <-
+          useEffectWhenDepsReadyOrChange(odbConnectionStatus.toPot):
+            // On reconnect, reset and refresh all sequences and visits.
+            case PersistentClientStatus.Connected =>
+              import ctx.given
 
-      //     deps
-      //       .map: (obsId, odbConnectedSignal) =>
-      //         val obsChangedSubscription: Resource[IO, fs2.Stream[IO, Unit]] =
-      //           ObsQueriesGQL.SingleObservationEditSubscription
-      //             .subscribe[IO](obsId.toObservationEditInput)
-      //             .logGraphQLErrors: _ =>
-      //               "Error received in ObsQueriesGQL.SingleObservationEditSubscription"
-      //             .map(_.void)
-
-      //         val datasetChangedSubscription: Resource[IO, fs2.Stream[IO, Unit]] =
-      //           ObsQueriesGQL.DatasetEditSubscription
-      //             .subscribe[IO](obsId)
-      //             .logGraphQLErrors: _ =>
-      //               "Error received in ObsQueriesGQL.DatasetEditSubscription"
-      //             .map(_.void)
-
-      //         val requerySignal: Resource[IO, fs2.Stream[IO, Unit]] =
-      //           (obsChangedSubscription, datasetChangedSubscription).mapN(_.merge(_))
-
-      //         Option
-      //           .unless(subscribedObsId.value.contains(obsId)):
-      //             Resource.pure(
-      //               fs2.Stream.eval:
-      //                 subscribedObsId.setAsync(obsId.some)
-      //             ) >>
-      //               (odbQueryApi.refreshNighttimeSequence,
-      //                odbQueryApi.refreshNighttimeVisits
-      //               ).parTupled.void
-      //                 .reRunOnResourceSignals:
-      //                   requerySignal
-      //                     .map(_.merge(odbConnectedSignal))
-      //           .orEmpty
-      //       .getOrElse:
-      //         // If connection broken, or observation unselected, cleanup sequence and visits
-      //         Resource.pure:
-      //           fs2.Stream.eval:
-      //             props.nighttimeObservation.async.mod(_.map(_.reset))
+              props.loadedObservations.get.keySet.toList.parTraverse_ : obsId =>
+                loadedObsView(obsId)
+                  .fold(IO.unit): obsView =>
+                    obsView.async.mod(_.reset) >>
+                      updateSequence(obsId, obsView, odbQueryApi)
+            case _                                => // On disconnect, do nothing.
+              IO.unit
       yield EmptyVdom
     )

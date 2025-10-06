@@ -3,23 +3,16 @@
 
 package observe.ui.components
 
-import cats.syntax.all.given
-import crystal.react.View
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.ReactMonocle.*
 import japgolly.scalajs.react.extra.router.*
-import japgolly.scalajs.react.vdom.VdomElement
 import lucuma.core.enums.Instrument
-import lucuma.core.model.Observation
 import lucuma.core.util.Enumerated
 import lucuma.react.common.*
-import lucuma.ui.components.UnderConstruction
-import lucuma.ui.syntax.all.*
 import observe.ui.components.obsList.ObsListTab
 import observe.ui.model.Page
 import observe.ui.model.Page.*
 import observe.ui.model.RootModel
-import observe.ui.model.RootModelData
 
 object Routing:
 
@@ -39,10 +32,6 @@ object Routing:
             case (LoadedInstrument(i), m) =>
               Sequence(m, i)
           })
-        // | staticRoute(root / "schedule", Schedule) ~> render(UnderConstruction())
-        // | staticRoute(root / "nighttime", Nighttime) ~> renderP(rootModel => Home(rootModel))
-        // | staticRoute(root / "daytime", Daytime) ~> render(UnderConstruction())
-        // | staticRoute(root / "excluded", Excluded) ~> render(UnderConstruction()))
 
       val configuration =
         rules

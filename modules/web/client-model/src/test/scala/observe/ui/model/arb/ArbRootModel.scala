@@ -53,8 +53,6 @@ trait ArbRootModel:
       uv    <- arbitrary[Pot[Option[UserVault]]]
       ros   <- arbitrary[Pot[List[ObsSummary]]]
       los   <- arbitrary[Map[Observation.Id, LoadedObservation]]
-      // so    <- arbitrary[Option[Observation.Id]]
-      // ioto  <- arbitrary[Boolean]
       es    <- arbitrary[Map[Observation.Id, ExecutionState]]
       ri    <- arbitrary[ObsRecordedIds]
       sp    <- arbitrary[Map[Observation.Id, StepProgress]]
@@ -90,8 +88,6 @@ trait ArbRootModel:
       Pot[Option[UserVault]],
       Pot[List[ObsSummary]],
       List[(Observation.Id, LoadedObservation)],
-      // Option[Observation.Id],
-      // Boolean,
       List[(Observation.Id, ExecutionState)],
       ObsRecordedIds,
       List[(Observation.Id, StepProgress)],
@@ -108,8 +104,6 @@ trait ArbRootModel:
     (x.userVault,
      x.readyObservations,
      x.loadedObservations.toList,
-     //  x.selectedObservation,
-     //  x.isObsTableOpen,
      x.executionState.toList,
      x.recordedIds,
      x.obsProgress.toList,

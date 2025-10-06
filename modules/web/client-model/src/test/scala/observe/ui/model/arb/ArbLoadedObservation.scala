@@ -6,8 +6,6 @@ package observe.ui.model.arb
 import cats.syntax.all.*
 import crystal.Pot
 import crystal.arb.given
-import lucuma.core.model.Observation
-import lucuma.core.util.arb.ArbGid.given
 import lucuma.ui.sequence.SequenceData
 import lucuma.ui.sequence.arb.ArbSequenceData.given
 import observe.ui.model.LoadedObservation

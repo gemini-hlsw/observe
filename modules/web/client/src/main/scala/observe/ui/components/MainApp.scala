@@ -375,15 +375,6 @@ object MainApp extends ServerEventHandler:
             Button("Refresh page instead", onClick = Callback(dom.window.location.reload()))
           )
 
-        val loadedObservationsSequenceState: Map[Observation.Id, SequenceState] =
-          rootModelData.get.loadedObservations.keys
-            .map: obsId =>
-              obsId -> rootModelData.get.executionState
-                .get(obsId)
-                .map(_.sequenceState)
-                .getOrElse(SequenceState.Idle)
-            .toMap
-
         // When both AppContext and UserVault are ready, proceed to render.
         (ctxPot.value, rootModelData.zoom(RootModelData.userVault).toPotView).tupled.renderPot:
           (ctx, userVault) =>
@@ -405,10 +396,7 @@ object MainApp extends ServerEventHandler:
               )(_ =>
                 provideApiCtx(
                   ResyncingPopup,
-                  ObservationSyncer(
-                    rootModelData.zoom(RootModelData.loadedObservations),
-                    loadedObservationsSequenceState
-                  ),
+                  ObservationSyncer(rootModelData.zoom(RootModelData.loadedObservations)),
                   router(RootModel(clientConfigPot.get, rootModelData))
                 )
               )
