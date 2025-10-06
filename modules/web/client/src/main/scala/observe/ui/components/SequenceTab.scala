@@ -19,15 +19,22 @@ import observe.ui.components.sequence.ObservationExecutionDisplay
 import observe.ui.model.AppContext
 import observe.ui.model.RootModel
 import observe.ui.model.RootModelData
+import observe.ui.model.enums.AppTab
 import observe.ui.services.SequenceApi
 
-case class Sequence(rootModel: RootModel, instrument: Instrument) extends ReactFnProps(Home)
+case class SequenceTab(rootModel: RootModel, instrument: Instrument) extends ReactFnProps(Home)
 
 object Home
-    extends ReactFnComponent[Sequence](props =>
+    extends ReactFnComponent[SequenceTab](props =>
       for
         ctx         <- useContext(AppContext.ctx)
         sequenceApi <- useContext(SequenceApi.ctx)
+        _           <-
+          useEffectWithDeps(props.rootModel.data.get.isStateInitialized): isInit =>
+            ctx
+              .replacePage(AppTab.ObsList)
+              .unless_ :
+                !isInit || props.rootModel.data.get.loadedObsByInstrument.contains(props.instrument)
       yield
         val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
         val rootModelData: RootModelData       = props.rootModel.data.get

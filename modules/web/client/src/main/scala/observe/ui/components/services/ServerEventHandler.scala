@@ -187,8 +187,6 @@ trait ServerEventHandler:
       case ClientEvent.ChecksOverrideEvent(_)                                             =>
         IO.unit // TODO Update the UI
       case ClientEvent.ObserveState(sequenceExecution, conditions, operator, recordedIds) =>
-        // val nighttimeLoadedObsId: Option[Observation.Id] = sequenceExecution.headOption.map(_._1)
-
         rootModelDataMod(
           RootModelData.operator.replace(operator) >>>
             RootModelData.conditions.replace(conditions) >>>
@@ -207,7 +205,8 @@ trait ServerEventHandler:
                 case (obsId, execState) if !execState.sequenceState.isRunning =>
                   RootModelData.obsProgress.at(obsId).replace(none)
               .toList
-              .combineAll
+              .combineAll >>>
+            RootModelData.isStateInitialized.replace(true)
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)

@@ -29,10 +29,9 @@ import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Pot[Option[UserVault]],
+  isStateInitialized:   Boolean,
   readyObservations:    Pot[List[ObsSummary]],
   loadedObservations:   Map[Observation.Id, LoadedObservation],
-  // selectedObservation:  Option[Observation.Id],
-  // isObsTableOpen:       Boolean,
   executionState:       Map[Observation.Id, ExecutionState], // Execution state on the server
   recordedIds:          ObsRecordedIds,                      // Map[Observation.Id, RecordedVisit]
   obsProgress:          Map[Observation.Id, StepProgress],
@@ -61,9 +60,6 @@ case class RootModelData(
   lazy val loadedObsByInstrument: Map[Instrument, Observation.Id] =
     loadedObservations.keySet.map(obsId => obsInstrument(obsId).map(_ -> obsId)).flatten.toMap
 
-  // lazy val selectedObsSummary: Option[ObsSummary] =
-  //   selectedObservation.flatMap(readyObservationsMap.get)
-
   // Adds a LoadedObservation for an instrument, removing the previous one for the same instrument, if any.
   def withLoadedObservation(obsId: Observation.Id, instrument: Instrument): RootModelData =
     copy(
@@ -72,7 +68,6 @@ case class RootModelData(
         .fold(loadedObservations)(oldObsId =>
           loadedObservations - oldObsId
         ) + (obsId -> LoadedObservation())
-      // selectedObservation = obsId.some
     )
 
   // Adjusts the loaded observations to the given set, removing any not in the set, adding new ones, and keeping the rest.
@@ -104,10 +99,9 @@ object RootModelData:
   val Initial: RootModelData =
     RootModelData(
       userVault = Pot.pending,
+      isStateInitialized = false,
       readyObservations = Pot.pending,
       loadedObservations = Map.empty,
-      // selectedObservation = none,
-      // isObsTableOpen = false,
       executionState = Map.empty,
       recordedIds = ObsRecordedIds.Empty,
       obsProgress = Map.empty,
@@ -122,14 +116,12 @@ object RootModelData:
     )
 
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                          = Focus[RootModelData](_.userVault)
+  val isStateInitialized: Lens[RootModelData, Boolean]                                =
+    Focus[RootModelData](_.isStateInitialized)
   val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]                   =
     Focus[RootModelData](_.readyObservations)
   val loadedObservations: Lens[RootModelData, Map[Observation.Id, LoadedObservation]] =
     Focus[RootModelData](_.loadedObservations)
-  // val selectedObservation: Lens[RootModelData, Option[Observation.Id]]                =
-  //   Focus[RootModelData](_.selectedObservation)
-  // val isObsTableOpen: Lens[RootModelData, Boolean]                                    =
-  //   Focus[RootModelData](_.isObsTableOpen)
   val executionState: Lens[RootModelData, Map[Observation.Id, ExecutionState]]        =
     Focus[RootModelData](_.executionState)
   val recordedIds: Lens[RootModelData, ObsRecordedIds]                                = Focus[RootModelData](_.recordedIds)

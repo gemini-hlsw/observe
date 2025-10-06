@@ -29,8 +29,7 @@ object Routing:
         (emptyRule
           | staticRoute(root, Observations) ~> renderP(p => ObsListTab(p))
           | dynamicRouteCT((root / instrument).xmapL(LoadedInstrument.iso)) ~> dynRenderP {
-            case (LoadedInstrument(i), m) =>
-              Sequence(m, i)
+            case (LoadedInstrument(i), m) => SequenceTab(m, i)
           })
 
       val configuration =
