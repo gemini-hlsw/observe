@@ -53,6 +53,7 @@ object SeqControlButtons
       yield
         import ctx.given
 
+        // TODO Remove this logic? Do we ever display sequences that are not loaded now?
         val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
 
         <.span(

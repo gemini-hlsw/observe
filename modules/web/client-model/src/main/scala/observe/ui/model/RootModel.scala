@@ -64,6 +64,7 @@ case class RootModelData(
   // lazy val selectedObsSummary: Option[ObsSummary] =
   //   selectedObservation.flatMap(readyObservationsMap.get)
 
+  // Adds a LoadedObservation for an instrument, removing the previous one for the same instrument, if any.
   def withLoadedObservation(obsId: Observation.Id, instrument: Instrument): RootModelData =
     copy(
       loadedObservations = loadedObsByInstrument
@@ -72,6 +73,14 @@ case class RootModelData(
           loadedObservations - oldObsId
         ) + (obsId -> LoadedObservation())
       // selectedObservation = obsId.some
+    )
+
+  // Adjusts the loaded observations to the given set, removing any not in the set, adding new ones, and keeping the rest.
+  def withAdjustedLoadedObservations(obsIds: Set[Observation.Id]): RootModelData =
+    val newObsIds: Set[Observation.Id] = obsIds -- loadedObservations.keySet
+    copy(
+      loadedObservations = loadedObservations.view.filterKeys(obsIds.contains).toMap ++
+        newObsIds.map(newObsId => newObsId -> LoadedObservation()).toMap
     )
 
   def isObsLocked(obsId: Observation.Id): Boolean =

@@ -86,7 +86,6 @@ object ObservationExecutionDisplay
           props.rootModelData.zoom(RootModelData.conditions),
           props.linkToExploreObs
         ),
-        // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
         executionStateAndConfig.map(
           _.renderPot(
             { (loadedObsId, sequenceData, visits, executionState) =>

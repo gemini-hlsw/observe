@@ -201,6 +201,7 @@ trait ServerEventHandler:
             RootModelData.loadedObservations.each
               .andThen(LoadedObservation.refreshing)
               .replace(false) >>>
+            (_.withAdjustedLoadedObservations(sequenceExecution.keySet)) >>>
             sequenceExecution
               .collect:
                 case (obsId, execState) if !execState.sequenceState.isRunning =>
