@@ -291,15 +291,6 @@ body {
   padding-right: 20px;
 }
 
-.ObserveStyles-obsListHeader {
-  display: flex;
-  justify-content: space-between;
-
-  > span {
-    flex: 1 1 0;
-  }
-}
-
 .pl-react-table.p-datatable.p-datatable-hoverable-rows {
   .p-datatable-tbody {
     & > tr {

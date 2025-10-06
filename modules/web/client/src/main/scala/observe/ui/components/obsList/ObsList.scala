@@ -218,10 +218,7 @@ object ObsList
               globalFilterFn = FilterMethod.globalFilterFn(cols)
             )
         globalFilter <- useState("")
-      yield
-      // <.div(ObserveStyles.ObsListHeader)(
-      <.div(
-        // <.span("Candidate Observations"),
+      yield <.div(
         <.span(
           DebouncedInputText(
             id = "obs-filter".refined,
