@@ -19,7 +19,7 @@ import scala.annotation.unused
 trait ODBQueryApi[F[_]: Sync]:
   def queryVisits(
     @unused obsId: Observation.Id,
-    from:          Option[Visit.Id]
+    @unused from:  Option[Visit.Id]
   ): F[Option[ExecutionVisits]] =
     Sync[F].delay(???)
 

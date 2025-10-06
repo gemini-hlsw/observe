@@ -35,7 +35,6 @@ import observe.ui.model.SessionQueueRow
 import observe.ui.model.enums.ObsClass
 import observe.ui.model.reusability.given
 
-// TODO EXTERNAL PROCESS THAT KEEPS READY OBSERVATIONS IN SYNC WITH THE BACKEND
 case class ObsList(
   readyObservations: List[ObsSummary],
   executionState:    Map[Observation.Id, ExecutionState],
