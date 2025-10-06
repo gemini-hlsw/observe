@@ -51,6 +51,7 @@ trait ArbRootModel:
   given Arbitrary[RootModelData] = Arbitrary:
     for
       uv    <- arbitrary[Pot[Option[UserVault]]]
+      isi   <- arbitrary[Boolean]
       ros   <- arbitrary[Pot[List[ObsSummary]]]
       los   <- arbitrary[Map[Observation.Id, LoadedObservation]]
       es    <- arbitrary[Map[Observation.Id, ExecutionState]]
@@ -66,10 +67,9 @@ trait ArbRootModel:
       audio <- arbitrary[IsAudioActivated]
     yield RootModelData(
       uv,
+      isi,
       ros,
       los,
-      // so,
-      // ioto,
       es,
       ri,
       sp,
@@ -86,6 +86,7 @@ trait ArbRootModel:
   given Cogen[RootModelData] = Cogen[
     (
       Pot[Option[UserVault]],
+      Boolean,
       Pot[List[ObsSummary]],
       List[(Observation.Id, LoadedObservation)],
       List[(Observation.Id, ExecutionState)],
@@ -102,6 +103,7 @@ trait ArbRootModel:
     )
   ].contramap: x =>
     (x.userVault,
+     x.isStateInitialized,
      x.readyObservations,
      x.loadedObservations.toList,
      x.executionState.toList,
