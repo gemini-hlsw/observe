@@ -38,11 +38,9 @@ object ObsHeader
           <.div(ObserveStyles.ObsSummaryTitle)(
             SeqControlButtons(
               props.observation.obsId,
-              props.loadedObsId,
               props.refreshing,
               props.sequenceState,
-              props.requests,
-              props.observation.instrument
+              props.requests
             ),
             s"${props.observation.title} [${props.observation.refAndId}]",
             props.linkToExploreObs:

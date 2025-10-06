@@ -35,7 +35,8 @@ case class ObservationExecutionDisplay(
 object ObservationExecutionDisplay
     extends ReactFnComponent[ObservationExecutionDisplay](props =>
       val selectedObsId: Observation.Id = props.selectedObs.obsId
-      val rootModelData: RootModelData  = props.rootModelData.get
+
+      val rootModelData: RootModelData = props.rootModelData.get
 
       val executionStateOpt: ViewOpt[ExecutionState] =
         props.rootModelData
