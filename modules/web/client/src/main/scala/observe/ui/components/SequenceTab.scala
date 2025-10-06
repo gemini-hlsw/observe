@@ -29,12 +29,14 @@ object Home
       for
         ctx         <- useContext(AppContext.ctx)
         sequenceApi <- useContext(SequenceApi.ctx)
-        _           <-
-          useEffectWithDeps(props.rootModel.data.get.isStateInitialized): isInit =>
-            ctx
-              .replacePage(AppTab.ObsList)
-              .unless_ :
-                !isInit || props.rootModel.data.get.loadedObsByInstrument.contains(props.instrument)
+        obsListReady = props.rootModel.data.get.readyObservations.void
+        _           <- // Once obs list is loaded, if the current instrument is not loaded, go to obs list.
+          useEffectWithDeps(obsListReady.toOption):
+            _.foldMap: _ =>
+              ctx
+                .replacePage(AppTab.ObsList)
+                .unless_ :
+                  props.rootModel.data.get.loadedObsByInstrument.contains(props.instrument)
       yield
         val clientConfigPot: Pot[ClientConfig] = props.rootModel.clientConfig
         val rootModelData: RootModelData       = props.rootModel.data.get
@@ -42,8 +44,8 @@ object Home
         val loadedObsId: Option[Observation.Id] =
           rootModelData.loadedObsByInstrument.get(props.instrument)
 
-        (clientConfigPot, props.rootModel.renderExploreLinkToObs).tupled
-          .renderPot: (clientConfig, renderExploreLinkToObs) =>
+        (clientConfigPot, props.rootModel.renderExploreLinkToObs, obsListReady).tupled
+          .renderPot: (clientConfig, renderExploreLinkToObs, _) =>
             <.div(ObserveStyles.MainPanel)(
               loadedObsId
                 .flatMap(rootModelData.readyObservationsMap.get)

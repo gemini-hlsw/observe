@@ -29,7 +29,6 @@ import observe.ui.model.enums.ClientMode
 
 case class RootModelData(
   userVault:            Pot[Option[UserVault]],
-  isStateInitialized:   Boolean,
   readyObservations:    Pot[List[ObsSummary]],
   loadedObservations:   Map[Observation.Id, LoadedObservation],
   executionState:       Map[Observation.Id, ExecutionState], // Execution state on the server
@@ -99,7 +98,6 @@ object RootModelData:
   val Initial: RootModelData =
     RootModelData(
       userVault = Pot.pending,
-      isStateInitialized = false,
       readyObservations = Pot.pending,
       loadedObservations = Map.empty,
       executionState = Map.empty,
@@ -116,8 +114,6 @@ object RootModelData:
     )
 
   val userVault: Lens[RootModelData, Pot[Option[UserVault]]]                          = Focus[RootModelData](_.userVault)
-  val isStateInitialized: Lens[RootModelData, Boolean]                                =
-    Focus[RootModelData](_.isStateInitialized)
   val readyObservations: Lens[RootModelData, Pot[List[ObsSummary]]]                   =
     Focus[RootModelData](_.readyObservations)
   val loadedObservations: Lens[RootModelData, Map[Observation.Id, LoadedObservation]] =

@@ -205,8 +205,7 @@ trait ServerEventHandler:
                 case (obsId, execState) if !execState.sequenceState.isRunning =>
                   RootModelData.obsProgress.at(obsId).replace(none)
               .toList
-              .combineAll >>>
-            RootModelData.isStateInitialized.replace(true)
+              .combineAll
         ) >>
           syncStatusMod(_ => SyncStatus.Synced.some) >>
           configApiStatusMod(_ => ApiStatus.Idle)
