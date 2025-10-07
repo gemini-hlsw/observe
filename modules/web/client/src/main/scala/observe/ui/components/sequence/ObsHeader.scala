@@ -12,13 +12,7 @@ import lucuma.core.model.Observation
 import lucuma.core.model.ObservationReference
 import lucuma.core.model.Program
 import lucuma.react.common.*
-import lucuma.react.fa.IconSize
-import lucuma.react.primereact.Button
-import lucuma.react.primereact.Tooltip
-import lucuma.react.primereact.TooltipOptions
-import lucuma.ui.LucumaIcons
 import observe.model.*
-import observe.ui.Icons
 import observe.ui.ObserveStyles
 import observe.ui.components.ConfigPanel
 import observe.ui.model.ObsSummary
@@ -34,7 +28,6 @@ case class ObsHeader(
   observer:         View[Option[Observer]],
   operator:         View[Option[Operator]],
   conditions:       View[Conditions],
-  openObsTable:     Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObsHeader)
 
@@ -45,11 +38,9 @@ object ObsHeader
           <.div(ObserveStyles.ObsSummaryTitle)(
             SeqControlButtons(
               props.observation.obsId,
-              props.loadedObsId,
               props.refreshing,
               props.sequenceState,
-              props.requests,
-              props.observation.instrument
+              props.requests
             ),
             s"${props.observation.title} [${props.observation.refAndId}]",
             props.linkToExploreObs:
@@ -71,18 +62,6 @@ object ObsHeader
           props.observer,
           props.operator,
           props.conditions
-        ),
-        <.div(ObserveStyles.ObsLoadSection)(
-          Button(
-            clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
-            loading = props.loadedObsId.exists(_.isPending),
-            icon = Icons.FileArrowUp.withFixedWidth().withSize(IconSize.LG),
-            loadingIcon = LucumaIcons.CircleNotch.withFixedWidth().withSize(IconSize.LG),
-            tooltip = "Load another sequence",
-            tooltipOptions = TooltipOptions(position = Tooltip.Position.Top, showDelay = 100),
-            onClick = props.openObsTable,
-            disabled = !props.sequenceState.canUnload
-          )
         )
       )
     )

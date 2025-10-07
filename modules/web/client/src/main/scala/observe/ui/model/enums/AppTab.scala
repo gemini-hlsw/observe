@@ -3,6 +3,7 @@
 
 package observe.ui.model.enums
 
+import lucuma.core.enums.Instrument
 import lucuma.core.util.Display
 import lucuma.core.util.Enumerated
 import observe.ui.model.Page
@@ -18,25 +19,24 @@ import observe.ui.model.Page
  * Within a button group, order is determined by the AppTab Order instance, which is determined by
  * the order in AppTab.all.
  */
-enum AppTab(val title: String) derives Enumerated:
-  case Schedule  extends AppTab("Schedule")
-  case Nighttime extends AppTab("Nighttime")
-  case Daytime   extends AppTab("Daytime")
-  case Excluded  extends AppTab("Excluded")
+enum AppTab(val title: String):
+  case ObsList                           extends AppTab("Observations")
+  case LoadedObs(instrument: Instrument) extends AppTab(instrument.shortName)
 
-  lazy val tag: String = title
-
-  lazy val getPage: Page = this match
-    case AppTab.Schedule  => Page.Schedule
-    case AppTab.Nighttime => Page.Nighttime
-    case AppTab.Daytime   => Page.Daytime
-    case AppTab.Excluded  => Page.Excluded
+  lazy val getPage: Page =
+    this match
+      case ObsList                      => Page.Observations
+      case AppTab.LoadedObs(instrument) => Page.LoadedInstrument(instrument)
 
 object AppTab:
-  def from(page: Page): AppTab = page match
-    case Page.Schedule  => AppTab.Schedule
-    case Page.Nighttime => AppTab.Nighttime
-    case Page.Daytime   => AppTab.Daytime
-    case Page.Excluded  => AppTab.Excluded
+  def from(page: Page): AppTab =
+    page match
+      case Page.Observations        => AppTab.ObsList
+      case Page.LoadedInstrument(i) => AppTab.LoadedObs(i)
+
+  given Enumerated[AppTab] =
+    Enumerated
+      .from(AppTab.ObsList, Enumerated[Instrument].all.map(AppTab.LoadedObs(_))*)
+      .withTag(_.title)
 
   given Display[AppTab] = Display.byShortName(_.title)
