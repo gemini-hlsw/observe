@@ -78,17 +78,17 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
    */
   private def checkResources(obsId: Observation.Id)(st: EngineState[F]): Boolean = {
     // Resources used by running sequences
-    val used = ObserveEngine.resourcesInUse(st)
+    val used: Set[Resource | Instrument] = ObserveEngine.resourcesInUse(st)
 
     // Resources that will be used by sequences in running queues
-    val reservedByQueues = ObserveEngine.resourcesReserved(st)
+    val reservedByQueues: Set[Resource | Instrument] = ObserveEngine.resourcesReserved(st)
 
     st.sequences
       .get(obsId)
-      .exists(x =>
-        x.seqGen.resources.intersect(used).isEmpty && (
+      .exists(seqData =>
+        seqData.seqGen.resources.intersect(used).isEmpty && (
           st.queues.values.filter(_.status.running).exists(_.queue.contains(obsId)) ||
-            x.seqGen.resources.intersect(reservedByQueues).isEmpty
+            seqData.seqGen.resources.intersect(reservedByQueues).isEmpty
         )
       )
   }
@@ -751,10 +751,14 @@ private class ObserveEngineImpl[F[_]: Async: Logger](
         Stream.emit[F, TargetedClientEvent](
           SingleActionEvent(oid, stepId, res, ClientEvent.SingleActionState.Started, none)
         ) ++ buildObserveStateStream(svs, odbProxy)
-      // case Busy(id, cid)                      => Stream.emit(UserNotification(ResourceConflict(id), cid))
-      // case ResourceBusy(oid, sid, res, cid)   =>
-      //   Stream.emit(UserNotification(SubsystemBusy(oid, sid, res), cid))
-      // case NoMoreAtoms(_)                     => Stream.empty
+      case Busy(obsId, clientId)                                                              =>
+        Stream.emit:
+          ClientEvent
+            .UserNotification(Notification.ResourceConflict(obsId))
+            .forClient(clientId)
+      case ResourceBusy(obsId, stepId, resource, clientId)                                    =>
+        Stream.emit:
+          UserNotification(Notification.SubsystemBusy(obsId, stepId, resource)).forClient(clientId)
       case NewAtomLoaded(obsId, sequenceType, atomId)                                         =>
         Stream.emit[F, TargetedClientEvent](ClientEvent.AtomLoaded(obsId, sequenceType, atomId)) ++
           buildObserveStateStream(svs, odbProxy)
