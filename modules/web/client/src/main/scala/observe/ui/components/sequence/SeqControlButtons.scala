@@ -8,7 +8,6 @@ import crystal.*
 import crystal.react.*
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.vdom.html_<^.*
-import lucuma.core.enums.Instrument
 import lucuma.react.common.*
 import lucuma.react.fa.IconSize
 import lucuma.react.primereact.Button
@@ -26,14 +25,10 @@ import observe.ui.services.SequenceApi
 
 case class SeqControlButtons(
   obsId:         Observation.Id,
-  loadedObsId:   Option[Pot[Observation.Id]],
   refreshing:    Pot[View[Boolean]],
   sequenceState: SequenceState,
-  requests:      ObservationRequests,
-  instrument:    Instrument
+  requests:      ObservationRequests
 ) extends ReactFnProps(SeqControlButtons):
-  val isLoading: Boolean             = props.loadedObsId.exists(_.isPending)
-  // val isReady: Boolean               = props.loadedObsId.exists(_.isReady)
   val isUserStopRequested: Boolean   = sequenceState.isUserStopRequested
   val isPauseInFlight: Boolean       = requests.pause === OperationRequest.InFlight
   val isCancelPauseInFlight: Boolean = requests.cancelPause === OperationRequest.InFlight
@@ -53,8 +48,6 @@ object SeqControlButtons
       yield
         import ctx.given
 
-        val selectedObsIsLoaded: Boolean = props.loadedObsId.contains_(props.obsId.ready)
-
         <.span(
           // Button(
           //   clazz = ObserveStyles.PlayButton |+| ObserveStyles.ObsSummaryButton,
@@ -72,8 +65,8 @@ object SeqControlButtons
             tooltip = "Start/Resume sequence",
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.start(props.obsId, RunOverride.Override).runAsync,
-            disabled = props.isLoading || props.isRefreshing || props.isCompleted
-          ).when(selectedObsIsLoaded && !props.isRunning),
+            disabled = props.isRefreshing || props.isCompleted
+          ).when(!props.isRunning),
           Button(
             clazz = ObserveStyles.PauseButton |+| ObserveStyles.ObsSummaryButton,
             icon = Icons.Pause.withFixedWidth().withSize(IconSize.LG),
@@ -81,7 +74,7 @@ object SeqControlButtons
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.pause(props.obsId).runAsync,
             disabled = props.isPauseInFlight || props.isWaitingUserPrompt
-          ).when(selectedObsIsLoaded && props.isRunning && !props.isUserStopRequested),
+          ).when(props.isRunning && !props.isUserStopRequested),
           Button(
             clazz = ObserveStyles.CancelPauseButton |+| ObserveStyles.ObsSummaryButton,
             icon = Icons.CancelPause.withFixedWidth().withSize(IconSize.LG),
@@ -89,7 +82,7 @@ object SeqControlButtons
             tooltipOptions = tooltipOptions,
             onClick = sequenceApi.cancelPause(props.obsId).runAsync,
             disabled = props.isCancelPauseInFlight || props.isWaitingUserPrompt
-          ).when(selectedObsIsLoaded && props.isRunning && props.isUserStopRequested)
+          ).when(props.isRunning && props.isUserStopRequested)
           // Button(
           //   clazz = ObserveStyles.ReloadButton |+| ObserveStyles.ObsSummaryButton,
           //   loading = props.isRefreshing,

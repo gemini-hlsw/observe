@@ -29,13 +29,13 @@ import observe.ui.model.*
 case class ObservationExecutionDisplay(
   selectedObs:      ObsSummary,
   rootModelData:    View[RootModelData],
-  openObsTable:     Callback,
   linkToExploreObs: Either[(Program.Id, Observation.Id), ObservationReference] => VdomNode
 ) extends ReactFnProps(ObservationExecutionDisplay)
 
 object ObservationExecutionDisplay
     extends ReactFnComponent[ObservationExecutionDisplay](props =>
-      val selectedObsId                = props.selectedObs.obsId
+      val selectedObsId: Observation.Id = props.selectedObs.obsId
+
       val rootModelData: RootModelData = props.rootModelData.get
 
       val executionStateOpt: ViewOpt[ExecutionState] =
@@ -44,7 +44,7 @@ object ObservationExecutionDisplay
 
       val loadedObsViewPot: Pot[View[LoadedObservation]] =
         props.rootModelData
-          .zoom(RootModelData.nighttimeObservation)
+          .zoom(RootModelData.loadedObservations.index(selectedObsId))
           .toOptionView
           .toPot
 
@@ -58,12 +58,14 @@ object ObservationExecutionDisplay
           (Observation.Id, SequenceData, View[Option[ExecutionVisits]], View[ExecutionState])
         ]
       ] =
-        rootModelData.nighttimeObservation.map: lo =>
-          (lo.toPot.map(_.obsId),
-           lo.sequenceData,
-           visitsViewPot,
-           executionStateOpt.toOptionView.toPot
-          ).tupled
+        rootModelData.loadedObservations
+          .get(selectedObsId)
+          .map: lo =>
+            (lo.toPot.as(selectedObsId),
+             lo.sequenceData,
+             visitsViewPot,
+             executionStateOpt.toOptionView.toPot
+            ).tupled
 
       val currentRecordedVisit: Option[RecordedVisit] =
         rootModelData.recordedIds.value.get(selectedObsId)
@@ -83,10 +85,8 @@ object ObservationExecutionDisplay
           props.rootModelData.zoom(RootModelData.observer),
           props.rootModelData.zoom(RootModelData.operator),
           props.rootModelData.zoom(RootModelData.conditions),
-          props.openObsTable,
           props.linkToExploreObs
         ),
-        // TODO, If ODB cannot generate a sequence, we still show PENDING instead of ERROR
         executionStateAndConfig.map(
           _.renderPot(
             { (loadedObsId, sequenceData, visits, executionState) =>
